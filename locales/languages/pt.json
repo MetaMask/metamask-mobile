@@ -595,11 +595,13 @@
     "purpose_connect": "conectar",
     "purpose_sign": "confirmar a transação",
     "select_accounts": "Selecione uma conta",
+    "please_wait": "Aguarde"
+  },
+  "account_selector": {
     "prev": "VOLTAR",
     "next": "AVANÇAR",
     "unlock": "Desbloquear",
-    "forget": "Esquecer este dispositivo",
-    "please_wait": "Aguarde"
+    "forget": "Esquecer este dispositivo"
   },
   "app_settings": {
     "title": "Configurações",
@@ -1826,7 +1828,6 @@
     "select_provider": "Selecione seu provedor de preferência",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Alterne para a Mainnet ou Sepolia"
   },
   "walletconnect_sessions": {

@@ -84,6 +84,9 @@ PODS:
   - lottie-react-native (5.1.5):
     - lottie-ios (~> 3.4.0)
     - React-Core
+  - MMKV (1.3.2):
+    - MMKVCore (~> 1.3.2)
+  - MMKVCore (1.3.2)
   - MultiplatformBleAdapter (0.2.0)
   - OpenSSL-Universal (1.1.1100)
   - Permission-BluetoothPeripheral (3.10.1):
@@ -327,6 +330,9 @@ PODS:
     - React
   - react-native-background-timer (2.1.1):
     - React
+  - react-native-blob-jsi-helper (0.3.1):
+    - React
+    - React-Core
   - react-native-ble-plx (3.1.1):
     - MultiplatformBleAdapter (= 0.2.0)
     - RCT-Folly (= 2021.07.22.00)
@@ -344,6 +350,9 @@ PODS:
     - React-Core
   - react-native-camera/RN (3.44.3):
     - React-Core
+  - react-native-compat (2.11.0):
+    - RCT-Folly (= 2021.07.22.00)
+    - React-Core
   - react-native-cookies (6.2.1):
     - React-Core
   - react-native-get-random-values (1.8.0):
@@ -356,7 +365,17 @@ PODS:
     - React
   - react-native-launch-arguments (4.0.1):
     - React
+  - react-native-mmkv (2.11.0):
+    - MMKV (>= 1.2.13)
+    - React-Core
   - react-native-netinfo (6.0.0):
+    - React-Core
+  - react-native-quick-base64 (2.0.8):
+    - React-Core
+  - react-native-quick-crypto (0.6.1):
+    - OpenSSL-Universal
+    - React
+    - React-callinvoker
     - React-Core
   - react-native-randombytes (3.6.1):
     - React-Core
@@ -482,8 +501,8 @@ PODS:
     - React
   - RNDeviceInfo (9.0.2):
     - React-Core
-  - RNFS (2.18.0):
-    - React
+  - RNFS (2.20.0):
+    - React-Core
   - RNGestureHandler (1.10.3):
     - React-Core
   - RNI18n (2.0.15):
@@ -584,6 +603,7 @@ DEPENDENCIES:
   - GzipSwift
   - lottie-ios (from `../node_modules/lottie-ios`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
+  - OpenSSL-Universal
   - OpenSSL-Universal (= 1.1.1100)
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -605,16 +625,21 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - react-native-aes (from `../node_modules/react-native-aes-crypto`)
   - react-native-background-timer (from `../node_modules/react-native-background-timer`)
+  - react-native-blob-jsi-helper (from `../node_modules/react-native-blob-jsi-helper`)
   - react-native-ble-plx (from `../node_modules/react-native-ble-plx`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-branch (from `../node_modules/react-native-branch`)
   - react-native-camera (from `../node_modules/react-native-camera`)
+  - "react-native-compat (from `../node_modules/@walletconnect/react-native-compat`)"
   - "react-native-cookies (from `../node_modules/@react-native-cookies/cookies`)"
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-gzip (from `../node_modules/react-native-gzip`)
   - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
+  - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
+  - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
+  - react-native-quick-crypto (from `../node_modules/react-native-quick-crypto`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
@@ -683,6 +708,8 @@ SPEC REPOS:
     - GZIP
     - GzipSwift
     - libevent
+    - MMKV
+    - MMKVCore
     - MultiplatformBleAdapter
     - OpenSSL-Universal
     - Sentry
@@ -743,6 +770,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-aes-crypto"
   react-native-background-timer:
     :path: "../node_modules/react-native-background-timer"
+  react-native-blob-jsi-helper:
+    :path: "../node_modules/react-native-blob-jsi-helper"
   react-native-ble-plx:
     :path: "../node_modules/react-native-ble-plx"
   react-native-blur:
@@ -751,6 +780,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-branch"
   react-native-camera:
     :path: "../node_modules/react-native-camera"
+  react-native-compat:
+    :path: "../node_modules/@walletconnect/react-native-compat"
   react-native-cookies:
     :path: "../node_modules/@react-native-cookies/cookies"
   react-native-get-random-values:
@@ -761,8 +792,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-in-app-review"
   react-native-launch-arguments:
     :path: "../node_modules/react-native-launch-arguments"
+  react-native-mmkv:
+    :path: "../node_modules/react-native-mmkv"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
+  react-native-quick-base64:
+    :path: "../node_modules/react-native-quick-base64"
+  react-native-quick-crypto:
+    :path: "../node_modules/react-native-quick-crypto"
   react-native-randombytes:
     :path: "../node_modules/react-native-randombytes"
   react-native-safe-area-context:
@@ -864,7 +901,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Base64: cecfb41a004124895a7bcee567a89bae5a89d49b
-  boost: 57d2868c099736d80fcd648bf211b4431e51a558
+  boost: 7dcd2de282d72e344012f7d6564d024930a6a440
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
@@ -887,6 +924,8 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   lottie-ios: 016449b5d8be0c3dcbcfa0a9988469999cd04c5d
   lottie-react-native: 3e722c63015fdb9c27638b0a77969fc412067c18
+  MMKV: f21593c0af4b3f2a0ceb8f820f28bb639ea22bb7
+  MMKVCore: 31b4cb83f8266467eef20a35b6d78e409a11060d
   MultiplatformBleAdapter: ea8bac405ec200d0ca9de0f89afef6f06fb2abbc
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Permission-BluetoothPeripheral: 247e379c9ecb4b1af2b87f73e4a15a00a5bc0c1f
@@ -907,16 +946,21 @@ SPEC CHECKSUMS:
   React-logger: 56699550750c013096a11dce3bc996e7dd583835
   react-native-aes: ff31f0dd4c791eb423a631ee04570fcf3c618924
   react-native-background-timer: 1b6e6b4e10f1b74c367a1fdc3c72b67c619b222b
+  react-native-blob-jsi-helper: 13c10135af4614dbc0712afba5960784cd44f043
   react-native-ble-plx: 74ef9a718eff574f2072d49b2e8950fb24ecdf22
   react-native-blur: cfdad7b3c01d725ab62a8a729f42ea463998afa2
   react-native-branch: 4e42fda662d96893afbbd02839806931398e3d2e
   react-native-camera: b8cc03e2feec0c04403d0998e37cf519d8fd4c6f
+  react-native-compat: d411b454141009ceca781cd1ca44132cace77c45
   react-native-cookies: f54fcded06bb0cda05c11d86788020b43528a26c
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-gzip: c5e87ee9e359f02350e3a2ee52eb35eddc398868
   react-native-in-app-review: 23f4f5b9fcd94339dd5d93c6230557f9c67c7dda
   react-native-launch-arguments: 4e0fd58e56dcc7f52eedef9dc8eff81eb73ced7a
+  react-native-mmkv: e97c0c79403fb94577e5d902ab1ebd42b0715b43
   react-native-netinfo: e849fc21ca2f4128a5726c801a82fc6f4a6db50d
+  react-native-quick-base64: 777057ea4286f806b00259ede65dc79c7c706320
+  react-native-quick-crypto: 455c1b411db006dba1026a30681ececb19180187
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   react-native-slider: 1cdd6ba29675df21f30544253bf7351d3c2d68c4
@@ -948,7 +992,7 @@ SPEC CHECKSUMS:
   RNDateTimePicker: b722c23030b744763cf51d80fc22f354653f65e0
   RNDefaultPreference: 2f8d6d54230edbd78708ada8d63bb275e5a8415b
   RNDeviceInfo: 1e3f62b9ec32f7754fac60bd06b8f8a27124e7f0
-  RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
+  RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: a479ebd5ed4221a810967000735517df0d2db211
   RNI18n: e2f7e76389fcc6e84f2c8733ea89b92502351fd8
   RNInAppBrowser: e36d6935517101ccba0e875bac8ad7b0cb655364
@@ -971,6 +1015,6 @@ SPEC CHECKSUMS:
   Yoga: 68c9c592c3e80ec37ff28db20eedb13d84aae5df
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 0aa061c88654782ecb2dbabeadb5344bc448e03a
+PODFILE CHECKSUM: fd694c0ab939aefb80bba2f27e0565533b830453
 
 COCOAPODS: 1.12.1

@@ -595,11 +595,13 @@
     "purpose_connect": "kết nối",
     "purpose_sign": "xác nhận giao dịch",
     "select_accounts": "Chọn một tài khoản",
+    "please_wait": "Vui lòng chờ"
+  },
+  "account_selector": {
     "prev": "TRƯỚC",
     "next": "TIẾP",
     "unlock": "Mở khóa",
-    "forget": "Quên thiết bị này",
-    "please_wait": "Vui lòng chờ"
+    "forget": "Quên thiết bị này"
   },
   "app_settings": {
     "title": "Cài đặt",
@@ -1826,7 +1828,6 @@
     "select_provider": "Chọn nhà cung cấp ưu tiên của bạn",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Vui lòng chuyển qua mạng chính hoặc sepolia"
   },
   "walletconnect_sessions": {
