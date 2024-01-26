@@ -89,6 +89,8 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { regex } from '../../../../app/util/regex';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { NetworkId, convertHexToDecimal } from '@metamask/controller-utils';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -263,6 +265,51 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       return ticker ? images[ticker] : undefined;
     };
 
+    const NetworkSVGBadgeSource = () => {
+      if (isTestNet(chainId)) {
+        return (
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={NetworkBadgeSource()}
+            name={networkName}
+          />
+        );
+      }
+      if (isMainnet) {
+        return (
+          <AvatarNetwork
+            variant={AvatarVariant.Network}
+            size={AvatarSize.Xs}
+            chainId={NetworkId.mainnet}
+            name={ticker}
+            imageSource={images.ETHEREUM}
+          />
+        );
+      }
+
+      if (isLineaMainnet) {
+        return (
+          <AvatarNetwork
+            variant={AvatarVariant.Network}
+            size={AvatarSize.Xs}
+            chainId={NetworkId['linea-mainnet']}
+            name={ticker}
+            imageSource={images['LINEA-MAINNET']}
+          />
+        );
+      }
+
+      return ticker ? (
+        <AvatarNetwork
+          variant={AvatarVariant.Network}
+          size={AvatarSize.Xs}
+          chainId={convertHexToDecimal(chainId).toString()}
+          name={ticker}
+          imageSource={images[ticker]}
+        />
+      ) : undefined;
+    };
+
     return (
       <AssetElement
         key={itemAddress || '0x'}
@@ -271,15 +318,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         asset={asset}
         balance={secondaryBalance}
       >
-        <BadgeWrapper
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={NetworkBadgeSource()}
-              name={networkName}
-            />
-          }
-        >
+        <BadgeWrapper badgeElement={NetworkSVGBadgeSource()}>
           {asset.isETH ? (
             <NetworkMainAssetLogo style={styles.ethLogo} />
           ) : (

@@ -41,6 +41,9 @@ import {
 import styles from './Toast.styles';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { TOAST_ID } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import { convertHexToDecimal } from '@metamask/controller-utils';
+import { useSelector } from 'react-redux';
+import { selectChainId } from '../../../selectors/networkController';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
@@ -52,6 +55,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     undefined,
   );
   const { bottom: bottomNotchSpacing } = useSafeAreaInsets();
+  const chainId = useSelector(selectChainId);
   const translateYProgress = useSharedValue(screenHeight);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateYProgress.value }],
@@ -156,6 +160,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
             imageSource={networkImageSource}
             size={AvatarSize.Md}
             style={styles.avatar}
+            chainId={convertHexToDecimal(chainId).toString()}
           />
         );
       }

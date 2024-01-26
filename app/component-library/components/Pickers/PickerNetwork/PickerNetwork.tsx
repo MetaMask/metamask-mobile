@@ -16,12 +16,14 @@ import stylesheet from './PickerNetwork.styles';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { NAVBAR_NETWORK_TEXT } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { PICKERNETWORK_ARROW_TESTID } from './PickerNetwork.constants';
+import { convertHexToDecimal } from '@metamask/controller-utils';
 
 const PickerNetwork = ({
   onPress,
   style,
   label,
   imageSource,
+  chainId,
   ...props
 }: PickerNetworkProps) => {
   const { styles } = useStyles(stylesheet, { style });
@@ -33,6 +35,7 @@ const PickerNetwork = ({
         size={AvatarSize.Xs}
         name={label}
         imageSource={imageSource}
+        chainId={convertHexToDecimal(chainId).toString()}
       />
       <Text
         style={styles.label}

@@ -15,11 +15,16 @@ import {
   BADGE_NETWORK_TEST_ID,
   DEFAULT_BADGENETWORK_NETWORKICON_SIZE,
 } from './BadgeNetwork.constants';
+import { useSelector } from 'react-redux';
+import { selectChainId } from '../../../../../../selectors/networkController';
+import { convertHexToDecimal } from '@metamask/controller-utils';
 
 const BadgeNetwork = ({ style, name, imageSource }: BadgeNetworkProps) => {
   const { size: containerSize, onLayout: onLayoutContainerSize } =
     useComponentSize();
   const { styles } = useStyles(styleSheet, { style, containerSize });
+  const chainId = useSelector(selectChainId);
+
   return (
     <BadgeBase
       style={styles.base}
@@ -32,6 +37,7 @@ const BadgeNetwork = ({ style, name, imageSource }: BadgeNetworkProps) => {
         name={name}
         imageSource={imageSource}
         style={styles.networkIcon}
+        chainId={convertHexToDecimal(chainId).toString()}
       />
     </BadgeBase>
   );

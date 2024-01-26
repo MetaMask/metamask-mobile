@@ -24,6 +24,7 @@ import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import { convertHexToDecimal } from '@metamask/controller-utils';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -159,6 +160,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
               variant={AvatarVariant.Network}
               name={networkName.toUpperCase()}
               imageSource={networkImageSource}
+              chainId={convertHexToDecimal(chainId).toString()}
             />
             <Text
               style={styles.tokenText}

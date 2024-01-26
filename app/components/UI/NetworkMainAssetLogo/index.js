@@ -1,21 +1,41 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ChainId } from '@metamask/controller-utils';
+import {
+  NetworkId,
+  NetworksTicker,
+  convertHexToDecimal,
+} from '@metamask/controller-utils';
 import { connect } from 'react-redux';
-import TokenIcon from '../Swaps/components/TokenIcon';
 import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
 
-function NetworkMainAssetLogo({ chainId, ticker, style, big, biggest }) {
-  if (chainId === ChainId.mainnet) {
+import AvatarNetwork, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
+
+function NetworkMainAssetLogo({ chainId, ticker, style }) {
+  if (ticker === NetworksTicker.mainnet) {
     return (
-      <TokenIcon big={big} biggest={biggest} symbol={'ETH'} style={style} />
+      <AvatarNetwork
+        variant={AvatarVariant.Network}
+        size={AvatarSize.Xs}
+        chainId={NetworkId.mainnet}
+        name={ticker}
+        style={style}
+      />
     );
   }
   return (
-    <TokenIcon big={big} biggest={biggest} symbol={ticker} style={style} />
+    <AvatarNetwork
+      variant={AvatarVariant.Network}
+      size={AvatarSize.Xs}
+      chainId={convertHexToDecimal(chainId).toString()}
+      name={ticker}
+      style={style}
+    />
   );
 }
 
@@ -28,8 +48,6 @@ NetworkMainAssetLogo.propTypes = {
   chainId: PropTypes.string,
   ticker: PropTypes.string,
   style: PropTypes.object,
-  big: PropTypes.bool,
-  biggest: PropTypes.bool,
 };
 
 export default connect(mapStateToProps)(NetworkMainAssetLogo);

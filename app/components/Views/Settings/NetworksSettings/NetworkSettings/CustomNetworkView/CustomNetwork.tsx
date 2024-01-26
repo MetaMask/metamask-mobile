@@ -86,6 +86,7 @@ const CustomNetwork = ({
                       }
                     : undefined)
                 }
+                chainId={networkConfiguration.chainId}
               />
             </View>
             <CustomText bold>{networkConfiguration.nickname}</CustomText>

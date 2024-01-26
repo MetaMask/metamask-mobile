@@ -232,6 +232,7 @@ const NetworkVerificationInfo = ({
           imageSource={customNetworkInformation.icon}
           label={customNetworkInformation.chainName}
           style={styles.networkSection}
+          chainId={customNetworkInformation.chainId}
           disabled
         />
         {renderAlerts()}

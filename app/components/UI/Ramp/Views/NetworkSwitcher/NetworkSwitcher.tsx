@@ -2,7 +2,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { RefreshControl, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import {
+  ChainId,
+  NetworkType,
+  convertHexToDecimal,
+  toHex,
+} from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 
 import LoadingNetworksSkeleton from './LoadingNetworksSkeleton';
@@ -239,6 +244,7 @@ function NetworkSwitcher() {
                           size={AvatarSize.Sm}
                           name={'Ethereum Mainnet'}
                           imageSource={imageIcons.ETHEREUM}
+                          chainId={convertHexToDecimal(chainId).toString()}
                         />
                       </View>
 
@@ -264,6 +270,9 @@ function NetworkSwitcher() {
                           size={AvatarSize.Sm}
                           name={'Linea Mainnet'}
                           imageSource={imageIcons['LINEA-MAINNET']}
+                          chainId={convertHexToDecimal(
+                            selectedChainId,
+                          ).toString()}
                         />
                       </View>
                       <Text bold>Linea Main Network</Text>

@@ -32,11 +32,15 @@ import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { convertHexToDecimal } from '@metamask/controller-utils';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -68,6 +72,7 @@ const AccountRightButton = ({
   const { navigate } = useNavigation();
   const { trackEvent } = useMetrics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
+  const chainId = useSelector(selectChainId);
 
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
@@ -186,6 +191,7 @@ const AccountRightButton = ({
           size={AvatarSize.Md}
           name={networkName}
           imageSource={networkImageSource}
+          chainId={convertHexToDecimal(chainId).toString()}
         />
       )}
     </TouchableOpacity>

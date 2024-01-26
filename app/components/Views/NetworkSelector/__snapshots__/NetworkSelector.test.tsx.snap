@@ -503,6 +503,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <View
+                                      chainId="1"
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
@@ -515,14 +516,9 @@ exports[`Network Selector renders correctly 1`] = `
                                       }
                                       testID="cellbase-avatar"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          Object {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                      <SvgMock
+                                        height="100%"
+                                        name="Ethereum Main Network"
                                         style={
                                           Object {
                                             "flex": 1,
@@ -531,6 +527,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           }
                                         }
                                         testID="network-avatar-image"
+                                        width="100%"
                                       />
                                     </View>
                                     <View
@@ -622,6 +619,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <View
+                                      chainId="59144"
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
@@ -634,14 +632,9 @@ exports[`Network Selector renders correctly 1`] = `
                                       }
                                       testID="cellbase-avatar"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          Object {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                      <SvgMock
+                                        height="100%"
+                                        name="Linea Main Network"
                                         style={
                                           Object {
                                             "flex": 1,
@@ -650,6 +643,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           }
                                         }
                                         testID="network-avatar-image"
+                                        width="100%"
                                       />
                                     </View>
                                     <View
@@ -716,6 +710,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <View
+                                      chainId="43114"
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
@@ -728,16 +723,9 @@ exports[`Network Selector renders correctly 1`] = `
                                       }
                                       testID="cellbase-avatar"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          Object {
-                                            "default": Object {
-                                              "uri": "MockImage",
-                                            },
-                                          }
-                                        }
+                                      <SvgMock
+                                        height="100%"
+                                        name="Avalanche Mainnet C-Chain"
                                         style={
                                           Object {
                                             "flex": 1,
@@ -746,6 +734,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           }
                                         }
                                         testID="network-avatar-image"
+                                        width="100%"
                                       />
                                     </View>
                                     <View
@@ -812,6 +801,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <View
+                                      chainId="137"
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
@@ -824,16 +814,9 @@ exports[`Network Selector renders correctly 1`] = `
                                       }
                                       testID="cellbase-avatar"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          Object {
-                                            "default": Object {
-                                              "uri": "MockImage",
-                                            },
-                                          }
-                                        }
+                                      <SvgMock
+                                        height="100%"
+                                        name="Polygon Mainnet"
                                         style={
                                           Object {
                                             "flex": 1,
@@ -842,6 +825,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           }
                                         }
                                         testID="network-avatar-image"
+                                        width="100%"
                                       />
                                     </View>
                                     <View
@@ -908,6 +892,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <View
+                                      chainId="10"
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
@@ -920,16 +905,9 @@ exports[`Network Selector renders correctly 1`] = `
                                       }
                                       testID="cellbase-avatar"
                                     >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          Object {
-                                            "default": Object {
-                                              "uri": "MockImage",
-                                            },
-                                          }
-                                        }
+                                      <SvgMock
+                                        height="100%"
+                                        name="Optimism"
                                         style={
                                           Object {
                                             "flex": 1,
@@ -938,6 +916,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           }
                                         }
                                         testID="network-avatar-image"
+                                        width="100%"
                                       />
                                     </View>
                                     <View
@@ -1004,14 +983,12 @@ exports[`Network Selector renders correctly 1`] = `
                                     }
                                   >
                                     <View
+                                      chainId="100"
                                       style={
                                         Object {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#F2F4F6",
+                                          "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
-                                          "borderWidth": 1,
                                           "height": 32,
-                                          "justifyContent": "center",
                                           "marginRight": 16,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -1019,21 +996,19 @@ exports[`Network Selector renders correctly 1`] = `
                                       }
                                       testID="cellbase-avatar"
                                     >
-                                      <Text
-                                        accessibilityRole="text"
+                                      <SvgMock
+                                        height="100%"
+                                        name="Gnosis Chain"
                                         style={
                                           Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "Euclid Circular B",
-                                            "fontSize": 16,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
+                                            "flex": 1,
+                                            "height": undefined,
+                                            "width": undefined,
                                           }
                                         }
-                                      >
-                                        G
-                                      </Text>
+                                        testID="network-avatar-image"
+                                        width="100%"
+                                      />
                                     </View>
                                     <View
                                       style={

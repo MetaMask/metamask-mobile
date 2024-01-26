@@ -50,6 +50,7 @@ import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
+import { convertHexToDecimal } from '@metamask/controller-utils';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -884,6 +885,7 @@ export function getWalletNavbarOptions(
   onPressTitle,
   navigation,
   themeColors,
+  chainId,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -958,6 +960,7 @@ export function getWalletNavbarOptions(
         <PickerNetwork
           label={networkName}
           imageSource={networkImageSource}
+          chainId={convertHexToDecimal(chainId).toString()}
           onPress={onPressTitle}
           {...generateTestId(Platform, NAVBAR_NETWORK_BUTTON)}
         />

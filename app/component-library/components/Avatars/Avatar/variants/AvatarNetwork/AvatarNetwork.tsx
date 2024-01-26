@@ -2,7 +2,6 @@
 
 // Third party dependencies.
 import React, { useCallback, useEffect, useState } from 'react';
-import { Image, ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import AvatarBase from '../../foundation/AvatarBase';
@@ -18,6 +17,9 @@ import {
   DEFAULT_AVATARNETWORK_ERROR_TEXT,
   AVATARNETWORK_IMAGE_TESTID,
 } from './AvatarNetwork.constants';
+import NetworkIcon from '../../../../../../component-library/components/Networks/Network/Network-icon';
+import { NETWORKS_CHAIN_ID_WITH_SVG } from '../../../../../../constants/network';
+import { Image, ImageSourcePropType } from 'react-native';
 
 const AvatarNetwork = ({
   size = DEFAULT_AVATARNETWORK_SIZE,
@@ -26,22 +28,47 @@ const AvatarNetwork = ({
   imageSource,
   ...props
 }: AvatarNetworkProps) => {
-  const [showFallback, setShowFallback] = useState(!imageSource);
-  const { styles } = useStyles(stylesheet, { style, size, showFallback });
-  const chainNameFirstLetter = name?.[0] ?? DEFAULT_AVATARNETWORK_ERROR_TEXT;
+  const { chainId } = props;
 
+  const hasSVGAvatar = Object.values(NETWORKS_CHAIN_ID_WITH_SVG).some(
+    (networkId) => networkId === chainId,
+  );
+
+  const [showFallback, setShowFallback] = useState(
+    !imageSource && !hasSVGAvatar,
+  );
+  const [svgErrorRendering, setSvgErrorRendering] = useState(false);
   const onError = useCallback(() => setShowFallback(true), [setShowFallback]);
 
+  const { styles } = useStyles(stylesheet, {
+    style,
+    size,
+    showFallback,
+  });
+  const chainNameFirstLetter = name?.[0] ?? DEFAULT_AVATARNETWORK_ERROR_TEXT;
+
+  const handleSvgErrorRendering = (data: boolean) => {
+    setSvgErrorRendering(data);
+  };
+
   useEffect(() => {
-    setShowFallback(!imageSource);
-  }, [imageSource]);
+    setShowFallback(!imageSource && !hasSVGAvatar);
+  }, [imageSource, hasSVGAvatar]);
 
   return (
     <AvatarBase size={size} style={styles.base} {...props}>
-      {showFallback ? (
+      {showFallback || svgErrorRendering ? (
         <Text style={styles.label} variant={TEXTVARIANT_BY_AVATARSIZE[size]}>
           {chainNameFirstLetter}
         </Text>
+      ) : hasSVGAvatar ? (
+        <NetworkIcon
+          chainId={chainId}
+          name={name}
+          testID={AVATARNETWORK_IMAGE_TESTID}
+          style={styles.image}
+          onError={handleSvgErrorRendering}
+        />
       ) : (
         <Image
           source={imageSource as ImageSourcePropType}

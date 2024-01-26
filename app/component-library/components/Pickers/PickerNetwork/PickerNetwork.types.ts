@@ -14,6 +14,10 @@ export interface PickerNetworkProps extends TouchableOpacityProps {
    */
   label: string;
   /**
+   * Network chainId.
+   */
+  chainId: string;
+  /**
    * Callback to trigger when picker is pressed.
    */
   onPress?: () => void;

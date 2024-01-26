@@ -41,6 +41,7 @@ import AvatarNetwork from '../../../../component-library/components/Avatars/Avat
 import Routes from '../../../../constants/navigation/Routes';
 import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
+import { convertHexToDecimal } from '@metamask/controller-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -218,7 +219,15 @@ class NetworksSettings extends PureComponent {
 
   onActionSheetPress = (index) => (index === 0 ? this.removeNetwork() : null);
 
-  networkElement(name, image, i, networkTypeOrRpcUrl, isCustomRPC, color) {
+  networkElement(
+    name,
+    image,
+    i,
+    networkTypeOrRpcUrl,
+    isCustomRPC,
+    color,
+    chainId,
+  ) {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     return (
@@ -245,6 +254,7 @@ class NetworksSettings extends PureComponent {
                     imageSource={image}
                     style={styles.networkIcon}
                     size={AvatarSize.Xs}
+                    chainId={convertHexToDecimal(chainId).toString()}
                   />
                 ) : null}
                 {!isCustomRPC &&
@@ -252,6 +262,7 @@ class NetworksSettings extends PureComponent {
                     <ImageIcons
                       image={networkTypeOrRpcUrl.toUpperCase()}
                       style={styles.networkIcon}
+                      chainId={convertHexToDecimal(chainId).toString()}
                     />
                   ) : (
                     <View
@@ -279,7 +290,7 @@ class NetworksSettings extends PureComponent {
 
   renderOtherNetworks() {
     return this.getOtherNetworks().map((networkType, i) => {
-      const { name, imageSource, color } = Networks[networkType];
+      const { name, imageSource, color, chainId } = Networks[networkType];
       return this.networkElement(
         name,
         imageSource,
@@ -287,6 +298,7 @@ class NetworksSettings extends PureComponent {
         networkType,
         false,
         color,
+        chainId,
       );
     });
   }
@@ -297,7 +309,7 @@ class NetworksSettings extends PureComponent {
       ({ rpcUrl, nickname, chainId }, i) => {
         const name = nickname || rpcUrl;
         const image = getNetworkImageSource({ chainId });
-        return this.networkElement(name, image, i, rpcUrl, true);
+        return this.networkElement(name, image, i, rpcUrl, true, null, chainId);
       },
     );
   };
@@ -320,7 +332,7 @@ class NetworksSettings extends PureComponent {
   };
 
   renderMainnet() {
-    const { name: mainnetName } = Networks.mainnet;
+    const { name: mainnetName, chainId } = Networks.mainnet;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -332,7 +344,11 @@ class NetworksSettings extends PureComponent {
           onPress={() => this.onNetworkPress(MAINNET)}
         >
           <View style={styles.networkWrapper}>
-            <ImageIcons image="ETHEREUM" style={styles.networkIcon} />
+            <ImageIcons
+              image="ETHEREUM"
+              style={styles.networkIcon}
+              chainId={convertHexToDecimal(chainId).toString()}
+            />
             <View style={styles.networkInfo}>
               <Text style={styles.networkLabel}>{mainnetName}</Text>
             </View>
@@ -349,7 +365,7 @@ class NetworksSettings extends PureComponent {
   }
 
   renderLineaMainnet() {
-    const { name: lineaMainnetName } = Networks['linea-mainnet'];
+    const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -361,7 +377,11 @@ class NetworksSettings extends PureComponent {
           onPress={() => this.onNetworkPress(LINEA_MAINNET)}
         >
           <View style={styles.networkWrapper}>
-            <ImageIcons image="LINEA-MAINNET" style={styles.networkIcon} />
+            <ImageIcons
+              image="LINEA-MAINNET"
+              style={styles.networkIcon}
+              chainId={convertHexToDecimal(chainId).toString()}
+            />
             <View style={styles.networkInfo}>
               <Text style={styles.networkLabel}>{lineaMainnetName}</Text>
             </View>
@@ -434,6 +454,7 @@ class NetworksSettings extends PureComponent {
             i,
             networkTypeOrRpcUrl,
             isCustomRPC,
+            chainId,
           )
         );
       });
