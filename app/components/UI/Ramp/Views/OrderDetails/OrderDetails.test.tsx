@@ -22,7 +22,7 @@ const mockSetNavigationOptions = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockDispatch = jest.fn();
 
-jest.mock('../../../common/hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
@@ -92,7 +92,7 @@ const mockUseRampSDKValues: DeepPartial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-jest.mock('../../../common/sdk', () => ({
+jest.mock('../../sdk', () => ({
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
@@ -105,8 +105,8 @@ let mockUseParamsValues = {
   ...mockUseParamsDefaultValues,
 };
 
-jest.mock('../../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParamsValues,
 }));
 
@@ -117,7 +117,7 @@ function mockGetUpdatedOrder(order: FiatOrder) {
   };
 }
 
-jest.mock('../../../index', () => ({
+jest.mock('../../index', () => ({
   processFiatOrder: jest.fn().mockImplementation((order, onSuccess) => {
     const updatedOrder = mockGetUpdatedOrder(order);
     if (onSuccess) {

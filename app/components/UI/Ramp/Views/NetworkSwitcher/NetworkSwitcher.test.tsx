@@ -105,7 +105,7 @@ function render(Component: React.ComponentType, chainId?: string) {
   );
 }
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
       setProviderType: jest.fn(),

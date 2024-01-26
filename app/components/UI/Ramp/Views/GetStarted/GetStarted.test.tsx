@@ -31,7 +31,7 @@ const mockUseRampNetworkInitialValue: Partial<
 
 let mockUseRampNetworkValue = [...mockUseRampNetworkInitialValue];
 
-jest.mock('../../../common/hooks/useRampNetwork', () =>
+jest.mock('../../hooks/useRampNetwork', () =>
   jest.fn(() => mockUseRampNetworkValue),
 );
 
@@ -73,12 +73,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../common/sdk', () => ({
-  ...jest.requireActual('../../../common/sdk'),
+jest.mock('../../sdk', () => ({
+  ...jest.requireActual('../../sdk'),
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-jest.mock('../../../common/hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('GetStarted', () => {
   afterEach(() => {

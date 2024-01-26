@@ -89,12 +89,12 @@ let mockUseRampSDKValues: DeepPartial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-jest.mock('../../../common/sdk', () => ({
-  ...jest.requireActual('../../../common/sdk'),
+jest.mock('../../sdk', () => ({
+  ...jest.requireActual('../../sdk'),
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
-jest.mock('../../../common/hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('../../hooks/useInAppBrowser', () => () => mockRenderInAppBrowser);
 
 const mockUseParamsInitialValues: DeepPartial<QuotesParams> = {
@@ -111,8 +111,8 @@ let mockUseParamsValues = {
   ...mockUseParamsInitialValues,
 };
 
-jest.mock('../../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParamsValues,
 }));
 

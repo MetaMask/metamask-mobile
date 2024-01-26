@@ -181,7 +181,7 @@ const mockUseAddressBalanceInitialValue: ReturnType<typeof useAddressBalance> =
     addressBalance: '5.36385 ETH',
   };
 
-jest.mock('../../../../../hooks/useAddressBalance/useAddressBalance', () =>
+jest.mock('../../../../hooks/useAddressBalance/useAddressBalance', () =>
   jest.fn(() => mockUseAddressBalanceInitialValue),
 );
 
@@ -194,9 +194,7 @@ let mockUseBalanceValues: Partial<ReturnType<typeof useBalance>> = {
   ...mockUseBalanceInitialValue,
 };
 
-jest.mock('../../../common/hooks/useBalance', () =>
-  jest.fn(() => mockUseBalanceValues),
-);
+jest.mock('../../hooks/useBalance', () => jest.fn(() => mockUseBalanceValues));
 
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedPaymentMethodId = jest.fn();
@@ -223,8 +221,8 @@ let mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-jest.mock('../../../common/sdk', () => ({
-  ...jest.requireActual('../../../common/sdk'),
+jest.mock('../../sdk', () => ({
+  ...jest.requireActual('../../sdk'),
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
@@ -246,16 +244,16 @@ const mockUseGasPriceEstimationInitialValue: ReturnType<
 let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
   mockUseGasPriceEstimationInitialValue;
 
-jest.mock('../../../common/hooks/useGasPriceEstimation', () =>
+jest.mock('../../hooks/useGasPriceEstimation', () =>
   jest.fn(() => mockUseGasPriceEstimationValue),
 );
 
-jest.mock('../../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('../../../common/hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('BuildQuote View', () => {
   afterEach(() => {

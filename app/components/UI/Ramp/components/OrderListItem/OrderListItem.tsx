@@ -4,10 +4,7 @@ import { Image } from 'react-native';
 import createStyles from './OrderListItem.styles';
 import BaseListItem from '../../../../Base/ListItem';
 
-import {
-  FiatOrder,
-  getProviderName,
-} from '../../../../../reducers/fiatOrders';
+import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
 import { addCurrencySymbol, renderFiat } from '../../../../../util/number';

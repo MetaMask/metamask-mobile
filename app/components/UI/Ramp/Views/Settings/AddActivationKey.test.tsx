@@ -33,8 +33,8 @@ jest.mock('@react-navigation/native', () => {
 
 const mockOnSubmit = jest.fn();
 
-jest.mock('../../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: () => ({
     onSubmit: mockOnSubmit,
   }),

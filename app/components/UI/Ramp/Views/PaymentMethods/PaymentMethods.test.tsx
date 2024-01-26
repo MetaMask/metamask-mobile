@@ -72,8 +72,8 @@ let mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-jest.mock('../../../common/sdk', () => ({
-  ...jest.requireActual('../../../common/sdk'),
+jest.mock('../../sdk', () => ({
+  ...jest.requireActual('../../sdk'),
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
@@ -132,12 +132,12 @@ let mockUseParamsValues: {
   showBack: undefined,
 };
 
-jest.mock('../../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('../../../common/hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('PaymentMethods View', () => {
   afterEach(() => {

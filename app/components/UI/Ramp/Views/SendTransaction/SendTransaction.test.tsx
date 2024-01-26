@@ -315,12 +315,12 @@ let mockUseParamsValues: {
   orderId: 'test-id-1',
 };
 
-jest.mock('../../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionController: {
       addTransaction: jest.fn(),

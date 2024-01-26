@@ -9,7 +9,7 @@ type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
 };
 
-jest.mock('../../../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   context: {
     GasFeeController: {
       getGasFeeEstimatesAndStartPolling: jest

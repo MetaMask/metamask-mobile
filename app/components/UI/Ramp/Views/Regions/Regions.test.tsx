@@ -44,8 +44,8 @@ let mockUseRampSDKValues: Partial<RampSDK> = {
   ...mockUseRampSDKInitialValues,
 };
 
-jest.mock('../../../common/sdk', () => ({
-  ...jest.requireActual('../../../common/sdk'),
+jest.mock('../../sdk', () => ({
+  ...jest.requireActual('../../sdk'),
   useRampSDK: () => mockUseRampSDKValues,
 }));
 
@@ -114,7 +114,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../common/hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 describe('Regions View', () => {
   afterEach(() => {

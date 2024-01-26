@@ -456,7 +456,7 @@ describe('getNotificationDetails', () => {
   });
 });
 
-jest.mock('../../../../../reducers/fiatOrders', () => ({
+jest.mock('../../../../reducers/fiatOrders', () => ({
   getOrders: jest.fn(),
 }));
 

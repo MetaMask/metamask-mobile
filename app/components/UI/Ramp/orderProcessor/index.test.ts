@@ -55,7 +55,7 @@ jest.mock('./aggregator', () => ({
   processAggregatorOrder: jest.fn((order) => order),
 }));
 
-jest.mock('../../../../../util/Logger', () => ({
+jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
