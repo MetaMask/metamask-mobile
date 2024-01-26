@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { ScrollView, Switch, View } from 'react-native';
+import { Linking, ScrollView, Switch, View } from 'react-native';
 
 import { MMKV } from 'react-native-mmkv';
 import { strings } from '../../../../../locales/i18n';
@@ -27,6 +27,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import Device from '../../../../../app/util/device';
+import { SES_URL } from '../../../../../app/constants/urls';
 
 const storage = new MMKV(); // id: mmkv.default
 
@@ -94,6 +95,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const goToWalletConnectSessions = useCallback(() => {
     navigation.navigate('WalletConnectSessionsView');
   }, [navigation]);
+
+  const openSesLink = () => Linking.openURL(SES_URL);
 
   const WalletConnectSettings: FC = () => (
     <>
@@ -177,16 +180,9 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         {strings('app_settings.security_heading')}
       </Text>
       <View style={styles.setting}>
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-          {strings('app_settings.ses_heading')}
-        </Text>
         <View style={styles.switchElement}>
-          <Text
-            color={TextColor.Alternative}
-            variant={TextVariant.BodyMD}
-            style={styles.desc}
-          >
-            {strings('app_settings.ses_description')}
+          <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+            {strings('app_settings.ses_heading')}
           </Text>
           <Switch
             value={sesEnabled}
@@ -199,6 +195,22 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
+        </View>
+        <View style={styles.switchElement}>
+          <Text
+            color={TextColor.Alternative}
+            variant={TextVariant.BodyMD}
+            style={styles.desc}
+          >
+            {strings('app_settings.ses_description')}{' '}
+            <Button
+              variant={ButtonVariants.Link}
+              size={ButtonSize.Auto}
+              onPress={openSesLink}
+              label={strings('app_settings.ses_link')}
+            />
+            .
+          </Text>
         </View>
       </View>
     </>
