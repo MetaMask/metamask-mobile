@@ -54,6 +54,7 @@ import {
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
+import { hexToDecimal } from '../../../util/conversions';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
@@ -114,6 +115,7 @@ const NetworkSelector = () => {
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
+
     return (
       <Cell
         variant={CellVariant.Select}
@@ -122,6 +124,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: mainnetName,
           imageSource: images.ETHEREUM,
+          chainId: hexToDecimal(chainId).toString(),
         }}
         isSelected={
           chainId.toString() === providerConfig.chainId &&
@@ -143,6 +146,7 @@ const NetworkSelector = () => {
           variant: AvatarVariant.Network,
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
+          chainId: chainId.toString(),
         }}
         isSelected={chainId.toString() === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
@@ -157,7 +161,6 @@ const NetworkSelector = () => {
         const { name } = { name: nickname || rpcUrl };
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         const image = getNetworkImageSource({ chainId: chainId?.toString() });
-
         return (
           <Cell
             key={chainId}
@@ -167,6 +170,7 @@ const NetworkSelector = () => {
               variant: AvatarVariant.Network,
               name,
               imageSource: image,
+              chainId: chainId.toString(),
             }}
             isSelected={Boolean(
               chainId.toString() === providerConfig.chainId &&

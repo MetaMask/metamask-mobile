@@ -24,6 +24,12 @@ declare module 'images/image-icons' {
   export default content;
 }
 
+// declare module 'images/image-icons-svg' {
+//   import React from 'react';
+//   const content: { [key: string]: React.FC<SvgProps> };
+//   export default content;
+// }
+
 declare module '*.png' {
   import { ImageSourcePropType } from 'react-native';
   const content: ImageSourcePropType;

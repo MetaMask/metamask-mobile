@@ -1815,6 +1815,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       }
                                     >
                                       <View
+                                        chainId="25"
                                         style={
                                           Object {
                                             "backgroundColor": "#FFFFFF",
@@ -1825,14 +1826,9 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                         }
                                       >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            Object {
-                                              "uri": "https://static.metafi.codefi.network/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
-                                            }
-                                          }
+                                        <SvgMock
+                                          height="100%"
+                                          name="Cronos Mainnet"
                                           style={
                                             Object {
                                               "flex": 1,
@@ -1841,6 +1837,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                             }
                                           }
                                           testID="network-avatar-image"
+                                          width="100%"
                                         />
                                       </View>
                                     </View>
@@ -1968,6 +1965,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       }
                                     >
                                       <View
+                                        chainId="137"
                                         style={
                                           Object {
                                             "backgroundColor": "#FFFFFF",
@@ -1978,16 +1976,9 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                         }
                                       >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            Object {
-                                              "default": Object {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
+                                        <SvgMock
+                                          height="100%"
+                                          name="Polygon Mainnet"
                                           style={
                                             Object {
                                               "flex": 1,
@@ -1996,6 +1987,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                             }
                                           }
                                           testID="network-avatar-image"
+                                          width="100%"
                                         />
                                       </View>
                                     </View>
@@ -2970,6 +2962,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       }
                                     >
                                       <View
+                                        chainId="25"
                                         style={
                                           Object {
                                             "backgroundColor": "#FFFFFF",
@@ -2980,14 +2973,9 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                         }
                                       >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            Object {
-                                              "uri": "https://static.metafi.codefi.network/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
-                                            }
-                                          }
+                                        <SvgMock
+                                          height="100%"
+                                          name="Cronos Mainnet"
                                           style={
                                             Object {
                                               "flex": 1,
@@ -2996,6 +2984,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                             }
                                           }
                                           testID="network-avatar-image"
+                                          width="100%"
                                         />
                                       </View>
                                     </View>
@@ -3123,6 +3112,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       }
                                     >
                                       <View
+                                        chainId="137"
                                         style={
                                           Object {
                                             "backgroundColor": "#FFFFFF",
@@ -3133,16 +3123,9 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                         }
                                       >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            Object {
-                                              "default": Object {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
+                                        <SvgMock
+                                          height="100%"
+                                          name="Polygon Mainnet"
                                           style={
                                             Object {
                                               "flex": 1,
@@ -3151,6 +3134,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                             }
                                           }
                                           testID="network-avatar-image"
+                                          width="100%"
                                         />
                                       </View>
                                     </View>
@@ -4125,6 +4109,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       }
                                     >
                                       <View
+                                        chainId="25"
                                         style={
                                           Object {
                                             "backgroundColor": "#FFFFFF",
@@ -4135,14 +4120,9 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           }
                                         }
                                       >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            Object {
-                                              "uri": "https://static.metafi.codefi.network/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
-                                            }
-                                          }
+                                        <SvgMock
+                                          height="100%"
+                                          name="Cronos Mainnet"
                                           style={
                                             Object {
                                               "flex": 1,
@@ -4151,6 +4131,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                             }
                                           }
                                           testID="network-avatar-image"
+                                          width="100%"
                                         />
                                       </View>
                                     </View>
@@ -4278,6 +4259,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       }
                                     >
                                       <View
+                                        chainId="137"
                                         style={
                                           Object {
                                             "backgroundColor": "#FFFFFF",
@@ -4288,16 +4270,9 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           }
                                         }
                                       >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            Object {
-                                              "default": Object {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
+                                        <SvgMock
+                                          height="100%"
+                                          name="Polygon Mainnet"
                                           style={
                                             Object {
                                               "flex": 1,
@@ -4306,6 +4281,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                             }
                                           }
                                           testID="network-avatar-image"
+                                          width="100%"
                                         />
                                       </View>
                                     </View>
@@ -5280,6 +5256,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       }
                                     >
                                       <View
+                                        chainId="25"
                                         style={
                                           Object {
                                             "backgroundColor": "#FFFFFF",
@@ -5290,14 +5267,9 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           }
                                         }
                                       >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            Object {
-                                              "uri": "https://static.metafi.codefi.network/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png",
-                                            }
-                                          }
+                                        <SvgMock
+                                          height="100%"
+                                          name="Cronos Mainnet"
                                           style={
                                             Object {
                                               "flex": 1,
@@ -5306,6 +5278,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                             }
                                           }
                                           testID="network-avatar-image"
+                                          width="100%"
                                         />
                                       </View>
                                     </View>
@@ -5433,6 +5406,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       }
                                     >
                                       <View
+                                        chainId="137"
                                         style={
                                           Object {
                                             "backgroundColor": "#FFFFFF",
@@ -5443,16 +5417,9 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           }
                                         }
                                       >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            Object {
-                                              "default": Object {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
+                                        <SvgMock
+                                          height="100%"
+                                          name="Polygon Mainnet"
                                           style={
                                             Object {
                                               "flex": 1,
@@ -5461,6 +5428,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                             }
                                           }
                                           testID="network-avatar-image"
+                                          width="100%"
                                         />
                                       </View>
                                     </View>
