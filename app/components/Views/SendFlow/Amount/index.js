@@ -83,6 +83,7 @@ import {
   CURRENCY_SWITCH,
 } from '../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { isHexString } from 'ethjs-util';
 import {
   selectChainId,
   selectProviderType,
@@ -936,9 +937,10 @@ class Amount extends PureComponent {
       inputValue = inputValue.replace(',', '.');
     }
     const processedTicker = getTicker(ticker);
-    const processedInputValue = isDecimal(inputValue)
-      ? handleWeiNumber(inputValue)
-      : '0';
+    const processedInputValue =
+      isDecimal(inputValue) && !isHexString(inputValue)
+        ? handleWeiNumber(inputValue)
+        : '0';
     selectedAsset = selectedAsset || this.props.selectedAsset;
     if (selectedAsset.isETH) {
       // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
