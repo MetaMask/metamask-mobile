@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from 'react';
 import {
-  Text,
   View,
   TouchableOpacity,
   InteractionManager,
@@ -9,7 +8,7 @@ import {
 } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
-import { fontStyles, baseStyles } from '../../../styles/common';
+import { baseStyles } from '../../../styles/common';
 import { useDispatch, useSelector } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
@@ -29,6 +28,9 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -134,7 +136,10 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
             />
           </View>
           <View style={baseStyles.flexGrow}>
-            <Text style={styles.backupAlertTitle}>
+            <Text
+              variant={TextVariant.BodyMDBold}
+              style={styles.backupAlertTitle}
+            >
               {strings('backup_alert.title')}
             </Text>
             <View style={styles.buttonsWrapper}>
@@ -142,7 +147,10 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
                 onPress={goToBackupFlow}
                 testID={PROTECT_WALLET_BUTTON}
               >
-                <Text style={[styles.backupAlertMessage, fontStyles.bold]}>
+                <Text
+                  variant={TextVariant.BodyMDBold}
+                  style={styles.backupAlertMessage}
+                >
                   {strings('backup_alert.right_button')}
                 </Text>
               </TouchableOpacity>
@@ -151,6 +159,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
                 style={styles.dismissButton}
               >
                 <Text
+                  variant={TextVariant.BodyMD}
                   style={styles.backupAlertMessage}
                   {...generateTestId(
                     Platform,

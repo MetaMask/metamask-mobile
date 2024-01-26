@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 import { Theme } from '../../../util/theme/models';
 
@@ -37,18 +36,13 @@ const styleSheet = (params: { theme: Theme }) => {
       color: colors.text.default,
     },
     backupAlertTitle: {
-      fontSize: 14,
       marginBottom: 14,
-      color: colors.text.default,
-      ...fontStyles.bold,
     },
     backupAlertMessage: {
-      fontSize: 12,
       color: colors.primary.default,
       marginLeft: 14,
       flex: 1,
       textAlign: 'right',
-      ...fontStyles.normal,
     },
     touchableView: {
       flexDirection: 'row',

@@ -73,12 +73,15 @@ exports[`BackupAlert should render correctly 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           style={
             Object {
               "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "Euclid Circular B",
               "fontSize": 14,
-              "fontWeight": "600",
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 22,
               "marginBottom": 14,
             }
           }
@@ -99,22 +102,19 @@ exports[`BackupAlert should render correctly 1`] = `
             testID="protect-your-wallet-button"
           >
             <Text
+              accessibilityRole="text"
               style={
-                Array [
-                  Object {
-                    "color": "#0376C9",
-                    "flex": 1,
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "marginLeft": 14,
-                    "textAlign": "right",
-                  },
-                  Object {
-                    "fontFamily": "EuclidCircularB-Bold",
-                    "fontWeight": "600",
-                  },
-                ]
+                Object {
+                  "color": "#0376C9",
+                  "flex": 1,
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "marginLeft": 14,
+                  "textAlign": "right",
+                }
               }
             >
               Protect wallet
@@ -129,13 +129,16 @@ exports[`BackupAlert should render correctly 1`] = `
             }
           >
             <Text
+              accessibilityRole="text"
               style={
                 Object {
                   "color": "#0376C9",
                   "flex": 1,
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 12,
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 14,
                   "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
                   "marginLeft": 14,
                   "textAlign": "right",
                 }
