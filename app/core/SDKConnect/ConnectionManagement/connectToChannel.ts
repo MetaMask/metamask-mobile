@@ -87,7 +87,7 @@ async function connectToChannel({
       channelId: string;
       sendTerminate?: boolean;
     }) => {
-      instance.removeChannel(channelId, sendTerminate);
+      instance.removeChannel({ channelId, sendTerminate });
     },
   });
   // Make sure to watch event before you connect

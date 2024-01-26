@@ -6,7 +6,7 @@ exports[`AvatarIcon should render correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
-      "backgroundColor": "#FFF",
+      "backgroundColor": "#FFFFFF",
       "justifyContent": "center",
     }
   }

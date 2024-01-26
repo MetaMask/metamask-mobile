@@ -15,6 +15,11 @@ const createStyles = () =>
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
+      marginTop: 10,
+    },
+    successIconContainer: {
+      flex: 1,
+      marginLeft: 25,
     },
     iconContainer: {
       flex: 1,
@@ -22,7 +27,6 @@ const createStyles = () =>
     },
     iconStyle: {
       alignSelf: 'center',
-      marginTop: 10,
     },
     goBackIcon: {
       alignItems: 'flex-end',
@@ -30,6 +34,10 @@ const createStyles = () =>
 
     buttonSize: {
       width: 150,
+    },
+
+    wideButtonSize: {
+      width: '100%',
     },
   });
 

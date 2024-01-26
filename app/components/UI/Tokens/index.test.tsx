@@ -16,6 +16,7 @@ import {
   TOTAL_BALANCE_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { strings } from '../../../../locales/i18n';
 
 const mockEngine = Engine;
 
@@ -184,5 +185,45 @@ describe('Tokens', () => {
     const { getByTestId } = renderComponent(initialState);
 
     expect(getByTestId(PORTFOLIO_BUTTON)).toBeDefined();
+  });
+  it('should display unable to find conversion rate', async () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          ...initialBackgroundState,
+          TokensController: {
+            tokens: [
+              {
+                name: 'Link',
+                symbol: 'LINK',
+                address: '0x02',
+                decimals: 18,
+                balanceFiat: '$0',
+                iconUrl: '',
+              },
+            ],
+          },
+          TokenRatesController: {
+            contractExchangeRates: {
+              '0x02': undefined,
+            },
+          },
+          CurrencyRateController: {
+            currentCurrency: 'USD',
+            conversionRate: 1,
+          },
+          TokenBalancesController: {
+            contractBalances: {
+              '0x02': new BN(1),
+            },
+          },
+        },
+      },
+    };
+    const { findByText } = renderComponent(state);
+
+    expect(
+      await findByText(strings('wallet.unable_to_find_conversion_rate')),
+    ).toBeDefined();
   });
 });
