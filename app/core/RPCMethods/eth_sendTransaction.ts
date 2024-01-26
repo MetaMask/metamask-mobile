@@ -5,7 +5,6 @@ import {
 } from '@metamask/transaction-controller';
 import { ethErrors } from 'eth-json-rpc-errors';
 import ppomUtil from '../../lib/ppom/ppom-util';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.
@@ -99,9 +98,7 @@ async function eth_sendTransaction({
     origin: hostname,
   });
 
-  if (isBlockaidFeatureEnabled()) {
-    ppomUtil.validateRequest(req, transactionMeta?.id);
-  }
+  ppomUtil.validateRequest(req, transactionMeta?.id);
 
   res.result = await result;
 }

@@ -53,10 +53,7 @@ import TransactionReviewDetailsCard from '../../UI/TransactionReview/Transaction
 import AppConstants from '../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import {
-  isBlockaidFeatureEnabled,
-  getBlockaidMetricsParams,
-} from '../../../util/blockaid';
+import { getBlockaidMetricsParams } from '../../../util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
@@ -822,13 +819,11 @@ class ApproveTransactionReview extends PureComponent {
                     style={styles.accountApprovalWrapper}
                     onStartShouldSetResponder={() => true}
                   >
-                    {isBlockaidFeatureEnabled() && (
-                      <TransactionBlockaidBanner
-                        transactionId={transactionId}
-                        style={styles.blockaidWarning}
-                        onContactUsClicked={this.onContactUsClicked}
-                      />
-                    )}
+                    <TransactionBlockaidBanner
+                      transactionId={transactionId}
+                      style={styles.blockaidWarning}
+                      onContactUsClicked={this.onContactUsClicked}
+                    />
                     <Text variant={TextVariant.HeadingMD} style={styles.title}>
                       {strings(
                         `spend_limit_edition.${
