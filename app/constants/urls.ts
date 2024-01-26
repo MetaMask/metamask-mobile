@@ -19,6 +19,10 @@ export const CONNECTING_TO_A_DECEPTIVE_SITE =
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
+// SES
+export const SES_URL =
+  'https://github.com/endojs/endo/tree/master/packages/ses#readme';
+
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
 export const KEYSTONE_LEARN_MORE =
