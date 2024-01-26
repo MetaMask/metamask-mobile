@@ -16,7 +16,7 @@ import styles from './GetStarted.styles';
 import useRegions from '../../hooks/useRegions';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const getStartedIcon = require('../../../common/components/images/WalletInfo.png');
+const getStartedIcon = require('../../components/images/WalletInfo.png');
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();

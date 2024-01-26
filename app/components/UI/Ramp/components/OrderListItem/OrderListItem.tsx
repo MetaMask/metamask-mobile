@@ -18,8 +18,8 @@ import Text, {
 const ListItem = BaseListItem as any;
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
-const transactionIconReceived = require('../../../../../../images/transaction-icons/receive.png');
-const transactionIconSent = require('../../../../../../images/transaction-icons/receive-inverted.png');
+const transactionIconReceived = require('../../../../../images/transaction-icons/receive.png');
+const transactionIconSent = require('../../../../../images/transaction-icons/receive-inverted.png');
 /* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 
 interface Props {
