@@ -123,13 +123,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const BlockaidSettings: FC = () => (
     <>
-      <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
-        style={styles.heading}
-      >
-        {strings('app_settings.security_heading')}
-      </Text>
       <View style={styles.setting}>
         <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
           {strings('experimental_settings.security_alerts')}
@@ -196,22 +189,20 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
             ios_backgroundColor={colors.border.muted}
           />
         </View>
-        <View style={styles.switchElement}>
-          <Text
-            color={TextColor.Alternative}
-            variant={TextVariant.BodyMD}
-            style={styles.desc}
-          >
-            {strings('app_settings.ses_description')}{' '}
-            <Button
-              variant={ButtonVariants.Link}
-              size={ButtonSize.Auto}
-              onPress={openSesLink}
-              label={strings('app_settings.ses_link')}
-            />
-            .
-          </Text>
-        </View>
+        <Text
+          color={TextColor.Alternative}
+          variant={TextVariant.BodyMD}
+          style={styles.desc}
+        >
+          {strings('app_settings.ses_description')}{' '}
+          <Button
+            variant={ButtonVariants.Link}
+            size={ButtonSize.Auto}
+            onPress={openSesLink}
+            label={strings('app_settings.ses_link')}
+          />
+          .
+        </Text>
       </View>
     </>
   );
