@@ -760,7 +760,7 @@
     "invalid_password_message": "The password was not correct. Please try again.",
     "security_heading": "Security",
     "ses_heading": "Code Lockdown",
-    "ses_description": "This is a test feature that blocks any changes to the app's javascript code without permission.",
+    "ses_description": "This is a test feature that blocks any changes to the app's JavaScript code without permission.",
     "ses_link": "Learn more",
     "privacy_heading": "Privacy",
     "failed_to_fetch_chain_id": "Could not fetch chain ID. Is your RPC URL correct?",
