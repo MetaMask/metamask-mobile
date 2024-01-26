@@ -8,13 +8,9 @@ import { TextStyle, ViewStyle } from 'react-native';
  * Map of color names to HEX values
  */
 export const colors = {
-  black: '#24292E',
   blackTransparent: 'rgba(0, 0, 0, 0.5)',
-  white: '#FFFFFF',
   whiteTransparent: 'rgba(255, 255, 255, 0.7)',
-  yellow: '#FFD33D',
   transparent: 'transparent',
-  shadow: '#6a737d',
   // Do not change the values of applePay tokens unless noted by
   // https://developer.apple.com/design/human-interface-guidelines/apple-pay
   applePayBlack: '#000000',
