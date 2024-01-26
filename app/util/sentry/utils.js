@@ -207,6 +207,7 @@ export function setupSentry() {
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
+      dist: '1236',
     });
   };
   init();
