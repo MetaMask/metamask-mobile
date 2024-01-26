@@ -12,7 +12,6 @@ import Engine from '../Engine';
  * @returns The Ledger Keyring
  */
 export const addLedgerKeyring = async (): Promise<LedgerKeyring> => {
-  console.log('addLedgerKeyring run' + ExtendedKeyringTypes.ledger);
   const keyringController = Engine.context.KeyringController;
   return (await keyringController.addNewKeyring(
     ExtendedKeyringTypes.ledger,
@@ -25,7 +24,6 @@ export const addLedgerKeyring = async (): Promise<LedgerKeyring> => {
  * @returns The stored Ledger Keyring
  */
 export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
-  console.log('getLedgerKeyring run');
   const keyringController = Engine.context.KeyringController;
   // There should only be one ledger keyring.
   const keyring = keyringController.getKeyringsByType(
@@ -47,7 +45,6 @@ export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
 export const restoreLedgerKeyring = async (
   keyringSerialized: SerializationOptions,
 ): Promise<void> => {
-  console.log('restoreLedgerKeyring run');
   const keyringController = Engine.context.KeyringController;
 
   (await getLedgerKeyring()).deserialize(keyringSerialized);
@@ -65,7 +62,6 @@ export const connectLedgerHardware = async (
   transport: BleTransport,
   deviceId: string,
 ): Promise<string> => {
-  console.log('connectLedgerHardware run');
   const keyring = await getLedgerKeyring();
   keyring.setTransport(transport as unknown as any, deviceId);
   const { appName } = await keyring.getAppAndVersion();
@@ -81,7 +77,6 @@ export const unlockLedgerDefaultAccount = async (): Promise<{
   address: string;
   balance: string;
 }> => {
-  console.log('unlockLedgerDefaultAccount run');
   const keyringController = Engine.context.KeyringController;
   const keyring = await getLedgerKeyring();
   try {
@@ -99,7 +94,6 @@ export const unlockLedgerDefaultAccount = async (): Promise<{
  * Automatically opens the Ethereum app on the Ledger device.
  */
 export const openEthereumAppOnLedger = async (): Promise<void> => {
-  console.log('openEthereumAppOnLedger run');
   const keyring = await getLedgerKeyring();
   await keyring.openEthApp();
 };
@@ -108,7 +102,6 @@ export const openEthereumAppOnLedger = async (): Promise<void> => {
  * Automatically closes the current app on the Ledger device.
  */
 export const closeRunningAppOnLedger = async (): Promise<void> => {
-  console.log('closeRunningAppOnLedger run');
   const keyring = await getLedgerKeyring();
   await keyring.quitApp();
 };
@@ -117,7 +110,6 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  * Forgets the ledger keyring's previous device specific state.
  */
 export const forgetLedger = async (): Promise<void> => {
-  console.log('forgetLedger run');
   const keyringController = Engine.context.KeyringController;
   const preferencesController = Engine.context.PreferencesController;
   const keyring = await getLedgerKeyring();
@@ -134,7 +126,6 @@ export const forgetLedger = async (): Promise<void> => {
  * @returns The DeviceId
  */
 export const getDeviceId = async (): Promise<string> => {
-  console.log('getDeviceId run');
   const ledgerKeyring = await getLedgerKeyring();
   return ledgerKeyring.deviceId;
 };
@@ -151,7 +142,6 @@ export const ledgerSignTypedMessage = async (
   },
   version: SignTypedDataVersion,
 ): Promise<string> => {
-  console.log('ledgerSignTypedMessage run');
   await getLedgerKeyring();
   const keyringController = Engine.context.KeyringController;
   return await keyringController.signTypedMessage(
