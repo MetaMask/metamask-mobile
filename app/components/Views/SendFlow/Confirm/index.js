@@ -491,8 +491,8 @@ class Confirm extends PureComponent {
       if (preparedTransaction.gas) {
         const {
           from,
-          transactionTo: to,
-          transactionValue: value,
+          to,
+          value,
           data,
         } = preparedTransaction;
 
