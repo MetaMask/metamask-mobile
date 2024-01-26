@@ -26,7 +26,7 @@ import {
 } from '../../../util/theme';
 import Text from '../../Base/Text';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import AccountDetails from '../ConnectQRHardware/AccountDetails';
+import AccountDetails from '../../../components/UI/HardwareWallet/AccountDetails';
 
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';

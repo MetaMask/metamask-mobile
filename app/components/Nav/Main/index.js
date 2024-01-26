@@ -111,9 +111,9 @@ const Main = (props) => {
 
   useEffect(() => {
     const { TransactionController } = Engine.context;
-    const currentHexChainId = props.chainId;
+    const chainId = props.chainId;
 
-    if (props.showIncomingTransactionsNetworks[currentHexChainId]) {
+    if (props.showIncomingTransactionsNetworks[chainId]) {
       TransactionController.startIncomingTransactionPolling();
     } else {
       TransactionController.stopIncomingTransactionPolling();

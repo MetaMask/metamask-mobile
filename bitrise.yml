@@ -208,7 +208,7 @@ workflows:
                 asdf install yarn "$YARN_VERSION"
                 asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
-      - restore-cache@1:
+      - restore-cache@2:
           title: Restore cache dependencies
           inputs:
             - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
@@ -365,48 +365,52 @@ workflows:
     after_run:
       - android_e2e_test
 
-### Seperating workflows so they run concurrently during smoke runs
+  ### Seperating workflows so they run concurrently during smoke runs
   run_tag_smoke_confirmations_ios:
-      envs:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
-      after_run:
+    after_run:
       - ios_e2e_test
   run_tag_smoke_confirmations_android:
-      meta:
-          bitrise.io:
-            stack: linux-docker-android-20.04
-            machine_type_id: elite-xl
-      envs:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
-      after_run:
+    after_run:
       - android_e2e_test
   run_tag_smoke_swaps_ios:
-      envs:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
       - TEST_SUITE_TAG: '.*SmokeSwaps.*'
-      after_run:
+    after_run:
       - ios_e2e_test
   run_tag_smoke_swaps_android:
-      meta:
-          bitrise.io:
-            stack: linux-docker-android-20.04
-            machine_type_id: elite-xl
-      envs:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
       - TEST_SUITE_TAG: '.*SmokeSwaps.*'
-      after_run:
+    after_run:
       - android_e2e_test
   run_tag_smoke_core_ios:
-      envs:
+    envs:
       - TEST_SUITE_TAG: '.*SmokeCore.*'
-      after_run:
+    after_run:
       - ios_e2e_test
   run_tag_smoke_core_android:
-      meta:
-          bitrise.io:
-            stack: linux-docker-android-20.04
-            machine_type_id: elite-xl
-      envs:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
       - TEST_SUITE_TAG: '.*SmokeCore.*'
-      after_run:
+    after_run:
       - android_e2e_test
 
   e2e_setup:
@@ -423,7 +427,7 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - restore-gradle-cache@1: {}
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -448,12 +452,12 @@ workflows:
                 #!/usr/bin/env bash
                 sudo apt update
                 sudo apt install ccache
-      - restore-cache@1:
+      - restore-cache@2:
           title: Restore CCache
           run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
-      - restore-cache@1:
+      - restore-cache@2:
           title: Restore build from cache
           inputs:
             - key: apk-cache-{{ .CommitHash }}
@@ -499,8 +503,8 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - restore-gradle-cache@1: {}
-      - restore-cache@1:
+      - restore-gradle-cache@2: {}
+      - restore-cache@2:
           title: Restore cache build
           inputs:
             - key: apk-cache-{{ .CommitHash }}
@@ -524,6 +528,9 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                if [ -n "$TEST_SUITE_FOLDER" ]; then
+                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
+                fi
                 if [ "$TEST_SUITE" = "Regression" ]; then
                 TEST_SUITE="Regression"
                 else
@@ -535,7 +542,7 @@ workflows:
                 fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
@@ -607,12 +614,12 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/c++
                 ln -s $(which ccache) /usr/local/bin/clang
                 ln -s $(which ccache) /usr/local/bin/clang++
-      - restore-cache@1:
+      - restore-cache@2:
           title: Restore CCache
           run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
-      - restore-cache@1:
+      - restore-cache@2:
           title: Restore build from cache
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
@@ -656,11 +663,11 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
-      - restore-cache@1:
+      - restore-cache@2:
           title: Restore cache build
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
-      - restore-cocoapods-cache@1: {}
+      - restore-cocoapods-cache@2: {}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -678,6 +685,9 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                if [ -n "$TEST_SUITE_FOLDER" ]; then
+                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
+                fi                
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -690,7 +700,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
           title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
@@ -750,7 +760,7 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
-      - restore-gradle-cache@1: {}
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -826,7 +836,7 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-      - restore-gradle-cache@1: {}
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -1131,7 +1141,7 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
             - destination: android/keystores/flaskRelease.keystore
-      - restore-gradle-cache@1: {}
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_revision: $NDK_VERSION
@@ -1226,10 +1236,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.12.5
+      VERSION_NAME: 7.14.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1235
+      VERSION_NUMBER: 1242
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 0.0.4
@@ -1265,7 +1275,4 @@ trigger_map:
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
-    pipeline: pr_smoke_e2e_pipeline
-  - pull_request_source_branch: '*'
-    pull_request_target_branch: 'main'
     pipeline: pr_smoke_e2e_pipeline

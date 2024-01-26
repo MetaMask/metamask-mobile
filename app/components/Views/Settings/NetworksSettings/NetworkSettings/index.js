@@ -22,11 +22,9 @@ import Networks, {
   getIsNetworkOnboarded,
 } from '../../../../../util/networks';
 import { getEtherscanBaseUrl } from '../../../../../util/etherscan';
-import StyledButton from '../../../../UI/StyledButton';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
 import URL from 'url-parse';
-import CustomText from '../../../../Base/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import BigNumber from 'bignumber.js';
 import { jsonRpcRequest } from '../../../../../util/jsonRpcRequest';
@@ -121,7 +119,7 @@ const createStyles = (colors) =>
       paddingRight: 4,
     },
     warningContainer: {
-      marginTop: 24,
+      marginTop: 16,
       flexGrow: 1,
       flexShrink: 1,
     },
@@ -201,12 +199,7 @@ const createStyles = (colors) =>
       backgroundColor: colors.primary.muted,
     },
     cancel: {
-      marginRight: 8,
-      backgroundColor: colors.white,
-      borderWidth: 1,
-    },
-    confirm: {
-      marginLeft: 8,
+      marginRight: 16,
     },
     blueText: {
       color: colors.primary.default,
@@ -263,8 +256,10 @@ class NetworkSettings extends PureComponent {
     addMode: false,
     warningRpcUrl: undefined,
     warningChainId: undefined,
+    warningSymbol: undefined,
     validatedRpcURL: true,
     validatedChainId: true,
+    validatedSymbol: true,
     initialState: undefined,
     enableAction: false,
     inputWidth: { width: '99%' },
@@ -489,7 +484,11 @@ class NetworkSettings extends PureComponent {
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
     // Check if CTA is disabled
     const isCtaDisabled =
-      !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
+      !enableAction ||
+      this.disabledByRpcUrl() ||
+      this.disabledByChainId() ||
+      this.disabledBySymbol();
+
     if (isCtaDisabled) {
       return;
     }
@@ -669,6 +668,20 @@ class NetworkSettings extends PureComponent {
 
     this.setState({ warningChainId: undefined, validatedChainId: true });
   };
+  /**
+   * Validates if symbol exists
+   * @returns
+   */
+  validateSymbol = () => {
+    const { ticker } = this.state;
+    if (!ticker) {
+      return this.setState({
+        warningSymbol: strings('app_settings.symbol_required'),
+        validatedSymbol: true,
+      });
+    }
+    this.setState({ warningSymbol: undefined, validatedSymbol: true });
+  };
 
   /**
    * Allows to identify if any element of the form changed, in order to enable add or save button
@@ -721,8 +734,11 @@ class NetworkSettings extends PureComponent {
    * Symbol field represents the ticker and needs to be set
    */
   disabledBySymbol = () => {
-    const { ticker } = this.state;
-    if (!ticker) return true;
+    const { ticker, validatedSymbol, warningSymbol } = this.state;
+    if (!ticker) {
+      return true;
+    }
+    return validatedSymbol && !!warningSymbol;
   };
 
   onRpcUrlChange = async (url) => {
@@ -746,7 +762,7 @@ class NetworkSettings extends PureComponent {
   };
 
   onTickerChange = async (ticker) => {
-    await this.setState({ ticker });
+    await this.setState({ ticker, validatedSymbol: false });
     this.getCurrentState();
   };
 
@@ -817,6 +833,7 @@ class NetworkSettings extends PureComponent {
       addMode,
       warningRpcUrl,
       warningChainId,
+      warningSymbol,
       enableAction,
       inputWidth,
     } = this.state;
@@ -945,12 +962,19 @@ class NetworkSettings extends PureComponent {
               value={ticker}
               editable={editable}
               onChangeText={this.onTickerChange}
+              onBlur={this.validateSymbol}
               placeholder={strings('app_settings.network_symbol_label')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}
               {...generateTestId(Platform, NETWORKS_SYMBOL_INPUT_FIELD)}
               keyboardAppearance={themeAppearance}
             />
+
+            {warningSymbol ? (
+              <View style={styles.warningContainer}>
+                <Text style={styles.warningText}>{warningSymbol}</Text>
+              </View>
+            ) : null}
 
             <Text style={styles.label}>
               {strings('app_settings.network_block_explorer_label')}
@@ -987,39 +1011,39 @@ class NetworkSettings extends PureComponent {
               <View style={styles.buttonsWrapper}>
                 {editable ? (
                   <View style={styles.editableButtonsContainer}>
-                    <StyledButton
-                      type="danger"
+                    <Button
+                      size={ButtonSize.Lg}
+                      variant={ButtonVariants.Secondary}
+                      isDanger
                       onPress={this.removeRpcUrl}
                       testID={REMOVE_NETWORK_BUTTON}
-                      containerStyle={[styles.button, styles.cancel]}
-                    >
-                      <CustomText centered red>
-                        {strings('app_settings.delete')}
-                      </CustomText>
-                    </StyledButton>
-                    <StyledButton
-                      type="confirm"
+                      style={{ ...styles.button, ...styles.cancel }}
+                      label={strings('app_settings.delete')}
+                    />
+                    <Button
+                      size={ButtonSize.Lg}
+                      variant={ButtonVariants.Primary}
                       onPress={this.addRpcUrl}
                       testID={NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON}
-                      containerStyle={[styles.button, styles.confirm]}
-                      disabled={isActionDisabled}
-                    >
-                      {strings('app_settings.network_save')}
-                    </StyledButton>
+                      style={styles.button}
+                      label={strings('app_settings.network_save')}
+                      isDisabled={isActionDisabled}
+                    />
                   </View>
                 ) : (
                   <View style={styles.buttonsContainer}>
-                    <StyledButton
-                      type="confirm"
+                    <Button
+                      size={ButtonSize.Lg}
+                      variant={ButtonVariants.Primary}
                       onPress={this.addRpcUrl}
                       testID={
                         NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON
                       }
-                      containerStyle={styles.syncConfirm}
-                      disabled={isActionDisabled}
-                    >
-                      {strings('app_settings.network_add')}
-                    </StyledButton>
+                      style={styles.button}
+                      label={strings('app_settings.network_add')}
+                      isDisabled={isActionDisabled}
+                      width={ButtonWidthTypes.Full}
+                    />
                   </View>
                 )}
               </View>

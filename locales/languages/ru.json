@@ -535,6 +535,7 @@
     "import_account": "Импортировать счет",
     "connect_hardware": "Подключить аппаратный кошелек",
     "imported": "Импортирован",
+    "qr_hardware": "QR-оборудование",
     "remove_account_title": "Удаление счета",
     "remove_account_message": "Вы действительно хотите удалить этот счет?",
     "no": "Нет",
@@ -594,11 +595,13 @@
     "purpose_connect": "подключиться",
     "purpose_sign": "подтвердить транзакцию",
     "select_accounts": "Выберите счет",
+    "please_wait": "Пожалуйста, подождите..."
+  },
+  "account_selector": {
     "prev": "ПРЕДЫДУЩИЙ",
     "next": "ДАЛЕЕ",
     "unlock": "Разблокировать",
-    "forget": "Забыть это устройство",
-    "please_wait": "Пожалуйста, подождите..."
+    "forget": "Забыть это устройство"
   },
   "app_settings": {
     "title": "Настройки",
@@ -1825,7 +1828,6 @@
     "select_provider": "Выберите предпочитаемого поставщика",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Переключитесь на мейн-нет или Sepolia"
   },
   "walletconnect_sessions": {
