@@ -365,8 +365,6 @@ buildAndroidQA(){
 	fi
 
 	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate sourcemaps
-		yarn sourcemaps:android
 		# Generate checksum
 		yarn build:android:checksum:qa
 	fi
@@ -391,8 +389,6 @@ buildAndroidRelease(){
 	fi
 
 	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate sourcemaps
-		yarn sourcemaps:android
 		# Generate checksum
 		yarn build:android:checksum
 	fi
@@ -420,8 +416,6 @@ buildAndroidFlaskRelease(){
 	fi
 
 	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate sourcemaps
-		yarn sourcemaps:android
 		# Generate checksum
 		yarn build:android:checksum:flask
 	fi
