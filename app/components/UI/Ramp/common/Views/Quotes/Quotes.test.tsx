@@ -19,12 +19,12 @@ import type { DeepPartial } from './Quotes.types';
 import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
-import { RampSDK } from '../../../common/sdk';
+import { RampSDK } from '../../sdk';
 import useQuotes from '../../hooks/useQuotes';
 
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
-import { RampType } from '../../../common/types';
+import { RampType } from '../../types';
 
 function render(Component: React.ComponentType) {
   return renderScreen(

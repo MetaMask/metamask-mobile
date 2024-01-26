@@ -14,14 +14,14 @@ import Animated, {
 import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
 
-import { useRampSDK } from '../../../common/sdk';
+import { useRampSDK } from '../../sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useRegions from '../../hooks/useRegions';
-import useAnalytics from '../../../common/hooks/useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useLimits from '../../hooks/useLimits';
-import useBalance from '../../../common/hooks/useBalance';
+import useBalance from '../../hooks/useBalance';
 
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
@@ -32,25 +32,25 @@ import BaseListItem from '../../../../../Base/ListItem';
 import BaseSelectorButton from '../../../../../Base/SelectorButton';
 import StyledButton from '../../../../StyledButton';
 
-import ScreenLayout from '../../../common/components/ScreenLayout';
-import Box from '../../../common/components/Box';
-import Row from '../../../common/components/Row';
-import AssetSelectorButton from '../../../common/components/AssetSelectorButton';
-import PaymentMethodSelector from '../../../common/components/PaymentMethodSelector';
-import AmountInput from '../../../common/components/AmountInput';
-import Keypad from '../../../common/components/Keypad';
-import QuickAmounts from '../../../common/components/QuickAmounts';
-import AccountSelector from '../../../common/components/AccountSelector';
+import ScreenLayout from '../../components/ScreenLayout';
+import Box from '../../components/Box';
+import Row from '../../components/Row';
+import AssetSelectorButton from '../../components/AssetSelectorButton';
+import PaymentMethodSelector from '../../components/PaymentMethodSelector';
+import AmountInput from '../../components/AmountInput';
+import Keypad from '../../components/Keypad';
+import QuickAmounts from '../../components/QuickAmounts';
+import AccountSelector from '../../components/AccountSelector';
 import TokenIcon from '../../../../Swaps/components/TokenIcon';
-import CustomActionButton from '../../../common/containers/CustomActionButton';
-import TokenSelectModal from '../../../common/components/TokenSelectModal';
-import PaymentMethodModal from '../../../common/components/PaymentMethodModal';
-import PaymentMethodIcon from '../../../common/components/PaymentMethodIcon';
-import FiatSelectModal from '../../../common/components/modals/FiatSelectModal';
-import ErrorViewWithReporting from '../../../common/components/ErrorViewWithReporting';
-import RegionModal from '../../../common/components/RegionModal';
-import SkeletonText from '../../../common/components/SkeletonText';
-import ErrorView from '../../../common/components/ErrorView';
+import CustomActionButton from '../../containers/CustomActionButton';
+import TokenSelectModal from '../../components/TokenSelectModal';
+import PaymentMethodModal from '../../components/PaymentMethodModal';
+import PaymentMethodIcon from '../../components/PaymentMethodIcon';
+import FiatSelectModal from '../../components/modals/FiatSelectModal';
+import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
+import RegionModal from '../../components/RegionModal';
+import SkeletonText from '../../components/SkeletonText';
+import ErrorView from '../../components/ErrorView';
 
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
@@ -60,9 +60,9 @@ import {
   useParams,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { formatAmount } from '../../../common/utils';
+import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
-import { QuickAmount, Region, ScreenLocation } from '../../../common/types';
+import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../../component-library/hooks';
 
 import styleSheet from './BuildQuote.styles';
@@ -70,7 +70,7 @@ import {
   toTokenMinimalUnit,
   fromTokenMinimalUnitString,
 } from '../../../../../../util/number';
-import useGasPriceEstimation from '../../../common/hooks/useGasPriceEstimation';
+import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;

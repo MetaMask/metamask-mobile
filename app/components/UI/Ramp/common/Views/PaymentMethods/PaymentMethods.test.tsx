@@ -9,8 +9,8 @@ import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 import useRegions from '../../hooks/useRegions';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
-import { RampType, Region } from '../../../common/types';
-import { RampSDK } from '../../../common/sdk';
+import { RampType, Region } from '../../types';
+import { RampSDK } from '../../sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
 

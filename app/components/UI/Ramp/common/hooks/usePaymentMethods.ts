@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useRampSDK } from '../../common/sdk';
-import useSDKMethod from '../../common/hooks/useSDKMethod';
+import { useRampSDK } from '../sdk';
+import useSDKMethod from './useSDKMethod';
 
 function usePaymentMethods() {
   const {

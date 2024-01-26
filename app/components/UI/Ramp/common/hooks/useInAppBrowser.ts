@@ -5,10 +5,10 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { OrderStatusEnum, Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import BuyAction from '@consensys/on-ramp-sdk/dist/regions/BuyAction';
-import useAnalytics from '../../common/hooks/useAnalytics';
-import { callbackBaseDeeplink, SDK, useRampSDK } from '../../common/sdk';
-import { createCustomOrderIdData } from '../../common/orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from '../../common/orderProcessor/aggregator';
+import useAnalytics from './useAnalytics';
+import { callbackBaseDeeplink, SDK, useRampSDK } from '../sdk';
+import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
 import {
   addFiatCustomIdData,
   FiatOrder,

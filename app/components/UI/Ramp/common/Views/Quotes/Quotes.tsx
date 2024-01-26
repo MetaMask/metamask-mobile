@@ -13,17 +13,17 @@ import { Provider } from '@consensys/on-ramp-sdk/dist/API';
 import styleSheet from './Quotes.styles';
 import LoadingQuotes from './LoadingQuotes';
 import Text from '../../../../../Base/Text';
-import ScreenLayout from '../../../common/components/ScreenLayout';
-import ErrorViewWithReporting from '../../../common/components/ErrorViewWithReporting';
-import ErrorView from '../../../common/components/ErrorView';
-import Row from '../../../common/components/Row';
-import Quote from '../../../common/components/Quote';
-import InfoAlert from '../../../common/components/InfoAlert';
+import ScreenLayout from '../../components/ScreenLayout';
+import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
+import ErrorView from '../../components/ErrorView';
+import Row from '../../components/Row';
+import Quote from '../../components/Quote';
+import InfoAlert from '../../components/InfoAlert';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 
-import useAnalytics from '../../../common/hooks/useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 import useQuotes from '../../hooks/useQuotes';
-import { useRampSDK } from '../../../common/sdk';
+import { useRampSDK } from '../../sdk';
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
   createNavigationDetails,
@@ -31,7 +31,7 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-import LoadingAnimation from '../../../common/components/LoadingAnimation';
+import LoadingAnimation from '../../components/LoadingAnimation';
 import useInterval from '../../../../../hooks/useInterval';
 import Animated, {
   Extrapolate,
@@ -42,10 +42,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import useInAppBrowser from '../../hooks/useInAppBrowser';
 import { createCheckoutNavDetails } from '../Checkout';
-import { PROVIDER_LINKS, ScreenLocation } from '../../../common/types';
+import { PROVIDER_LINKS, ScreenLocation } from '../../types';
 import Logger from '../../../../../../util/Logger';
 import Timer from './Timer';
-import { isBuyQuote, isBuyQuotes, isSellQuotes } from '../../../common/utils';
+import { isBuyQuote, isBuyQuotes, isSellQuotes } from '../../utils';
 
 export interface QuotesParams {
   amount: number | string;

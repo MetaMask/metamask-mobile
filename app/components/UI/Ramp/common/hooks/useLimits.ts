@@ -1,5 +1,5 @@
-import useSDKMethod from '../../common/hooks/useSDKMethod';
-import { useRampSDK } from '../../common/sdk';
+import useSDKMethod from './useSDKMethod';
+import { useRampSDK } from '../sdk';
 
 const useLimits = () => {
   const {

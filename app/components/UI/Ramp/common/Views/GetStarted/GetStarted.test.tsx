@@ -3,9 +3,9 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 import GetStarted from './GetStarted';
-import { RampType, Region } from '../../../common/types';
-import { RampSDK } from '../../../common/sdk';
-import useRampNetwork from '../../../common/hooks/useRampNetwork';
+import { RampType, Region } from '../../types';
+import { RampSDK } from '../../sdk';
+import useRampNetwork from '../../hooks/useRampNetwork';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
 

@@ -1,6 +1,6 @@
 import React from 'react';
-import Row from '../../../common/components/Row';
-import SkeletonQuote from '../../../common/components/SkeletonQuote';
+import Row from '../../components/Row';
+import SkeletonQuote from '../../components/SkeletonQuote';
 
 function LoadingQuotes() {
   return (

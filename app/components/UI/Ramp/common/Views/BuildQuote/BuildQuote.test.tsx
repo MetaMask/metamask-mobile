@@ -5,13 +5,13 @@ import { BN } from 'ethereumjs-util';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
 import useRegions from '../../hooks/useRegions';
-import { RampSDK } from '../../../common/sdk';
+import { RampSDK } from '../../sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
-import useGasPriceEstimation from '../../../common/hooks/useGasPriceEstimation';
+import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import {
   mockCryptoCurrenciesData,
   mockFiatCurrenciesData,
@@ -20,7 +20,7 @@ import {
 } from './BuildQuote.constants';
 import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
-import useBalance from '../../../common/hooks/useBalance';
+import useBalance from '../../hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../../../../util/number';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';

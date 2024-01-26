@@ -5,8 +5,8 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 import Regions from './Regions';
 import useRegions from '../../hooks/useRegions';
-import { RampSDK } from '../../../common/sdk';
-import { RampType, Region } from '../../../common/types';
+import { RampSDK } from '../../sdk';
+import { RampType, Region } from '../../types';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 import Routes from '../../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';

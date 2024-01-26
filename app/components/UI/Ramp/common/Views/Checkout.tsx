@@ -9,7 +9,7 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { baseStyles } from '../../../../../styles/common';
 import { useTheme } from '../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { useRampSDK, SDK } from '../../common/sdk';
+import { useRampSDK, SDK } from '../sdk';
 import {
   addFiatCustomIdData,
   removeFiatCustomIdData,
@@ -19,12 +19,12 @@ import {
   createNavigationDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
-import { aggregatorOrderToFiatOrder } from '../../common/orderProcessor/aggregator';
-import { createCustomOrderIdData } from '../../common/orderProcessor/customOrderId';
-import ScreenLayout from '../../common/components/ScreenLayout';
-import ErrorView from '../../common/components/ErrorView';
-import ErrorViewWithReporting from '../../common/components/ErrorViewWithReporting';
-import useAnalytics from '../../common/hooks/useAnalytics';
+import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
+import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
+import ScreenLayout from '../components/ScreenLayout';
+import ErrorView from '../components/ErrorView';
+import ErrorViewWithReporting from '../components/ErrorViewWithReporting';
+import useAnalytics from '../hooks/useAnalytics';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useHandleSuccessfulOrder from '../hooks/useHandleSuccessfulOrder';

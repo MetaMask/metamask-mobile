@@ -3,21 +3,21 @@ import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import Text from '../../../../../Base/Text';
-import Row from '../../../common/components/Row';
-import ScreenLayout from '../../../common/components/ScreenLayout';
-import PaymentMethod from '../../../common/components/PaymentMethod';
-import SkeletonPaymentMethod from '../../../common/components/SkeletonPaymentMethod';
-import ErrorView from '../../../common/components/ErrorView';
-import ErrorViewWithReporting from '../../../common/components/ErrorViewWithReporting';
+import Row from '../../components/Row';
+import ScreenLayout from '../../components/ScreenLayout';
+import PaymentMethod from '../../components/PaymentMethod';
+import SkeletonPaymentMethod from '../../components/SkeletonPaymentMethod';
+import ErrorView from '../../components/ErrorView';
+import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import StyledButton from '../../../../StyledButton';
 
-import { useRampSDK } from '../../../common/sdk';
+import { useRampSDK } from '../../sdk';
 import { useTheme } from '../../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 
-import useAnalytics from '../../../common/hooks/useAnalytics';
+import useAnalytics from '../../hooks/useAnalytics';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
 import useRegions from '../../hooks/useRegions';
 

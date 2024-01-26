@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
-import { useRampSDK } from '../../common/sdk';
-import useSDKMethod from '../../common/hooks/useSDKMethod';
+import { useRampSDK } from '../sdk';
+import useSDKMethod from './useSDKMethod';
 
 export default function useFiatCurrencies() {
   const {

@@ -7,9 +7,9 @@ import {
 import CustomActionButtonComponent from '../components/CustomActionButton';
 import { useRampSDK } from '../sdk';
 import useAnalytics from '../hooks/useAnalytics';
-import useInAppBrowser from '../../buy/hooks/useInAppBrowser';
+import useInAppBrowser from '../hooks/useInAppBrowser';
 import Logger from '../../../../../util/Logger';
-import { createCheckoutNavDetails } from '../../buy/Views/Checkout';
+import { createCheckoutNavDetails } from '../Views/Checkout';
 
 interface Props {
   customAction: PaymentCustomAction;

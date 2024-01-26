@@ -8,13 +8,13 @@ import Text from '../../../../../Base/Text';
 import BaseListItem from '../../../../../Base/ListItem';
 import useModalHandler from '../../../../../Base/hooks/useModalHandler';
 
-import ScreenLayout from '../../../common/components/ScreenLayout';
-import Box from '../../../common/components/Box';
-import RegionModal from '../../../common/components/RegionModal';
-import RegionAlert from '../../../common/components/RegionAlert';
-import SkeletonText from '../../../common/components/SkeletonText';
-import ErrorView from '../../../common/components/ErrorView';
-import ErrorViewWithReporting from '../../../common/components/ErrorViewWithReporting';
+import ScreenLayout from '../../components/ScreenLayout';
+import Box from '../../components/Box';
+import RegionModal from '../../components/RegionModal';
+import RegionAlert from '../../components/RegionAlert';
+import SkeletonText from '../../components/SkeletonText';
+import ErrorView from '../../components/ErrorView';
+import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 
 import StyledButton from '../../../../StyledButton';
 import { getFiatOnRampAggNavbar } from '../../../../Navbar';
@@ -24,9 +24,9 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 
-import { useRampSDK } from '../../../common/sdk';
-import { Region } from '../../../common/types';
-import useAnalytics from '../../../common/hooks/useAnalytics';
+import { useRampSDK } from '../../sdk';
+import { Region } from '../../types';
+import useAnalytics from '../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
 
 // TODO: Convert into typescript and correctly type

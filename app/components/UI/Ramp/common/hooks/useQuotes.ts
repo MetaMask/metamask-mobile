@@ -1,5 +1,5 @@
-import { useRampSDK } from '../../common/sdk';
-import useSDKMethod from '../../common/hooks/useSDKMethod';
+import { useRampSDK } from '../sdk';
+import useSDKMethod from './useSDKMethod';
 
 function useQuotes(amount: number | string) {
   const {

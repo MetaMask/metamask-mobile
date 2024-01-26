@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { isEqual } from 'lodash';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useRampSDK } from '../../common/sdk';
-import { Region } from '../../common/types';
-import useSDKMethod from '../../common/hooks/useSDKMethod';
+import { useRampSDK } from '../sdk';
+import { Region } from '../types';
+import useSDKMethod from './useSDKMethod';
 
 export default function useRegions() {
   const navigation = useNavigation();
