@@ -50,6 +50,7 @@ import {
 import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../../../../selectors/preferencesController';
+import Logger from '../../../../../../util/Logger';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -842,6 +843,8 @@ class TransactionEditor extends PureComponent {
       transaction?.type === '0x0' ||
       gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET;
 
+    Logger.log('RENDER app/components/UI/TransactionEditor/index.js');
+
     return (
       <React.Fragment>
         {mode === 'review' && (
@@ -882,6 +885,7 @@ class TransactionEditor extends PureComponent {
           </KeyboardAwareScrollView>
         )}
 
+        {/* TODO Disable if isSmartTransaction  */}
         {mode !== 'review' &&
           (showLegacyGasEditModal ? (
             <EditGasFeeLegacy

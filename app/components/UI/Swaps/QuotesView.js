@@ -1719,6 +1719,8 @@ function SwapsQuotesView({
     hasEnoughTokenBalance &&
     hasEnoughEthBalance;
 
+  Logger.log('RENDER app/components/UI/Swaps/QuotesView.js');
+
   return (
     <ScreenView
       contentContainerStyle={styles.screen}
@@ -2015,6 +2017,7 @@ function SwapsQuotesView({
                           } `}
                         </Text>
                         <TouchableOpacity
+                          // TODO disable if isSmartTransaction
                           disabled={unableToSwap}
                           onPress={
                             unableToSwap

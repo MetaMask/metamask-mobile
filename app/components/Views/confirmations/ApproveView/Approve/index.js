@@ -753,6 +753,8 @@ class Approve extends PureComponent {
     }
 
     if (!transaction.id) return null;
+
+    Logger.log('RENDER app/components/Views/ApproveView/Approve/index.js');
     return (
       <Modal
         isVisible={this.props.modalVisible}
@@ -842,6 +844,7 @@ class Approve extends PureComponent {
               </AnimatedTransactionModal>
             )}
 
+            {/* TODO Disable if isSmartTransaction */}
             {mode !== 'review' &&
               (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
                 <EditGasFee1559
