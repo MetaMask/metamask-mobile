@@ -169,7 +169,6 @@ Array [
                 ],
               ]
             }
-            thumbTintColor="#FFFFFF"
             tintColor="#D6D9DC"
             value={false}
           />
@@ -475,7 +474,6 @@ Array [
                 ],
               ]
             }
-            thumbTintColor="#FFFFFF"
             tintColor="#D6D9DC"
             value={false}
           />
