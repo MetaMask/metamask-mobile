@@ -49,7 +49,7 @@ index 323a8e8..eed6dcc 100644
  //# sourceMappingURL=PreferencesController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index 1a98ab0..e55cd3f 100644
+index 1a98ab0..2086fce 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 @@ -3,6 +3,29 @@ Object.defineProperty(exports, "__esModule", { value: true });
@@ -152,7 +152,7 @@ index 1a98ab0..e55cd3f 100644
      syncIdentities(addresses) {
 +        /**
 +         * ======= PATCH INFORMATION =======
-+         * Guard logic in case the identities
++         * Guard logic in case the addresses
 +         * array is empty.
 +         * 
 +         * This is done to help research the issue
