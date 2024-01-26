@@ -3,7 +3,7 @@ import { PreferencesState } from '@metamask/preferences-controller';
 import { RootState } from '../reducers';
 import { isHardwareAccount } from '../../app/util/address';
 import { selectChainId } from './networkController';
-import { NETWORKS_CHAIN_ID } from 'app/constants/network';
+import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
 
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine.backgroundState.PreferencesController;
