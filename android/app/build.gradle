@@ -51,12 +51,13 @@ react {
 }
 
 // Check if Sentry file uploads should be enabled
-def disableAutoSentryUpload = System.getenv('SENTRY_DISABLE_AUTO_UPLOAD')?.toBoolean()
+def disableAutoSentryUpload = System.getenv('SENTRY_DISABLE_AUTO_UPLOAD')?.toBoolean() ?: true
 
 // Configure sentry properties
 project.ext.sentryCli = [
 	logLevel: "debug",
 	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
+    autoUpload: !disableAutoSentryUpload
 ]
 
 if (!disableAutoSentryUpload) {
