@@ -799,13 +799,6 @@ workflows:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
           title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
-            - deploy_path: sourcemaps/android/index.js.map
-          title: Bitrise Deploy Sourcemaps
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -1004,13 +997,6 @@ workflows:
           inputs:
             - deploy_path: ios/build/MetaMask.xcarchive
           title: Deploy Symbols File
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
-            - deploy_path: sourcemaps/ios/index.js.map
-          title: Deploy Source Map
   build_ios_qa:
     before_run:
       - code_setup
@@ -1045,13 +1031,6 @@ workflows:
           inputs:
             - deploy_path: ios/build/MetaMask-QA.xcarchive
           title: Deploy Symbols File
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
-            - deploy_path: sourcemaps/ios/index.js.map
-          title: Deploy Source Map
   _upload_ipa_to_browserstack:
     steps:
       - script@1:
@@ -1109,13 +1088,6 @@ workflows:
           inputs:
             - deploy_path: ios/build/MetaMask-Flask.xcarchive:BITRISE_APP_STORE_XCARCHIVE_PATH
           title: Deploy Symbols File
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
-            - deploy_path: sourcemaps/ios/index.js.map
-          title: Deploy Source Map
   build_android_flask_release:
     before_run:
       - code_setup
