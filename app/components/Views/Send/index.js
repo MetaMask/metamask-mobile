@@ -295,7 +295,7 @@ class Send extends PureComponent {
   };
 
   /**
-   * Handle txMeta object, setting neccesary state to make a transaction
+   * Handle txMeta object, setting necessary state to make a transaction
    */
   handleNewTxMeta = async ({
     target_address,
@@ -560,7 +560,7 @@ class Send extends PureComponent {
         waitForResult: true,
       });
 
-      // Add to the AddressBook if it's an unkonwn address
+      // Add to the AddressBook if it's an unknown address
       let checksummedAddress = null;
 
       if (assetType === 'ETH') {

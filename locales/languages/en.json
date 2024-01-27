@@ -2355,7 +2355,7 @@
     "not_supported": "Deeplink not supported"
   },
   "error_screen": {
-    "title": "An error occured",
+    "title": "An error occurred",
     "subtitle": "Your information can't be shown. Don’t worry, your wallet and funds are safe.",
     "try_again_button": "Try again",
     "submit_ticket_1": "Please report this issue so we can fix it:",
@@ -2720,8 +2720,8 @@
     "ledger_disconnected": "Your device got disconnected",
     "ledger_disconnected_error": "The connection to your device has been lost. Please try again.",
     "unknown_error": "Unexpected error occurred.",
-    "unknown_error_message": "An unexpected error occured. Please try again.",
-    "error_occured": "An error occured",
+    "unknown_error_message": "An unexpected error occurred. Please try again.",
+    "error_occurred": "An error occurred",
     "how_to_install_eth_app": "How to install the Ethereum app on a Ledger device",
     "ledger_account_count": "You are using 1 account from your Ledger with MetaMask Mobile.",
     "open_eth_app": "Please open the Ethereum app",
@@ -2736,7 +2736,7 @@
     "ledger_pending_confirmation_error": "There is a pending action on your Ledger. Please clear the action first then retry.",
     "not_supported": "Operation not supported",
     "not_supported_error": "Only version 4 of typed data signing is supported.",
-    "error_during_connection": "An unknown error occured",
+    "error_during_connection": "An unknown error occurred",
     "error_during_connection_message": "There's been a slight problem connecting your Ledger Nano X, tap 'Retry' below to give this another go. Sometimes this occurs due to the ETH app on your Ledger Nano X being open at the start of the pairing process with MetaMask Mobile.",
     "how_to_install_eth_webview_title": "How to install the Ethereum App",
     "nonce_too_low": "Nonce too low",

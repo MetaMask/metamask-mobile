@@ -72,7 +72,7 @@ async function main(): Promise<void> {
         process.exit(1);
       }
     } catch (error) {
-      core.setFailed(`Error occured when applying label: ${error}`);
+      core.setFailed(`Error occurred when applying label: ${error}`);
       process.exit(1);
     }
   }
