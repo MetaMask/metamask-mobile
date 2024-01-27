@@ -15,6 +15,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import { BlurView } from '@react-native-community/blur';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -81,6 +82,10 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
             setView(CONFIRM_PASSWORD);
           }
         } catch (e) {
+          Logger.error(
+            'Error trying to recover SRP from keyring-controller',
+            e,
+          );
           setView(CONFIRM_PASSWORD);
         }
       }
