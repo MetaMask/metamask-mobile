@@ -56,7 +56,7 @@ def disableAutoSentryUpload = System.getenv('SENTRY_DISABLE_AUTO_UPLOAD')?.toBoo
 // Configure sentry properties
 project.ext.sentryCli = [
 	logLevel: "debug",
-	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
+	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties',
     autoUpload: !disableAutoSentryUpload
 ]
 
