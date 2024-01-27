@@ -378,6 +378,7 @@ buildAndroidRelease(){
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
 	fi
+	export SENTRY_UPLOAD_ENABLED='false';
 	prebuild_android
 
 	# GENERATE APK
