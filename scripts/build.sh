@@ -354,7 +354,7 @@ buildAndroidQA(){
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.qa
 	fi
-	export SENTRY_DISABLE_AUTO_UPLOAD=true
+	export SENTRY_DISABLE_AUTO_UPLOAD=false
 	prebuild_android
 	# Generate APK
 	cd android && ./gradlew assembleQaRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
