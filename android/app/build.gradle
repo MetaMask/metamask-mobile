@@ -52,7 +52,6 @@ react {
 
 // Check if Sentry file uploads should be enabled
 //def disableAutoSentryUpload = System.getenv('SENTRY_DISABLE_AUTO_UPLOAD')?.toBoolean() ?: true
-apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
 
 // Configure sentry properties
 project.ext.sentryCli = [
@@ -95,6 +94,8 @@ project.ext.react = [
     cliPath: "../../node_modules/react-native/cli.js",
     composeSourceMapsPath: "../../node_modules/react-native/scripts/compose-source-maps.js",
 ]
+
+apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
 
 def getPassword(String currentUser, String keyChain) {
 	def stdout = new ByteArrayOutputStream()
