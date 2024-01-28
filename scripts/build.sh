@@ -270,8 +270,6 @@ buildIosRelease(){
 		brew install watchman
 		cd ios
 		generateArchivePackages "MetaMask"
-		# Generate sourcemaps
-		yarn sourcemaps:ios
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -294,8 +292,6 @@ buildIosFlaskRelease(){
 		brew install watchman
 		cd ios
 		generateArchivePackages "MetaMask-Flask"
-		# Generate sourcemaps
-		yarn sourcemaps:ios
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -325,10 +321,13 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
+	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+	# export SENTRY_INCLUDE_NATIVE_SOURCES="false"
+
 	prebuild_ios
 
-  echo "Start QA build..."
-  echo "BITRISE_GIT_BRANCH: $BITRISE_GIT_BRANCH"
+	echo "Start QA build..."
+	echo "BITRISE_GIT_BRANCH: $BITRISE_GIT_BRANCH"
 
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
@@ -339,8 +338,6 @@ buildIosQA(){
 		brew install watchman
 		cd ios
 		generateArchivePackages "MetaMask-QA"
-		# Generate sourcemaps
-		yarn sourcemaps:ios
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -378,7 +375,7 @@ buildAndroidRelease(){
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
 	fi
-	export SENTRY_DISABLE_AUTO_UPLOAD=true
+	export SENTRY_DISABLE_AUTO_UPLOAD="true"
 	prebuild_android
 
 	# GENERATE APK
