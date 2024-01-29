@@ -5,6 +5,9 @@ import Confirm from '.';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import analyticsV2 from '../../../../util/analyticsV2';
+import { TESTID_ACCORDION_CONTENT } from '../../../../component-library/components/Accordions/Accordion/Accordion.constants';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../../../components/UI/BlockaidBanner/BlockaidBanner.constants';
 
 const mockInitialState = {
   engine: {
@@ -15,6 +18,7 @@ const mockInitialState = {
         providerConfig: {
           ticker: 'ETH',
           type: 'mainnet',
+          chainId: '0x1',
         },
       },
       AccountTrackerController: {
@@ -30,6 +34,7 @@ const mockInitialState = {
         identities: {
           '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': { name: 'Account1' },
         },
+        securityAlertsEnabled: true,
       },
       KeyringController: {
         keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }],
@@ -40,6 +45,15 @@ const mockInitialState = {
     showHexData: true,
   },
   transaction: {
+    currentTransactionSecurityAlertResponse: {
+      id: 1,
+      response: {
+        result_type: 'Malicious',
+        reason: 'blur_farming',
+        providerRequestsCount: {},
+        chainId: '0x1',
+      },
+    },
     selectedAsset: {},
     transaction: {
       from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
@@ -65,14 +79,21 @@ jest.mock('react-redux', () => ({
     .fn()
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
+
 jest.mock('../../../../core/GasPolling/GasPolling', () => ({
   ...jest.requireActual('../../../../core/GasPolling/GasPolling'),
   startGasPolling: jest.fn(),
   stopGasPolling: jest.fn(),
 }));
+
 jest.mock('../../../../util/ENSUtils', () => ({
   ...jest.requireActual('../../../../util/ENSUtils'),
   doENSReverseLookup: jest.fn(),
+}));
+
+jest.mock('../../../../lib/ppom/ppom-util', () => ({
+  ...jest.requireActual('../../../../lib/ppom/ppom-util'),
+  validateRequest: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -88,6 +109,15 @@ jest.mock('../../../../core/Engine', () => ({
           },
         ],
       },
+    },
+    TransactionController: {
+      addTransaction: jest.fn().mockResolvedValue({
+        result: {},
+        transactionMeta: {
+          id: 1,
+        },
+      }),
+      updateSecurityAlertResponse: jest.fn(),
     },
   },
 }));
@@ -117,6 +147,33 @@ describe('Confirm', () => {
     const wrapper = render(Confirm);
     await waitFor(() => {
       expect(wrapper).toMatchSnapshot();
+    });
+  });
+
+  it('displays blockaid banner', async () => {
+    const trackEventSypy = jest
+      .spyOn(analyticsV2, 'trackEvent')
+      .mockImplementation((name, params) => {
+        expect(name).toBeDefined();
+        expect(params).toBeDefined();
+      });
+
+    const { queryByText, queryByTestId } = render(Confirm);
+
+    await waitFor(async () => {
+      expect(
+        await queryByText(
+          'If you approve this request, someone can steal your assets listed on Blur.',
+        ),
+      ).toBeDefined();
+
+      expect(await queryByTestId(TESTID_ACCORDION_CONTENT)).toBeDefined();
+      expect(
+        await queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
+      ).toBeDefined();
+      expect(await queryByText('Something doesn’t look right?')).toBeDefined();
+
+      expect(trackEventSypy).toHaveBeenCalledTimes(1);
     });
   });
 });

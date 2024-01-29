@@ -29,6 +29,9 @@ const controllerNames = [
   { name: 'TokenBalancesController', initialState: {} },
   { name: 'TokenRatesController', initialState: {} },
   { name: 'TransactionController', initialState: {} },
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  { name: 'SnapController', initialState: {} },
+  ///: END:ONLY_INCLUDE_IF
   {
     name: 'SwapsController',
     initialState: {},

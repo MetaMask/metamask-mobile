@@ -1,14 +1,14 @@
-import Logger from '../../util/Logger';
-import Engine from '../../core/Engine';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
-import { isMainnetByChainId } from '../../util/networks';
+import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
+import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
+import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
 import {
   Reason,
   ResultType,
 } from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
+import Engine from '../../core/Engine';
 import { store } from '../../store';
-import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
-import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+import Logger from '../../util/Logger';
 
 const ConfirmationMethods = Object.freeze([
   'eth_sendRawTransaction',
@@ -46,7 +46,7 @@ const validateRequest = async (req: any, transactionId?: string) => {
     !isBlockaidFeatureEnabled() ||
     !PreferencesController.state.securityAlertsEnabled ||
     !ConfirmationMethods.includes(req.method) ||
-    !isMainnetByChainId(currentChainId)
+    !BLOCKAID_SUPPORTED_CHAIN_IDS.includes(currentChainId)
   ) {
     return;
   }
@@ -73,6 +73,11 @@ const validateRequest = async (req: any, transactionId?: string) => {
       securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
         ppom.validateJsonRpc(req),
       );
+      securityAlertResponse = {
+        ...securityAlertResponse,
+        req,
+        chainId: currentChainId,
+      };
     }
   } catch (e) {
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
