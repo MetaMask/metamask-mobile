@@ -106,7 +106,7 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
   PersistedSnapControllerState,
-  WebviewExecutionService
+  WebViewExecutionService
 } from '@metamask/snaps-controllers';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import { EnumToUnion, Snap } from '@metamask/snaps-utils';
@@ -327,7 +327,7 @@ class Engine {
   /**
    * Object that runs and manages the execution of Snaps
    */
-  snapExecutionService: WebviewExecutionService;
+  snapExecutionService: WebViewExecutionService;
   ///: END:ONLY_INCLUDE_IF
 
   /**
@@ -740,7 +740,7 @@ class Engine {
         '0x025b65308f0f0fb8bc7f7ff87bfc296e0330eee5d3c1d1ee4a048b2fd6a86fa0a6',
     });
 
-    this.snapExecutionService = new WebviewExecutionService({
+    this.snapExecutionService = new WebViewExecutionService({
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
       }),
