@@ -191,14 +191,6 @@ const BottomSheetDialog = forwardRef<
     const updateSheetHeight = (e: LayoutChangeEvent) => {
       const { height } = e.nativeEvent.layout;
       bottomOfDialogYValue.value = height;
-      maxSheetHeight = isFullscreen
-        ? height - screenTopPadding
-        : height - screenTopPadding - DEFAULT_BOTTOMSHEETDIALOG_MARGINTOP;
-      styles = useStyles(styleSheet, {
-        maxSheetHeight,
-        screenBottomPadding,
-        isFullscreen,
-      }).styles;
 
       if (!isMounted.current) {
         isMounted.current = true;
