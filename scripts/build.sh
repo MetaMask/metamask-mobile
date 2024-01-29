@@ -321,7 +321,7 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+	export SENTRY_DISABLE_AUTO_UPLOAD="true"
 
 	prebuild_ios
 
