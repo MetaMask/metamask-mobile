@@ -322,7 +322,6 @@ buildIosReleaseE2E(){
 
 buildIosQA(){
 	export SENTRY_DISABLE_AUTO_UPLOAD="false"
-	export SENTRY_INCLUDE_NATIVE_SOURCES="false"
 
 	prebuild_ios
 
@@ -348,11 +347,14 @@ buildIosQA(){
 
 
 buildAndroidQA(){
+	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.qa
 	fi
-	export SENTRY_DISABLE_AUTO_UPLOAD=false
+
 	prebuild_android
+	
 	# Generate APK
 	cd android && ./gradlew assembleQaRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
 
@@ -375,7 +377,6 @@ buildAndroidRelease(){
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
 	fi
-	export SENTRY_DISABLE_AUTO_UPLOAD="true"
 	prebuild_android
 
 	# GENERATE APK
