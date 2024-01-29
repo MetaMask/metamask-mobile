@@ -65,7 +65,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const _onSelectAccount = useCallback(
     (address: string) => {
       const { PreferencesController } = Engine.context;
-      PreferencesController.setSelectedAddress(address);
+      PreferencesController.setSelectedAddress(undefined);
       sheetRef.current?.hide();
       onSelectAccount?.(address);
       InteractionManager.runAfterInteractions(() => {
