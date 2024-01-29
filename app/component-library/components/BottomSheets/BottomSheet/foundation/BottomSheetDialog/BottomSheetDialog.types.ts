@@ -20,6 +20,10 @@ export interface BottomSheetDialogProps extends ViewProps {
    */
   isInteractable?: boolean;
   /**
+   * Optional boolean that allow the bottomsheet to grow until the top.
+   */
+  isFlexible?: boolean;
+  /**
    * Optional callback that gets triggered when sheet is closed.
    */
   onClose?: (hasPendingAction?: boolean) => void;
