@@ -12,7 +12,6 @@ import { selectProviderType } from '../../../selectors/networkController';
 import { fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
 import { getHost } from '../../../util/browser';
 import { getAnalyticsParams } from '../../../util/confirmation/signatureUtils';
 import Device from '../../../util/device';
@@ -367,13 +366,11 @@ class SignatureRequest extends PureComponent {
                 </TouchableOpacity>
               ) : null}
             </View>
-            {isBlockaidFeatureEnabled() && (
-              <BlockaidBanner
-                securityAlertResponse={securityAlertResponse}
-                style={styles.blockaidBanner}
-                onContactUsClicked={this.onContactUsClicked}
-              />
-            )}
+            <BlockaidBanner
+              securityAlertResponse={securityAlertResponse}
+              style={styles.blockaidBanner}
+              onContactUsClicked={this.onContactUsClicked}
+            />
             {this.renderActionViewChildren()}
           </View>
         </ActionView>

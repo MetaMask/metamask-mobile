@@ -88,8 +88,9 @@ const RevealPrivateCredential = ({
 
   const dispatch = useDispatch();
 
-  const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const { colors, themeAppearance } = theme;
+  const styles = createStyles(theme);
 
   const credentialSlug = credentialName || route?.params.credentialName;
   const isPrivateKey = credentialSlug === PRIVATE_KEY;
