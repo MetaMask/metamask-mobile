@@ -41,7 +41,7 @@ import {
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
-import useRampNetwork from '../../UI/Ramp/common/hooks/useRampNetwork';
+import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
 import { getDecimalChainId } from '../../../util/networks';
 
 const WalletActions = () => {

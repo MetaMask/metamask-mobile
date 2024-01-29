@@ -9,6 +9,7 @@ import TransactionBlockaidBanner from './TransactionBlockaidBanner';
 
 jest.mock('../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
+  isBlockaidSupportedOnCurrentChain: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('react-native-gzip', () => ({
