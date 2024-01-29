@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { View } from 'react';
 import { cloneDeep } from 'lodash';
 import {
   ProviderBuyFeatureBrowserEnum,
@@ -43,6 +43,13 @@ function render(Component: React.ComponentType) {
 }
 
 jest.unmock('react-redux');
+
+jest.mock('react-native-webview', () => {
+  const { View } = require('react-native');
+  return {
+    WebView: (props: ViewProps) => <View {...props} />,
+  };
+});
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
