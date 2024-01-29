@@ -86,10 +86,7 @@ const BottomSheetDialog = forwardRef<
       currentYOffset.value = withTiming(
         bottomOfDialogYValue.value,
         { duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION },
-        () =>
-          runOnJS(() => {
-            onCloseCB();
-          }),
+        () => runOnJS(onCloseCB)(),
       );
       // Ref values do not affect deps.
       /* eslint-disable-next-line */
