@@ -82,21 +82,18 @@ const BottomSheetDialog = forwardRef<
       onClose?.();
     }, [onClose]);
 
-    const onCloseDialog = () => {
-      // Animating the Y position to go to the bottom of the dialog
-      // Then run onCloseCB
+    const onCloseDialog = useCallback(() => {
       currentYOffset.value = withTiming(
         bottomOfDialogYValue.value,
         { duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION },
-        () => runOnJS(onCloseCB)(),
+        () =>
+          runOnJS(() => {
+            onCloseCB();
+          }),
       );
-    };
-
-    const onCloseDialogCB = useCallback(() => {
-      onCloseDialog();
       // Ref values do not affect deps.
       /* eslint-disable-next-line */
-    }, [onCloseDialog]);
+    }, [onCloseCB]);
 
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
@@ -183,8 +180,8 @@ const BottomSheetDialog = forwardRef<
 
     const onDebouncedCloseDialog = useMemo(
       // Prevent hide from being called multiple times. Potentially caused by taps in quick succession.
-      () => debounce(onCloseDialogCB, 2000, { leading: true }),
-      [onCloseDialogCB],
+      () => debounce(onCloseDialog, 2000, { leading: true }),
+      [onCloseDialog],
     );
 
     useEffect(
