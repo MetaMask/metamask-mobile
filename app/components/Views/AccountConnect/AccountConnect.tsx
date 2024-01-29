@@ -10,10 +10,11 @@ import React, {
 import { useSelector } from 'react-redux';
 import { isEqual } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
+
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import UntypedEngine from '../../../core/Engine';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
@@ -63,7 +64,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
     selectedWalletAddress,
   ]);
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
   );
@@ -398,13 +399,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   return (
-    <SheetBottom
-      onDismissed={handleSheetDismiss}
-      reservedMinOverlayHeight={0}
-      ref={sheetRef}
-    >
+    <BottomSheet onClose={handleSheetDismiss} isFlexible ref={sheetRef}>
       {renderConnectScreens()}
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 
