@@ -28,13 +28,9 @@ export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
   // There should only be one ledger keyring.
   const keyring = keyringController.getKeyringsByType(
     ExtendedKeyringTypes.ledger,
-  )[0] as unknown as LedgerKeyring;
+  );
 
-  if (keyring) {
-    return keyring;
-  }
-
-  return await addLedgerKeyring();
+  return keyring.length ? keyring[0] : await addLedgerKeyring();
 };
 
 /**
