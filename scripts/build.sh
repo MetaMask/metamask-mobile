@@ -347,7 +347,7 @@ buildIosQA(){
 
 
 buildAndroidQA(){
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+	export SENTRY_DISABLE_AUTO_UPLOAD="true"
 
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.qa
