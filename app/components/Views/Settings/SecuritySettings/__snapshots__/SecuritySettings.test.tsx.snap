@@ -1173,7 +1173,25 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network.
+          MetaMask uses a third-party service called 
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            chainid.network 
+          </Text>
+          to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  
+           
+          chainid.network
         </Text>
       </View>
       <Text

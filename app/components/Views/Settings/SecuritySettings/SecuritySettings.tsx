@@ -647,7 +647,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={importedColors.white}
+              thumbColor={theme.brandColors.white['000']}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
               testID={DISPLAY_SAFE_CHAINS_LIST_VALIDATION}
@@ -666,7 +666,7 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, useSafeChainsListValidation],
+    [colors, styles, useSafeChainsListValidation, theme.brandColors.white],
   );
 
   const renderAutoDetectNft = useCallback(

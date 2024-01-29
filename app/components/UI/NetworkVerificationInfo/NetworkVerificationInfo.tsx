@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Linking } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
@@ -60,7 +60,8 @@ const NetworkVerificationInfo = ({
   );
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
   const { alerts: alertsFromProps } = customNetworkInformation;
-  const [alerts, setAlerts] = React.useState<Alert[]>(alertsFromProps);
+  const [alerts, setAlerts] = React.useState<Alert[]>([]);
+
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
 
   const toggleUseSafeChainsListValidation = (value: boolean) => {
@@ -68,6 +69,8 @@ const NetworkVerificationInfo = ({
     PreferencesController.setUseSafeChainsListValidation(value);
     if (!value) PreferencesController.setUseSafeChainsListValidation(value);
   };
+
+  useEffect(() => setAlerts(alertsFromProps), [alertsFromProps]);
 
   const renderNetworkInfo = () => (
     <ScrollView
