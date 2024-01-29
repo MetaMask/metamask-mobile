@@ -6,9 +6,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
 
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../component-library/hooks';
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -45,7 +45,7 @@ import {
 
 const AccountActions = () => {
   const { styles } = useStyles(styleSheet, {});
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
 
@@ -140,7 +140,7 @@ const AccountActions = () => {
   );
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
         <AccountAction
           actionTitle={strings('account_actions.edit_name')}
@@ -173,7 +173,7 @@ const AccountActions = () => {
           {...generateTestId(Platform, SHOW_PRIVATE_KEY)}
         />
       </View>
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 
