@@ -33,7 +33,7 @@ export const addLedgerKeyring = async (): Promise<LedgerKeyring> => {
   const keyringController = Engine.context.KeyringController;
   return (await keyringController.addNewKeyring(
     ExtendedKeyringTypes.ledger,
-  )) as unknown as LedgerKeyring;
+  )) as LedgerKeyring;
 };
 
 /**
