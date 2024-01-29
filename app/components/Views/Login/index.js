@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {
   Alert,
   ActivityIndicator,
+  Keyboard,
   View,
   SafeAreaView,
   StyleSheet,
@@ -511,8 +512,8 @@ class Login extends PureComponent {
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
             keyboardShouldPersistTaps="handled"
-            style={styles.wrapper}
             resetScrollToCoords={{ x: 0, y: 0 }}
+            style={styles.wrapper}
           >
             <View testID={LoginViewSelectors.CONTAINER}>
               <View style={styles.foxWrapper}>
