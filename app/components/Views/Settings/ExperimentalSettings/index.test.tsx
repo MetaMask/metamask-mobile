@@ -29,6 +29,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
+  isBlockaidSupportedOnCurrentChain: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -38,6 +39,13 @@ jest.mock('../../../../core/Engine', () => ({
         securityAlertsEnabled: false,
       },
       setSecurityAlertsEnabled: () => undefined,
+    },
+    NetworkController: {
+      state: {
+        providerConfig: {
+          chainId: 1,
+        },
+      },
     },
   },
 }));

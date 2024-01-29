@@ -171,10 +171,10 @@ index 0000000..5e1b7fc
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js
 new file mode 100644
-index 0000000..8da9369
+index 0000000..b68ef90
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js
-@@ -0,0 +1,189 @@
+@@ -0,0 +1,192 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -350,7 +350,10 @@ index 0000000..8da9369
 +        blockNumber: lastFetchedBlockNumber,
 +    });
 +}, _IncomingTransactionHelper_getBlockNumberKey = function _IncomingTransactionHelper_getBlockNumberKey() {
-+    return `${__classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getCurrentChainId).call(this)}#${__classPrivateFieldGet(this, _IncomingTransactionHelper_getCurrentAccount, "f").call(this).toLowerCase()}`;
++    var _a;
++    const currentChainId = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getCurrentChainId).call(this);
++    const currentAccount = (_a = __classPrivateFieldGet(this, _IncomingTransactionHelper_getCurrentAccount, "f").call(this)) === null || _a === void 0 ? void 0 : _a.toLowerCase();
++    return [currentChainId, currentAccount].join('#');
 +}, _IncomingTransactionHelper_canStart = function _IncomingTransactionHelper_canStart() {
 +    const isEnabled = __classPrivateFieldGet(this, _IncomingTransactionHelper_isEnabled, "f").call(this);
 +    const currentChainId = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getCurrentChainId).call(this);

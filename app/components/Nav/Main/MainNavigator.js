@@ -410,6 +410,7 @@ const HomeTabs = () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
       },
       rootScreenName: Routes.SETTINGS_VIEW,
+      unmountOnBlur: true,
     },
   };
 
@@ -573,6 +574,11 @@ const Ramps = ({ rampType }) => (
         options={{ animationEnabled: false }}
       />
       <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
+      <Stack.Screen
+        name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
+        component={BuildQuote}
+        options={{ animationEnabled: false }}
+      />
       <Stack.Screen name={Routes.RAMP.QUOTES} component={Quotes} />
       <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
       <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />

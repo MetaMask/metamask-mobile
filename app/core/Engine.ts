@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
+import Crypto from 'react-native-quick-crypto';
 import {
   AccountTrackerController,
   AccountTrackerState,
@@ -21,6 +22,7 @@ import {
   TokenRatesState,
   TokensController,
   TokensState,
+  CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { AppState } from 'react-native';
@@ -170,7 +172,7 @@ import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
-import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
+import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
 import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
@@ -547,6 +549,7 @@ class Engine {
         allowedActions: ['KeyringController:getState'],
       }),
       state: initialKeyringState || initialState.KeyringController,
+      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
       keyringBuilders: [qrKeyringBuilder],
     });
 
@@ -818,6 +821,9 @@ class Engine {
       },
     );
     ///: END:ONLY_INCLUDE_IF
+
+    const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+
     const controllers = [
       keyringController,
       new AccountTrackerController({
@@ -912,7 +918,8 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker ?? 'ETH',
         selectedAddress: preferencesController.state.selectedAddress,
-        coinGeckoHeader: process.env.COIN_GECKO_HEADER as string,
+        tokenPricesService: codefiTokenApiV2,
+        interval: 30 * 60 * 1000,
       }),
       new TransactionController({
         blockTracker:
@@ -1023,7 +1030,7 @@ class Engine {
     if (isBlockaidFeatureEnabled()) {
       try {
         const ppomController = new PPOMController({
-          chainId: addHexPrefix(networkController.state.providerConfig.chainId),
+          chainId: networkController.state.providerConfig.chainId,
           blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
           cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
           messenger: this.controllerMessenger.getRestricted({
@@ -1041,6 +1048,7 @@ class Engine {
           securityAlertsEnabled:
             initialState.PreferencesController?.securityAlertsEnabled ?? false,
           state: initialState.PPOMController,
+          nativeCrypto: Crypto as any,
         });
         controllers.push(ppomController as any);
         this.controllerMessenger.subscribe(

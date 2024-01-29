@@ -205,7 +205,7 @@ Array [
           }
         }
       >
-        Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.
+        Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.
       </Text>
     </View>
   </RCTScrollView>,
@@ -418,7 +418,7 @@ Array [
           }
         }
       >
-        Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.
+        Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.
       </Text>
     </View>
   </RCTScrollView>,

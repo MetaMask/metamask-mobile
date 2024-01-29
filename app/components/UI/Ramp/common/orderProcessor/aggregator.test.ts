@@ -477,4 +477,87 @@ describe('processAggregatorOrder', () => {
       lastTimeFetched: now,
     });
   });
+
+  it('should return the same object if the minimum polling time has not passed', async () => {
+    const lastTimeFetched = 1000;
+    const pollingSecondsMinimum = 3;
+
+    jest
+      .spyOn(Date, 'now')
+      .mockImplementation(
+        () => lastTimeFetched + pollingSecondsMinimum * 1000 - 1,
+      );
+    const orderWithPollingSecondsMinimum = {
+      ...mockOrder,
+      lastTimeFetched,
+      data: { ...mockOrder.data, pollingSecondsMinimum },
+    };
+    const updatedOrder = await processAggregatorOrder(
+      orderWithPollingSecondsMinimum,
+    );
+    expect(mockGetOrder).not.toHaveBeenCalled();
+    expect(updatedOrder).toEqual(orderWithPollingSecondsMinimum);
+  });
+
+  it('should return an updated object if the minimum polling time has passed', async () => {
+    const lastTimeFetched = 1000;
+    const pollingSecondsMinimum = 3;
+
+    const now = lastTimeFetched + pollingSecondsMinimum * 1000 + 1;
+
+    mockGetOrder.mockImplementation(() => ({
+      ...mockOrder.data,
+      pollingSecondsMinimum,
+    }));
+
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+
+    const orderWithPollingSecondsMinimum = {
+      ...mockOrder,
+      lastTimeFetched,
+      data: { ...mockOrder.data, pollingSecondsMinimum },
+    };
+
+    const updatedOrder = await processAggregatorOrder(
+      orderWithPollingSecondsMinimum,
+    );
+    expect(mockGetOrder).toHaveBeenCalledWith('test-id', '0x1234');
+    expect(updatedOrder).toEqual({
+      ...orderWithPollingSecondsMinimum,
+      errorCount: 0,
+      lastTimeFetched: now,
+    });
+  });
+
+  it('should return an updated object if the minimum polling time has not passed and processing was forced', async () => {
+    const lastTimeFetched = 1000;
+    const pollingSecondsMinimum = 3;
+
+    const now = lastTimeFetched + pollingSecondsMinimum * 1000 - 1;
+
+    mockGetOrder.mockImplementation(() => ({
+      ...mockOrder.data,
+      pollingSecondsMinimum,
+    }));
+
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+
+    const orderWithPollingSecondsMinimum = {
+      ...mockOrder,
+      lastTimeFetched,
+      data: { ...mockOrder.data, pollingSecondsMinimum },
+    };
+    const updatedOrder = await processAggregatorOrder(
+      orderWithPollingSecondsMinimum,
+      {
+        forced: true,
+      },
+    );
+    expect(mockGetOrder).toHaveBeenCalled();
+    expect(updatedOrder).toEqual({
+      ...orderWithPollingSecondsMinimum,
+      errorCount: 0,
+      lastTimeFetched: now,
+    });
+  });
 });

@@ -244,7 +244,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     if (balanceFiat === TOKEN_RATE_UNDEFINED) {
       mainBalance = balanceValueFormatted;
-      secondaryBalance = strings('wallet.unable_to_load');
+      secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
     }
 
     asset = { ...asset, balanceFiat };
@@ -403,7 +403,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         CurrencyRateController.start(),
         TokenRatesController.updateExchangeRates(),
       ];
-      await Promise.all(actions);
+      await Promise.all(actions).catch((error) => {
+        Logger.error(error, 'Error while refreshing tokens');
+      });
       setRefreshing(false);
     });
   };

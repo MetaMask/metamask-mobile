@@ -1,8 +1,12 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyringTypes": [],
-    "keyrings": []
+    "keyrings": [],
+    "vault": {
+      "cipher": "mock-cipher",
+      "iv": "mock-iv",
+      "lib": "original"
+    }
   },
   "LoggingController": {
     "logs": {}
@@ -39,7 +43,6 @@
     "chainStatus": {
       "0x1": {
         "chainId": "0x1",
-        "dataFetched": false,
         "versionInfo": []
       }
     },
@@ -127,7 +130,8 @@
     "contractBalances": {}
   },
   "TokenRatesController": {
-    "contractExchangeRates": {}
+    "contractExchangeRates": {},
+    "contractExchangeRatesByChainId": {}
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
@@ -135,12 +139,12 @@
     "submitHistory": [],
     "transactions": []
   },
-  "SnapController":  {
+  "SnapController": {
     "snapStates": {},
-    "snaps":  {}
+    "snaps": {}
   },
-  "SubjectMetadataController":  {
-    "subjectMetadata":  {}
+  "SubjectMetadataController": {
+    "subjectMetadata": {}
   },
   "SwapsController": {
     "quotes": {},
