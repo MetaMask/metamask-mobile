@@ -12,9 +12,9 @@ import { isEqual } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import UntypedEngine from '../../../core/Engine';
 import {
   addPermittedAccounts,
@@ -95,7 +95,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostname,
   );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
     useState<AccountPermissionsScreens>(AccountPermissionsScreens.Connected);
   const { accounts, ensByAccountAddress } = useAccounts({
@@ -411,9 +411,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   ]);
 
   return (
-    <SheetBottom reservedMinOverlayHeight={0} ref={sheetRef}>
+    <BottomSheet isFlexible ref={sheetRef}>
       {renderPermissionsScreens()}
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 
