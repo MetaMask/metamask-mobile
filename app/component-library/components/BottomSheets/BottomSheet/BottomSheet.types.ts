@@ -1,6 +1,3 @@
-// Third party dependencies.
-import { ViewProps } from 'react-native';
-
 // Internal dependencies.
 import { BottomSheetDialogProps } from './foundation/BottomSheetDialog/BottomSheetDialog.types';
 

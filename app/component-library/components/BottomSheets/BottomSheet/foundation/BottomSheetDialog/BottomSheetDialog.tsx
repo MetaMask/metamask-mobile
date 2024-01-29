@@ -92,6 +92,12 @@ const BottomSheetDialog = forwardRef<
       );
     };
 
+    const onCloseDialogCB = useCallback(() => {
+      onCloseDialog();
+      // Ref values do not affect deps.
+      /* eslint-disable-next-line */
+    }, [onCloseDialog]);
+
     const gestureHandler = useAnimatedGestureHandler<
       PanGestureHandlerGestureEvent,
       { startY: number }
@@ -177,8 +183,8 @@ const BottomSheetDialog = forwardRef<
 
     const onDebouncedCloseDialog = useMemo(
       // Prevent hide from being called multiple times. Potentially caused by taps in quick succession.
-      () => debounce(onCloseDialog, 2000, { leading: true }),
-      [onCloseDialog],
+      () => debounce(onCloseDialogCB, 2000, { leading: true }),
+      [onCloseDialogCB],
     );
 
     useEffect(
