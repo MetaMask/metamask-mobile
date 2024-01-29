@@ -104,6 +104,7 @@ import { AvatarVariant } from '../../../../component-library/components/Avatars/
 import Networks, {
   getAllNetworks,
   getNetworkImageSource,
+  toggleUseSafeChainsListValidation,
 } from '../../../../util/networks';
 import images from 'images/image-icons';
 import { toHexadecimal } from '../../../../util/number';
@@ -582,12 +583,6 @@ const Settings: React.FC = () => {
     const { PreferencesController } = Engine.context;
     PreferencesController?.setDisplayNftMedia(value);
     if (!value) PreferencesController?.setUseNftDetection(value);
-  };
-
-  const toggleUseSafeChainsListValidation = (value: boolean) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController?.setUseSafeChainsListValidation(value);
-    if (!value) PreferencesController.setUseSafeChainsListValidation(value);
   };
 
   const toggleNftAutodetect = (value: boolean) => {

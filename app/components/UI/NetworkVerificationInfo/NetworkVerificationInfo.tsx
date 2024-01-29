@@ -6,7 +6,6 @@ import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import Engine from '../../../core/Engine';
 
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import Accordion from '../../../component-library/components/Accordions/Accordion';
@@ -29,6 +28,7 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { toggleUseSafeChainsListValidation } from '../../../util/networks';
 
 interface Alert {
   alertError: string;
@@ -63,12 +63,6 @@ const NetworkVerificationInfo = ({
   const [alerts, setAlerts] = React.useState<Alert[]>([]);
 
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
-
-  const toggleUseSafeChainsListValidation = (value: boolean) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setUseSafeChainsListValidation(value);
-    if (!value) PreferencesController.setUseSafeChainsListValidation(value);
-  };
 
   useEffect(() => setAlerts(alertsFromProps), [alertsFromProps]);
 
