@@ -15,7 +15,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import { clearHistory } from '../../../../actions/browser';
-import { colors as importedColors } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
@@ -133,7 +132,8 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const params = useParams<SecuritySettingsParams>();
@@ -495,7 +495,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
+            thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
             testID={SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH}
@@ -535,7 +535,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
+            thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
             {...generateTestId(
@@ -619,7 +619,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={importedColors.white}
+              thumbColor={theme.brandColors.white['000']}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
               testID="display-nft-toggle"
@@ -635,7 +635,7 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, displayNftMedia],
+    [colors, styles, displayNftMedia, theme],
   );
 
   const renderAutoDetectNft = useCallback(
@@ -657,7 +657,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={importedColors.white}
+              thumbColor={theme.brandColors.white['000']}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />
@@ -672,7 +672,7 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, useNftDetection],
+    [colors, styles, useNftDetection, theme],
   );
 
   const setIpfsGateway = (gateway: string) => {
@@ -699,7 +699,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
+            thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -778,7 +778,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
+            thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -810,7 +810,7 @@ const Settings: React.FC = () => {
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
+            thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
           />
@@ -853,7 +853,7 @@ const Settings: React.FC = () => {
                   true: colors.primary.default,
                   false: colors.border.muted,
                 }}
-                thumbColor={importedColors.white}
+                thumbColor={theme.brandColors.white['000']}
                 style={styles.switch}
                 ios_backgroundColor={colors.border.muted}
               />
@@ -892,7 +892,7 @@ const Settings: React.FC = () => {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={importedColors.white}
+              thumbColor={theme.brandColors.white['000']}
               style={styles.switch}
               ios_backgroundColor={colors.border.muted}
             />

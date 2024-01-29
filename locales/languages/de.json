@@ -535,6 +535,7 @@
     "import_account": "Ein Konto importieren",
     "connect_hardware": "Hardware-Wallet verknüpfen",
     "imported": "Importiert",
+    "qr_hardware": "QR-Hardware",
     "remove_account_title": "Kontoentfernung",
     "remove_account_message": "Möchten Sie dieses Konto wirklich entfernen?",
     "no": "Nein",
@@ -594,11 +595,13 @@
     "purpose_connect": "verbinden",
     "purpose_sign": "die Transaktion zu bestätigen",
     "select_accounts": "Ein Konto auswählen",
+    "please_wait": "Bitte warten"
+  },
+  "account_selector": {
     "prev": "ZURÜCK",
     "next": "WEITER",
     "unlock": "Entsperren",
-    "forget": "Dieses Gerät entfernen",
-    "please_wait": "Bitte warten"
+    "forget": "Dieses Gerät entfernen"
   },
   "app_settings": {
     "title": "Einstellungen",
@@ -1825,7 +1828,6 @@
     "select_provider": "Wählen Sie Ihren bevorzugten Anbieter",
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
     "switch_network": "Bitte wechseln Sie auf Mainnet oder Sepolia."
   },
   "walletconnect_sessions": {

@@ -8,6 +8,9 @@ import Enzyme from 'enzyme';
 
 Enzyme.configure({ adapter: new Adapter() });
 
+jest.mock('react-native-quick-crypto', () => ({}));
+jest.mock('react-native-blob-jsi-helper', () => ({}));
+
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
 
