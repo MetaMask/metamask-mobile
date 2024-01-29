@@ -23,9 +23,10 @@ export interface BottomSheetProps extends ViewProps {
    */
   shouldNavigateBack?: boolean;
   /**
-   * Optional boolean that allow the bottomsheet to grow until the top.
+   * Optional prop to toggle full screen state of BottomSheetDialog.
+   * @default false
    */
-  isFlexible?: boolean;
+  isFullscreen?: boolean;
 }
 
 export type BottomSheetPostCallback = () => void;
