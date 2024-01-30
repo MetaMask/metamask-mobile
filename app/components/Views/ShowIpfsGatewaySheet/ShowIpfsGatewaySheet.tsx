@@ -25,14 +25,14 @@ const ShowIpfsGatewaySheet = () => {
 
   const onConfirm = () => {
     const { PreferencesController } = Engine.context;
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       PreferencesController.setIsIpfsGatewayEnabled(true);
       setIpfsBannerVisible?.();
     });
   };
 
   const onCancel = () => {
-    sheetRef.current?.hide();
+    sheetRef.current?.onCloseBottomSheet();
   };
 
   return (
