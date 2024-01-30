@@ -38,7 +38,10 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       onOpen,
       isInteractable = true,
       shouldNavigateBack = true,
+<<<<<<< HEAD
       isFlexible = false,
+=======
+>>>>>>> b2306440a04735bd72c2e4f328775653b5771654
       isFullscreen = false,
       ...props
     },
@@ -107,7 +110,6 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           onClose={onCloseCB}
           onOpen={onOpenCB}
           ref={bottomSheetDialogRef}
-          isFlexible={isFlexible}
           isFullscreen={isFullscreen}
         >
           {children}
