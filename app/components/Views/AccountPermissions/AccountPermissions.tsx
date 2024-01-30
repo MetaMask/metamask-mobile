@@ -109,7 +109,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
   const hideSheet = useCallback(
-    (callback?: () => void) => sheetRef?.current?.hide?.(callback),
+    (callback?: () => void) =>
+      sheetRef?.current?.onCloseBottomSheet?.(callback),
     [sheetRef],
   );
   const metricsSource = 'Browser Tab/Permission UI';
@@ -411,7 +412,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   ]);
 
   return (
-    <BottomSheet isFlexible ref={sheetRef}>
+    <BottomSheet isFullscreen ref={sheetRef}>
       {renderPermissionsScreens()}
     </BottomSheet>
   );
