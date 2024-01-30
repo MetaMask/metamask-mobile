@@ -5,7 +5,6 @@ import {
   StyleSheet,
   View,
   TextStyle,
-  Button,
 } from 'react-native';
 import { Theme } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
@@ -45,7 +44,6 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { captureException } from '@sentry/react-native';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -262,10 +260,6 @@ const Wallet = ({ navigation }: any) => {
     }
     return (
       <View style={styles.wrapper}>
-        <Button
-          title="lol"
-          onPress={() => captureException(new Error('Capture mee'))}
-        />
         <WalletAccount style={styles.walletAccount} ref={walletRef} />
 
         <ScrollableTabView

@@ -60,7 +60,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
-import { captureException } from '@sentry/react-native';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -243,10 +242,6 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
-    setTimeout(() => {
-      Logger.error('IM AN ERROR FROM WALLET');
-      captureException(new Error('IM AN EXCEPTION FROM WALET'));
-    }, 5000);
     trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 

@@ -90,8 +90,6 @@ export default class AddCustomToken extends PureComponent {
     isSymbolAndDecimalEditable: true,
   };
 
-  textRef = React.createRef();
-
   static propTypes = {
     /**
      * The chain ID for the current selected network
@@ -408,12 +406,9 @@ export default class AddCustomToken extends PureComponent {
                 style={styles.textInput}
                 ref={(ref) => (this.textRef = ref)}
                 placeholder={'0x...'}
-                onFocus={() => {
-                  this.textRef.CUSTOMTOKEN();
-                }}
                 placeholderTextColor={colors.text.muted}
                 value={this.state.address}
-                onChangeText={() => isValidAddress('s')}
+                onChangeText={this.onAddressChange}
                 {...generateTestId(Platform, TOKEN_ADDRESS_INPUT_BOX_ID)}
                 onSubmitEditing={this.jumpToAssetSymbol}
                 returnKeyType={'next'}
