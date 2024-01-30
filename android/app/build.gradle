@@ -65,10 +65,6 @@ project.ext.react = [
 // System.env.SENTRY_DIST
 // System.env.SENTRY_RELEASE
 
-def sentryAutoUploadEnabled = { ->
-  return (System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') ?: "true") != 'true'
-}
-
 // Configure sentry properties
 project.ext.sentryCli = [
     logLevel: "debug",
