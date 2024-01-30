@@ -100,7 +100,7 @@ import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { COMFIRM_TXN_AMOUNT } from '../../../../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
-import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/common/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import CustomGasModal from '../../../UI/CustomGasModal';
 import { ConfirmViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
@@ -108,6 +108,12 @@ import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
 import {
+  getBlockaidMetricsParams,
+  isBlockaidFeatureEnabled,
+} from '../../../../util/blockaid';
+import ppomUtil from '../../../../lib/ppom/ppom-util';
+import TransactionBlockaidBanner from '../../../../components/UI/TransactionBlockaidBanner/TransactionBlockaidBanner';
+import{
   addTransaction,
   cancelTransaction,
 } from '../../../../util/transaction-controller';
@@ -244,6 +250,9 @@ class Confirm extends PureComponent {
     legacyGasObject: {},
     legacyGasTransaction: {},
     multiLayerL1FeeTotal: '0x0',
+    result: {},
+    transactionMeta: {},
+    preparedTransaction: {},
   };
 
   originIsWalletConnect = this.props.transaction.origin?.startsWith(
@@ -282,6 +291,21 @@ class Confirm extends PureComponent {
     } catch (error) {
       return {};
     }
+  };
+
+  withBlockaidMetricsParams = () => {
+    let blockaidParams = {};
+
+    const { transaction } = this.props;
+    if (
+      transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
+    ) {
+      blockaidParams = getBlockaidMetricsParams(
+        transaction.currentTransactionSecurityAlertResponse?.response,
+      );
+    }
+
+    return blockaidParams;
   };
 
   updateNavBar = () => {
@@ -353,6 +377,7 @@ class Confirm extends PureComponent {
       providerType,
       isPaymentRequest,
     } = this.props;
+
     this.updateNavBar();
     this.getGasLimit();
 
@@ -378,7 +403,7 @@ class Confirm extends PureComponent {
     }
   };
 
-  componentDidUpdate = (prevProps, prevState) => {
+  componentDidUpdate = async (prevProps, prevState) => {
     const {
       transactionState: {
         transactionTo,
@@ -454,6 +479,52 @@ class Confirm extends PureComponent {
           );
         }
         this.parseTransactionDataHeader();
+      }
+    }
+
+    const { gasEstimationReady, preparedTransaction } = this.state;
+
+    // only add transaction if gasEstimationReady and preparedTransaction has gas
+    if (gasEstimationReady && !preparedTransaction.gas) {
+      const { TransactionController } = Engine.context;
+
+      const preparedTransaction = this.prepareTransactionToSend();
+
+      // update state only if preparedTransaction has gas
+      if (preparedTransaction.gas) {
+        const { from, to, value, data } = preparedTransaction;
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({ preparedTransaction }, async () => {
+          const { result, transactionMeta } =
+            await TransactionController.addTransaction(preparedTransaction, {
+              deviceConfirmedOn: WalletDevice.MM_MOBILE,
+              origin: TransactionTypes.MMM,
+            });
+
+          this.setState({ result, transactionMeta });
+
+          if (isBlockaidFeatureEnabled()) {
+            // start validate ppom
+            const id = transactionMeta.id;
+            const reqObject = {
+              id,
+              jsonrpc: '2.0',
+              method: 'eth_sendTransaction',
+              origin: TransactionTypes.MMM,
+              params: [
+                {
+                  from,
+                  to,
+                  value,
+                  data,
+                },
+              ],
+            };
+
+            ppomUtil.validateRequest(reqObject, id);
+          }
+        });
       }
     }
   };
@@ -729,7 +800,12 @@ class Confirm extends PureComponent {
     if (transactionConfirmed) return;
     this.setState({ transactionConfirmed: true, stopUpdateGas: true });
     try {
-      const transaction = this.prepareTransactionToSend();
+      const {
+        result,
+        transactionMeta,
+        preparedTransaction: transaction,
+      } = this.state;
+
       let error;
       if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
         error = this.validateAmount({
@@ -747,11 +823,6 @@ class Confirm extends PureComponent {
         this.setState({ transactionConfirmed: false, stopUpdateGas: true });
         return;
       }
-
-      const { result, transactionMeta } = await addTransaction(transaction, {
-        deviceConfirmedOn: WalletDevice.MM_MOBILE,
-        origin: TransactionTypes.MMM,
-      });
 
       const isLedgerAccount = isHardwareAccount(transaction.from, [
         ExtendedKeyringTypes.ledger,
@@ -771,7 +842,10 @@ class Confirm extends PureComponent {
                 result,
                 transactionMeta,
                 assetType,
-                this.getAnalyticsParams(),
+                {
+                  ...this.getAnalyticsParams(),
+                  ...this.withBlockaidMetricsParams(),
+                },
               ),
             type: 'signTransaction',
           }),
@@ -795,10 +869,10 @@ class Confirm extends PureComponent {
           assetType,
         });
         this.checkRemoveCollectible();
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
-          this.getAnalyticsParams(),
-        );
+        AnalyticsV2.trackEvent(MetaMetricsEvents.SEND_TRANSACTION_COMPLETED, {
+          ...this.getAnalyticsParams(),
+          ...this.withBlockaidMetricsParams(),
+        });
         stopGasPolling();
         resetTransaction();
         navigation && navigation.dangerouslyGetParent()?.pop();
@@ -1002,6 +1076,18 @@ class Confirm extends PureComponent {
     });
   };
 
+  onContactUsClicked = () => {
+    const analyticsParams = {
+      ...this.getAnalyticsParams(),
+      ...this.withBlockaidMetricsParams(),
+      external_link_clicked: 'security_alert_support_link',
+    };
+    AnalyticsV2.trackEvent(
+      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
+      analyticsParams,
+    );
+  };
+
   render = () => {
     const { selectedAsset, paymentRequest } = this.props.transactionState;
     const {
@@ -1062,6 +1148,13 @@ class Confirm extends PureComponent {
           layout="vertical"
         />
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
+          {isBlockaidFeatureEnabled() && this.state.transactionMeta?.id && (
+            <TransactionBlockaidBanner
+              transactionId={this.state.transactionMeta.id}
+              style={styles.blockaidBanner}
+              onContactUsClicked={this.onContactUsClicked}
+            />
+          )}
           {!selectedAsset.tokenId ? (
             <View style={styles.amountWrapper}>
               <Text style={styles.textAmountLabel}>
@@ -1234,6 +1327,8 @@ const mapStateToProps = (state) => ({
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   isPaymentRequest: state.transaction.paymentRequest,
+  securityAlertResponse:
+    state.transaction.currentTransactionSecurityAlertResponse,
   isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),

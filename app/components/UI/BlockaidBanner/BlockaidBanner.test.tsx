@@ -15,6 +15,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 jest.mock('../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
+  isBlockaidSupportedOnCurrentChain: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('react-native-gzip', () => ({
@@ -179,15 +180,16 @@ describe('BlockaidBanner', () => {
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
 
-  it('should not render if user is not on mainnet', async () => {
+  it('should not render if blockaid does not support network', async () => {
     const mockStateNetwork = {
       engine: {
         backgroundState: {
-          NetworkController: { providerConfig: { chainId: '5' } },
+          NetworkController: { providerConfig: { chainId: '250' } },
           PreferencesController: { securityAlertsEnabled: true },
         },
       },
     };
+
     const wrapper = renderWithProvider(<BlockaidBanner />, {
       state: mockStateNetwork,
     });

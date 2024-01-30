@@ -19,7 +19,6 @@ import Networks, {
   blockTagParamIndex,
   getAllNetworks,
 } from '../../util/networks';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
@@ -548,9 +547,7 @@ export const getRpcMethodMiddleware = ({
             address: req.params[0].from,
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
-          if (isBlockaidFeatureEnabled()) {
-            PPOMUtil.validateRequest(req);
-          }
+          PPOMUtil.validateRequest(req);
           const rawSig = await SignatureController.newUnsignedMessage({
             data: req.params[1],
             from: req.params[0],
@@ -598,9 +595,7 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        if (isBlockaidFeatureEnabled()) {
-          PPOMUtil.validateRequest(req);
-        }
+        PPOMUtil.validateRequest(req);
 
         const rawSig = await SignatureController.newUnsignedPersonalMessage({
           ...params,
@@ -647,9 +642,7 @@ export const getRpcMethodMiddleware = ({
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
 
-        if (isBlockaidFeatureEnabled()) {
-          PPOMUtil.validateRequest(req);
-        }
+        PPOMUtil.validateRequest(req);
 
         const rawSig = await SignatureController.newUnsignedTypedMessage(
           {
@@ -671,9 +664,7 @@ export const getRpcMethodMiddleware = ({
             ? JSON.parse(req.params[1])
             : req.params[1];
         const chainId = data.domain.chainId;
-        if (isBlockaidFeatureEnabled()) {
-          PPOMUtil.validateRequest(req);
-        }
+        PPOMUtil.validateRequest(req);
         res.result = await generateRawSignature({
           version: 'V3',
           req,
@@ -693,9 +684,7 @@ export const getRpcMethodMiddleware = ({
       eth_signTypedData_v4: async () => {
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
-        if (isBlockaidFeatureEnabled()) {
-          PPOMUtil.validateRequest(req);
-        }
+        PPOMUtil.validateRequest(req);
         res.result = await generateRawSignature({
           version: 'V4',
           req,

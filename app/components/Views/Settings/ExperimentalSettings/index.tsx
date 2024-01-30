@@ -3,7 +3,6 @@ import { ScrollView, Switch, View } from 'react-native';
 
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import { colors as importedColors } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import Text, {
   TextVariant,
@@ -15,7 +14,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
-import { isMainnetByChainId } from '../../../../util/networks';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSelector, useDispatch } from 'react-redux';
 import { Props } from './ExperimentalSettings.types';
@@ -31,8 +29,7 @@ import Button, {
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
-  const { PreferencesController, NetworkController } = Engine.context;
-  const currentChainId = NetworkController.state.providerConfig.chainId;
+  const { PreferencesController } = Engine.context;
 
   const dispatch = useDispatch();
 
@@ -40,7 +37,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
 
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const styles = createStyles(colors);
 
   const toggleSecurityAlertsEnabled = () => {
@@ -138,11 +136,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={importedColors.white}
+          thumbColor={theme.brandColors.white['000']}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
           testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
-          disabled={!isMainnetByChainId(currentChainId)}
         />
       </View>
 
@@ -152,14 +149,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         style={styles.desc}
       >
         {strings('experimental_settings.blockaid_desc')}
-      </Text>
-
-      <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
-        style={styles.desc}
-      >
-        {strings('experimental_settings.available_on_eth_mainet')}
       </Text>
     </>
   );

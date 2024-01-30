@@ -57,7 +57,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { createBrowserNavDetails } from '../../../Views/Browser';
-import { isNetworkRampNativeTokenSupported } from '../../Ramp/common/utils';
+import { isNetworkRampNativeTokenSupported } from '../../Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import Routes from '../../../../constants/navigation/Routes';
 

@@ -1,28 +1,30 @@
+// Third party dependencies
 import React, { useRef, useState, useCallback, useMemo } from 'react';
 import { StyleSheet, View, Text, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
+import { Token as TokenType } from '@metamask/assets-controllers';
+import { useNavigation } from '@react-navigation/native';
+import { FlatList } from 'react-native-gesture-handler';
+
+// External Dependencies
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
-import { Token as TokenType } from '@metamask/assets-controllers';
 import Token from './components/Token';
 import Engine from '../../../core/Engine';
-import { useNavigation } from '@react-navigation/native';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { getDecimalChainId } from '../../../util/networks';
-import { FlatList } from 'react-native-gesture-handler';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
 import { selectDetectedTokens } from '../../../selectors/tokensController';
 import { selectChainId } from '../../../selectors/networkController';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -66,7 +68,7 @@ interface IgnoredTokensByAddress {
 
 const DetectedTokens = () => {
   const navigation = useNavigation();
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const detectedTokens = useSelector(selectDetectedTokens);
   const chainId = useSelector(selectChainId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
@@ -115,7 +117,7 @@ const DetectedTokens = () => {
         errorMsg = 'DetectedTokens: Failed to import detected tokens!';
       }
 
-      sheetRef.current?.hide(async () => {
+      sheetRef.current?.onCloseBottomSheet(async () => {
         try {
           tokensToIgnore.length > 0 &&
             (await TokensController.ignoreTokens(tokensToIgnore));
@@ -245,7 +247,7 @@ const DetectedTokens = () => {
     );
   };
 
-  const trackCancelWithoutAction = (hasPendingAction: boolean) => {
+  const trackCancelWithoutAction = (hasPendingAction?: boolean) => {
     if (hasPendingAction) {
       return;
     }
@@ -257,15 +259,11 @@ const DetectedTokens = () => {
   };
 
   return (
-    <SheetBottom
-      ref={sheetRef}
-      reservedMinOverlayHeight={250}
-      onDismissed={trackCancelWithoutAction}
-    >
+    <BottomSheet ref={sheetRef} onClose={trackCancelWithoutAction}>
       {renderHeader()}
       {renderDetectedTokens()}
       {renderButtons()}
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 
