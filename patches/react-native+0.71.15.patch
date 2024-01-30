@@ -44,10 +44,10 @@ index 1379ffd..f2825f5 100644
  // We could just call GlobalPerformanceLogger.markPoint at the top of the file,
 diff --git a/node_modules/react-native/Libraries/Core/setUpSes.js b/node_modules/react-native/Libraries/Core/setUpSes.js
 new file mode 100644
-index 0000000..b0e401d
+index 0000000..6013411
 --- /dev/null
 +++ b/node_modules/react-native/Libraries/Core/setUpSes.js
-@@ -0,0 +1,54 @@
+@@ -0,0 +1,60 @@
 +/**
 + * Copyright (c) 2024 MetaMask
 + *
@@ -77,7 +77,13 @@ index 0000000..b0e401d
 +import { MMKV } from 'react-native-mmkv';
 +
 +const storage = new MMKV(); // id: mmkv.default
-+const isSesEnabled = storage.getBoolean('is-ses-enabled');
++var isSesEnabled = storage.getBoolean('is-ses-enabled');
++
++// Enable SES by default
++if (isSesEnabled === undefined) {
++  isSesEnabled = true;
++  storage.set('is-ses-enabled', true);
++}
 +
 +/**
 + * SES disabled in debug-mode for now like we do in metamask-extension.
