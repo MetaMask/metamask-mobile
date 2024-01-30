@@ -1,19 +1,19 @@
 // Third party dependencies.
 import React, { useRef } from 'react';
 
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
-
+// External dependencies
 import SDKLoading from '../../UI/SDKLoading';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 
 const SDKLoadingModal = () => {
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <BottomSheet ref={sheetRef}>
       <SDKLoading />
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 
