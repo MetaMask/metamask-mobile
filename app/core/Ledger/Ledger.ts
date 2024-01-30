@@ -1,3 +1,4 @@
+import { PreferencesController } from '@metamask/preferences-controller';
 import LedgerKeyring, {
   SerializationOptions,
 } from '@consensys/ledgerhq-metamask-keyring';
@@ -5,6 +6,7 @@ import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../Engine';
+import { store } from '../../store';
 
 /**
  * Add LedgerKeyring.
@@ -66,21 +68,26 @@ export const connectLedgerHardware = async (
 
 /**
  * Retrieve the first account from the Ledger device.
- *
+ * @param isAccountImportReq - Whether we need to addNewAccountForKeyring() or not
  * @returns The default (first) account on the device
  */
-export const unlockLedgerDefaultAccount = async (): Promise<{
+export const unlockLedgerDefaultAccount = async (
+  isAccountImportReq: boolean,
+): Promise<{
   address: string;
   balance: string;
 }> => {
   const keyringController = Engine.context.KeyringController;
+
   const keyring = await getLedgerKeyring();
-  try {
+
+  console.log(isAccountImportReq);
+  //Check whether we need ot addNewAccountForKeyring() by comparing selectedAccount is ledger default account, beause ledger only support on account right now,
+  if (isAccountImportReq) {
     await keyringController.addNewAccountForKeyring(keyring);
-  } catch (e) {
-    console.error(e);
   }
   const address = await keyring.getDefaultAccount();
+
   return {
     address,
     balance: `0x0`,

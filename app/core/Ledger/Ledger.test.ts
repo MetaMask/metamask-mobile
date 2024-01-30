@@ -1,16 +1,14 @@
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import Engine from '../../core/Engine';
 import {
   addLedgerKeyring,
-  getLedgerKeyring,
-  connectLedgerHardware,
-  openEthereumAppOnLedger,
   closeRunningAppOnLedger,
+  connectLedgerHardware,
   forgetLedger,
+  getLedgerKeyring,
   ledgerSignTypedMessage,
+  openEthereumAppOnLedger,
 } from './Ledger';
-import Engine from '../../core/Engine';
-import exp from 'constants';
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
-
 const ledgerKeyring = {
   setTransport: jest.fn(),
   getAppAndVersion: jest.fn().mockResolvedValue({ appName: 'appName' }),

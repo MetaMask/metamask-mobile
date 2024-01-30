@@ -141,7 +141,7 @@ const LedgerConnect = () => {
       device_type: 'Ledger',
     });
     ledgerLogicToRun(async () => {
-      const account = await unlockLedgerDefaultAccount();
+      const account = await unlockLedgerDefaultAccount(true);
       await AccountTrackerController.syncBalanceWithAddresses([account]);
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: 'Ledger',
