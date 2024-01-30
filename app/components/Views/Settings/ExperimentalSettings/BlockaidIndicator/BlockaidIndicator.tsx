@@ -1,9 +1,11 @@
+// Third party dependencies
 import React, { useRef, useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { View, Pressable } from 'react-native';
 import { PPOMInitialisationStatus } from '@metamask/ppom-validator';
 
+// External dependencies.
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
-import { SheetBottomRef } from '../../../../../component-library/components/Sheet/SheetBottom';
 import Button from '../../../../../component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
@@ -18,16 +20,19 @@ import Icon, {
   IconName,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import { useSelector, useDispatch } from 'react-redux';
 import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
 import { Props } from './../ExperimentalSettings.types';
-import createStyles from './BlockaidIndicator.styles';
 import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferencesController';
+
+// Internal dependencies
+import createStyles from './BlockaidIndicator.styles';
 
 enum Status {
   Idle = 'IDLE',
@@ -43,7 +48,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
   const [failureCount, setFailureCount] = useState(0);
   const [sheetInteractable, setSheetInteractable] = useState(true);
   const [status, setStatus] = useState<Status>(Status.Idle);
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
 
   const ppomInitialisationStatus = useSelector(
     (state: any) => state.experimentalSettings.ppomInitialisationStatus,
