@@ -1,0 +1,13 @@
+diff --git a/node_modules/@sentry/react-native/sentry.gradle b/node_modules/@sentry/react-native/sentry.gradle
+index 4320e3b..0bfab93 100644
+--- a/node_modules/@sentry/react-native/sentry.gradle
++++ b/node_modules/@sentry/react-native/sentry.gradle
+@@ -4,7 +4,7 @@ import java.util.regex.Matcher
+ import java.util.regex.Pattern
+ 
+ project.ext.shouldSentryAutoUpload = { ->
+-  return System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') != 'true'
++  return (System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') ?: "true") != 'true'
+ }
+ 
+ def config = project.hasProperty("sentryCli") ? project.sentryCli : [];
