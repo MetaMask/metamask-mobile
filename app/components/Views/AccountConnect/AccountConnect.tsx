@@ -218,7 +218,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const hideSheet = (callback?: () => void) =>
-    sheetRef?.current?.hide?.(callback);
+    sheetRef?.current?.onCloseBottomSheet?.(callback);
 
   /**
    * User intent is set on AccountConnectSingle,
@@ -399,7 +399,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   return (
-    <BottomSheet onClose={handleSheetDismiss} isFlexible ref={sheetRef}>
+    <BottomSheet onClose={handleSheetDismiss} isFullscreen ref={sheetRef}>
       {renderConnectScreens()}
     </BottomSheet>
   );
