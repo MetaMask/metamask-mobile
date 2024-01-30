@@ -494,7 +494,7 @@ exports[`ShowNftSheet should render correctly 1`] = `
                                 }
                               }
                             >
-                              Setttings &gt; Security and privacy.
+                              Settings &gt; Security and privacy.
                             </Text>
                           </Text>
                         </Text>
