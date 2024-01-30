@@ -14,7 +14,7 @@ const SDKLoadingModal = () => {
     <BottomSheet ref={sheetRef}>
       <SDKFeedback
         onConfirm={() => {
-          sheetRef.current?.hide();
+          sheetRef.current?.onCloseBottomSheet();
         }}
       />
     </BottomSheet>
