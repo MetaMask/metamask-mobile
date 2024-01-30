@@ -77,7 +77,7 @@ const AccountActions = () => {
   };
 
   const viewInEtherscan = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
         const url = `${blockExplorer}/address/${selectedAddress}`;
         const title = new URL(blockExplorer).hostname;
@@ -99,7 +99,7 @@ const AccountActions = () => {
   };
 
   const onShare = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       Share.open({
         message: selectedAddress,
       })
@@ -117,7 +117,7 @@ const AccountActions = () => {
   };
 
   const goToExportPrivateKey = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED,
         {},
