@@ -30,7 +30,7 @@ import WalletAction from '../../../components/UI/WalletAction';
 import { useStyles } from '../../../component-library/hooks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import useRampNetwork from '../../UI/Ramp/common/hooks/useRampNetwork';
+import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
