@@ -23,21 +23,21 @@ export async function estimateGas(transaction: Transaction) {
 }
 
 export const cancelTransaction =
-  Engine.context.TransactionController.cancelTransaction;
-export const getNonceLock = Engine.context.TransactionController.getNonceLock;
+  Engine?.context.TransactionController.cancelTransaction;
+export const getNonceLock = Engine?.context.TransactionController.getNonceLock;
 export const speedUpTransaction =
-  Engine.context.TransactionController.speedUpTransaction;
+  Engine?.context.TransactionController.speedUpTransaction;
 export const startIncomingTransactionPolling =
-  Engine.context.TransactionController.startIncomingTransactionPolling;
+  Engine?.context.TransactionController.startIncomingTransactionPolling;
 export const stopIncomingTransactionPolling =
-  Engine.context.TransactionController.stopIncomingTransactionPolling;
+  Engine?.context.TransactionController.stopIncomingTransactionPolling;
 export const stopTransaction =
-  Engine.context.TransactionController.stopTransaction;
+  Engine?.context.TransactionController.stopTransaction;
 export const updateIncomingTransactions =
-  Engine.context.TransactionController.updateIncomingTransactions;
+  Engine?.context.TransactionController.updateIncomingTransactions;
 export const updateSecurityAlertResponse =
-  Engine.context.TransactionController.updateSecurityAlertResponse;
+  Engine?.context.TransactionController.updateSecurityAlertResponse;
 export const updateTransaction =
-  Engine.context.TransactionController.updateTransaction;
+  Engine?.context.TransactionController.updateTransaction;
 export const wipeTransactions =
-  Engine.context.TransactionController.wipeTransactions;
+  Engine?.context.TransactionController.wipeTransactions;
