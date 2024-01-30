@@ -970,7 +970,9 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                             }
                                           }
                                         >
-                                          <View>
+                                          <View
+                                            testID="approve-network-modal"
+                                          >
                                             <View
                                               style={
                                                 Object {
@@ -1344,7 +1346,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     "paddingHorizontal": 16,
                                                   }
                                                 }
-                                                testID="cancel-button"
+                                                testID="approve-network-cancel-button"
                                                 variant="Secondary"
                                               >
                                                 <Text
@@ -1383,7 +1385,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     "paddingHorizontal": 16,
                                                   }
                                                 }
-                                                testID="connect-button"
+                                                testID="approve-network-approve-button"
                                                 variant="Primary"
                                               >
                                                 <Text

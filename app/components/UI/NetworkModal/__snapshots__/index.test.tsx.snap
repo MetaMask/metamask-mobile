@@ -142,7 +142,9 @@ exports[`NetworkDetails renders correctly 1`] = `
             }
           }
         >
-          <View>
+          <View
+            testID="approve-network-modal"
+          >
             <View
               style={
                 Object {
@@ -516,7 +518,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     "paddingHorizontal": 16,
                   }
                 }
-                testID="cancel-button"
+                testID="approve-network-cancel-button"
                 variant="Secondary"
               >
                 <Text
@@ -555,7 +557,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     "paddingHorizontal": 16,
                   }
                 }
-                testID="connect-button"
+                testID="approve-network-approve-button"
                 variant="Primary"
               >
                 <Text

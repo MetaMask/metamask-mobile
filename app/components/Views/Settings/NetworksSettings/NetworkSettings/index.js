@@ -1068,10 +1068,23 @@ class NetworkSettings extends PureComponent {
   toggleWarningModal = () =>
     this.setState({ showWarningModal: !this.state.showWarningModal });
 
-  toggleNetworkDetailsModal = () =>
+  toggleNetworkDetailsModal = async () => {
+    const { rpcUrl, chainId: stateChainId } = this.state;
+    const formChainId = stateChainId.trim().toLowerCase();
+
+    // Ensure chainId is a 0x-prefixed, lowercase hex string
+    let chainId = formChainId;
+    if (!chainId.startsWith('0x')) {
+      chainId = `0x${parseInt(chainId, 10).toString(16)}`;
+    }
+
+    if (!(await this.validateChainIdOnSubmit(formChainId, chainId, rpcUrl))) {
+      return;
+    }
     this.setState({
       showNetworkDetailsModal: !this.state.showNetworkDetailsModal,
     });
+  };
 
   goToLearnMore = () => Linking.openURL(strings('networks.learn_more_url'));
 

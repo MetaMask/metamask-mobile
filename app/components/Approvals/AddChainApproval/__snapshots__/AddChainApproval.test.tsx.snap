@@ -4,7 +4,16 @@ exports[`AddChainApproval renders 1`] = `
 <ForwardRef
   shouldNavigateBack={false}
 >
-  <NetworkVerificationInfo />
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <NetworkVerificationInfo />
+  </View>
 </ForwardRef>
 `;
 
