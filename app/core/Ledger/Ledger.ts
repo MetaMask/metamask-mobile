@@ -81,8 +81,6 @@ export const unlockLedgerDefaultAccount = async (
 
   const keyring = await getLedgerKeyring();
 
-  console.log(isAccountImportReq);
-  //Check whether we need ot addNewAccountForKeyring() by comparing selectedAccount is ledger default account, beause ledger only support on account right now,
   if (isAccountImportReq) {
     await keyringController.addNewAccountForKeyring(keyring);
   }
