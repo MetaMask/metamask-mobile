@@ -15,11 +15,13 @@
     "seaport_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng nakawin ng ibang tao ang mga asset mo na nakalista sa OpenSea.",
     "see_details": "Tingnan ang mga detalye",
     "does_not_look_right": "Mayroon bang hindi tama?",
+    "report_an_issue": "Mag-ulat ng isyu",
     "suspicious_request_title": "Isa itong kahina-hinalang kahilingan",
     "trade_order_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "transfer_farming_description": "Kung aaprubahan mo ang kahilingang ito, kukunin ng third party na kilala sa mga panloloko ang lahat ng asset mo.",
     "before_you_proceed": "Bago ka magpatuloy",
     "enable_blockaid_alerts": "Para i-enable ang feature na ito, kailangan naming mag-set up ng ilang alertong pangseguridad. Ang page na ito ay kakailanganing manatiling bukas habang sine-set up ito. Tatagal ito nang wala pang isang minuto para makumpleto.",
+    "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
     "setting_up_alerts": "Pag-set up ng mga alertong pangseguridad",
     "setting_up_alerts_description": "Ginagawa namin ang aming pinakamabilis na makakaya para i-set up ang mga alertong pangseguridad. Maghintay ka lang diyan, halos patapos na kami.",
     "setup_complete": "Kumpleto na ang pag-set up",
@@ -374,6 +376,8 @@
     "no_nfts_yet": "Wala pang mga NFT",
     "nfts_autodetection_title": "Pagtuklas ng NFT",
     "nfts_autodetection_desc": "Payagan ang MetaMask na awtomatikong matuklasan ang mga NFT mula sa OpenSea at ipakita sa iyong wallet sa MetaMask.",
+    "network_details_check": "Network details check",
+    "network_check_validation_desc": "reduces your chances of connecting to a malicious or incorrect network.",
     "nfts_autodetection_cta": "I-on ang pagtuklas ng NFT sa Mga Setting",
     "learn_more": "Matuto pa",
     "add_collectibles": "Mag-import ng mga NFT",
@@ -404,6 +408,7 @@
     "display_media_nft_warning": "Ang pagpapakita ng media at data ng NFT ay maaaring maglantad sa iyong IP address sa mga sentralisadong server. Mag-import lang ng NFT kung nauunawaan mo ang mga kaugnay na panganib.",
     "nfts_autodetect_title": "Awtomatikong pagtuklas ng NFT",
     "nfts_autodetect_cta": "I-on ang awtomatikong pagtuklas ng ng NFT sa Mga Setting",
+    "turn_on_network_check_cta": "Turn on network details check",
     "display_nft_media_cta_new_1": "Para makita ang NFT, i-on ang Display NFT media sa",
     "display_nft_media_cta_new_2": "Mga Setting > Seguridad at Pagkapribado."
   },
@@ -535,7 +540,6 @@
     "import_account": "Mag-import ng account",
     "connect_hardware": "Ikonekta ang wallet na hardware",
     "imported": "Na-import",
-    "qr_hardware": "QR hardware",
     "remove_account_title": "Pag-alis ng account",
     "remove_account_message": "Gusto mo ba talagang alisin ang account na ito?",
     "no": "Hindi",
@@ -598,10 +602,10 @@
     "please_wait": "Mangyaring maghintay"
   },
   "account_selector": {
-    "prev": "NAKARAAN",
-    "next": "SUSUNOD",
-    "unlock": "I-unlock",
-    "forget": "Kalimutan ang device na ito"
+    "prev": "PREV",
+    "next": "NEXT",
+    "unlock": "Unlock",
+    "forget": "Forget this device"
   },
   "app_settings": {
     "title": "Mga Setting",
@@ -824,6 +828,8 @@
     "incoming_transactions_title": "Ipakita ang mga papasok na transaksyon",
     "incoming_transactions_content": "Umaasa ito sa network na iyong pinili na maglalantad sa iyong Ethereum address at IP address.",
     "display_nft_media_desc_new": "Ang pag-display ng NFT media at datos ay naglalantad sa iyong IP address sa OpenSeas o iba pang third party. Ang auto-detection ng NFT ay nakaasa sa tampok na ito, at hindi ito available kapag naka-off. Kung ang NFT media ay lubos na matatagpuan sa IPFS, maaari pa ring itong i-display kapag ang tampok na ito ay naka-off.",
+    "use_safe_chains_list_validation_desc_1": "MetaMask uses a third-party service called ",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  ",
     "snaps": {
       "title": "Mga Snap",
       "description": "I-overview at pamahalaan ang iyong mga snap",
@@ -873,6 +879,7 @@
     "privacy_browser_subheading": "Burahin ang datos sa pagkapribado o browser",
     "analytics_subheading": "Analytics",
     "transactions_subheading": "Mga Transaksyon",
+    "network_provider": "Network provider",
     "token_nft_ens_subheading": "Awtomatikong pagtuklas ng token, NFT at ENS",
     "security_check_subheading": "Pagsusuring panseguridad"
   },
@@ -1431,6 +1438,7 @@
     "status_ok": "Gumagana ang Lahat ng System",
     "status_not_ok": "Nagkakaroon ng ilang isyu ang network",
     "want_to_add_network": "Gusto mo bang idagdag ang network na ito?",
+    "add_custom_network": "Add custom network",
     "network_infomation": "Binibigyang-daan nito ang network na ito na magamit sa loob ng MetaMask",
     "network_endorsement": "Hindi ineendorso ng MetaMask ang mga custom na network o ang seguridad ng mga ito.",
     "learn_about": "Alamin ang tungkol sa",
@@ -1440,6 +1448,8 @@
     "network_rpc_url": "URL ng Network",
     "view_details": "Tingnan ang mga detalye",
     "network_details": "Mga detalye ng network",
+    "network_select_confirm_use_safe_check": "Selecting Confirm turns on Network details check. You can turn off Network details check in ",
+    "network_settings_security_privacy": "Settings > Security and privacy",
     "network_currency_symbol": "Simbolo ng Currency",
     "network_block_explorer_url": "URL ng Block Explorer",
     "search": "Maghanap ng mga dati nang idinagdag na network",
@@ -1827,7 +1837,7 @@
     "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
     "select_provider": "Piliin ang iyong mas gustong provider",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
     "switch_network": "Mangyaring lumipat sa mainnet o sepolia"
   },
   "walletconnect_sessions": {
@@ -2049,7 +2059,7 @@
     "insufficient_balance": "Ang halagang ito ay mas mataas sa iyong balanse",
     "enter_larger_amount": "Maglagay ng mas malaking halaga para magpatuloy",
     "enter_smaller_amount": "Maglagay ng mas maliit na halaga para magpatuloy",
-    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "enter_lower_gas_fees": "Maglagay ng mas mababang halaga para bayaran ang gas fees",
     "max": "MAX",
     "try_again": "Subukan muli",
     "error": "Error",
@@ -2362,7 +2372,7 @@
     "title": "Ano'ng bago",
     "blockaid": {
       "title": "Manatiling ligtas gamit ang mga alerto sa seguridad",
-      "description_1": "Iwasan ang mga kilalang scam habang pinapanatili pa rin ang iyong pagkapribado gamit ang mga alerto sa seguridad na pinatatakbo ng Blockaid sa Ethereum Mainnet.",
+      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
       "description_2": "Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang mga kahilingan.",
       "action_text": "Paganahin ang mga alerto sa seguridad"
     },
