@@ -41,7 +41,7 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { isNetworkRampSupported } from '../Ramp/common/utils';
+import { isNetworkRampSupported } from '../Ramp/utils';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
