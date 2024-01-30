@@ -105,7 +105,7 @@ import { isSwapsAllowed } from '../../../../components/UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/AmountView.selectors';
-import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/common/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../UI/Ramp/utils';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
