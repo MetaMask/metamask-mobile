@@ -66,10 +66,15 @@ System.env.SENTRY_DISABLE_AUTO_UPLOAD = System.getenv('SENTRY_DISABLE_AUTO_UPLOA
 // System.env.SENTRY_DIST
 // System.env.SENTRY_RELEASE
 
+def sentryAutoUploadEnabled() {
+  return System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') ?: "false"
+}
+
 // Configure sentry properties
 project.ext.sentryCli = [
     logLevel: "debug",
     sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties',
+    autoUpload: sentryAutoUploadEnabled()
 ]
 
 // Sentry gradle from React Native (@sentry/react-native) that uploads Sentry source maps
@@ -81,8 +86,8 @@ sentry {
     // for Sentry. This executes sentry-cli automatically so
     // you don't need to do it manually.
     // Default is disabled.
-    autoUploadProguardMapping = shouldSentryAutoUpload()
-    uploadNativeSymbols = shouldSentryAutoUpload()
+    autoUploadProguardMapping = sentryAutoUploadEnabled()
+    uploadNativeSymbols = sentryAutoUploadEnabled()
 
     // Enables or disables the automatic upload of the app's native source code to Sentry.
     // This executes sentry-cli with the --include-sources param automatically so
