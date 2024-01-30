@@ -44,10 +44,10 @@ index 1379ffd..f2825f5 100644
  // We could just call GlobalPerformanceLogger.markPoint at the top of the file,
 diff --git a/node_modules/react-native/Libraries/Core/setUpSes.js b/node_modules/react-native/Libraries/Core/setUpSes.js
 new file mode 100644
-index 0000000..82ef0c4
+index 0000000..b0e401d
 --- /dev/null
 +++ b/node_modules/react-native/Libraries/Core/setUpSes.js
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,54 @@
 +/**
 + * Copyright (c) 2024 MetaMask
 + *
@@ -80,10 +80,9 @@ index 0000000..82ef0c4
 +const isSesEnabled = storage.getBoolean('is-ses-enabled');
 +
 +/**
-+ * Disabled in debug-mode until errors no longer obscured.
-+ * New repairIntrinsics option needed since `errorTaming: 'unsafe'`
-+ * and `stackFiltering: 'verbose'` are inadequate.
-+ * https://github.com/endojs/endo/blob/master/packages/ses/docs/reference.md#options-quick-reference
++ * SES disabled in debug-mode for now like we do in metamask-extension.
++ * To prevent react-jsx-runtime.development.js obscuring errors.
++ * See: https://github.com/MetaMask/metamask-mobile/issues/7923
 + */
 +
 +if (isSesEnabled && !__DEV__) {
