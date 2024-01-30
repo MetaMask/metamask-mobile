@@ -1,36 +1,20 @@
-import { ViewProps } from 'react-native';
+// Internal dependencies.
+import { BottomSheetDialogProps } from './foundation/BottomSheetDialog/BottomSheetDialog.types';
 
 /**
  * BottomSheet component props.
  */
-export interface BottomSheetProps extends ViewProps {
-  /**
-   * Content to wrap for multiselect.
-   */
-  children: React.ReactNode;
-  /**
-   * Optional callback that gets triggered when sheet is dismissed.
-   */
-  onClose?: (hasPendingAction: boolean) => void;
-  /**
-   * Optional boolean that indicates if sheet is swippable. This affects whether or not tapping on the overlay will dismiss the sheet as well.
-   * @default true
-   */
-  isInteractable?: boolean;
+export interface BottomSheetProps extends BottomSheetDialogProps {
   /**
    * Optional boolean that indicates if sheet isUnmounted from the stack or not when closed.
    * @default true
    */
   shouldNavigateBack?: boolean;
-  /**
-   * Optional prop to toggle full screen state of BottomSheetDialog.
-   * @default false
-   */
-  isFullscreen?: boolean;
 }
 
 export type BottomSheetPostCallback = () => void;
 
 export interface BottomSheetRef {
-  hide: (callback?: BottomSheetPostCallback) => void;
+  onOpenBottomSheet: (callback?: BottomSheetPostCallback) => void;
+  onCloseBottomSheet: (callback?: BottomSheetPostCallback) => void;
 }
