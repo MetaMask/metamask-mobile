@@ -891,10 +891,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-<<<<<<< HEAD
-=======
   Base64: cecfb41a004124895a7bcee567a89bae5a89d49b
->>>>>>> main
   boost: 7dcd2de282d72e344012f7d6564d024930a6a440
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
