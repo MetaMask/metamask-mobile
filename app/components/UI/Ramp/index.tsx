@@ -22,15 +22,15 @@ import {
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
-import processOrder from './common/orderProcessor';
-import processCustomOrderIdData from './common/orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from './common/orderProcessor/aggregator';
-import { trackEvent } from './common/hooks/useAnalytics';
-import { AnalyticsEvents } from './common/types';
+import processOrder from './orderProcessor';
+import processCustomOrderIdData from './orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';
+import { trackEvent } from './hooks/useAnalytics';
+import { AnalyticsEvents } from './types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
-import { callbackBaseUrl } from './common/sdk';
-import useFetchRampNetworks from './common/hooks/useFetchRampNetworks';
-import { getNotificationDetails, stateHasOrder } from './common/utils';
+import { callbackBaseUrl } from './sdk';
+import useFetchRampNetworks from './hooks/useFetchRampNetworks';
+import { getNotificationDetails, stateHasOrder } from './utils';
 import Routes from '../../../constants/navigation/Routes';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
