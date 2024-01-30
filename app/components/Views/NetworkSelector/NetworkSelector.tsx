@@ -76,7 +76,7 @@ const NetworkSelector = () => {
       await TransactionController.updateIncomingTransactions();
     }, 1000);
 
-    sheetRef.current?.hide();
+    sheetRef.current?.onCloseBottomSheet();
 
     analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: providerConfig.chainId,
@@ -103,7 +103,7 @@ const NetworkSelector = () => {
 
       NetworkController.setActiveNetwork(networkConfigurationId);
 
-      sheetRef.current?.hide();
+      sheetRef.current?.onCloseBottomSheet();
       analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
         chain_id: providerConfig.chainId,
         from_network: providerConfig.type,
@@ -204,7 +204,7 @@ const NetworkSelector = () => {
   };
 
   const goToNetworkSettings = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.ADD_NETWORK, {
         shouldNetworkSwitchPopToWallet: false,
       });
