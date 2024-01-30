@@ -927,6 +927,9 @@ class Engine {
           networkController.getProviderAndBlockTracker().blockTracker,
         getNetworkState: () => networkController.state,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
+        // TODO: Properly bind this method using the SmartTransactionsController
+        // getExternalPendingTransactions:
+        //   this.getExternalPendingTransactions.bind(this),
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () => {
