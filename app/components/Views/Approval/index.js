@@ -48,6 +48,8 @@ import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
 
+import { updateTransaction } from '../../../util/transaction-controller';
+
 const REVIEW = 'review';
 const EDIT = 'edit';
 const APPROVAL = 'Approval';
@@ -445,7 +447,7 @@ class Approval extends PureComponent {
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
       const updatedTx = { ...fullTx, transaction };
-      await TransactionController.updateTransaction(updatedTx);
+      await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 
       // For Ledger Accounts we handover the signing to the confirmation flow

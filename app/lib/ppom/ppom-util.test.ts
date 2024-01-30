@@ -3,6 +3,12 @@ import * as TransactionActions from '../../actions/transaction'; // eslint-disab
 import Engine from '../../core/Engine';
 import PPOMUtil from './ppom-util';
 
+jest.mock('../../util/transaction-controller', () => ({
+  __esModule: true,
+  updateSecurityAlertResponse: jest.fn(),
+  updateTransaction: jest.fn(),
+}));
+
 jest.mock('../../core/Engine', () => ({
   context: {
     PreferencesController: {
@@ -12,10 +18,6 @@ jest.mock('../../core/Engine', () => ({
     },
     PPOMController: {
       usePPOM: jest.fn(),
-    },
-    TransactionController: {
-      updateTransaction: jest.fn(),
-      updateSecurityAlertResponse: jest.fn(),
     },
     NetworkController: {
       state: {

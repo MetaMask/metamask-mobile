@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
 import { renderFromWei, fastSplit } from '../../../../util/number';
 import { validateTransactionActionBalance } from '../../../../util/transactions';
 import {
@@ -35,6 +34,10 @@ import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import {
+  speedUpTransaction,
+  stopTransaction,
+} from '../../../../util/transaction-controller';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -202,16 +205,12 @@ function TransactionNotification(props) {
     [onActionFinish],
   );
 
-  const speedUpTransaction = useCallback(() => {
-    safelyExecute(() =>
-      Engine.context.TransactionController.speedUpTransaction(tx?.id),
-    );
+  const speedUpTx = useCallback(() => {
+    safelyExecute(() => speedUpTransaction(tx?.id));
   }, [safelyExecute, tx]);
 
-  const stopTransaction = useCallback(() => {
-    safelyExecute(() =>
-      Engine.context.TransactionController.stopTransaction(tx?.id),
-    );
+  const stopTx = useCallback(() => {
+    safelyExecute(() => stopTransaction(tx?.id));
   }, [safelyExecute, tx]);
 
   useEffect(() => {
@@ -328,9 +327,7 @@ function TransactionNotification(props) {
               <ActionContent
                 onCancelPress={onActionFinish}
                 onConfirmPress={
-                  transactionAction === ACTION_CANCEL
-                    ? stopTransaction
-                    : speedUpTransaction
+                  transactionAction === ACTION_CANCEL ? stopTx : speedUpTx
                 }
                 confirmText={strings('transaction.lets_try')}
                 confirmButtonMode={'confirm'}

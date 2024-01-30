@@ -60,11 +60,11 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
-import Engine from '../../../core/Engine';
 import {
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { updateIncomingTransactions } from '../../../util/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -441,11 +441,9 @@ class Asset extends PureComponent {
   };
 
   onRefresh = async () => {
-    const { TransactionController } = Engine.context;
-
     this.setState({ refreshing: true });
 
-    await TransactionController.updateIncomingTransactions();
+    await updateIncomingTransactions();
 
     this.setState({ refreshing: false });
   };

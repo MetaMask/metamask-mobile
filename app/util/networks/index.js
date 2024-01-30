@@ -16,7 +16,6 @@ import {
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
-import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
@@ -41,6 +40,7 @@ import {
   getEtherscanTransactionUrl,
 } from '../etherscan';
 import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
+import { getNonceLock } from '../../util/transaction-controller';
 
 /**
  * List of the supported networks
@@ -329,11 +329,7 @@ export function isPrefixedFormattedHexString(value) {
 }
 
 export const getNetworkNonce = async ({ from }) => {
-  const { TransactionController } = Engine.context;
-
-  const { nextNonce, releaseLock } = await TransactionController.getNonceLock(
-    from,
-  );
+  const { nextNonce, releaseLock } = await getNonceLock(from);
 
   releaseLock();
 

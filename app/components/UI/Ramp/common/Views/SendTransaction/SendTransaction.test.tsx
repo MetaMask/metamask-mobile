@@ -324,6 +324,7 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../../../../../util/transaction-controller', () => ({
   __esModule: true,
+  ...jest.requireActual('../../../../../../util/transaction-controller'),
   addTransaction: jest.fn(),
 }));
 

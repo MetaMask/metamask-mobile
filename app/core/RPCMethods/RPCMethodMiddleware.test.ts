@@ -27,9 +27,6 @@ jest.mock('../Engine', () => ({
     PreferencesController: {
       state: {},
     },
-    TransactionController: {
-      updateSecurityAlertResponse: jest.fn(),
-    },
     SignatureController: {
       newUnsignedMessage: jest.fn(),
       newUnsignedPersonalMessage: jest.fn(),

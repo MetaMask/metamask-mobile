@@ -107,7 +107,10 @@ import { ConfirmViewSelectorsIDs } from '../../../../../e2e/selectors/SendFlow/C
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../../UI/LedgerModals/LedgerTransactionModal';
-import { addTransaction } from '../../../../util/transaction-controller';
+import {
+  addTransaction,
+  cancelTransaction,
+} from '../../../../util/transaction-controller';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -681,7 +684,7 @@ class Confirm extends PureComponent {
         TransactionController.hub.removeAllListeners(
           `${transactionMeta.id}:finished`,
         );
-        TransactionController.cancelTransaction(transactionMeta.id);
+        cancelTransaction(transactionMeta.id);
       } else {
         await new Promise((resolve) => resolve(result));
 

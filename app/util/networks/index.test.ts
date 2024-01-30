@@ -19,7 +19,7 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import Engine from '../../core/Engine';
+import { getNonceLock } from '../../util/transaction-controller';
 
 jest.mock('./../../core/Engine', () => ({
   context: {
@@ -39,10 +39,12 @@ jest.mock('./../../core/Engine', () => ({
     PreferencesController: {
       state: {},
     },
-    TransactionController: {
-      getNonceLock: jest.fn(),
-    },
   },
+}));
+
+jest.mock('../../util/transaction-controller', () => ({
+  __esModule: true,
+  getNonceLock: jest.fn(),
 }));
 
 describe('network-utils', () => {
@@ -286,22 +288,20 @@ describe('network-utils', () => {
     const fromMock = '0x123';
 
     it('returns value from TransactionController', async () => {
-      Engine.context.TransactionController.getNonceLock.mockReturnValueOnce({
+      getNonceLock.mockReturnValueOnce({
         nextNonce: nonceMock,
         releaseLock: jest.fn(),
       });
 
       expect(await getNetworkNonce({ from: fromMock })).toBe(nonceMock);
 
-      expect(
-        Engine.context.TransactionController.getNonceLock,
-      ).toHaveBeenCalledWith(fromMock);
+      expect(getNonceLock).toHaveBeenCalledWith(fromMock);
     });
 
     it('releases nonce lock', async () => {
       const releaseLockMock = jest.fn();
 
-      Engine.context.TransactionController.getNonceLock.mockReturnValueOnce({
+      getNonceLock.mockReturnValueOnce({
         releaseLock: releaseLockMock,
       });
 

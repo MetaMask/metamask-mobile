@@ -70,6 +70,7 @@ import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
+import { updateTransaction } from '../../../../util/transaction-controller';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -531,7 +532,7 @@ class Approve extends PureComponent {
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
       const updatedTx = { ...fullTx, transaction };
-      await TransactionController.updateTransaction(updatedTx);
+      await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 
       // For Ledger Accounts we handover the signing to the confirmation flow

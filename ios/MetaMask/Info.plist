@@ -20,13 +20,6 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
-	<key>branch_universal_link_domains</key>
-    <array>
-			<string>metamask.app.link</string>
-			<string>metamask-alternate.app.link</string>
-			<string>metamask.test.app.link</string>
-			<string>metamask-alternate.test.app.link</string>
-    </array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -43,6 +36,11 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>twitter</string>
+		<string>itms-apps</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -64,12 +62,12 @@
 	<string>MetaMask needs Bluetooth access to connect to external devices.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>MetaMask needs camera access to scan QR codes</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>MetaMask needs microphone access to record audio</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>MetaMask needs microphone access to record audio</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Allow MetaMask to save an image to your Photo Library</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -128,20 +126,22 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>branch_key</key>
-		<dict>
-			<key>live</key>
-			<string>$(MM_BRANCH_KEY_LIVE)</string>
-			<key>test</key>
-			<string>$(MM_BRANCH_KEY_TEST)</string>
-		</dict>
+	<dict>
+		<key>live</key>
+		<string>$(MM_BRANCH_KEY_LIVE)</string>
+		<key>test</key>
+		<string>$(MM_BRANCH_KEY_TEST)</string>
+	</dict>
+	<key>branch_universal_link_domains</key>
+	<array>
+		<string>metamask.app.link</string>
+		<string>metamask-alternate.app.link</string>
+		<string>metamask.test.app.link</string>
+		<string>metamask-alternate.test.app.link</string>
+	</array>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
 	<key>mixpanel_token</key>
 	<string>$(MM_MIXPANEL_TOKEN)</string>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>twitter</string>
-		<string>itms-apps</string>
-	</array>
 </dict>
 </plist>

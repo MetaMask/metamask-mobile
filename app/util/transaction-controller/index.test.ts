@@ -1,12 +1,34 @@
 import { WalletDevice } from '@metamask/transaction-controller';
-import { addTransaction, estimateGas } from './index';
+//eslint-disable-next-line import/no-namespace
+import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
+
+const { addTransaction, estimateGas, ...proxyMethods } =
+  TransactionControllerUtils;
+
+const TRANSACTION_MOCK = { from: '0x0', to: '0x1', value: '0x0' };
+const TRANSACTION_OPTIONS_MOCK = {
+  deviceConfirmedOn: WalletDevice.MM_MOBILE,
+  origin: 'origin',
+};
 
 jest.mock('../../core/Engine', () => ({
   context: {
     TransactionController: {
       addTransaction: jest.fn(),
       estimateGas: jest.fn(),
+
+      // Proxy methods
+      cancelTransaction: jest.fn(),
+      getNonceLock: jest.fn(),
+      speedUpTransaction: jest.fn(),
+      startIncomingTransactionPolling: jest.fn(),
+      stopIncomingTransactionPolling: jest.fn(),
+      stopTransaction: jest.fn(),
+      updateIncomingTransactions: jest.fn(),
+      updateSecurityAlertResponse: jest.fn(),
+      updateTransaction: jest.fn(),
+      wipeTransactions: jest.fn(),
     },
   },
 }));
@@ -16,27 +38,38 @@ describe('Transaction Controller Util', () => {
     jest.clearAllMocks();
   });
 
-  it('should call addTransaction with correct parameters', async () => {
-    const mockTransaction = { from: '0x0', to: '0x1', value: '0x0' };
-    const mockOpts = {
-      deviceConfirmedOn: WalletDevice.MM_MOBILE,
-      origin: 'origin',
-    };
+  describe('addTransaction', () => {
+    it('should call addTransaction with correct parameters', async () => {
+      await addTransaction(TRANSACTION_MOCK, TRANSACTION_OPTIONS_MOCK);
 
-    await addTransaction(mockTransaction, mockOpts);
-
-    expect(
-      Engine.context.TransactionController.addTransaction,
-    ).toHaveBeenCalledWith(mockTransaction, mockOpts);
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledWith(TRANSACTION_MOCK, TRANSACTION_OPTIONS_MOCK);
+    });
   });
 
-  it('should call estimateGas with correct parameters', async () => {
-    const mockTransaction = { from: '0x0', to: '0x1', value: '0x0' };
+  describe('estimateGas', () => {
+    it('should call estimateGas with correct parameters', async () => {
+      await estimateGas(TRANSACTION_MOCK);
 
-    await estimateGas(mockTransaction);
+      expect(
+        Engine.context.TransactionController.estimateGas,
+      ).toHaveBeenCalledWith(TRANSACTION_MOCK);
+    });
+  });
 
-    expect(
-      Engine.context.TransactionController.estimateGas,
-    ).toHaveBeenCalledWith(mockTransaction);
+  describe('proxy methods', () => {
+    it('should call Transaction controller API methods', () => {
+      const proxyMethodsKeys = Object.keys(proxyMethods);
+      proxyMethodsKeys.forEach((key) => {
+        const proxyMethod = proxyMethods[key as keyof typeof proxyMethods];
+        proxyMethod();
+        expect(
+          Engine.context.TransactionController[
+            key as keyof typeof proxyMethods
+          ],
+        ).toHaveBeenCalled();
+      });
+    });
   });
 });

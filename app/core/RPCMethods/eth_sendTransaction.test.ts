@@ -19,16 +19,18 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
-    TransactionController: {
-      updateTransaction: jest.fn(),
-      updateSecurityAlertResponse: jest.fn(),
-    },
     NetworkController: {
       state: {
         providerConfig: { chainId: '1' },
       },
     },
   },
+}));
+
+jest.mock('../../util/transaction-controller', () => ({
+  __esModule: true,
+  updateSecurityAlertResponse: jest.fn(),
+  updateTransaction: jest.fn(),
 }));
 
 /**
