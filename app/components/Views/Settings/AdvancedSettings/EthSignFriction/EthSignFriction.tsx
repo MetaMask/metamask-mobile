@@ -4,9 +4,9 @@ import { Platform, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../Base/Text';
 import { useTheme } from '../../../../../util/theme';
@@ -27,9 +27,6 @@ import Button, {
 import AppConstants from '../../../../../core/AppConstants';
 import { trackEventV2 as trackEvent } from '../../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-
-// Internal dependencies
-import createStyles from './EthSignFriction.styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
   TOGGLE_ETH_SIGN_CONTINUE_BUTTON,
@@ -37,6 +34,9 @@ import {
   TOGGLE_ETH_SIGN_UNDERSTAND_CHECKBOX,
   TOGGLE_ETH_SIGN_UNDERSTAND_INPUT,
 } from '../../../../../../wdio/screen-objects/testIDs/Components/ToggleEthSignModal.testIds';
+
+// Internal dependencies
+import createStyles from './EthSignFriction.styles';
 
 /**
  * EthSignFriction Component.
@@ -49,7 +49,7 @@ import {
 const EthSignFriction = () => {
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const [understandCheckbox, setUnderstandCheckbox] = useState(false);
   const [firstFrictionPassed, setFirstFrictionPassed] = useState(false);
   const [approveText, setApproveText] = useState<string>('');
@@ -102,7 +102,7 @@ const EthSignFriction = () => {
   };
 
   const onCancelPress = () => {
-    sheetRef.current?.hide();
+    sheetRef.current?.onCloseBottomSheet();
   };
 
   const onPrimaryPress = () => {
@@ -116,12 +116,12 @@ const EthSignFriction = () => {
       const { PreferencesController } = Engine.context;
       PreferencesController.setDisabledRpcMethodPreference('eth_sign', true);
       trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_ENABLED, {});
-      sheetRef.current?.hide();
+      sheetRef.current?.onCloseBottomSheet();
     }
   };
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <BottomSheet ref={sheetRef}>
       <View
         style={styles.frictionContainer}
         {...generateTestId(Platform, TOGGLE_ETH_SIGN_MODAL)}
@@ -243,7 +243,7 @@ const EthSignFriction = () => {
           />
         </View>
       </View>
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 
