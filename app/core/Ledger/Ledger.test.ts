@@ -2,8 +2,12 @@ import {
   addLedgerKeyring,
   getLedgerKeyring,
   connectLedgerHardware,
+  openEthereumAppOnLedger,
+  closeRunningAppOnLedger,
+  forgetLedger,
 } from './Ledger';
 import Engine from '../../core/Engine';
+import exp from 'constants';
 
 const ledgerKeyring = {
   setTransport: jest.fn(),
@@ -15,6 +19,7 @@ const ledgerKeyring = {
   deserialize: jest.fn(),
   deviceId: 'deviceId',
   getName: jest.fn().mockResolvedValue('name'),
+  openEthereumAppOnLedger: jest.fn(),
 };
 
 describe('Ledger core', () => {
@@ -24,9 +29,20 @@ describe('Ledger core', () => {
   };
   const mockAddNewKeyring = jest.fn().mockReturnValue(ledgerKeyring);
   const mockGetKeyringsByType = jest.fn().mockReturnValue([ledgerKeyringClone]);
+  const mockGetAccounts = jest
+    .fn()
+    .mockReturnValue(['0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2']);
+  const mockPersistAllKeyrings = jest.fn().mockReturnValue(Promise.resolve());
   Engine.context.KeyringController = {
     addNewKeyring: mockAddNewKeyring,
     getKeyringsByType: mockGetKeyringsByType,
+    getAccounts: mockGetAccounts,
+    persistAllKeyrings: mockPersistAllKeyrings,
+  };
+
+  const mockSetSelectedAddress = jest.fn();
+  Engine.context.PreferencesController = {
+    setSelectedAddress: mockSetSelectedAddress,
   };
 
   describe('addLedgerKeyring', () => {
@@ -79,19 +95,37 @@ describe('Ledger core', () => {
   });
 
   describe('openEthereumAppOnLedger', () => {
-    // TBD
+    it('should call keyring.openEthApp', async () => {
+      await openEthereumAppOnLedger();
+      expect(ledgerKeyring.openEthApp).toHaveBeenCalled();
+    });
   });
 
   describe('closeRunningAppOnLedger', () => {
-    // TBD
+    it('should call keyring.quitApp', async () => {
+      await closeRunningAppOnLedger();
+      expect(ledgerKeyring.quitApp).toHaveBeenCalled();
+    });
   });
 
   describe('forgetLedger', () => {
-    // TBD
+    it('should call keyring.forgetDevice', async () => {
+      await forgetLedger();
+      expect(ledgerKeyring.forgetDevice).toHaveBeenCalled();
+      expect(mockGetAccounts).toHaveBeenCalled();
+      expect(mockPersistAllKeyrings).toHaveBeenCalled();
+
+      expect(mockSetSelectedAddress).toBeCalledWith(
+        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+      );
+    });
   });
 
   describe('getDeviceId', () => {
-    // TBD
+    it('should return deviceId', async () => {
+      const value = await getLedgerKeyring();
+      expect(value.deviceId).toBe('deviceIdClone');
+    });
   });
 
   describe('ledgerSignTypedMessage', () => {
