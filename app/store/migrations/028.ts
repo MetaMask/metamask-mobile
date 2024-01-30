@@ -1,4 +1,5 @@
 import { toHex } from '@metamask/controller-utils';
+import { hasProperty, isObject } from '@metamask/utils';
 import { regex } from '../../../app/util/regex';
 
 //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
@@ -22,47 +23,164 @@ import { captureException } from '@sentry/react-native';
  * @param {any} state - Redux state.
  * @returns Migrated Redux state.
  */
-export default function migrate(state: any) {
+export default function migrate(state: unknown) {
   // Chaning chain id to hexadecimal chain Id on the networks already on the local state
-  if (
-    state?.engine?.backgroundState?.NetworkController?.providerConfig?.chainId
-  ) {
-    const networkControllerChainId =
-      state.engine.backgroundState.NetworkController.providerConfig.chainId;
+  if (!isObject(state)) {
+    captureException(
+      new Error(`Migration 28: Invalid state: '${typeof state}'`),
+    );
+    return state;
+  }
+  if (!isObject(state.engine)) {
+    captureException(
+      new Error(`Migration 28: Invalid engine state: '${typeof state.engine}'`),
+    );
+    return state;
+  }
 
-    state.engine.backgroundState.NetworkController.providerConfig.chainId =
-      toHex(networkControllerChainId);
-  } else {
+  if (!isObject(state.engine.backgroundState)) {
+    captureException(
+      new Error(
+        `Migration 28: Invalid engine backgroundState: '${typeof state.engine
+          .backgroundState}'`,
+      ),
+    );
+    return state;
+  }
+
+  const networkControllerState = state.engine.backgroundState.NetworkController;
+
+  if (!isObject(networkControllerState)) {
+    captureException(
+      new Error(
+        `Migration 28: Invalid NetworkController state: '${typeof networkControllerState}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (
+    !hasProperty(networkControllerState, 'providerConfig') ||
+    !isObject(networkControllerState.providerConfig)
+  ) {
+    captureException(
+      new Error(
+        `Migration 28: Invalid NetworkController providerConfig: '${typeof networkControllerState.providerConfig}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (!networkControllerState.providerConfig.chainId) {
     captureException(
       new Error(
         `Migration 28: Invalid NetworkController providerConfig chainId: '${JSON.stringify(
-          state.engine.backgroundState.NetworkController,
+          networkControllerState.providerConfig.chainId,
         )}'`,
       ),
     );
+    return state;
   }
+
+  if (networkControllerState.providerConfig.chainId) {
+    const networkControllerChainId = networkControllerState.providerConfig
+      .chainId as string;
+
+    networkControllerState.providerConfig.chainId = toHex(
+      networkControllerChainId,
+    );
+  }
+
   // Changing rcpTarget property for the new rpcUrl
-  if (
-    state?.engine?.backgroundState?.NetworkController?.providerConfig?.rpcTarget
-  ) {
+  if (networkControllerState.providerConfig.rpcTarget) {
     const networkControllerRpcTarget =
-      state.engine.backgroundState.NetworkController.providerConfig.rpcTarget;
+      networkControllerState.providerConfig.rpcTarget;
 
-    state.engine.backgroundState.NetworkController.providerConfig.rpcUrl =
-      networkControllerRpcTarget;
+    networkControllerState.providerConfig.rpcUrl = networkControllerRpcTarget;
 
-    delete state.engine.backgroundState.NetworkController.providerConfig
-      .rpcTarget;
-  } else {
+    delete networkControllerState.providerConfig.rpcTarget;
+  }
+
+  if (
+    !hasProperty(networkControllerState, 'networkDetails') ||
+    !isObject(networkControllerState.networkDetails)
+  ) {
     captureException(
       new Error(
-        `Migration 28: Invalid NetworkController providerConfig rpcTarget: '${JSON.stringify(
-          state.engine.backgroundState.NetworkController,
+        `Migration 28: Invalid NetworkController networkDetails: '${JSON.stringify(
+          networkControllerState.networkDetails,
         )}'`,
       ),
     );
+    return state;
   }
+
+  if (
+    !hasProperty(
+      networkControllerState.networkDetails,
+      'isEIP1559Compatible',
+    ) ||
+    networkControllerState.networkDetails.isEIP1559Compatible === null ||
+    networkControllerState.networkDetails.isEIP1559Compatible === undefined
+  ) {
+    captureException(
+      new Error(
+        `Migration 28: Invalid NetworkController networkDetails isEIP1559Compatible: '${JSON.stringify(
+          networkControllerState.networkDetails.isEIP1559Compatible,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  // Addressing networkDetails property change
+  const isEIP1559Compatible =
+    networkControllerState.networkDetails.isEIP1559Compatible;
+
+  if (isEIP1559Compatible) {
+    networkControllerState.networkDetails = {
+      EIPS: {
+        1559: true,
+      },
+    };
+  } else {
+    networkControllerState.networkDetails = {
+      EIPS: {
+        1559: false,
+      },
+    };
+  }
+
+  delete networkControllerState.networkDetails.isEIP1559Compatible;
+
+  if (
+    !hasProperty(networkControllerState, 'networkConfigurations') ||
+    !isObject(networkControllerState.networkConfigurations)
+  ) {
+    captureException(
+      new Error(
+        `Migration 28: Invalid NetworkController networkConfigurations: '${JSON.stringify(
+          networkControllerState.networkConfigurations,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  // Addressing networkConfigurations chainId property change to hexadecimal
+  if (networkControllerState.networkConfigurations) {
+    Object.values<NetworkConfiguration>(
+      networkControllerState.networkConfigurations,
+    ).forEach((networkConfiguration: NetworkConfiguration) => {
+      if (networkConfiguration) {
+        const newHexChainId = toHex(networkConfiguration.chainId);
+        networkConfiguration.chainId = newHexChainId;
+      }
+    });
+  }
+
   // Validating if the networks were already onboarded
+  // This property can be undefined
   if (state?.networkOnboarded?.networkOnboardedState) {
     const networkOnboardedState = state.networkOnboarded.networkOnboardedState;
     const newNetworkOnboardedState: {
@@ -74,68 +192,10 @@ export default function migrate(state: any) {
       newNetworkOnboardedState[hexChainId] = networkOnboardedState[chainId];
     }
     state.networkOnboarded.networkOnboardedState = newNetworkOnboardedState;
-  } else {
-    captureException(
-      new Error(
-        `Migration 28: Invalid networkOnboarded: '${JSON.stringify(
-          state.networkOnboarded,
-        )}'`,
-      ),
-    );
-  }
-
-  // Addressing networkDetails property change
-  if (state?.engine?.backgroundState?.NetworkController?.networkDetails) {
-    const isEIP1559Compatible =
-      state?.engine?.backgroundState?.NetworkController?.networkDetails
-        ?.isEIP1559Compatible;
-
-    if (isEIP1559Compatible) {
-      state.engine.backgroundState.NetworkController.networkDetails = {
-        EIPS: {
-          1559: true,
-        },
-      };
-    } else {
-      state.engine.backgroundState.NetworkController.networkDetails = {
-        EIPS: {
-          1559: false,
-        },
-      };
-    }
-
-    delete state.engine.backgroundState.NetworkController.networkDetails
-      .isEIP1559Compatible;
-  } else {
-    captureException(
-      new Error(
-        `Migration 28: Invalid NetworkController networkDetails: '${JSON.stringify(
-          state.engine.backgroundState.NetworkController,
-        )}'`,
-      ),
-    );
-  }
-  // Addressing networkConfigurations chainId property change to hexadecimal
-  if (
-    state?.engine?.backgroundState?.NetworkController?.networkConfigurations
-  ) {
-    Object.values<NetworkConfiguration>(
-      state?.engine?.backgroundState?.NetworkController?.networkConfigurations,
-    ).forEach((networkConfiguration: NetworkConfiguration) => {
-      const newHexChainId = toHex(networkConfiguration.chainId);
-      networkConfiguration.chainId = newHexChainId;
-    });
-  } else {
-    captureException(
-      new Error(
-        `Migration 28: Invalid NetworkController networkConfigurations: '${JSON.stringify(
-          state.engine.backgroundState.NetworkController,
-        )}'`,
-      ),
-    );
   }
 
   // Swaps on the state initial state key chain id changed for hexadecimal
+  // This property can be undefined
   if (state?.swaps) {
     Object.keys(state?.swaps).forEach((key) => {
       // To match keys that are composed entirely of digits
@@ -148,18 +208,39 @@ export default function migrate(state: any) {
         delete state.swaps[key];
       }
     });
-  } else {
+  }
+
+  const addressBookControllerState =
+    state?.engine?.backgroundState?.AddressBookController;
+
+  if (!isObject(addressBookControllerState)) {
     captureException(
       new Error(
-        `Migration 28: Invalid swaps: '${JSON.stringify(state.swaps)}'`,
+        `Migration 28: Invalid AddressBookController state: '${JSON.stringify(
+          addressBookControllerState,
+        )}'`,
       ),
     );
+    return state;
+  }
+
+  if (
+    !hasProperty(addressBookControllerState, 'addressBook') ||
+    !isObject(addressBookControllerState.addressBook)
+  ) {
+    captureException(
+      new Error(
+        `Migration 28: Invalid AddressBookController addressBook: '${JSON.stringify(
+          addressBookControllerState.addressBook,
+        )}'`,
+      ),
+    );
+    return state;
   }
 
   // Address book controller chain id identifier changed for hexadecimal
-  if (state?.engine?.backgroundState?.AddressBookController?.addressBook) {
-    const addressBook =
-      state?.engine?.backgroundState?.AddressBookController?.addressBook;
+  if (addressBookControllerState.addressBook) {
+    const addressBook = addressBookControllerState.addressBook;
     Object.keys(addressBook).forEach((chainId) => {
       if (!isHexString(chainId)) {
         const hexChainId = toHex(chainId);
@@ -172,133 +253,161 @@ export default function migrate(state: any) {
         Object.keys(addressBook[chainId]).forEach((address) => {
           newAddress = addressBook[chainId][address];
           newAddress.chainId = toHex(
-            state?.engine?.backgroundState?.AddressBookController?.addressBook[
-              chainId
-            ][address].chainId,
+            addressBookControllerState.addressBook[chainId][address].chainId,
           );
 
           newAddressBook[hexChainId][address] = newAddress;
         });
-        state.engine.backgroundState.AddressBookController.addressBook[
-          hexChainId
-        ] = newAddressBook[hexChainId];
-        delete state.engine.backgroundState.AddressBookController.addressBook[
-          chainId
-        ];
+        addressBookControllerState.addressBook[hexChainId] =
+          newAddressBook[hexChainId];
+        delete addressBookControllerState.addressBook[chainId];
       }
     });
-  } else {
+  }
+
+  const swapsControllerState = state?.engine?.backgroundState?.SwapsController;
+
+  if (!isObject(swapsControllerState)) {
     captureException(
       new Error(
-        `Migration 28: Invalid AddressBookController addressBook: '${JSON.stringify(
-          state.engine.backgroundState.AddressBookController,
+        `Migration 28: Invalid SwapsController state: '${JSON.stringify(
+          swapsControllerState,
         )}'`,
       ),
     );
+    return state;
   }
+
+  if (
+    !hasProperty(swapsControllerState, 'chainCache') ||
+    !isObject(swapsControllerState.chainCache)
+  ) {
+    captureException(
+      new Error(
+        `Migration 28: Invalid swapsControllerState chainCache: '${JSON.stringify(
+          swapsControllerState.chainCache,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
   // Swaps controller chain cache property now is on hexadecimal format
-  if (state?.engine?.backgroundState?.SwapsController?.chainCache) {
-    Object.keys(
-      state.engine.backgroundState.SwapsController.chainCache,
-    ).forEach((chainId) => {
+  if (swapsControllerState.chainCache) {
+    Object.keys(swapsControllerState.chainCache).forEach((chainId) => {
       if (!isHexString(chainId)) {
         const hexChainId = toHex(chainId);
-        state.engine.backgroundState.SwapsController.chainCache[hexChainId] =
-          state.engine.backgroundState.SwapsController.chainCache[chainId];
+        swapsControllerState.chainCache[hexChainId] =
+          swapsControllerState.chainCache[chainId];
         delete state.engine.backgroundState.SwapsController.chainCache[chainId];
       }
     });
-  } else {
-    captureException(
-      new Error(
-        `Migration 28: Invalid SwapsController chainCache: '${JSON.stringify(
-          state.engine.backgroundState.SwapsController,
-        )}'`,
-      ),
-    );
   }
-  // NftController allNfts, allNftsContracts chain Id now is on hexadecimal format
-  if (state?.engine?.backgroundState?.NftController?.allNftContracts) {
-    const allNftContracts =
-      state.engine.backgroundState.NftController.allNftContracts;
-    Object.keys(
-      state.engine.backgroundState.NftController.allNftContracts,
-    ).forEach((nftContractsAddress) => {
-      Object.keys(allNftContracts[nftContractsAddress]).forEach((chainId) => {
-        if (!isHexString(chainId)) {
-          const hexChainId = toHex(chainId);
-          state.engine.backgroundState.NftController.allNftContracts[
-            nftContractsAddress
-          ][hexChainId] =
-            state.engine.backgroundState.NftController.allNftContracts[
-              nftContractsAddress
-            ][chainId];
 
-          delete state.engine.backgroundState.NftController.allNftContracts[
-            nftContractsAddress
-          ][chainId];
-        }
-      });
-    });
-  } else {
+  const nftControllerState = state?.engine?.backgroundState?.NftController;
+
+  if (!isObject(nftControllerState)) {
     captureException(
       new Error(
-        `Migration 28: Invalid NftController allNftContracts: '${JSON.stringify(
-          state.engine.backgroundState.NftController,
+        `Migration 28: Invalid NftController state: '${JSON.stringify(
+          nftControllerState,
         )}'`,
       ),
     );
+    return state;
   }
-  if (state?.engine?.backgroundState?.NftController?.allNfts) {
-    const allNfts = state.engine.backgroundState.NftController.allNfts;
-    Object.keys(state.engine.backgroundState.NftController.allNfts).forEach(
-      (allNftsByAddress) => {
-        Object.keys(allNfts[allNftsByAddress]).forEach((chainId) => {
+
+  if (
+    !hasProperty(nftControllerState, 'allNftContracts') ||
+    !isObject(nftControllerState.allNftContracts)
+  ) {
+    captureException(
+      new Error(
+        `Migration 28: Invalid nftControllerState allNftsContracts: '${JSON.stringify(
+          nftControllerState.allNftContracts,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  // NftController allNfts, allNftsContracts chain Id now is on hexadecimal format
+  if (nftControllerState.allNftContracts) {
+    const allNftContracts = nftControllerState.allNftContracts;
+    Object.keys(nftControllerState.allNftContracts).forEach(
+      (nftContractsAddress) => {
+        Object.keys(allNftContracts[nftContractsAddress]).forEach((chainId) => {
           if (!isHexString(chainId)) {
             const hexChainId = toHex(chainId);
-            state.engine.backgroundState.NftController.allNfts[
-              allNftsByAddress
-            ][hexChainId] =
-              state.engine.backgroundState.NftController.allNfts[
-                allNftsByAddress
-              ][chainId];
+            nftControllerState.allNftContracts[nftContractsAddress][
+              hexChainId
+            ] =
+              nftControllerState.allNftContracts[nftContractsAddress][chainId];
 
-            delete state.engine.backgroundState.NftController.allNfts[
-              allNftsByAddress
-            ][chainId];
+            delete nftControllerState.allNftContracts[nftContractsAddress][
+              chainId
+            ];
           }
         });
       },
     );
-  } else {
+  }
+
+  if (
+    !hasProperty(nftControllerState, 'allNfts') ||
+    !isObject(nftControllerState.allNfts)
+  ) {
     captureException(
       new Error(
-        `Migration 28: Invalid NftController allNfts: '${JSON.stringify(
-          state.engine.backgroundState.NftController,
+        `Migration 28: Invalid nftControllerState allNfts: '${JSON.stringify(
+          nftControllerState.allNfts,
         )}'`,
       ),
     );
+    return state;
+  }
+
+  if (nftControllerState.allNfts) {
+    const allNfts = nftControllerState.allNfts;
+    Object.keys(nftControllerState.allNfts).forEach((allNftsByAddress) => {
+      Object.keys(allNfts[allNftsByAddress]).forEach((chainId) => {
+        if (!isHexString(chainId)) {
+          const hexChainId = toHex(chainId);
+          nftControllerState.allNfts[allNftsByAddress][hexChainId] =
+            nftControllerState.allNfts[allNftsByAddress][chainId];
+
+          delete nftControllerState.allNfts[allNftsByAddress][chainId];
+        }
+      });
+    });
+  }
+
+  const transactionControllerState =
+    state?.engine?.backgroundState?.TransactionController;
+
+  if (!isObject(transactionControllerState)) {
+    captureException(
+      new Error(
+        `Migration 28: Invalid TransactionController state: '${JSON.stringify(
+          transactionControllerState,
+        )}'`,
+      ),
+    );
+    return state;
   }
 
   // Transaction Controller transactions object chain id property to hexadecimal
-  if (state?.engine?.backgroundState?.TransactionController?.transactions) {
-    state.engine.backgroundState.TransactionController.transactions.forEach(
+  if (transactionControllerState.transactions) {
+    transactionControllerState.transactions.forEach(
       (transaction: Transaction, index: number) => {
-        if (!isHexString(transaction?.chainId)) {
-          state.engine.backgroundState.TransactionController.transactions[
-            index
-          ].chainId = toHex(transaction.chainId as string);
+        if (transaction && !isHexString(transaction.chainId)) {
+          transactionControllerState.transactions[index].chainId = toHex(
+            transaction.chainId as string,
+          );
         }
       },
     );
-  } else {
-    captureException(
-      new Error(
-        `Migration 28: Invalid TransactionController transactions: '${JSON.stringify(
-          state.engine.backgroundState.TransactionController,
-        )}'`,
-      ),
-    );
   }
+
   return state;
 }
