@@ -102,7 +102,7 @@ const EthSignFriction = () => {
   };
 
   const onCancelPress = () => {
-    sheetRef.current?.hide();
+    sheetRef.current?.onCloseBottomSheet();
   };
 
   const onPrimaryPress = () => {
@@ -116,7 +116,7 @@ const EthSignFriction = () => {
       const { PreferencesController } = Engine.context;
       PreferencesController.setDisabledRpcMethodPreference('eth_sign', true);
       trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_ENABLED, {});
-      sheetRef.current?.hide();
+      sheetRef.current?.onCloseBottomSheet();
     }
   };
 
