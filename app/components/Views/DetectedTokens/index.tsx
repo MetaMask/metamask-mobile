@@ -117,7 +117,7 @@ const DetectedTokens = () => {
         errorMsg = 'DetectedTokens: Failed to import detected tokens!';
       }
 
-      sheetRef.current?.hide(async () => {
+      sheetRef.current?.onCloseBottomSheet(async () => {
         try {
           tokensToIgnore.length > 0 &&
             (await TokensController.ignoreTokens(tokensToIgnore));
@@ -247,7 +247,7 @@ const DetectedTokens = () => {
     );
   };
 
-  const trackCancelWithoutAction = (hasPendingAction: boolean) => {
+  const trackCancelWithoutAction = (hasPendingAction?: boolean) => {
     if (hasPendingAction) {
       return;
     }
