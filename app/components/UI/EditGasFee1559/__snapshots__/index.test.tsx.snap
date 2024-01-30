@@ -534,7 +534,7 @@ exports[`EditGasFee1559 should render correctly 1`] = `
                         }
                       }
                     >
-                      Aggresive
+                      Aggressive
                     </Text>
                     <Text
                       grey={true}
