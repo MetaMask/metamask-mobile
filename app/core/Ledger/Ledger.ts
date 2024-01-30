@@ -1,12 +1,8 @@
-import { PreferencesController } from '@metamask/preferences-controller';
-import LedgerKeyring, {
-  SerializationOptions,
-} from '@consensys/ledgerhq-metamask-keyring';
+import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../Engine';
-import { store } from '../../store';
 
 /**
  * Add LedgerKeyring.
@@ -33,20 +29,6 @@ export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
   );
 
   return keyring.length ? keyring[0] : await addLedgerKeyring();
-};
-
-/**
- * Restores the Ledger Keyring. This is only used at the time the user resets the account's password at the moment.
- *
- * @param keyringSerialized - The serialized keyring;
- */
-export const restoreLedgerKeyring = async (
-  keyringSerialized: SerializationOptions,
-): Promise<void> => {
-  const keyringController = Engine.context.KeyringController;
-
-  (await getLedgerKeyring()).deserialize(keyringSerialized);
-  keyringController.updateIdentities(await keyringController.getAccounts());
 };
 
 /**

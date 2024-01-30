@@ -9,8 +9,8 @@ import {
   unlockLedgerDefaultAccount,
 } from './Ledger';
 import Engine from '../../core/Engine';
-
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 
 const ledgerKeyring = {
   setTransport: jest.fn(),
@@ -78,23 +78,20 @@ describe('Ledger core', () => {
     });
   });
 
-  describe('restoreLedgerKeyring', () => {
-    // TBD
-  });
-
   describe('connectLedgerHardware', () => {
+    const mockTransport = 'foo' as unknown as BleTransport;
     it('should call keyring.setTransport', async () => {
-      await connectLedgerHardware('foo', 'bar');
+      await connectLedgerHardware(mockTransport, 'bar');
       expect(ledgerKeyring.setTransport).toHaveBeenCalled();
     });
 
     it('should call keyring.getAppAndVersion', async () => {
-      await connectLedgerHardware('foo', 'bar');
+      await connectLedgerHardware(mockTransport, 'bar');
       expect(ledgerKeyring.getAppAndVersion).toHaveBeenCalled();
     });
 
     it('should return app name', async () => {
-      const value = await connectLedgerHardware('foo', 'bar');
+      const value = await connectLedgerHardware(mockTransport, 'bar');
       expect(value).toBe('appName');
     });
   });
