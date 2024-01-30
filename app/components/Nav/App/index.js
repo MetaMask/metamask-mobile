@@ -235,6 +235,8 @@ const App = ({ userLoggedIn }) => {
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
+  const [queueOfHandleDeeplinkFunctions, setQueueOfHandleDeeplinkFunctions] =
+    useState([]);
   const [animationPlayed, setAnimationPlayed] = useState(false);
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -345,11 +347,20 @@ const App = ({ userLoggedIn }) => {
             Logger.error('Error from Branch: ' + error);
           }
 
-          handleDeeplink(opts);
+          if (sdkPostInit.current === true) {
+            handleDeeplink(opts);
+          } else {
+            setQueueOfHandleDeeplinkFunctions(
+              queueOfHandleDeeplinkFunctions.concat(() => {
+                handleDeeplink(opts);
+              }),
+            );
+          }
         });
       }
       prevNavigator.current = navigator;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, handleDeeplink, navigator]);
 
   useEffect(() => {
@@ -393,6 +404,7 @@ const App = ({ userLoggedIn }) => {
         try {
           await SDKConnect.getInstance().postInit();
           sdkPostInit.current = true;
+          queueOfHandleDeeplinkFunctions.forEach((func) => func());
         } catch (err) {
           console.error(`Cannot postInit SDKConnect`, err);
         }
@@ -401,6 +413,7 @@ const App = ({ userLoggedIn }) => {
     handlePostInit().catch((err) => {
       Logger.error(err, 'Error postInit SDKConnect');
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLoggedIn, postInitReady]);
 
   useEffect(() => {
