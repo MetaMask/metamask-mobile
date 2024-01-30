@@ -66,7 +66,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     (address: string) => {
       const { PreferencesController } = Engine.context;
       PreferencesController.setSelectedAddress(address);
-      sheetRef.current?.hide();
+      sheetRef.current?.onCloseBottomSheet();
       onSelectAccount?.(address);
       InteractionManager.runAfterInteractions(() => {
         // Track Event: "Switched Account"
