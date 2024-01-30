@@ -15,6 +15,9 @@ export const brandColors: BrandColors = {
   black: {
     '000': '#000000',
   },
+  yellow: {
+    '500': '#ffd33d',
+  },
 };
 
 export default brandColors;

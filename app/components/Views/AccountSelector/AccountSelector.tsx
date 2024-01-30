@@ -10,9 +10,9 @@ import { InteractionManager, Platform, View } from 'react-native';
 
 // External dependencies.
 import AccountSelectorList from '../../UI/AccountSelectorList';
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import UntypedEngine from '../../../core/Engine';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -47,7 +47,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const { reloadAccounts } = useSelector((state: RootState) => state.accounts);
   const Engine = UntypedEngine as any;
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const { accounts, ensByAccountAddress } = useAccounts({
     checkBalanceError,
     isLoading: reloadAccounts,
@@ -66,7 +66,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     (address: string) => {
       const { PreferencesController } = Engine.context;
       PreferencesController.setSelectedAddress(address);
-      sheetRef.current?.hide();
+      sheetRef.current?.onCloseBottomSheet();
       onSelectAccount?.(address);
       InteractionManager.runAfterInteractions(() => {
         // Track Event: "Switched Account"
@@ -135,7 +135,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [screen, renderAccountSelector, renderAddAccountActions]);
 
-  return <SheetBottom ref={sheetRef}>{renderAccountScreens()}</SheetBottom>;
+  return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;
 };
 
 export default AccountSelector;

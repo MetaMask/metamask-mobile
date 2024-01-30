@@ -1,12 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`BlockaidBanner should not render if blockaid does not support network 1`] = `null`;
+
 exports[`BlockaidBanner should not render if resultType is benign 1`] = `null`;
 
 exports[`BlockaidBanner should not render if securityAlertResponse is undefined 1`] = `null`;
 
 exports[`BlockaidBanner should not render if user has not enabled blockaid 1`] = `null`;
-
-exports[`BlockaidBanner should not render if user is not on mainnet 1`] = `null`;
 
 exports[`BlockaidBanner should render correctly 1`] = `
 <View
