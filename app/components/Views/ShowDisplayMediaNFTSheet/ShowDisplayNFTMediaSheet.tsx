@@ -21,13 +21,13 @@ const ShowDisplayNftMediaSheet = () => {
 
   const onConfirm = () => {
     const { PreferencesController } = Engine.context;
-    sheetRef.current?.hide(() =>
+    sheetRef.current?.onCloseBottomSheet(() =>
       PreferencesController.setDisplayNftMedia(true),
     );
   };
 
   const onCancel = () => {
-    sheetRef.current?.hide();
+    sheetRef.current?.onCloseBottomSheet();
   };
 
   return (
