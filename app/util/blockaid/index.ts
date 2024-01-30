@@ -24,19 +24,25 @@ export const isSupportedChainId = (chainId: string) => {
 };
 
 // eslint-disable-next-line import/prefer-default-export
-export const isBlockaidFeatureEnabled = () => {
+export const isBlockaidSupportedOnCurrentChain = () => {
   const chainId = selectChainId(store.getState());
-  return (
-    process.env.MM_BLOCKAID_UI_ENABLED === 'true' && isSupportedChainId(chainId)
-  );
+  return isSupportedChainId(chainId);
 };
+
+// eslint-disable-next-line import/prefer-default-export
+export const isBlockaidFeatureEnabled = () =>
+  process.env.MM_BLOCKAID_UI_ENABLED;
 
 export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,
 ) => {
   const additionalParams: Record<string, any> = {};
 
-  if (securityAlertResponse && isBlockaidFeatureEnabled()) {
+  if (
+    securityAlertResponse &&
+    isBlockaidFeatureEnabled() &&
+    isBlockaidSupportedOnCurrentChain()
+  ) {
     const { result_type, reason, providerRequestsCount } =
       securityAlertResponse;
 
