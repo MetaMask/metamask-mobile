@@ -68,7 +68,7 @@ export const connectLedgerHardware = async (
 
 /**
  * Retrieve the first account from the Ledger device.
- * @param isAccountImportReq - Whether we need to addNewAccountForKeyring() or not
+ * @param isAccountImportReq - Whether we need to import a ledger account by calling addNewAccountForKeyring
  * @returns The default (first) account on the device
  */
 export const unlockLedgerDefaultAccount = async (

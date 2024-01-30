@@ -1,14 +1,17 @@
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import Engine from '../../core/Engine';
 import {
   addLedgerKeyring,
-  closeRunningAppOnLedger,
-  connectLedgerHardware,
-  forgetLedger,
   getLedgerKeyring,
-  ledgerSignTypedMessage,
+  connectLedgerHardware,
   openEthereumAppOnLedger,
+  closeRunningAppOnLedger,
+  forgetLedger,
+  ledgerSignTypedMessage,
+  unlockLedgerDefaultAccount,
 } from './Ledger';
+import Engine from '../../core/Engine';
+
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
+
 const ledgerKeyring = {
   setTransport: jest.fn(),
   getAppAndVersion: jest.fn().mockResolvedValue({ appName: 'appName' }),
@@ -36,12 +39,14 @@ describe('Ledger core', () => {
   const mockSDignTypedMessage = jest
     .fn()
     .mockReturnValue(Promise.resolve('signature'));
+  const mockAddNewAccountForKeyring = jest.fn();
   Engine.context.KeyringController = {
     addNewKeyring: mockAddNewKeyring,
     getKeyringsByType: mockGetKeyringsByType,
     getAccounts: mockGetAccounts,
     persistAllKeyrings: mockPersistAllKeyrings,
     signTypedMessage: mockSDignTypedMessage,
+    addNewAccountForKeyring: mockAddNewAccountForKeyring,
   };
 
   const mockSetSelectedAddress = jest.fn();
@@ -95,7 +100,27 @@ describe('Ledger core', () => {
   });
 
   describe('unlockLedgerDefaultAccount', () => {
-    // TBD
+    it('should not call KeyringController.addNewAccountForKeyring if isAccountImportReq is false', async () => {
+      const account = await unlockLedgerDefaultAccount(false);
+      expect(mockAddNewAccountForKeyring).not.toHaveBeenCalled();
+      expect(ledgerKeyring.getDefaultAccount).toHaveBeenCalled();
+
+      expect(account).toEqual({
+        address: 'defaultAccount',
+        balance: '0x0',
+      });
+    });
+
+    it('should call KeyringController.addNewAccountForKeyring if isAccountImportReq is true', async () => {
+      const account = await unlockLedgerDefaultAccount(true);
+      expect(mockAddNewAccountForKeyring).toHaveBeenCalledWith(ledgerKeyring);
+      expect(ledgerKeyring.getDefaultAccount).toHaveBeenCalled();
+
+      expect(account).toEqual({
+        address: 'defaultAccount',
+        balance: '0x0',
+      });
+    });
   });
 
   describe('openEthereumAppOnLedger', () => {
