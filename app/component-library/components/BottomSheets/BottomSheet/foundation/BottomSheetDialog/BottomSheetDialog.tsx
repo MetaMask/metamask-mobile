@@ -51,7 +51,6 @@ const BottomSheetDialog = forwardRef<
       isInteractable = true,
       onClose,
       onOpen,
-      isFlexible = false,
       ...props
     },
     ref,
