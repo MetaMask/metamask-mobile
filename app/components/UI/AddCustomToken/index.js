@@ -404,7 +404,6 @@ export default class AddCustomToken extends PureComponent {
               </Text>
               <TextInput
                 style={styles.textInput}
-                ref={(ref) => (this.textRef = ref)}
                 placeholder={'0x...'}
                 placeholderTextColor={colors.text.muted}
                 value={this.state.address}
