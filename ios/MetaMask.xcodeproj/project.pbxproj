@@ -723,11 +723,10 @@
 				B339FF01289ABD70001B89FB /* Sources */,
 				B339FF06289ABD70001B89FB /* Frameworks */,
 				B339FF0F289ABD70001B89FB /* Resources */,
-				B339FF2F289ABD70001B89FB /* Bundle React Native code and images */,
 				B339FF30289ABD70001B89FB /* Embed Frameworks */,
 				8EF10BB14629809332947E5D /* [CP] Copy Pods Resources */,
 				EB3465C9579A347237ADD532 /* [CP] Embed Pods Frameworks */,
-				B0BA877E2B61BFFA00EE1782 /* Upload Debug Symbols to Sentry */,
+				B339FF2F289ABD70001B89FB /* Bundle JS Code & Upload Sentry Files */,
 			);
 			buildRules = (
 			);
@@ -1181,24 +1180,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		B0BA877E2B61BFFA00EE1782 /* Upload Debug Symbols to Sentry */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Upload Debug Symbols to Sentry";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nif [ -f \"$WITH_ENVIRONMENT\" ]; then\n  . \"$WITH_ENVIRONMENT\"\nfi\n\nif [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n\nif [ \"$SENTRY_DISABLE_AUTO_UPLOAD\" == \"false\" ]; then\n    [ $SENTRY_INCLUDE_NATIVE_SOURCES == \"true\" ] && INCLUDE_SOURCES_FLAG=\"--include-sources\" || INCLUDE_SOURCES_FLAG=\"\"\n    ../node_modules/@sentry/cli/bin/sentry-cli debug-files upload \"$INCLUDE_SOURCES_FLAG\" \"$DWARF_DSYM_FOLDER_PATH\"\nfi\n";
-		};
 		B339FF00289ABD70001B89FB /* Override xcconfig files */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1217,7 +1198,7 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ -e ../.ios.env ]\nthen\n    cp -rf ../.ios.env debug.xcconfig\n    cp -rf ../.ios.env release.xcconfig\nelse\n    cp -rf ../.ios.env.example debug.xcconfig\n    cp -rf ../.ios.env.example release.xcconfig\nfi\n\n";
 		};
-		B339FF2F289ABD70001B89FB /* Bundle React Native code and images */ = {
+		B339FF2F289ABD70001B89FB /* Bundle JS Code & Upload Sentry Files */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1227,12 +1208,12 @@
 			);
 			inputPaths = (
 			);
-			name = "Bundle React Native code and images";
+			name = "Bundle JS Code & Upload Sentry Files";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\n\nif [[ -s \"$HOME/.nvm/nvm.sh\" ]]; then\n. \"$HOME/.nvm/nvm.sh\"\nelif [[ -x \"$(command -v brew)\" && -s \"$(brew --prefix nvm)/nvm.sh\" ]]; then\n. \"$(brew --prefix nvm)/nvm.sh\"\nfi\n\nexport NODE_BINARY=$(which node)\n\nif [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n\nexport SENTRY_DIST=$CURRENT_PROJECT_VERSION\nexport SENTRY_RELEASE=\"$PRODUCT_BUNDLE_IDENTIFIER@$MARKETING_VERSION+$SENTRY_DIST\"\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\nSENTRY_XCODE=\"../node_modules/@sentry/react-native/scripts/sentry-xcode.sh\"\nBUNDLE_REACT_NATIVE=\"/bin/sh $SENTRY_XCODE $REACT_NATIVE_XCODE\"\n\n\n# Generate bundle and source maps. Upload to Sentry.\n/bin/sh -c \"$WITH_ENVIRONMENT \\\"$BUNDLE_REACT_NATIVE\\\"\"\n";
+			shellScript = "# Define script\nBUNDLE_AND_UPLOAD_TO_SENTRY=\"../scripts/ios/bundle-js-and-sentry-upload.sh\"\n\n# Give permissions to script\nchmod +x $BUNDLE_AND_UPLOAD_TO_SENTRY\n\n# Run script\n$BUNDLE_AND_UPLOAD_TO_SENTRY\n";
 		};
 		C77EFC60F19570875F8DB3BD /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
