@@ -42,7 +42,7 @@ import ButtonIcon, {
   ButtonIconSizes,
   ButtonIconVariants,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import Icon, {
+import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
@@ -120,8 +120,9 @@ const styles = StyleSheet.create({
     marginLeft: Device.isAndroid() ? 20 : 0,
   },
   fox: {
+    width: 24,
+    height: 24,
     marginLeft: 16,
-    marginTop: 8,
   },
 });
 
@@ -975,10 +976,10 @@ export function getWalletNavbarOptions(
       </View>
     ),
     headerLeft: () => (
-      <Icon
-        name={IconName.Fox}
-        IconSize={IconSize.Xl}
+      <Image
+        source={metamask_fox}
         style={styles.fox}
+        resizeMethod={'auto'}
         testID={CommonSelectorsIDs.FOX_ICON}
       />
     ),
@@ -1573,15 +1574,10 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
-    headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      ...fontStyles.normal,
-    },
   });
   return {
     headerLeft: null,
-    headerTitle: <Text>{title}</Text>,
+    headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
     ...innerStyles,
   };
 };

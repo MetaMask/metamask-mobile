@@ -15,11 +15,13 @@
     "seaport_farming_description": "このリクエストを承認すると、OpenSeaに登録されている資産を誰かに盗まれる可能性があります。",
     "see_details": "詳細を表示",
     "does_not_look_right": "おかしな点がありますか？",
+    "report_an_issue": "問題を報告する",
     "suspicious_request_title": "これは不審なリクエストです",
     "trade_order_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
     "transfer_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。",
     "before_you_proceed": "続ける前に",
     "enable_blockaid_alerts": "この機能を有効にするには、セキュリティアラートの設定が必要です。設定の間、このページは開いたままにしておく必要があります。この作業は1分未満で完了します。",
+    "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
     "setting_up_alerts": "セキュリティアラートを設定中",
     "setting_up_alerts_description": "セキュリティアラートの設定を早急に行っています。あと少しだけお待ちください。",
     "setup_complete": "設定完了",
@@ -374,6 +376,8 @@
     "no_nfts_yet": "まだNFTがありません",
     "nfts_autodetection_title": "NFTの検出",
     "nfts_autodetection_desc": "MetaMaskがOpenSeaからNFTを自動検出し、MetaMaskウォレットに表示できるように許可してください。",
+    "network_details_check": "Network details check",
+    "network_check_validation_desc": "reduces your chances of connecting to a malicious or incorrect network.",
     "nfts_autodetection_cta": "設定でNFTの検出をオンにしてください",
     "learn_more": "詳細",
     "add_collectibles": "NFTをインポート",
@@ -404,6 +408,7 @@
     "display_media_nft_warning": "NFTのメディアとデータを表示した場合、IPアドレスが集中型のサーバーに公開される可能性があります。関連するリスクを理解できている場合のみ、NFTをインポートしてください。",
     "nfts_autodetect_title": "NFTの自動検出",
     "nfts_autodetect_cta": "設定でNFTの検出をオンにする",
+    "turn_on_network_check_cta": "Turn on network details check",
     "display_nft_media_cta_new_1": "NFTを表示するには、次の場所で「NFTメディアを表示」を有効にしてください",
     "display_nft_media_cta_new_2": "「設定」>「セキュリティとプライバシー」。"
   },
@@ -535,7 +540,6 @@
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
-    "qr_hardware": "QRハードウェア",
     "remove_account_title": "アカウントの削除",
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
@@ -598,10 +602,10 @@
     "please_wait": "お待ちください"
   },
   "account_selector": {
-    "prev": "前へ",
-    "next": "次へ",
-    "unlock": "ロックを解除",
-    "forget": "このデバイスの登録を解除"
+    "prev": "PREV",
+    "next": "NEXT",
+    "unlock": "Unlock",
+    "forget": "Forget this device"
   },
   "app_settings": {
     "title": "設定",
@@ -824,6 +828,8 @@
     "incoming_transactions_title": "受信トランザクションを表示",
     "incoming_transactions_content": "これは、ユーザーの選択するネットワークに依存し、イーサリアムアドレスおよびIPアドレスが公開されます。",
     "display_nft_media_desc_new": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、無効にすると利用できなくなります。NFTメディアがIPFSに完全に保管されている場合は、この機能が無効になっていても表示されます。",
+    "use_safe_chains_list_validation_desc_1": "MetaMask uses a third-party service called ",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  ",
     "snaps": {
       "title": "Snap",
       "description": "Snapの概要と管理",
@@ -873,6 +879,7 @@
     "privacy_browser_subheading": "プライバシーまたはブラウザデータを消去してください",
     "analytics_subheading": "分析",
     "transactions_subheading": "トランザクション",
+    "network_provider": "Network provider",
     "token_nft_ens_subheading": "トークン、NFT、ENSの自動検出",
     "security_check_subheading": "セキュリティチェック"
   },
@@ -1431,6 +1438,7 @@
     "status_ok": "全システムが稼働しています",
     "status_not_ok": "ネットワークに問題があります",
     "want_to_add_network": "このネットワークを追加しますか？",
+    "add_custom_network": "Add custom network",
     "network_infomation": "これにより、このネットワークがMetaMaskで使用可能になります。",
     "network_endorsement": "MetaMaskはカスタムネットワークやそのセキュリティを保証しません。",
     "learn_about": "こちらをご覧ください:",
@@ -1440,6 +1448,8 @@
     "network_rpc_url": "ネットワークURL",
     "view_details": "詳細を表示",
     "network_details": "ネットワークの詳細",
+    "network_select_confirm_use_safe_check": "Selecting Confirm turns on Network details check. You can turn off Network details check in ",
+    "network_settings_security_privacy": "Settings > Security and privacy",
     "network_currency_symbol": "通貨記号",
     "network_block_explorer_url": "ブロックエクスプローラーのURL",
     "search": "以前追加されたネットワークを検索",
@@ -1827,7 +1837,7 @@
     "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
     "select_provider": "希望のプロバイダーを選択してください",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
     "switch_network": "メインネットまたはSepoliaに切り替えてください"
   },
   "walletconnect_sessions": {
@@ -2049,8 +2059,8 @@
     "insufficient_balance": "この金額は残高を超えています",
     "enter_larger_amount": "続行するにはより大きな金額を入力してください",
     "enter_smaller_amount": "続行するにはより小さな金額を入力してください",
-    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
-    "max": "MAX",
+    "enter_lower_gas_fees": "ガス代の金額をより少なめに入力してください",
+    "max": "最大",
     "try_again": "もう一度やり直してください",
     "error": "エラー",
     "something_went_wrong": "何か問題が発生しました",
@@ -2362,7 +2372,7 @@
     "title": "新機能",
     "blockaid": {
       "title": "セキュリティアラートで安全を確保",
-      "description_1": "イーサリアムメインネットで、Blockaidによるセキュリティアラートを使用して、プライバシーを守りつつ既知の詐欺を回避しましょう。",
+      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
       "description_2": "要求を承認する前に、必ず独自のデューデリジェンスを行ってください。",
       "action_text": "セキュリティアラートを有効にする"
     },
