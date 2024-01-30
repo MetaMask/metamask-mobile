@@ -28,7 +28,7 @@ const AmbiguousAddressSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const onCancelPress = () => {
-    sheetRef.current?.hide();
+    sheetRef.current?.onCloseBottomSheet();
   };
 
   return (
