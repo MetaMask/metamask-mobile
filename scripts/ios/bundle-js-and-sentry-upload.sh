@@ -20,10 +20,12 @@ fi
 # Set Sentry properties
 export SENTRY_PROPERTIES=${SENTRY_PROPERTIES:-"../sentry.properties"}
 
-# Sentry environment variables used by Sentry CLI
+# Sentry environment variable used by Sentry CLI to upload files. Upload is disabled by default
+export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
+# TODO - Move to JS side to be shared between platforms
 export SENTRY_DIST=$CURRENT_PROJECT_VERSION
 export SENTRY_RELEASE="$PRODUCT_BUNDLE_IDENTIFIER@$MARKETING_VERSION+$SENTRY_DIST"
-export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"false"}
+
 
 # Generate JS bundle and upload Sentry source maps
 REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
