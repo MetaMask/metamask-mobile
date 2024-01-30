@@ -5,9 +5,11 @@ import {
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
   forgetLedger,
+  ledgerSignTypedMessage,
 } from './Ledger';
 import Engine from '../../core/Engine';
 import exp from 'constants';
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
 
 const ledgerKeyring = {
   setTransport: jest.fn(),
@@ -33,11 +35,15 @@ describe('Ledger core', () => {
     .fn()
     .mockReturnValue(['0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2']);
   const mockPersistAllKeyrings = jest.fn().mockReturnValue(Promise.resolve());
+  const mockSDignTypedMessage = jest
+    .fn()
+    .mockReturnValue(Promise.resolve('signature'));
   Engine.context.KeyringController = {
     addNewKeyring: mockAddNewKeyring,
     getKeyringsByType: mockGetKeyringsByType,
     getAccounts: mockGetAccounts,
     persistAllKeyrings: mockPersistAllKeyrings,
+    signTypedMessage: mockSDignTypedMessage,
   };
 
   const mockSetSelectedAddress = jest.fn();
@@ -129,6 +135,20 @@ describe('Ledger core', () => {
   });
 
   describe('ledgerSignTypedMessage', () => {
-    // TBD
+    it('should call signTypedMessage from keyring controller and return correct signature', async () => {
+      const expectedArg = {
+        from: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+        data: 'data',
+      };
+      const value = await ledgerSignTypedMessage(
+        expectedArg,
+        SignTypedDataVersion.V4,
+      );
+      expect(mockSDignTypedMessage).toHaveBeenCalledWith(
+        expectedArg,
+        SignTypedDataVersion.V4,
+      );
+      expect(value).toBe('signature');
+    });
   });
 });
