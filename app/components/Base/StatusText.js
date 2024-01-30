@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 import { FIAT_ORDER_STATES } from '../../constants/on-ramp';
 import { strings } from '../../../locales/i18n';
 import { useTheme } from '../../util/theme';
-import { TransactionDetailsModalSelectorsIDs } from '../../../e2e/selectors/Modals/TransactionDetailsModal.selectors';
+import { CommonSelectorsIDs } from '../../../e2e/selectors/Common.selectors';
 
 const styles = StyleSheet.create({
   status: {
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 
 export const ConfirmedText = (props) => (
   <Text
-    testID={TransactionDetailsModalSelectorsIDs.TITLE}
+    testID={CommonSelectorsIDs.STATUS_CONFIRMED}
     bold
     green
     style={styles.status}
