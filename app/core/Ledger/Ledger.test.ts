@@ -130,7 +130,7 @@ describe('Ledger core', () => {
   describe('getDeviceId', () => {
     it('should return deviceId', async () => {
       const value = await getLedgerKeyring();
-      expect(value.deviceId).toBe('deviceIdClone');
+      expect(value.deviceId).toBe('deviceId');
     });
   });
 
