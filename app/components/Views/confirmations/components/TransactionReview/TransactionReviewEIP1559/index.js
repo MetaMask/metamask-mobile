@@ -4,7 +4,7 @@ import Summary from '../../../../../Base/Summary';
 import Text from '../../../../../Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { isMainnetByChainId, isTestNet } from '../../../../../../util/networks';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
 import FadeAnimationView from '../../../../../UI/FadeAnimationView';
@@ -16,6 +16,7 @@ import AppConstants from '../../../../../../core/AppConstants';
 import Device from '../../../../../../util/device';
 import { useTheme } from '../../../../../../util/theme';
 import { selectChainId } from '../../../../../../selectors/networkController';
+import { getIsSmartTransaction } from '../../../../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -105,6 +106,7 @@ const TransactionReviewEIP1559 = ({
   gasEstimationReady,
   legacy,
 }) => {
+  const isSmartTransaction = useSelector(getIsSmartTransaction);
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
     isVisibleTimeEstimateInfoModal,
@@ -202,14 +204,14 @@ const TransactionReviewEIP1559 = ({
               {isMainnet && (
                 <TouchableOpacity
                   onPress={edit}
-                  disabled={nativeCurrencySelected}
+                  disabled={nativeCurrencySelected || isSmartTransaction}
                 >
                   <Text
                     upper
                     right
                     grey={nativeCurrencySelected}
-                    link={!nativeCurrencySelected}
-                    underline={!nativeCurrencySelected}
+                    link={!nativeCurrencySelected && !isSmartTransaction}
+                    underline={!nativeCurrencySelected && !isSmartTransaction}
                     style={styles.amountContainer}
                     noMargin
                     adjustsFontSizeToFit
@@ -222,7 +224,7 @@ const TransactionReviewEIP1559 = ({
 
               <TouchableOpacity
                 onPress={edit}
-                disabled={!nativeCurrencySelected}
+                disabled={!nativeCurrencySelected || isSmartTransaction}
                 style={[Device.isSmallDevice() && styles.flex]}
               >
                 <Text
@@ -230,8 +232,8 @@ const TransactionReviewEIP1559 = ({
                   bold
                   upper={!isTestNetwork}
                   grey={!nativeCurrencySelected}
-                  link={nativeCurrencySelected}
-                  underline={nativeCurrencySelected}
+                  link={nativeCurrencySelected && !isSmartTransaction}
+                  underline={nativeCurrencySelected && !isSmartTransaction}
                   right
                   noMargin
                   adjustsFontSizeToFit

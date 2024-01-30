@@ -22,6 +22,8 @@ import TimeEstimateInfoModal from '../../../../../UI/TimeEstimateInfoModal';
 import SkeletonComponent from './skeletonComponent';
 import createStyles from './styles';
 import { TransactionEIP1559UpdateProps } from './types';
+import { useSelector } from 'react-redux';
+import { getIsSmartTransaction } from '../../../../selectors/preferencesController';
 
 const TransactionReviewEIP1559Update = ({
   primaryCurrency,
@@ -44,6 +46,7 @@ const TransactionReviewEIP1559Update = ({
   updateTransactionState,
   multiLayerL1FeeTotal,
 }: TransactionEIP1559UpdateProps) => {
+  const isSmartTransaction = useSelector(getIsSmartTransaction);
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
     isVisibleTimeEstimateInfoModal,
@@ -157,15 +160,15 @@ const TransactionReviewEIP1559Update = ({
               {isMainnet && (
                 <TouchableOpacity
                   onPress={edit}
-                  disabled={nativeCurrencySelected}
+                  disabled={nativeCurrencySelected || isSmartTransaction}
                   {...generateTestId(Platform, ESTIMATED_FEE_TEST_ID)}
                 >
                   <Text
                     upper
                     right
                     grey={nativeCurrencySelected}
-                    link={!nativeCurrencySelected}
-                    underline={!nativeCurrencySelected}
+                    link={!nativeCurrencySelected && !isSmartTransaction}
+                    underline={!nativeCurrencySelected && !isSmartTransaction}
                     style={styles.amountContainer}
                     noMargin
                     adjustsFontSizeToFit
@@ -186,7 +189,7 @@ const TransactionReviewEIP1559Update = ({
 
               <TouchableOpacity
                 onPress={edit}
-                disabled={!nativeCurrencySelected}
+                disabled={!nativeCurrencySelected || isSmartTransaction}
                 style={[Device.isSmallDevice() && styles.flex]}
                 {...generateTestId(Platform, ESTIMATED_FEE_TEST_ID)}
               >
@@ -195,8 +198,8 @@ const TransactionReviewEIP1559Update = ({
                   bold
                   upper
                   grey={!nativeCurrencySelected}
-                  link={nativeCurrencySelected}
-                  underline={nativeCurrencySelected}
+                  link={nativeCurrencySelected && !isSmartTransaction}
+                  underline={nativeCurrencySelected && !isSmartTransaction}
                   right
                   noMargin
                   adjustsFontSizeToFit
