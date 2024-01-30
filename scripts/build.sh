@@ -260,6 +260,8 @@ generateArchivePackages() {
 }
 
 buildIosRelease(){
+	# Enable Sentry to auto upload source maps and debug symbols
+	export SENTRY_DISABLE_AUTO_UPLOAD="false"
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -321,8 +323,6 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
 	prebuild_ios
 
 	echo "Start QA build..."
@@ -347,13 +347,10 @@ buildIosQA(){
 
 
 buildAndroidQA(){
-
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.qa
 	fi
 
-	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
 	prebuild_android
 
 	# Generate APK
@@ -378,6 +375,9 @@ buildAndroidRelease(){
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
 	fi
+
+	# Enable Sentry to auto upload source maps and debug symbols
+	export SENTRY_DISABLE_AUTO_UPLOAD="false"
 	prebuild_android
 
 	# GENERATE APK
