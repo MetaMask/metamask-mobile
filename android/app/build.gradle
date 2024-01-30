@@ -65,7 +65,7 @@ project.ext.react = [
 // System.env.SENTRY_DIST
 // System.env.SENTRY_RELEASE
 
-def shouldSentryAutoUpload = { ->
+def sentryAutoUploadEnabled = { ->
   return (System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') ?: "true") != 'true'
 }
 
