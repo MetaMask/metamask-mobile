@@ -61,13 +61,12 @@ project.ext.react = [
 ]
 
 // Sentry environment variables used by Sentry CLI to upload files. Upload is disabled by default
-// System.env.SENTRY_DISABLE_AUTO_UPLOAD = System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') ?: "true"
 // TODO - Move to JS side to be shared between platform - Android sets these automatically
 // System.env.SENTRY_DIST
 // System.env.SENTRY_RELEASE
 
-def sentryAutoUploadEnabled() {
-  return System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') ?: "false"
+def shouldSentryAutoUpload = { ->
+  return (System.getenv('SENTRY_DISABLE_AUTO_UPLOAD') ?: "true") != 'true'
 }
 
 // Configure sentry properties
