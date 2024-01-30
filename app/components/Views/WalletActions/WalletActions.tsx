@@ -57,7 +57,7 @@ const WalletActions = () => {
   const [isNetworkRampSupported] = useRampNetwork();
 
   const onReceive = () => {
-    sheetRef.current?.hide(() => dispatch(toggleReceiveModal()));
+    sheetRef.current?.onCloseBottomSheet(() => dispatch(toggleReceiveModal()));
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.RECEIVE_BUTTON_CLICKED,
       {
@@ -70,7 +70,7 @@ const WalletActions = () => {
   };
 
   const onBuy = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.RAMP.BUY);
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
@@ -81,7 +81,7 @@ const WalletActions = () => {
   };
 
   const onSell = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.RAMP.SELL);
       Analytics.trackEventWithParameters(
         MetaMetricsEvents.SELL_BUTTON_CLICKED,
@@ -94,7 +94,7 @@ const WalletActions = () => {
     });
   };
   const onSend = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigate('SendFlowView');
       ticker && dispatch(newAssetTransaction(getEther(ticker)));
       Analytics.trackEventWithParameters(
@@ -110,7 +110,7 @@ const WalletActions = () => {
   };
 
   const goToSwaps = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigate('Swaps', {
         screen: 'SwapsAmountView',
         params: {
