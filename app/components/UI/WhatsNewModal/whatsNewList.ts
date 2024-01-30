@@ -18,10 +18,24 @@ export const whatsNew: WhatsNew = {
    */
   slides: [
     [
-      // TODO fill out the rest of this
+      // TODO fill out the rest of this and figure out what to do about links and closing modal with no way to reopen
+      {
+        type: 'image',
+        image: require('../../../images/metamask-smart-transactions.png'),
+      },
       {
         type: 'title',
-        title: 'Smart Transactions',
+        title: 'Introducing smart transactions',
+      },
+      {
+        type: 'description',
+        description:
+          'Smart transactions make MetaMask even more reliable, private, and cost-effective than ever before.',
+      },
+      {
+        type: 'description',
+        description:
+          'To learn more, read our FAQ and Risk Disclosures. For your benefit, smart transactions already on. You can manage this in Settings.',
       },
     ],
     [
