@@ -25,8 +25,7 @@ import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import { WalletDevice } from '@metamask/transaction-controller';
-// TODO: Update after this function has been exported from the package
-import { isEIP1559Transaction } from '@metamask/transaction-controller/dist/utils';
+import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   selectChainId,
