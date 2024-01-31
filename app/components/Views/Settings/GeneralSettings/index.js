@@ -291,7 +291,6 @@ class Settings extends PureComponent {
       hideZeroBalanceTokens,
     } = this.props;
     const themeTokens = this.context || mockTheme;
-    console.log(this.context);
     const { colors } = themeTokens;
     const styles = createStyles(colors);
 
