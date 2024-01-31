@@ -235,8 +235,7 @@ const App = ({ userLoggedIn }) => {
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
-  const [queueOfHandleDeeplinkFunctions, setQueueOfHandleDeeplinkFunctions] =
-    useState([]);
+  const queueOfHandleDeeplinkFunctions = useRef([]);
   const [animationPlayed, setAnimationPlayed] = useState(false);
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -287,10 +286,16 @@ const App = ({ userLoggedIn }) => {
         animationNameRef?.current?.play();
       }
     };
-    appTriggeredAuth().catch((error) => {
-      Logger.error(error, 'App: Error in appTriggeredAuth');
-    });
-  }, [navigator]);
+    appTriggeredAuth()
+      .then(() => {
+        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
+
+        queueOfHandleDeeplinkFunctions.current = [];
+      })
+      .catch((error) => {
+        Logger.error(error, 'App: Error in appTriggeredAuth');
+      });
+  }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
@@ -350,11 +355,10 @@ const App = ({ userLoggedIn }) => {
           if (sdkPostInit.current === true) {
             handleDeeplink(opts);
           } else {
-            setQueueOfHandleDeeplinkFunctions(
-              queueOfHandleDeeplinkFunctions.concat(() => {
+            queueOfHandleDeeplinkFunctions.current =
+              queueOfHandleDeeplinkFunctions.current.concat(() => {
                 handleDeeplink(opts);
-              }),
-            );
+              });
           }
         });
       }
@@ -403,7 +407,6 @@ const App = ({ userLoggedIn }) => {
         try {
           await SDKConnect.getInstance().postInit();
           sdkPostInit.current = true;
-          queueOfHandleDeeplinkFunctions.forEach((func) => func());
         } catch (err) {
           console.error(`Cannot postInit SDKConnect`, err);
         }
