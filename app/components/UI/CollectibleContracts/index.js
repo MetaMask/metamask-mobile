@@ -172,13 +172,11 @@ const CollectibleContracts = ({
 
       const isIgnored = isCollectibleIgnored(collectible);
 
-      if (!isRemovingNftInProgress) {
-        if (!isIgnored) {
-          if (String(tokenId).includes('e+')) {
-            removeFavoriteCollectible(selectedAddress, chainId, collectible);
-          } else {
-            await NftController.addNft(address, String(tokenId));
-          }
+      if (!isRemovingNftInProgress && !isIgnored) {
+        if (String(tokenId).includes('e+')) {
+          removeFavoriteCollectible(selectedAddress, chainId, collectible);
+        } else {
+          await NftController.addNft(address, String(tokenId));
         }
       }
     },
