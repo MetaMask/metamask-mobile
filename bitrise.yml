@@ -212,7 +212,6 @@ workflows:
           title: Restore cache dependencies
           inputs:
             - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
-
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
   _get_workflow_info:
@@ -412,7 +411,23 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
-
+  upload_to_test_rails: 
+    steps:
+       - script@1:
+          title: upload to test rails
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                trcli -y 
+                -h "https://mmig.testrail.io/" 
+                -u "mmig_qa@consensys.net" 
+                -p "Dex6TINMdkRQvw5aqzsR-2WgvTjVj8H11riF34ttZ" 
+                --project "Metamask" 
+                parse_junit 
+                --title "Automated Test Run" 
+                --run-description "Bitrise Build URL: ${BITRISE_BUILD_URL}" 
+                -f "$BITRISE_SOURCE_DIR/e2e/reports/junit.xml"
   e2e_setup:
     steps:
       - yarn@:
@@ -515,6 +530,12 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
+      - script@1:
+          title: Install python
+          inputs:
+            - content: |-
+                sudo apt update
+                sudo apt install -y python3
       - avd-manager@1:
           inputs:
             - api_level: '30'
@@ -547,10 +568,12 @@ workflows:
           title: Export test results
           is_always_run: true
           is_skippable: true
+          before_run:
+             - upload_to_test_rails
           inputs:
             - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
             - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
+            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml          
       - deploy-to-bitrise-io@2.2.3:
           title: Deploy test report files
           is_always_run: true
@@ -680,6 +703,12 @@ workflows:
                 envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
+      - script:
+          title: Install python 
+          inputs:
+            - content: |-
+                # Add cache directory to environment variable
+                brew install python
           title: Set Env Path for caching deps
       - script@1:
           inputs:
