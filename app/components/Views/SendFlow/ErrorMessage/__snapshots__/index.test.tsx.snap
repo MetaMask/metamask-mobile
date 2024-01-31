@@ -2,7 +2,6 @@
 
 exports[`ErrorMessage should render correctly 1`] = `
 <Alert
-  testID="error-message-warning"
   type="Error"
 >
   <Component />

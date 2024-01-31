@@ -162,7 +162,7 @@ export const getLegacyTransactionData = ({
   onlyGas,
   multiLayerL1FeeTotal,
 }: LegacyProps) => {
-  const parsedTransationData = parseTransactionLegacy(
+  const parsedTransactionData = parseTransactionLegacy(
     {
       contractExchangeRates,
       conversionRate,
@@ -177,7 +177,7 @@ export const getLegacyTransactionData = ({
     { onlyGas },
   );
 
-  return parsedTransationData;
+  return parsedTransactionData;
 };
 
 /**

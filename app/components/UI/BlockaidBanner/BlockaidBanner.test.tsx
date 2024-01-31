@@ -15,6 +15,11 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 jest.mock('../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
+  isBlockaidSupportedOnCurrentChain: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('react-native-gzip', () => ({
+  deflate: (val: any) => val,
 }));
 
 const mockState = {
@@ -26,22 +31,31 @@ const mockState = {
   },
 };
 
-describe('BlockaidBanner', () => {
-  const mockFeatures = [
-    'We found attack vectors in this request',
-    'This request shows a fake token name and icon.',
-    'If you approve this request, a third party known for scams might take all your assets.',
-    'Operator is an EOA',
-    'Operator is untrusted according to previous activity',
-  ];
+const mockFeatures = [
+  'We found attack vectors in this request',
+  'This request shows a fake token name and icon.',
+  'If you approve this request, a third party known for scams might take all your assets.',
+  'Operator is an EOA',
+  'Operator is untrusted according to previous activity',
+];
 
+const securityAlertResponse = {
+  result_type: ResultType.Failed,
+  reason: Reason.failed,
+  features: mockFeatures,
+  block: 123,
+  req: {},
+  chainId: '0x1',
+};
+
+describe('BlockaidBanner', () => {
   it('should render correctly', () => {
     const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
+          ...securityAlertResponse,
           result_type: ResultType.Warning,
           reason: Reason.approvalFarming,
-          features: mockFeatures,
         }}
       />,
       { state: mockState },
@@ -54,9 +68,9 @@ describe('BlockaidBanner', () => {
     const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
+          ...securityAlertResponse,
           result_type: ResultType.Malicious,
           reason: Reason.rawSignatureFarming,
-          features: mockFeatures,
         }}
       />,
       { state: mockState },
@@ -78,9 +92,9 @@ describe('BlockaidBanner', () => {
     const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
+          ...securityAlertResponse,
           result_type: ResultType.Malicious,
           reason: Reason.rawSignatureFarming,
-          features: mockFeatures,
         }}
       />,
       { state: mockState },
@@ -93,9 +107,9 @@ describe('BlockaidBanner', () => {
     const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
+          ...securityAlertResponse,
           result_type: ResultType.Malicious,
           reason: Reason.approvalFarming,
-          features: mockFeatures,
         }}
       />,
       { state: mockState },
@@ -133,9 +147,9 @@ describe('BlockaidBanner', () => {
     const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
+          ...securityAlertResponse,
           result_type: ResultType.Malicious,
           reason: Reason.approvalFarming,
-          features: mockFeatures,
         }}
       />,
       { state: mockState },
@@ -166,15 +180,16 @@ describe('BlockaidBanner', () => {
     expect(await wrapper.queryByTestId(TESTID_ACCORDION_CONTENT)).toBeNull();
   });
 
-  it('should not render if user is not on mainnet', async () => {
+  it('should not render if blockaid does not support network', async () => {
     const mockStateNetwork = {
       engine: {
         backgroundState: {
-          NetworkController: { providerConfig: { chainId: '5' } },
+          NetworkController: { providerConfig: { chainId: '250' } },
           PreferencesController: { securityAlertsEnabled: true },
         },
       },
     };
+
     const wrapper = renderWithProvider(<BlockaidBanner />, {
       state: mockStateNetwork,
     });
@@ -219,9 +234,9 @@ describe('BlockaidBanner', () => {
     const wrapper = renderWithProvider(
       <BlockaidBanner
         securityAlertResponse={{
+          ...securityAlertResponse,
           result_type: ResultType.Benign,
           reason: Reason.rawSignatureFarming,
-          features: mockFeatures,
         }}
       />,
       { state: mockState },
@@ -234,13 +249,7 @@ describe('BlockaidBanner', () => {
 
   it('should render normal banner alert if resultType is failed', async () => {
     const wrapper = renderWithProvider(
-      <BlockaidBanner
-        securityAlertResponse={{
-          result_type: ResultType.Failed,
-          reason: Reason.failed,
-          features: mockFeatures,
-        }}
-      />,
+      <BlockaidBanner securityAlertResponse={securityAlertResponse} />,
       { state: mockState },
     );
 

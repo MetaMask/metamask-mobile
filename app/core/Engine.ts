@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
+import Crypto from 'react-native-quick-crypto';
 import {
   AccountTrackerController,
   AccountTrackerState,
@@ -21,6 +22,7 @@ import {
   TokenRatesState,
   TokensController,
   TokensState,
+  CodefiTokenPricesServiceV2,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { AppState } from 'react-native';
@@ -87,7 +89,12 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import { PPOMController, PPOMState } from '@metamask/ppom-validator';
+import {
+  PPOMController,
+  PPOMControllerEvents,
+  PPOMInitialisationStatusType,
+  PPOMState,
+} from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   JsonSnapsRegistry,
@@ -112,7 +119,6 @@ import {
   LoggingControllerState,
   LoggingControllerActions,
 } from '@metamask/logging-controller';
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,
@@ -166,10 +172,11 @@ import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
-import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
+import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
 import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
+import { UpdatePPOMInitializationStatus } from '../actions/experimental';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -225,7 +232,9 @@ type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
-  | SignatureControllerEvents;
+  | SignatureControllerEvents
+  | KeyringControllerEvents
+  | PPOMControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -513,9 +522,6 @@ class Engine {
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    const ledgerKeyringBuilder = () => new LedgerKeyring();
-    ledgerKeyringBuilder.type = LedgerKeyring.type;
-
     const keyringController = new KeyringController({
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
@@ -544,7 +550,8 @@ class Engine {
         allowedActions: ['KeyringController:getState'],
       }),
       state: initialKeyringState || initialState.KeyringController,
-      keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
+      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
+      keyringBuilders: [qrKeyringBuilder],
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -815,6 +822,9 @@ class Engine {
       },
     );
     ///: END:ONLY_INCLUDE_IF
+
+    const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+
     const controllers = [
       keyringController,
       new AccountTrackerController({
@@ -879,6 +889,7 @@ class Engine {
           ),
         getOpenSeaApiKey: () => nftController.openSeaApiKey,
         addNft: nftController.addNft.bind(nftController),
+        getNftApi: nftController.getNftApi.bind(nftController),
         getNftState: () => nftController.state,
       }),
       currencyRateController,
@@ -908,7 +919,8 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker ?? 'ETH',
         selectedAddress: preferencesController.state.selectedAddress,
-        coinGeckoHeader: process.env.COIN_GECKO_HEADER as string,
+        tokenPricesService: codefiTokenApiV2,
+        interval: 30 * 60 * 1000,
       }),
       new TransactionController({
         blockTracker:
@@ -1019,17 +1031,13 @@ class Engine {
     if (isBlockaidFeatureEnabled()) {
       try {
         const ppomController = new PPOMController({
-          chainId: addHexPrefix(networkController.state.providerConfig.chainId),
+          chainId: networkController.state.providerConfig.chainId,
           blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
           cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
           messenger: this.controllerMessenger.getRestricted({
             name: 'PPOMController',
+            allowedEvents: ['NetworkController:stateChange'],
           }),
-          onNetworkChange: (listener) =>
-            this.controllerMessenger.subscribe(
-              AppConstants.NETWORK_STATE_CHANGE_EVENT,
-              listener,
-            ),
           onPreferencesChange: (listener) =>
             preferencesController.subscribe(listener),
           provider: networkController.getProviderAndBlockTracker().provider,
@@ -1041,14 +1049,17 @@ class Engine {
           securityAlertsEnabled:
             initialState.PreferencesController?.securityAlertsEnabled ?? false,
           state: initialState.PPOMController,
-          ppomInitialisationCallback: (): any => {
-            store.dispatch({
-              type: 'SET_PPOM_INITIALIZATION_COMPLETED',
-              ppomInitializationCompleted: true,
-            });
-          },
+          nativeCrypto: Crypto as any,
         });
         controllers.push(ppomController as any);
+        this.controllerMessenger.subscribe(
+          AppConstants.PPOM_INITIALISATION_STATE_CHANGE_EVENT,
+          (ppomInitializationStatus: PPOMInitialisationStatusType) => {
+            store.dispatch(
+              UpdatePPOMInitializationStatus(ppomInitializationStatus),
+            );
+          },
+        );
       } catch (e) {
         Logger.log(`Error initializing PPOMController: ${e}`);
         return;

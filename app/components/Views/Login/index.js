@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {
   Alert,
   ActivityIndicator,
+  Keyboard,
   View,
   SafeAreaView,
   StyleSheet,
@@ -16,7 +17,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button from 'react-native-button';
+import Button from '@metamask/react-native-button';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -371,6 +372,8 @@ class Login extends PureComponent {
         this.props.selectedAddress,
       );
 
+      Keyboard.dismiss();
+
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (onboardingWizard) {
@@ -507,8 +510,9 @@ class Login extends PureComponent {
       <ErrorBoundary navigation={this.props.navigation} view="Login">
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
-            style={styles.wrapper}
+            keyboardShouldPersistTaps="handled"
             resetScrollToCoords={{ x: 0, y: 0 }}
+            style={styles.wrapper}
           >
             <View testID={LoginViewSelectors.CONTAINER}>
               <View style={styles.foxWrapper}>

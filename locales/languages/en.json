@@ -15,17 +15,24 @@
     "seaport_farming_description": "If you approve this request, someone can steal your assets listed on OpenSea.",
     "see_details": "See details",
     "does_not_look_right": "Something doesn’t look right?",
+    "report_an_issue": "Report an issue",
     "suspicious_request_title": "This is a suspicious request",
     "trade_order_farming_description": "If you approve this request, you might lose your assets.",
     "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
     "before_you_proceed": "Before you proceed",
     "enable_blockaid_alerts": "To enable this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.",
+    "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
     "setting_up_alerts": "Setting up security alerts",
     "setting_up_alerts_description": "We are going as fast as we can to set up security alerts. Hang in there, we are almost done.",
     "setup_complete": "Set up complete",
+    "setup_failed": "We could not finish setting up the security alerts. Check your internet connection and try again.",
+    "setup_multiple_failures": "Your internet connection isn’t stable right now, so we couldn’t set up security alerts. Please try again when your connection is restored.",
     "setup_complete_description": "Security alerts are ready to go. You can close this page and start exploring your wallet",
     "continue": "Continue",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "got_it": "Got it",
+    "try_again": "Try Again",
+    "failed": "Something went wrong"
   },
   "date": {
     "months": {
@@ -274,7 +281,7 @@
     "successfully_changed": "Your password has been successfully changed"
   },
   "import_from_seed": {
-    "title": "Import from seed",
+    "title": "Import from Secret Recovery Phrase",
     "seed_phrase_placeholder": "Enter your Secret Recovery Phrase",
     "new_password": "New Password",
     "confirm_password": "Confirm password",
@@ -369,6 +376,8 @@
     "no_nfts_yet": "No NFTs yet",
     "nfts_autodetection_title": "NFT detection",
     "nfts_autodetection_desc": "Allow MetaMask to automatically detect NFTs from OpenSea and display in your MetaMask wallet.",
+    "network_details_check": "Network details check",
+    "network_check_validation_desc":"reduces your chances of connecting to a malicious or incorrect network.",
     "nfts_autodetection_cta": "Turn on NFT detection in Settings",
     "learn_more": "Learn more",
     "add_collectibles": "Import NFTs",
@@ -393,11 +402,13 @@
     "logout_to_import_seed": "You need to log out first in order to import a Secret Recovery Phrase.",
     "ready_to_explore": "Ready to start exploring blockchain applications?",
     "unable_to_load": "Unable to load balance",
+    "unable_to_find_conversion_rate": "unable to find conversion rate",
     "display_nft_media_desc": "To import an NFT, turn on Display NFT media in Settings > Security and privacy.",
     "display_nft_media_cta": "Turn on Display NFT media",
     "display_media_nft_warning": "Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.",
     "nfts_autodetect_title": "NFT autodetection",
     "nfts_autodetect_cta": "Turn on Autodetect NFTs in Settings",
+    "turn_on_network_check_cta": "Turn on network details check",
     "display_nft_media_cta_new_1": "To see an NFT, turn on Display NFT media in",
     "display_nft_media_cta_new_2": "Settings > Security and Privacy."
   },
@@ -571,7 +582,7 @@
     "revoked_all": "All accounts revoked.",
     "accounts_connected": "accounts connected.",
     "disconnected": "disconnected.",
-    "disconnected_all": "All accounts disconected."
+    "disconnected_all": "All accounts disconnected."
   },
   "connect_qr_hardware": {
     "title": "Connect a QR-based hardware wallet",
@@ -589,11 +600,13 @@
     "purpose_connect": "connect",
     "purpose_sign": "confirm the transaction",
     "select_accounts": "Select an Account",
+    "please_wait": "Please wait"
+  },
+  "account_selector": {
     "prev": "PREV",
     "next": "NEXT",
     "unlock": "Unlock",
-    "forget": "Forget this device",
-    "please_wait": "Please wait"
+    "forget": "Forget this device"
   },
   "app_settings": {
     "title": "Settings",
@@ -616,9 +629,9 @@
     "autolock_after_minutes": "After {{time}} minutes",
     "reveal_seed_words": "Reveal Seed Words",
     "reset_account": "Reset Account",
-    "state_logs_button": "DOWNLOAD STATE LOGS",
+    "state_logs_button": "Download State Logs",
     "reveal_seed_words_button": "REVEAL SEED WORDS",
-    "reset_account_button": "RESET ACCOUNT",
+    "reset_account_button": "Reset Account",
     "reset_account_confirm_button": "Yes, reset",
     "reset_account_cancel_button": "Cancel",
     "reset_account_modal_title": "Reset Account?",
@@ -672,8 +685,8 @@
     "toggleEthSignModalTitle": "Use at your own risk",
     "toggleEthSignModalEnable": "Enable",
     "toggleEthSignModalLearnMore": "Learn more.",
-    "toggleEthSignOff": "OFF (Recommended)",
-    "toggleEthSignOn": "ON (Not recommended)",
+    "toggleEthSignOff": "(Recommended)",
+    "toggleEthSignOn": "(Not recommended)",
     "toggleEthSignContinueButton": "Continue",
     "toggleEthSignEnableButton": "Enable",
     "show_custom_nonce": "Customize transaction nonce",
@@ -746,6 +759,9 @@
     "invalid_password": "Invalid password",
     "invalid_password_message": "The password was not correct. Please try again.",
     "security_heading": "Security",
+    "ses_heading": "Code Lockdown",
+    "ses_description": "This is a test feature that blocks any changes to the app's JavaScript code without permission.",
+    "ses_link": "Learn more",
     "privacy_heading": "Privacy",
     "failed_to_fetch_chain_id": "Could not fetch chain ID. Is your RPC URL correct?",
     "endpoint_returned_different_chain_id": "The endpoint returned a different chain ID: %{chainIdReturned}",
@@ -796,7 +812,7 @@
     "manage_sdk_connections_title": "Manage connections",
     "manage_sdk_connections_text": "Remove connections to sites and/or MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Buy Crypto",
+      "title": "Buy & Sell Crypto",
       "description": "Region & more...",
       "current_region": "Current Region",
       "reset_region": "Reset Region",
@@ -816,11 +832,14 @@
     "incoming_transactions_title": "Show incoming transactions",
     "incoming_transactions_content": "This relies on the network you select which will expose your Ethereum address and your IP address.",
     "display_nft_media_desc_new": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.",
+    "use_safe_chains_list_validation_desc_1":"MetaMask uses a third-party service called ",
+    "use_safe_chains_list_validation_desc_2":"to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  ",
+
     "snaps": {
       "title": "Snaps",
       "description": "Overview and manage your snaps",
       "snap_settings": {
-        "remove_snap_section_title": "Remove Snap", 
+        "remove_snap_section_title": "Remove Snap",
         "remove_snap_section_description": "This action will delete the snap, its data, and its granted permissions.",
         "remove_button_label": "Remove {{snapName}}"
       },
@@ -862,7 +881,13 @@
 
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Clear privacy or browser data",
+    "analytics_subheading": "Analytics",
+    "transactions_subheading": "Transactions",
+    "network_provider": "Network provider",
+    "token_nft_ens_subheading": "Token, NFT, and ENS autodetection",
+    "security_check_subheading": "Security checks"
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1174,7 +1199,7 @@
     "gas_education_2_ethereum": "Ethereum network.",
     "gas_education_2": "network.",
     "gas_education_3": "MetaMask does not profit from gas fees.",
-    "gas_education_4": "Gas fees fluctuate based on network traffic and transaction complexitity.",
+    "gas_education_4": "Gas fees fluctuate based on network traffic and transaction complexity.",
     "gas_education_learn_more": "Learn more about gas fees",
     "confusable_title": "Check the recipient address",
     "confusable_msg": "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.",
@@ -1193,7 +1218,8 @@
     "fiat_conversion_not_available": "Fiat conversions are not available at this moment",
     "hex_data_copied": "Hex data copied to clipboard",
     "invalid_recipient": "Invalid recipient",
-    "invalid_recipient_description": "Check the address and make sure it's valid"
+    "invalid_recipient_description": "Check the address and make sure it's valid",
+    "swap_tokens": "Swap tokens"
   },
   "custom_gas": {
     "total": "Total",
@@ -1418,6 +1444,7 @@
     "status_ok": "All Systems Operational",
     "status_not_ok": "The network is having some issues",
     "want_to_add_network": "Want to add this network?",
+    "add_custom_network": "Add custom network",
     "network_infomation": "This allows this network to be used within MetaMask",
     "network_endorsement": "MetaMask does not endorse custom networks or their security.",
     "learn_about": "Learn about",
@@ -1427,6 +1454,8 @@
     "network_rpc_url": "Network URL",
     "view_details": "View details",
     "network_details": "Network details",
+    "network_select_confirm_use_safe_check": "Selecting Confirm turns on Network details check. You can turn off Network details check in ",
+    "network_settings_security_privacy": "Settings > Security and privacy",
     "network_currency_symbol": "Currency Symbol",
     "network_block_explorer_url": "Block Explorer URL",
     "search": "Search for previously added network",
@@ -1671,7 +1700,7 @@
   },
   "manual_backup_step_1": {
     "action": "Write down your Secret Recovery Phrase",
-    "info": "This is your Secret Recovery Phrase. Write it down on a paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
+    "info": "This is your Secret Recovery Phrase. Write it down on paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
     "continue": "Continue",
     "reveal": "Tap to reveal your Secret Recovery Phrase",
     "watching": "Make sure no one is watching your screen.",
@@ -1808,13 +1837,13 @@
   "experimental_settings": {
     "wallet_connect_dapps": "WalletConnect Sessions",
     "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
-    "wallet_connect_dapps_cta": "VIEW SESSIONS",
+    "wallet_connect_dapps_cta": "View sessions",
     "network_not_supported": "Current network not supported",
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
     "select_provider": "Select your preferred provider",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Ethereum Mainnet.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
     "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {
@@ -2036,6 +2065,8 @@
     "insufficient_balance": "This amount is higher than your balance",
     "enter_larger_amount": "Enter a larger amount to continue",
     "enter_smaller_amount": "Enter a smaller amount to continue",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "max": "MAX",
     "try_again": "Try again",
     "error": "Error",
     "something_went_wrong": "Oops, something went wrong",
@@ -2298,7 +2329,7 @@
       "approve_pending": "Approving {{sourceToken}} for swaps",
       "approve_confirmed": "{{sourceToken}} approved for swaps"
     },
-    "medium_selected_warning": "Swaps are time sensitive. “Medium” is not reccomended.",
+    "medium_selected_warning": "Swaps are time sensitive. “Medium” is not recommended.",
     "high_recommendation": "Swaps are typically time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "recommended": "Recommended",
     "recommended_gas": "Recommended gas fee",
@@ -2327,7 +2358,7 @@
     "not_supported": "Deeplink not supported"
   },
   "error_screen": {
-    "title": "An error occured",
+    "title": "An error occurred",
     "subtitle": "Your information can't be shown. Don’t worry, your wallet and funds are safe.",
     "try_again_button": "Try again",
     "submit_ticket_1": "Please report this issue so we can fix it:",
@@ -2347,7 +2378,7 @@
     "title": "What's new",
     "blockaid": {
       "title": "Stay safe with security alerts",
-      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid on Ethereum Mainnet.",
+      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
       "description_2": "Always do your own due diligence before approving requests.",
       "action_text": "Enable security alerts"
     },
@@ -2367,7 +2398,7 @@
   "switch_custom_network": {
     "title_existing_network": "This site would like to switch the network",
     "title_new_network": "New network added",
-    "switch_warning": "This will switch the selected network within MetaMask to a prevously added network:",
+    "switch_warning": "This will switch the selected network within MetaMask to a previously added network:",
     "available": "is now available in the network selector.",
     "cancel": "Cancel",
     "switch": "Switch Network"
@@ -2386,7 +2417,7 @@
     "details_title": "Network details",
     "cancel": "Cancel",
     "approve": "Approve",
-    "unrecognized_chain": "This custom network is not recongized",
+    "unrecognized_chain": "This custom network is not recognized",
     "invalid_chain": "The %{rpcUrl} for this Chain ID does not match the chainid.network listing",
     "alert_recommend": "We recommend you",
     "alert_verify": "verify the chain ID",
@@ -2408,12 +2439,12 @@
     "max_fee": "Max fee",
     "estimate": "Estimate",
     "recommended_gas_fee": "Recommended gas fee",
-    "swaps_warning": "Swaps are very time sensitive. “High” will help avoid potential loses due to changes in market conditions.",
+    "swaps_warning": "Swaps are very time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "priority_fee_at_least_0_error": "Priority fee must be at least 1 GWEI",
     "learn_more": {
       "title": "How should I choose?",
       "intro": "Selecting the right gas fee depends on the type of transaction and how important it is to you.",
-      "aggressive_label": "Aggresive",
+      "aggressive_label": "Aggressive",
       "aggressive_text": "High probability, even in volatile markets. Use Aggressive to cover surges in network traffic due to things like popular NFT drops.",
       "market_label": "Market",
       "market_text": "Use Market for fast processing at current market price.",
@@ -2425,12 +2456,12 @@
     "submit": "Submit",
     "max_priority_fee_low": "Max Priority Fee is low for current network conditions",
     "max_priority_fee_high": "Max Priority Fee is higher than necessary",
-    "max_priority_fee_speed_up_low": "Max Priority Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than intial transaction)",
-    "max_priority_fee_cancel_low": "Max Priority Fee must be at least {{cancel_value}} GWEI (50% higher than intial transaction)",
+    "max_priority_fee_speed_up_low": "Max Priority Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
+    "max_priority_fee_cancel_low": "Max Priority Fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
     "max_fee_low": "Max Fee is low for current network conditions",
     "max_fee_high": "Max Fee is higher than necessary",
-    "max_fee_speed_up_low": "Max Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than intial transaction)",
-    "max_fee_cancel_low": "Max Fee must be at least {{cancel_value}} GWEI (50% higher than intial transaction)",
+    "max_fee_speed_up_low": "Max Fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
+    "max_fee_cancel_low": "Max Fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
     "learn_more_gas_limit": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”. ",
     "learn_more_max_priority_fee": "Max priority fee (aka “miner tip”) goes directly to miners and incentivizes them to prioritize your transaction. You’ll most often pay your max setting. ",
     "learn_more_max_fee": "The max fee is the most you’ll pay (base fee + priority fee). ",
@@ -2692,8 +2723,8 @@
     "ledger_disconnected": "Your device got disconnected",
     "ledger_disconnected_error": "The connection to your device has been lost. Please try again.",
     "unknown_error": "Unexpected error occurred.",
-    "unknown_error_message": "An unexpected error occured. Please try again.",
-    "error_occured": "An error occured",
+    "unknown_error_message": "An unexpected error occurred. Please try again.",
+    "error_occured": "An error occurred",
     "how_to_install_eth_app": "How to install the Ethereum app on a Ledger device",
     "ledger_account_count": "You are using 1 account from your Ledger with MetaMask Mobile.",
     "open_eth_app": "Please open the Ethereum app",
@@ -2708,7 +2739,7 @@
     "ledger_pending_confirmation_error": "There is a pending action on your Ledger. Please clear the action first then retry.",
     "not_supported": "Operation not supported",
     "not_supported_error": "Only version 4 of typed data signing is supported.",
-    "error_during_connection": "An unknown error occured",
+    "error_during_connection": "An unknown error occurred",
     "error_during_connection_message": "There's been a slight problem connecting your Ledger Nano X, tap 'Retry' below to give this another go. Sometimes this occurs due to the ETH app on your Ledger Nano X being open at the start of the pairing process with MetaMask Mobile.",
     "how_to_install_eth_webview_title": "How to install the Ethereum App",
     "nonce_too_low": "Nonce too low",
@@ -2740,7 +2771,7 @@
     "show_display_nft_media_content_2": "Display NFT media.",
     "show_display_nft_media_content_3": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "show_display_nft_media_content_4": "You can turn off Display NFT media in",
-    "show_display_nft_media_content_5": "Setttings > Security and privacy."
+    "show_display_nft_media_content_5": "Settings > Security and privacy."
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",

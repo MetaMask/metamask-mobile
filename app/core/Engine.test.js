@@ -48,7 +48,7 @@ describe('Engine', () => {
     backgroundState.PhishingController.phishingLists[0].fuzzylist = [];
 
     // deleting lastVisited from chainStatus, since its timestamp it makes the test case fail
-    const { chainId, dataFetched, versionInfo } =
+    const { chainId, versionInfo } =
       backgroundState.PPOMController.chainStatus['0x1'];
     backgroundState = {
       ...backgroundState,
@@ -58,9 +58,16 @@ describe('Engine', () => {
           ...backgroundState.PPOMController.chainStatus,
           '0x1': {
             chainId,
-            dataFetched,
             versionInfo,
           },
+        },
+      },
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        vault: {
+          cipher: 'mock-cipher',
+          iv: 'mock-iv',
+          lib: 'original',
         },
       },
     };

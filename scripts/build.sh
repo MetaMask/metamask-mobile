@@ -132,12 +132,7 @@ remapFlaskEnvVariables() {
 	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
 }
 
-
-
-prebuild(){
-	# Import provider
-	yarn --ignore-engines build:static-logos
-
+loadJSEnv(){
 	# Load JS specific env variables
 	if [ "$PRE_RELEASE" = false ] ; then
 		if [ -e $JS_ENV_FILE ]
@@ -145,6 +140,13 @@ prebuild(){
 			source $JS_ENV_FILE
 		fi
 	fi
+}
+
+
+prebuild(){
+	# Import provider
+	yarn --ignore-engines build:static-logos
+
   WATCHER_PORT=${WATCHER_PORT:-8081}
 }
 
@@ -212,7 +214,7 @@ buildIosSimulatorFlask(){
 
 buildIosSimulatorE2E(){
 	prebuild_ios
-	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
+	cd ios && CC=clang CXX=clang CLANG=clang CLANGPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build
 }
 
 buildIosQASimulatorE2E(){
@@ -325,8 +327,7 @@ buildIosReleaseE2E(){
 buildIosQA(){
 	prebuild_ios
 
-  echo "Start QA build..."
-  echo "BITRISE_GIT_BRANCH: $BITRISE_GIT_BRANCH"
+  	echo "Start QA build..."
 
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
@@ -355,7 +356,7 @@ buildAndroidQA(){
 
 	prebuild_android
 	# Generate APK
-	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleQaRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -381,7 +382,7 @@ buildAndroidRelease(){
 	prebuild_android
 
 	# GENERATE APK
-	cd android && ./gradlew assembleProdRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleProdRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -410,7 +411,7 @@ buildAndroidFlaskRelease(){
 	prebuild_android
 
 	# GENERATE APK
-	cd android && ./gradlew assembleFlaskRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleFlaskRelease -x app:createBundleQaDebugJsAndAssets --no-daemon --max-workers 2
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -431,12 +432,12 @@ buildAndroidFlaskRelease(){
 
 buildAndroidReleaseE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleProdRelease app:assembleProdReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release -x app:createBundleFlaskDebugJsAndAssets
 }
 
 buildAndroidQAE2E(){
 	prebuild_android
-	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
+	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release -x app:createBundleFlaskDebugJsAndAssets
 }
 
 buildAndroid() {
@@ -467,7 +468,7 @@ buildAndroidRunE2E(){
 	then
 		source $ANDROID_ENV_FILE
 	fi
-	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug && cd ..
+	cd android && ./gradlew assembleProdDebug app:assembleAndroidTest -DtestBuildType=debug -x app:createBundleQaDebugJsAndAssets -x app:createBundleFlaskDebugJsAndAssets --build-cache --parallel && cd ..
 }
 
 buildIos() {
@@ -541,7 +542,9 @@ checkAuthToken() {
 
 checkParameters "$@"
 
+
 printTitle
+loadJSEnv
 if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
