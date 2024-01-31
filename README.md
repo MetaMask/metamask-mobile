@@ -86,7 +86,7 @@ The code is built using React-Native and running code locally requires a Mac or 
      - Select `SDK Tools` tab
      - Check `Show Package Details` option below the tools list to show available versions
      - Locate `NDK (Side-by-side)` option in the tools list
-     - Check NDK version `21.4.7075529`
+     - Check NDK version `24.0.8215888`
      - Locate `CMake` option in the tools list
      - Check CMake version `3.22.1`
      - Click "Apply" or "OK" to download
