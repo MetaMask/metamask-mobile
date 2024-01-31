@@ -411,23 +411,23 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
-  upload_to_test_rails: 
-    steps:
-       - script@1:
-          title: upload to test rails
-          is_always_run: false
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                trcli -y 
-                -h "https://mmig.testrail.io/" 
-                -u "mmig_qa@consensys.net" 
-                -p "Dex6TINMdkRQvw5aqzsR-2WgvTjVj8H11riF34ttZ" 
-                --project "Metamask" 
-                parse_junit 
-                --title "Automated Test Run" 
-                --run-description "Bitrise Build URL: ${BITRISE_BUILD_URL}" 
-                -f "$BITRISE_SOURCE_DIR/e2e/reports/junit.xml"
+  # upload_to_test_rails: 
+  #   steps:
+  #      - script@1:
+  #         title: upload to test rails
+  #         is_always_run: false
+  #         inputs:
+  #           - content: |-
+  #               #!/usr/bin/env bash
+  #               trcli -y 
+  #               -h "https://mmig.testrail.io/" 
+  #               -u "mmig_qa@consensys.net" 
+  #               -p "Dex6TINMdkRQvw5aqzsR-2WgvTjVj8H11riF34ttZ" 
+  #               --project "Metamask" 
+  #               parse_junit 
+  #               --title "Automated Test Run" 
+  #               --run-description "Bitrise Build URL: ${BITRISE_BUILD_URL}" 
+  #               -f "$BITRISE_SOURCE_DIR/e2e/reports/junit.xml"
   e2e_setup:
     steps:
       - yarn@:
@@ -568,8 +568,6 @@ workflows:
           title: Export test results
           is_always_run: true
           is_skippable: true
-          before_run:
-             - upload_to_test_rails
           inputs:
             - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
             - test_name: E2E Tests
@@ -578,6 +576,21 @@ workflows:
           title: Deploy test report files
           is_always_run: true
           is_skippable: true
+      - script@1:
+          title: upload to test rails
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                trcli -y 
+                -h "https://mmig.testrail.io/" 
+                -u "mmig_qa@consensys.net" 
+                -p "Dex6TINMdkRQvw5aqzsR-2WgvTjVj8H11riF34ttZ" 
+                --project "Metamask" 
+                parse_junit 
+                --title "Automated Test Run" 
+                --run-description "Bitrise Build URL: ${BITRISE_BUILD_URL}" 
+                -f "$BITRISE_SOURCE_DIR/e2e/reports/junit.xml"
       - script@1:
           title: Copy screenshot files
           is_always_run: true
@@ -744,6 +757,21 @@ workflows:
           is_always_run: true
           is_skippable: true
           title: Deploy test report files
+      - script@1:
+          title: upload to test rails
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                trcli -y 
+                -h "https://mmig.testrail.io/" 
+                -u "mmig_qa@consensys.net" 
+                -p "Dex6TINMdkRQvw5aqzsR-2WgvTjVj8H11riF34ttZ" 
+                --project "Metamask" 
+                parse_junit 
+                --title "Automated Test Run" 
+                --run-description "Bitrise Build URL: ${BITRISE_BUILD_URL}" 
+                -f "$BITRISE_SOURCE_DIR/e2e/reports/junit.xml"
       - script@1:
           is_always_run: true
           run_if: .IsBuildFailed
