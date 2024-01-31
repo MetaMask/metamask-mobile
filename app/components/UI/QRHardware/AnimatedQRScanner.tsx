@@ -20,65 +20,67 @@ import Modal from 'react-native-modal';
 import { UR } from '@ngraveio/bc-ur';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
+import { useTheme } from '../../../util/theme';
+import { Theme } from '../../../util/theme/models';
 
-const styles = StyleSheet.create({
-  modal: {
-    margin: 0,
-  },
-  container: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: colors.black,
-  },
-  preview: {
-    flex: 1,
-  },
-  innerView: {
-    flex: 1,
-  },
-  closeIcon: {
-    marginTop: 20,
-    marginRight: 20,
-    width: 40,
-    alignSelf: 'flex-end',
-  },
-  frame: {
-    width: 250,
-    height: 250,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    marginTop: 100,
-    opacity: 0.5,
-  },
-  text: {
-    flex: 1,
-    fontSize: 17,
-    color: colors.white,
-    textAlign: 'center',
-    justifyContent: 'center',
-    marginTop: 100,
-  },
-  hint: {
-    backgroundColor: colors.whiteTransparent,
-    width: '100%',
-    height: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  hintText: {
-    width: 240,
-    maxWidth: '80%',
-    color: colors.black,
-    textAlign: 'center',
-    fontSize: 16,
-    ...fontStyles.normal,
-  },
-  bold: {
-    ...fontStyles.bold,
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    modal: {
+      margin: 0,
+    },
+    container: {
+      width: '100%',
+      height: '100%',
+      backgroundColor: theme.brandColors.black['000'],
+    },
+    preview: {
+      flex: 1,
+    },
+    innerView: {
+      flex: 1,
+    },
+    closeIcon: {
+      marginTop: 20,
+      marginRight: 20,
+      width: 40,
+      alignSelf: 'flex-end',
+    },
+    frame: {
+      width: 250,
+      height: 250,
+      alignSelf: 'center',
+      justifyContent: 'center',
+      marginTop: 100,
+      opacity: 0.5,
+    },
+    text: {
+      flex: 1,
+      fontSize: 17,
+      color: theme.brandColors.white['000'],
+      textAlign: 'center',
+      justifyContent: 'center',
+      marginTop: 100,
+    },
+    hint: {
+      backgroundColor: colors.whiteTransparent,
+      width: '100%',
+      height: 120,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    hintText: {
+      width: 240,
+      maxWidth: '80%',
+      color: theme.brandColors.black['000'],
+      textAlign: 'center',
+      fontSize: 16,
+      ...fontStyles.normal,
+    },
+    bold: {
+      ...fontStyles.bold,
+    },
+  });
 
 const frameImage = require('images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -102,6 +104,8 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   } = props;
   const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
   const [progress, setProgress] = useState(0);
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
   let expectedURTypes: string[];
   if (purpose === 'sync') {
@@ -131,7 +135,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         </Text>
       </Text>
     ),
-    [purpose],
+    [purpose, styles],
   );
 
   const onError = useCallback(

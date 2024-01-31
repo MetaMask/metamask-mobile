@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
+import Crypto from 'react-native-quick-crypto';
 import {
   AccountTrackerController,
   AccountTrackerState,
@@ -172,7 +173,7 @@ import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
-import RNFSStorageBackend from '../lib/ppom/rnfs-storage-backend';
+import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
 import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
@@ -233,6 +234,7 @@ type GlobalEvents =
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
+  | KeyringControllerEvents
   | PPOMControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
@@ -1031,7 +1033,7 @@ class Engine {
     if (isBlockaidFeatureEnabled()) {
       try {
         const ppomController = new PPOMController({
-          chainId: addHexPrefix(networkController.state.providerConfig.chainId),
+          chainId: networkController.state.providerConfig.chainId,
           blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
           cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
           messenger: this.controllerMessenger.getRestricted({
@@ -1049,6 +1051,7 @@ class Engine {
           securityAlertsEnabled:
             initialState.PreferencesController?.securityAlertsEnabled ?? false,
           state: initialState.PPOMController,
+          nativeCrypto: Crypto as any,
         });
         controllers.push(ppomController as any);
         this.controllerMessenger.subscribe(

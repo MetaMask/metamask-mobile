@@ -1,32 +1,37 @@
+// Third party dependencies
 import React, { useRef } from 'react';
 
-import { SheetBottomRef } from '../../../component-library/components/Sheet/SheetBottom';
-import SheetBottom from '../../../component-library/components/Sheet/SheetBottom/SheetBottom';
+// External dependencies
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import createStyles from './ShowDisplayNFTMediaSheet.styles';
 import SheetActionView from '../../../components/UI/SheetActionView';
+
+// Internal dependencies
+import createStyles from './ShowDisplayNFTMediaSheet.styles';
 
 const ShowDisplayNftMediaSheet = () => {
   const styles = createStyles();
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
 
   const onConfirm = () => {
     const { PreferencesController } = Engine.context;
-    sheetRef.current?.hide(() =>
+    sheetRef.current?.onCloseBottomSheet(() =>
       PreferencesController.setDisplayNftMedia(true),
     );
   };
 
   const onCancel = () => {
-    sheetRef.current?.hide();
+    sheetRef.current?.onCloseBottomSheet();
   };
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <BottomSheet ref={sheetRef}>
       <SheetHeader
         title={strings('show_display_nft_media.show_display_nft_media_title')}
       />
@@ -48,7 +53,7 @@ const ShowDisplayNftMediaSheet = () => {
         </Text>
       </Text>
       <SheetActionView onCancel={onCancel} onConfirm={onConfirm} />
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 

@@ -15,11 +15,13 @@
     "seaport_farming_description": "Se você aprovar essa solicitação, alguém poderá roubar seus ativos listados na OpenSea.",
     "see_details": "Ver detalhes",
     "does_not_look_right": "Alguma coisa não parece certa?",
+    "report_an_issue": "Comunicar um problema",
     "suspicious_request_title": "Essa solicitação é suspeita",
     "trade_order_farming_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
     "transfer_farming_description": "Se você aprovar essa solicitação, algum terceiro conhecido por aplicar golpes tomará todos os seus ativos.",
     "before_you_proceed": "Antes de continuar",
     "enable_blockaid_alerts": "Para ativar esse recurso, precisamos configurar alguns alertas de segurança. Esta página precisa continuar aberta enquanto é configurada. Isso levará menos de um minuto para terminar.",
+    "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
     "setting_up_alerts": "Configurando alertas de segurança",
     "setting_up_alerts_description": "Estamos indo o mais rápido possível para configurar os alertas de segurança. Aguente firme, estamos quase terminando.",
     "setup_complete": "Configuração concluída",
@@ -374,6 +376,8 @@
     "no_nfts_yet": "Nenhum NFT até agora",
     "nfts_autodetection_title": "Detecção de NFTs",
     "nfts_autodetection_desc": "Permita que a MetaMask detecte NFTs automaticamente da OpenSea e os exiba na sua carteira MetaMask.",
+    "network_details_check": "Network details check",
+    "network_check_validation_desc": "reduces your chances of connecting to a malicious or incorrect network.",
     "nfts_autodetection_cta": "Ative a detecção de NFTs nas Configurações",
     "learn_more": "Saiba mais",
     "add_collectibles": "Importar NFTs",
@@ -404,6 +408,7 @@
     "display_media_nft_warning": "Exibir mídias e dados de NFTs pode expor seu endereço IP a servidores centralizados. Importe NFTs somente se você entende os riscos envolvidos.",
     "nfts_autodetect_title": "Detecção automática de NFTs",
     "nfts_autodetect_cta": "Ative a Detecção automática de NFTs nas Configurações",
+    "turn_on_network_check_cta": "Turn on network details check",
     "display_nft_media_cta_new_1": "Para ver um NFT, ative Exibir mídias de NFTs em",
     "display_nft_media_cta_new_2": "Configurações > Segurança e Privacidade."
   },
@@ -594,11 +599,13 @@
     "purpose_connect": "conectar",
     "purpose_sign": "confirmar a transação",
     "select_accounts": "Selecione uma conta",
-    "prev": "VOLTAR",
-    "next": "AVANÇAR",
-    "unlock": "Desbloquear",
-    "forget": "Esquecer este dispositivo",
     "please_wait": "Aguarde"
+  },
+  "account_selector": {
+    "prev": "PREV",
+    "next": "NEXT",
+    "unlock": "Unlock",
+    "forget": "Forget this device"
   },
   "app_settings": {
     "title": "Configurações",
@@ -821,6 +828,8 @@
     "incoming_transactions_title": "Exibir transações recebidas",
     "incoming_transactions_content": "Isso depende da rede que você selecionar. Seu endereço Ethereum e seu endereço IP ficarão expostos.",
     "display_nft_media_desc_new": "Exibir arquivos de mídia e dados de NFTs expõe seu endereço IP à OpenSea ou a outros terceiros. A detecção automática de NFTs depende desse recurso e não estará disponível quando ele estiver desativado. Se o arquivo de mídia do NFT estiver integralmente localizado no IPFS, ele ainda poderá ser exibido, mesmo quando esse recurso estiver desativado.",
+    "use_safe_chains_list_validation_desc_1": "MetaMask uses a third-party service called ",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  ",
     "snaps": {
       "title": "Snaps",
       "description": "Visualize e gerencie seus Snaps",
@@ -870,6 +879,7 @@
     "privacy_browser_subheading": "Limpar dados de privacidade ou do navegador",
     "analytics_subheading": "Análises",
     "transactions_subheading": "Transações",
+    "network_provider": "Network provider",
     "token_nft_ens_subheading": "Detecção automática de tokens, NFTs e ENS",
     "security_check_subheading": "Verificações de segurança"
   },
@@ -1428,6 +1438,7 @@
     "status_ok": "Todos os sistemas em operação",
     "status_not_ok": "A rede está com alguns problemas",
     "want_to_add_network": "Deseja adicionar essa rede?",
+    "add_custom_network": "Add custom network",
     "network_infomation": "Isso permite que a rede seja usada na MetaMask",
     "network_endorsement": "A MetaMask não endossa redes personalizadas nem sua segurança.",
     "learn_about": "Saiba mais sobre",
@@ -1437,6 +1448,8 @@
     "network_rpc_url": "URL da rede",
     "view_details": "Ver detalhes",
     "network_details": "Detalhes da rede",
+    "network_select_confirm_use_safe_check": "Selecting Confirm turns on Network details check. You can turn off Network details check in ",
+    "network_settings_security_privacy": "Settings > Security and privacy",
     "network_currency_symbol": "Símbolo da moeda",
     "network_block_explorer_url": "URL do explorador de blocos",
     "search": "Pesquisar rede adicionada anteriormente",
@@ -1824,8 +1837,7 @@
     "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",
     "select_provider": "Selecione seu provedor de preferência",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
-    "available_on_eth_mainet": "Available on Ethereum Mainnet.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
     "switch_network": "Alterne para a Mainnet ou Sepolia"
   },
   "walletconnect_sessions": {
@@ -2047,8 +2059,8 @@
     "insufficient_balance": "Esse valor é superior ao seu saldo",
     "enter_larger_amount": "Insira um valor maior para continuar",
     "enter_smaller_amount": "Insira um valor menor para continuar",
-    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
-    "max": "MAX",
+    "enter_lower_gas_fees": "Insira um valor menor para pagar as taxas de gás",
+    "max": "MÁX.",
     "try_again": "Tente novamente",
     "error": "Erro",
     "something_went_wrong": "Ops, algo deu errado",
@@ -2360,7 +2372,7 @@
     "title": "Novidades",
     "blockaid": {
       "title": "Fique protegido com os alertas de segurança",
-      "description_1": "Fique longe de golpes conhecidos enquanto resguarda sua privacidade com alertas de segurança com tecnologia da Blockaid na Mainnet da Ethereum.",
+      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
       "description_2": "Sempre faça sua própria devida diligência antes de aprovar solicitações.",
       "action_text": "Ativar alertas de segurança"
     },
