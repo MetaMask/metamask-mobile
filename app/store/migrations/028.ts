@@ -1,12 +1,17 @@
 import { toHex } from '@metamask/controller-utils';
-import { hasProperty, isObject } from '@metamask/utils';
+import { Hex, hasProperty, isObject } from '@metamask/utils';
 import { regex } from '../../../app/util/regex';
 
 //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
 import { isHexString } from 'ethereumjs-util';
-import { NetworkConfiguration } from '@metamask/network-controller';
+import { NetworkState } from '@metamask/network-controller';
 import { Transaction } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
+import {
+  AddressBookEntry,
+  AddressBookState,
+} from '@metamask/address-book-controller';
+import { Nft, NftContract, NftState } from '@metamask/assets-controllers';
 
 /**
  * Converting chain id on decimal format to hexadecimal format
@@ -31,6 +36,7 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
+
   if (!isObject(state.engine)) {
     captureException(
       new Error(`Migration 28: Invalid engine state: '${typeof state.engine}'`),
@@ -49,6 +55,8 @@ export default function migrate(state: unknown) {
   }
 
   const networkControllerState = state.engine.backgroundState.NetworkController;
+  const newNetworkControllerState = state.engine.backgroundState
+    .NetworkController as NetworkState;
 
   if (!isObject(networkControllerState)) {
     captureException(
@@ -151,7 +159,9 @@ export default function migrate(state: unknown) {
     };
   }
 
-  delete networkControllerState.networkDetails.isEIP1559Compatible;
+  if (isObject(networkControllerState.networkDetails)) {
+    delete networkControllerState.networkDetails.isEIP1559Compatible;
+  }
 
   if (
     !hasProperty(networkControllerState, 'networkConfigurations') ||
@@ -169,19 +179,23 @@ export default function migrate(state: unknown) {
 
   // Addressing networkConfigurations chainId property change to hexadecimal
   if (networkControllerState.networkConfigurations) {
-    Object.values<NetworkConfiguration>(
-      networkControllerState.networkConfigurations,
-    ).forEach((networkConfiguration: NetworkConfiguration) => {
-      if (networkConfiguration) {
-        const newHexChainId = toHex(networkConfiguration.chainId);
-        networkConfiguration.chainId = newHexChainId;
-      }
-    });
+    Object.entries(networkControllerState.networkConfigurations).forEach(
+      ([key, networkConfiguration]) => {
+        if (isObject(networkConfiguration) && networkConfiguration.chainId) {
+          const newHexChainId = toHex(networkConfiguration.chainId as string);
+          newNetworkControllerState.networkConfigurations[key].chainId =
+            newHexChainId;
+        }
+      },
+    );
   }
 
   // Validating if the networks were already onboarded
   // This property can be undefined
-  if (state?.networkOnboarded?.networkOnboardedState) {
+  if (
+    isObject(state.networkOnboarded) &&
+    isObject(state.networkOnboarded.networkOnboardedState)
+  ) {
     const networkOnboardedState = state.networkOnboarded.networkOnboardedState;
     const newNetworkOnboardedState: {
       [key: string]: (typeof networkOnboardedState)[string];
@@ -194,24 +208,30 @@ export default function migrate(state: unknown) {
     state.networkOnboarded.networkOnboardedState = newNetworkOnboardedState;
   }
 
+  const swapsState = state.swaps;
   // Swaps on the state initial state key chain id changed for hexadecimal
   // This property can be undefined
-  if (state?.swaps) {
-    Object.keys(state?.swaps).forEach((key) => {
+  if (isObject(swapsState)) {
+    Object.keys(swapsState).forEach((key) => {
       // To match keys that are composed entirely of digits
       if (regex.decimalStringMigrations.test(key)) {
         const hexadecimalChainId = toHex(key);
         state.swaps = {
-          ...state.swaps,
-          [hexadecimalChainId]: state.swaps[key],
+          ...swapsState,
+          [hexadecimalChainId]: swapsState[key],
         };
-        delete state.swaps[key];
+        if (isObject(state.swaps)) {
+          delete state.swaps[key];
+        }
       }
     });
   }
 
   const addressBookControllerState =
     state?.engine?.backgroundState?.AddressBookController;
+
+  const newAddressBookControllerState = state?.engine?.backgroundState
+    ?.AddressBookController as AddressBookState;
 
   if (!isObject(addressBookControllerState)) {
     captureException(
@@ -244,23 +264,36 @@ export default function migrate(state: unknown) {
     Object.keys(addressBook).forEach((chainId) => {
       if (!isHexString(chainId)) {
         const hexChainId = toHex(chainId);
-        const newAddressBook: {
-          [key: string]: (typeof addressBook)[string];
-        } = { [hexChainId]: {} };
-        let newAddress: {
-          [key: string]: (typeof addressBook)[string];
+        const tempNewAddressBook: {
+          [hexChainId: Hex]: { [address: string]: AddressBookEntry };
         } = {};
-        Object.keys(addressBook[chainId]).forEach((address) => {
-          newAddress = addressBook[chainId][address];
-          newAddress.chainId = toHex(
-            addressBookControllerState.addressBook[chainId][address].chainId,
-          );
+        let newAddress: AddressBookEntry;
+        if (isObject(addressBook) && typeof chainId === 'string') {
+          const addressBookChainId = addressBook[chainId];
+          if (isObject(addressBookChainId)) {
+            Object.keys(addressBookChainId).forEach((address) => {
+              const addressBookChainIdAddress = addressBookChainId[address];
+              if (addressBookChainIdAddress) {
+                newAddress = addressBookChainIdAddress as AddressBookEntry;
 
-          newAddressBook[hexChainId][address] = newAddress;
-        });
-        addressBookControllerState.addressBook[hexChainId] =
-          newAddressBook[hexChainId];
-        delete addressBookControllerState.addressBook[chainId];
+                if (isObject(addressBookChainIdAddress)) {
+                  newAddress.chainId = toHex(
+                    addressBookChainIdAddress.chainId as string,
+                  );
+                }
+                tempNewAddressBook[hexChainId] = {
+                  ...tempNewAddressBook[hexChainId],
+                  [address]: newAddress,
+                };
+              }
+            });
+          }
+        }
+        newAddressBookControllerState.addressBook[hexChainId] =
+          tempNewAddressBook[hexChainId];
+        if (isObject(addressBookControllerState.addressBook)) {
+          delete addressBookControllerState.addressBook[chainId];
+        }
       }
     });
   }
@@ -278,33 +311,29 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  if (
-    !hasProperty(swapsControllerState, 'chainCache') ||
-    !isObject(swapsControllerState.chainCache)
-  ) {
-    captureException(
-      new Error(
-        `Migration 28: Invalid swapsControllerState chainCache: '${JSON.stringify(
-          swapsControllerState.chainCache,
-        )}'`,
-      ),
-    );
-    return state;
-  }
-
   // Swaps controller chain cache property now is on hexadecimal format
   if (swapsControllerState.chainCache) {
     Object.keys(swapsControllerState.chainCache).forEach((chainId) => {
       if (!isHexString(chainId)) {
         const hexChainId = toHex(chainId);
-        swapsControllerState.chainCache[hexChainId] =
-          swapsControllerState.chainCache[chainId];
-        delete state.engine.backgroundState.SwapsController.chainCache[chainId];
+        if (isObject(swapsControllerState.chainCache)) {
+          swapsControllerState.chainCache[hexChainId] =
+            swapsControllerState.chainCache[chainId];
+        }
+
+        if (
+          isObject(swapsControllerState) &&
+          isObject(swapsControllerState.chainCache)
+        ) {
+          delete swapsControllerState.chainCache[chainId];
+        }
       }
     });
   }
 
   const nftControllerState = state?.engine?.backgroundState?.NftController;
+  const newNftControllerState = state?.engine?.backgroundState
+    ?.NftController as NftState;
 
   if (!isObject(nftControllerState)) {
     captureException(
@@ -333,22 +362,44 @@ export default function migrate(state: unknown) {
 
   // NftController allNfts, allNftsContracts chain Id now is on hexadecimal format
   if (nftControllerState.allNftContracts) {
-    const allNftContracts = nftControllerState.allNftContracts;
     Object.keys(nftControllerState.allNftContracts).forEach(
       (nftContractsAddress) => {
-        Object.keys(allNftContracts[nftContractsAddress]).forEach((chainId) => {
-          if (!isHexString(chainId)) {
-            const hexChainId = toHex(chainId);
-            nftControllerState.allNftContracts[nftContractsAddress][
-              hexChainId
-            ] =
-              nftControllerState.allNftContracts[nftContractsAddress][chainId];
+        if (isObject(nftControllerState.allNftContracts)) {
+          const nftContractAddress =
+            nftControllerState.allNftContracts[nftContractsAddress];
 
-            delete nftControllerState.allNftContracts[nftContractsAddress][
-              chainId
-            ];
+          if (isObject(nftContractAddress)) {
+            Object.keys(nftContractAddress).forEach((chainId) => {
+              if (!isHexString(chainId)) {
+                const hexChainId = toHex(chainId);
+                if (Array.isArray(nftContractAddress[chainId])) {
+                  const nftsChainId = nftContractAddress[
+                    chainId
+                  ] as NftContract[];
+
+                  newNftControllerState.allNftContracts[nftContractsAddress][
+                    hexChainId
+                  ] = nftsChainId;
+                }
+
+                if (
+                  isObject(nftControllerState.allNftContracts) &&
+                  isObject(
+                    nftControllerState.allNftContracts[nftContractsAddress],
+                  )
+                ) {
+                  // Need to type cast because typescript is static typed
+                  // and typescript is
+                  delete (
+                    nftControllerState.allNftContracts[
+                      nftContractsAddress
+                    ] as Record<string, unknown>
+                  )[chainId];
+                }
+              }
+            });
           }
-        });
+        }
       },
     );
   }
@@ -370,15 +421,34 @@ export default function migrate(state: unknown) {
   if (nftControllerState.allNfts) {
     const allNfts = nftControllerState.allNfts;
     Object.keys(nftControllerState.allNfts).forEach((allNftsByAddress) => {
-      Object.keys(allNfts[allNftsByAddress]).forEach((chainId) => {
-        if (!isHexString(chainId)) {
-          const hexChainId = toHex(chainId);
-          nftControllerState.allNfts[allNftsByAddress][hexChainId] =
-            nftControllerState.allNfts[allNftsByAddress][chainId];
+      const nftsByAddress = allNfts[allNftsByAddress];
+      if (isObject(nftsByAddress)) {
+        Object.keys(nftsByAddress).forEach((chainId) => {
+          if (!isHexString(chainId)) {
+            const hexChainId = toHex(chainId);
+            if (Array.isArray(nftsByAddress[chainId])) {
+              const nftsChainId = nftsByAddress[chainId] as Nft[];
 
-          delete nftControllerState.allNfts[allNftsByAddress][chainId];
-        }
-      });
+              newNftControllerState.allNfts[allNftsByAddress][hexChainId] =
+                nftsChainId;
+            }
+
+            if (
+              isObject(nftControllerState.allNfts) &&
+              isObject(nftControllerState.allNfts[allNftsByAddress])
+            ) {
+              // Need to type cast because typescript is static typed
+              // and typescript is
+              delete (
+                nftControllerState.allNfts[allNftsByAddress] as Record<
+                  string,
+                  unknown
+                >
+              )[chainId];
+            }
+          }
+        });
+      }
     });
   }
 
@@ -397,13 +467,18 @@ export default function migrate(state: unknown) {
   }
 
   // Transaction Controller transactions object chain id property to hexadecimal
-  if (transactionControllerState.transactions) {
+  if (Array.isArray(transactionControllerState.transactions)) {
     transactionControllerState.transactions.forEach(
       (transaction: Transaction, index: number) => {
         if (transaction && !isHexString(transaction.chainId)) {
-          transactionControllerState.transactions[index].chainId = toHex(
-            transaction.chainId as string,
-          );
+          if (
+            Array.isArray(transactionControllerState.transactions) &&
+            isObject(transactionControllerState.transactions[index])
+          ) {
+            transactionControllerState.transactions[index].chainId = toHex(
+              transaction.chainId as string,
+            );
+          }
         }
       },
     );
