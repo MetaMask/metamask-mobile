@@ -1,8 +1,6 @@
 'use strict';
-
 import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
-
 import AmountView from '../../pages/AmountView';
 import SendView from '../../pages/SendView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
@@ -16,6 +14,7 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import blacklistURLs from '../../resources/blacklistURLs';
 
 describe(SmokeConfirmations('Send ETH'), () => {
   const TOKEN_NAME = root.unit.eth;
@@ -35,6 +34,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
         ganacheOptions: defaultGanacheOptions,
       },
       async () => {
+        await device.setURLBlacklist(blacklistURLs);
         await loginToApp();
 
         await TabBarComponent.tapActions();
@@ -70,6 +70,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
         const multisigAddress = await contractRegistry.getContractAddress(
           MULTISIG_CONTRACT,
         );
+        await device.setURLBlacklist(blacklistURLs);
         await loginToApp();
 
         await TabBarComponent.tapActions();

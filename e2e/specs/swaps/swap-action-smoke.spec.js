@@ -34,6 +34,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
+    await device.setURLBlacklist(blacklistURLs);
     await loginToApp();
   });
 
