@@ -23,7 +23,6 @@ import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import {
-  fromTokenMinimalUnit,
   hexToBN,
   isNumber,
   renderFromTokenMinimalUnit,
@@ -408,8 +407,8 @@ class ApproveTransactionReview extends PureComponent {
       tokenDecimals = contract.decimals;
     }
 
-    const approveAmount = fromTokenMinimalUnit(
-      hexToBN(encodedHexAmount),
+    const approveAmount = renderFromTokenMinimalUnit(
+      encodedDecimalAmount,
       tokenDecimals,
     );
 
