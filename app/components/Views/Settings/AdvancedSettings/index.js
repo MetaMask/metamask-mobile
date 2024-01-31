@@ -1,7 +1,7 @@
 // Third party dependencies.
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Switch, View } from 'react-native';
+import { Linking, SafeAreaView, StyleSheet, Switch, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
@@ -55,6 +55,7 @@ import Banner, {
 } from '../../../../component-library/components/Banners/Banner';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { APIType } from '@metamask/swaps-controller/dist/swapsInterfaces';
+import AppConstants from '../../../../../app/core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -233,19 +234,7 @@ class AdvancedSettings extends PureComponent {
     this.props.route?.params?.scrollToBottom &&
       this.scrollView?.current?.scrollToEnd({ animated: true });
 
-    // Check smart transactions feature flag on first load
-    const swapsFeatureFlagsUrl = swapsUtils.getBaseApiURL(APIType.FEATURE_FLAG);
-    const res = await fetch(swapsFeatureFlagsUrl);
-    const data = await res.json();
-
-    const { mobileActive, mobileActiveIOS, mobileActiveAndroid } =
-      data.smartTransactions;
-
-    if (Device.isIos() && mobileActive && mobileActiveIOS) {
-      this.setState({ smartTransactionsFeatureFlagEnabled: true });
-    } else if (Device.isAndroid() && mobileActive && mobileActiveAndroid) {
-      this.setState({ smartTransactionsFeatureFlagEnabled: true });
-    }
+    this.checkSmartTransactionsFeatureFlag();
   };
 
   componentDidUpdate = () => {
@@ -254,6 +243,23 @@ class AdvancedSettings extends PureComponent {
 
   componentWillUnmount = () => {
     this.mounted = false;
+  };
+
+  checkSmartTransactionsFeatureFlag = async () => {
+    const swapsFeatureFlagsUrl = swapsUtils.getBaseApiURL(APIType.FEATURE_FLAG);
+    const res = await fetch(swapsFeatureFlagsUrl);
+    const data = await res.json();
+
+    const { mobileActive, mobileActiveIOS, mobileActiveAndroid } =
+      data.smartTransactions;
+
+    // TODO uncomment when ready
+    // if (Device.isIos() && mobileActive && mobileActiveIOS) {
+    //   this.setState({ smartTransactionsFeatureFlagEnabled: true });
+    // } else if (Device.isAndroid() && mobileActive && mobileActiveAndroid) {
+    //   this.setState({ smartTransactionsFeatureFlagEnabled: true });
+    // }
+    this.setState({ smartTransactionsFeatureFlagEnabled: true });
   };
 
   displayResetAccountModal = () => {
@@ -367,6 +373,10 @@ class AdvancedSettings extends PureComponent {
     PreferencesController.setSmartTransactionsOptInStatus(
       smartTransactionsOptInStatus,
     );
+  };
+
+  openLinkAboutStx = () => {
+    Linking.openURL(AppConstants.URLS.SMART_TXS);
   };
 
   render = () => {
@@ -582,12 +592,21 @@ class AdvancedSettings extends PureComponent {
                     />
                   </View>
                 </View>
+
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Alternative}
                   style={styles.desc}
                 >
                   {strings('app_settings.smart_transactions_opt_in_desc')}
+
+                  <Text
+                    color={TextColor.Primary}
+                    link
+                    onPress={this.openLinkAboutStx}
+                  >
+                    Learn more
+                  </Text>
                 </Text>
               </View>
             )}
