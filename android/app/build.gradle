@@ -178,10 +178,6 @@ android {
       }
     }
 
-    sourceSets {
-      main { assets.srcDirs = ['src/main/assets', '../../app/lib/snaps/html'] }
-    }
-
     splits {
         abi {
             reset()
