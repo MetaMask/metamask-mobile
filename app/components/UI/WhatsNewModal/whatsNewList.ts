@@ -18,7 +18,6 @@ export const whatsNew: WhatsNew = {
    */
   slides: [
     [
-      // TODO fill out the rest of this and figure out what to do about links and closing modal with no way to reopen
       {
         type: 'image',
         image: require('../../../images/metamask-smart-transactions.png'),
@@ -35,7 +34,16 @@ export const whatsNew: WhatsNew = {
       {
         type: 'description',
         description:
-          'To learn more, read our FAQ and Risk Disclosures. For your benefit, smart transactions already on. You can manage this in Settings.',
+          'They are automatically enabled for your convenience, but you can turn them off in Settings whenever you want.',
+      },
+      {
+        type: 'button',
+        buttonText: 'Manage in settings',
+        buttonType: 'transparent-blue',
+        onPress: (props) =>
+          props.navigation.navigate(Routes.SETTINGS_VIEW, {
+            screen: Routes.SETTINGS.ADVANCED_SETTINGS,
+          }),
       },
     ],
     [

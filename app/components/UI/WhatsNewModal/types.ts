@@ -23,7 +23,7 @@ interface SlideDescription {
   description: string;
 }
 
-type SlideButtonType = 'normal' | 'blue';
+type SlideButtonType = 'normal' | 'blue' | 'transparent-blue';
 
 interface SlideButton {
   type: 'button';
