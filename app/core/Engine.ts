@@ -1166,7 +1166,7 @@ class Engine {
     TokenListController.start();
     NftDetectionController.start();
     TokenDetectionController.start();
-    // leaving this here to avoid circular dependency
+    // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
     TokenRatesController.start();
   }
