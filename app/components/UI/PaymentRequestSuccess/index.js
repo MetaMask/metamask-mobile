@@ -262,7 +262,7 @@ class PaymentRequestSuccess extends PureComponent {
 
   render() {
     const { link, amount, symbol, qrModalVisible } = this.state;
-    const theme = this.context.theme || mockTheme;
+    const theme = this.context || mockTheme;
     const colors = theme.colors;
     const styles = createStyles(theme);
 
