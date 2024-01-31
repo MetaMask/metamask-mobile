@@ -20,7 +20,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 
   - Auto upload for source maps and debug files is disabled by default. To enable it, set the `SENTRY_DISABLE_AUTO_UPLOAD` environment variable to `false`.
 
-- Install [Node.js](https://nodejs.org) **version 18**
+- Install [Node.js](https://nodejs.org) **version 18.18**
 
   - If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
@@ -40,7 +40,6 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 - Install the shared [React Native dependencies](https://reactnative.dev/docs/environment-setup#installing-dependencies) (`React Native CLI`, _not_ `Expo CLI`)
 
-  - XCode version `15.0.1` or below
 
 - Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html) by running:
 
