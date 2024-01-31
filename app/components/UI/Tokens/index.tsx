@@ -68,7 +68,7 @@ import { useNavigation } from '@react-navigation/native';
 import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
-import SkeletonText from '../Ramp/common/components/SkeletonText';
+import SkeletonText from '../Ramp/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
@@ -80,7 +80,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
 import { BrowserTab, TokenI, TokensI } from './types';
-import useRampNetwork from '../Ramp/common/hooks/useRampNetwork';
+import useRampNetwork from '../Ramp/hooks/useRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import {
@@ -403,7 +403,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         CurrencyRateController.start(),
         TokenRatesController.updateExchangeRates(),
       ];
-      await Promise.all(actions);
+      await Promise.all(actions).catch((error) => {
+        Logger.error(error, 'Error while refreshing tokens');
+      });
       setRefreshing(false);
     });
   };

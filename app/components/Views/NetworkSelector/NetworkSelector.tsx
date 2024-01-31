@@ -13,9 +13,9 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../locales/i18n';
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
@@ -45,8 +45,7 @@ import {
   NETWORK_SCROLL_ID,
   NETWORK_TEST_SWITCH_ID,
 } from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
-import { colors as importedColors } from '../../../styles/common';
-import { useAppTheme } from '../../../util/theme';
+import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import {
   TextColor,
@@ -58,8 +57,9 @@ import styles from './NetworkSelector.styles';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
-  const { colors } = useAppTheme();
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const theme = useTheme();
+  const { colors } = theme;
+  const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
@@ -76,7 +76,7 @@ const NetworkSelector = () => {
       await TransactionController.updateIncomingTransactions();
     }, 1000);
 
-    sheetRef.current?.hide();
+    sheetRef.current?.onCloseBottomSheet();
 
     analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: providerConfig.chainId,
@@ -103,7 +103,7 @@ const NetworkSelector = () => {
 
       NetworkController.setActiveNetwork(networkConfigurationId);
 
-      sheetRef.current?.hide();
+      sheetRef.current?.onCloseBottomSheet();
       analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
         chain_id: providerConfig.chainId,
         from_network: providerConfig.type,
@@ -204,7 +204,7 @@ const NetworkSelector = () => {
   };
 
   const goToNetworkSettings = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.ADD_NETWORK, {
         shouldNetworkSwitchPopToWallet: false,
       });
@@ -226,7 +226,7 @@ const NetworkSelector = () => {
           true: colors.primary.default,
           false: colors.border.muted,
         }}
-        thumbColor={importedColors.white}
+        thumbColor={theme.brandColors.white['000']}
         ios_backgroundColor={colors.border.muted}
         {...generateTestId(Platform, NETWORK_TEST_SWITCH_ID)}
         disabled={isTestNet(providerConfig.chainId)}
@@ -235,7 +235,7 @@ const NetworkSelector = () => {
   );
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <BottomSheet ref={sheetRef}>
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView {...generateTestId(Platform, NETWORK_SCROLL_ID)}>
         {renderMainnet()}
@@ -254,7 +254,7 @@ const NetworkSelector = () => {
         style={styles.addNetworkButton}
         {...generateTestId(Platform, ADD_NETWORK_BUTTON)}
       />
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 

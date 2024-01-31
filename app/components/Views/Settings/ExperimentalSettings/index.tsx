@@ -1,6 +1,7 @@
-import React, { FC, useCallback, useEffect } from 'react';
-import { ScrollView, Switch, View } from 'react-native';
+import React, { FC, useCallback, useEffect, useState } from 'react';
+import { Linking, ScrollView, Switch, View } from 'react-native';
 
+import { MMKV } from 'react-native-mmkv';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { colors as importedColors } from '../../../../styles/common';
@@ -15,7 +16,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
-import { isMainnetByChainId } from '../../../../util/networks';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSelector, useDispatch } from 'react-redux';
 import { Props } from './ExperimentalSettings.types';
@@ -26,21 +26,34 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+import Device from '../../../../../app/util/device';
+import { SES_URL } from '../../../../../app/constants/urls';
+
+const storage = new MMKV(); // id: mmkv.default
 
 /**
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
-  const { PreferencesController, NetworkController } = Engine.context;
-  const currentChainId = NetworkController.state.providerConfig.chainId;
+  const { PreferencesController } = Engine.context;
 
   const dispatch = useDispatch();
 
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
+  const [sesEnabled, setSesEnabled] = useState(
+    storage.getBoolean('is-ses-enabled'),
+  );
+
+  const toggleSesEnabled = () => {
+    storage.set('is-ses-enabled', !sesEnabled);
+    setSesEnabled(!sesEnabled);
+  };
+
   const isFullScreenModal = route?.params?.isFullScreenModal;
 
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const styles = createStyles(colors);
 
   const toggleSecurityAlertsEnabled = () => {
@@ -83,6 +96,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     navigation.navigate('WalletConnectSessionsView');
   }, [navigation]);
 
+  const openSesLink = () => Linking.openURL(SES_URL);
+
   const WalletConnectSettings: FC = () => (
     <>
       <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
@@ -108,13 +123,15 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   const BlockaidSettings: FC = () => (
     <>
-      <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
-        style={styles.heading}
-      >
-        {strings('app_settings.security_heading')}
-      </Text>
+      {Device.isAndroid() && (
+        <Text
+          color={TextColor.Default}
+          variant={TextVariant.HeadingLG}
+          style={styles.heading}
+        >
+          {strings('app_settings.security_heading')}
+        </Text>
+      )}
       <View style={styles.setting}>
         <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
           {strings('experimental_settings.security_alerts')}
@@ -138,11 +155,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={importedColors.white}
+          thumbColor={theme.brandColors.white['000']}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
           testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
-          disabled={!isMainnetByChainId(currentChainId)}
         />
       </View>
 
@@ -153,20 +169,57 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       >
         {strings('experimental_settings.blockaid_desc')}
       </Text>
+    </>
+  );
 
+  const SesSettings: FC = () => (
+    <>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
-        style={styles.desc}
+        color={TextColor.Default}
+        variant={TextVariant.HeadingLG}
+        style={styles.heading}
       >
-        {strings('experimental_settings.available_on_eth_mainet')}
+        {strings('app_settings.security_heading')}
       </Text>
+      <View style={styles.setting}>
+        <View style={styles.switchElement}>
+          <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+            {strings('app_settings.ses_heading')}
+          </Text>
+          <Switch
+            value={sesEnabled}
+            onValueChange={toggleSesEnabled}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
+        <Text
+          color={TextColor.Alternative}
+          variant={TextVariant.BodyMD}
+          style={styles.desc}
+        >
+          {strings('app_settings.ses_description')}{' '}
+          <Button
+            variant={ButtonVariants.Link}
+            size={ButtonSize.Auto}
+            onPress={openSesLink}
+            label={strings('app_settings.ses_link')}
+          />
+          .
+        </Text>
+      </View>
     </>
   );
 
   return (
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
+      {Device.isIos() && <SesSettings />}
       {isBlockaidFeatureEnabled() && <BlockaidSettings />}
     </ScrollView>
   );
