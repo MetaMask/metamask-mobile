@@ -1,3 +1,35 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+**Table of Contents** _generated with [DocToc](https://github.com/thlorenz/doctoc)_
+
+- [MetaMask](#metamask)
+  - [Environment Setup](#environment-setup)
+    - [Device Environment Setup](#device-environment-setup)
+      - [Android](#android)
+    - [Building Locally](#building-locally)
+      - [Android](#android-1)
+      - [iOS](#ios)
+      - [Build Troubleshooting](#build-troubleshooting)
+    - [Debugging](#debugging)
+      - [Debugging Physical iOS devices](#debugging-physical-ios-devices)
+      - [Debug a website inside the WebView (in-app browser)](#debug-a-website-inside-the-webview-in-app-browser)
+      - [Miscellaneous](#miscellaneous)
+    - [Running Tests](#running-tests)
+      - [Unit Tests](#unit-tests)
+      - [E2E Tests](#e2e-tests)
+        - [Platforms](#platforms)
+        - [Test wallet](#test-wallet)
+        - [Detox](#detox)
+    - [iOS](#ios-1)
+      - [Appium](#appium)
+    - [Changing dependencies](#changing-dependencies)
+    - [Architecture](#architecture)
+    - [Storybook](#storybook)
+    - [Other Docs](#other-docs)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ![MetaMask logo](logo.png?raw=true)
 
 # MetaMask
@@ -18,6 +50,8 @@ The code is built using React-Native and running code locally requires a Mac or 
 
    - `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash`
 
+   - Usage: `nvm alias default 18.18.2` (or whatever version you need - this sets the working version)
+
 2. ### Install [Yarn v1](https://yarnpkg.com/en/docs/install)
 
    One way to install Yarn v1 is by using brew:
@@ -34,7 +68,7 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 3. ### Install Xcode
 
-   - [XCode version `15.0.1` or below](https://idmsa.apple.com/IDMSWebAuth/signin?appIdKey=891bd3417a7776362562d2197f89480a8547b108fd934911bcbea0110d07f757&path=%2Fservices-account%2Fdownload%3Fpath%3D%2FDeveloper_Tools%2FXcode_15.0.1%2FXcode_15.0.1.xip&rv=1)
+   - From the [App Store](https://apps.apple.com/us/app/xcode/id497799835?mt=12)
    - Install Command Line Tools - `cmd + ,` to open settings - `Locations` tab - Select the most recent version in the Command Line Tools dropdown
      ![Alt text](image.png)
 
