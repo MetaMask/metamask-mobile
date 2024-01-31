@@ -2740,10 +2740,7 @@
     "error_during_connection_message": "Đã xảy ra một sự cố nhỏ khi kết nối với Ledger Nano X của bạn, nhấn 'Thử lại' bên dưới để tiếp tục. Đôi khi sự cố này xảy ra do bạn đang mở ứng dụng ETH trên Ledger Nano X khi bắt đầu quá trình ghép nối với MetaMask Di động.",
     "how_to_install_eth_webview_title": "Cách cài đặt Ứng dụng Ethereum",
     "nonce_too_low": "Số nonce quá thấp",
-    "nonce_too_low_error": "Số nonce đã đặt quá thấp",
-    "ledger_beta_alert": "Đang bật tích hợp Ledger",
-    "ledger_beta_alert_description": "Bạn đã tìm thấy một tính năng thử nghiệm! Nếu tiếp tục, bạn chấp nhận rằng bạn sẽ tự chịu rủi ro khi sử dụng tính năng thử nghiệm này.",
-    "ledger_beta_cta": "Tiếp tục"
+    "nonce_too_low_error": "Số nonce đã đặt quá thấp"
   },
   "account_actions": {
     "edit_name": "Chỉnh sửa tên tài khoản",

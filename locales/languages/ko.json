@@ -2740,10 +2740,7 @@
     "error_during_connection_message": "Ledger Nano X를 연결하는 데 약간의 문제가 발생했습니다. 다시 시도하려면 아래의 '재시도'를 탭하세요. 이는 가끔 모바일 MetaMask의 페어링을 시작할 때 Ledger Nano X에서 ETH 앱이 열려 있기 때문에 발생합니다.",
     "how_to_install_eth_webview_title": "이더리움 앱 설치 방법",
     "nonce_too_low": "논스가 너무 낮습니다",
-    "nonce_too_low_error": "설정한 논스가 너무 낮습니다",
-    "ledger_beta_alert": "Ledger 통합 활성화",
-    "ledger_beta_alert_description": "실험적 기능입니다! 계속하면 실험적 기능을 사용하는 데 따른 위험 부담에 동의하는 것이 됩니다.",
-    "ledger_beta_cta": "계속"
+    "nonce_too_low_error": "설정한 논스가 너무 낮습니다"
   },
   "account_actions": {
     "edit_name": "계정 이름 편집",

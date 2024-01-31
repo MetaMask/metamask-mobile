@@ -1,33 +1,30 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
-import React, { useState, useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect } from 'react';
 import {
-  View,
+  Image,
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
-  Image,
-  Alert,
+  View,
 } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { setLedgerBetaEnabled } from '../../../../actions/settings';
+import { strings } from '../../../../../locales/i18n';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
+import Routes from '../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
+import { fontStyles } from '../../../../styles/common';
+import AnalyticsV2 from '../../../../util/analyticsV2';
 import {
   mockTheme,
   useAppThemeFromContext,
   useAssetFromTheme,
 } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { fontStyles } from '../../../../styles/common';
-import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
-import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
@@ -90,13 +87,6 @@ const SelectHardwareWallet = () => {
   const navigation = useNavigation();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
-  const [ledgerTaps, setLedgerTaps] = useState<number>(1);
-
-  const ledgerBetaEnabled = useSelector(
-    (state: any) => state.settings.ledgerBetaEnabled,
-  );
-
-  const dispatch = useDispatch();
 
   useEffect(() => {
     navigation.setOptions(
@@ -108,30 +98,6 @@ const SelectHardwareWallet = () => {
       ),
     );
   }, [navigation, colors]);
-
-  const showLedgerBetaAlert = () =>
-    Alert.alert(
-      strings('ledger.ledger_beta_alert'),
-      strings('ledger.ledger_beta_alert_description'),
-      [
-        {
-          text: strings('ledger.ledger_beta_cta'),
-          onPress: () => dispatch(setLedgerBetaEnabled(true)),
-        },
-      ],
-    );
-
-  const updateLedgerBetaTaps = () => {
-    if (ledgerBetaEnabled) {
-      return;
-    }
-
-    if (ledgerTaps === 7) {
-      showLedgerBetaAlert();
-    } else {
-      setLedgerTaps(ledgerTaps + 1);
-    }
-  };
 
   const navigateToConnectQRWallet = () => {
     navigation.navigate(Routes.HW.CONNECT_QR_DEVICE);
@@ -165,10 +131,7 @@ const SelectHardwareWallet = () => {
 
   const LedgerButton = () => {
     const ledgerLogo = useAssetFromTheme(ledgerLogoLight, ledgerLogoDark);
-    return (
-      ledgerBetaEnabled &&
-      renderHardwareButton(ledgerLogo, navigateToConnectLedger)
-    );
+    return renderHardwareButton(ledgerLogo, navigateToConnectLedger);
   };
 
   const QRButton = () => {
@@ -182,7 +145,7 @@ const SelectHardwareWallet = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.textContainer}>
-        <Text variant={TextVariant.BodyMD} onPress={updateLedgerBetaTaps}>
+        <Text variant={TextVariant.BodyMD}>
           {strings('connect_hardware.select_hardware')}
         </Text>
       </View>

@@ -7,6 +7,7 @@ import {
   forgetLedger,
   ledgerSignTypedMessage,
   unlockLedgerDefaultAccount,
+  getDeviceId,
 } from './Ledger';
 import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -149,8 +150,8 @@ describe('Ledger core', () => {
 
   describe('getDeviceId', () => {
     it('should return deviceId', async () => {
-      const value = await getLedgerKeyring();
-      expect(value.deviceId).toBe('deviceId');
+      const value = await getDeviceId();
+      expect(value).toBe('deviceIdClone');
     });
   });
 

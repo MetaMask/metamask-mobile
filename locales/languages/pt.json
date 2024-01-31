@@ -2740,10 +2740,7 @@
     "error_during_connection_message": "Está ocorrendo um pequeno problema ao conectar sua Ledger Nano X. Toque abaixo em \"Tentar novamente\" para tentar mais uma vez. Às vezes isso ocorre quando o app ETH em sua Ledger Nano X é aberto no início do processo de emparelhamento com o MetaMask Mobile.",
     "how_to_install_eth_webview_title": "Como instalar o app Ethereum",
     "nonce_too_low": "Nonce muito baixo",
-    "nonce_too_low_error": "O nonce definido está muito baixo",
-    "ledger_beta_alert": "Ativando integração com o Ledger",
-    "ledger_beta_alert_description": "Você descobriu um recurso experimental! Ao continuar, você aceita usar este recurso experimental por sua conta e risco.",
-    "ledger_beta_cta": "Continuar"
+    "nonce_too_low_error": "O nonce definido está muito baixo"
   },
   "account_actions": {
     "edit_name": "Editar nome da conta",

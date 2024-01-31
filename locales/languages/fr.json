@@ -2740,10 +2740,7 @@
     "error_during_connection_message": "Nous avons rencontré un petit souci lors de la connexion de votre Ledger Nano X. Appuyez sur « Retry » (Réessayer) ci-dessous pour recommencer. Cela se produit parfois lorsque l’application ETH de votre Ledger Nano X est ouverte au début du processus de couplage avec MetaMask Mobile.",
     "how_to_install_eth_webview_title": "Comment installer l’application Ethereum",
     "nonce_too_low": "Nonce trop court",
-    "nonce_too_low_error": "Le nonce défini est trop court",
-    "ledger_beta_alert": "Activation de l’intégration de Ledger",
-    "ledger_beta_alert_description": "Vous avez trouvé une fonction expérimentale ! En continuant, vous acceptez d’utiliser cette fonction expérimentale à vos propres risques.",
-    "ledger_beta_cta": "Continuer"
+    "nonce_too_low_error": "Le nonce défini est trop court"
   },
   "account_actions": {
     "edit_name": "Modifier le nom du compte",
