@@ -360,8 +360,7 @@ const App = ({ userLoggedIn }) => {
       }
       prevNavigator.current = navigator;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, handleDeeplink, navigator]);
+  }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
     const initAnalytics = async () => {
@@ -413,8 +412,7 @@ const App = ({ userLoggedIn }) => {
     handlePostInit().catch((err) => {
       Logger.error(err, 'Error postInit SDKConnect');
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userLoggedIn, postInitReady]);
+  }, [userLoggedIn, postInitReady, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
     if (isWC2Enabled) {
