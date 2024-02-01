@@ -83,6 +83,13 @@ def common_target_logic
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
   pod 'ReactNativePayments', :path => '../node_modules/@exodus/react-native-payments/lib/ios/'
 
+    # Pods for Push Notifications
+  pod 'Firebase', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'FirebaseCore', :modular_headers => true
+
+
    # Comment the next line if you don't want to use dynamic frameworks
   # use_frameworks!
 	pod 'Permission-BluetoothPeripheral', :path => '../node_modules/react-native-permissions/ios/BluetoothPeripheral'
