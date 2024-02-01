@@ -1328,6 +1328,20 @@ export const BrowserTab = (props) => {
     trackNewTabEvent();
   };
 
+  useEffect(() => {
+    const { current } = webviewRef;
+    if (!current) return;
+
+    if (isTabActive) {
+      console.log('%%%%%%%%%%%%%%% RESUMING JS TIMERS GLOBALLY %%%%%%%%%%%%%%%');
+      current.resumeJavaScriptTimers();
+    } else {
+      console.log('$$$$$$$$$$$$$$$ PAUSING JS TIMERS GLOBALLY $$$$$$$$$$$$$$$');
+      current.pauseJavaScriptTimers();
+    }
+
+  }, [isTabActive, webviewRef.current]);
+
   /**
    * Render options menu
    */
