@@ -541,14 +541,14 @@ checkParameters "$@"
 
 printTitle
 loadJSEnv
-if [ "$MODE" == "releaseE2E" ] || [ "$MODE" == "QA" ] || [ "$MODE" == "QAE2E" ]; then
-	echo "DEBUG SENTRY PROPS"
-	checkAuthToken 'sentry.debug.properties'
-	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
-elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ]; then
+if [ "$MODE" == "release" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
+else
+	echo "DEBUG SENTRY PROPS"
+	checkAuthToken 'sentry.debug.properties'
+	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
 fi
 
 if [ -z "$METAMASK_BUILD_TYPE" ]; then
