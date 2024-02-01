@@ -1,6 +1,6 @@
 import {
   Transaction,
-  TransactionController as BaseTransactionController,
+  TransactionController,
 } from '@metamask/transaction-controller';
 
 import Engine from '../../core/Engine';
@@ -8,7 +8,7 @@ import Engine from '../../core/Engine';
 // Keeping this export as function to put more logic in the future
 export async function addTransaction(
   transaction: Transaction,
-  opts: Parameters<BaseTransactionController['addTransaction']>[1],
+  opts: Parameters<TransactionController['addTransaction']>[1],
 ) {
   const { TransactionController } = Engine.context;
 
