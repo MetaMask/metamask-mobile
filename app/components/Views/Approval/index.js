@@ -48,7 +48,7 @@ import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
 
-import { updateTransaction } from '../../../util/transaction-controller';
+import { updateTransaction, stopTransaction } from '../../../util/transaction-controller';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -363,7 +363,7 @@ class Approval extends PureComponent {
           `${transactionId}:finished`,
         );
 
-        TransactionController.cancelTransaction(transactionId);
+        stopTransaction(transactionId);
 
         this.showWalletConnectNotification();
 
