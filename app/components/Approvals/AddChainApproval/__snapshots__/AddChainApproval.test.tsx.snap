@@ -2,7 +2,6 @@
 
 exports[`AddChainApproval renders 1`] = `
 <ForwardRef
-  isFullscreen={true}
   shouldNavigateBack={false}
 >
   <BottomSheetHeader>
