@@ -59,7 +59,7 @@ class DeeplinkManager {
     });
   }
 
-  _handleBrowserUrl(url: string, callback: (url: string) => void) {
+  _handleBrowserUrl(url: string, callback?: (url: string) => void) {
     return handleBrowserUrl({
       deeplinkManager: this,
       url,
@@ -82,7 +82,7 @@ class DeeplinkManager {
       origin,
       onHandled,
     }: {
-      browserCallBack: (url: string) => void;
+      browserCallBack?: (url: string) => void;
       origin: string;
       onHandled?: () => void;
     },

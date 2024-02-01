@@ -18,7 +18,6 @@ import I18n, {
 } from '../../../../../locales/i18n';
 import SelectComponent from '../../../UI/SelectComponent';
 import infuraCurrencies from '../../../../util/infura-conversion.json';
-import { colors as importedColors } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setSearchEngine,
@@ -32,7 +31,6 @@ import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
-// import { AppThemeKey } from '../../../../util/theme/models';
 import Text, {
   TextVariant,
   TextColor,
@@ -292,7 +290,8 @@ class Settings extends PureComponent {
       selectedAddress,
       hideZeroBalanceTokens,
     } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const themeTokens = this.context || mockTheme;
+    const { colors } = themeTokens;
     const styles = createStyles(colors);
 
     return (
@@ -409,7 +408,7 @@ class Settings extends PureComponent {
                     true: colors.primary.default,
                     false: colors.border.muted,
                   }}
-                  thumbColor={importedColors.white}
+                  thumbColor={themeTokens.brandColors.white['000']}
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
                 />

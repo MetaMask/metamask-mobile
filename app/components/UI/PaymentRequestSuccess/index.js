@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { getPaymentRequestSuccessOptionsTitle } from '../../UI/Navbar';
 import PropTypes from 'prop-types';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -34,10 +34,10 @@ import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView
 
 const isIos = Device.isIos();
 
-const createStyles = (colors) =>
+const createStyles = (theme) =>
   StyleSheet.create({
     wrapper: {
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.default,
       flex: 1,
     },
     contentWrapper: {
@@ -51,7 +51,7 @@ const createStyles = (colors) =>
       fontSize: 24,
       marginVertical: 16,
       alignSelf: 'center',
-      color: colors.text.default,
+      color: theme.colors.text.default,
     },
     descriptionText: {
       ...fontStyles.normal,
@@ -59,12 +59,12 @@ const createStyles = (colors) =>
       alignSelf: 'center',
       textAlign: 'center',
       marginVertical: 8,
-      color: colors.text.default,
+      color: theme.colors.text.default,
     },
     linkText: {
       ...fontStyles.normal,
       fontSize: 14,
-      color: colors.primary.default,
+      color: theme.colors.primary.default,
       alignSelf: 'center',
       textAlign: 'center',
       marginVertical: 16,
@@ -83,24 +83,24 @@ const createStyles = (colors) =>
       flexGrow: 1,
     },
     icon: {
-      color: colors.primary.default,
+      color: theme.colors.primary.default,
       marginBottom: 16,
     },
     blueIcon: {
-      color: colors.primary.inverse,
+      color: theme.colors.primary.inverse,
     },
     iconWrapper: {
       alignItems: 'center',
     },
     buttonText: {
       ...fontStyles.bold,
-      color: colors.primary.default,
+      color: theme.colors.primary.default,
       fontSize: 14,
       marginLeft: 8,
     },
     blueButtonText: {
       ...fontStyles.bold,
-      color: colors.primary.inverse,
+      color: theme.colors.primary.inverse,
       fontSize: 14,
       marginLeft: 8,
     },
@@ -123,7 +123,7 @@ const createStyles = (colors) =>
     addressTitle: {
       fontSize: 16,
       ...fontStyles.normal,
-      color: colors.text.default,
+      color: theme.colors.text.default,
     },
     informationWrapper: {
       paddingHorizontal: 40,
@@ -148,13 +148,13 @@ const createStyles = (colors) =>
       paddingHorizontal: 36,
       paddingBottom: 24,
       paddingTop: 16,
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.default,
       borderRadius: 8,
     },
     qrCodeWrapper: {
       marginVertical: 8,
       padding: 8,
-      backgroundColor: importedColors.white,
+      backgroundColor: theme.brandColors.white['000'],
     },
   });
 
@@ -262,8 +262,9 @@ class PaymentRequestSuccess extends PureComponent {
 
   render() {
     const { link, amount, symbol, qrModalVisible } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const theme = this.context || mockTheme;
+    const colors = theme.colors;
+    const styles = createStyles(theme);
 
     return (
       <SafeAreaView

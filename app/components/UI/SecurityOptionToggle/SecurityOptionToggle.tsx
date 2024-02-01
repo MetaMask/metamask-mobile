@@ -1,13 +1,12 @@
 import React, { useCallback } from 'react';
 import { Platform, Switch, View } from 'react-native';
-import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { createStyles } from './styles';
-import { colors as importedColors } from '../../../styles/common';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { useTheme } from '../../../util/theme';
 
 interface SecurityOptionsToggleProps {
   title: string;
@@ -30,7 +29,8 @@ const SecurityOptionToggle = ({
   onOptionUpdated,
   disabled,
 }: SecurityOptionsToggleProps) => {
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const theme = useTheme();
+  const { colors } = theme;
   const styles = createStyles();
 
   const handleOnValueChange = useCallback(
@@ -53,7 +53,7 @@ const SecurityOptionToggle = ({
               true: colors.primary.default,
               false: colors.border.muted,
             }}
-            thumbColor={importedColors.white}
+            thumbColor={theme.brandColors.white['000']}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
             disabled={disabled}

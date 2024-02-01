@@ -1,37 +1,42 @@
+// Third party dependencies
 import React, { useRef } from 'react';
 
-import { SheetBottomRef } from '../../../component-library/components/Sheet/SheetBottom';
-import SheetBottom from '../../../component-library/components/Sheet/SheetBottom/SheetBottom';
+// External dependencies
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
-import createStyles from './ShowIpfsGatewaySheet.styles';
 import { useParams } from '../../../util/navigation/navUtils';
 import { ShowIpfsGatewaySheetParams } from './ShowIpfsGatewaySheet.types';
 import SheetActionView from '../../../components/UI/SheetActionView';
 
+// Internal dependencies
+import createStyles from './ShowIpfsGatewaySheet.styles';
+
 const ShowIpfsGatewaySheet = () => {
   const styles = createStyles();
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const { setIpfsBannerVisible } = useParams<ShowIpfsGatewaySheetParams>();
   const handleSheetDismiss = () => null;
 
   const onConfirm = () => {
     const { PreferencesController } = Engine.context;
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       PreferencesController.setIsIpfsGatewayEnabled(true);
       setIpfsBannerVisible?.();
     });
   };
 
   const onCancel = () => {
-    sheetRef.current?.hide();
+    sheetRef.current?.onCloseBottomSheet();
   };
 
   return (
-    <SheetBottom onDismissed={handleSheetDismiss} ref={sheetRef}>
+    <BottomSheet onClose={handleSheetDismiss} ref={sheetRef}>
       <SheetHeader
         title={
           setIpfsBannerVisible
@@ -58,7 +63,7 @@ const ShowIpfsGatewaySheet = () => {
       </Text>
 
       <SheetActionView onCancel={onCancel} onConfirm={onConfirm} />
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 

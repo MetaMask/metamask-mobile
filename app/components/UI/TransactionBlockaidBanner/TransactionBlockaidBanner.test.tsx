@@ -9,6 +9,11 @@ import TransactionBlockaidBanner from './TransactionBlockaidBanner';
 
 jest.mock('../../../util/blockaid', () => ({
   isBlockaidFeatureEnabled: jest.fn().mockReturnValue(true),
+  isBlockaidSupportedOnCurrentChain: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('react-native-gzip', () => ({
+  deflate: (val: any) => val,
 }));
 
 const mockState = {
@@ -24,6 +29,9 @@ const mockState = {
       response: {
         result_type: ResultType.Warning,
         reason: Reason.approvalFarming,
+        block: 123,
+        req: {},
+        chainId: '0x1',
       },
     },
   },
@@ -60,6 +68,9 @@ describe('TransactionBlockaidBanner', () => {
             response: {
               result_type: ResultType.Warning,
               reason: Reason.approvalFarming,
+              block: 123,
+              req: {},
+              chainId: '0x1',
             },
           },
         },
