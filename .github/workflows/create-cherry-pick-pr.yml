@@ -4,14 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       branch_name:
-        description: 'Branch name you want the cherry-pick branch to be based from'     
+        description: 'Target branch name to merge the cherry-picked branch into'
         required: true
+        type: string
       commit_hash:
-        description: 'Commit Hash'     
+        description: 'Commit Hash'
         required: true
+        type: string
       PR_number:
         description: 'PR # Associated with Cherry Pick'     
         required: true
+        type: number
 jobs:
   cherry-pick:
     runs-on: ubuntu-latest
