@@ -6,8 +6,8 @@ import DefaultPreference from 'react-native-default-preference';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
 
-const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
-const METAMASK_BUILD_TYPE = process.env['METAMASK_BUILD_TYPE'] || 'main'; // eslint-disable-line dot-notation
+// const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
+// const METAMASK_BUILD_TYPE = process.env['METAMASK_BUILD_TYPE'] || 'main'; // eslint-disable-line dot-notation
 
 const ERROR_URL_ALLOWLIST = [
   'cryptocompare.com',
@@ -19,8 +19,8 @@ const ERROR_URL_ALLOWLIST = [
 /**\
  * Required instrumentation for Sentry Performance to work with React Navigation
  */
-export const routingInstrumentation =
-  new Sentry.ReactNavigationV5Instrumentation();
+// export const routingInstrumentation =
+//   new Sentry.ReactNavigationV5Instrumentation();
 
 function getProtocolFromURL(url) {
   return new URL(url).protocol;
@@ -184,23 +184,23 @@ export function setupSentry() {
     const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
 
     const integrations = [new Dedupe(), new ExtraErrorData()];
-    const environment = deriveSentryEnvironment(
-      __DEV__,
-      METAMASK_ENVIRONMENT,
-      METAMASK_BUILD_TYPE,
-    );
+    // const environment = deriveSentryEnvironment(
+    //   __DEV__,
+    //   METAMASK_ENVIRONMENT,
+    //   METAMASK_BUILD_TYPE,
+    // );
 
     Sentry.init({
       dsn,
       debug: __DEV__,
-      environment,
+      // environment,
       integrations:
         metricsOptIn === AGREED
           ? [
               ...integrations,
-              new Sentry.ReactNativeTracing({
-                routingInstrumentation,
-              }),
+              // new Sentry.ReactNativeTracing({
+              //   routingInstrumentation,
+              // }),
             ]
           : integrations,
       tracesSampleRate: 0.05,
