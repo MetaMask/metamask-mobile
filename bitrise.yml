@@ -448,8 +448,6 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                sudo apt update
-                sudo apt install -y python3
                 pip install trcli
                 trcli -y 
                 -h "https://mmig.testrail.io/" 
