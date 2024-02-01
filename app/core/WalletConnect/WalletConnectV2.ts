@@ -189,7 +189,14 @@ class WalletConnect2Session {
       );
     }
 
-    this.needsRedirect(id);
+    const requests = this.web3Wallet.getPendingSessionRequests() || [];
+
+    const hasPendingSignRequest =
+      requests[0]?.params?.request?.method === 'personal_sign';
+
+    if (!hasPendingSignRequest) {
+      this.needsRedirect(id);
+    }
   };
 
   rejectRequest = async ({ id, error }: { id: string; error: unknown }) => {
