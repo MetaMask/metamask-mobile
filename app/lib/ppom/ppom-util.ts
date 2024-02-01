@@ -96,9 +96,10 @@ const validateRequest = async (req: any, transactionId?: string) => {
           securityAlertResponse,
         ),
       );
-      updateSecurityAlertResponse(transactionId, {
+      updateSecurityAlertResponse(
+        transactionId as string,
         securityAlertResponse,
-      });
+      );
     } else {
       store.dispatch(
         setSignatureRequestSecurityAlertResponse(securityAlertResponse),
