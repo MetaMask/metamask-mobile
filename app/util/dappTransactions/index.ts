@@ -6,7 +6,7 @@ import { toLowerCaseEquals } from '../general';
 import { strings } from '../../../locales/i18n';
 import { BN } from 'ethereumjs-util';
 import { lt } from '../lodash';
-import { estimateGas as importedEstimateGas } from '../transaction-controller';
+import { estimateGas as controllerEstimateGas } from '../transaction-controller';
 
 interface opts {
   amount?: string;
@@ -75,7 +75,7 @@ export const estimateGas = async (
   } = opts;
   let estimation;
   try {
-    estimation = await importedEstimateGas({
+    estimation = await controllerEstimateGas({
       amount,
       from,
       data,
