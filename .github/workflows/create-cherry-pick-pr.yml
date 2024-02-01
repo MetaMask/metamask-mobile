@@ -14,7 +14,6 @@ on:
       PR_number:
         description: 'PR # Associated with Cherry Pick'     
         required: true
-        type: number
 jobs:
   cherry-pick:
     runs-on: ubuntu-latest
