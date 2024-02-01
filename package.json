@@ -77,10 +77,6 @@
     "test:attribution-check": "./scripts/attributions-check.sh",
     "test:merge-coverage": "nyc report --temp-dir ./tests/coverage --report-dir ./tests/merged-coverage/ --reporter json --reporter text --reporter lcovonly",
     "test:validate-coverage": "nyc check-coverage --nycrc-path ./coverage-thresholds.json -t ./tests/merged-coverage/",
-    "sourcemaps:android": "node_modules/.bin/react-native bundle --platform android --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.android.js --assets-dest /tmp/ --sourcemap-output sourcemaps/android/index.js.map",
-    "sourcemaps:ios": "node_modules/.bin/react-native bundle --platform ios --entry-file index.js --dev false --reset-cache --bundle-output /tmp/bundle.ios.js --assets-dest /tmp/ --sourcemap-output sourcemaps/ios/index.js.map",
-    "stacktrace:android": "stack-beautifier sourcemaps/android/index.js.map -t sourcemaps/trace.txt",
-    "stacktrace:ios": "stack-beautifier sourcemaps/ios/index.js.map -t sourcemaps/trace.txt",
     "update-changelog": "./scripts/auto-changelog.sh",
     "prestorybook": "rnstl",
     "deduplicate": "yarn yarn-deduplicate && yarn install",
@@ -225,7 +221,7 @@
     "@segment/analytics-react-native": "2.13.0",
     "@segment/sovran-react-native": "0.4.5",
     "@sentry/integrations": "6.3.1",
-    "@sentry/react-native": "5.8.1",
+    "@sentry/react-native": "5.11.1",
     "@tradle/react-native-http": "2.0.1",
     "@walletconnect/client": "^1.7.1",
     "@walletconnect/core": "^2.11.0",
@@ -373,8 +369,7 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
-    "zxcvbn": "4.4.2",
-    "cockatiel": "^3.1.1"
+    "zxcvbn": "4.4.2"
   },
   "devDependencies": {
     "@actions/core": "^1.10.0",
@@ -498,7 +493,6 @@
     "regenerator-runtime": "0.13.9",
     "rn-nodeify": "10.3.0",
     "serve-handler": "^6.1.5",
-    "stack-beautifier": "1.0.2",
     "ts-node": "^10.5.0",
     "typescript": "~4.8.4",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
