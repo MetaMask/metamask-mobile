@@ -24,10 +24,10 @@ export async function estimateGas(transaction: Transaction) {
 
 export const cancelTransaction =
   Engine?.context?.TransactionController?.cancelTransaction;
-export const handleMethodData =
-  Engine?.context?.TransactionController?.handleMethodData;
 export const getNonceLock =
   Engine?.context?.TransactionController?.getNonceLock;
+export const handleMethodData =
+  Engine?.context?.TransactionController?.handleMethodData;
 export const speedUpTransaction =
   Engine?.context?.TransactionController?.speedUpTransaction;
 export const startIncomingTransactionPolling =
