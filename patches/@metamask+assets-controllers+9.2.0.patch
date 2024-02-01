@@ -1,3 +1,16 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
+index 18802c9..c82eaaa 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
++++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
+@@ -53,6 +53,8 @@ class AccountTrackerController extends base_controller_1.BaseController {
+                 ? Object.keys(accounts)
+                 : [this.getSelectedAddress()];
+             for (const address of accountsToUpdate) {
++                const balance = yield this.getBalanceFromChain(address);
++                if(!balance) continue;
+                 accounts[address] = {
+                     balance: (0, controller_utils_1.BNToHex)(yield this.getBalanceFromChain(address)),
+                 };
 diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.ts b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.ts
 index 58e0ffa..383f8cb 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.ts
