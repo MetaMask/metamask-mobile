@@ -82,4 +82,6 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () => Sentry.wrap(Root));
+AppRegistry.registerComponent(name, () =>
+  process.env.IS_TEST === 'true' ? Root : Sentry.wrap(Root),
+);

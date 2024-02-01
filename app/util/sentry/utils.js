@@ -178,6 +178,10 @@ export function deriveSentryEnvironment(
 
 // Setup sentry remote error reporting
 export function setupSentry() {
+  if (process.env.IS_TEST === 'true') {
+    return;
+  }
+
   const init = async () => {
     const dsn = process.env.MM_SENTRY_DSN;
 
