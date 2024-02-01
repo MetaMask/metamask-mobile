@@ -1,0 +1,10 @@
+# EXAMPLE stacktrace below:
+
+Fatal Exception: com.facebook.react.common.JavascriptException: Invalid attempt to destructure non-iterable instance, stack:
+<unknown>@9:487
+o@781:121
+value@80:1312
+value@42:1514
+<unknown>@18:912
+d@31:10
+value@11:1512
