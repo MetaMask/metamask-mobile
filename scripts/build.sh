@@ -161,8 +161,6 @@ prebuild_ios(){
 }
 
 prebuild_android(){
-	adb kill-server
-	adb start-server
 	prebuild
 	# Copy JS files for injection
 	yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/.
@@ -403,7 +401,7 @@ buildAndroidRelease(){
 buildAndroidFlaskRelease(){
 	# remap flask env variables to match what the app expects
 	remapFlaskEnvVariables
-	
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.flask || true
 	fi
@@ -550,6 +548,25 @@ elif [ "$MODE" == "release" ] || [ "$MODE" == "flask" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
+fi
+
+# set some defaults
+if [ -z "$METAMASK_BUILD_TYPE" ]; then
+  METAMASK_BUILD_TYPE='main'
+fi
+
+if [ -z "$METAMASK_ENVIRONMENT" ]; then
+  METAMASK_ENVIRONMENT='local'
+fi
+
+if [ -z "$GIT_COMMIT" ]; then
+  GIT_COMMIT="$(git rev-parse --short HEAD)"
+  export GIT_COMMIT
+fi
+
+if [ -z "$GIT_BRANCH" ]; then
+  GIT_BRANCH="$(git branch --show-current)"
+  export GIT_BRANCH
 fi
 
 if [ -z "$METAMASK_BUILD_TYPE" ]; then

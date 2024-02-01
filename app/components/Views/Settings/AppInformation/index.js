@@ -23,7 +23,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings/AboutMetaMask.selectors';
 
-const IS_QA = process.env['METAMASK_ENVIRONMENT'] === 'qa';
+const IS_PROD_ENV = process.env['METAMASK_ENVIRONMENT'] === 'production';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -187,11 +187,16 @@ export default class AppInformation extends PureComponent {
               resizeMethod={'auto'}
             />
             <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
-            {IS_QA ? (
-              <Text style={styles.branchInfo}>
-                {`Branch: ${process.env['GIT_BRANCH']}`}
-              </Text>
-            ) : null}
+            {IS_PROD_ENV ? null : (
+              <>
+                <Text style={styles.branchInfo}>
+                  {`Branch: ${process.env['GIT_BRANCH']}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`Commit Hash: ${process.env['GIT_COMMIT']}`}
+                </Text>
+              </>
+            )}
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>

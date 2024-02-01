@@ -22637,13 +22637,6 @@ react-native-webview-invoke@^0.6.2:
     escape-string-regexp "2.0.0"
     invariant "2.2.4"
 
-"react-native-webview@https://github.com/MetaMask/react-native-webview-mm#f4cafd9fbd7659ca44b6af2a09034ad2f5565aa7":
-  version "13.6.3"
-  resolved "https://github.com/MetaMask/react-native-webview-mm#f4cafd9fbd7659ca44b6af2a09034ad2f5565aa7"
-  dependencies:
-    escape-string-regexp "2.0.0"
-    invariant "2.2.4"
-
 react-native@0.71.14:
   version "0.71.14"
   resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.71.14.tgz#df12b405a7913b736de01b0347af14e4be7bf324"
