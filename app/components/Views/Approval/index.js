@@ -48,7 +48,10 @@ import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
 
-import { updateTransaction, stopTransaction } from '../../../util/transaction-controller';
+import {
+  updateTransaction,
+  stopTransaction,
+} from '../../../util/transaction-controller';
 
 const REVIEW = 'review';
 const EDIT = 'edit';

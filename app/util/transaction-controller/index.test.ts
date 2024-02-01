@@ -19,6 +19,7 @@ jest.mock('../../core/Engine', () => ({
       estimateGas: jest.fn(),
 
       // Proxy methods
+      handleMethodData: jest.fn(),
       getNonceLock: jest.fn(),
       speedUpTransaction: jest.fn(),
       startIncomingTransactionPolling: jest.fn(),
