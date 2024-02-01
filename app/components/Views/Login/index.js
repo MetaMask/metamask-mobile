@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {
   Alert,
   ActivityIndicator,
+  Keyboard,
   View,
   SafeAreaView,
   StyleSheet,
@@ -371,6 +372,8 @@ class Login extends PureComponent {
         this.props.selectedAddress,
       );
 
+      Keyboard.dismiss();
+
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
       if (onboardingWizard) {
@@ -507,8 +510,9 @@ class Login extends PureComponent {
       <ErrorBoundary navigation={this.props.navigation} view="Login">
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
-            style={styles.wrapper}
+            keyboardShouldPersistTaps="handled"
             resetScrollToCoords={{ x: 0, y: 0 }}
+            style={styles.wrapper}
           >
             <View testID={LoginViewSelectors.CONTAINER}>
               <View style={styles.foxWrapper}>
