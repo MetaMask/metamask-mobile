@@ -19,7 +19,10 @@ import {
 import Icon from '../../../component-library/components/Icons/Icon/Icon';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../component-library/hooks/useStyles';
-import { isBlockaidFeatureEnabled } from '../../../util/blockaid';
+import {
+  isBlockaidFeatureEnabled,
+  isBlockaidSupportedOnCurrentChain,
+} from '../../../util/blockaid';
 import {
   ATTRIBUTION_LINE_TEST_ID,
   FALSE_POSITIVE_REPOST_LINE_TEST_ID,
@@ -38,11 +41,7 @@ import {
   FALSE_POSITIVE_REPORT_BASE_URL,
   UTM_SOURCE,
 } from '../../../constants/urls';
-import {
-  BLOCKAID_SUPPORTED_CHAIN_IDS,
-  BLOCKAID_SUPPORTED_NETWORK_NAMES,
-} from '../../../util/networks';
-import { selectChainId } from '../../../selectors/networkController';
+import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../util/networks';
 import { selectIsSecurityAlertsEnabled } from '../../../selectors/preferencesController';
 import BlockaidVersionInfo from '../../../lib/ppom/blockaid-version';
 
@@ -99,7 +98,6 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   } = bannerProps;
   const { styles, theme } = useStyles(styleSheet, { style });
   const [displayPositiveResponse, setDisplayPositiveResponse] = useState(false);
-  const networkChainId = useSelector(selectChainId);
   const [reportUrl, setReportUrl] = useState<string>('');
   const isSecurityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
@@ -141,7 +139,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   if (
     !securityAlertResponse ||
     !isBlockaidFeatureEnabled() ||
-    !BLOCKAID_SUPPORTED_CHAIN_IDS.includes(networkChainId) ||
+    !isBlockaidSupportedOnCurrentChain() ||
     !isSecurityAlertsEnabled
   ) {
     return null;

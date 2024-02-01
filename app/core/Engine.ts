@@ -231,6 +231,7 @@ type GlobalEvents =
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
+  | KeyringControllerEvents
   | PPOMControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
@@ -1342,6 +1343,11 @@ class Engine {
   }
 
   async destroyEngineInstance() {
+    Object.values(this.context).forEach((controller: any) => {
+      if (controller.destroy) {
+        controller.destroy();
+      }
+    });
     this.removeAllListeners();
     await this.resetState();
     Engine.instance = null;
