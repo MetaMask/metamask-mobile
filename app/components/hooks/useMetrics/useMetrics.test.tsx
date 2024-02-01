@@ -9,6 +9,7 @@ import useMetrics from './useMetrics';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 
+// allows runAfterInteractions to return immediately
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   runAfterInteractions: (callback: () => Promise<void>) => callback(),
 }));
@@ -32,9 +33,6 @@ const mockMetrics = {
   trackAnonymousEvent: jest.fn(),
   enable: jest.fn(() => Promise.resolve()),
   addTraitsToUser: jest.fn(() => Promise.resolve()),
-  group: jest.fn(),
-  reset: jest.fn(() => Promise.resolve()),
-  flush: jest.fn(() => Promise.resolve()),
   createDataDeletionTask: jest.fn(() =>
     Promise.resolve(expectedDataDeletionTaskResponse),
   ),
@@ -44,42 +42,83 @@ const mockMetrics = {
   getDeleteRegulationCreationDate: jest.fn(() => expectedDate),
   getDeleteRegulationId: jest.fn(() => expectedDataDeleteRegulationId),
   isDataRecorded: jest.fn(() => true),
+  isInitialized: jest.fn(() => false),
   isEnabled: jest.fn(() => true),
+  init: jest.fn(() => Promise.resolve(false)),
 };
 
-(MetaMetrics.getInstance as jest.Mock).mockResolvedValue(mockMetrics);
+(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 describe('useMetrics', () => {
-  it('tracks events', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => useMetrics());
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    await waitForNextUpdate();
+  it('uses MetaMetrics instance', async () => {
+    const { result } = renderHook(() => useMetrics());
+    expect(result.current).toMatchInlineSnapshot(`
+      Object {
+        "addTraitsToUser": [MockFunction],
+        "checkDataDeleteStatus": [MockFunction],
+        "createDataDeletionTask": [MockFunction],
+        "enable": [MockFunction],
+        "getDeleteRegulationCreationDate": [MockFunction],
+        "getDeleteRegulationId": [MockFunction],
+        "init": [MockFunction],
+        "isDataRecorded": [MockFunction],
+        "isEnabled": [MockFunction],
+        "isInitialized": [MockFunction],
+        "trackAnonymousEvent": [Function],
+        "trackEvent": [Function],
+      }
+    `);
+  });
+
+  it('calls MetaMetrics functions', async () => {
+    const { result } = renderHook(() => useMetrics());
 
     const event: IMetaMetricsEvent = {
       category: 'test',
     };
 
-    let deletionTaskId,
-      dataDeleteStatus,
-      deletionDate,
-      regulationId,
+    const {
+      trackEvent,
+      trackAnonymousEvent,
+      enable,
+      addTraitsToUser,
+      createDataDeletionTask,
+      checkDataDeleteStatus,
+      getDeleteRegulationCreationDate,
+      getDeleteRegulationId,
       isDataRecorded,
-      isEnabled;
+      isInitialized,
+      isEnabled,
+      init,
+    } = result.current;
+
+    let deletionTaskIdValue,
+      dataDeleteStatusValue,
+      deletionDateValue,
+      regulationIdValue,
+      isDataRecordedValue,
+      isInitializedValue,
+      initValue,
+      isEnabledValue;
 
     await act(async () => {
-      result.current.trackEvent(event);
-      result.current.trackAnonymousEvent(event);
-      await result.current.enable(true);
-      await result.current.addTraitsToUser({});
-      result.current.group('test', {});
-      await result.current.reset();
-      await result.current.flush();
-      deletionTaskId = await result.current.createDataDeletionTask();
-      dataDeleteStatus = await result.current.checkDataDeleteStatus();
-      deletionDate = result.current.getDeleteRegulationCreationDate();
-      regulationId = result.current.getDeleteRegulationId();
-      isDataRecorded = result.current.isDataRecorded();
-      isEnabled = result.current.isEnabled();
+      await init();
+      trackEvent(event);
+      trackAnonymousEvent(event);
+      await enable(true);
+      await addTraitsToUser({});
+      deletionTaskIdValue = await createDataDeletionTask();
+      dataDeleteStatusValue = await checkDataDeleteStatus();
+      deletionDateValue = getDeleteRegulationCreationDate();
+      regulationIdValue = getDeleteRegulationId();
+      isDataRecordedValue = isDataRecorded();
+      isInitializedValue = isInitialized();
+      initValue = await init();
+      isEnabledValue = isEnabled();
     });
 
     expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
@@ -94,26 +133,29 @@ describe('useMetrics', () => {
     );
     expect(mockMetrics.enable).toHaveBeenCalledWith(true);
     expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({});
-    expect(mockMetrics.group).toHaveBeenCalledWith('test', {});
-    expect(mockMetrics.reset).toHaveBeenCalled();
-    expect(mockMetrics.flush).toHaveBeenCalled();
 
     expect(mockMetrics.createDataDeletionTask).toHaveBeenCalled();
-    expect(deletionTaskId).toEqual(expectedDataDeletionTaskResponse);
+    expect(deletionTaskIdValue).toEqual(expectedDataDeletionTaskResponse);
 
     expect(mockMetrics.checkDataDeleteStatus).toHaveBeenCalled();
-    expect(dataDeleteStatus).toEqual(expectedDataDeleteStatus);
+    expect(dataDeleteStatusValue).toEqual(expectedDataDeleteStatus);
 
     expect(mockMetrics.getDeleteRegulationCreationDate).toHaveBeenCalled();
-    expect(deletionDate).toEqual(expectedDate);
+    expect(deletionDateValue).toEqual(expectedDate);
 
     expect(mockMetrics.getDeleteRegulationId).toHaveBeenCalled();
-    expect(regulationId).toEqual(expectedDataDeleteRegulationId);
+    expect(regulationIdValue).toEqual(expectedDataDeleteRegulationId);
 
     expect(mockMetrics.isDataRecorded).toHaveBeenCalled();
-    expect(isDataRecorded).toEqual(true);
+    expect(isDataRecordedValue).toEqual(true);
+
+    expect(mockMetrics.isInitialized).toHaveBeenCalled();
+    expect(isInitializedValue).toBeFalsy();
+
+    expect(mockMetrics.init).toHaveBeenCalled();
+    expect(initValue).toBeFalsy();
 
     expect(mockMetrics.isEnabled).toHaveBeenCalled();
-    expect(isEnabled).toEqual(true);
+    expect(isEnabledValue).toBeTruthy();
   });
 });

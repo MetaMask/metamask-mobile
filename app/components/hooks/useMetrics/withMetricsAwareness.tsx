@@ -1,11 +1,11 @@
 import React, { ComponentClass } from 'react';
 import useMetrics from './useMetrics';
-import { IMetaMetrics } from '../../../core/Analytics/MetaMetrics.types';
+import { IUseMetricsHook } from './useMetrics.types';
 
 const withMetricsAwareness =
   (
     Children: ComponentClass<{
-      metrics: IMetaMetrics;
+      metrics: IUseMetricsHook;
     }>,
   ) =>
   (props: any) => {

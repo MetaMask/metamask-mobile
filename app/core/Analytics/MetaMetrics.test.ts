@@ -45,10 +45,39 @@ describe('MetaMetrics', () => {
     mockSet.mockReset();
   });
 
+  describe('Singleton', () => {
+    it('does not create a new instance if one already exists', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      const metaMetrics2 = TestMetaMetrics.getInstance();
+      expect(metaMetrics).not.toBeNull();
+      expect(metaMetrics2).not.toBeNull();
+      expect(metaMetrics).toBeInstanceOf(MetaMetrics);
+      expect(metaMetrics2).toBeInstanceOf(MetaMetrics);
+      expect(metaMetrics2).toBe(metaMetrics);
+    });
+  });
+
+  describe('Initialisation', () => {
+    it('succeeds', async () => {
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(metaMetrics.isInitialized()).toBeFalsy();
+      expect(await metaMetrics.init()).toBeTruthy();
+      expect(metaMetrics.isInitialized()).toBeTruthy();
+    });
+    it('fails silently', async () => {
+      DefaultPreference.get = jest.fn().mockRejectedValue(new Error('error'));
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(metaMetrics.isInitialized()).toBeFalsy();
+      expect(await metaMetrics.init()).toBeFalsy();
+      expect(metaMetrics.isInitialized()).toBeFalsy();
+    });
+  });
+
   describe('Disabling', () => {
     it('defaults to disabled metrics', async () => {
       mockGet.mockResolvedValue(undefined);
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
 
       expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
       expect(metaMetrics.isEnabled()).toBeFalsy();
@@ -56,14 +85,16 @@ describe('MetaMetrics', () => {
 
     it('uses preference enabled value when set', async () => {
       mockGet.mockImplementation(async () => AGREED);
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
 
       expect(DefaultPreference.get).toHaveBeenCalledWith(METRICS_OPT_IN);
       expect(metaMetrics.isEnabled()).toBeTruthy();
     });
 
     it('enables metrics', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
       await metaMetrics.enable();
 
       expect(DefaultPreference.set).toHaveBeenLastCalledWith(
@@ -97,7 +128,8 @@ describe('MetaMetrics', () => {
 
   describe('Tracking', () => {
     it('tracks event', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
       await metaMetrics.enable();
       const event = 'event1';
       const properties = { prop1: 'value1' };
@@ -113,7 +145,8 @@ describe('MetaMetrics', () => {
     });
 
     it('tracks event without param', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
       await metaMetrics.enable();
       const event = 'event1';
 
@@ -128,7 +161,8 @@ describe('MetaMetrics', () => {
     });
 
     it('does not track event when diabled', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
       const event = 'event1';
       const properties = { prop1: 'value1' };
 
@@ -190,7 +224,8 @@ describe('MetaMetrics', () => {
     });
 
     it('tracks event without updating dataRecorded status', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
       await metaMetrics.enable();
       const event = 'event1';
       const properties = { prop1: 'value1' };
@@ -233,7 +268,8 @@ describe('MetaMetrics', () => {
 
   describe('User Traits', () => {
     it('adds traits to user', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
       await metaMetrics.enable();
       const userTraits = { trait1: 'value1' };
       metaMetrics.addTraitsToUser(userTraits);
@@ -274,7 +310,8 @@ describe('MetaMetrics', () => {
     it('uses Mixpanel ID if it is set', async () => {
       const mixPanelUUID = '00000000-0000-0000-0000-000000000000';
       mockGet.mockImplementation(async () => mixPanelUUID);
-      await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
 
       expect(DefaultPreference.get).toHaveBeenNthCalledWith(
         2,
@@ -292,7 +329,8 @@ describe('MetaMetrics', () => {
       mockGet.mockImplementation(async (key: string) =>
         key === METAMETRICS_ID ? UUID : '',
       );
-      await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
 
       expect(DefaultPreference.get).toHaveBeenNthCalledWith(
         2,
@@ -303,7 +341,8 @@ describe('MetaMetrics', () => {
     });
 
     it('maintains same user id', async () => {
-      await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
       const metricsId = mockSet.mock.calls[0][1];
       expect(metricsId).not.toEqual('');
 
@@ -318,7 +357,8 @@ describe('MetaMetrics', () => {
     });
 
     it('resets user id', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.init()).toBeTruthy();
       const metricsId = mockSet.mock.calls[0][1];
 
       expect(metricsId).not.toEqual('');
@@ -404,7 +444,8 @@ describe('MetaMetrics', () => {
       it('gets date from preferences storage', async () => {
         const expectedDate = '04/05/2023';
         DefaultPreference.get = jest.fn().mockResolvedValue(expectedDate);
-        const metaMetrics = await TestMetaMetrics.getInstance();
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.init()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
           expectedDate,
         );
@@ -416,7 +457,8 @@ describe('MetaMetrics', () => {
       it('keeps date in instance', async () => {
         const expectedDate = '04/05/2023';
         DefaultPreference.get = jest.fn().mockResolvedValue(expectedDate);
-        const metaMetrics = await TestMetaMetrics.getInstance();
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.init()).toBeTruthy();
         // this resets the call count and changes the return value to nothing
         DefaultPreference.get = jest.fn().mockResolvedValue(null);
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBe(
@@ -429,7 +471,8 @@ describe('MetaMetrics', () => {
 
       it('returns empty string if no date in preferences storage', async () => {
         DefaultPreference.get = jest.fn().mockResolvedValue(undefined);
-        const metaMetrics = await TestMetaMetrics.getInstance();
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.init()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationCreationDate()).toBeUndefined();
         expect(DefaultPreference.get).toHaveBeenCalledWith(
           ANALYTICS_DATA_DELETION_DATE,
@@ -443,7 +486,8 @@ describe('MetaMetrics', () => {
         DefaultPreference.get = jest
           .fn()
           .mockResolvedValue(expecterRegulationId);
-        const metaMetrics = await TestMetaMetrics.getInstance();
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.init()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationId()).toBe(expecterRegulationId);
         expect(DefaultPreference.get).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
@@ -455,7 +499,8 @@ describe('MetaMetrics', () => {
         DefaultPreference.get = jest
           .fn()
           .mockResolvedValue(expecterRegulationId);
-        const metaMetrics = await TestMetaMetrics.getInstance();
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.init()).toBeTruthy();
         // this resets the call count and changes the return value to nothing
         DefaultPreference.get = jest.fn().mockResolvedValue(null);
         expect(metaMetrics.getDeleteRegulationId()).toBe(expecterRegulationId);
@@ -466,7 +511,8 @@ describe('MetaMetrics', () => {
 
       it('returns empty string if no id in preferences storage', async () => {
         DefaultPreference.get = jest.fn().mockResolvedValue(undefined);
-        const metaMetrics = await TestMetaMetrics.getInstance();
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.init()).toBeTruthy();
         expect(metaMetrics.getDeleteRegulationId()).toBeUndefined();
         expect(DefaultPreference.get).toHaveBeenCalledWith(
           METAMETRICS_DELETION_REGULATION_ID,
@@ -487,7 +533,8 @@ describe('MetaMetrics', () => {
           }
         });
 
-        const metaMetrics = await TestMetaMetrics.getInstance();
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.init()).toBeTruthy();
         (axios as jest.MockedFunction<typeof axios>).mockResolvedValue({
           status: 200,
           data: {
