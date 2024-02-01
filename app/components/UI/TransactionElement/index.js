@@ -24,8 +24,10 @@ import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
 import { isMainNet } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
-import { WalletDevice } from '@metamask/transaction-controller';
-import { isEIP1559Transaction } from '@metamask/transaction-controller';
+import {
+  WalletDevice,
+  isEIP1559Transaction,
+} from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import {
   selectChainId,
