@@ -142,6 +142,7 @@ loadJSEnv(){
 	fi
 	# Disable auto Sentry file upload by default
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
+	echo "SENTRY---HERE IS SENTRY AUTO UPLOAD: $SENTRY_DISABLE_AUTO_UPLOAD"
 }
 
 
@@ -545,10 +546,12 @@ if [ "$MODE" == "release" ]; then
 	echo "RELEASE SENTRY PROPS"
 	checkAuthToken 'sentry.release.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.release.properties"
+	echo "SENTRY---HERE IS SENTRY RELEASE PROPERTIES: $SENTRY_PROPERTIES"
 else
 	echo "DEBUG SENTRY PROPS"
 	checkAuthToken 'sentry.debug.properties'
 	export SENTRY_PROPERTIES="${REPO_ROOT_DIR}/sentry.debug.properties"
+	echo "SENTRY---HERE IS SENTRY DEBUG PROPERTIES: $SENTRY_PROPERTIES"
 fi
 
 if [ -z "$METAMASK_BUILD_TYPE" ]; then
