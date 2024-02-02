@@ -411,23 +411,25 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
-  # upload_to_test_rails: 
-  #   steps:
-  #      - script@1:
-  #         title: upload to test rails
-  #         is_always_run: false
-  #         inputs:
-  #           - content: |-
-  #               #!/usr/bin/env bash
-  #               trcli -y 
-  #               -h "https://mmig.testrail.io/" 
-  #               -u "mmig_qa@consensys.net" 
-  #               -p "Dex6TINMdkRQvw5aqzsR-2WgvTjVj8H11riF34ttZ" 
-  #               --project "Metamask" 
-  #               parse_junit 
-  #               --title "Automated Test Run" 
-  #               --run-description "Bitrise Build URL: ${BITRISE_BUILD_URL}" 
-  #               -f "$BITRISE_SOURCE_DIR/e2e/reports/junit.xml"
+  upload_to_test_rails: 
+    steps:
+       - script@1:
+          title: upload to test rails
+          is_always_run: false
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Install TestRail CLI and upload test reports 
+                pip install trcli
+                trcli -y \
+                -h "https://mmig.testrail.io/" \
+                -u "mmig_qa@consensys.net" \
+                -p "9UaewymqNPH9STFqEgeq-8sGgzMCKyxwns/f.7DO9" \
+                --project "Metamask" \
+                parse_junit \
+                --title "Automated Regression Test run" \
+                --run-description "Bitrise Build URL: ${BITRISE_BUILD_URL}" \
+                -f "$BITRISE_SOURCE_DIR/e2e/reports/junit.xml"
   e2e_setup:
     steps:
       - yarn@:
@@ -531,7 +533,7 @@ workflows:
                 #!/usr/bin/env bash
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - script@1:
-          title: Install python
+          title: Install Python
           inputs:
             - content: |-
                 sudo apt update
@@ -717,7 +719,7 @@ workflows:
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
       - script:
-          title: Install python 
+          title: Install Python 
           inputs:
             - content: |-
                 # Add cache directory to environment variable
@@ -1334,4 +1336,4 @@ trigger_map:
   - tag: 'dev-e2e-*'
     pipeline: pr_smoke_e2e_pipeline
   - push_branch: test-rails-integration
-    pipeline: android_e2e_build
+    pipeline: regression_e2e_pipeline
