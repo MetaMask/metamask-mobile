@@ -95,9 +95,7 @@ export interface IMetaMetrics {
 
   isDataRecorded(): boolean;
 
-  isInitialized(): boolean;
-
-  init(): Promise<boolean>;
+  configure(): Promise<boolean>;
 }
 
 /**

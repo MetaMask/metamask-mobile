@@ -1,16 +1,9 @@
 import React, { ComponentClass } from 'react';
 import useMetrics from './useMetrics';
-import { IUseMetricsHook } from './useMetrics.types';
+import { IWithMetricsAwarenessProps } from './withMetricsAwareness.types';
 
 const withMetricsAwareness =
-  (
-    Children: ComponentClass<{
-      metrics: IUseMetricsHook;
-    }>,
-  ) =>
-  (props: any) => {
-    const metrics = useMetrics();
-    return <Children {...props} {...(metrics && { metrics })} />;
-  };
+  (Children: ComponentClass<IWithMetricsAwarenessProps>) => (props: any) =>
+    <Children {...props} metrics={useMetrics()} />;
 
 export default withMetricsAwareness;

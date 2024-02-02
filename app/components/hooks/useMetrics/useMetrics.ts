@@ -112,9 +112,7 @@ const useMetrics = (): IUseMetricsHook => {
       MetaMetrics.getInstance().getDeleteRegulationCreationDate,
     getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId,
     isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
-    isInitialized: MetaMetrics.getInstance().isInitialized,
     isEnabled: MetaMetrics.getInstance().isEnabled,
-    init: MetaMetrics.getInstance().init,
   };
 };
 

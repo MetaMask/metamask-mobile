@@ -64,10 +64,8 @@ describe('useMetrics', () => {
         "enable": [MockFunction],
         "getDeleteRegulationCreationDate": [MockFunction],
         "getDeleteRegulationId": [MockFunction],
-        "init": [MockFunction],
         "isDataRecorded": [MockFunction],
         "isEnabled": [MockFunction],
-        "isInitialized": [MockFunction],
         "trackAnonymousEvent": [Function],
         "trackEvent": [Function],
       }
@@ -91,9 +89,7 @@ describe('useMetrics', () => {
       getDeleteRegulationCreationDate,
       getDeleteRegulationId,
       isDataRecorded,
-      isInitialized,
       isEnabled,
-      init,
     } = result.current;
 
     let deletionTaskIdValue,
@@ -101,12 +97,9 @@ describe('useMetrics', () => {
       deletionDateValue,
       regulationIdValue,
       isDataRecordedValue,
-      isInitializedValue,
-      initValue,
       isEnabledValue;
 
     await act(async () => {
-      await init();
       trackEvent(event);
       trackAnonymousEvent(event);
       await enable(true);
@@ -116,8 +109,6 @@ describe('useMetrics', () => {
       deletionDateValue = getDeleteRegulationCreationDate();
       regulationIdValue = getDeleteRegulationId();
       isDataRecordedValue = isDataRecorded();
-      isInitializedValue = isInitialized();
-      initValue = await init();
       isEnabledValue = isEnabled();
     });
 
@@ -148,12 +139,6 @@ describe('useMetrics', () => {
 
     expect(mockMetrics.isDataRecorded).toHaveBeenCalled();
     expect(isDataRecordedValue).toEqual(true);
-
-    expect(mockMetrics.isInitialized).toHaveBeenCalled();
-    expect(isInitializedValue).toBeFalsy();
-
-    expect(mockMetrics.init).toHaveBeenCalled();
-    expect(initValue).toBeFalsy();
 
     expect(mockMetrics.isEnabled).toHaveBeenCalled();
     expect(isEnabledValue).toBeTruthy();

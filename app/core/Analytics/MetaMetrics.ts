@@ -115,7 +115,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @private
    */
-  #isInitialized = false;
+  #isConfigured = false;
 
   /**
    * Random ID used for tracking events
@@ -449,7 +449,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @example const metrics = MetaMetrics.getInstance();
    * @returns non initialized MetaMetrics instance
-   * @remarks Instance has to be initialized before being used, call {@link init} method
+   * @remarks Instance has to be initialized before being used, call {@link configure} method
    */
   public static getInstance(): IMetaMetrics {
     if (!this.instance) {
@@ -477,8 +477,8 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @returns Promise indicating if MetaMetrics was initialized or not
    */
-  init = async (): Promise<boolean> => {
-    if (this.#isInitialized) return true;
+  configure = async (): Promise<boolean> => {
+    if (this.#isConfigured) return true;
     try {
       this.enabled = await this.#isMetaMetricsEnabled();
       // get the user unique id when initializing
@@ -487,11 +487,11 @@ class MetaMetrics implements IMetaMetrics {
       this.deleteRegulationDate =
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
-      this.#isInitialized = true;
+      this.#isConfigured = true;
     } catch (error: any) {
       Logger.error(error, 'Error initializing MetaMetrics');
     }
-    return this.#isInitialized;
+    return this.#isConfigured;
   };
 
   /**
@@ -668,8 +668,6 @@ class MetaMetrics implements IMetaMetrics {
    * @returns true if events have been recorded since the last deletion request
    */
   isDataRecorded = (): boolean => this.dataRecorded;
-
-  isInitialized = (): boolean => this.#isInitialized;
 }
 
 export default MetaMetrics;
