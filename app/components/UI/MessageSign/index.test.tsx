@@ -7,7 +7,6 @@ import { InteractionManager } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import analyticsV2 from '../../../util/analyticsV2';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { act, waitFor } from '@testing-library/react-native';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
@@ -15,6 +14,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 // eslint-disable-next-line import/no-namespace
 import * as addressUtils from '../../../util/address';
 import createExternalSignModelNav from '../../../util/hardwareWallet/signatureUtils';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
 
 const fakeAddress = '0xE413f7dB07f9B93936189867588B1440D823e651';
 
@@ -42,7 +42,11 @@ jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
-jest.mock('../../../util/analyticsV2');
+jest.mock('../../hooks/useMetrics/useMetrics');
+const mockTrackEvent = jest.fn();
+(useMetrics as jest.Mock).mockReturnValue({
+  trackEvent: mockTrackEvent,
+});
 
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
@@ -145,7 +149,7 @@ describe('MessageSign', () => {
         'TestMessageId:signError',
         expect.any(Function),
       );
-      expect(analyticsV2.trackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.SignatureController.hub.removeListener,
       ).toHaveBeenCalledTimes(0);
@@ -248,10 +252,10 @@ describe('MessageSign', () => {
         const container = createContainer();
         await container.getByTestId('SignatureRequest').props.onReject();
 
-        expect((analyticsV2.trackEvent as jest.Mock).mock.calls[1][0]).toEqual({
+        expect(mockTrackEvent.mock.calls[1][0]).toEqual({
           category: 'Signature Rejected',
         });
-        expect((analyticsV2.trackEvent as jest.Mock).mock.calls[1][1]).toEqual({
+        expect(mockTrackEvent.mock.calls[1][1]).toEqual({
           account_type: 'MetaMask',
           dapp_host_name: undefined,
           chain_id: undefined,
@@ -267,10 +271,10 @@ describe('MessageSign', () => {
         const container = createContainer();
         await container.getByTestId('SignatureRequest').props.onConfirm();
 
-        expect((analyticsV2.trackEvent as jest.Mock).mock.calls[1][0]).toEqual({
+        expect(mockTrackEvent.mock.calls[1][0]).toEqual({
           category: 'Signature Approved',
         });
-        expect((analyticsV2.trackEvent as jest.Mock).mock.calls[1][1]).toEqual({
+        expect(mockTrackEvent.mock.calls[1][1]).toEqual({
           account_type: 'MetaMask',
           dapp_host_name: undefined,
           chain_id: undefined,
@@ -333,7 +337,7 @@ describe('MessageSign', () => {
         'TestMessageId:signError',
         expect.any(Function),
       );
-      expect(analyticsV2.trackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.SignatureController.hub.removeListener,
       ).toHaveBeenCalledTimes(0);
@@ -380,8 +384,8 @@ describe('MessageSign', () => {
         error: new Error(KEYSTONE_TX_CANCELED),
       });
       await waitFor(() => {
-        expect(analyticsV2.trackEvent).toHaveBeenCalledTimes(2);
-        expect((analyticsV2.trackEvent as jest.Mock).mock.calls[1][0]).toEqual(
+        expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+        expect(mockTrackEvent.mock.calls[1][0]).toEqual(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       });

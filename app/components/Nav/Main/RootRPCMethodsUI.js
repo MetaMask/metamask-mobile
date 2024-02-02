@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-import { Alert, InteractionManager } from 'react-native';
+import { Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
@@ -30,12 +30,10 @@ import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
-import Analytics from '../../../core/Analytics/Analytics';
 import BigNumber from 'bignumber.js';
 import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { getAddressAccountType } from '../../../util/address';
 import {
   selectChainId,
@@ -60,6 +58,7 @@ import { selectSelectedAddress } from '../../../selectors/preferencesController'
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 ///: END:ONLY_INCLUDE_IF
+import { useMetrics } from '../../hooks/useMetrics';
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -68,6 +67,7 @@ const RootRPCMethodsUI = (props) => {
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
+  const { trackEvent, trackAnonymousEvent } = useMetrics();
 
   const initializeWalletConnect = () => {
     WalletConnect.init();
@@ -158,27 +158,27 @@ const RootRPCMethodsUI = (props) => {
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
-        InteractionManager.runAfterInteractions(() => {
-          const parameters = {
-            ...analyticsParams,
-            time_to_mine: timeToMine,
-            estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
-            quote_vs_executionRatio: quoteVsExecutionRatio,
-            token_to_amount_received: tokenToAmountReceived.toString(),
-          };
-          Analytics.trackEventWithParameters(event, {});
-          Analytics.trackEventWithParameters(event, parameters, true);
-        });
+        const parameters = {
+          ...analyticsParams,
+          time_to_mine: timeToMine,
+          estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
+          quote_vs_executionRatio: quoteVsExecutionRatio,
+          token_to_amount_received: tokenToAmountReceived.toString(),
+        };
+        trackAnonymousEvent(event, parameters);
       } catch (e) {
         Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
-        InteractionManager.runAfterInteractions(() => {
-          Analytics.trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
-            error: e,
-          });
+        trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
+          error: e,
         });
       }
     },
-    [props.selectedAddress, props.swapsTransactions],
+    [
+      props.selectedAddress,
+      props.swapsTransactions,
+      trackEvent,
+      trackAnonymousEvent,
+    ],
   );
 
   const autoSign = useCallback(
@@ -221,13 +221,11 @@ const RootRPCMethodsUI = (props) => {
           );
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          );
+          trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
         }
       }
     },
-    [props.swapsTransactions, trackSwaps],
+    [props.swapsTransactions, trackSwaps, trackEvent],
   );
 
   const onUnapprovedTransaction = useCallback(

@@ -35,8 +35,8 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import { selectProviderConfig } from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
 import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -67,6 +67,7 @@ const AccountRightButton = ({
   const placeholderInputRef = useRef<TextInput>(null);
   const { navigate } = useNavigation();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
+  const { trackEvent } = useMetrics();
 
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
@@ -122,12 +123,9 @@ const AccountRightButton = ({
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
       });
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
-        {
-          chain_id: providerConfig.chainId,
-        },
-      );
+      trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
+        chain_id: providerConfig.chainId,
+      });
     } else {
       onPress?.();
     }
@@ -138,6 +136,7 @@ const AccountRightButton = ({
     onPress,
     navigate,
     providerConfig.chainId,
+    trackEvent,
   ]);
 
   const networkName = useMemo(

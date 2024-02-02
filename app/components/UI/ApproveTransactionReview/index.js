@@ -45,9 +45,7 @@ import Avatar, {
 import Identicon from '../../UI/Identicon';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { showAlert } from '../../../actions/alert';
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import TransactionHeader from '../../UI/TransactionHeader';
 import TransactionReviewDetailsCard from '../../UI/TransactionReview/TransactionReviewDetailsCard';
 import AppConstants from '../../../core/AppConstants';
@@ -96,6 +94,7 @@ import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { regex } from '../../../util/regex';
+import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -270,6 +269,10 @@ class ApproveTransactionReview extends PureComponent {
      * Boolean that indicates gas estimated value is confirmed before approving
      */
     isGasEstimateStatusIn: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -459,7 +462,8 @@ class ApproveTransactionReview extends PureComponent {
         spendLimitCustomValue: minTokenAllowance,
       },
       () => {
-        AnalyticsV2.trackEvent(
+        const { metrics } = this.props;
+        metrics.trackEvent(
           MetaMetricsEvents.APPROVAL_STARTED,
           this.getAnalyticsParams(),
         );
@@ -558,15 +562,13 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   trackApproveEvent = (event) => {
-    const { transaction, tokensLength, accountsLength, providerType } =
+    const { transaction, tokensLength, accountsLength, providerType, metrics } =
       this.props;
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(event, {
-        view: transaction.origin,
-        numberOfTokens: tokensLength,
-        numberOfAccounts: accountsLength,
-        network: providerType,
-      });
+    metrics.trackEvent(event, {
+      view: transaction.origin,
+      numberOfTokens: tokensLength,
+      numberOfAccounts: accountsLength,
+      network: providerType,
     });
   };
 
@@ -577,7 +579,8 @@ class ApproveTransactionReview extends PureComponent {
 
   toggleViewDetails = () => {
     const { viewDetails } = this.state;
-    Analytics.trackEvent(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
+    const { metrics } = this.props;
+    metrics.trackEvent(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS);
     this.setState({ viewDetails: !viewDetails });
   };
 
@@ -589,14 +592,15 @@ class ApproveTransactionReview extends PureComponent {
       content: 'clipboard-alert',
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
-    AnalyticsV2.trackEvent(
+    const { metrics } = this.props;
+    metrics.trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
       this.getAnalyticsParams(),
     );
   };
 
   edit = () => {
-    const { onModeChange, updateTokenAllowanceState } = this.props;
+    const { onModeChange, updateTokenAllowanceState, metrics } = this.props;
     const {
       token: {
         tokenName,
@@ -608,7 +612,7 @@ class ApproveTransactionReview extends PureComponent {
       tokenSpendValue,
       originalApproveAmount,
     } = this.state;
-    Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
+    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
 
     updateTokenAllowanceState({
       tokenStandard,
@@ -693,7 +697,8 @@ class ApproveTransactionReview extends PureComponent {
       ...this.withBlockaidMetricsParams(),
       external_link_clicked: 'security_alert_support_link',
     };
-    AnalyticsV2.trackEvent(
+    const { metrics } = this.props;
+    metrics.trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
       analyticsParams,
     );
@@ -1128,7 +1133,7 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   buyEth = () => {
-    const { navigation } = this.props;
+    const { navigation, metrics } = this.props;
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
@@ -1136,15 +1141,13 @@ class ApproveTransactionReview extends PureComponent {
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
-    });
+    metrics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
   };
 
   onCancelPress = () => {
-    const { onCancel } = this.props;
+    const { onCancel, metrics } = this.props;
     onCancel && onCancel();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED, {
+    metrics.trackEvent(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED, {
       ...this.getAnalyticsParams(),
       ...this.withBlockaidMetricsParams(),
     });
@@ -1155,10 +1158,10 @@ class ApproveTransactionReview extends PureComponent {
       isReadyToApprove,
       token: { tokenStandard },
     } = this.state;
-    const { onConfirm } = this.props;
+    const { onConfirm, metrics } = this.props;
 
     if (tokenStandard === ERC20 && !isReadyToApprove) {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED, {
+      metrics.trackEvent(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED, {
         ...this.getAnalyticsParams(),
         ...this.withBlockaidMetricsParams(),
       });
@@ -1260,4 +1263,8 @@ ApproveTransactionReview.contextType = ThemeContext;
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withNavigation(withQRHardwareAwareness(ApproveTransactionReview)));
+)(
+  withNavigation(
+    withQRHardwareAwareness(withMetricsAwareness(ApproveTransactionReview)),
+  ),
+);

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef, ComponentClass } from 'react';
+import React, { useState, useEffect, useRef, ComponentType } from 'react';
 import Engine from '../../../core/Engine';
 import { IQRState } from './types';
 
 const withQRHardwareAwareness = (
-  Children: ComponentClass<{
+  Children: ComponentType<{
     QRState?: IQRState;
     isSigningQRObject?: boolean;
     isSyncingQRHardware?: boolean;

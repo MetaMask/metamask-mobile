@@ -6,7 +6,6 @@ import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import {
   getAnalyticsParams,
@@ -19,6 +18,7 @@ import createExternalSignModelNav from '../../../util/hardwareWallet/signatureUt
 import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
 
 interface MessageSignProps {
   /**
@@ -82,16 +82,17 @@ const MessageSign = ({
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { trackEvent } = useMetrics();
 
   useEffect(() => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(messageParams, 'eth_sign'),
     );
 
     const onSignatureError = ({ error }: any) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           getAnalyticsParams(messageParams, 'eth_sign'),
         );
@@ -108,7 +109,7 @@ const MessageSign = ({
         onSignatureError,
       );
     };
-  }, [messageParams]);
+  }, [messageParams, trackEvent]);
 
   const shouldTruncateMessage = (e: any) => {
     if (e.nativeEvent.lines.length > 5) {

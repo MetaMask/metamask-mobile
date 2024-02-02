@@ -19,7 +19,7 @@ import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
 import { strings } from '../../../../locales/i18n';
 import { InteractionManager, Platform, View } from 'react-native';
-import { Analytics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useStyles } from '../../../component-library/hooks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
@@ -30,9 +30,12 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
+
+  const { trackEvent } = useMetrics();
 
   const dispatch = useDispatch();
 
@@ -71,7 +74,7 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
     });
     setTimeout(() => handleProtectWalletModalVisible(), 2000);
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
+      trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
     });
   };
   return (
