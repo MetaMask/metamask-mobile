@@ -94,6 +94,8 @@ export interface IMetaMetrics {
   getDeleteRegulationId(): string | undefined;
 
   isDataRecorded(): boolean;
+
+  configure(): Promise<boolean>;
 }
 
 /**

@@ -39,24 +39,32 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
 /**
  * MetaMetrics using Segment as the analytics provider.
  *
+ * ## Configuration
+ * Initialize the MetaMetrics system by calling {@link configure} method.
+ * This should be done once in the app lifecycle.
+ * Ideally in the app entry point.
+ * ```
+ * const metrics = MetaMetrics.getInstance();
+ * await metrics.configure();
+ * ```
  *
  * ## Base tracking usage
  * ```
- * const metrics = await MetaMetrics.getInstance();
+ * const metrics = MetaMetrics.getInstance();
  * metrics.trackEvent('event_name', { property: 'value' });
  * ```
  *
  * ## Enabling MetaMetrics
  * Enable the metrics when user agrees (optin or settings).
  * ```
- * const metrics = await MetaMetrics.getInstance();
+ * const metrics = MetaMetrics.getInstance();
  * await metrics.enable();
  *```
  *
  * ## Disabling MetaMetrics
  * Disable the metrics when user refuses (optout or settings).
  * ```
- * const metrics = await MetaMetrics.getInstance();
+ * const metrics = MetaMetrics.getInstance();
  * await metrics.enable(false);
  * ```
  *
@@ -64,7 +72,7 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
  * By default all metrics are anonymous using a single hardcoded anonymous ID.
  * Until you identify the user, all events will be associated to this anonymous ID.
  * ```
- * const metrics = await MetaMetrics.getInstance();
+ * const metrics = MetaMetrics.getInstance();
  * metrics.addTraitsToUser({ property: 'value' });
  * ```
  *
@@ -74,9 +82,10 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
  * If you want to reset the user ID, you can call the reset method.
  * This will revert the user to the anonymous ID and generate a new unique ID.
  * ```
- * const metrics = await MetaMetrics.getInstance();
+ * const metrics = MetaMetrics.getInstance();
  * metrics.reset();
  * ```
+ * @remarks prefer {@link useMetrics} hook in your components
  *
  * @see METAMETRICS_ANONYMOUS_ID
  */
@@ -109,6 +118,13 @@ class MetaMetrics implements IMetaMetrics {
    * @private
    */
   private segmentClient: ISegmentClient | undefined;
+
+  /**
+   * indicates if MetaMetrics is initialised and ready to use
+   *
+   * @private
+   */
+  #isConfigured = false;
 
   /**
    * Random ID used for tracking events
@@ -158,16 +174,11 @@ class MetaMetrics implements IMetaMetrics {
    * @returns Promise containing the enabled state
    */
   #isMetaMetricsEnabled = async (): Promise<boolean> => {
-    try {
-      const enabledPref = await DefaultPreference.get(METRICS_OPT_IN);
-      this.enabled = AGREED === enabledPref;
-      if (__DEV__)
-        Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
-      return this.enabled;
-    } catch (error: any) {
-      Logger.error(error, 'Error retrieving MetaMetrics enable state');
-    }
-    return false;
+    const enabledPref = await DefaultPreference.get(METRICS_OPT_IN);
+    this.enabled = AGREED === enabledPref;
+    if (__DEV__)
+      Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
+    return this.enabled;
   };
 
   /**
@@ -250,28 +261,26 @@ class MetaMetrics implements IMetaMetrics {
     // preferences: no reset unless explicitelu asked for.
     // If user later enables MetaMetrics,
     // this same ID should be retrieved from preferences and reused.
-    try {
-      // look for a legacy ID from MixPanel integration and use it
-      this.metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
-      if (this.metametricsId) {
-        await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
-        return this.metametricsId;
-      }
-
-      // look for a new Metametics ID and use it or generate a new one
-      this.metametricsId = await DefaultPreference.get(METAMETRICS_ID);
-      if (!this.metametricsId) {
-        // keep the id format compatible with MixPanel but base it on a UUIDv4
-        this.metametricsId = uuidv4();
-        await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
-      }
-
-      if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
-      return this.metametricsId;
-    } catch (error: any) {
-      Logger.error(error, 'Error retrieving MetaMetrics ID');
-      return METAMETRICS_ANONYMOUS_ID;
+    // look for a legacy ID from MixPanel integration and use it
+    const legacyId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
+    if (legacyId) {
+      this.metametricsId = legacyId;
+      await DefaultPreference.set(METAMETRICS_ID, legacyId);
+      return legacyId;
     }
+
+    // look for a new Metametics ID and use it or generate a new one
+    const metametricsId = await DefaultPreference.get(METAMETRICS_ID);
+    if (!metametricsId) {
+      // keep the id format compatible with MixPanel but base it on a UUIDv4
+      this.metametricsId = uuidv4();
+      await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
+    } else {
+      this.metametricsId = metametricsId;
+    }
+
+    if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
+    return this.metametricsId;
   };
 
   /**
@@ -447,12 +456,11 @@ class MetaMetrics implements IMetaMetrics {
   /**
    * Get an instance of the MetaMetrics system
    *
-   * Await this method to ensure the instance is ready
-   *
-   * @example const metrics = await MetaMetrics.getInstance();
-   * @returns Promise containing the MetaMetrics instance.
+   * @example const metrics = MetaMetrics.getInstance();
+   * @returns non configured MetaMetrics instance
+   * @remarks Instance has to be configured before being used, call {@link configure} method asynchrounously
    */
-  public static async getInstance(): Promise<IMetaMetrics> {
+  public static getInstance(): IMetaMetrics {
     if (!this.instance) {
       const config: Config = {
         writeKey: process.env.SEGMENT_WRITE_KEY as string,
@@ -461,19 +469,38 @@ class MetaMetrics implements IMetaMetrics {
         anonymousId: METAMETRICS_ANONYMOUS_ID,
       };
       this.instance = new MetaMetrics(createClient(config));
-      // get the user metrics preference when initializing
-      this.instance.enabled = await this.instance.#isMetaMetricsEnabled();
-      // get the user unique id when initializing
-      this.instance.metametricsId = await this.instance.#getMetaMetricsId();
-      this.instance.deleteRegulationId =
-        await this.instance.#getDeleteRegulationIdFromPrefs();
-      this.instance.deleteRegulationDate =
-        await this.instance.#getDeleteRegulationDateFromPrefs();
-      this.instance.dataRecorded =
-        await this.instance.#getIsDataRecordedFromPrefs();
     }
     return this.instance;
   }
+
+  /**
+   * Configure MetaMetrics system
+   *
+   * @example
+   * const metrics = MetaMetrics.getInstance();
+   * await metrics.configure() && metrics.enable();
+   *
+   * @remarks Instance has to be configured before being used
+   * Calling configure multiple times will not configure the instance again
+   *
+   * @returns Promise indicating if MetaMetrics configuration was successful or not
+   */
+  configure = async (): Promise<boolean> => {
+    if (this.#isConfigured) return true;
+    try {
+      this.enabled = await this.#isMetaMetricsEnabled();
+      // get the user unique id when initializing
+      this.metametricsId = await this.#getMetaMetricsId();
+      this.deleteRegulationId = await this.#getDeleteRegulationIdFromPrefs();
+      this.deleteRegulationDate =
+        await this.#getDeleteRegulationDateFromPrefs();
+      this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
+      this.#isConfigured = true;
+    } catch (error: any) {
+      Logger.error(error, 'Error initializing MetaMetrics');
+    }
+    return this.#isConfigured;
+  };
 
   /**
    * Enable or disable MetaMetrics
