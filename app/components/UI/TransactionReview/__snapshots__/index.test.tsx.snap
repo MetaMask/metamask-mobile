@@ -846,7 +846,7 @@ Array [
                                         style={
                                           Array [
                                             Object {
-                                              "color": "#28A745",
+                                              "color": "#1C8234",
                                               "fontSize": 15,
                                             },
                                             undefined,
@@ -1605,7 +1605,7 @@ Array [
                           "textAlign": "center",
                         },
                         Object {
-                          "color": "#FCFCFC",
+                          "color": "#FFFFFF",
                         },
                         undefined,
                       ],
