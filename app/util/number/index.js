@@ -100,9 +100,8 @@ export function fromWei(value = 0, unit = 'ether') {
  * @returns {string} - String containing the new number
  */
 export function fromTokenMinimalUnit(minimalInput, decimals, rounded = true) {
-  const prefixedInput = addHexPrefix(
-    rounded ? Number(minimalInput) : minimalInput,
-  ).toString(16);
+  minimalInput = rounded ? Number(minimalInput) : minimalInput;
+  const prefixedInput = addHexPrefix(minimalInput.toString(16));
   let minimal = safeNumberToBN(prefixedInput);
   const negative = minimal.lt(new BN(0));
   const base = toBN(Math.pow(10, decimals).toString());
