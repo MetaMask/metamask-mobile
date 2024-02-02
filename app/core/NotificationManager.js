@@ -1,6 +1,6 @@
 'use strict';
 
-import PushNotification from 'react-native-push-notification';
+import notifee from '@notifee/react-native';
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
@@ -117,15 +117,30 @@ class NotificationManager {
     TransactionController.hub.removeAllListeners(`${transactionId}:finished`);
   };
 
-  _showNotification(data) {
+  // TODO: Refactor this method to use notifee's channels in combination with MM auth
+  _showNotification(data, channelId = 'default') {
     if (this._backgroundMode) {
       const { title, message } = constructTitleAndMessage(data);
 
       const pushData = {
         title,
-        message,
-        largeIcon: 'ic_notification',
-        smallIcon: 'ic_notification_small',
+        body: message,
+        android: {
+          smallIcon: 'ic_notification_small',
+          largeIcon: 'ic_notification',
+          channelId,
+          pressAction: {
+            id: 'default',
+          },
+        },
+        ios: {
+          foregroundPresentationOptions: {
+            badge: true,
+            sound: true,
+            banner: true,
+            list: true,
+          },
+        },
       };
       const id = data?.transaction?.id || null;
 
@@ -133,10 +148,10 @@ class NotificationManager {
       if (Device.isAndroid()) {
         pushData.tag = JSON.stringify(extraData);
       } else {
-        pushData.userInfo = extraData;
+        pushData.userInfo = extraData; // check if is still needed
       }
 
-      PushNotification.localNotification(pushData);
+      notifee.displayNotification(pushData);
 
       if (id) {
         this._transactionToView.push(id);
@@ -275,6 +290,9 @@ class NotificationManager {
     this._navigation.navigate(view);
   }
 
+  onMessageReceived = async (data) => {
+    this._showNotification(data);
+  };
   /**
    * Handles the push notification prompt
    * with a custom set of rules, like max. number of attempts
@@ -287,8 +305,11 @@ class NotificationManager {
       !promptCount ||
       Number(promptCount) < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES
     ) {
-      PushNotification.checkPermissions((permissions) => {
-        if (!permissions || !permissions.alert) {
+      notifee.getNotificationSettings((settings) => {
+        if (
+          !settings.authorizationStatus !== 'AUTHORIZED' ||
+          !settings.authorizationStatus !== 'PROVISIONAL'
+        ) {
           Alert.alert(
             strings('notifications.prompt_title'),
             strings('notifications.prompt_desc'),
@@ -300,7 +321,13 @@ class NotificationManager {
               },
               {
                 text: strings('notifications.prompt_ok'),
-                onPress: () => PushNotification.requestPermissions(),
+                onPress: async () => {
+                  if (Device.isIos()) {
+                    await notifee.requestPermission({
+                      provisional: true,
+                    });
+                  }
+                },
               },
             ],
             { cancelable: false },
@@ -451,6 +478,7 @@ export default {
     hideCurrentNotification,
     showSimpleNotification,
     removeNotificationById,
+    onMessageReceived,
   }) {
     instance = new NotificationManager(
       navigation,
@@ -458,6 +486,7 @@ export default {
       hideCurrentNotification,
       showSimpleNotification,
       removeNotificationById,
+      onMessageReceived,
     );
     return instance;
   },
