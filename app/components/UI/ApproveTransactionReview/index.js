@@ -26,6 +26,7 @@ import {
   hexToBN,
   isNumber,
   renderFromTokenMinimalUnit,
+  fromTokenMinimalUnit,
 } from '../../../util/number';
 import {
   getTicker,
@@ -407,8 +408,8 @@ class ApproveTransactionReview extends PureComponent {
       tokenDecimals = contract.decimals;
     }
 
-    const approveAmount = renderFromTokenMinimalUnit(
-      encodedDecimalAmount,
+    const approveAmount = fromTokenMinimalUnit(
+      hexToBN(encodedHexAmount),
       tokenDecimals,
     );
 
