@@ -766,16 +766,16 @@ workflows:
           is_always_run: false
           inputs:
             - content: |-
-               #!/usr/bin/env bash
-              trcli -y \
-              -h "https://mmig.testrail.io/" \
-              -u "mmig_qa@consensys.net" \
-              -p "Dex6TINMdkRQvw5aqzsR-2WgvTjVj8H11riF34ttZ" \
-              --project "Metamask" \
-              parse_junit \
-              --title "Automated Test Run" \
-              --run-description "Bitrise Build URL: ${BITRISE_BUILD_URL}" \
-              -f "$BITRISE_SOURCE_DIR/e2e/reports/junit.xml"
+                #!/usr/bin/env bash
+                trcli -y \
+                -h "https://mmig.testrail.io/" \
+                -u "mmig_qa@consensys.net" \
+                -p "Dex6TINMdkRQvw5aqzsR-2WgvTjVj8H11riF34ttZ" \
+                --project "Metamask" \
+                parse_junit \
+                --title "Automated Test Run" \
+                --run-description "Bitrise Build URL: ${BITRISE_BUILD_URL}" \
+                -f "$BITRISE_SOURCE_DIR/e2e/reports/junit.xml"
       - script@1:
           is_always_run: true
           run_if: .IsBuildFailed
