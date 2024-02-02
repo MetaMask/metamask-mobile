@@ -131,7 +131,7 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
     expect(fromTokenMinimalUnit(1e18, 18)).toEqual('1');
   });
 
-  it('fromTokenMinimalUnit using BN number and not round number', () => {
+  it('should not round number if rounded is false', () => {
     expect(fromTokenMinimalUnit(new BN('1000000000000000000'), 18)).toEqual(
       '1',
     );
@@ -150,6 +150,10 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
     expect(
       fromTokenMinimalUnit(new BN('50000000000000000000000'), 18, false),
     ).toEqual('50000');
+
+    expect(
+      fromTokenMinimalUnit(hexToBN('576129d2d21d64a5'), 18, false),
+    ).toEqual('6.296359739485676709');
   });
 });
 
