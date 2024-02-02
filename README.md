@@ -56,7 +56,7 @@ The code is built using React-Native and running code locally requires a Mac or 
    One way to install Yarn v1 is by using brew:
 
    ```bash
-   brew install yarn@1.22.19
+   npm install yarn@1.22.19
    ```
 
    To check you've installed the right version:
