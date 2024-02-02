@@ -178,6 +178,7 @@ export function deriveSentryEnvironment(
 
 // Setup sentry remote error reporting
 export function setupSentry() {
+  // Disable Sentry for E2E tests
   if (process.env.IS_TEST === 'true') {
     return;
   }
