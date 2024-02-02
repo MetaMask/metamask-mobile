@@ -42,9 +42,7 @@ const mockMetrics = {
   getDeleteRegulationCreationDate: jest.fn(() => expectedDate),
   getDeleteRegulationId: jest.fn(() => expectedDataDeleteRegulationId),
   isDataRecorded: jest.fn(() => true),
-  isInitialized: jest.fn(() => false),
   isEnabled: jest.fn(() => true),
-  init: jest.fn(() => Promise.resolve(false)),
 };
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
