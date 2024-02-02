@@ -32,7 +32,6 @@ import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentry/utils';
-import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
@@ -100,7 +99,7 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
-import MetaMetrics from '../../../core/Analytics/MetaMetrics';
+import { MetaMetrics } from '../../../core/Analytics';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -367,15 +366,15 @@ const App = ({ userLoggedIn }) => {
     }
   }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
 
+  // Initialize analytics instance and configure it for the app
+  // This is a one-time setup and should be done as soon as the app starts
+  // In other parts of the app we can use the useMetrics hook to simplify events tracking
   useEffect(() => {
     const initAnalytics = async () => {
-      await MetaMetrics.getInstance();
-      await Analytics.init();
+      await MetaMetrics.getInstance().configure();
     };
 
-    initAnalytics().catch((err) => {
-      Logger.error(err, 'Error initializing analytics');
-    });
+    initAnalytics();
   }, []);
 
   useEffect(() => {
