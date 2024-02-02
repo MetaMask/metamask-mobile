@@ -30,9 +30,7 @@ import { IUseMetricsHook } from './useMetrics.types';
  *   getDeleteRegulationCreationDate,
  *   getDeleteRegulationId,
  *   isDataRecorded,
- *   isInitialized,
  *   isEnabled,
- *   init,
  * } = useMetrics();
  */
 const useMetrics = (): IUseMetricsHook => {

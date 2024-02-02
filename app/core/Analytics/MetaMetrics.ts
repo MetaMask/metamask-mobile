@@ -39,24 +39,32 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
 /**
  * MetaMetrics using Segment as the analytics provider.
  *
+ * ## Configuration
+ * Initialize the MetaMetrics system by calling {@link configure} method.
+ * This should be done once in the app lifecycle.
+ * Ideally in the app entry point.
+ * ```
+ * const metrics = MetaMetrics.getInstance();
+ * await metrics.configure();
+ * ```
  *
  * ## Base tracking usage
  * ```
- * const metrics = await MetaMetrics.getInstance();
+ * const metrics = MetaMetrics.getInstance();
  * metrics.trackEvent('event_name', { property: 'value' });
  * ```
  *
  * ## Enabling MetaMetrics
  * Enable the metrics when user agrees (optin or settings).
  * ```
- * const metrics = await MetaMetrics.getInstance();
+ * const metrics = MetaMetrics.getInstance();
  * await metrics.enable();
  *```
  *
  * ## Disabling MetaMetrics
  * Disable the metrics when user refuses (optout or settings).
  * ```
- * const metrics = await MetaMetrics.getInstance();
+ * const metrics = MetaMetrics.getInstance();
  * await metrics.enable(false);
  * ```
  *
@@ -64,7 +72,7 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
  * By default all metrics are anonymous using a single hardcoded anonymous ID.
  * Until you identify the user, all events will be associated to this anonymous ID.
  * ```
- * const metrics = await MetaMetrics.getInstance();
+ * const metrics = MetaMetrics.getInstance();
  * metrics.addTraitsToUser({ property: 'value' });
  * ```
  *
@@ -74,9 +82,10 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
  * If you want to reset the user ID, you can call the reset method.
  * This will revert the user to the anonymous ID and generate a new unique ID.
  * ```
- * const metrics = await MetaMetrics.getInstance();
+ * const metrics = MetaMetrics.getInstance();
  * metrics.reset();
  * ```
+ * @remarks prefer {@link useMetrics} hook in your components
  *
  * @see METAMETRICS_ANONYMOUS_ID
  */
@@ -448,8 +457,8 @@ class MetaMetrics implements IMetaMetrics {
    * Get an instance of the MetaMetrics system
    *
    * @example const metrics = MetaMetrics.getInstance();
-   * @returns non initialized MetaMetrics instance
-   * @remarks Instance has to be initialized before being used, call {@link configure} method
+   * @returns non configured MetaMetrics instance
+   * @remarks Instance has to be configured before being used, call {@link configure} method asynchrounously
    */
   public static getInstance(): IMetaMetrics {
     if (!this.instance) {
@@ -460,22 +469,21 @@ class MetaMetrics implements IMetaMetrics {
         anonymousId: METAMETRICS_ANONYMOUS_ID,
       };
       this.instance = new MetaMetrics(createClient(config));
-      // get the user metrics preference when initializing
     }
     return this.instance;
   }
 
   /**
-   * Initialize MetaMetrics system
+   * Configure MetaMetrics system
    *
    * @example
    * const metrics = MetaMetrics.getInstance();
-   * await metrics.init() && metrics.enable();
+   * await metrics.configure() && metrics.enable();
    *
-   * @remarks Instance has to be initialized before being used
-   * Calling initialize multiple times will not reinitialize the instance
+   * @remarks Instance has to be configured before being used
+   * Calling configure multiple times will not configure the instance again
    *
-   * @returns Promise indicating if MetaMetrics was initialized or not
+   * @returns Promise indicating if MetaMetrics configuration was successful or not
    */
   configure = async (): Promise<boolean> => {
     if (this.#isConfigured) return true;
