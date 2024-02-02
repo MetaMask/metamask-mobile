@@ -48,8 +48,9 @@ The code is built using React-Native and running code locally requires a Mac or 
 1. ### Install Node with [nvm](https://github.com/creationix/nvm#installation)
 
    - `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash`
-
-   - Usage: `nvm alias default 18.18.2` (or whatever version you need - this sets the working version)
+   - `nvm install 18.18.2`
+   - `nvm use 18.18.2`
+     - Usage: `nvm alias default 18.18.2` (or whatever version you need - this sets the working version)
 
 2. ### Install [Yarn v1](https://yarnpkg.com/en/docs/install)
 
