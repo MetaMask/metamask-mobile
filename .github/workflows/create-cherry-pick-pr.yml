@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       branch_name:
-        description: 'Branch name you want the cherry-pick branch to be based from'     
+        description: 'Target branch name to merge the cherry-picked branch into'
         required: true
       commit_hash:
         description: 'Commit Hash'     

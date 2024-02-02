@@ -30,10 +30,23 @@ index 58e0ffa..383f8cb 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-index 422660e..4c086d1 100644
+index 422660e..ac98cc9 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-@@ -118,6 +118,20 @@ class AssetsContractController extends base_controller_1.BaseController {
+@@ -34,6 +34,12 @@ exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
+     [assetsUtil_1.SupportedTokenDetectionNetworks.polygon]: '0x2352c63A83f9Fd126af8676146721Fa00924d7e4',
+     [assetsUtil_1.SupportedTokenDetectionNetworks.avax]: '0xD023D153a0DFa485130ECFdE2FAA7e612EF94818',
+     [assetsUtil_1.SupportedTokenDetectionNetworks.aurora]: '0x1286415D333855237f89Df27D388127181448538',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.linea_goerli]: '0x10dAd7Ca3921471f616db788D9300DC97Db01783',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.linea_mainnet]: '0xF62e6a41561b3650a69Bb03199C735e3E3328c0D',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.arbitrum]: '0x151E24A486D7258dd7C33Fb67E4bB01919B7B32c',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.optimism]: '0xB1c568e9C3E6bdaf755A60c7418C269eb11524FC',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.base]: '0x6AA75276052D96696134252587894ef5FFA520af',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.zksync]: '0x458fEd3144680a5b8bcfaa0F9594aa19B4Ea2D34',
+ };
+ exports.MISSING_PROVIDER_ERROR = 'AssetsContractController failed to set the provider correctly. A provider must be set for this method to be available';
+ /**
+@@ -118,6 +124,20 @@ class AssetsContractController extends base_controller_1.BaseController {
              return yield this.erc20Standard.getTokenDecimals(address);
          });
      }
@@ -1708,20 +1721,43 @@ index 69ed995..5372bc3 100644
          });
      }
      /**
+diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
+index 71117bb..0d75e81 100644
+--- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
+@@ -47,7 +47,13 @@ export declare enum SupportedTokenDetectionNetworks {
+     bsc = "0x38",
+     polygon = "0x89",
+     avax = "0xa86a",
+-    aurora = "0x4e454152"
++    aurora = "0x4e454152",
++    linea_goerli = "0xe704",
++    linea_mainnet = "0xe708",
++    arbitrum = "0xa4b1",
++    optimism = "0xa",
++    base = "0x2105",
++    zksync = "0x144"
+ }
+ /**
+  * Check if token detection is enabled for certain networks.
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-index 79d7147..d43e4ba 100644
+index 79d7147..921f04f 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-@@ -121,6 +121,8 @@ var SupportedTokenDetectionNetworks;
+@@ -121,6 +121,12 @@ var SupportedTokenDetectionNetworks;
      SupportedTokenDetectionNetworks["polygon"] = "0x89";
      SupportedTokenDetectionNetworks["avax"] = "0xa86a";
      SupportedTokenDetectionNetworks["aurora"] = "0x4e454152";
 +    SupportedTokenDetectionNetworks["linea_goerli"] = "0xe704";
 +    SupportedTokenDetectionNetworks["linea_mainnet"] = "0xe708";
++    SupportedTokenDetectionNetworks["arbitrum"] = "0xa4b1";
++    SupportedTokenDetectionNetworks["optimism"] = "0xa";
++    SupportedTokenDetectionNetworks["base"] = "0x2105";
++    SupportedTokenDetectionNetworks["zksync"] = "0x144";
  })(SupportedTokenDetectionNetworks = exports.SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = {}));
  /**
   * Check if token detection is enabled for certain networks.
-@@ -224,4 +226,128 @@ function ethersBigNumberToBN(bigNumber) {
+@@ -224,4 +230,128 @@ function ethersBigNumberToBN(bigNumber) {
      return new ethereumjs_util_1.BN((0, ethereumjs_util_1.stripHexPrefix)(bigNumber.toHexString()), 'hex');
  }
  exports.ethersBigNumberToBN = ethersBigNumberToBN;
