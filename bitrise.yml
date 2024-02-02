@@ -420,7 +420,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 # Install TestRail CLI and upload test reports 
-                pip install trcli
+                
                 trcli -y \
                 -h "https://mmig.testrail.io/" \
                 -u "mmig_qa@consensys.net" \
@@ -538,6 +538,7 @@ workflows:
             - content: |-
                 sudo apt update
                 sudo apt install -y python3
+                pip install trcli
       - avd-manager@1:
           inputs:
             - api_level: '30'
@@ -724,6 +725,7 @@ workflows:
             - content: |-
                 # Add cache directory to environment variable
                 brew install python
+                pip install trcli
           title: Set Env Path for caching deps
       - script@1:
           inputs:
