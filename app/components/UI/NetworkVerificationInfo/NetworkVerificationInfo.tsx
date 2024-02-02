@@ -29,6 +29,7 @@ import BottomSheetFooter, {
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { toggleUseSafeChainsListValidation } from '../../../util/networks';
+import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
 
 interface Alert {
   alertError: string;
@@ -128,7 +129,11 @@ const NetworkVerificationInfo = ({
         <View style={styles.alertBar}>
           <Banner
             variant={BannerVariant.Alert}
-            description={strings('wallet.network_check_validation_desc')}
+            description={
+              strings('wallet.network_details_check') +
+              ' ' +
+              strings('wallet.network_check_validation_desc')
+            }
             actionButtonProps={{
               variant: ButtonVariants.Link,
               label: strings('wallet.turn_on_network_check_cta'),
@@ -214,7 +219,7 @@ const NetworkVerificationInfo = ({
       />
     </View>
   ) : (
-    <View>
+    <View testID={NetworkApprovalModalSelectorsIDs.CONTAINER}>
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingMD}>
           {isCustomNetwork
@@ -246,14 +251,14 @@ const NetworkVerificationInfo = ({
             label: strings('confirmation_modal.cancel_cta'),
             variant: ButtonVariants.Secondary,
             size: ButtonSize.Lg,
-            testID: CommonSelectorsIDs.CANCEL_BUTTON,
+            testID: NetworkApprovalModalSelectorsIDs.CANCEL_BUTTON,
           },
           {
             onPress: onConfirm,
             label: strings('confirmation_modal.confirm_cta'),
             variant: ButtonVariants.Primary,
             size: ButtonSize.Lg,
-            testID: CommonSelectorsIDs.CONNECT_BUTTON,
+            testID: NetworkApprovalModalSelectorsIDs.APPROVE_BUTTON,
           },
         ]}
         buttonsAlignment={ButtonsAlignment.Horizontal}

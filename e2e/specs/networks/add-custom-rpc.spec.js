@@ -6,6 +6,8 @@ import WalletView from '../../pages/WalletView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
+import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -64,6 +66,11 @@ describe(Regression('Custom RPC Tests'), () => {
       await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
       await NetworkView.tapRpcNetworkAddButton();
     }
+
+    await NetworkApprovalModal.isVisible();
+    await NetworkApprovalModal.tapApproveButton();
+    await NetworkAddedModal.tapSwitchToNetwork();
+
     await TestHelpers.delay(3000);
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible('xDai');
