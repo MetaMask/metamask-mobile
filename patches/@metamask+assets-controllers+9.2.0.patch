@@ -491,20 +491,19 @@ index 34d0107..881a358 100644
      }, config?: Partial<NftDetectionConfig>, state?: Partial<BaseState>);
      /**
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
-index 8111dd8..2a8b24f 100644
+index 8111dd8..b30b79f 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
-@@ -12,7 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
+@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
  exports.NftDetectionController = void 0;
  const base_controller_1 = require("@metamask/base-controller");
  const controller_utils_1 = require("@metamask/controller-utils");
--const constants_1 = require("./constants");
 +const assetsUtil_1 = require("./assetsUtil");
 +const NftController_1 = require("./NftController");
+ const constants_1 = require("./constants");
  const DEFAULT_INTERVAL = 180000;
  /**
-  * Controller that passively polls on a set interval for NFT auto detection
-@@ -28,11 +29,12 @@ class NftDetectionController extends base_controller_1.BaseController {
+@@ -28,11 +30,12 @@ class NftDetectionController extends base_controller_1.BaseController {
       * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
       * @param options.getOpenSeaApiKey - Gets the OpenSea API key, if one is set.
       * @param options.addNft - Add an NFT.
@@ -518,7 +517,7 @@ index 8111dd8..2a8b24f 100644
          super(config, state);
          /**
           * Name of this controller used during composition
-@@ -74,47 +76,40 @@ class NftDetectionController extends base_controller_1.BaseController {
+@@ -74,47 +77,40 @@ class NftDetectionController extends base_controller_1.BaseController {
          });
          this.getOpenSeaApiKey = getOpenSeaApiKey;
          this.addNft = addNft;
@@ -587,15 +586,6 @@ index 8111dd8..2a8b24f 100644
              return nfts;
          });
      }
-@@ -192,7 +187,7 @@ class NftDetectionController extends base_controller_1.BaseController {
-                     yield this.addNft(address, token_id, nftMetadata, {
-                         userAddress: selectedAddress,
-                         chainId,
--                    }, constants_1.Source.Detected);
-+                    });
-                 }
-             }));
-             yield Promise.all(addNftPromises);
 diff --git a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.d.ts b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.d.ts
 index 0df38d9..8ebe5b5 100644
 --- a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.d.ts
