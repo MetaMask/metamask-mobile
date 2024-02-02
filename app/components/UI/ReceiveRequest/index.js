@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  InteractionManager,
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
@@ -15,7 +14,6 @@ import QRCode from 'react-native-qrcode-svg';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { connect } from 'react-redux';
 
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
@@ -152,6 +150,10 @@ class ReceiveRequest extends PureComponent {
      * Boolean that indicates if the network supports buy
      */
     isNetworkBuySupported: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -174,16 +176,15 @@ class ReceiveRequest extends PureComponent {
       .catch((err) => {
         Logger.log('Error while trying to share address', err);
       });
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS);
-    });
+    const { metrics } = this.props;
+    metrics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS);
   };
 
   /**
    * Shows an alert message with a coming soon message
    */
   onBuy = async () => {
-    const { navigation, toggleReceiveModal, isNetworkBuySupported } =
+    const { navigation, toggleReceiveModal, isNetworkBuySupported, metrics } =
       this.props;
     if (!isNetworkBuySupported) {
       Alert.alert(
@@ -193,15 +194,10 @@ class ReceiveRequest extends PureComponent {
     } else {
       toggleReceiveModal();
       navigation.navigate(Routes.RAMP.BUY);
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.BUY_BUTTON_CLICKED,
-          {
-            text: 'Buy Native Token',
-            location: 'Receive Modal',
-            chain_id_destination: this.props.chainId,
-          },
-        );
+      metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+        text: 'Buy Native Token',
+        location: 'Receive Modal',
+        chain_id_destination: this.props.chainId,
       });
     }
   };
@@ -234,26 +230,25 @@ class ReceiveRequest extends PureComponent {
    */
   openQrModal = () => {
     this.setState({ qrModalVisible: true });
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE);
-    });
+    const { metrics } = this.props;
+    metrics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE);
   };
 
   onReceive = () => {
-    this.props.toggleReceiveModal();
-    this.props.navigation.navigate('PaymentRequestView', {
+    const { toggleReceiveModal, navigation, metrics } = this.props;
+    toggleReceiveModal();
+    navigation.navigate('PaymentRequestView', {
       screen: 'PaymentRequest',
       params: { receiveAsset: this.props.receiveAsset },
     });
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
-    });
+    metrics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
   };
 
   render() {
     const theme = this.context || mockTheme;
     const colors = theme.colors;
     const styles = createStyles(theme);
+    const { metrics } = this.props;
 
     return (
       <SafeAreaView style={styles.wrapper}>
@@ -275,11 +270,9 @@ class ReceiveRequest extends PureComponent {
                   // eslint-disable-next-line react/jsx-no-bind
                   onPress={() => {
                     toggleModal();
-                    InteractionManager.runAfterInteractions(() => {
-                      Analytics.trackEvent(
-                        MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE,
-                      );
-                    });
+                    metrics.trackEvent(
+                      MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE,
+                    );
                   }}
                 >
                   <QRCode

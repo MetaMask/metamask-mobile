@@ -8,7 +8,6 @@ import {
   View,
   TouchableWithoutFeedback,
   ActivityIndicator,
-  InteractionManager,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -56,10 +55,10 @@ import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 
-import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { useMetrics } from '../../../hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -165,6 +164,7 @@ function TokenSelectModal({
     useModalHandler(false);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
+  const { trackEvent } = useMetrics();
 
   const excludedAddresses = useMemo(
     () =>
@@ -301,17 +301,15 @@ function TokenSelectModal({
   const handlePressImportToken = useCallback(
     (item) => {
       const { address, symbol } = item;
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED,
-          { address, symbol, chain_id: chainId },
-          true,
-        );
+      trackEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
+        address,
+        symbol,
+        chain_id: chainId,
       });
       hideTokenImportModal();
       onItemPress(item);
     },
-    [chainId, hideTokenImportModal, onItemPress],
+    [chainId, hideTokenImportModal, onItemPress, trackEvent],
   );
 
   const handleBlockExplorerPress = useCallback(() => {

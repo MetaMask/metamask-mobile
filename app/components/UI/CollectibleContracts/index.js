@@ -15,7 +15,6 @@ import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import CollectibleContractElement from '../CollectibleContractElement';
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   collectibleContractsSelector,
@@ -46,6 +45,7 @@ import {
   NFT_TAB_CONTAINER_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import Logger from '../../../util/Logger';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -115,6 +115,8 @@ const CollectibleContracts = ({
   const [refreshing, setRefreshing] = useState(false);
 
   const [isRemovingNftInProgress, setIsRemovingNftInProgress] = useState(false);
+
+  const { trackEvent } = useMetrics();
 
   const toggleRemovingProgress = () =>
     setIsRemovingNftInProgress((value) => !value);
@@ -275,10 +277,10 @@ const CollectibleContracts = ({
     setIsAddNFTEnabled(false);
     navigation.push('AddAsset', { assetType: 'collectible' });
     InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
+      trackEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
       setIsAddNFTEnabled(true);
     });
-  }, [navigation]);
+  }, [navigation, trackEvent]);
 
   const renderFooter = useCallback(
     () => (

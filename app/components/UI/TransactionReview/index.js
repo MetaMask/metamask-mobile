@@ -1,12 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-  StyleSheet,
-  View,
-  InteractionManager,
-  Animated,
-  ScrollView,
-} from 'react-native';
+import { StyleSheet, View, Animated, ScrollView } from 'react-native';
 import Eth from 'ethjs-query';
 import {
   isMultiLayerFeeNetwork,
@@ -38,8 +32,6 @@ import { getBlockaidMetricsParams } from '../../../util/blockaid';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
-import Analytics from '../../../core/Analytics/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import TransactionHeader from '../TransactionHeader';
 import AccountFromToInfoCard from '../AccountFromToInfoCard';
@@ -63,6 +55,7 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
+import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -249,6 +242,10 @@ class TransactionReview extends PureComponent {
      * @returns {string}
      */
     gasSelected: PropTypes.string,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -293,6 +290,7 @@ class TransactionReview extends PureComponent {
       tokens,
       chainId,
       tokenList,
+      metrics,
     } = this.props;
     let { showHexData } = this.props;
     let assetAmount, conversionRate, fiatValue;
@@ -323,9 +321,7 @@ class TransactionReview extends PureComponent {
       fiatValue,
       approveTransaction,
     });
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
-    });
+    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
       intervalIdForEstimatedL1Fee = setInterval(
@@ -336,14 +332,14 @@ class TransactionReview extends PureComponent {
   };
 
   onContactUsClicked = () => {
-    const { transaction } = this.props;
+    const { transaction, metrics } = this.props;
     const additionalParams = {
       ...getBlockaidMetricsParams(
         transaction?.currentTransactionSecurityAlertResponse,
       ),
       external_link_clicked: 'security_alert_support_link',
     };
-    AnalyticsV2.trackEvent(
+    metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       additionalParams,
     );
@@ -393,8 +389,8 @@ class TransactionReview extends PureComponent {
   };
 
   edit = () => {
-    const { onModeChange } = this.props;
-    Analytics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
+    const { onModeChange, metrics } = this.props;
+    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
     onModeChange && onModeChange('edit');
   };
 
@@ -636,5 +632,7 @@ const mapStateToProps = (state) => ({
 TransactionReview.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(
-  withNavigation(withQRHardwareAwareness(TransactionReview)),
+  withNavigation(
+    withQRHardwareAwareness(withMetricsAwareness(TransactionReview)),
+  ),
 );

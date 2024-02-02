@@ -6,7 +6,6 @@ import AccountRightButton from '../AccountRightButton';
 import {
   Alert,
   Image,
-  InteractionManager,
   Platform,
   StyleSheet,
   Text,
@@ -21,8 +20,7 @@ import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
@@ -54,18 +52,6 @@ import {
 } from '../../../component-library/components/Texts/Text';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
-
-const trackEvent = (event) => {
-  InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEvent(event);
-  });
-};
-
-const trackEventWithParameters = (event, params) => {
-  InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEventWithParameters(event, params);
-  });
-};
 
 const styles = StyleSheet.create({
   metamaskName: {
@@ -202,7 +188,8 @@ export function getNavigationOptionsTitle(
   });
 
   function navigationPop() {
-    if (navigationPopEvent) trackEvent(navigationPopEvent);
+    if (navigationPopEvent)
+      MetaMetrics.getInstance().trackEvent(navigationPopEvent.category);
     navigation.goBack();
   }
 
@@ -534,12 +521,16 @@ export function getSendFlowTitle(
       elevation: 0,
     },
   });
+
   const rightAction = () => {
     const providerType = route?.params?.providerType ?? '';
-    trackEventWithParameters(MetaMetricsEvents.SEND_FLOW_CANCEL, {
-      view: title.split('.')[1],
-      network: providerType,
-    });
+    MetaMetrics.getInstance().trackEvent(
+      MetaMetricsEvents.SEND_FLOW_CANCEL.category,
+      {
+        view: title.split('.')[1],
+        network: providerType,
+      },
+    );
     resetTransaction();
     navigation.dangerouslyGetParent()?.pop();
   };
@@ -961,7 +952,9 @@ export function getWalletNavbarOptions(
     navigation.navigate('QRScanner', {
       onScanSuccess,
     });
-    trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
+    MetaMetrics.getInstance().trackEvent(
+      MetaMetricsEvents.WALLET_QR_SCANNER.category,
+    );
   }
 
   return {
@@ -1381,6 +1374,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
       elevation: 0,
     },
   });
+
   const title = route.params?.title ?? 'Swap';
   const leftActionText = route.params?.leftAction ?? strings('navigation.back');
 
@@ -1389,15 +1383,13 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
-      });
+      MetaMetrics.getInstance().trackEvent(
+        MetaMetricsEvents.QUOTES_REQUEST_CANCELLED.category,
+        {
+          ...trade,
+          responseTime: new Date().getTime() - quoteBegin,
+        },
+      );
     }
     navigation.pop();
   };
@@ -1407,15 +1399,13 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
-      });
+      MetaMetrics.getInstance().trackEvent(
+        MetaMetricsEvents.QUOTES_REQUEST_CANCELLED.category,
+        {
+          ...trade,
+          responseTime: new Date().getTime() - quoteBegin,
+        },
+      );
     }
     navigation.dangerouslyGetParent()?.pop();
   };

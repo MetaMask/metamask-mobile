@@ -39,7 +39,6 @@ import {
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
 } from '../../../reducers/swaps';
-import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -87,6 +86,7 @@ import {
   SWAP_DEST_TOKEN,
   SWAP_MAX_SLIPPAGE,
 } from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -203,6 +203,7 @@ function SwapsAmountView({
   const route = useRoute();
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { trackAnonymousEvent } = useMetrics();
 
   const previousSelectedAddress = useRef();
 
@@ -285,15 +286,7 @@ function SwapsAmountView({
               )?.symbol,
               chain_id: chainId,
             };
-            Analytics.trackEventWithParameters(
-              MetaMetricsEvents.SWAPS_OPENED,
-              {},
-            );
-            Analytics.trackEventWithParameters(
-              MetaMetricsEvents.SWAPS_OPENED,
-              parameters,
-              true,
-            );
+            trackAnonymousEvent(MetaMetricsEvents.SWAPS_OPENED, parameters);
           });
         } else {
           navigation.pop();
