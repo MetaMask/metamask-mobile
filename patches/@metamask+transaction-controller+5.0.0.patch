@@ -369,7 +369,7 @@ index 0000000..b68ef90
 +//# sourceMappingURL=IncomingTransactionHelper.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
-index e242aed..a75b8f9 100644
+index e242aed..f3ab672 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 @@ -2,8 +2,12 @@
@@ -571,12 +571,13 @@ index e242aed..a75b8f9 100644
  /**
   * Multiplier used to determine a transaction's increased gas fee during cancellation
   */
-@@ -223,19 +96,11 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -223,19 +96,12 @@ export declare class TransactionController extends BaseController<TransactionCon
      private handle?;
      private mutex;
      private getNetworkState;
 +    private messagingSystem;
 +    private incomingTransactionHelper;
++    private readonly inProcessOfSigning;
 +    private readonly getExternalPendingTransactions;
      private failTransaction;
      private registryLookup;
@@ -594,7 +595,7 @@ index e242aed..a75b8f9 100644
      /**
       * EventEmitter instance used to listen to specific transactional events
       */
-@@ -252,18 +117,35 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -252,18 +118,35 @@ export declare class TransactionController extends BaseController<TransactionCon
       * Creates a TransactionController instance.
       *
       * @param options - The controller options.
@@ -633,7 +634,7 @@ index e242aed..a75b8f9 100644
      }, config?: Partial<TransactionConfig>, state?: Partial<TransactionState>);
      /**
       * Starts a new polling interval.
-@@ -284,11 +166,20 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -284,11 +167,20 @@ export declare class TransactionController extends BaseController<TransactionCon
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -657,7 +658,7 @@ index e242aed..a75b8f9 100644
      prepareUnsignedEthTx(txParams: Record<string, unknown>): TypedTransaction;
      /**
       * `@ethereumjs/tx` uses `@ethereumjs/common` as a configuration tool for
-@@ -300,22 +191,6 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -300,22 +192,6 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @returns {Common} common configuration object
       */
      getCommonConfiguration(): Common;
@@ -680,7 +681,7 @@ index e242aed..a75b8f9 100644
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
       * and emitting a `<tx.id>:finished` hub event.
-@@ -357,6 +232,13 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -357,6 +233,13 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @param transactionMeta - The new transaction to store in state.
       */
      updateTransaction(transactionMeta: TransactionMeta): void;
@@ -694,7 +695,7 @@ index e242aed..a75b8f9 100644
      /**
       * Removes all transactions from state, optionally based on the current network.
       *
-@@ -365,15 +247,21 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -365,15 +248,28 @@ export declare class TransactionController extends BaseController<TransactionCon
       */
      wipeTransactions(ignoreNetwork?: boolean): void;
      /**
@@ -703,27 +704,34 @@ index e242aed..a75b8f9 100644
 -     * specific block onward.
 +     * Gets the next nonce according to the nonce-tracker.
 +     * Ensure `releaseLock` is called once processing of the `nonce` value is complete.
-+     *
-+     * @param address - The hex string address for the transaction.
-+     * @returns object with the `nextNonce` `nonceDetails`, and the releaseLock.
-+     */
-+    getNonceLock(address: string): Promise<NonceLock>;
-+    /**
-+     * Adds external provided transaction to state as confirmed transaction.
       *
 -     * @param address - The address to fetch the transactions for.
 -     * @param opt - Object containing optional data, fromBlock and Etherscan API key.
 -     * @returns The block number of the latest incoming transaction.
++     * @param address - The hex string address for the transaction.
++     * @returns object with the `nextNonce` `nonceDetails`, and the releaseLock.
+      */
+-    fetchAll(address: string, opt?: FetchAllOptions): Promise<string | void>;
++    getNonceLock(address: string): Promise<NonceLock>;
++    /**
++     * Signs and returns the raw transaction data for provided transaction params list.
++     *
++     * @param listOfTxParams - The list of transaction params to approve.
++     * @returns The raw transactions.
++     */
++    approveTransactionsWithSameNonce(listOfTxParams?: Transaction[]): Promise<string | string[]>;
++    /**
++     * Adds external provided transaction to state as confirmed transaction.
++     *
 +     * @param transactionMeta - TransactionMeta to add transactions.
 +     * @param transactionReceipt - TransactionReceipt of the external transaction.
 +     * @param baseFeePerGas - Base fee per gas of the external transaction.
-      */
--    fetchAll(address: string, opt?: FetchAllOptions): Promise<string | void>;
++     */
 +    confirmExternalTransaction(transactionMeta: TransactionMeta, transactionReceipt: TransactionReceipt, baseFeePerGas: Hex): Promise<void>;
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -413,59 +301,62 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -413,59 +309,63 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @returns Whether the transaction has failed.
       */
      private checkTxReceiptStatusIsFailed;
@@ -816,6 +824,7 @@ index e242aed..a75b8f9 100644
 -    private isGasDataOutdated;
 +    private setTransactionStatusDropped;
 +    private updatePostBalance;
++    private signExternalTransaction;
 +    private onTransactionStatusChange;
 +    private getChainId;
  }
@@ -831,7 +840,7 @@ index 07781b0..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 814a899..e75c4fe 100644
+index 814a899..f338a1e 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -843,7 +852,7 @@ index 814a899..e75c4fe 100644
  const events_1 = require("events");
  const ethereumjs_util_1 = require("ethereumjs-util");
  const eth_rpc_errors_1 = require("eth-rpc-errors");
-@@ -22,36 +22,22 @@ const common_1 = __importDefault(require("@ethereumjs/common"));
+@@ -22,36 +22,23 @@ const common_1 = __importDefault(require("@ethereumjs/common"));
  const tx_1 = require("@ethereumjs/tx");
  const uuid_1 = require("uuid");
  const async_mutex_1 = require("async-mutex");
@@ -857,6 +866,7 @@ index 814a899..e75c4fe 100644
 +const types_1 = require("./types");
 +const swaps_1 = require("./swaps");
 +const external_transactions_1 = require("./external-transactions");
++const logger_1 = require("./logger");
  const HARDFORK = 'london';
 +const SUBMIT_HISTORY_LIMIT = 100;
  /**
@@ -889,7 +899,7 @@ index 814a899..e75c4fe 100644
  /**
   * Multiplier used to determine a transaction's increased gas fee during cancellation
   */
-@@ -68,44 +54,24 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -68,44 +55,25 @@ class TransactionController extends base_controller_1.BaseController {
       * Creates a TransactionController instance.
       *
       * @param options - The controller options.
@@ -941,10 +951,11 @@ index 814a899..e75c4fe 100644
 -                verifiedOnBlockchain: false,
 -            };
 -        };
++        this.inProcessOfSigning = new Set();
          /**
           * EventEmitter instance used to listen to specific transactional events
           */
-@@ -121,18 +87,39 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -121,18 +89,39 @@ class TransactionController extends base_controller_1.BaseController {
          this.defaultState = {
              methodData: {},
              transactions: [],
@@ -966,7 +977,7 @@ index 814a899..e75c4fe 100644
 -            getConfirmedTransactions: (address) => (0, utils_1.getAndFormatTransactionsForNonceTracker)(address, TransactionStatus.confirmed, this.state.transactions),
 +            getPendingTransactions: this.getNonceTrackerPendingTransactions.bind(this),
 +            getConfirmedTransactions: this.getNonceTrackerTransactions.bind(this, types_1.TransactionStatus.confirmed),
-         });
++        });
 +        this.incomingTransactionHelper = new IncomingTransactionHelper_1.IncomingTransactionHelper({
 +            blockTracker,
 +            getCurrentAccount: getSelectedAddress,
@@ -980,13 +991,13 @@ index 814a899..e75c4fe 100644
 +            }),
 +            transactionLimit: this.config.txHistoryLimit,
 +            updateTransactions: incomingTransactions.updateTransactions,
-+        });
+         });
 +        this.incomingTransactionHelper.hub.on('transactions', this.onIncomingTransactions.bind(this));
 +        this.incomingTransactionHelper.hub.on('updatedLastFetchedBlockNumbers', this.onUpdatedLastFetchedBlockNumbers.bind(this));
          onNetworkStateChange(() => {
              this.ethQuery = new eth_query_1.default(this.provider);
              this.registry = new eth_method_registry_1.default({ provider: this.provider });
-@@ -140,7 +127,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -140,7 +129,7 @@ class TransactionController extends base_controller_1.BaseController {
          this.poll();
      }
      failTransaction(transactionMeta, error) {
@@ -995,7 +1006,7 @@ index 814a899..e75c4fe 100644
          this.updateTransaction(newTransactionMeta);
          this.hub.emit(`${transactionMeta.id}:finished`, newTransactionMeta);
      }
-@@ -151,43 +138,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -151,43 +140,6 @@ class TransactionController extends base_controller_1.BaseController {
              return { registryMethod, parsedRegistryMethod };
          });
      }
@@ -1039,7 +1050,7 @@ index 814a899..e75c4fe 100644
      /**
       * Starts a new polling interval.
       *
-@@ -235,11 +185,13 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -235,11 +187,13 @@ class TransactionController extends base_controller_1.BaseController {
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -1056,7 +1067,7 @@ index 814a899..e75c4fe 100644
          return __awaiter(this, void 0, void 0, function* () {
              const { providerConfig, networkId } = this.getNetworkState();
              const { transactions } = this.state;
-@@ -250,11 +202,12 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -250,11 +204,12 @@ class TransactionController extends base_controller_1.BaseController {
                  networkID: networkId !== null && networkId !== void 0 ? networkId : undefined,
                  chainId: providerConfig.chainId,
                  origin,
@@ -1070,7 +1081,7 @@ index 814a899..e75c4fe 100644
              };
              try {
                  const { gas, estimateGasError } = yield this.estimateGas(transaction);
-@@ -265,27 +218,24 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -265,27 +220,24 @@ class TransactionController extends base_controller_1.BaseController {
                  this.failTransaction(transactionMeta, error);
                  return Promise.reject(error);
              }
@@ -1113,7 +1124,7 @@ index 814a899..e75c4fe 100644
          });
      }
      prepareUnsignedEthTx(txParams) {
-@@ -305,7 +255,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -305,7 +257,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      getCommonConfiguration() {
          const { networkId, providerConfig: { type: chain, chainId, nickname: name }, } = this.getNetworkState();
@@ -1124,7 +1135,7 @@ index 814a899..e75c4fe 100644
              return new common_1.default({ chain, hardfork: HARDFORK });
          }
          const customChainParams = {
-@@ -315,100 +267,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -315,100 +269,6 @@ class TransactionController extends base_controller_1.BaseController {
          };
          return common_1.default.forCustomChain(controller_utils_1.NetworkType.mainnet, customChainParams, HARDFORK);
      }
@@ -1225,7 +1236,7 @@ index 814a899..e75c4fe 100644
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
       * and emitting a `<tx.id>:finished` hub event.
-@@ -471,8 +329,8 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -471,8 +331,8 @@ class TransactionController extends base_controller_1.BaseController {
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
              const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
@@ -1236,7 +1247,7 @@ index 814a899..e75c4fe 100644
              this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
          });
      }
-@@ -523,9 +381,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -523,9 +383,7 @@ class TransactionController extends base_controller_1.BaseController {
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
              const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
@@ -1247,7 +1258,7 @@ index 814a899..e75c4fe 100644
              const baseTransactionMeta = Object.assign(Object.assign({}, transactionMeta), { id: (0, uuid_1.v1)(), time: Date.now(), transactionHash });
              const newTransactionMeta = newMaxFeePerGas && newMaxPriorityFeePerGas
                  ? Object.assign(Object.assign({}, baseTransactionMeta), { transaction: Object.assign(Object.assign({}, transactionMeta.transaction), { maxFeePerGas: newMaxFeePerGas, maxPriorityFeePerGas: newMaxPriorityFeePerGas }) }) : Object.assign(Object.assign({}, baseTransactionMeta), { transaction: Object.assign(Object.assign({}, transactionMeta.transaction), { gasPrice: newGasPrice }) });
-@@ -649,6 +505,23 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -649,6 +507,23 @@ class TransactionController extends base_controller_1.BaseController {
          transactions[index] = transactionMeta;
          this.update({ transactions: this.trimTransactionsForState(transactions) });
      }
@@ -1271,7 +1282,7 @@ index 814a899..e75c4fe 100644
      /**
       * Removes all transactions from state, optionally based on the current network.
       *
-@@ -674,67 +547,51 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -674,67 +549,102 @@ class TransactionController extends base_controller_1.BaseController {
          });
      }
      /**
@@ -1319,7 +1330,55 @@ index 814a899..e75c4fe 100644
 -                                parseInt(tx.blockNumber, 10))) {
 -                        latestIncomingTxBlockNumber = tx.blockNumber;
 -                    }
--                }
++            return this.nonceTracker.getNonceLock(address);
++        });
++    }
++    /**
++     * Signs and returns the raw transaction data for provided transaction params list.
++     *
++     * @param listOfTxParams - The list of transaction params to approve.
++     * @returns The raw transactions.
++     */
++    approveTransactionsWithSameNonce(listOfTxParams = []) {
++        return __awaiter(this, void 0, void 0, function* () {
++            (0, logger_1.projectLogger)('Approving transactions with same nonce', {
++                transactions: listOfTxParams,
++            });
++            if (listOfTxParams.length === 0) {
++                return '';
++            }
++            const initialTx = listOfTxParams[0];
++            const common = this.getCommonConfiguration();
++            const initialTxAsEthTx = tx_1.TransactionFactory.fromTxData(initialTx, {
++                common,
++            });
++            const initialTxAsSerializedHex = (0, ethereumjs_util_1.bufferToHex)(initialTxAsEthTx.serialize());
++            if (this.inProcessOfSigning.has(initialTxAsSerializedHex)) {
++                return '';
++            }
++            this.inProcessOfSigning.add(initialTxAsSerializedHex);
++            let rawTransactions, nonceLock;
++            try {
++                // TODO: we should add a check to verify that all transactions have the same from address
++                const fromAddress = initialTx.from;
++                nonceLock = yield this.nonceTracker.getNonceLock(fromAddress);
++                const nonce = nonceLock.nextNonce;
++                (0, logger_1.projectLogger)('Using nonce from nonce tracker', nonce, nonceLock.nonceDetails);
++                rawTransactions = yield Promise.all(listOfTxParams.map((txParams) => {
++                    txParams.nonce = (0, ethereumjs_util_1.addHexPrefix)(nonce.toString(16));
++                    return this.signExternalTransaction(txParams);
++                }));
++            }
++            catch (err) {
++                (0, logger_1.projectLogger)('Error while signing transactions with same nonce', err);
++                // Must set transaction to submitted/failed before releasing lock
++                // continue with error chain
++                throw err;
++            }
++            finally {
++                if (nonceLock) {
++                    nonceLock.releaseLock();
+                 }
 -                /* istanbul ignore else */
 -                if (tx.toSmartContract === undefined) {
 -                    // If not `to` is a contract deploy, if not `data` is send eth
@@ -1333,7 +1392,9 @@ index 814a899..e75c4fe 100644
 -                    else {
 -                        tx.toSmartContract = false;
 -                    }
-+            return this.nonceTracker.getNonceLock(address);
++                this.inProcessOfSigning.delete(initialTxAsSerializedHex);
++            }
++            return rawTransactions;
 +        });
 +    }
 +    /**
@@ -1379,7 +1440,7 @@ index 814a899..e75c4fe 100644
          });
      }
      /**
-@@ -753,7 +610,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -753,7 +663,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      trimTransactionsForState(transactions) {
          const nonceNetworkSet = new Set();
@@ -1390,7 +1451,7 @@ index 814a899..e75c4fe 100644
              const { chainId, networkID, status, transaction, time } = tx;
              if (transaction) {
                  const key = `${transaction.nonce}-${chainId !== null && chainId !== void 0 ? chainId : networkID}-${new Date(time).toDateString()}`;
-@@ -768,7 +627,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -768,7 +680,7 @@ class TransactionController extends base_controller_1.BaseController {
              }
              return false;
          });
@@ -1399,7 +1460,7 @@ index 814a899..e75c4fe 100644
          return txsToKeep;
      }
      /**
-@@ -778,10 +637,10 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -778,10 +690,10 @@ class TransactionController extends base_controller_1.BaseController {
       * @returns Whether the transaction is in a final state.
       */
      isFinalState(status) {
@@ -1414,7 +1475,7 @@ index 814a899..e75c4fe 100644
      }
      /**
       * Method to verify the state of a transaction using the Blockchain as a source of truth.
-@@ -793,7 +652,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -793,7 +705,7 @@ class TransactionController extends base_controller_1.BaseController {
          return __awaiter(this, void 0, void 0, function* () {
              const { status, transactionHash } = meta;
              switch (status) {
@@ -1423,7 +1484,7 @@ index 814a899..e75c4fe 100644
                      const txReceipt = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionReceipt', [
                          transactionHash,
                      ]);
-@@ -810,7 +669,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -810,7 +722,7 @@ class TransactionController extends base_controller_1.BaseController {
                          return [meta, false];
                      }
                      return [meta, true];
@@ -1432,7 +1493,7 @@ index 814a899..e75c4fe 100644
                      const txObj = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionByHash', [
                          transactionHash,
                      ]);
-@@ -825,9 +684,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -825,9 +737,17 @@ class TransactionController extends base_controller_1.BaseController {
                      }
                      /* istanbul ignore next */
                      if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
@@ -1453,7 +1514,7 @@ index 814a899..e75c4fe 100644
                      }
                      return [meta, false];
                  default:
-@@ -856,88 +723,330 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -856,88 +776,355 @@ class TransactionController extends base_controller_1.BaseController {
              return Number(txReceipt.status) === 0;
          });
      }
@@ -1557,6 +1618,10 @@ index 814a899..e75c4fe 100644
 +                    this.failTransaction(transactionMeta, new Error('No chainId defined.'));
 +                    return;
 +                }
++                if (this.inProcessOfSigning.has(transactionID)) {
++                    (0, logger_1.projectLogger)('Skipping approval as signing in progress', transactionID);
++                    return;
++                }
 +                const chainId = parseInt(currentChainId, undefined);
 +                const { approved: status } = types_1.TransactionStatus;
 +                let nonceToUse = nonce;
@@ -1580,6 +1645,7 @@ index 814a899..e75c4fe 100644
 +                    delete txParams.gasPrice;
 +                }
 +                const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
++                this.inProcessOfSigning.add(transactionMeta.id);
 +                const signedTx = yield this.sign(unsignedEthTx, from);
 +                transactionMeta.status = types_1.TransactionStatus.signed;
 +                this.updateTransaction(transactionMeta);
@@ -1596,6 +1662,7 @@ index 814a899..e75c4fe 100644
 +                this.failTransaction(transactionMeta, error);
 +            }
 +            finally {
++                this.inProcessOfSigning.delete(transactionID);
 +                // must set transaction to submitted/failed before releasing lock
 +                if (nonceLock) {
 +                    nonceLock.releaseLock();
@@ -1830,6 +1897,25 @@ index 814a899..e75c4fe 100644
 +            catch (error) {
 +                console.error('Error while updating post transaction balance', error);
 +            }
++        });
++    }
++    signExternalTransaction(transactionParams) {
++        return __awaiter(this, void 0, void 0, function* () {
++            if (!this.sign) {
++                throw new Error('No sign method defined.');
++            }
++            const normalizedTransactionParams = (0, utils_1.normalizeTransaction)(transactionParams);
++            const chainId = this.getChainId();
++            const type = (0, utils_1.isEIP1559Transaction)(normalizedTransactionParams)
++                ? types_1.TransactionEnvelopeType.feeMarket
++                : types_1.TransactionEnvelopeType.legacy;
++            const updatedTransactionParams = Object.assign(Object.assign({}, normalizedTransactionParams), { type, gasLimit: normalizedTransactionParams.gas, chainId });
++            const { from } = updatedTransactionParams;
++            const common = this.getCommonConfiguration();
++            const unsignedTransaction = tx_1.TransactionFactory.fromTxData(updatedTransactionParams, { common });
++            const signedTransaction = yield this.sign(unsignedTransaction, from);
++            const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTransaction.serialize());
++            return rawTransaction;
 +        });
 +    }
 +    onTransactionStatusChange(transactionMeta) {
@@ -4005,10 +4091,10 @@ index 0000000..352f512
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.d.ts b/node_modules/@metamask/transaction-controller/dist/types.d.ts
 new file mode 100644
-index 0000000..78871b1
+index 0000000..37a5f00
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/types.d.ts
-@@ -0,0 +1,436 @@
+@@ -0,0 +1,461 @@
 +import { Hex } from '@metamask/utils';
 +/**
 + * @type TransactionMeta
@@ -4443,18 +4529,43 @@ index 0000000..78871b1
 +    [key: `${string}:publish-skip`]: [transactionMeta: TransactionMeta];
 +    [key: `${string}:speedup`]: [transactionMeta: TransactionMeta];
 +};
++/**
++ * Specifies the shape of the base transaction parameters.
++ * Added in EIP-2718.
++ */
++export declare enum TransactionEnvelopeType {
++    /**
++     * A legacy transaction, the very first type.
++     */
++    legacy = "0x0",
++    /**
++     * EIP-2930 defined the access list transaction type that allowed for
++     * specifying the state that a transaction would act upon in advance and
++     * theoretically save on gas fees.
++     */
++    accessList = "0x1",
++    /**
++     * The type introduced comes from EIP-1559, Fee Market describes the addition
++     * of a baseFee to blocks that will be burned instead of distributed to
++     * miners. Transactions of this type have both a maxFeePerGas (maximum total
++     * amount in gwei per gas to spend on the transaction) which is inclusive of
++     * the maxPriorityFeePerGas (maximum amount of gwei per gas from the
++     * transaction fee to distribute to miner).
++     */
++    feeMarket = "0x2"
++}
 +export {};
 +//# sourceMappingURL=types.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.js b/node_modules/@metamask/transaction-controller/dist/types.js
 new file mode 100644
-index 0000000..4605ef7
+index 0000000..b438f48
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/types.js
-@@ -0,0 +1,129 @@
+@@ -0,0 +1,155 @@
 +"use strict";
 +Object.defineProperty(exports, "__esModule", { value: true });
-+exports.TransactionType = exports.WalletDevice = exports.TransactionStatus = void 0;
++exports.TransactionEnvelopeType = exports.TransactionType = exports.WalletDevice = exports.TransactionStatus = void 0;
 +/**
 + * The status of the transaction. Each status represents the state of the transaction internally
 + * in the wallet. Some of these correspond with the state of the transaction on the network, but
@@ -4580,6 +4691,32 @@ index 0000000..4605ef7
 +     */
 +    TransactionType["tokenMethodSetApprovalForAll"] = "setapprovalforall";
 +})(TransactionType = exports.TransactionType || (exports.TransactionType = {}));
++/**
++ * Specifies the shape of the base transaction parameters.
++ * Added in EIP-2718.
++ */
++var TransactionEnvelopeType;
++(function (TransactionEnvelopeType) {
++    /**
++     * A legacy transaction, the very first type.
++     */
++    TransactionEnvelopeType["legacy"] = "0x0";
++    /**
++     * EIP-2930 defined the access list transaction type that allowed for
++     * specifying the state that a transaction would act upon in advance and
++     * theoretically save on gas fees.
++     */
++    TransactionEnvelopeType["accessList"] = "0x1";
++    /**
++     * The type introduced comes from EIP-1559, Fee Market describes the addition
++     * of a baseFee to blocks that will be burned instead of distributed to
++     * miners. Transactions of this type have both a maxFeePerGas (maximum total
++     * amount in gwei per gas to spend on the transaction) which is inclusive of
++     * the maxPriorityFeePerGas (maximum amount of gwei per gas from the
++     * transaction fee to distribute to miner).
++     */
++    TransactionEnvelopeType["feeMarket"] = "0x2";
++})(TransactionEnvelopeType = exports.TransactionEnvelopeType || (exports.TransactionEnvelopeType = {}));
 +//# sourceMappingURL=types.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.d.ts b/node_modules/@metamask/transaction-controller/dist/utils.d.ts
