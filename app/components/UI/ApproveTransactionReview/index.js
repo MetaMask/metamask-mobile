@@ -23,10 +23,10 @@ import { strings } from '../../../../locales/i18n';
 import { setTransactionObject } from '../../../actions/transaction';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import {
+  fromTokenMinimalUnit,
   hexToBN,
   isNumber,
   renderFromTokenMinimalUnit,
-  fromTokenMinimalUnit,
 } from '../../../util/number';
 import {
   getTicker,
