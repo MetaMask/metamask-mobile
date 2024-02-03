@@ -122,6 +122,8 @@ stages:
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
+      - run_fourth_shard_ios: {}
+      - run_fourth_shard_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -368,8 +370,7 @@ workflows:
   ### Seperating workflows so they run concurrently during smoke runs
   run_tag_smoke_confirmations_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
-      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
+      - SHARD: '1'
     after_run:
       - ios_e2e_test
   run_tag_smoke_confirmations_android:
@@ -378,14 +379,12 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
-      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
+      - SHARD: '1'
     after_run:
       - android_e2e_test
   run_tag_smoke_swaps_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
-      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
+      - SHARD: '2'
     after_run:
       - ios_e2e_test
   run_tag_smoke_swaps_android:
@@ -394,13 +393,12 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
-      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
+      - SHARD: '2'
     after_run:
       - android_e2e_test
   run_tag_smoke_core_ios:
     envs:
-      - TEST_SUITE_TAG: '.*SmokeCore.*'
+      - SHARD: '3'
     after_run:
       - ios_e2e_test
   run_tag_smoke_core_android:
@@ -409,7 +407,21 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: '.*SmokeCore.*'
+      - SHARD: '3'
+    after_run:
+      - android_e2e_test
+  run_fourth_shard_ios:
+    envs:
+      - SHARD: '4'
+    after_run:
+      - ios_e2e_test
+  run_fourth_shard_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - SHARD: '4'
     after_run:
       - android_e2e_test
 
@@ -528,21 +540,9 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                TEST_SUITE="Regression"
-                else
-                TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run --shard="$SHARD"/4
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
@@ -685,22 +685,10 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi                
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run --shard="$SHARD"/4
           title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
