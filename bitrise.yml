@@ -396,7 +396,7 @@ workflows:
         stack: osx-xcode-15.0.x
         machine_type_id: g2-m1.8core
     envs:
-      - SHARD: '2'
+      - SHARD: '1'
     after_run:
       - ios_e2e_test
   run_second_shard_android:
@@ -405,7 +405,7 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite
     envs:
-      - SHARD: '2'
+      - SHARD: '1'
     after_run:
       - android_e2e_test
   run_third_shard_ios:
@@ -414,7 +414,7 @@ workflows:
         stack: osx-xcode-15.0.x
         machine_type_id: g2-m1.8core
     envs:
-      - SHARD: '3'
+      - SHARD: '1'
     after_run:
       - ios_e2e_test
   run_third_shard_android:
@@ -423,7 +423,7 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite
     envs:
-      - SHARD: '3'
+      - SHARD: '1'
     after_run:
       - android_e2e_test
   run_fourth_shard_ios:
@@ -432,7 +432,7 @@ workflows:
         stack: osx-xcode-15.0.x
         machine_type_id: g2-m1.8core
     envs:
-      - SHARD: '4'
+      - SHARD: '1'
     after_run:
       - ios_e2e_test
   run_fourth_shard_android:
@@ -441,7 +441,7 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite
     envs:
-      - SHARD: '4'
+      - SHARD: '1'
     after_run:
       - android_e2e_test
   run_fifth_shard_ios:
@@ -450,7 +450,7 @@ workflows:
         stack: osx-xcode-15.0.x
         machine_type_id: g2-m1.8core
     envs:
-      - SHARD: '5'
+      - SHARD: '1'
     after_run:
       - ios_e2e_test
   run_fifth_shard_android:
@@ -459,7 +459,7 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite
     envs:
-      - SHARD: '5'
+      - SHARD: '1'
     after_run:
       - android_e2e_test
   run_sixth_shard_ios:
@@ -468,7 +468,7 @@ workflows:
         stack: osx-xcode-15.0.x
         machine_type_id: g2-m1.8core
     envs:
-      - SHARD: '6'
+      - SHARD: '1'
     after_run:
       - ios_e2e_test
   run_sixth_shard_android:
@@ -477,7 +477,7 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite
     envs:
-      - SHARD: '6'
+      - SHARD: '1'
     after_run:
       - android_e2e_test
   e2e_setup:
