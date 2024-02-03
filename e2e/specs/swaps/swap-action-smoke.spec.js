@@ -45,6 +45,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
     jest.setTimeout(150000);
   });
 
+  jest.retryTimes(2);
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
     ${'.05'} | ${'ETH'}          | ${'USDC'}

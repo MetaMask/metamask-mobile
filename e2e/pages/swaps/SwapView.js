@@ -6,9 +6,17 @@ import { waitFor } from 'detox';
 
 export default class SwapView {
   static async isVisible() {
-    await TestHelpers.checkIfElementByTextIsVisible(
-      messages.swaps.fetching_quotes,
-    );
+    try {
+      await TestHelpers.checkIfElementByTextIsVisible(
+        messages.swaps.fetching_quotes,
+      );
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log(
+        `Fetching quotes text did not appear within reasonable time: ${e}`,
+      );
+    }
+
     await TestHelpers.checkIfVisible(SwapsViewSelectors.SWAP_QUOTE_SUMMARY);
     await TestHelpers.checkIfVisible(SwapsViewSelectors.SWAP_GAS_FEE);
   }

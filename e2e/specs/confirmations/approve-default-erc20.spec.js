@@ -17,7 +17,7 @@ const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 const EXPECTED_TOKEN_AMOUNT = '7';
 
-describe(SmokeConfirmations('ERC20 tokens'), () => {
+describe(SmokeConfirmations('default approval ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {

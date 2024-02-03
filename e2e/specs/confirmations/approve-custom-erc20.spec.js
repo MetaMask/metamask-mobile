@@ -17,7 +17,7 @@ import Assertions from '../../utils/Assertions';
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 
-describe(SmokeConfirmations('ERC20 tokens'), () => {
+describe(SmokeConfirmations('approve ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
