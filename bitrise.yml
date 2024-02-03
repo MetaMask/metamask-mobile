@@ -428,7 +428,7 @@ workflows:
       - SHARD: '4'
     after_run:
       - android_e2e_test
-    run_fifth_shard_ios:
+  run_fifth_shard_ios:
     envs:
       - SHARD: '5'
     after_run:
@@ -442,7 +442,7 @@ workflows:
       - SHARD: '5'
     after_run:
       - android_e2e_test
-      run_sixth_shard_ios:
+  run_sixth_shard_ios:
     envs:
       - SHARD: '6'
     after_run:
