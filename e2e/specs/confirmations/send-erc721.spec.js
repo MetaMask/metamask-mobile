@@ -13,6 +13,7 @@ import {
 import root from '../../../locales/languages/en.json';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 
+const MAX_ATTEMPTS = 3;
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const SENT_COLLECTIBLE_MESSAGE_TEXT = root.transactions.sent_collectible;
@@ -48,10 +49,13 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
         await TestDApp.navigateToTestDappWithContract(nftsAddress);
 
         // Transfer NFT
-        await TestDApp.tapButtonWithContract({
-          buttonId: WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
-          contractAddress: nftsAddress,
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapButtonWithContract({
+            buttonId: WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
+            contractAddress: nftsAddress,
+          });
         });
+
         await TestHelpers.delay(3000);
 
         await TestDApp.tapConfirmButton();
