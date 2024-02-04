@@ -93,10 +93,8 @@ export class TestDApp {
     );
 
     if (device.getPlatform() === 'android') {
-      await TestHelpers.tapAtPoint(
-        BrowserViewSelectorsIDs.ANDROID_CONTAINER,
-        BUTTON_RELATIVE_PONT,
-      );
+      await TestHelpers.waitForWebElementToBeVisibleById(buttonId, 5000);
+      await TestHelpers.tapWebviewElement(buttonId);
     } else {
       await TestHelpers.delay(5000);
       await TestHelpers.tapAtPoint(
