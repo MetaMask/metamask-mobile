@@ -34,10 +34,7 @@ import {
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
 import Device from '../../../util/device';
-import {
-  isBlockaidFeatureEnabled,
-  getBlockaidMetricsParams,
-} from '../../../util/blockaid';
+import { getBlockaidMetricsParams } from '../../../util/blockaid';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import TransactionReviewData from './TransactionReviewData';
@@ -518,13 +515,11 @@ class TransactionReview extends PureComponent {
                     style={styles.accountTransactionWrapper}
                     onStartShouldSetResponder={() => true}
                   >
-                    {isBlockaidFeatureEnabled() && (
-                      <TransactionBlockaidBanner
-                        transactionId={transactionId}
-                        style={styles.blockaidWarning}
-                        onContactUsClicked={this.onContactUsClicked}
-                      />
-                    )}
+                    <TransactionBlockaidBanner
+                      transactionId={transactionId}
+                      style={styles.blockaidWarning}
+                      onContactUsClicked={this.onContactUsClicked}
+                    />
                     <TransactionReviewSummary
                       actionKey={actionKey}
                       assetAmount={assetAmount}

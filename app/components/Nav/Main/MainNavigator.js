@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
-import PropTypes from 'prop-types';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -47,20 +46,14 @@ import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 
-import { RampSDKProvider } from '../../UI/Ramp/common/sdk';
-import { RampType } from '../../UI/Ramp/common/types';
-import GetStarted from '../../UI/Ramp/buy/Views/GetStarted';
-import PaymentMethods from '../../UI/Ramp/buy/Views/PaymentMethods/PaymentMethods';
-import BuildQuote from '../../UI/Ramp/buy/Views/BuildQuote/BuildQuote';
-import Quotes from '../../UI/Ramp/buy/Views/Quotes';
-import CheckoutWebView from '../../UI/Ramp/buy/Views/Checkout';
-import RampSettings from '../../UI/Ramp/common/Views/Settings';
-import NetworkSwitcher from '../../UI/Ramp/common/Views/NetworkSwitcher';
-import RampAddActivationKey from '../../UI/Ramp/common/Views/Settings/AddActivationKey';
-import Regions from '../../UI/Ramp/buy/Views/Regions';
+import RampRoutes from '../../UI/Ramp/routes';
+import { RampType } from '../../UI/Ramp/types';
+import RampSettings from '../../UI/Ramp/Views/Settings';
+import RampAddActivationKey from '../../UI/Ramp/Views/Settings/AddActivationKey';
+
 import { colors as importedColors } from '../../../styles/common';
-import OrderDetails from '../../UI/Ramp/common/Views/OrderDetails';
-import SendTransaction from '../../UI/Ramp/common/Views/SendTransaction';
+import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
+import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
 import BrowserUrlModal from '../../Views/BrowserUrlModal';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -555,46 +548,6 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const Ramps = ({ rampType }) => (
-  <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator initialRouteName={Routes.RAMP.GET_STARTED}>
-      <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
-      <Stack.Screen
-        name={Routes.RAMP.NETWORK_SWITCHER}
-        component={NetworkSwitcher}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.RAMP.PAYMENT_METHOD}
-        component={PaymentMethods}
-      />
-      <Stack.Screen
-        name={Routes.RAMP.PAYMENT_METHOD_HAS_STARTED}
-        component={PaymentMethods}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
-      <Stack.Screen
-        name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
-        component={BuildQuote}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen name={Routes.RAMP.QUOTES} component={Quotes} />
-      <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
-      <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />
-      <Stack.Screen
-        name={Routes.RAMP.REGION_HAS_STARTED}
-        component={Regions}
-        options={{ animationEnabled: false }}
-      />
-    </Stack.Navigator>
-  </RampSDKProvider>
-);
-
-Ramps.propTypes = {
-  rampType: PropTypes.string,
-};
-
 const Swaps = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -686,10 +639,10 @@ const MainNavigator = () => (
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
-      {() => <Ramps rampType={RampType.BUY} />}
+      {() => <RampRoutes rampType={RampType.BUY} />}
     </Stack.Screen>
     <Stack.Screen name={Routes.RAMP.SELL}>
-      {() => <Ramps rampType={RampType.SELL} />}
+      {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen

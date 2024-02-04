@@ -12,9 +12,9 @@ import { isEqual } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import UntypedEngine from '../../../core/Engine';
 import {
   addPermittedAccounts,
@@ -95,7 +95,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostname,
   );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
     useState<AccountPermissionsScreens>(AccountPermissionsScreens.Connected);
   const { accounts, ensByAccountAddress } = useAccounts({
@@ -109,7 +109,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
   const hideSheet = useCallback(
-    (callback?: () => void) => sheetRef?.current?.hide?.(callback),
+    (callback?: () => void) =>
+      sheetRef?.current?.onCloseBottomSheet?.(callback),
     [sheetRef],
   );
   const metricsSource = 'Browser Tab/Permission UI';
@@ -410,11 +411,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderRevokeScreen,
   ]);
 
-  return (
-    <SheetBottom reservedMinOverlayHeight={0} ref={sheetRef}>
-      {renderPermissionsScreens()}
-    </SheetBottom>
-  );
+  return <BottomSheet ref={sheetRef}>{renderPermissionsScreens()}</BottomSheet>;
 };
 
 export default AccountPermissions;
