@@ -1,4 +1,4 @@
-# [Label](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=d6aa56ac40044195a5078d37d3118223&pm=c)
+# [Label](https://metamask-design-system.notion.site/Label-d6aa56ac40044195a5078d37d3118223)
 
 ![Label](./Label.png)
 

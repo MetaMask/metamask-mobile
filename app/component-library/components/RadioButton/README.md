@@ -1,4 +1,4 @@
-# [RadioButton](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=b1747843d5364be59185fed947f4a3a9&pm=c)
+# [RadioButton](https://metamask-design-system.notion.site/Radio-Button-b1747843d5364be59185fed947f4a3a9)
 
 ![RadioButton](./RadioButton.png)
 

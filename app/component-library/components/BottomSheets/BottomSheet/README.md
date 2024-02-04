@@ -1,4 +1,4 @@
-# [BottomSheet](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=302164aff8a74b6eb721f49586f88ecd&pm=c)
+# [BottomSheet](https://metamask-design-system.notion.site/Bottom-Sheet-302164aff8a74b6eb721f49586f88ecd)
 
 ![BottomSheet](./BottomSheet.png)
 

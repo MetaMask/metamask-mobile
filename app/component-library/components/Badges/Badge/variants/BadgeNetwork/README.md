@@ -1,4 +1,4 @@
-# [BadgeNetwork](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=94a679c50cb446f4844dc624b4f74946&pm=c)
+# [BadgeNetwork](https://metamask-design-system.notion.site/Badge-Network-94a679c50cb446f4844dc624b4f74946)
 
 ![BadgeNetwork](./BadgeNetwork.png)
 

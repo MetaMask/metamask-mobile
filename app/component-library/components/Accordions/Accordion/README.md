@@ -1,4 +1,4 @@
-# [Accordion](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=f43e500b92754d9bb06bc72553c44494&pm=c)
+# [Accordion](https://metamask-design-system.notion.site/Accordion-f43e500b92754d9bb06bc72553c44494)
 
 ![Accordion](./Accordion.png)
 

@@ -1,4 +1,4 @@
-# [HeaderBase](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=2e96e1ac4c2b4816bb7bd3c594c72538&pm=c)
+# [HeaderBase](https://metamask-design-system.notion.site/Header-Base-2e96e1ac4c2b4816bb7bd3c594c72538)
 
 ![HeaderBase](./HeaderBase.png)
 

@@ -1,4 +1,4 @@
-# [ListItemMultiSelect](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=8ffafd9e99114e588c5c28ee5e4f0b10&pm=c)
+# [ListItemMultiSelect](https://metamask-design-system.notion.site/List-Item-MultiSelect-8ffafd9e99114e588c5c28ee5e4f0b10)
 
 ![ListItemMultiSelect](./ListItemMultiSelect.png)
 

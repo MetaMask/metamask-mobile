@@ -1,7 +1,7 @@
 # Badge
-[BadgeNetwork](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=94a679c50cb446f4844dc624b4f74946&pm=c)
+[BadgeNetwork](https://metamask-design-system.notion.site/Badge-Network-94a679c50cb446f4844dc624b4f74946)
 ![BadgeNetwork](./variants/BadgeNetwork/BadgeNetwork.png)
-[BadgeStatus](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=5caf000de32549f8ad67c0b89469ce4d&pm=c)
+[BadgeStatus](https://metamask-design-system.notion.site/Badge-Status-5caf000de32549f8ad67c0b89469ce4d)
 ![BadgeStatus](./variants/BadgeStatus/BadgeStatus.png)
 
 Badge is a union component, which currently only consist of [BadgeNetwork](./variants/BadgeNetwork/BadgeNetwork.tsx)

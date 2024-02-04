@@ -1,4 +1,4 @@
-# [BannerAlert](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=56177453644641ed8ef5c96db6a7681f&pm=c)
+# [BannerAlert](https://metamask-design-system.notion.site/Banner-Alert-56177453644641ed8ef5c96db6a7681f)
 
 ![BannerAlert](./BannerAlert.png)
 

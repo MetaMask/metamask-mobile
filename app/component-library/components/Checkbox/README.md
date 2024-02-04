@@ -1,4 +1,4 @@
-# [Checkbox](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=359c236367eb4058876fc12189c06824&pm=c)
+# [Checkbox](https://metamask-design-system.notion.site/Checkbox-359c236367eb4058876fc12189c06824)
 
 ![Checkbox](./Checkbox.png)
 

@@ -1,4 +1,4 @@
-# [TextFieldSearch](https://www.notion.so/MetaMask-Design-System-Guides-Design-f86ecc914d6b4eb6873a122b83c12940?p=de685317eeaf413f9682363128ffe673&pm=c)
+# [TextFieldSearch](https://metamask-design-system.notion.site/Text-Field-Search-de685317eeaf413f9682363128ffe673)
 
 ![TextFieldSearch](./TextFieldSearch.png)
 
