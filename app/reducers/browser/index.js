@@ -6,17 +6,23 @@ const initialState = {
   tabs: [],
   favicons: [],
   activeTab: null,
+  // Keep track of visted Dapps, which is used for MetaMetricsEvents.DAPP_VIEWED event
+  visitedDappsByHostName: {},
 };
 const browserReducer = (state = initialState, action) => {
   switch (action.type) {
-    case 'ADD_TO_BROWSER_HISTORY':
+    case 'ADD_TO_BROWSER_HISTORY': {
+      const { url, name, hostname } = action;
+
       return {
         ...state,
-        history: [
-          ...state.history,
-          { url: action.url, name: action.name },
-        ].slice(0, 50),
+        history: [...state.history, { url, name }].slice(0, 50),
+        visitedDappsByHostName: {
+          ...state.visitedDappsByHostName,
+          [hostname]: true,
+        },
       };
+    }
     case 'ADD_TO_BROWSER_WHITELIST':
       return {
         ...state,
