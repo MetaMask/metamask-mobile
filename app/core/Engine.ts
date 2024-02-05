@@ -925,6 +925,7 @@ class Engine {
       new TransactionController({
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
+        getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
         getNetworkState: () => networkController.state,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {

@@ -50,6 +50,7 @@ import {
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectGasFeeEstimates } from '../../../selectors/transactions';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -387,6 +388,14 @@ class TransactionEditor extends PureComponent {
 
     const gasEstimateTypeChanged =
       prevProps.gasEstimateType !== this.props.gasEstimateType;
+
+    console.log('------- Inputs', {
+      gasEstimateTypeChanged,
+      stopUpdateGas: this.state.stopUpdateGas,
+      advancedGasInserted: this.state.advancedGasInserted,
+      gasFeeEstimates: this.props.gasFeeEstimates,
+      transactionGas: transaction.gas,
+    });
 
     if (
       (!this.state.stopUpdateGas && !this.state.advancedGasInserted) ||
@@ -970,8 +979,7 @@ const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  gasFeeEstimates: selectGasFeeEstimates(state),
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   conversionRate: selectConversionRate(state),

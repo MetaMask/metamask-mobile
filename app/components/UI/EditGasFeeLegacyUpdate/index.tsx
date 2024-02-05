@@ -31,6 +31,7 @@ import StyledButton from '../StyledButton';
 import InfoModal from '../Swaps/components/InfoModal';
 import createStyles from './styles';
 import { EditGasFeeLegacyUpdateProps, EditLegacyGasTransaction } from './types';
+import { selectGasFeeEstimates } from '../../../selectors/transactions';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_PRICE_INCREMENT = new BigNumber(1);
@@ -70,9 +71,8 @@ const EditGasFeeLegacy = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const gasFeeEstimate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  const gasFeeEstimate = useSelector((state: any) =>
+    selectGasFeeEstimates(state),
   );
 
   const primaryCurrency = useSelector(

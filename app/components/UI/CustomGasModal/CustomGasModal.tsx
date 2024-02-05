@@ -9,6 +9,7 @@ import EditGasFee1559 from '../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../UI/EditGasFeeLegacyUpdate';
 import createStyles from './CustomGasModal.styles';
 import { CustomGasModalProps } from './CustomGasModal.types';
+import { selectGasFeeEstimates } from '../../../selectors/transactions';
 
 const CustomGasModal = ({
   gasSelected,
@@ -27,9 +28,8 @@ const CustomGasModal = ({
   const { colors } = useAppThemeFromContext();
   const styles = createStyles();
   const transaction = useSelector((state: any) => state.transaction);
-  const gasFeeEstimate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  const gasFeeEstimate = useSelector((state: any) =>
+    selectGasFeeEstimates(state),
   );
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,

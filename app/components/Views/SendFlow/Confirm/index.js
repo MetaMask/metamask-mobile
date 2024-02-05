@@ -113,6 +113,7 @@ import {
 } from '../../../../util/blockaid';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 import TransactionBlockaidBanner from '../../../../components/UI/TransactionBlockaidBanner/TransactionBlockaidBanner';
+import { selectGasFeeEstimates } from '../../../../selectors/transactions';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1318,8 +1319,7 @@ const mapStateToProps = (state) => ({
   selectedAsset: state.transaction.selectedAsset,
   transactionState: state.transaction,
   primaryCurrency: state.settings.primaryCurrency,
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  gasFeeEstimates: selectGasFeeEstimates(state),
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
   isPaymentRequest: state.transaction.paymentRequest,

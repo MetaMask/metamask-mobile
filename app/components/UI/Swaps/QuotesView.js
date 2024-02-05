@@ -98,6 +98,7 @@ import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
 } from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
+import { selectGasFeeEstimates } from '../../../selectors/transactions';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -2382,8 +2383,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.SwapsController.quoteRefreshSeconds,
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  gasFeeEstimates: selectGasFeeEstimates(state),
   usedGasEstimate: state.engine.backgroundState.SwapsController.usedGasEstimate,
   usedCustomGas: state.engine.backgroundState.SwapsController.usedCustomGas,
   primaryCurrency: state.settings.primaryCurrency,
