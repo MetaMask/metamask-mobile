@@ -638,7 +638,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       "textAlign": "center",
                     },
                     Object {
-                      "color": "#FCFCFC",
+                      "color": "#FFFFFF",
                     },
                     undefined,
                   ],
@@ -1294,7 +1294,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                       "textAlign": "center",
                     },
                     Object {
-                      "color": "#FCFCFC",
+                      "color": "#FFFFFF",
                     },
                     undefined,
                   ],
