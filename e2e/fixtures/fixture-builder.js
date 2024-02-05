@@ -538,7 +538,7 @@ class FixtureBuilder {
           isAutomaticSecurityChecksModalOpen: false,
         },
         experimentalSettings: {
-          securityAlertsEnabled: false,
+          securityAlertsEnabled: true,
         },
       },
       asyncState: {

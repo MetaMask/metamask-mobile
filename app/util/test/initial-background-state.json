@@ -97,7 +97,7 @@
     "useTokenDetection": true,
     "useNftDetection": false,
     "displayNftMedia": true,
-    "securityAlertsEnabled": false,
+    "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false
