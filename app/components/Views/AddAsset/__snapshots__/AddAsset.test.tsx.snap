@@ -22,8 +22,8 @@ exports[`AddAsset component renders correctly 1`] = `
     <View
       style={
         Object {
-          "backgroundColor": "#FFD33D19",
-          "borderColor": "#F66A0A",
+          "backgroundColor": "#BF520819",
+          "borderColor": "#BF5208",
           "borderLeftWidth": 4,
           "borderRadius": 4,
           "flexDirection": "row",
@@ -42,7 +42,7 @@ exports[`AddAsset component renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#F66A0A"
+          color="#BF5208"
           height={24}
           name="Danger"
           style={
@@ -371,6 +371,8 @@ exports[`AddAsset component renders correctly 1`] = `
                       Object {
                         "marginLeft": 8,
                       },
+                      Object {},
+                      Object {},
                     ],
                   ],
                   Object {

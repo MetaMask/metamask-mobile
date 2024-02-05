@@ -43,7 +43,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import TransactionHeader from '../TransactionHeader';
 import AccountFromToInfoCard from '../AccountFromToInfoCard';
-import ActionView from '../ActionView';
+import ActionView, { ConfirmButtonState } from '../ActionView';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
@@ -62,6 +62,7 @@ import { selectTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import AppConstants from '../../../core/AppConstants';
+import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -445,6 +446,30 @@ class TransactionReview extends PureComponent {
     return url;
   }
 
+  getConfirmButtonState() {
+    const { transaction } = this.props;
+    const { id, currentTransactionSecurityAlertResponse } = transaction;
+    let confirmButtonState = ConfirmButtonState.Normal;
+    if (
+      id &&
+      currentTransactionSecurityAlertResponse?.id &&
+      currentTransactionSecurityAlertResponse.id === id
+    ) {
+      if (
+        currentTransactionSecurityAlertResponse?.response?.result_type ===
+        ResultType.Malicious
+      ) {
+        confirmButtonState = ConfirmButtonState.Error;
+      } else if (
+        currentTransactionSecurityAlertResponse?.response?.result_type ===
+        ResultType.Warning
+      ) {
+        confirmButtonState = ConfirmButtonState.Warning;
+      }
+    }
+    return confirmButtonState;
+  }
+
   renderTransactionReview = () => {
     const {
       transactionConfirmed,
@@ -481,6 +506,7 @@ class TransactionReview extends PureComponent {
     } = this.state;
     const url = this.getUrlFromBrowser();
     const styles = this.getStyles();
+
     return (
       <>
         <Animated.View
@@ -508,6 +534,7 @@ class TransactionReview extends PureComponent {
               confirmDisabled={
                 transactionConfirmed || Boolean(error) || isAnimating
               }
+              confirmButtonState={this.getConfirmButtonState()}
             >
               <View style={styles.actionViewChildren}>
                 <ScrollView nestedScrollEnabled>
