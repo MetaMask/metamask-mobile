@@ -101,6 +101,7 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
 import { selectChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
+import { trackDappVisitedEvent } from '../../../analytics';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
@@ -532,6 +533,27 @@ export const BrowserTab = (props) => {
     [goBack, props.ipfsGateway, setIpfsBannerVisible, props.chainId],
   );
 
+  const triggerDappVisitedEvent = (url) => {
+    const permissionsControllerState =
+      Engine.context.PermissionController.state;
+    const hostname = new URL(url).hostname;
+    const connectedAccounts = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+
+    // Check if there are any connected accounts
+    if (!connectedAccounts.length) {
+      return;
+    }
+
+    // Track dapp visited event
+    trackDappVisitedEvent({
+      hostname,
+      numberOfConnectedAccounts: connectedAccounts.length,
+    });
+  };
+
   /**
    * Go to a url
    */
@@ -574,6 +596,11 @@ export const BrowserTab = (props) => {
             );
         }
 
+        // Skip tracking on initial open
+        if (!initialCall) {
+          triggerDappVisitedEvent(urlToGo);
+        }
+
         setProgress(0);
         return prefixedUrl;
       }
@@ -602,6 +629,7 @@ export const BrowserTab = (props) => {
     const { current } = webviewRef;
 
     current && current.reload();
+    triggerDappVisitedEvent(url.current);
   }, []);
 
   /**
@@ -733,6 +761,7 @@ export const BrowserTab = (props) => {
     props.addToBrowserHistory({
       name: siteInfo.title,
       url: getMaskedUrl(siteInfo.url),
+      hostname: new URL(siteInfo.url).hostname,
     });
   };
 
@@ -1630,7 +1659,8 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   addBookmark: (bookmark) => dispatch(addBookmark(bookmark)),
-  addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
+  addToBrowserHistory: ({ url, name, hostname }) =>
+    dispatch(addToHistory({ url, name, hostname })),
   addToWhitelist: (url) => dispatch(addToWhitelist(url)),
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
