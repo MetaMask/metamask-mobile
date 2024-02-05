@@ -2740,7 +2740,10 @@
     "error_during_connection_message": "Ledger Nano X cihazınıza bağlanırken küçük bir sorun oluştu, bunu tekrar denemek için aşağıdaki \"Tekrar Dene\" düğmesine dokunun. Bazen MetaMask Mobil ile eşleştirme sürecinin başlangıcında Ledger Nano X cihazında ETH uygulamasının açık olması nedeniyle bu durum meydana gelir.",
     "how_to_install_eth_webview_title": "Ethereum uygulaması nasıl yüklenir?",
     "nonce_too_low": "Nonce çok düşük",
-    "nonce_too_low_error": "Ayarlanan nonce çok düşük"
+    "nonce_too_low_error": "Ayarlanan nonce çok düşük",
+    "ledger_beta_alert": "Ledger entegrasyonu etkinleştiriliyor",
+    "ledger_beta_alert_description": "Deneysel bir özellik buldunuz! Devam ederek deneysel özelliği riski kendinize ait olacak şekilde kullandığınızı kabul edersiniz.",
+    "ledger_beta_cta": "Devam Et"
   },
   "account_actions": {
     "edit_name": "Hesap adını düzenleyin",

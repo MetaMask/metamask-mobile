@@ -2740,7 +2740,10 @@
     "error_during_connection_message": "Es gab ein kleines Problem mit der Verbindung zu Ihrem Ledger Nano X. Tippen Sie weiter unten auf „erneut versuchen“, um es noch einmal zu probieren. Dies passiert manchmal, wenn die EHP-App auf Ihrem Ledger X zu Beginn der Kopplung bereits mit MetaMask Mobile geöffnet ist.",
     "how_to_install_eth_webview_title": "So installieren Sie die Etherum-App",
     "nonce_too_low": "Nonce zu niedrig",
-    "nonce_too_low_error": "Die eingestellte Nonce ist zu niedrig"
+    "nonce_too_low_error": "Die eingestellte Nonce ist zu niedrig",
+    "ledger_beta_alert": "Aktivierung der Ledger-Integration",
+    "ledger_beta_alert_description": "Sie haben eine experimentelle Funktion gefunden! Wenn Sie fortfahren, akzeptieren Sie, dass Sie diese experimentelle Funktion auf eigenes Risiko nutzen.",
+    "ledger_beta_cta": "Fortfahren"
   },
   "account_actions": {
     "edit_name": "Kontonamen bearbeiten",

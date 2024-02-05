@@ -2740,7 +2740,10 @@
     "error_during_connection_message": "Ledger Nano Xへの接続中に若干の問題が発生しました。下の「再試行」をタップして、もう一度お試しください。この問題は、Ledger Nano XのETHアプリが、MetaMask Mobileとのペアリングプロセスの開始時に開いているのが原因で起こることがあります。",
     "how_to_install_eth_webview_title": "イーサリアムアプリのインストール方法",
     "nonce_too_low": "ナンスが低すぎます",
-    "nonce_too_low_error": "設定されたナンスが低すぎます"
+    "nonce_too_low_error": "設定されたナンスが低すぎます",
+    "ledger_beta_alert": "Ledgerの統合を有効にしています",
+    "ledger_beta_alert_description": "試験運用の機能を発見しました！続行することで、この試験運用の機能を自己責任で使用することに同意したものとみなされます。",
+    "ledger_beta_cta": "続行"
   },
   "account_actions": {
     "edit_name": "アカウント名を編集",

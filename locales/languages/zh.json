@@ -2740,7 +2740,10 @@
     "error_during_connection_message": "连接Ledger Nano X时出现小问题，请在下方点击“重试”，再试一次。有时，这是因为在和MetaMask Mobile进行配对的过程开始时，Ledger Nano X上的以太坊应用程序处于打开状态。",
     "how_to_install_eth_webview_title": "如何安装以太坊应用程序",
     "nonce_too_low": "唯一交易标识号安全性过低",
-    "nonce_too_low_error": "设置的唯一交易标识号安全性过低"
+    "nonce_too_low_error": "设置的唯一交易标识号安全性过低",
+    "ledger_beta_alert": "启用 Ledger 集成",
+    "ledger_beta_alert_description": "您发现了一个实验性功能！继续即表示接受使用此实验性功能的风险由您自行承担。",
+    "ledger_beta_cta": "继续"
   },
   "account_actions": {
     "edit_name": "编辑账户名",
