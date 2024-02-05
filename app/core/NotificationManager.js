@@ -5,13 +5,11 @@ import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
 import { strings } from '../../locales/i18n';
-import { Alert, AppState } from 'react-native';
-import AsyncStorage from '../store/async-storage-wrapper';
-import AppConstants from './AppConstants';
+import { AppState } from 'react-native';
 import {
-  PUSH_NOTIFICATIONS_PROMPT_COUNT,
-  PUSH_NOTIFICATIONS_PROMPT_TIME,
-} from '../constants/storage';
+  NotificationTransactionTypes,
+  checkPushNotificationPermissions,
+} from '../util/notifications';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
@@ -20,54 +18,54 @@ import { store } from '../store';
 const constructTitleAndMessage = (data) => {
   let title, message;
   switch (data.type) {
-    case 'pending':
+    case NotificationTransactionTypes.pending:
       title = strings('notifications.pending_title');
       message = strings('notifications.pending_message');
       break;
-    case 'pending_deposit':
+    case NotificationTransactionTypes.pending_deposit:
       title = strings('notifications.pending_deposit_title');
       message = strings('notifications.pending_deposit_message');
       break;
-    case 'pending_withdrawal':
+    case NotificationTransactionTypes.pending_withdrawal:
       title = strings('notifications.pending_withdrawal_title');
       message = strings('notifications.pending_withdrawal_message');
       break;
-    case 'success':
+    case NotificationTransactionTypes.success:
       title = strings('notifications.success_title', {
         nonce: data?.transaction?.nonce || '',
       });
       message = strings('notifications.success_message');
       break;
-    case 'speedup':
+    case NotificationTransactionTypes.speedup:
       title = strings('notifications.speedup_title', {
         nonce: data?.transaction?.nonce || '',
       });
       message = strings('notifications.speedup_message');
       break;
-    case 'success_withdrawal':
+    case NotificationTransactionTypes.success_withdrawal:
       title = strings('notifications.success_withdrawal_title');
       message = strings('notifications.success_withdrawal_message');
       break;
-    case 'success_deposit':
+    case NotificationTransactionTypes.success_deposit:
       title = strings('notifications.success_deposit_title');
       message = strings('notifications.success_deposit_message');
       break;
-    case 'error':
+    case NotificationTransactionTypes.error:
       title = strings('notifications.error_title');
       message = strings('notifications.error_message');
       break;
-    case 'cancelled':
+    case NotificationTransactionTypes.cancelled:
       title = strings('notifications.cancelled_title');
       message = strings('notifications.cancelled_message');
       break;
-    case 'received':
+    case NotificationTransactionTypes.received:
       title = strings('notifications.received_title', {
         amount: data.transaction.amount,
         assetType: data.transaction.assetType,
       });
       message = strings('notifications.received_message');
       break;
-    case 'received_payment':
+    case NotificationTransactionTypes.received_payment:
       title = strings('notifications.received_payment_title');
       message = strings('notifications.received_payment_message', {
         amount: data.transaction.amount,
@@ -293,61 +291,10 @@ class NotificationManager {
   onMessageReceived = async (data) => {
     this._showNotification(data);
   };
-  /**
-   * Handles the push notification prompt
-   * with a custom set of rules, like max. number of attempts
-   */
-  requestPushNotificationsPermission = async () => {
-    const promptCount = await AsyncStorage.getItem(
-      PUSH_NOTIFICATIONS_PROMPT_COUNT,
-    );
-    if (
-      !promptCount ||
-      Number(promptCount) < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES
-    ) {
-      notifee.getNotificationSettings((settings) => {
-        if (
-          !settings.authorizationStatus !== 'AUTHORIZED' ||
-          !settings.authorizationStatus !== 'PROVISIONAL'
-        ) {
-          Alert.alert(
-            strings('notifications.prompt_title'),
-            strings('notifications.prompt_desc'),
-            [
-              {
-                text: strings('notifications.prompt_cancel'),
-                onPress: () => false,
-                style: 'default',
-              },
-              {
-                text: strings('notifications.prompt_ok'),
-                onPress: async () => {
-                  if (Device.isIos()) {
-                    await notifee.requestPermission({
-                      provisional: true,
-                    });
-                  }
-                },
-              },
-            ],
-            { cancelable: false },
-          );
 
-          const times = (promptCount && Number(promptCount) + 1) || 1;
-          AsyncStorage.setItem(
-            PUSH_NOTIFICATIONS_PROMPT_COUNT,
-            times.toString(),
-          );
-          // In case we want to prompt again after certain time.
-          AsyncStorage.setItem(
-            PUSH_NOTIFICATIONS_PROMPT_TIME,
-            Date.now().toString(),
-          );
-        }
-      });
-    }
-  };
-
+  requestPushNotificationsPermission() {
+    return checkPushNotificationPermissions();
+  }
   /**
    * Returns the id of the transaction that should
    * be displayed and removes it from memory
