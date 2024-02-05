@@ -1,4 +1,4 @@
-# [BadgeNetwork](https://metamask-design-system.notion.site/Badge-Network-94a679c50cb446f4844dc624b4f74946)
+# [BadgeNetwork](https://metamask-consensys.notion.site/Badge-Network-94a679c50cb446f4844dc624b4f74946)
 
 ![BadgeNetwork](./BadgeNetwork.png)
 

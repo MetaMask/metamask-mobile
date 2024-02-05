@@ -1,4 +1,4 @@
-# [BannerAlert](https://metamask-design-system.notion.site/Banner-Alert-56177453644641ed8ef5c96db6a7681f)
+# [BannerAlert](https://metamask-consensys.notion.site/Banner-Alert-56177453644641ed8ef5c96db6a7681f)
 
 ![BannerAlert](./BannerAlert.png)
 

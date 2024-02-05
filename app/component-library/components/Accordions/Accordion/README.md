@@ -1,4 +1,4 @@
-# [Accordion](https://metamask-design-system.notion.site/Accordion-f43e500b92754d9bb06bc72553c44494)
+# [Accordion](https://metamask-consensys.notion.site/Accordion-f43e500b92754d9bb06bc72553c44494)
 
 ![Accordion](./Accordion.png)
 

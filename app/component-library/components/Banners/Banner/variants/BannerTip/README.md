@@ -1,4 +1,4 @@
-# [BannerTip](https://metamask-design-system.notion.site/Banner-Tip-67fdb01ab850472f90abc6f4127395cb)
+# [BannerTip](https://metamask-consensys.notion.site/Banner-Tip-67fdb01ab850472f90abc6f4127395cb)
 
 ![BannerTip](./BannerTip.png)
 

@@ -1,4 +1,4 @@
-# [ListItemSelect](https://metamask-design-system.notion.site/List-Item-Select-e9173552eb1c4723b9549a021624c536)
+# [ListItemSelect](https://metamask-consensys.notion.site/List-Item-Select-e9173552eb1c4723b9549a021624c536)
 
 ![ListItemSelect](./ListItemSelect.png)
 

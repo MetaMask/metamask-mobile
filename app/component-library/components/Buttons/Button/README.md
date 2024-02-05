@@ -1,4 +1,4 @@
-# [Button](https://metamask-design-system.notion.site/Button-88af1ddc075b40e3bb38a6d0c098d9b6)
+# [Button](https://metamask-consensys.notion.site/Button-88af1ddc075b40e3bb38a6d0c098d9b6)
 
 ![Button](./Button.png)
 

@@ -1,4 +1,4 @@
-# [BottomSheet](https://metamask-design-system.notion.site/Bottom-Sheet-302164aff8a74b6eb721f49586f88ecd)
+# [BottomSheet](https://metamask-consensys.notion.site/Bottom-Sheet-302164aff8a74b6eb721f49586f88ecd)
 
 ![BottomSheet](./BottomSheet.png)
 

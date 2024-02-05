@@ -1,4 +1,4 @@
-# [Toast](https://metamask-design-system.notion.site/Toast-0c8412d624174c47a20fb654f3001c26)
+# [Toast](https://metamask-consensys.notion.site/Toast-0c8412d624174c47a20fb654f3001c26)
 
 ![Toast](./Toast.png)
 
