@@ -1650,11 +1650,14 @@ exports[`Confirm should render correctly 1`] = `
                                   "backgroundColor": "#0376C9",
                                   "minHeight": 50,
                                 },
-                                Object {
-                                  "alignSelf": "flex-end",
-                                  "flex": 1,
-                                  "marginHorizontal": 24,
-                                },
+                                Array [
+                                  Object {
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
+                                    "marginHorizontal": 24,
+                                  },
+                                  Object {},
+                                ],
                               ],
                               Object {
                                 "opacity": 0.6,

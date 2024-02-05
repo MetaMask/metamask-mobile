@@ -138,6 +138,14 @@ const createStyles = (colors: any) =>
       marginTop: 20,
       marginHorizontal: 10,
     },
+    confirmButtonError: {
+      backgroundColor: colors.error.default,
+      borderColor: colors.error.default,
+    },
+    confirmButtonWarning: {
+      backgroundColor: colors.warning.default,
+      borderColor: colors.warning.default,
+    },
   });
 
 export default createStyles;
