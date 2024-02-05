@@ -14,7 +14,7 @@ exports[`BackupAlert should render correctly 1`] = `
       Array [
         Object {
           "backgroundColor": "#FFFFFF",
-          "borderColor": "#F66A0A",
+          "borderColor": "#BF5208",
           "borderRadius": 8,
           "borderWidth": 1,
           "left": 16,
@@ -31,7 +31,7 @@ exports[`BackupAlert should render correctly 1`] = `
   <View
     style={
       Object {
-        "backgroundColor": "#FFD33D19",
+        "backgroundColor": "#BF520819",
         "flex": 1,
         "padding": 14,
       }
