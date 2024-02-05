@@ -67,9 +67,13 @@ describe(Regression('Custom RPC Tests'), () => {
       await NetworkView.tapRpcNetworkAddButton();
     }
 
+    await TestHelpers.delay(3000);
     await NetworkApprovalModal.isVisible();
     await NetworkApprovalModal.tapApproveButton();
-    await NetworkAddedModal.tapSwitchToNetwork();
+
+    await TestHelpers.delay(3000);
+    await NetworkAddedModal.isVisible();
+    await NetworkAddedModal.tapSwitchToNetworkButton();
 
     await TestHelpers.delay(3000);
     await WalletView.isVisible();

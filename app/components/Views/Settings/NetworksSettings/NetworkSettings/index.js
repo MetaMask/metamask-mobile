@@ -1000,7 +1000,7 @@ class NetworkSettings extends PureComponent {
               )}
               {...generateTestId(Platform, BLOCK_EXPLORER_FIELD)}
               placeholderTextColor={colors.text.muted}
-              onSubmitEditing={this.addRpcUrl}
+              onSubmitEditing={this.toggleNetworkDetailsModal}
               keyboardAppearance={themeAppearance}
             />
           </View>
