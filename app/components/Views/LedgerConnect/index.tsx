@@ -323,7 +323,7 @@ const LedgerConnect = () => {
                 type="confirm"
                 onPress={connectLedger}
                 testID={'add-network-button'}
-                disabled={isSendingLedgerCommands}
+                disabled={loading}
               >
                 {loading || isSendingLedgerCommands ? (
                   <ActivityIndicator color={styles.loader.color} />
