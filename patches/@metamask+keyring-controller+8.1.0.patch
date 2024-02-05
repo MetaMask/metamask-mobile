@@ -11,7 +11,7 @@ index 08a8714..a096388 100644
 +     * This patch addresses an issue regarding the forget device functionality. It
 +     * improves the logic  to correctly remove the QR accounts and update the
 +     * identities as needed.
-+     *
++     * 
 +     * Solved in https://github.com/MetaMask/core/pull/3641
 +     * ===============================================================================
 +     */
