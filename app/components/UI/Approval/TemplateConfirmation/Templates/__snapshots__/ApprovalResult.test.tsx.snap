@@ -193,7 +193,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
           accessibilityRole="text"
           style={
             Object {
-              "color": "#FCFCFC",
+              "color": "#FFFFFF",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",
@@ -257,7 +257,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         style={
           Object {
             "alignItems": "center",
-            "backgroundColor": "#28A74519",
+            "backgroundColor": "#1C823419",
             "borderRadius": 24,
             "height": 48,
             "justifyContent": "center",
@@ -266,7 +266,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         }
       >
         <SvgMock
-          color="#28A745"
+          color="#1C8234"
           height={24}
           name="Confirmation"
           style={
@@ -403,7 +403,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
           accessibilityRole="text"
           style={
             Object {
-              "color": "#FCFCFC",
+              "color": "#FFFFFF",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
               "fontWeight": "400",

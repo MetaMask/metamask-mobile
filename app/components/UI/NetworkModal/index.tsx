@@ -24,7 +24,7 @@ import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
+import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
