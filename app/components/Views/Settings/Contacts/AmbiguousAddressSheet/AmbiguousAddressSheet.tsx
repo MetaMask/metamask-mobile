@@ -7,13 +7,16 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../Base/Text';
 import { useTheme } from '../../../../../util/theme';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 
 // Internal dependencies
 import createStyles from './AmbiguousAddressSheet.styles';
@@ -34,9 +37,11 @@ const AmbiguousAddressSheet = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
-        <Text style={styles.heading}>{strings('duplicate_address.title')}</Text>
-        <Text style={styles.body}>
-          <Text>{strings('duplicate_address.body')}</Text>
+        <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
+          {strings('duplicate_address.title')}
+        </Text>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          {strings('duplicate_address.body')}
         </Text>
         <View style={styles.buttonContainer}>
           <Button

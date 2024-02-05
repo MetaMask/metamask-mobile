@@ -16,14 +16,6 @@ export default (colors: ThemeColors) =>
       padding: 16,
       alignSelf: 'center',
     },
-    heading: {
-      ...(typography.sHeadingMD as TextStyle),
-      color: colors.text.default,
-    },
-    body: {
-      ...(typography.sBodyMD as TextStyle),
-      color: colors.text.default,
-    },
     buttonContainer: {
       flexDirection: 'row',
       paddingTop: 16,
