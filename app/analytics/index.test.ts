@@ -1,4 +1,4 @@
-import { trackDappVistedEvent } from './index';
+import { trackDappVisitedEvent } from './index';
 import { MetaMetricsEvents } from '../core/Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
 
@@ -31,7 +31,7 @@ jest.mock('../store', () => {
   };
 });
 
-describe('trackDappVistedEvent', () => {
+describe('trackDappVisitedEvent', () => {
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -57,7 +57,7 @@ describe('trackDappVistedEvent', () => {
       source: 'in-app browser',
     };
 
-    trackDappVistedEvent({
+    trackDappVisitedEvent({
       hostname: 'uniswap.org',
       numberOfConnectedAccounts: 1,
     });
@@ -89,7 +89,7 @@ describe('trackDappVistedEvent', () => {
       source: 'in-app browser',
     };
 
-    trackDappVistedEvent({
+    trackDappVisitedEvent({
       hostname: 'uniswap.org',
       numberOfConnectedAccounts: 1,
     });
@@ -121,7 +121,7 @@ describe('trackDappVistedEvent', () => {
       source: 'in-app browser',
     };
 
-    trackDappVistedEvent({
+    trackDappVisitedEvent({
       hostname: 'uniswap.org',
       numberOfConnectedAccounts: 1,
     });
@@ -153,7 +153,7 @@ describe('trackDappVistedEvent', () => {
       source: 'in-app browser',
     };
 
-    trackDappVistedEvent({
+    trackDappVisitedEvent({
       hostname: 'uniswap.org',
       numberOfConnectedAccounts: 1,
     });

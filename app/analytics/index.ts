@@ -11,7 +11,7 @@ import AnalyticsV2 from '../util/analyticsV2';
  */
 // This file will export more events in the future.
 // eslint-disable-next-line import/prefer-default-export
-export const trackDappVistedEvent = ({
+export const trackDappVisitedEvent = ({
   hostname,
   numberOfConnectedAccounts,
 }: {

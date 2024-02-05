@@ -54,7 +54,7 @@ import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
-import { trackDappVistedEvent } from '../../../analytics';
+import { trackDappVisitedEvent } from '../../../analytics';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
@@ -128,7 +128,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const triggerDappVisitedEvent = useCallback(
     (numberOfConnectedAccounts: number) =>
       // Track dapp visited event
-      trackDappVistedEvent({ hostname, numberOfConnectedAccounts }),
+      trackDappVisitedEvent({ hostname, numberOfConnectedAccounts }),
     [hostname],
   );
 
