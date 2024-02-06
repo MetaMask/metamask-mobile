@@ -73,6 +73,7 @@ export const unlockLedgerDefaultAccount = async (
     balance: `0x0`,
   };
 };
+
 /**
  * Automatically opens the Ethereum app on the Ledger device.
  */
@@ -103,6 +104,7 @@ export const forgetLedger = async (): Promise<void> => {
 
   await keyringController.persistAllKeyrings();
 };
+
 /**
  * Get DeviceId from Ledger Keyring
  *
