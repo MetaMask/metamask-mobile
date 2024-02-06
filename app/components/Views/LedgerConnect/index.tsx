@@ -165,7 +165,7 @@ const LedgerConnect = () => {
   };
 
   const openHowToInstallEthApp = () => {
-    navigation.push('Webview', {
+    navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: LEDGER_SUPPORT_LINK,

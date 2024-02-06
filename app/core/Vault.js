@@ -94,9 +94,6 @@ export const recreateVaultWithNewPassword = async (
     );
   }
 
-  const ledgerKeyring = await getLedgerKeyring();
-  const serializedLedgerKeyring = await ledgerKeyring.serialize();
-
   // Get props to restore vault
   const hdKeyring = KeyringController.state.keyrings[0];
   const existingAccountCount = hdKeyring.accounts.length;
@@ -105,7 +102,7 @@ export const recreateVaultWithNewPassword = async (
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
   await restoreQRKeyring();
-  await restoreLedgerKeyring(serializedLedgerKeyring);
+  await restoreLedgerKeyring();
 
   // Create previous accounts again
   for (let i = 0; i < existingAccountCount - 1; i++) {
