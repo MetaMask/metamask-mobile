@@ -93,14 +93,18 @@ export function fromWei(value = 0, unit = 'ether') {
 
 /**
  * Converts token minimal unit to readable string value
- * Included a rounded parameter to avoid rounding the number for really large numbers and backwards compatibility
  *
  * @param {number|string|Object} minimalInput - Token minimal unit to convert
  * @param {number|string} decimals - Token decimals to convert
+ * @param {boolean} [isRounding=true] - If true, minimalInput is converted to number and rounded for large numbers.
  * @returns {string} - String containing the new number
  */
-export function fromTokenMinimalUnit(minimalInput, decimals, rounded = true) {
-  minimalInput = rounded ? Number(minimalInput) : minimalInput;
+export function fromTokenMinimalUnit(
+  minimalInput,
+  decimals,
+  isRounding = true,
+) {
+  minimalInput = isRounding ? Number(minimalInput) : minimalInput;
   const prefixedInput = addHexPrefix(minimalInput.toString(16));
   let minimal = safeNumberToBN(prefixedInput);
   const negative = minimal.lt(new BN(0));
