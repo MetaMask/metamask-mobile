@@ -1,0 +1,35 @@
+name: Check Bitrise Status
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request:
+    types: [labeled, unlabeled]
+
+env:
+  E2E_LABEL: 'Run Smoke E2E'
+
+jobs:
+  check-bitrise-e2e-smoke:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn --immutable
+
+      - name: Check Bitrise Status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: yarn run check-bitrise-status
