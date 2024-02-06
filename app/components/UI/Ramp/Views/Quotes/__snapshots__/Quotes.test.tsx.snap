@@ -2275,7 +2275,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                         "textAlign": "center",
                                                       },
                                                       Object {
-                                                        "color": "#FCFCFC",
+                                                        "color": "#FFFFFF",
                                                       },
                                                       undefined,
                                                     ],
@@ -2615,7 +2615,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                                         "textAlign": "center",
                                                       },
                                                       Object {
-                                                        "color": "#FCFCFC",
+                                                        "color": "#FFFFFF",
                                                       },
                                                       undefined,
                                                     ],
@@ -3296,7 +3296,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -3968,7 +3968,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -4668,7 +4668,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                           },
                                           undefined,
                                         ],
@@ -5343,7 +5343,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],

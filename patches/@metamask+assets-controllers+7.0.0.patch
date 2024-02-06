@@ -78,20 +78,25 @@ index 130e3dc..137f2f7 100644
       * Sync accounts balances with some additional addresses.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-index 332c87d..b97452c 100644
+index 332c87d..4ccd5f1 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-@@ -33,6 +33,9 @@ exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
+@@ -33,6 +33,14 @@ exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
      [assetsUtil_1.SupportedTokenDetectionNetworks.bsc]: '0x2352c63A83f9Fd126af8676146721Fa00924d7e4',
      [assetsUtil_1.SupportedTokenDetectionNetworks.polygon]: '0x2352c63A83f9Fd126af8676146721Fa00924d7e4',
      [assetsUtil_1.SupportedTokenDetectionNetworks.avax]: '0xD023D153a0DFa485130ECFdE2FAA7e612EF94818',
 +    [assetsUtil_1.SupportedTokenDetectionNetworks.aurora]: '0x1286415D333855237f89Df27D388127181448538',
 +    [assetsUtil_1.SupportedTokenDetectionNetworks.linea_goerli]: '0x10dAd7Ca3921471f616db788D9300DC97Db01783',
 +    [assetsUtil_1.SupportedTokenDetectionNetworks.linea_mainnet]: '0xF62e6a41561b3650a69Bb03199C735e3E3328c0D',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.arbitrum]: '0x151E24A486D7258dd7C33Fb67E4bB01919B7B32c',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.optimism]: '0xB1c568e9C3E6bdaf755A60c7418C269eb11524FC',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.base]: '0x6AA75276052D96696134252587894ef5FFA520af',
++    [assetsUtil_1.SupportedTokenDetectionNetworks.zksync]: '0x458fEd3144680a5b8bcfaa0F9594aa19B4Ea2D34',
++
  };
  exports.MISSING_PROVIDER_ERROR = 'AssetsContractController failed to set the provider correctly. A provider must be set for this method to be available';
  /**
-@@ -116,6 +119,20 @@ class AssetsContractController extends base_controller_1.BaseController {
+@@ -116,6 +124,20 @@ class AssetsContractController extends base_controller_1.BaseController {
              return yield this.erc20Standard.getTokenDecimals(address);
          });
      }
@@ -1671,10 +1676,10 @@ index 0e03b88..bd7ddbd 100644
  exports.TokensController = TokensController;
  exports.default = TokensController;
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
-index 1b69903..64004e4 100644
+index 1b69903..92c3369 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.d.ts
-@@ -45,7 +45,10 @@ export declare enum SupportedTokenDetectionNetworks {
+@@ -45,7 +45,14 @@ export declare enum SupportedTokenDetectionNetworks {
      mainnet = "1",
      bsc = "56",
      polygon = "137",
@@ -1682,25 +1687,33 @@ index 1b69903..64004e4 100644
 +    avax = "43114",
 +    aurora = "1313161554",
 +    linea_goerli = "59140",
-+    linea_mainnet = "59144"
++    linea_mainnet = "59144",
++    arbitrum = '42161',
++    optimism = '10',
++    base = '8453',
++    zksync = '324',
  }
  /**
   * Check if token detection is enabled for certain networks.
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-index 4b54e82..1e6fa28 100644
+index 4b54e82..0be700a 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-@@ -120,6 +120,9 @@ var SupportedTokenDetectionNetworks;
+@@ -120,6 +120,13 @@ var SupportedTokenDetectionNetworks;
      SupportedTokenDetectionNetworks["bsc"] = "56";
      SupportedTokenDetectionNetworks["polygon"] = "137";
      SupportedTokenDetectionNetworks["avax"] = "43114";
 +    SupportedTokenDetectionNetworks["aurora"] = "1313161554";
 +    SupportedTokenDetectionNetworks["linea_goerli"] = "59140";
 +    SupportedTokenDetectionNetworks["linea_mainnet"] = "59144";
++    SupportedTokenDetectionNetworks["arbitrum"] = "42161";
++    SupportedTokenDetectionNetworks["optimism"] = "10";
++    SupportedTokenDetectionNetworks["base"] = "8453";
++    SupportedTokenDetectionNetworks["zksync"] = "324";
  })(SupportedTokenDetectionNetworks = exports.SupportedTokenDetectionNetworks || (exports.SupportedTokenDetectionNetworks = {}));
  /**
   * Check if token detection is enabled for certain networks.
-@@ -225,4 +228,128 @@ function ethersBigNumberToBN(bigNumber) {
+@@ -225,4 +232,128 @@ function ethersBigNumberToBN(bigNumber) {
      return new ethereumjs_util_1.BN((0, ethereumjs_util_1.stripHexPrefix)(bigNumber.toHexString()), 'hex');
  }
  exports.ethersBigNumberToBN = ethersBigNumberToBN;
@@ -2254,7 +2267,7 @@ index 0000000..58f98f5
 +    // KCC Mainnet
 +    '321',
 +    // zkSync Era Mainnet
-+    '328',
++    '324',
 +    // Theta Mainnet
 +    '361',
 +    // Metis Andromeda Mainnet
