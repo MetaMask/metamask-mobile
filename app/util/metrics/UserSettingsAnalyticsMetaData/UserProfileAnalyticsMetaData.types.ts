@@ -1,3 +1,5 @@
+import { JsonMap } from '@segment/analytics-react-native';
+
 export enum UserProfilePropery {
   ENABLE_OPENSEA_API = 'Enable OpenSea API',
   NFT_AUTODETECTION = 'NFT Autodetection',
@@ -10,11 +12,11 @@ export enum UserProfilePropery {
   SECURITY_PROVIDERS = 'security_providers',
 }
 
-export interface UserProfileMetaData {
+export type UserProfileMetaData = JsonMap & {
   [UserProfilePropery.ENABLE_OPENSEA_API]: string;
   [UserProfilePropery.NFT_AUTODETECTION]: string;
   [UserProfilePropery.THEME]: string;
   [UserProfilePropery.TOKEN_DETECTION]: string;
   [UserProfilePropery.MULTI_ACCOUNT_BALANCE]: string;
   [UserProfilePropery.SECURITY_PROVIDERS]: string;
-}
+};

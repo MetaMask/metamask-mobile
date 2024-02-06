@@ -6,6 +6,10 @@ import {
 import Logger from '../../Logger';
 import { InteractionManager } from 'react-native';
 
+function isIMetaMetricsEvent(event: any): event is IMetaMetricsEvent {
+  return event && typeof event === 'object' && 'category' in event;
+}
+
 /**
  * This functions logs errors to Metametrics instead of Sentry log service.
  * The goal is to log errors (that are not errors from our side) like “Invalid Password”.
@@ -16,7 +20,7 @@ import { InteractionManager } from 'react-native';
  * @param otherInfo other info to be logged
  */
 const trackErrorAsAnalytics = (
-  event: IMetaMetricsEvent,
+  event: IMetaMetricsEvent | string,
   errorMessage: string,
   otherInfo?: string,
 ) => {
@@ -24,7 +28,7 @@ const trackErrorAsAnalytics = (
     InteractionManager.runAfterInteractions(async () => {
       MetaMetrics.getInstance().trackEvent(EVENT_NAME.ERROR, {
         error: true,
-        event: event.category,
+        event: isIMetaMetricsEvent(event) ? event.category : event,
         errorMessage,
         ...(otherInfo && { otherInfo }),
       });

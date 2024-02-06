@@ -1,7 +1,6 @@
 import DeviceAnalyticsMetaData from './DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import UserSettingsAnalyticsMetaData from './UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
-import TrackAfterInteractions from './TrackAfterInteraction/trackAfterInteractions';
-
+import TrackError from './TrackError/trackErrorAsAnalytics';
 export default DeviceAnalyticsMetaData;
 export { UserSettingsAnalyticsMetaData };
-export { TrackAfterInteractions };
+export { TrackError };
