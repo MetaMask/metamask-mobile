@@ -1,6 +1,19 @@
 # Changelog
 
 ## Current Main Branch
+- [#8458](https://github.com/MetaMask/metamask-mobile/pull/8458): chore: build version bump to 1245
+- [#8456](https://github.com/MetaMask/metamask-mobile/pull/8456): chore: cherry pick 8421
+- [#8420](https://github.com/MetaMask/metamask-mobile/pull/8420): cherry-pick: fix Swap test flakiness on Bitrise (#8342)
+- [#8419](https://github.com/MetaMask/metamask-mobile/pull/8419): chore: build bump 1244
+- [#8417](https://github.com/MetaMask/metamask-mobile/pull/8417): chore: cherry pick spinner fix
+- [#8293](https://github.com/MetaMask/metamask-mobile/pull/8293): cherry-pick: fix state initialisation in PPOMController
+- [#8314](https://github.com/MetaMask/metamask-mobile/pull/8314): chore: bump to build 1243
+- [#8297](https://github.com/MetaMask/metamask-mobile/pull/8297): chore: cherry pick QR & migrations hotfixes into 7.15.0
+- changelog conflicts
+- updated changelog
+- [#8258](https://github.com/MetaMask/metamask-mobile/pull/8258): chore: merge 7.14.0
+- [#8030](https://github.com/MetaMask/metamask-mobile/pull/8030): New Crowdin translations by Github Action
+- 7.15.0
 
 ## 7.15.0 - Jan 11, 2024
 ### Added
