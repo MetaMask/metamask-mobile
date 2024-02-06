@@ -271,11 +271,13 @@ workflows:
     steps:
       - comment-on-github-pull-request@0:
           inputs:
-            - body: |-
-                ![QR code]($BITRISE_PUBLIC_INSTALL_PAGE_QR_CODE_IMAGE_URL)
-
-                $BITRISE_PUBLIC_INSTALL_PAGE_URL
             - personal_access_token: '$GITHUB_ACCESS_TOKEN'
+            - body: |-
+                HELLO
+                $BITRISE_PUBLIC_INSTALL_PAGE_URL
+            - repository_url: '$GIT_REPOSITORY_URL'
+            - issue_number: '$BITRISE_PULL_REQUEST'
+            - api_base_url: 'https://api.github.com'
         # - slack@3:
         #     inputs:
         #       - text: '${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification'
