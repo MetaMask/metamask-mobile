@@ -18,7 +18,7 @@ import { InteractionManager } from 'react-native';
 const trackErrorAsAnalytics = (
   event: IMetaMetricsEvent,
   errorMessage: string,
-  otherInfo: string,
+  otherInfo?: string,
 ) => {
   try {
     InteractionManager.runAfterInteractions(async () => {
@@ -26,7 +26,7 @@ const trackErrorAsAnalytics = (
         error: true,
         event: event.category,
         errorMessage,
-        otherInfo,
+        ...(otherInfo && { otherInfo }),
       });
     });
   } catch (error) {
