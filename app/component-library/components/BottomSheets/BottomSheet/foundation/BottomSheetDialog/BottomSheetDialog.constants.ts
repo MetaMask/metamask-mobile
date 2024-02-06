@@ -21,4 +21,4 @@ export const DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD = 0.6;
 /**
  * Minimum spacing reserved for the overlay tappable area.
  */
-export const DEFAULT_BOTTOMSHEETDIALOG_MARGINTOP = 250;
+export const DEFAULT_BOTTOMSHEETDIALOG_MARGINTOP = 150;
