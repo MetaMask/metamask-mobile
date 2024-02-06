@@ -72,6 +72,7 @@ const Routes = {
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     CHANGE_PASSWORD: 'ResetPassword',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
+    ADVANCED_SETTINGS: 'AdvancedSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
