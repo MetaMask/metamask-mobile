@@ -1119,7 +1119,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   }
                                                 >
                                                   MetaMask doesn’t verify custom networks, so only approve networks you trust.
-
+                                                   
                                                   <Text
                                                     accessibilityRole="text"
                                                     onPress={[Function]}
@@ -1393,17 +1393,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   style={
                                                     Object {
                                                       "color": "#FFFFFF",
-                                                    },
-                                                    undefined,
-                                                  ],
-                                                  null,
-                                                ]
-                                              }
-                                            >
-                                              Approve
-                                            </Text>
-                                          </TouchableOpacity>
-                                                      "color": "#FCFCFC",
                                                       "fontFamily": "Euclid Circular B",
                                                       "fontSize": 14,
                                                       "fontWeight": "400",

@@ -25,7 +25,6 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import BottomSheetFooter, {
   ButtonsAlignment,

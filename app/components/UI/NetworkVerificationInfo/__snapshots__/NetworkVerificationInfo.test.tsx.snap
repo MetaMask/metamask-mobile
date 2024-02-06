@@ -138,8 +138,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       <View
         style={
           Object {
-            "backgroundColor": "#FFD33D19",
-            "borderColor": "#F66A0A",
+            "backgroundColor": "#BF520819",
+            "borderColor": "#BF5208",
             "borderLeftWidth": 4,
             "borderRadius": 4,
             "flexDirection": "row",
@@ -159,7 +159,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           }
         >
           <SvgMock
-            color="#F66A0A"
+            color="#BF5208"
             height={24}
             name="Danger"
             style={
@@ -245,60 +245,12 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
-            "marginHorizontal": 8,
-          }
-        }
-        testID="open-networks-text"
-      >
-        Test Chain
-      </Text>
-    </TouchableOpacity>
-    <View
-      style={
-        Object {
-          "backgroundColor": "#BF520819",
-          "borderColor": "#BF5208",
-          "borderLeftWidth": 4,
-          "borderRadius": 4,
-          "flexDirection": "row",
-          "marginBottom": 8,
-          "padding": 12,
-          "paddingLeft": 8,
-        }
-      }
-      testID="error-message-warning"
-      variant="Alert"
-    >
-      <View
-        style={
-          Object {
-            "marginRight": 8,
-          }
-        }
-      >
-        <SvgMock
-          color="#BF5208"
-          height={24}
-          name="Danger"
-          style={
-            Object {
-              "height": 24,
-              "width": 24,
-            }
-          }
-          width={24}
-        />
-      </View>
-      <View
-        style={
-          Object {
-            "flex": 1,
             "textAlign": "center",
           }
         }
       >
         MetaMask doesn’t verify custom networks, so only approve networks you trust.
-
+         
         <Text
           accessibilityRole="text"
           onPress={[Function]}
@@ -569,7 +521,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         accessibilityRole="text"
         style={
           Object {
-            "color": "#FCFCFC",
+            "color": "#FFFFFF",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",
