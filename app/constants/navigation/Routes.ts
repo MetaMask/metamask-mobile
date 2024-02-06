@@ -78,6 +78,8 @@ const Routes = {
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
+    SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',
+    SDK_DISCONNECT: 'SDKDisconnect',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     NETWORK_SELECTOR: 'NetworkSelector',

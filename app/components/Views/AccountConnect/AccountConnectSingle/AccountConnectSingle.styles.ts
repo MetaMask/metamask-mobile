@@ -29,6 +29,23 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 16,
     },
     button: { flex: 1 },
+    sdkInfoContainer: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      paddingHorizontal: 16,
+      marginBottom: -16,
+    },
+    sdkInfoDivier: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+      height: 1,
+      width: '100%',
+    },
+    dontRememberCheckbox: {
+      width: '100%',
+    },
     buttonSeparator: {
       width: 16,
     },

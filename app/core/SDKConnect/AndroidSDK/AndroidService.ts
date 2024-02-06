@@ -451,6 +451,7 @@ export default class AndroidService extends EventEmitter2 {
 
     const bridge = new BackgroundBridge({
       webview: null,
+      channelId: clientInfo.clientId,
       isMMSDK: true,
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
@@ -469,6 +470,7 @@ export default class AndroidService extends EventEmitter2 {
         getRpcMethodMiddleware({
           hostname:
             clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
+          channelId: clientInfo.clientId,
           getProviderState,
           isMMSDK: true,
           navigation: null, //props.navigation,

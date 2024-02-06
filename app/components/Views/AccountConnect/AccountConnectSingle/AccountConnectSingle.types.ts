@@ -2,10 +2,11 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { AccountConnectScreens } from '../AccountConnect.types';
-import { Account } from '../../../hooks/useAccounts';
+import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { USER_INTENT } from '../../../../constants/permissions';
+import { Account } from '../../../hooks/useAccounts';
+import { AccountConnectScreens } from '../AccountConnect.types';
 
 /**
  * AccountConnectSingle props.
@@ -13,10 +14,13 @@ import { USER_INTENT } from '../../../../constants/permissions';
 export interface AccountConnectSingleProps {
   defaultSelectedAccount: Account | undefined;
   isLoading?: boolean;
+  noPersist?: boolean;
+  setNoPersist?: (noPersist: boolean) => void;
   onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
   onSetScreen: (screen: AccountConnectScreens) => void;
   onSetSelectedAddresses: (addresses: string[]) => void;
   urlWithProtocol: string;
   favicon: ImageSourcePropType;
   secureIcon: IconName;
+  connection?: ConnectionProps;
 }

@@ -121,6 +121,7 @@ export class SDKConnect extends EventEmitter2 {
     trigger,
     otherPublicKey,
     origin,
+    initialConnection,
     validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
   }: ConnectionProps) {
     return connectToChannel({
@@ -129,6 +130,7 @@ export class SDKConnect extends EventEmitter2 {
       otherPublicKey,
       origin,
       validUntil,
+      initialConnection,
       instance: this,
     });
   }
@@ -254,7 +256,10 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public async removeAll() {
-    return removeAll(this);
+    const removeAllPromise = removeAll(this);
+    // Force close loading status
+    removeAllPromise.finally(() => this.hideLoadingState());
+    return removeAllPromise;
   }
 
   public getConnected() {
@@ -263,6 +268,10 @@ export class SDKConnect extends EventEmitter2 {
 
   public getConnections() {
     return this.state.connections;
+  }
+
+  public getConnection({ channelId }: { channelId: string }) {
+    return this.state.connections[channelId];
   }
 
   public getApprovedHosts(_context?: string) {

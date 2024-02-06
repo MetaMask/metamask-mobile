@@ -53,6 +53,9 @@ import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
+import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import AppConstants from '../../../../app/core/AppConstants';
 import { trackDappVisitedEvent } from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
@@ -63,6 +66,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
   const selectedWalletAddress = useSelector(selectSelectedAddress);
+  const [noPersist, setNoPersist] = useState(false);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
     selectedWalletAddress,
   ]);
@@ -84,11 +88,27 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  const { id: channelId, origin: metadataOrigin } = hostInfo.metadata as {
+    id: string;
+    origin: string;
+  };
+
+  // Extract connection info from sdk
+  const sdkConnection = SDKConnect.getInstance().getConnection({ channelId });
+  const hostname = (
+    sdkConnection?.originatorInfo?.url ?? metadataOrigin
+  ).replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+
+  DevLogger.log(
+    `AccountConnect rendering channelId=${channelId} hostname=${hostname} metadataOrigin=${metadataOrigin}`,
+    sdkConnection?.originatorInfo,
+  );
+  DevLogger.log(`initial connection`, sdkConnection);
+
   const origin: string = useSelector(getActiveTabUrl, isEqual);
 
   const faviconSource = useFavicon(origin);
-
-  const hostname = hostInfo.metadata.origin;
   const urlWithProtocol = prefixUrlWithProtocol(hostname);
 
   const secureIcon = useMemo(
@@ -117,13 +137,25 @@ const AccountConnect = (props: AccountConnectProps) => {
   const cancelPermissionRequest = useCallback(
     (requestId) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
+      if (channelId && accountsLength === 0) {
+        // Remove Potential SDK connection
+        SDKConnect.getInstance().removeChannel({
+          channelId,
+          sendTerminate: true,
+        });
+      }
 
       trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
         number_of_accounts: accountsLength,
         source: 'permission system',
       });
     },
-    [Engine.context.PermissionController, accountsLength, trackEvent],
+    [
+      Engine.context.PermissionController,
+      accountsLength,
+      channelId,
+      trackEvent,
+    ],
   );
 
   const triggerDappVisitedEvent = useCallback(
@@ -141,10 +173,15 @@ const AccountConnect = (props: AccountConnectProps) => {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
-        origin: hostname,
+        origin: metadataOrigin,
       },
       approvedAccounts: selectedAccounts,
     };
+    DevLogger.log(
+      `handleConnect request hostname=${hostname}`,
+      JSON.stringify(request, null, 2),
+    );
+
     const connectedAccountLength = selectedAccounts.length;
     const activeAddress = selectedAccounts[0].address;
     const activeAccountName = getAccountNameWithENS({
@@ -152,6 +189,12 @@ const AccountConnect = (props: AccountConnectProps) => {
       accounts,
       ensByAccountAddress,
     });
+
+    if (noPersist) {
+      SDKConnect.getInstance().invalidateChannel({
+        channelId,
+      });
+    }
 
     try {
       setIsLoading(true);
@@ -200,10 +243,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     accounts,
     ensByAccountAddress,
     hostname,
+    channelId,
+    noPersist,
     accountAvatarType,
     Engine.context.PermissionController,
     toastRef,
     accountsLength,
+    metadataOrigin,
     triggerDappVisitedEvent,
     trackEvent,
   ]);
@@ -318,7 +364,10 @@ const AccountConnect = (props: AccountConnectProps) => {
     return (
       <AccountConnectSingle
         onSetSelectedAddresses={setSelectedAddresses}
+        connection={sdkConnection}
         onSetScreen={setScreen}
+        noPersist={noPersist}
+        setNoPersist={setNoPersist}
         onUserAction={setUserIntent}
         defaultSelectedAccount={defaultSelectedAccount}
         isLoading={isLoading}
@@ -332,12 +381,15 @@ const AccountConnect = (props: AccountConnectProps) => {
     ensByAccountAddress,
     selectedAddresses,
     isLoading,
+    noPersist,
+    setNoPersist,
     setScreen,
     setSelectedAddresses,
     faviconSource,
     secureIcon,
     urlWithProtocol,
     setUserIntent,
+    sdkConnection,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
@@ -370,12 +422,15 @@ const AccountConnect = (props: AccountConnectProps) => {
         ensByAccountAddress={ensByAccountAddress}
         selectedAddresses={selectedAddresses}
         onSelectAddress={setSelectedAddresses}
+        noPersist={noPersist}
+        setNoPersist={setNoPersist}
         isLoading={isLoading}
         favicon={faviconSource}
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+        connection={sdkConnection}
       />
     ),
     [
@@ -386,12 +441,17 @@ const AccountConnect = (props: AccountConnectProps) => {
       isLoading,
       setUserIntent,
       faviconSource,
+      noPersist,
+      setNoPersist,
       urlWithProtocol,
       secureIcon,
+      sdkConnection,
     ],
   );
 
   const renderConnectScreens = useCallback(() => {
+    DevLogger.log(`renderConnectScreens`, screen);
+
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
         return renderSingleConnectScreen();

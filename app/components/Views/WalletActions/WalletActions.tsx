@@ -30,6 +30,8 @@ import { useStyles } from '../../../component-library/hooks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
+import ImportedEngine from '../../../core/Engine';
+import { v1 as random } from 'uuid';
 import { getDecimalChainId } from '../../../util/networks';
 
 // Internal dependencies
@@ -42,7 +44,6 @@ import {
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
-import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -119,9 +120,61 @@ const WalletActions = () => {
     });
   };
 
+  const onCheckPermissions = async () => {
+    DevLogger.log(`Checking permissions now...`);
+    const Engine = ImportedEngine as any;
+    try {
+      const hostname = 'sdk://19a02b89-1e4d-4aa6-9000-d3b8bd082ef3';
+      await Engine.context.ApprovalController.clear();
+      await Engine.context.PermissionController.requestPermissions(
+        { origin: hostname },
+        { eth_accounts: {} },
+        { id: random() },
+      );
+      const acc = await getPermittedAccounts(hostname);
+      DevLogger.log(`Permissions: ${JSON.stringify(acc)}`);
+    } catch (error) {
+      console.error(`Error checking permissions`, error);
+    }
+  };
+
+  const simulateSDK = async () => {
+    DevLogger.log(`Simulating SDK now...`);
+    try {
+      const id = '19a02b89-1e4d-4aa6-9000-d3b8bd082ef3';
+      const origin = AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
+      SDKConnect.getInstance().connectToChannel({
+        id,
+        origin,
+        trigger: 'deeplink',
+        otherPublicKey: '0x1234567890123456789012345678901234567890',
+      });
+    } catch (error) {
+      console.error(`Error simulating SDK`, error);
+    }
+  };
+
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
+        <WalletAction
+          actionTitle="Debug"
+          actionDescription="Check Permissions"
+          iconName={IconName.Add}
+          iconSize={AvatarSize.Md}
+          onPress={onCheckPermissions}
+          iconStyle={styles.icon}
+          {...generateTestId(Platform, WALLET_BUY)}
+        />
+        <WalletAction
+          actionTitle="Debug"
+          actionDescription="Simulate SDK"
+          iconName={IconName.Add}
+          iconSize={AvatarSize.Md}
+          onPress={simulateSDK}
+          iconStyle={styles.icon}
+          {...generateTestId(Platform, WALLET_BUY)}
+        />
         {isNetworkRampSupported && (
           <WalletAction
             actionTitle={strings('asset_overview.buy_button')}

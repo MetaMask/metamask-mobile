@@ -59,6 +59,7 @@ export const handleSendMessage = async ({
   const canRedirect = connection.rpcQueueManager.canRedirect({ method });
   DevLogger.log(
     `[handleSendMessage] method=${method} trigger=${connection.trigger} id=${msgId} origin=${connection.origin} canRedirect=${canRedirect}`,
+    msg,
   );
 
   connection.remote.sendMessage(msg).catch((err) => {

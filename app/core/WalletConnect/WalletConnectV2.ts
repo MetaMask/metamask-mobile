@@ -85,6 +85,7 @@ class WalletConnect2Session {
       webview: null,
       url,
       isWalletConnect: true,
+      channelId: session.topic,
       wcRequestActions: {
         approveRequest: this.approveRequest.bind(this),
         rejectRequest: this.rejectRequest.bind(this),

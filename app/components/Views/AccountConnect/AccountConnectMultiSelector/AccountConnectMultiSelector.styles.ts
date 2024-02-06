@@ -12,6 +12,9 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = params.theme;
 
   return StyleSheet.create({
+    container: {
+      height: '100%',
+    },
     body: {
       paddingHorizontal: 16,
     },
@@ -31,6 +34,23 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     selectAllButton: {
       marginBottom: 16,
+    },
+    sdkInfoContainer: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      paddingHorizontal: 16,
+      marginBottom: -16,
+    },
+    sdkInfoDivier: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+      height: 1,
+      width: '100%',
+    },
+    dontRememberCheckbox: {
+      width: '100%',
     },
     disabled: {
       opacity: 0.5,

@@ -36,6 +36,8 @@ const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
+import DevLogger from '../SDKConnect/utils/DevLogger';
+import { getPermittedAccounts } from '../Permissions';
 
 export class BackgroundBridge extends EventEmitter {
   constructor({
@@ -50,6 +52,7 @@ export class BackgroundBridge extends EventEmitter {
     getApprovedHosts,
     remoteConnHost,
     isMMSDK,
+    channelId,
   }) {
     super();
     this.url = url;
@@ -63,6 +66,7 @@ export class BackgroundBridge extends EventEmitter {
     this._webviewRef = webview && webview.current;
     this.disconnected = false;
     this.getApprovedHosts = getApprovedHosts;
+    this.channelId = channelId;
 
     this.createMiddleware = getRpcMethodMiddleware;
 
@@ -105,6 +109,18 @@ export class BackgroundBridge extends EventEmitter {
       'KeyringController:unlock',
       this.onUnlock.bind(this),
     );
+
+    // FIXME trying to subscribe to PermissionController events
+    try {
+      const pc = Engine.context.PermissionController;
+      DevLogger.log(`engine`, pc);
+      DevLogger.log(`messageGingSystem`, pc.messagingSystem);
+      pc.messagingSystem.subscribe(`${pc.name}:stateChange`, () => {
+        DevLogger.log(`PermissionController:`, pc.state);
+      });
+    } catch (err) {
+      DevLogger.log(`Error in BackgroundBridge: ${err}`);
+    }
 
     this.on('update', this.onStateUpdate);
 
@@ -198,18 +214,32 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   notifySelectedAddressChanged(selectedAddress) {
-    if (this.isRemoteConn) {
-      // Pass the remoteConnHost to getApprovedHosts as AndroidSDK requires it
-      if (
-        !this.getApprovedHosts?.(this.remoteConnHost)?.[this.remoteConnHost]
-      ) {
-        return;
-      }
-    }
-    this.sendNotification({
-      method: NOTIFICATION_NAMES.accountsChanged,
-      params: [selectedAddress],
-    });
+    DevLogger.log(
+      `notifySelectedAddressChanged hostname: ${this.hostname}: ${selectedAddress}`,
+    );
+
+    // Only notify if selectedAddress is approved
+    getPermittedAccounts(this.channelId ?? this.hostname)
+      .then((approvedAccounts) => {
+        DevLogger.log(
+          `notifySelectedAddressChanged: ${JSON.stringify(approvedAccounts)}`,
+        );
+
+        // Only emit the event if the selected address is approved
+        if (
+          !approvedAccounts
+            .map((acc) => acc.toLowerCase())
+            .includes(selectedAddress.toLowerCase())
+        ) {
+          this.sendNotification({
+            method: NOTIFICATION_NAMES.accountsChanged,
+            params: [selectedAddress],
+          });
+        }
+      })
+      .catch((e) => {
+        DevLogger.log(`notifySelectedAddressChanged: ${e}`);
+      });
   }
 
   onStateUpdate(memState) {
@@ -229,6 +259,7 @@ export class BackgroundBridge extends EventEmitter {
       this.notifyChainChanged(publicState);
     }
 
+    DevLogger.log(`onStateUpdate: ${JSON.stringify(memState)}`);
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
       if (this.addressSent !== memState.selectedAddress) {
@@ -337,16 +368,6 @@ export class BackgroundBridge extends EventEmitter {
         getProviderState: this.getProviderState.bind(this),
       }),
     );
-
-    // TODO - Remove this condition when WalletConnect and MMSDK uses Permission System.
-    if (!this.isMMSDK && !this.isWalletConnect) {
-      const permissionController = Engine.context.PermissionController;
-      engine.push(
-        permissionController.createPermissionMiddleware({
-          origin,
-        }),
-      );
-    }
 
     engine.push(createSanitizationMiddleware());
     // forward to metamask primary provider

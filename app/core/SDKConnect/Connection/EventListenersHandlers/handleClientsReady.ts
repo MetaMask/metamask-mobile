@@ -5,7 +5,7 @@ import Logger from '../../../../util/Logger';
 import Device from '../../../../util/device';
 import Engine from '../../../Engine';
 import { Minimizer } from '../../../NativeModules';
-import { approveHostProps } from '../../SDKConnect';
+import SDKConnect, { approveHostProps } from '../../SDKConnect';
 import handleConnectionReady from '../../handlers/handleConnectionReady';
 import DevLogger from '../../utils/DevLogger';
 import { Connection } from '../Connection';
@@ -33,6 +33,16 @@ function handleClientsReady({
         approveHost,
         onError: (error) => {
           Logger.error(error, '');
+
+          instance.setLoading(false);
+
+          // Remove connection from SDK completely
+          SDKConnect.getInstance().removeChannel({
+            channelId: instance.channelId,
+            emitRefresh: true,
+            sendTerminate: true,
+          });
+
           // Redirect on deeplinks
           if (instance.trigger === 'deeplink') {
             // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
@@ -50,6 +60,7 @@ function handleClientsReady({
       });
     } catch (error) {
       DevLogger.log(`Connection::CLIENTS_READY error`, error);
+      instance.setLoading(false);
       // Send error message to user
     }
   };

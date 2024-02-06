@@ -6,7 +6,9 @@ import { View, Platform } from 'react-native';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import Text from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import Button, {
   ButtonSize,
@@ -27,18 +29,22 @@ import {
 import AddAccountActions from '../../AddAccountActions';
 import { ACCOUNT_LIST_ADD_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
+import Checkbox from '../../../../../app/component-library/components/Checkbox';
 
 const AccountConnectMultiSelector = ({
   accounts,
   ensByAccountAddress,
   selectedAddresses,
   onSelectAddress,
+  noPersist,
+  setNoPersist,
   isLoading,
   onUserAction,
   favicon,
   secureIcon,
   isAutoScrollEnabled = true,
   urlWithProtocol,
+  connection,
   onBack,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -147,7 +153,7 @@ const AccountConnectMultiSelector = ({
 
   const renderAccountConnectMultiSelector = useCallback(
     () => (
-      <>
+      <View style={styles.container}>
         <SheetHeader
           title={strings('accounts.connect_accounts_title')}
           onBack={onBack}
@@ -174,7 +180,25 @@ const AccountConnectMultiSelector = ({
           isMultiSelect
           isRemoveAccountEnabled
           isAutoScrollEnabled={isAutoScrollEnabled}
+          // style={{ flex: 1, minHeight: 150 }}
         />
+        <View style={styles.sdkInfoContainer}>
+          <View style={styles.sdkInfoDivier} />
+          {connection?.initialConnection && (
+            <Checkbox
+              label={strings('accountApproval.donot_rememberme')}
+              isChecked={noPersist}
+              onPress={() => setNoPersist?.(!noPersist)}
+              style={styles.dontRememberCheckbox}
+            />
+          )}
+          {connection?.originatorInfo?.apiVersion && (
+            <Text color={TextColor.Muted}>
+              SDK {connection?.originatorInfo?.platform} v
+              {connection?.originatorInfo?.apiVersion}
+            </Text>
+          )}
+        </View>
         <View style={styles.addAccountButtonContainer}>
           <Button
             variant={ButtonVariants.Link}
@@ -188,7 +212,7 @@ const AccountConnectMultiSelector = ({
           />
         </View>
         <View style={styles.body}>{renderCtaButtons()}</View>
-      </>
+      </View>
     ),
     [
       accounts,
@@ -207,6 +231,13 @@ const AccountConnectMultiSelector = ({
       styles.body,
       styles.description,
       urlWithProtocol,
+      connection,
+      noPersist,
+      setNoPersist,
+      styles.sdkInfoContainer,
+      styles.container,
+      styles.sdkInfoDivier,
+      styles.dontRememberCheckbox,
       onBack,
     ],
   );
