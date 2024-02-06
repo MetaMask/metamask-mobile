@@ -4,7 +4,6 @@ import { Alert, ListRenderItem, Platform, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import type { Hex } from '@metamask/utils';
 
 // External dependencies.
 import Cell, {
@@ -81,7 +80,7 @@ const AccountSelectorList = ({
       isSelected,
       index,
     }: {
-      address: Hex;
+      address: string;
       imported: boolean;
       isSelected: boolean;
       index: number;

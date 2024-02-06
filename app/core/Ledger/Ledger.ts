@@ -1,8 +1,10 @@
 import Engine from '../Engine';
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import {
+  KeyringController,
+  SignTypedDataVersion,
+} from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 
-// Mock interface for the SerializationOptions
 interface SerializationOptions {
   vault: any;
   keyrings: any[];
@@ -11,7 +13,6 @@ interface SerializationOptions {
   encryptionSalt: string;
 }
 
-// Mock interface for the LedgerKeyring
 interface LedgerKeyring {
   setTransport: (transport: any, deviceId: string) => void;
   getAppAndVersion: () => Promise<{ appName: string }>;
@@ -25,16 +26,43 @@ interface LedgerKeyring {
 }
 
 /**
+ * Get EthKeyringController from KeyringController
+ *
+ * @returns The EthKeyringController
+ */
+const getEthKeyringController = () => {
+  const keyringController: KeyringController = Engine.context.KeyringController;
+  return keyringController.getEthKeyringController();
+};
+
+/**
+ * A method replicate #fullupdate from the keyring controller.
+ */
+export const syncKeyringState = async (): Promise<void> => {
+  const keyringController = Engine.context.KeyringController;
+  const ethKeyringController = getEthKeyringController();
+  const { vault } = ethKeyringController.store.getState();
+  const { keyrings, isUnlocked, encryptionKey, encryptionSalt } =
+    ethKeyringController.memStore.getState();
+
+  keyringController.update(() => ({
+    vault,
+    keyrings,
+    isUnlocked,
+    encryptionKey,
+    encryptionSalt,
+  }));
+};
+
+/**
  * Add LedgerKeyring.
  *
  * @returns The Ledger Keyring
  */
-export const addLedgerKeyring = async (): Promise<LedgerKeyring> => {
-  const keyringController = Engine.context.KeyringController;
-  return (await keyringController.addNewKeyring(
+export const addLedgerKeyring = async (): Promise<LedgerKeyring> =>
+  (await getEthKeyringController().addNewKeyring(
     ExtendedKeyringTypes.ledger,
   )) as unknown as LedgerKeyring;
-};
 
 /**
  * Retrieve the existing LedgerKeyring or create a new one.
@@ -42,9 +70,7 @@ export const addLedgerKeyring = async (): Promise<LedgerKeyring> => {
  * @returns The stored Ledger Keyring
  */
 export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
-  const keyringController = Engine.context.KeyringController;
-  // There should only be one ledger keyring.
-  const keyring = keyringController().getKeyringsByType(
+  const keyring = getEthKeyringController().getKeyringsByType(
     ExtendedKeyringTypes.ledger,
   )[0] as unknown as LedgerKeyring;
 
@@ -64,9 +90,11 @@ export const restoreLedgerKeyring = async (
   keyringSerialized: SerializationOptions,
 ): Promise<void> => {
   const keyringController = Engine.context.KeyringController;
+  const ethKeyringController = getEthKeyringController();
 
   (await getLedgerKeyring()).deserialize(keyringSerialized);
-  keyringController.updateIdentities(await keyringController.getAccounts());
+  keyringController.updateIdentities(await ethKeyringController.getAccounts());
+  await syncKeyringState();
 };
 
 /**
@@ -96,11 +124,11 @@ export const unlockLedgerDefaultAccount = async (): Promise<{
   balance: string;
 }> => {
   const keyringController = Engine.context.KeyringController;
-  const preferencesController = Engine.context.PreferencesController;
+  const ethKeyringController = getEthKeyringController();
   const keyring = await getLedgerKeyring();
-  const oldAccounts = await keyringController.getAccounts();
-  await keyringController.addNewAccountForKeyring(keyring);
-  const newAccounts = await keyringController.getAccounts();
+  const oldAccounts = await ethKeyringController.getAccounts();
+  await ethKeyringController.addNewAccount(keyring);
+  const newAccounts = await ethKeyringController.getAccounts();
 
   keyringController.updateIdentities(newAccounts);
   newAccounts.forEach((address: string) => {
@@ -109,10 +137,11 @@ export const unlockLedgerDefaultAccount = async (): Promise<{
         // The first ledger account is always returned.
         keyringController.setAccountLabel(address, `${keyring.getName()} 1`);
       }
-      preferencesController.setSelectedAddress(address);
+      keyringController.setSelectedAddress(address);
     }
   });
-  await keyringController.persistAllKeyrings();
+  await ethKeyringController.persistAllKeyrings();
+  await syncKeyringState();
 
   const address = await keyring.getDefaultAccount();
   return {
@@ -142,14 +171,15 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  */
 export const forgetLedger = async (): Promise<void> => {
   const keyringController = Engine.context.KeyringController;
-  const preferencesController = Engine.context.PreferencesController;
+  const ethKeyringController = getEthKeyringController();
   const keyring = await getLedgerKeyring();
   keyring.forgetDevice();
 
-  const accounts: string[] = await keyringController.getAccounts();
-  preferencesController.setSelectedAddress(accounts[0]);
+  const accounts: string[] = await ethKeyringController.getAccounts();
+  keyringController.setSelectedAddress(accounts[0]);
 
-  await keyringController.persistAllKeyrings();
+  await ethKeyringController.persistAllKeyrings();
+  await syncKeyringState();
 };
 
 /**
@@ -175,8 +205,7 @@ export const ledgerSignTypedMessage = async (
   version: SignTypedDataVersion,
 ): Promise<string> => {
   await getLedgerKeyring();
-  const keyringController = Engine.context.KeyringController;
-  return await keyringController.signTypedMessage(
+  return await getEthKeyringController().signTypedMessage(
     {
       from: messageParams.from,
       data: messageParams.data as
