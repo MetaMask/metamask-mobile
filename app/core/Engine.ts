@@ -177,6 +177,8 @@ import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
 import { UpdatePPOMInitializationStatus } from '../actions/experimental';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -253,6 +255,7 @@ export interface EngineState {
   TokenBalancesController: TokenBalancesState;
   TokenRatesController: TokenRatesState;
   TransactionController: TransactionState;
+  SmartTransactionsController: any; // TODO look into improving this, smart tx cont. needs to export the SmartTransactionsControllerState type
   SwapsController: SwapsState;
   GasFeeController: GasFeeState;
   TokensController: TokensState;
@@ -305,6 +308,7 @@ class Engine {
         TokenRatesController: TokenRatesController;
         TokensController: TokensController;
         TransactionController: TransactionController;
+        SmartTransactionsController: SmartTransactionsController;
         SignatureController: SignatureController;
         SwapsController: SwapsController;
       }
@@ -831,7 +835,76 @@ class Engine {
     );
     ///: END:ONLY_INCLUDE_IF
 
+    const txController = new TransactionController({
+      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
+      blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
+      getNetworkState: () => networkController.state,
+      getSelectedAddress: () => preferencesController.state.selectedAddress,
+      incomingTransactions: {
+        apiKey: process.env.MM_ETHERSCAN_KEY,
+        isEnabled: () => {
+          const currentHexChainId =
+            networkController.state.providerConfig.chainId;
+          return Boolean(
+            preferencesController?.state?.showIncomingTransactions?.[
+              currentHexChainId
+            ],
+          );
+        },
+        updateTransactions: true,
+      },
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'TransactionController',
+        allowedActions: [`${approvalController.name}:addRequest`],
+      }),
+      onNetworkStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          listener,
+        ),
+      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
+      provider: networkController.getProviderAndBlockTracker().provider,
+    });
+
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+
+    const stxController = new SmartTransactionsController(
+      {
+        onNetworkStateChange: (listener) =>
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
+        getNonceLock: txController.getNonceLock.bind(txController),
+        confirmExternalTransaction:
+          txController.confirmExternalTransaction.bind(txController),
+        provider: networkController.getProviderAndBlockTracker().provider,
+
+        // TODO stx controller will call it like this:
+        // this.trackMetaMetricsEvent({
+        //   event: 'STX Status Updated',
+        //   category: 'swaps',
+        //   sensitiveProperties, // seems optional
+        // });
+        trackMetaMetricsEvent: (params: {
+          event: string;
+          category: string;
+          sensitiveProperties: any;
+        }) => {
+          const { event, ...restParams } = params;
+          AnalyticsV2.trackEvent(event, restParams);
+        },
+      },
+      {
+        supportedChainIds: [
+          NETWORKS_CHAIN_ID.MAINNET,
+          NETWORKS_CHAIN_ID.GOERLI,
+        ],
+      },
+      initialState.SmartTransactionsController,
+    );
+
+    Logger.log('STX Engine, stxController.name', stxController.name);
 
     const controllers = [
       keyringController,
@@ -930,37 +1003,8 @@ class Engine {
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
       }),
-      new TransactionController({
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        blockTracker:
-          networkController.getProviderAndBlockTracker().blockTracker,
-        getNetworkState: () => networkController.state,
-        getSelectedAddress: () => preferencesController.state.selectedAddress,
-        incomingTransactions: {
-          apiKey: process.env.MM_ETHERSCAN_KEY,
-          isEnabled: () => {
-            const currentHexChainId =
-              networkController.state.providerConfig.chainId;
-            return Boolean(
-              preferencesController?.state?.showIncomingTransactions?.[
-                currentHexChainId
-              ],
-            );
-          },
-          updateTransactions: true,
-        },
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'TransactionController',
-          allowedActions: [`${approvalController.name}:addRequest`],
-        }),
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            listener,
-          ),
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        provider: networkController.getProviderAndBlockTracker().provider,
-      }),
+      txController,
+      stxController,
       new SwapsController(
         {
           // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
@@ -1102,6 +1146,10 @@ class Engine {
       }),
       {},
     ) as typeof this.context;
+
+    // TODO fix stxController.name, right now its set to 'BaseController'
+    // Can take this out once that's fixed
+    this.context.SmartTransactionsController = stxController;
 
     const {
       NftController: nfts,
