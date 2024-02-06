@@ -389,14 +389,6 @@ class TransactionEditor extends PureComponent {
     const gasEstimateTypeChanged =
       prevProps.gasEstimateType !== this.props.gasEstimateType;
 
-    console.log('------- Inputs', {
-      gasEstimateTypeChanged,
-      stopUpdateGas: this.state.stopUpdateGas,
-      advancedGasInserted: this.state.advancedGasInserted,
-      gasFeeEstimates: this.props.gasFeeEstimates,
-      transactionGas: transaction.gas,
-    });
-
     if (
       (!this.state.stopUpdateGas && !this.state.advancedGasInserted) ||
       gasEstimateTypeChanged
