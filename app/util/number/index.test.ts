@@ -131,7 +131,7 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
     expect(fromTokenMinimalUnit(1e18, 18)).toEqual('1');
   });
 
-  it('should round number by default', () => {
+  it('rounds number by default', () => {
     expect(fromTokenMinimalUnit(new BN('1000000000000000000'), 18)).toEqual(
       '1',
     );
