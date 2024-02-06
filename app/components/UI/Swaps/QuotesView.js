@@ -19,7 +19,7 @@ import {
   WalletDevice,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import { query } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, query } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
 import {
@@ -74,7 +74,7 @@ import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { swapsTokensSelector } from '../../../reducers/swaps';
-import { decGWEIToHexWEI } from '../../../util/conversions';
+import { decGWEIToHexWEI, decimalToHex } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
@@ -102,6 +102,7 @@ import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
 } from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
+import { signAndSendSmartTransaction } from './utils/smart-tx';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -919,6 +920,8 @@ function SwapsQuotesView({
       TransactionController,
       newSwapsTransactions,
       approvalTransactionMetaId,
+      isHardwareAddress,
+      SmartTransactionsController,
     ) => {
       if (!selectedQuote) {
         return;
@@ -926,25 +929,65 @@ function SwapsQuotesView({
 
       try {
         resetTransaction();
-        const { transactionMeta } = await TransactionController.addTransaction(
-          {
-            ...selectedQuote.trade,
-            ...getTransactionPropertiesFromGasEstimates(
-              gasEstimateType,
-              gasEstimates,
-            ),
-            gas: new BigNumber(gasLimit).toString(16),
-          },
-          {
-            deviceConfirmedOn: WalletDevice.MM_MOBILE,
-            origin: process.env.MM_FOX_CODE,
-          },
-        );
-        updateSwapsTransactions(
-          transactionMeta,
-          approvalTransactionMetaId,
-          newSwapsTransactions,
-        );
+
+        if (isSmartTransaction) {
+          Logger.log(
+            'STX QuotesView handleSwapTransaction isSmartTransaction',
+            isSmartTransaction,
+          );
+
+          const unsignedTransaction = selectedQuote.trade;
+
+          const fees = await SmartTransactionsController.getFees(
+            unsignedTransaction,
+            null,
+            // approveTxParams, // TODO
+          );
+          Logger.log('STX QuotesView fees', fees);
+
+          const uuid = await signAndSendSmartTransaction(
+            SmartTransactionsController,
+            unsignedTransaction,
+            fees.tradeTxFees,
+            TransactionController,
+          );
+
+          Logger.log('STX QuotesView uuid', uuid);
+
+          await SmartTransactionsController.updateSmartTransaction(uuid, {
+            origin: ORIGIN_METAMASK,
+            // TODO tx-controller is missing TransactionType export
+            // type: TransactionType.swap,
+            destinationTokenAddress,
+            destinationTokenDecimals: destinationToken.decimals,
+            destinationTokenSymbol: destinationToken.symbol,
+            sourceTokenSymbol: sourceToken.symbol,
+            swapMetaData,
+            swapTokenValue,
+            type: 'swap',
+          });
+        } else {
+          const { transactionMeta } =
+            await TransactionController.addTransaction(
+              {
+                ...selectedQuote.trade,
+                ...getTransactionPropertiesFromGasEstimates(
+                  gasEstimateType,
+                  gasEstimates,
+                ),
+                gas: new BigNumber(gasLimit).toString(16),
+              },
+              {
+                deviceConfirmedOn: WalletDevice.MM_MOBILE,
+                origin: process.env.MM_FOX_CODE,
+              },
+            );
+          updateSwapsTransactions(
+            transactionMeta,
+            approvalTransactionMetaId,
+            newSwapsTransactions,
+          );
+        }
         setRecipient(selectedAddress);
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
@@ -963,6 +1006,8 @@ function SwapsQuotesView({
       selectedAddress,
       setRecipient,
       resetTransaction,
+      destinationTokenAddress,
+      isSmartTransaction,
     ],
   );
 
@@ -972,52 +1017,88 @@ function SwapsQuotesView({
       newSwapsTransactions,
       approvalTransactionMetaId,
       isHardwareAddress,
+      SmartTransactionsController,
     ) => {
       try {
         resetTransaction();
-        const { transactionMeta } = await TransactionController.addTransaction(
-          {
+
+        if (isSmartTransaction) {
+          Logger.log(
+            'STX QuotesView handleApprovaltransaction isSmartTransaction',
+            isSmartTransaction,
+          );
+          const fees = await SmartTransactionsController.getFees();
+
+          const updatedApprovalTransaction = {
             ...approvalTransaction,
-            ...getTransactionPropertiesFromGasEstimates(
-              gasEstimateType,
-              gasEstimates,
-            ),
-          },
-          {
-            deviceConfirmedOn: WalletDevice.MM_MOBILE,
-            origin: process.env.MM_FOX_CODE,
-          },
-        );
+            value: '0x0',
+            gas: `0x${decimalToHex(fees.approvalTxFees?.gasLimit || 0)}`,
+          };
 
-        setRecipient(selectedAddress);
+          const approvalTxUuid = await signAndSendSmartTransaction(
+            SmartTransactionsController,
+            updatedApprovalTransaction,
+            fees.approvalTxFees,
+            TransactionController,
+          );
 
-        approvalTransactionMetaId = transactionMeta.id;
-        newSwapsTransactions[transactionMeta.id] = {
-          action: 'approval',
-          sourceToken: {
-            address: sourceToken.address,
-            decimals: sourceToken.decimals,
-          },
-          destinationToken: { swaps: 'swaps' },
-          upTo: new BigNumber(
-            decodeApproveData(approvalTransaction.data).encodedAmount,
-            16,
-          ).toString(10),
-        };
-        if (isHardwareAddress) {
-          TransactionController.hub.once(
-            `${transactionMeta.id}:finished`,
-            (transactionMeta) => {
-              if (transactionMeta.status === TransactionStatus.submitted) {
-                handleSwapTransaction(
-                  TransactionController,
-                  newSwapsTransactions,
-                  approvalTransactionMetaId,
-                  isHardwareAddress,
-                );
-              }
+          await SmartTransactionsController.updateSmartTransaction(
+            approvalTxUuid,
+            {
+              origin: ORIGIN_METAMASK,
+              // TODO tx-controller is missing TransactionType export
+              // type: TransactionType.swapApproval,
+              type: 'swapApproval',
+              sourceTokenSymbol: sourceToken.symbol,
             },
           );
+        } else {
+          const { transactionMeta } =
+            await TransactionController.addTransaction(
+              {
+                ...approvalTransaction,
+                ...getTransactionPropertiesFromGasEstimates(
+                  gasEstimateType,
+                  gasEstimates,
+                ),
+              },
+              {
+                deviceConfirmedOn: WalletDevice.MM_MOBILE,
+                origin: process.env.MM_FOX_CODE,
+              },
+            );
+
+          setRecipient(selectedAddress);
+
+          approvalTransactionMetaId = transactionMeta.id;
+          newSwapsTransactions[transactionMeta.id] = {
+            action: 'approval',
+            sourceToken: {
+              address: sourceToken.address,
+              decimals: sourceToken.decimals,
+            },
+            destinationToken: { swaps: 'swaps' },
+            upTo: new BigNumber(
+              decodeApproveData(approvalTransaction.data).encodedAmount,
+              16,
+            ).toString(10),
+          };
+          if (isHardwareAddress) {
+            TransactionController.hub.once(
+              `${transactionMeta.id}:finished`,
+              (transactionMeta) => {
+                if (transactionMeta.status === TransactionStatus.submitted) {
+                  handleSwapTransaction(
+                    TransactionController,
+                    newSwapsTransactions,
+                    approvalTransactionMetaId,
+                    isHardwareAddress,
+                    SmartTransactionsController,
+                  );
+                }
+              },
+            );
+          }
         }
       } catch (e) {
         // send analytics
@@ -1033,6 +1114,8 @@ function SwapsQuotesView({
       selectedAddress,
       setRecipient,
       resetTransaction,
+      sourceToken.symbol,
+      isSmartTransaction,
     ],
   );
 
@@ -1045,7 +1128,24 @@ function SwapsQuotesView({
 
     startSwapAnalytics(selectedQuote, selectedAddress);
 
-    const { TransactionController } = Engine.context;
+    const { TransactionController, SmartTransactionsController } =
+      Engine.context;
+
+    Logger.log(
+      'STX QuotesView Engine.context.TransactionController',
+      !!TransactionController,
+    );
+    Logger.log(
+      'STX QuotesView Engine.context.TransactionController.approveTransactionsWithSameNonce',
+      !!TransactionController.approveTransactionsWithSameNonce,
+    );
+    Logger.log(
+      'STX QuotesView Engine.context.SmartTransactionsController',
+      !!SmartTransactionsController,
+    );
+
+    Logger.log('STX approvalTransaction', !!approvalTransaction);
+
     const newSwapsTransactions =
       TransactionController.state.swapsTransactions || {};
     let approvalTransactionMetaId;
@@ -1056,6 +1156,7 @@ function SwapsQuotesView({
         newSwapsTransactions,
         approvalTransactionMetaId,
         isHardwareAddress,
+        SmartTransactionsController,
       );
 
       if (isHardwareAddress) {
@@ -1069,6 +1170,7 @@ function SwapsQuotesView({
       newSwapsTransactions,
       approvalTransactionMetaId,
       isHardwareAddress,
+      SmartTransactionsController,
     );
 
     navigation.dangerouslyGetParent()?.pop();
@@ -1722,8 +1824,6 @@ function SwapsQuotesView({
     !hasDismissedSlippageAlert &&
     hasEnoughTokenBalance &&
     hasEnoughEthBalance;
-
-  Logger.log('RENDER app/components/UI/Swaps/QuotesView.js');
 
   return (
     <ScreenView
