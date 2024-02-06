@@ -9,7 +9,13 @@ import React, {
   useRef,
   useImperativeHandle,
 } from 'react';
-import { LayoutChangeEvent, useWindowDimensions, View } from 'react-native';
+import {
+  LayoutChangeEvent,
+  useWindowDimensions,
+  View,
+  Platform,
+  KeyboardAvoidingView,
+} from 'react-native';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
@@ -21,7 +27,10 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { debounce } from 'lodash';
 
 // External dependencies.
@@ -57,6 +66,7 @@ const BottomSheetDialog = forwardRef<
   ) => {
     const { top: screenTopPadding, bottom: screenBottomPadding } =
       useSafeAreaInsets();
+    const { y: frameY } = useSafeAreaFrame();
     const { height: screenHeight } = useWindowDimensions();
     const maxSheetHeight = isFullscreen
       ? screenHeight - screenTopPadding
@@ -218,7 +228,14 @@ const BottomSheetDialog = forwardRef<
     }));
 
     return (
-      <View style={styles.base} {...props}>
+      <KeyboardAvoidingView
+        style={styles.base}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={
+          Platform.OS === 'ios' ? -screenBottomPadding : frameY
+        }
+        {...props}
+      >
         <PanGestureHandler
           enabled={isInteractable}
           onGestureEvent={gestureHandler}
@@ -235,7 +252,7 @@ const BottomSheetDialog = forwardRef<
             {children}
           </Animated.View>
         </PanGestureHandler>
-      </View>
+      </KeyboardAvoidingView>
     );
   },
 );
