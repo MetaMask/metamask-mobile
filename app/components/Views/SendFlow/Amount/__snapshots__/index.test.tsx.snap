@@ -375,7 +375,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                   <Text
                                     style={
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "color": "#FFFFFF",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -391,7 +391,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                       style={
                                         Array [
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                             "fontSize": 16,
                                           },
                                           Object {
@@ -661,7 +661,7 @@ exports[`Amount should convert ERC-20 token value to USD 1`] = `
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -1093,7 +1093,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                   <Text
                                     style={
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "color": "#FFFFFF",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -1109,7 +1109,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                       style={
                                         Array [
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                             "fontSize": 16,
                                           },
                                           Object {
@@ -1379,7 +1379,7 @@ exports[`Amount should convert ETH to USD 1`] = `
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -1811,7 +1811,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                   <Text
                                     style={
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "color": "#FFFFFF",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -1827,7 +1827,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                       style={
                                         Array [
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                             "fontSize": 16,
                                           },
                                           Object {
@@ -2114,7 +2114,7 @@ exports[`Amount should convert USD to ERC-20 token value 1`] = `
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -2546,7 +2546,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                   <Text
                                     style={
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "color": "#FFFFFF",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -2562,7 +2562,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                       style={
                                         Array [
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                             "fontSize": 16,
                                           },
                                           Object {
@@ -2849,7 +2849,7 @@ exports[`Amount should convert USD to ETH 1`] = `
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -3281,7 +3281,7 @@ exports[`Amount should display correct balance 1`] = `
                                   <Text
                                     style={
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "color": "#FFFFFF",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -3297,7 +3297,7 @@ exports[`Amount should display correct balance 1`] = `
                                       style={
                                         Array [
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                             "fontSize": 16,
                                           },
                                           Object {
@@ -3566,7 +3566,7 @@ exports[`Amount should display correct balance 1`] = `
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -3998,7 +3998,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                   <Text
                                     style={
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "color": "#FFFFFF",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -4014,7 +4014,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                       style={
                                         Array [
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                             "fontSize": 16,
                                           },
                                           Object {
@@ -4283,7 +4283,7 @@ exports[`Amount should not show a warning when conversion rate is available 1`] 
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -4715,7 +4715,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                   <Text
                                     style={
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "color": "#FFFFFF",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -4731,7 +4731,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                       style={
                                         Array [
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                             "fontSize": 16,
                                           },
                                           Object {
@@ -4985,7 +4985,7 @@ exports[`Amount should not show a warning when transfering collectibles 1`] = `
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -5417,7 +5417,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                   <Text
                                     style={
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "color": "#FFFFFF",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -5433,7 +5433,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       style={
                                         Array [
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                             "fontSize": 16,
                                           },
                                           Object {
@@ -5700,7 +5700,7 @@ exports[`Amount should proceed if balance is sufficient while on Native primary 
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -6095,8 +6095,8 @@ exports[`Amount should render correctly 1`] = `
                                   "paddingVertical": 8,
                                 },
                                 Object {
-                                  "backgroundColor": "#FFD33D19",
-                                  "borderColor": "#F66A0A",
+                                  "backgroundColor": "#BF520819",
+                                  "borderColor": "#BF5208",
                                 },
                                 Object {
                                   "marginHorizontal": 20,
@@ -6117,7 +6117,7 @@ exports[`Amount should render correctly 1`] = `
                                 style={
                                   Array [
                                     Object {
-                                      "color": "#F66A0A",
+                                      "color": "#BF5208",
                                       "fontSize": 20,
                                     },
                                     undefined,
@@ -6205,7 +6205,7 @@ exports[`Amount should render correctly 1`] = `
                                   <Text
                                     style={
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "color": "#FFFFFF",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -6221,7 +6221,7 @@ exports[`Amount should render correctly 1`] = `
                                       style={
                                         Array [
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                             "fontSize": 16,
                                           },
                                           Object {
@@ -6410,7 +6410,7 @@ exports[`Amount should render correctly 1`] = `
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -6807,8 +6807,8 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                   "paddingVertical": 8,
                                 },
                                 Object {
-                                  "backgroundColor": "#FFD33D19",
-                                  "borderColor": "#F66A0A",
+                                  "backgroundColor": "#BF520819",
+                                  "borderColor": "#BF5208",
                                 },
                                 Object {
                                   "marginHorizontal": 20,
@@ -6829,7 +6829,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                 style={
                                   Array [
                                     Object {
-                                      "color": "#F66A0A",
+                                      "color": "#BF5208",
                                       "fontSize": 20,
                                     },
                                     undefined,
@@ -6917,7 +6917,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                   <Text
                                     style={
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "color": "#FFFFFF",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -6933,7 +6933,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                       style={
                                         Array [
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                             "fontSize": 16,
                                           },
                                           Object {
@@ -7122,7 +7122,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
@@ -7554,7 +7554,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   <Text
                                     style={
                                       Object {
-                                        "color": "#FCFCFC",
+                                        "color": "#FFFFFF",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -7570,7 +7570,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                       style={
                                         Array [
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                             "fontSize": 16,
                                           },
                                           Object {
@@ -7878,7 +7878,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                       "textAlign": "center",
                                     },
                                     Object {
-                                      "color": "#FCFCFC",
+                                      "color": "#FFFFFF",
                                     },
                                     undefined,
                                   ],
