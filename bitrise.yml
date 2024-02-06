@@ -276,7 +276,7 @@ workflows:
                 HELLO
                 $BITRISE_PUBLIC_INSTALL_PAGE_URL
             - repository_url: '$GIT_REPOSITORY_URL'
-            - issue_number: '$BITRISE_PULL_REQUEST'
+            - issue_number: 8495
             - api_base_url: 'https://api.github.com'
         # - slack@3:
         #     inputs:
