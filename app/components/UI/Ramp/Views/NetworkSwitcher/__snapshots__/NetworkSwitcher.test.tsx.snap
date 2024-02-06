@@ -1769,7 +1769,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       "textAlign": "center",
                                                     },
                                                     Object {
-                                                      "color": "#FCFCFC",
+                                                      "color": "#FFFFFF",
                                                     },
                                                     undefined,
                                                   ],
@@ -8743,7 +8743,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                           },
                                           undefined,
                                         ],
@@ -9425,7 +9425,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                           },
                                           undefined,
                                         ],
@@ -10107,7 +10107,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                           },
                                           undefined,
                                         ],
