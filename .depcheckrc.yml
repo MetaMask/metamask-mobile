@@ -80,6 +80,7 @@ ignores:
   - 'stream-browserify'
   - 'url'
   - 'vm-browserify'
+  - 'react-native-cli'
 
   ## Missing dependencies to investigate
   - '@react-navigation/core'
