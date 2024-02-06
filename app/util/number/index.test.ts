@@ -159,7 +159,7 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
     );
   });
 
-  it('should not round number if isRounding is false', () => {
+  it('does not round number if isRounding is false', () => {
     expect(
       fromTokenMinimalUnit(new BN('1000000000000000000'), 18, false),
     ).toEqual('1');
