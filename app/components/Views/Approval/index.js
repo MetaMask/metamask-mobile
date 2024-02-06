@@ -25,7 +25,6 @@ import {
 } from '../../../util/address';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
 import Logger from '../../../util/Logger';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -46,6 +45,7 @@ import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
+import { withMetricsAwareness } from '../../hooks/useMetrics';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -211,7 +211,7 @@ class Approval extends PureComponent {
   };
 
   componentDidMount = () => {
-    const { navigation } = this.props;
+    const { navigation, metrics } = this.props;
     this.updateNavBar();
     this.appStateListener = AppState.addEventListener(
       'change',
@@ -220,7 +220,7 @@ class Approval extends PureComponent {
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
 
-    AnalyticsV2.trackEvent(
+    metrics.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
@@ -343,10 +343,11 @@ class Approval extends PureComponent {
   };
 
   onCancel = () => {
-    this.props.hideModal();
+    const { hideModal, metrics } = this.props;
+    hideModal();
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED, {
+    metrics.trackEvent(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED, {
       ...this.getAnalyticsParams(),
       ...this.getBlockaidMetricsParams(),
     });
@@ -354,6 +355,7 @@ class Approval extends PureComponent {
 
   onLedgerConfirmation = (approve, transactionId, gaParams) => {
     const { TransactionController } = Engine.context;
+    const { metrics } = this.props;
     try {
       //manual cancel from UI when transaction is awaiting from ledger confirmation
       if (!approve) {
@@ -367,7 +369,7 @@ class Approval extends PureComponent {
 
         this.showWalletConnectNotification();
 
-        AnalyticsV2.trackEvent(
+        metrics.trackEvent(
           MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
           gaParams,
         );
@@ -375,7 +377,7 @@ class Approval extends PureComponent {
         this.showWalletConnectNotification(true);
       }
     } finally {
-      AnalyticsV2.trackEvent(
+      metrics.trackEvent(
         MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
         gaParams,
       );
@@ -392,6 +394,7 @@ class Approval extends PureComponent {
       transactions,
       transaction: { assetType, selectedAsset },
       showCustomNonce,
+      metrics,
     } = this.props;
     let { transaction } = this.props;
     const { nonce } = transaction;
@@ -490,13 +493,11 @@ class Approval extends PureComponent {
         this.setState({ transactionHandled: true });
         this.props.hideModal();
       } else {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
+        metrics.trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
       }
       this.setState({ transactionHandled: false });
     }
-    AnalyticsV2.trackEvent(MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED, {
+    metrics.trackEvent(MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED, {
       ...this.getAnalyticsParams({
         gasEstimateType,
         gasSelected,
@@ -639,4 +640,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 Approval.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(Approval);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Approval));

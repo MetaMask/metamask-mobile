@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, InteractionManager } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
 import { connect } from 'react-redux';
 import Step1 from './Step1';
@@ -17,7 +17,7 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { useMetrics } from '../../hooks/useMetrics';
 import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -68,6 +68,7 @@ const createStyles = ({ colors, typography }) =>
   });
 
 const OnboardingWizard = (props) => {
+  const { trackEvent } = useMetrics();
   const {
     setOnboardingWizardStep,
     navigation,
@@ -86,13 +87,11 @@ const OnboardingWizard = (props) => {
     await DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
     setOnboardingWizardStep && setOnboardingWizardStep(0);
     drawerRef?.current?.dismissDrawer?.();
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
-        tutorial_step_count: step,
-        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
-      });
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED);
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
+      tutorial_step_count: step,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
     });
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED);
   };
 
   // Since react-native-default-preference is not covered by the fixtures,

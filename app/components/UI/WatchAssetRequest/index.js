@@ -9,8 +9,7 @@ import ActionView from '../ActionView';
 import { renderFromTokenMinimalUnit } from '../../../util/number';
 import TokenImage from '../../UI/TokenImage';
 import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 import useTokenBalance from '../../hooks/useTokenBalance';
 import { useTheme } from '../../../util/theme';
@@ -100,6 +99,7 @@ const WatchAssetRequest = ({
   onCancel,
   onConfirm,
 }) => {
+  const { trackEvent } = useMetrics();
   const { asset, interactingAddress } = suggestedAssetMeta;
   // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
@@ -130,11 +130,8 @@ const WatchAssetRequest = ({
 
   const onConfirmPress = async () => {
     await onConfirm();
+    trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.TOKEN_ADDED,
-        getAnalyticsParams(),
-      );
       NotificationManager.showSimpleNotification({
         status: `simple_notification`,
         duration: 5000,

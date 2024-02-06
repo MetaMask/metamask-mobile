@@ -11,7 +11,7 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { useMetrics } from '../../../hooks/useMetrics';
 import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
@@ -31,6 +31,7 @@ const styles = StyleSheet.create({
 });
 
 const Step6 = (props) => {
+  const { trackEvent } = useMetrics();
   const { setOnboardingWizardStep, onClose, navigation } = props;
   const [ready, setReady] = useState(false);
   const [coachmarkTop, setCoachmarkTop] = useState(0);
@@ -59,7 +60,7 @@ const Step6 = (props) => {
   const onBack = () => {
     navigation?.navigate?.(Routes.WALLET.HOME);
     setOnboardingWizardStep && setOnboardingWizardStep(5);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 6,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
     });

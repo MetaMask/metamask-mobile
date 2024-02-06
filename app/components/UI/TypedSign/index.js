@@ -6,8 +6,10 @@ import { fontStyles } from '../../../styles/common';
 import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import {
+  withMetricsAwareness,
+  MetaMetricsEvents,
+} from '../../hooks/useMetrics';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import sanitizeString from '../../../util/string';
@@ -87,6 +89,10 @@ class TypedSign extends PureComponent {
      * Security alert response object
      */
     securityAlertResponse: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -97,9 +103,10 @@ class TypedSign extends PureComponent {
     const {
       messageParams: { metamaskId },
       messageParams,
+      metrics,
     } = this.props;
 
-    AnalyticsV2.trackEvent(
+    metrics.trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(messageParams, 'typed_sign'),
     );
@@ -115,7 +122,8 @@ class TypedSign extends PureComponent {
 
   onSignatureError = ({ error }) => {
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-      AnalyticsV2.trackEvent(
+      const { metrics } = this.props;
+      metrics.trackEvent(
         MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         getAnalyticsParams(),
       );
@@ -282,4 +290,4 @@ const mapStateToProps = (state) => ({
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });
 
-export default connect(mapStateToProps)(TypedSign);
+export default connect(mapStateToProps)(withMetricsAwareness(TypedSign));
