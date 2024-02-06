@@ -20,8 +20,7 @@ import {
   setAutomaticSecurityChecksModalOpen,
   userSelectedAutomaticSecurityChecksOptions,
 } from '../../../actions/security';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -42,6 +41,7 @@ export const createEnableAutomaticSecurityChecksModalNavDetails =
   );
 
 const EnableAutomaticSecurityChecksModal = () => {
+  const { trackEvent } = useMetrics();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const modalRef = useRef<ReusableModalRef | null>(null);
@@ -51,11 +51,11 @@ const EnableAutomaticSecurityChecksModal = () => {
     modalRef?.current?.dismissModal(cb);
 
   useEffect(() => {
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED,
       generateDeviceAnalyticsMetaData(),
     );
-  }, []);
+  }, [trackEvent]);
 
   useEffect(() => {
     dispatch(setAutomaticSecurityChecksModalOpen(true));
@@ -67,25 +67,25 @@ const EnableAutomaticSecurityChecksModal = () => {
   const triggerCloseAndDisableAutomaticSecurityChecks = useCallback(
     () =>
       dismissModal(() => {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
           generateDeviceAnalyticsMetaData(),
         );
         dispatch(userSelectedAutomaticSecurityChecksOptions());
       }),
-    [dispatch],
+    [dispatch, trackEvent],
   );
 
   const enableAutomaticSecurityChecks = useCallback(() => {
     dismissModal(() => {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT,
         generateDeviceAnalyticsMetaData(),
       );
       dispatch(userSelectedAutomaticSecurityChecksOptions());
       dispatch(setAutomaticSecurityChecks(true));
     });
-  }, [dispatch]);
+  }, [dispatch, trackEvent]);
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>

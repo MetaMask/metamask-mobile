@@ -10,7 +10,7 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
+import { withMetricsAwareness } from '../../../hooks/useMetrics';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
@@ -41,6 +41,10 @@ class Step2 extends PureComponent {
      * Callback called when closing step
      */
     onClose: PropTypes.func,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -68,9 +72,9 @@ class Step2 extends PureComponent {
    * Dispatches 'setOnboardingWizardStep' with next step
    */
   onNext = () => {
-    const { setOnboardingWizardStep } = this.props;
+    const { setOnboardingWizardStep, metrics } = this.props;
     setOnboardingWizardStep && setOnboardingWizardStep(3);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
+    metrics.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
       tutorial_step_count: 2,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
     });
@@ -80,9 +84,9 @@ class Step2 extends PureComponent {
    * Dispatches 'setOnboardingWizardStep' with back step
    */
   onBack = () => {
-    const { setOnboardingWizardStep } = this.props;
+    const { setOnboardingWizardStep, metrics } = this.props;
     setOnboardingWizardStep && setOnboardingWizardStep(1);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+    metrics.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 2,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
     });
@@ -154,4 +158,4 @@ const mapDispatchToProps = (dispatch) => ({
 
 Step2.contextType = ThemeContext;
 
-export default connect(null, mapDispatchToProps)(Step2);
+export default connect(null, mapDispatchToProps)(withMetricsAwareness(Step2));

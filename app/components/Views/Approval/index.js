@@ -9,7 +9,6 @@ import { getTransactionOptionsTitle } from '../../UI/Navbar';
 import { resetTransaction } from '../../../actions/transaction';
 import { connect } from 'react-redux';
 import NotificationManager from '../../../core/NotificationManager';
-import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -108,6 +107,10 @@ class Approval extends PureComponent {
      * A string representing the network chainId
      */
     chainId: PropTypes.string,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -227,7 +230,8 @@ class Approval extends PureComponent {
    * Call Analytics to track confirm started event for approval screen
    */
   trackConfirmScreen = () => {
-    Analytics.trackEventWithParameters(
+    const { metrics } = this.props;
+    metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       this.getTrackingParams(),
     );
@@ -237,22 +241,20 @@ class Approval extends PureComponent {
    * Call Analytics to track confirm started event for approval screen
    */
   trackEditScreen = async () => {
-    const { transaction } = this.props;
+    const { transaction, metrics } = this.props;
     const actionKey = await getTransactionReviewActionKey(transaction);
-    Analytics.trackEventWithParameters(
-      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
-      {
-        ...this.getTrackingParams(),
-        actionKey,
-      },
-    );
+    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION, {
+      ...this.getTrackingParams(),
+      actionKey,
+    });
   };
 
   /**
    * Call Analytics to track cancel pressed
    */
   trackOnCancel = () => {
-    Analytics.trackEventWithParameters(
+    const { metrics } = this.props;
+    metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
       this.getTrackingParams(),
     );

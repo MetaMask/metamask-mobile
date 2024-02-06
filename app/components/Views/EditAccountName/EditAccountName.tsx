@@ -22,8 +22,8 @@ import { useStyles } from '../../../component-library/hooks';
 import { getEditAccountNameNavBarOptions } from '../../../components/UI/Navbar';
 import Engine from '../../../core/Engine';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useMetrics } from '../../hooks/useMetrics';
 import { selectChainId } from '../../../selectors/networkController';
 import {
   selectIdentities,
@@ -44,6 +44,7 @@ const EditAccountName = () => {
   const { setOptions, goBack, navigate } = useNavigation();
   const [accountName, setAccountName] = useState<string>();
   const [ens, setEns] = useState<string>();
+  const { trackEvent } = useMetrics();
 
   const selectedAddress = useSelector(selectSelectedAddress);
   const identities = useSelector(selectIdentities);
@@ -87,15 +88,12 @@ const EditAccountName = () => {
 
     InteractionManager.runAfterInteractions(() => {
       try {
-        const analyticsProperties = async () => {
+        const analyticsProperties = () => {
           const accountType = getAddressAccountType(selectedAddress);
           const account_type = accountType === 'QR' ? 'hardware' : accountType;
           return { account_type, chain_id: chainId };
         };
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.ACCOUNT_RENAMED,
-          analyticsProperties(),
-        );
+        trackEvent(MetaMetricsEvents.ACCOUNT_RENAMED, analyticsProperties());
       } catch {
         return {};
       }

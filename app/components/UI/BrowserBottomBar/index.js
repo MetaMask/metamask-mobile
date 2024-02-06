@@ -7,8 +7,6 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import SimpleLineIcons from 'react-native-vector-icons/SimpleLineIcons';
 import FeatherIcons from 'react-native-vector-icons/Feather';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -21,6 +19,10 @@ import {
   OPTIONS_BUTTON,
   SEARCH_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import {
+  MetaMetricsEvents,
+  withMetricsAwareness,
+} from '../../hooks/useMetrics';
 
 // NOTE: not needed anymore. The use of BottomTabBar already accomodates the home indicator height
 // TODO: test on an android device
@@ -67,7 +69,7 @@ const createStyles = (colors) =>
  * Browser bottom bar that contains icons for navigation
  * tab management, url change and other options
  */
-export default class BrowserBottomBar extends PureComponent {
+class BrowserBottomBar extends PureComponent {
   static propTypes = {
     /**
      * Boolean that determines if you can navigate back
@@ -101,17 +103,23 @@ export default class BrowserBottomBar extends PureComponent {
      * Function that toggles the options menu
      */
     toggleOptions: PropTypes.func,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   trackSearchEvent = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
+    const { metrics } = this.props;
+    metrics.trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
       option_chosen: 'Browser Bottom Bar Menu',
       number_of_tabs: undefined,
     });
   };
 
   trackNavigationEvent = (navigationOption) => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_NAVIGATION, {
+    const { metrics } = this.props;
+    metrics.trackEvent(MetaMetricsEvents.BROWSER_NAVIGATION, {
       option_chosen: navigationOption,
       os: Platform.OS,
     });
@@ -213,3 +221,5 @@ export default class BrowserBottomBar extends PureComponent {
 }
 
 BrowserBottomBar.contextType = ThemeContext;
+
+export default withMetricsAwareness(BrowserBottomBar);

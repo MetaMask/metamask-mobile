@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Alert, InteractionManager, AppState, View } from 'react-native';
+import { Alert, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -14,7 +14,6 @@ import AddNickname from '../../../UI/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../locales/i18n';
 import { getNetworkNonce } from '../../../../util/networks';
-import Analytics from '../../../../core/Analytics/Analytics';
 import {
   setTransactionObject,
   setNonce,
@@ -162,6 +161,10 @@ class Approve extends PureComponent {
      * Object that represents the navigator
      */
     navigation: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -353,15 +356,13 @@ class Approve extends PureComponent {
   };
 
   trackApproveEvent = (event) => {
-    const { transaction, tokensLength, accountsLength, providerType } =
+    const { transaction, tokensLength, accountsLength, providerType, metrics } =
       this.props;
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(event, {
-        view: transaction.origin,
-        numberOfTokens: tokensLength,
-        numberOfAccounts: accountsLength,
-        network: providerType,
-      });
+    metrics.trackEvent(event, {
+      view: transaction.origin,
+      numberOfTokens: tokensLength,
+      numberOfAccounts: accountsLength,
+      network: providerType,
     });
   };
 
@@ -610,13 +611,10 @@ class Approve extends PureComponent {
   };
 
   onModeChange = (mode) => {
+    const { metrics } = this.props;
     this.setState({ mode });
     if (mode === EDIT) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEvent(
-          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
-        );
-      });
+      metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
     }
   };
 

@@ -15,8 +15,9 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import UntypedEngine from '../../../core/Engine';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useMetrics } from '../../hooks/useMetrics';
+
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -42,6 +43,7 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
+  const { trackEvent } = useMetrics();
   const dispatch = useDispatch();
   const { onSelectAccount, checkBalanceError } = route.params || {};
 
@@ -70,13 +72,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onSelectAccount?.(address);
       InteractionManager.runAfterInteractions(() => {
         // Track Event: "Switched Account"
-        AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+        trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
           source: 'Wallet Tab',
           number_of_accounts: accounts?.length,
         });
       });
     },
-    [Engine.context, accounts?.length, onSelectAccount],
+    [Engine.context, accounts?.length, onSelectAccount, trackEvent],
   );
 
   const onRemoveImportedAccount = useCallback(

@@ -25,12 +25,10 @@ import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useMetrics, MetaMetricsEvents } from '../../hooks/useMetrics';
 
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
-import Logger from '../../../util/Logger';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -119,6 +117,7 @@ const createStyles = (colors) =>
  * the backup seed phrase flow
  */
 const AccountBackupStep1 = (props) => {
+  const { trackEvent } = useMetrics();
   const { navigation, route } = props;
   const [showRemindLaterModal, setRemindLaterModal] = useState(false);
   const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
@@ -126,12 +125,6 @@ const AccountBackupStep1 = (props) => {
   const [hasFunds, setHasFunds] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
-  const track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('AccountBackupStep1', `Failed to track ${event}`);
-    });
-  };
 
   useEffect(() => {
     navigation.setOptions({
@@ -166,14 +159,14 @@ const AccountBackupStep1 = (props) => {
 
   const goNext = () => {
     props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
-    track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
+    trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
   const showRemindLater = () => {
     if (hasFunds) return;
 
     setRemindLaterModal(true);
-    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
+    trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
   };
 
   const toggleSkipCheckbox = () =>
@@ -191,7 +184,7 @@ const AccountBackupStep1 = (props) => {
 
   const skip = async () => {
     hideRemindLaterModal();
-    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
+    trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
     const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
     if (onboardingWizard) {

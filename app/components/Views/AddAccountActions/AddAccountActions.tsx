@@ -8,8 +8,8 @@ import SheetHeader from '../../../component-library/components/Sheet/SheetHeader
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useMetrics } from '../../hooks/useMetrics';
 import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine';
 
@@ -19,20 +19,21 @@ import { AddAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/Ad
 import Routes from '../../../constants/navigation/Routes';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
+  const { trackEvent } = useMetrics();
   const { navigate } = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
 
   const openImportAccount = useCallback(() => {
     navigate('ImportPrivateKeyView');
     onBack();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
-  }, [navigate, onBack]);
+    trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
+  }, [navigate, onBack, trackEvent]);
 
   const openConnectHardwareWallet = useCallback(() => {
     navigate(Routes.HW.CONNECT);
     onBack();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
-  }, [onBack, navigate]);
+    trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+  }, [onBack, navigate, trackEvent]);
 
   const createNewAccount = useCallback(async () => {
     const { KeyringController, PreferencesController } = Engine.context;
@@ -41,7 +42,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       const { addedAccountAddress } = await KeyringController.addNewAccount();
       PreferencesController.setSelectedAddress(addedAccountAddress);
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
+      trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
     } catch (e: any) {
       Logger.error(e, 'error while trying to add a new account');
     } finally {
@@ -49,7 +50,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       setIsLoading(false);
     }
-  }, [onBack, setIsLoading]);
+  }, [onBack, setIsLoading, trackEvent]);
 
   return (
     <Fragment>

@@ -13,9 +13,10 @@ import AccountInfoCard from '../AccountInfoCard';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../../component-library/components/Texts/Text';
 import NotificationManager from '../../../core/NotificationManager';
-
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import {
+  withMetricsAwareness,
+  MetaMetricsEvents,
+} from '../../hooks/useMetrics';
 
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
@@ -86,6 +87,10 @@ class AccountApproval extends PureComponent {
      * A string representing the network chainId
      */
     chainId: PropTypes.string,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -126,18 +131,16 @@ class AccountApproval extends PureComponent {
   };
 
   componentDidMount = () => {
-    const { currentPageInformation } = this.props;
+    const { currentPageInformation, metrics } = this.props;
 
     const prefixedUrl = prefixUrlWithProtocol(currentPageInformation?.url);
     const { hostname } = new URL(prefixedUrl);
     this.checkUrlFlaggedAsPhishing(hostname);
 
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.CONNECT_REQUEST_STARTED,
-        this.getAnalyticsParams(),
-      );
-    });
+    metrics.trackEvent(
+      MetaMetricsEvents.CONNECT_REQUEST_STARTED,
+      this.getAnalyticsParams(),
+    );
   };
 
   showWalletConnectNotification = (confirmation = false) => {
@@ -160,6 +163,7 @@ class AccountApproval extends PureComponent {
    * Calls onConfirm callback and analytics to track connect confirmed event
    */
   onConfirm = () => {
+    const { metrics, onConfirm } = this.props;
     if (
       this.state.otp &&
       this.state.otpChoice !== this.props.currentPageInformation.otps[0]
@@ -168,16 +172,19 @@ class AccountApproval extends PureComponent {
         this.props.currentPageInformation.channelId,
         true,
       );
-      // onConfirm will close current window by rejecting current approvalRequest.
-      this.props.onCancel();
 
-      AnalyticsV2.trackEvent(
+      const { onCancel, navigation } = this.props;
+
+      // onConfirm will close current window by rejecting current approvalRequest.
+      onCancel();
+
+      metrics.trackEvent(
         MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
         this.getAnalyticsParams(),
       );
 
       // Navigate to feedback modal
-      const { navigation } = this.props;
+
       navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SDK_FEEDBACK,
       });
@@ -191,8 +198,8 @@ class AccountApproval extends PureComponent {
       });
     }
 
-    this.props.onConfirm();
-    AnalyticsV2.trackEvent(
+    onConfirm();
+    metrics.trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
       this.getAnalyticsParams(),
     );
@@ -203,19 +210,20 @@ class AccountApproval extends PureComponent {
    * Calls onConfirm callback and analytics to track connect canceled event
    */
   onCancel = () => {
-    AnalyticsV2.trackEvent(
+    const { metrics, currentPageInformation, onCancel } = this.props;
+    metrics.trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
 
-    if (this.props.currentPageInformation.channelId) {
+    if (currentPageInformation.channelId) {
       SDKConnect.getInstance().removeChannel(
-        this.props.currentPageInformation.channelId,
+        currentPageInformation.channelId,
         true,
       );
     }
 
-    this.props.onCancel();
+    onCancel();
     this.showWalletConnectNotification();
   };
 
@@ -380,4 +388,4 @@ const mapStateToProps = (state) => ({
 
 AccountApproval.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(AccountApproval);
+export default connect(mapStateToProps)(withMetricsAwareness(AccountApproval));

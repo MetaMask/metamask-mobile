@@ -23,11 +23,11 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import getAccountNameWithENS from '../../../../util/accounts';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderConfig } from '../../../../selectors/networkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
+import { useMetrics } from '../../../hooks/useMetrics';
 
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
@@ -47,6 +47,7 @@ const AccountPermissionsConnected = ({
   accountAvatarType,
   urlWithProtocol,
 }: AccountPermissionsConnectedProps) => {
+  const { trackEvent } = useMetrics();
   const { navigate } = useNavigation();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
@@ -111,10 +112,10 @@ const AccountPermissionsConnected = ({
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
+    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
       chain_id: providerConfig.chainId,
     });
-  }, [providerConfig.chainId, navigate]);
+  }, [providerConfig.chainId, navigate, trackEvent]);
 
   const renderSheetAction = useCallback(
     () => (

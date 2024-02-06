@@ -29,7 +29,6 @@ import {
   calculateERC20EIP1559,
 } from '../../../../util/transactions';
 import { sumHexWEIs } from '../../../../util/conversions';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   TESTNET_FAUCETS,
@@ -60,6 +59,7 @@ import { createBrowserNavDetails } from '../../../Views/Browser';
 import { isNetworkRampNativeTokenSupported } from '../../Ramp/utils';
 import { getRampNetworks } from '../../../../reducers/fiatOrders';
 import Routes from '../../../../constants/navigation/Routes';
+import withMetricsAwareness from '../../../hooks/useMetrics/withMetricsAwareness';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -231,6 +231,10 @@ class TransactionReviewInformation extends PureComponent {
      * Boolean that indicates if the network supports buy
      */
     isNativeTokenBuySupported: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -289,7 +293,7 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   buyEth = () => {
-    const { navigation } = this.props;
+    const { navigation, metrics } = this.props;
     /* this is kinda weird, we have to reject the transaction to collapse the modal */
     this.onCancelPress();
     try {
@@ -297,9 +301,7 @@ class TransactionReviewInformation extends PureComponent {
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
-    });
+    metrics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
   };
 
   edit = () => {
@@ -754,4 +756,4 @@ TransactionReviewInformation.contextType = ThemeContext;
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(TransactionReviewInformation);
+)(withMetricsAwareness(TransactionReviewInformation));

@@ -22,8 +22,7 @@ import { isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import FadeAnimationView from '../FadeAnimationView';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
@@ -184,6 +183,7 @@ const EditGasFee1559 = ({
   analyticsParams,
   view,
 }) => {
+  const { trackEvent } = useMetrics();
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(!selected);
   const [maxPriorityFeeError, setMaxPriorityFeeError] = useState(null);
@@ -216,26 +216,23 @@ const EditGasFee1559 = ({
 
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
     }
     setShowAdvancedOptions((showAdvancedOptions) => !showAdvancedOptions);
-  }, [getAnalyticsParams, showAdvancedOptions]);
+  }, [getAnalyticsParams, showAdvancedOptions, trackEvent]);
 
   const toggleLearnMoreModal = useCallback(() => {
     setShowLearnMoreModal((showLearnMoreModal) => !showLearnMoreModal);
   }, []);
 
   const save = useCallback(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.GAS_FEE_CHANGED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
 
     onSave(selectedOption);
-  }, [getAnalyticsParams, onSave, selectedOption]);
+  }, [getAnalyticsParams, onSave, selectedOption, trackEvent]);
 
   const changeGas = useCallback(
     (gas, selectedOption) => {

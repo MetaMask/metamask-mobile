@@ -32,10 +32,9 @@ import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
 
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useMetrics, MetaMetricsEvents } from '../../hooks/useMetrics';
+
 import { Authentication } from '../../../core';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
-import Logger from '../../../util/Logger';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 /**
@@ -43,6 +42,7 @@ import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboard
  * the backup seed phrase flow
  */
 const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
+  const { trackEvent } = useMetrics();
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
 
   const [password, setPassword] = useState(undefined);
@@ -68,12 +68,6 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       password,
     );
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
-  };
-
-  const track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('ManualBackupStep1', `Failed to track ${event}`);
-    });
   };
 
   useEffect(() => {
@@ -115,7 +109,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
-    track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
+    trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
   };
 
   const tryUnlockWithPassword = async (password) => {

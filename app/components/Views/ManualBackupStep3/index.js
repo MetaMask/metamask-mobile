@@ -27,11 +27,12 @@ import {
   ONBOARDING_WIZARD,
   SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import {
+  withMetricsAwareness,
+  MetaMetricsEvents,
+} from '../../hooks/useMetrics';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
-import Logger from '../../../util/Logger';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 const createStyles = (colors) =>
@@ -116,12 +117,10 @@ class ManualBackupStep3 extends PureComponent {
      * Action to set onboarding wizard step
      */
     setOnboardingWizardStep: PropTypes.func,
-  };
-
-  track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('ManualBackupStep3', `Failed to track ${event}`);
-    });
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   updateNavBar = () => {
@@ -145,7 +144,8 @@ class ManualBackupStep3 extends PureComponent {
     this.setState({
       hintText: manualBackup,
     });
-    this.track(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
+    const { metrics } = this.props;
+    metrics.trackEvent(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
 
@@ -191,7 +191,8 @@ class ManualBackupStep3 extends PureComponent {
       SEED_PHRASE_HINTS,
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
-    this.track(MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED);
+    const { metrics } = this.props;
+    metrics.trackEvent(MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED);
   };
 
   done = async () => {
@@ -282,4 +283,7 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(null, mapDispatchToProps)(ManualBackupStep3);
+export default connect(
+  null,
+  mapDispatchToProps,
+)(withMetricsAwareness(ManualBackupStep3));

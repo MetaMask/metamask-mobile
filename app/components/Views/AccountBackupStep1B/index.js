@@ -21,11 +21,9 @@ import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useMetrics, MetaMetricsEvents } from '../../hooks/useMetrics';
 
 import { useTheme } from '../../../util/theme';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
-import Logger from '../../../util/Logger';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
@@ -200,17 +198,12 @@ const createStyles = (colors) =>
  * the backup seed phrase flow
  */
 const AccountBackupStep1B = (props) => {
+  const { trackEvent } = useMetrics();
   const { navigation, route } = props;
   const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
   const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
-  const track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('AccountBackupStep1B', `Failed to track ${event}`);
-    });
-  };
 
   useEffect(() => {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
@@ -218,7 +211,7 @@ const AccountBackupStep1B = (props) => {
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
-    track(MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED);
+    trackEvent(MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED);
   };
 
   const learnMore = () => {

@@ -4,11 +4,11 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import { setAutomaticSecurityChecks } from '../../../../../actions/security';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
-
+import { useMetrics } from '../../../../hooks/useMetrics';
 import { Platform } from 'react-native';
 
 const AutomaticSecurityChecks = () => {
+  const { trackEvent } = useMetrics();
   const dispatch = useDispatch();
   const automaticSecurityChecksState = useSelector(
     (state: any) => state.security.automaticSecurityChecksEnabled,
@@ -16,7 +16,7 @@ const AutomaticSecurityChecks = () => {
 
   const toggleAutomaticSecurityChecks = useCallback(
     (value: boolean) => {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         value
           ? MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS
           : MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS,
@@ -24,7 +24,7 @@ const AutomaticSecurityChecks = () => {
       );
       dispatch(setAutomaticSecurityChecks(value));
     },
-    [dispatch],
+    [dispatch, trackEvent],
   );
   return (
     <SecurityOptionToggle

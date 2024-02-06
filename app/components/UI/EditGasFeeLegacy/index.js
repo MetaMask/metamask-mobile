@@ -22,8 +22,7 @@ import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/device';
 import { isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
@@ -139,6 +138,7 @@ const EditGasFeeLegacy = ({
   analyticsParams,
   view,
 }) => {
+  const { trackEvent } = useMetrics();
   const onlyAdvanced = gasEstimateType !== GAS_ESTIMATE_TYPES.LEGACY;
   const [showRangeInfoModal, setShowRangeInfoModal] = useState(false);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(
@@ -165,22 +165,19 @@ const EditGasFeeLegacy = ({
 
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
     }
     setShowAdvancedOptions((showAdvancedOptions) => !showAdvancedOptions);
-  }, [getAnalyticsParams, showAdvancedOptions]);
+  }, [getAnalyticsParams, showAdvancedOptions, trackEvent]);
 
   const save = useCallback(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.GAS_FEE_CHANGED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
 
     onSave(selectedOption);
-  }, [getAnalyticsParams, onSave, selectedOption]);
+  }, [getAnalyticsParams, onSave, selectedOption, trackEvent]);
 
   const changeGas = useCallback(
     (gas, selectedOption) => {

@@ -20,8 +20,7 @@ import Icon, {
   IconName,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import BottomSheet, {
@@ -40,6 +39,7 @@ enum Status {
 }
 
 const BlockaidIndicator = ({ navigation }: Props) => {
+  const { trackEvent } = useMetrics();
   const dispatch = useDispatch();
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
@@ -62,7 +62,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
         setFailureCount(failureCount + 1);
       }
       if (ppomInitialisationStatus === PPOMInitialisationStatus.SUCCESS) {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
           {
             security_alerts_enabled: true,
@@ -71,7 +71,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ppomInitialisationStatus]);
+  }, [ppomInitialisationStatus, trackEvent]);
 
   const goBackToExperimentalScreen = () => {
     dispatch(UpdatePPOMInitializationStatus());
