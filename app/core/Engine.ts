@@ -549,7 +549,6 @@ class Engine {
         allowedActions: ['KeyringController:getState'],
       }),
       state: initialKeyringState || initialState.KeyringController,
-      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
       keyringBuilders: [qrKeyringBuilder],
     });
 

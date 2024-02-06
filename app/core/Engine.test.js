@@ -63,14 +63,6 @@ describe('Engine', () => {
           },
         },
       },
-      KeyringController: {
-        ...backgroundState.KeyringController,
-        vault: {
-          cipher: 'mock-cipher',
-          iv: 'mock-iv',
-          lib: 'original',
-        },
-      },
     };
 
     expect(backgroundState).toStrictEqual(initialState);
