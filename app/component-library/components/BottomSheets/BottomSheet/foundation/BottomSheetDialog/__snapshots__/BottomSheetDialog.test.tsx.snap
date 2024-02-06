@@ -2,13 +2,19 @@
 
 exports[`BottomSheetDialog should render correctly 1`] = `
 <View
+  onLayout={[Function]}
   style={
-    Object {
-      "bottom": 0,
-      "left": 0,
-      "position": "absolute",
-      "right": 0,
-    }
+    Array [
+      Object {
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+      },
+      Object {
+        "paddingBottom": 0,
+      },
+    ]
   }
 >
   <View
