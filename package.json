@@ -19,7 +19,7 @@
     "setup": "yarn clean && yarn pod:install && yarn allow-scripts && ./scripts/build_ppom.sh && ./scripts/postinstall.sh",
     "setup:node": "yarn clean:node && yarn allow-scripts && yarn patch-package",
     "setup:e2e": "cd wdio && yarn install",
-    "start:ios": "BLOCKAID_FILE_CDN=static.metafi-dev.codefi.network/api/v1/confirmations/ppom && ./scripts/build.sh ios debug",
+    "start:ios": "./scripts/build.sh ios debug",
     "start:ios:qa": "./scripts/build.sh ios qaDebug",
     "start:ios:e2e": "./scripts/build.sh ios debugE2E",
     "start:ios:e2e:qa": "./scripts/build.sh ios qadebugE2E",
