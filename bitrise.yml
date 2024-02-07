@@ -181,10 +181,20 @@ workflows:
                 #!/usr/bin/env bash
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
+      - restore-cache@2:
+          title: Restore Yarn cache directory
+          inputs:
+            - key: '{{ .OS }}-{{ .Arch }}-yarn-cache'
       - yarn@0:
           inputs:
             - command: setup
           title: Yarn Setup
+      - save-cache@1:
+          title: Save Yarn cache directory
+          inputs:
+            - key: '{{ .OS }}-{{ .Arch }}-yarn-cache'
+            - paths: |-
+                $YARN_CACHE_DIR
       # Manual cache path needed here because the `yarn` step only caches for the `install` command
       - save-cache@1:
           title: Save cache dependencies
@@ -192,7 +202,6 @@ workflows:
             - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
             - paths: |-
                 node_modules
-                $YARN_CACHE_DIR
   prep_environment:
     steps:
       - script@1:
