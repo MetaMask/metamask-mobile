@@ -21,6 +21,7 @@ import {
 } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK, query } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { ethers } from 'ethers';
 
 import {
   addHexPrefix,
@@ -95,6 +96,7 @@ import { selectContractBalances } from '../../../selectors/tokenBalancesControll
 import {
   getIsSmartTransaction,
   selectSelectedAddress,
+  selectSmartTransactionsOptInStatus,
 } from '../../../selectors/preferencesController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
 import Routes from '../../../constants/navigation/Routes';
@@ -103,6 +105,7 @@ import {
   SWAP_GAS_FEE,
 } from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
 import { signAndSendSmartTransaction } from './utils/smart-tx';
+import { TransactionType } from '@metamask/transaction-controller/dist/types';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -417,6 +420,10 @@ function SwapsQuotesView({
 
   /* State */
   const isSmartTransaction = useSelector(getIsSmartTransaction);
+  const smartTransactionsOptInStatus = useSelector(
+    selectSmartTransactionsOptInStatus,
+  );
+
   const isMainnet = isMainnetByChainId(chainId);
   const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
   const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
@@ -954,17 +961,66 @@ function SwapsQuotesView({
 
           Logger.log('STX QuotesView uuid', uuid);
 
+          const additionalTrackingParams = {
+            reg_tx_fee_in_usd: undefined,
+            reg_tx_fee_in_eth: undefined,
+            reg_tx_max_fee_in_usd: undefined,
+            reg_tx_max_fee_in_eth: undefined,
+            stx_fee_in_usd: undefined,
+            stx_fee_in_eth: undefined,
+            stx_max_fee_in_usd: undefined,
+            stx_max_fee_in_eth: undefined,
+          };
+
+          const topQuote = allQuotes[topAggId];
+
+          Logger.log('STX QuotesView sourceToken', sourceToken);
+          Logger.log('STX QuotesView destinationToken', destinationToken);
+          Logger.log('STX QuotesView selectedQuote', selectedQuote);
+          Logger.log('STX QuotesView selectedQuoteValue', selectedQuoteValue);
+
+          const swapMetaData = {
+            token_from: sourceToken.symbol,
+            token_from_amount: ethers.utils.formatUnits(
+              selectedQuote.sourceAmount,
+              sourceToken.decimals,
+            ),
+            token_to: destinationToken.symbol,
+            token_to_amount: ethers.utils.formatUnits(
+              selectedQuote.destinationAmount,
+              destinationToken.decimals,
+            ),
+            slippage,
+            custom_slippage: slippage !== 2,
+            best_quote_source: topQuote?.aggregator,
+            available_quotes: Object.keys(allQuotes).length,
+            other_quote_selected:
+              selectedQuote.aggregator !== topQuote?.aggregator,
+            other_quote_selected_source:
+              selectedQuote.aggregator === topQuote?.aggregator
+                ? ''
+                : selectedQuote.aggregator,
+            average_savings: selectedQuote.savings?.total,
+            performance_savings: selectedQuote.savings?.performance,
+            fee_savings: selectedQuote.savings?.fee,
+            median_metamask_fee: selectedQuote.savings?.medianMetaMaskFee,
+            stx_enabled: isSmartTransaction,
+            current_stx_enabled: isSmartTransaction, // TODO, its not the same, involves checking if there's an error
+            stx_user_opt_in: smartTransactionsOptInStatus,
+            ...additionalTrackingParams,
+          };
+
+          Logger.log('STX QuotesView swapMetaData', swapMetaData);
+
           await SmartTransactionsController.updateSmartTransaction(uuid, {
             origin: ORIGIN_METAMASK,
-            // TODO tx-controller is missing TransactionType export
-            // type: TransactionType.swap,
+            type: TransactionType.swap,
             destinationTokenAddress,
             destinationTokenDecimals: destinationToken.decimals,
             destinationTokenSymbol: destinationToken.symbol,
             sourceTokenSymbol: sourceToken.symbol,
             swapMetaData,
-            swapTokenValue,
-            type: 'swap',
+            swapTokenValue: selectedQuoteValue.ethValueOfTokens, // in eth
           });
         } else {
           const { transactionMeta } =
@@ -1008,6 +1064,11 @@ function SwapsQuotesView({
       resetTransaction,
       destinationTokenAddress,
       isSmartTransaction,
+      allQuotes,
+      slippage,
+      topAggId,
+      selectedQuoteValue,
+      smartTransactionsOptInStatus,
     ],
   );
 
