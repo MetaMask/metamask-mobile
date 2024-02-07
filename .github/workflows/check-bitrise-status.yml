@@ -12,7 +12,7 @@ env:
 jobs:
   check-bitrise-e2e-smoke:
     runs-on: ubuntu-latest
-    if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
+    # if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
     permissions:
       pull-requests: write
       contents: write
