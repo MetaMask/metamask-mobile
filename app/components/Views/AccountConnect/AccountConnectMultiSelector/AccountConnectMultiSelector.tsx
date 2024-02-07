@@ -1,43 +1,40 @@
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { View, Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 
 // External dependencies.
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../locales/i18n';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import Text, {
-  TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
+import { ACCOUNT_APPROVAL_SELECT_ALL_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/AccountApprovalModal.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import AccountSelectorList from '../../../UI/AccountSelectorList';
+import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
+import TagUrl from '../../../../component-library/components/Tags/TagUrl';
+import Text, {
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../component-library/hooks';
 import { USER_INTENT } from '../../../../constants/permissions';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ACCOUNT_APPROVAL_SELECT_ALL_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/AccountApprovalModal.testIds';
+import AccountSelectorList from '../../../UI/AccountSelectorList';
 
 // Internal dependencies.
+import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
+import { ACCOUNT_LIST_ADD_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import AddAccountActions from '../../AddAccountActions';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {
   AccountConnectMultiSelectorProps,
   AccountConnectMultiSelectorScreens,
 } from './AccountConnectMultiSelector.types';
-import AddAccountActions from '../../AddAccountActions';
-import { ACCOUNT_LIST_ADD_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
-import Checkbox from '../../../../../app/component-library/components/Checkbox';
 
 const AccountConnectMultiSelector = ({
   accounts,
   ensByAccountAddress,
   selectedAddresses,
   onSelectAddress,
-  noPersist,
-  setNoPersist,
   isLoading,
   onUserAction,
   favicon,
@@ -184,14 +181,6 @@ const AccountConnectMultiSelector = ({
         />
         <View style={styles.sdkInfoContainer}>
           <View style={styles.sdkInfoDivier} />
-          {connection?.initialConnection && (
-            <Checkbox
-              label={strings('accountApproval.donot_rememberme')}
-              isChecked={noPersist}
-              onPress={() => setNoPersist?.(!noPersist)}
-              style={styles.dontRememberCheckbox}
-            />
-          )}
           {connection?.originatorInfo?.apiVersion && (
             <Text color={TextColor.Muted}>
               SDK {connection?.originatorInfo?.platform} v
@@ -232,12 +221,9 @@ const AccountConnectMultiSelector = ({
       styles.description,
       urlWithProtocol,
       connection,
-      noPersist,
-      setNoPersist,
       styles.sdkInfoContainer,
       styles.container,
       styles.sdkInfoDivier,
-      styles.dontRememberCheckbox,
       onBack,
     ],
   );

@@ -22,8 +22,6 @@ export interface AccountConnectMultiSelectorProps extends UseAccounts {
   selectedAddresses: string[];
   onSelectAddress: (addresses: string[]) => void;
   isLoading?: boolean;
-  noPersist?: boolean;
-  setNoPersist?: (noPersist: boolean) => void;
   onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
   urlWithProtocol: string;
   favicon: ImageSourcePropType;

@@ -14,8 +14,6 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 export interface AccountConnectSingleProps {
   defaultSelectedAccount: Account | undefined;
   isLoading?: boolean;
-  noPersist?: boolean;
-  setNoPersist?: (noPersist: boolean) => void;
   onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
   onSetScreen: (screen: AccountConnectScreens) => void;
   onSetSelectedAddresses: (addresses: string[]) => void;

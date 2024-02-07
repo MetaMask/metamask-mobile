@@ -34,7 +34,6 @@ import { USER_INTENT } from '../../../../constants/permissions';
 import styleSheet from './AccountConnectSingle.styles';
 import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 
-import Checkbox from '../../../../../app/component-library/components/Checkbox';
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
@@ -44,8 +43,6 @@ const AccountConnectSingle = ({
   onSetScreen,
   onSetSelectedAddresses,
   onUserAction,
-  noPersist,
-  setNoPersist,
   isLoading,
   favicon,
   secureIcon,
@@ -80,14 +77,6 @@ const AccountConnectSingle = ({
         />
         <View style={styles.sdkInfoContainer}>
           <View style={styles.sdkInfoDivier} />
-          {connection?.initialConnection && (
-            <Checkbox
-              label={strings('accountApproval.donot_rememberme')}
-              isChecked={noPersist}
-              onPress={() => setNoPersist?.(!noPersist)}
-              style={styles.dontRememberCheckbox}
-            />
-          )}
           {connection?.originatorInfo?.apiVersion && (
             <Text color={TextColor.Muted}>
               SDK {connection?.originatorInfo?.platform} v
@@ -103,8 +92,6 @@ const AccountConnectSingle = ({
       isLoading,
       styles,
       defaultSelectedAccount?.address,
-      noPersist,
-      setNoPersist,
       connection,
     ],
   );

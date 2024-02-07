@@ -66,7 +66,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const navigation = useNavigation();
   const { trackEvent } = useMetrics();
   const selectedWalletAddress = useSelector(selectSelectedAddress);
-  const [noPersist, setNoPersist] = useState(false);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
     selectedWalletAddress,
   ]);
@@ -190,12 +189,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       ensByAccountAddress,
     });
 
-    if (noPersist) {
-      SDKConnect.getInstance().invalidateChannel({
-        channelId,
-      });
-    }
-
     try {
       setIsLoading(true);
       await Engine.context.PermissionController.acceptPermissionsRequest(
@@ -243,8 +236,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     accounts,
     ensByAccountAddress,
     hostname,
-    channelId,
-    noPersist,
     accountAvatarType,
     Engine.context.PermissionController,
     toastRef,
@@ -366,8 +357,6 @@ const AccountConnect = (props: AccountConnectProps) => {
         onSetSelectedAddresses={setSelectedAddresses}
         connection={sdkConnection}
         onSetScreen={setScreen}
-        noPersist={noPersist}
-        setNoPersist={setNoPersist}
         onUserAction={setUserIntent}
         defaultSelectedAccount={defaultSelectedAccount}
         isLoading={isLoading}
@@ -381,8 +370,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     ensByAccountAddress,
     selectedAddresses,
     isLoading,
-    noPersist,
-    setNoPersist,
     setScreen,
     setSelectedAddresses,
     faviconSource,
@@ -422,8 +409,6 @@ const AccountConnect = (props: AccountConnectProps) => {
         ensByAccountAddress={ensByAccountAddress}
         selectedAddresses={selectedAddresses}
         onSelectAddress={setSelectedAddresses}
-        noPersist={noPersist}
-        setNoPersist={setNoPersist}
         isLoading={isLoading}
         favicon={faviconSource}
         secureIcon={secureIcon}
@@ -441,8 +426,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       isLoading,
       setUserIntent,
       faviconSource,
-      noPersist,
-      setNoPersist,
       urlWithProtocol,
       secureIcon,
       sdkConnection,
