@@ -282,7 +282,7 @@ export function decodeIncomingTransfer(args) {
     selectedAddress,
   } = args;
 
-  const decimalAmount = convertHexToDecimal(value);
+  const decimalAmount = convertHexToDecimal(value).toString();
   const amount = toBN(decimalAmount);
   const token = { symbol, decimals, address: contractAddress };
 
