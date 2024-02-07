@@ -42,7 +42,7 @@ const createStyles = (
     container: {
       paddingHorizontal: 16,
       gap: 16,
-      marginBottom: 16,
+      paddingBottom: 16,
     },
     disconnectBtn: {
       width: '100%',
@@ -61,6 +61,7 @@ const createStyles = (
     },
     actionsContainer: {
       paddingHorizontal: 16,
+      paddingBottom: 16,
     },
     btnAction: {
       flex: 1,

@@ -224,18 +224,10 @@ export class BackgroundBridge extends EventEmitter {
         DevLogger.log(
           `notifySelectedAddressChanged: ${JSON.stringify(approvedAccounts)}`,
         );
-
-        // Only emit the event if the selected address is approved
-        if (
-          !approvedAccounts
-            .map((acc) => acc.toLowerCase())
-            .includes(selectedAddress.toLowerCase())
-        ) {
-          this.sendNotification({
-            method: NOTIFICATION_NAMES.accountsChanged,
-            params: [selectedAddress],
-          });
-        }
+        this.sendNotification({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: approvedAccounts,
+        });
       })
       .catch((e) => {
         DevLogger.log(`notifySelectedAddressChanged: ${e}`);

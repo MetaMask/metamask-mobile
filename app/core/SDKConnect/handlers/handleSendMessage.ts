@@ -90,8 +90,8 @@ export const handleSendMessage = async ({
       `[handleSendMessage] method=${method} trigger=${connection.trigger} origin=${connection.origin} id=${msgId} goBack()`,
     );
 
-    // Trigger should be removed changed after redirect so we don't redirect the dapp next time and go back to nothing.
-    connection.trigger = 'resume';
+    // Trigger should be removed after redirect so we don't redirect the dapp next time and go back to nothing.
+    // connection.trigger = 'resume';
 
     // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
     if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
