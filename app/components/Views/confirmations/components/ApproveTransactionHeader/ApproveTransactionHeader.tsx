@@ -9,9 +9,9 @@ import AccountBalance from '../../../../../component-library/components-temp/Acc
 import { BadgeVariant } from '../../../../../component-library/components/Badges/Badge';
 import TagUrl from '../../../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectProviderConfig } from '../../../../../selectors/networkController';
 import { selectIdentities } from '../../../../../selectors/preferencesController';
+import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import {
   getLabelTextByAddress,
   renderAccountName,
@@ -49,7 +49,7 @@ const ApproveTransactionHeader = ({
   const { styles } = useStyles(stylesheet, {});
   const { addressBalance } = useAddressBalance(asset, from, dontWatchAsset);
 
-  const accounts = useSelector(selectAccounts);
+  const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const identities = useSelector(selectIdentities);
   const activeAddress = toChecksumAddress(from);
@@ -83,7 +83,7 @@ const ApproveTransactionHeader = ({
     setIsOriginMMSDKRemoteConn(
       origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN),
     );
-  }, [accounts, identities, activeAddress, origin]);
+  }, [accountsByChainId, identities, activeAddress, origin]);
 
   const networkImage = getNetworkImageSource({
     networkType: providerConfig.type,

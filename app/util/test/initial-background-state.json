@@ -12,7 +12,10 @@
     "logs": {}
   },
   "AccountTrackerController": {
-    "accounts": {}
+    "accounts": {},
+    "accountsByChainId": {
+      "1": {}
+    }
   },
   "AddressBookController": {
     "addressBook": {}

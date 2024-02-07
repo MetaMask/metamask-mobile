@@ -1,7 +1,7 @@
 import { hexToBN } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 import { NATIVE_ADDRESS } from '../../../../constants/on-ramp';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -9,11 +9,14 @@ import {
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { selectChainId } from '../../../../selectors/networkController';
+
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  toHexadecimal,
   weiToFiat,
 } from '../../../../util/number';
 
@@ -24,7 +27,8 @@ interface Asset {
 
 export default function useBalance(asset?: Asset) {
   const assetAddress = safeToChecksumAddress(asset?.address);
-  const accounts = useSelector(selectAccounts);
+  const accountsByChainId = useSelector(selectAccountsByChainId);
+  const chainId = useSelector(selectChainId);
   const selectedAddress = useSelector(selectSelectedAddress);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -37,8 +41,13 @@ export default function useBalance(asset?: Asset) {
 
   let balance, balanceFiat, balanceBN;
   if (assetAddress === NATIVE_ADDRESS) {
-    balance = renderFromWei(accounts[selectedAddress]?.balance);
-    balanceBN = hexToBN(accounts[selectedAddress].balance);
+    balance = renderFromWei(
+      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+    );
+
+    balanceBN = hexToBN(
+      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+    );
     balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
   } else {
     const exchangeRate =

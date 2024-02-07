@@ -14,7 +14,12 @@ import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
+import {
+  renderFromWei,
+  weiToFiat,
+  hexToBN,
+  toHexadecimal,
+} from '../../../util/number';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -43,7 +48,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const createStyles = ({ colors, typography }: Theme) =>
@@ -89,10 +94,12 @@ const Wallet = ({ navigation }: any) => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const { colors } = theme;
+
   /**
-   * Map of accounts to information objects including balances
+   * Map of accountsByChain to information objects including balances
    */
-  const accounts = useSelector(selectAccounts);
+  const accountsByChainId = useSelector(selectAccountsByChainId);
+
   /**
    * ETH to current currency conversion rate
    */
@@ -189,7 +196,7 @@ const Wallet = ({ navigation }: any) => {
       });
     },
     /* eslint-disable-next-line */
-    [navigation],
+    [navigation, providerConfig.chainId],
   );
 
   useEffect(() => {
@@ -237,8 +244,15 @@ const Wallet = ({ navigation }: any) => {
   const renderContent = useCallback(() => {
     let balance: any = 0;
     let assets = tokens;
-    if (accounts[selectedAddress]) {
-      balance = renderFromWei(accounts[selectedAddress].balance);
+
+    if (
+      accountsByChainId[toHexadecimal(providerConfig.chainId)][selectedAddress]
+    ) {
+      balance = renderFromWei(
+        accountsByChainId[toHexadecimal(providerConfig.chainId)][
+          selectedAddress
+        ].balance,
+      );
 
       assets = [
         {
@@ -248,7 +262,11 @@ const Wallet = ({ navigation }: any) => {
           isETH: true,
           balance,
           balanceFiat: weiToFiat(
-            hexToBN(accounts[selectedAddress].balance) as any,
+            hexToBN(
+              accountsByChainId[toHexadecimal(providerConfig.chainId)][
+                selectedAddress
+              ].balance,
+            ) as any,
             conversionRate,
             currentCurrency,
           ),
@@ -292,7 +310,6 @@ const Wallet = ({ navigation }: any) => {
     );
   }, [
     renderTabBar,
-    accounts,
     conversionRate,
     currentCurrency,
     navigation,
@@ -301,6 +318,8 @@ const Wallet = ({ navigation }: any) => {
     ticker,
     tokens,
     styles,
+    providerConfig.chainId,
+    accountsByChainId,
   ]);
   const renderLoader = useCallback(
     () => (
