@@ -39,6 +39,7 @@ async function main(): Promise<void> {
       branch: process.env.GITHUB_HEAD_REF,
       pipeline_id: e2ePipeline,
       commit_message: `Triggered by (${workflowName}) workflow in ${pullRequestLink}`,
+      pull_request_id: pullRequestNumber
     },
     triggered_by: workflowName,
   };
