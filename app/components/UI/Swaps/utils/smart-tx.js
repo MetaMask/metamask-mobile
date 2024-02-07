@@ -80,12 +80,15 @@ export const signAndSendSmartTransaction = async (
   Logger.log(
     'STX signAndSendSmartTransaction SmartTransactionsController.submitSignedTransactions start',
   );
-  await SmartTransactionsController.submitSignedTransactions({
+  const res = await SmartTransactionsController.submitSignedTransactions({
     signedTransactions,
     signedCanceledTransactions,
     txParams: unsignedTransaction,
   });
   Logger.log(
     'STX signAndSendSmartTransaction SmartTransactionsController.submitSignedTransactions end',
+    res.uuid,
   );
+
+  return res.uuid;
 };
