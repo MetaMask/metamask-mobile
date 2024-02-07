@@ -30,7 +30,7 @@ export default class AccountListView {
   }
   static async swipeToDimssAccountsModal() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'slow', 0.6);
+      await TestHelpers.swipe(ACCOUNT_LIST_ID, 'down', 'fast', 0.6);
     } else {
       await TestHelpers.swipeByText('Accounts', 'down', 'fast', 0.6);
     }
