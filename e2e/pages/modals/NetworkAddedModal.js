@@ -22,4 +22,16 @@ export default class NetworkAddedModal {
       NetworkAddedModalSelectorsText.SWITCH_NETWORK,
     );
   }
+
+  static async tapSwitchToNetworkButton() {
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.waitAndTapByLabel(
+        NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON,
+      );
+    } else {
+      await TestHelpers.tap(
+        NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON,
+      );
+    }
+  }
 }
