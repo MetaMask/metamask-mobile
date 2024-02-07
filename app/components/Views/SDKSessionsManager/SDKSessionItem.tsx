@@ -1,7 +1,7 @@
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, TextStyle, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AvatarSize } from '../../../../app/component-library/components/Avatars/Avatar';
@@ -31,6 +31,7 @@ interface SDKSessionViewProps {
     id: ConnectionProps['id'];
     originatorInfo?: ConnectionProps['originatorInfo'];
   };
+  trigger?: number; // used to force refresh fetching permitted accounts
   connected?: boolean;
 }
 
@@ -85,6 +86,7 @@ const createStyles = (
 export const SDKSessionItem = ({
   connection,
   connected = false,
+  trigger,
 }: SDKSessionViewProps) => {
   const safeAreaInsets = useSafeAreaInsets();
   const { colors, typography } = useTheme();
@@ -96,6 +98,9 @@ export const SDKSessionItem = ({
     string[]
   >([]);
 
+  DevLogger.log(
+    `Rendering SDKSessionItem connected=${connected} ${connection.id}`,
+  );
   useEffect(() => {
     let _sessionName = connection.id;
 
@@ -126,7 +131,23 @@ export const SDKSessionItem = ({
     });
 
     setSessionName(_sessionName);
-  }, [connection.originatorInfo, connection.id]);
+  }, [connection, trigger]);
+
+  const onManage = useCallback(() => {
+    DevLogger.log(`Manage connection: ${connection.id}`, icon);
+    const params = {
+      channelId: connection.id,
+      icon,
+      urlOrTitle: sessionName,
+      version: connection.originatorInfo?.apiVersion,
+      platform: connection.originatorInfo?.platform,
+    };
+
+    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SDK_MANAGE_CONNECTIONS,
+      params,
+    });
+  }, [connection, navigate, sessionName, icon]);
 
   return (
     <View style={styles.container}>
@@ -150,8 +171,9 @@ export const SDKSessionItem = ({
       <View style={styles.labelContainer}>
         <Text variant={TextVariant.BodyLGMedium}>{sessionName}</Text>
         <Text variant={TextVariant.BodyMD}>
-          {permittedAccountsAddresses.length} account
-          {permittedAccountsAddresses.length > 1 ? 's' : ''} connected
+          {strings('sdk_session_item.connected_accounts', {
+            accountsLength: permittedAccountsAddresses.length,
+          })}
         </Text>
       </View>
       <Button
@@ -159,20 +181,7 @@ export const SDKSessionItem = ({
         variant={ButtonVariants.Secondary}
         style={styles.selfCenter}
         size={ButtonSize.Sm}
-        onPress={() => {
-          // onManage(connection.id)
-          DevLogger.log(`Manage connection: ${connection.id}`, icon);
-          const params = {
-            channelId: connection.id,
-            icon,
-            urlOrTitle: sessionName,
-          };
-
-          navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.SDK_MANAGE_CONNECTIONS,
-            params,
-          });
-        }}
+        onPress={() => onManage()}
       />
     </View>
   );

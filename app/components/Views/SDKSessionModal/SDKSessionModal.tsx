@@ -28,6 +28,7 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../util/theme';
@@ -50,6 +51,14 @@ const createStyles = (
     accountCellContainer: {
       borderWidth: 0,
     },
+    sdkInfoContainer: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      paddingHorizontal: 16,
+      marginBottom: -16,
+    },
     actionsContainer: {
       paddingHorizontal: 16,
     },
@@ -65,13 +74,15 @@ interface SDKSEssionMoodalProps {
       channelId?: string;
       icon?: string;
       urlOrTitle: string;
+      version?: string;
+      platform?: string;
     };
   };
 }
 
 const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
   const { params } = route;
-  const { channelId, icon, urlOrTitle } = params;
+  const { channelId, icon, urlOrTitle, version, platform } = params;
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const safeAreaInsets = useSafeAreaInsets();
@@ -121,6 +132,13 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
           <Text variant={TextVariant.HeadingMD}>Manage Connections</Text>
         </BottomSheetHeader>
         <TagUrl imageSource={{ uri: icon }} label={urlOrTitle} />
+        {version && platform && (
+          <View style={styles.sdkInfoContainer}>
+            <Text color={TextColor.Muted}>
+              SDK {platform} v{version}
+            </Text>
+          </View>
+        )}
       </View>
       {permittedAccounts?.map((account, index) => (
         <Cell

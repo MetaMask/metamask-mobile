@@ -1,5 +1,5 @@
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../locales/i18n';
@@ -7,7 +7,7 @@ import { useTheme } from '../../../util/theme';
 
 import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
 import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Button, {
   ButtonVariants,
 } from '../../../../app/component-library/components/Buttons/Button';
@@ -25,11 +25,18 @@ import { AndroidClient } from '../../../core/SDKConnect/AndroidSDK/android-sdk-t
 import { ConnectionProps } from '../../../core/SDKConnect/Connection';
 import { SDKConnect } from '../../../core/SDKConnect/SDKConnect';
 import SDKSessionItem from './SDKSessionItem';
+import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
-interface Props {
-  navigation: StackNavigationProp<{
-    [route: string]: { screen: string };
-  }>;
+interface SDKSessionsManagerProps {
+  navigation: StackNavigationProp<any>;
+  routes: {
+    SDKSessionsManager: {
+      screen: string;
+      params: {
+        trigger?: number;
+      };
+    };
+  };
 }
 
 const createStyles = (
@@ -67,9 +74,15 @@ const createStyles = (
     disconnectAllContainer: {},
   });
 
-const SDKSessionsManager = (props: Props) => {
+const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
   const safeAreaInsets = useSafeAreaInsets();
+  const route =
+    useRoute<RouteProp<{ params: { trigger?: number } }, 'params'>>();
+
   const sdk = SDKConnect.getInstance();
+  DevLogger.log(`params`, JSON.stringify(route, null, 2));
+  const { trigger } = route.params ?? { trigger: undefined };
+  // const { trigger } = route.params as any;
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
   const [connections, setConnections] = useState<ConnectionProps[]>([]);
@@ -79,13 +92,16 @@ const SDKSessionsManager = (props: Props) => {
   );
   const { navigate } = useNavigation();
 
-  const toggleClearMMSDKConnectionModal = () => {
+  const toggleClearMMSDKConnectionModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SDK_DISCONNECT,
     });
-  };
+  }, [navigate]);
+
+  DevLogger.log(`render SDKSessionManager`);
 
   useEffect(() => {
+    DevLogger.log(`SDKSessionsManager: useEffect`, props);
     const refreshSDKState = async () => {
       const _connections = sdk.getConnections();
       const _connected = sdk.getConnected();
@@ -135,38 +151,49 @@ const SDKSessionsManager = (props: Props) => {
     };
   }, [sdk, colors, props]);
 
-  const renderSDKSessions = () => (
-    <>
-      <ScrollView>
-        {connections.map((sdkSession, _index) => (
-          <SDKSessionItem
-            key={sdkSession.id}
-            connected={connectedIds.includes(sdkSession.id)}
-            connection={sdkSession}
-          />
-        ))}
-        {androidConnections.map((androidSession, _index) => (
-          <SDKSessionItem
-            key={`${_index}_${androidSession.clientId}`}
-            connection={{
-              id: androidSession.clientId,
-              originatorInfo: androidSession.originatorInfo,
+  const renderSDKSessions = useCallback(
+    () => (
+      <>
+        <ScrollView>
+          {connections.map((sdkSession, _index) => (
+            <SDKSessionItem
+              key={sdkSession.id}
+              connected={connectedIds.includes(sdkSession.id)}
+              trigger={trigger}
+              connection={sdkSession}
+            />
+          ))}
+          {androidConnections.map((androidSession, _index) => (
+            <SDKSessionItem
+              key={`${_index}_${androidSession.clientId}`}
+              connection={{
+                id: androidSession.clientId,
+                originatorInfo: androidSession.originatorInfo,
+              }}
+              connected={androidSession.connected}
+            />
+          ))}
+        </ScrollView>
+        <View style={styles.disconnectAllContainer}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={strings('sdk.disconnect_all')}
+            style={styles.btnAction}
+            onPress={() => {
+              toggleClearMMSDKConnectionModal();
             }}
-            connected={androidSession.connected}
           />
-        ))}
-      </ScrollView>
-      <View style={styles.disconnectAllContainer}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={strings('sdk.disconnect_all')}
-          style={styles.btnAction}
-          onPress={() => {
-            toggleClearMMSDKConnectionModal();
-          }}
-        />
-      </View>
-    </>
+        </View>
+      </>
+    ),
+    [
+      connectedIds,
+      trigger,
+      connections,
+      androidConnections,
+      styles,
+      toggleClearMMSDKConnectionModal,
+    ],
   );
 
   const renderEmptyResult = () => (

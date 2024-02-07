@@ -90,12 +90,15 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
       `OnConfirm: accountsLength=${accountsLength} channelId: ${channelId}, account: ${account}`,
     );
     if (account && accountsLength === 1 && channelId) {
-      SDKConnect.getInstance().removeChannel({ channelId });
+      SDKConnect.getInstance().removeChannel({
+        channelId,
+        sendTerminate: true,
+      });
     } else if (!account && !channelId) {
       SDKConnect.getInstance().removeAll();
     }
 
-    navigate('SDKSessionsManager');
+    navigate('SDKSessionsManager', { trigger: Math.random() });
   };
 
   const onCancel = () => {
