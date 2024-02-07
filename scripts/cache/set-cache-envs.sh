@@ -5,6 +5,9 @@ set_cache_envs() {
   local current_branch=$(git rev-parse --abbrev-ref HEAD)
   local prefix_ccache_key="ccache-$folder"
 
+  echo "Current branch: $current_branch"
+  envman add --key CURRENT_BRANCH --value "$current_branch"
+
   if [ "$current_branch" = "main" ]; then
     # If on main branch, skip cache restore but save it for future runs
     echo "On main branch, we will not use cache, but will save it for future runs"

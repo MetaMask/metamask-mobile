@@ -463,7 +463,7 @@ workflows:
             - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          run_if: '{{or (not (enveq "BITRISE_CACHE_HIT" "exact")) (enveq "CURRENT_BRANCH" "main")}}'
           is_always_run: false
           inputs:
             - content: |-
@@ -625,7 +625,7 @@ workflows:
             - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          run_if: '{{or (not (enveq "BITRISE_CACHE_HIT" "exact")) (enveq "CURRENT_BRANCH" "main")}}'
           is_always_run: false
           inputs:
             - content: |-
