@@ -11,11 +11,10 @@ import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isTest } from '../util/test/utils';
 import thunk from 'redux-thunk';
 
-import { rootPersistConfig } from './persistConfig';
+import persistConfig from './persistConfig';
 
 // TODO: Improve type safety by using real Action types instead of `any`
-
-const pReducer = persistReducer<RootState, any>(rootPersistConfig, rootReducer);
+const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions
