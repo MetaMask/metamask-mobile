@@ -3,8 +3,8 @@ name: Check Bitrise Status
 on:
   issue_comment:
     types: [created]
-  # pull_request:
-  #   types: [labeled, unlabeled]
+  pull_request:
+    types: [labeled, unlabeled]
 
 env:
   E2E_LABEL: 'Run Smoke E2E'
@@ -12,7 +12,7 @@ env:
 jobs:
   check-bitrise-e2e-smoke:
     runs-on: ubuntu-latest
-    # if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
+    if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
     permissions:
       pull-requests: write
       contents: write

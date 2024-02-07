@@ -273,10 +273,9 @@ workflows:
           inputs:
             - personal_access_token: '$GITHUB_ACCESS_TOKEN'
             - body: |-
-                HELLO
-                $BITRISE_PUBLIC_INSTALL_PAGE_URL
+                Bitrise build passed!
             - repository_url: '$GIT_REPOSITORY_URL'
-            - issue_number: 8495
+            - issue_number: '$BITRISE_PULL_REQUEST'
             - api_base_url: 'https://api.github.com'
         # - slack@3:
         #     inputs:
