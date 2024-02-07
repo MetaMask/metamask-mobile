@@ -22,7 +22,7 @@ import {
   TX_UNAPPROVED,
 } from '../../../constants/transaction';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
+import { withMetricsAwareness } from '../../hooks/useMetrics';
 import AppConstants from '../../../core/AppConstants';
 import {
   swapsLivenessSelector,
@@ -176,6 +176,10 @@ class Asset extends PureComponent {
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -465,6 +469,7 @@ class Asset extends PureComponent {
       currentCurrency,
       selectedAddress,
       chainId,
+      metrics,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -476,15 +481,10 @@ class Asset extends PureComponent {
 
     const onBuy = () => {
       navigation.navigate(Routes.RAMP.BUY);
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.BUY_BUTTON_CLICKED,
-          {
-            text: 'Buy',
-            location: 'Token Screen',
-            chain_id_destination: chainId,
-          },
-        );
+      metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+        text: 'Buy',
+        location: 'Token Screen',
+        chain_id_destination: chainId,
       });
     };
 
@@ -597,4 +597,4 @@ const mapStateToProps = (state) => ({
   ),
 });
 
-export default connect(mapStateToProps)(Asset);
+export default connect(mapStateToProps)(withMetricsAwareness(Asset));

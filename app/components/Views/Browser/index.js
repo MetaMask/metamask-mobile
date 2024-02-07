@@ -18,8 +18,7 @@ import BrowserTab from '../BrowserTab';
 import AppConstants from '../../../core/AppConstants';
 import { baseStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import {
   getPermittedAccounts,
   getPermittedAccountsByHostname,
@@ -61,6 +60,7 @@ const Browser = (props) => {
     tabs,
     accountsLength,
   } = props;
+  const { trackEvent } = useMetrics();
   const previousTabs = useRef(null);
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -92,7 +92,7 @@ const Browser = (props) => {
   }, isEqual);
 
   const handleRightTopButtonAnalyticsEvent = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
+    trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
       number_of_accounts: accountsLength,
       number_of_accounts_connected: permittedAccountsList.length,
       number_of_networks: nonTestnetNetworks,
@@ -131,7 +131,7 @@ const Browser = (props) => {
   };
 
   const switchToTab = (tab) => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
+    trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);

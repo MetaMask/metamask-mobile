@@ -32,10 +32,10 @@ import { getGasLimit } from '../../../../util/custom-gas';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import NotificationManager from '../../../../core/NotificationManager';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { withMetricsAwareness } from '../../../hooks/useMetrics';
 import Logger from '../../../../util/Logger';
 import EditGasFee1559 from '../../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../UI/EditGasFeeLegacyUpdate';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 import AppConstants from '../../../../core/AppConstants';
 import { shallowEqual } from '../../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
@@ -463,6 +463,7 @@ class Approve extends PureComponent {
   };
 
   onLedgerConfirmation = (approve, transactionId, gaParams) => {
+    const { metrics } = this.props;
     const { TransactionController } = Engine.context;
     try {
       //manual cancel from UI when transaction is awaiting from ledger confirmation
@@ -475,7 +476,7 @@ class Approve extends PureComponent {
 
         TransactionController.cancelTransaction(transactionId);
 
-        AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, gaParams);
+        metrics.trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, gaParams);
 
         NotificationManager.showSimpleNotification({
           status: `simple_notification_rejected`,
@@ -485,14 +486,14 @@ class Approve extends PureComponent {
         });
       }
     } finally {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_COMPLETED, gaParams);
+      metrics.trackEvent(MetaMetricsEvents.APPROVAL_COMPLETED, gaParams);
     }
   };
 
   onConfirm = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
-    const { transactions, gasEstimateType } = this.props;
+    const { transactions, gasEstimateType, metrics } = this.props;
     const {
       legacyGasTransaction,
       transactionConfirmed,
@@ -561,7 +562,7 @@ class Approve extends PureComponent {
         waitForResult: true,
       });
 
-      AnalyticsV2.trackEvent(
+      metrics.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),
       );
@@ -574,9 +575,7 @@ class Approve extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Approve)');
       } else {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
+        metrics.trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
       }
       this.setState({ transactionHandled: false });
     }
@@ -584,19 +583,20 @@ class Approve extends PureComponent {
   };
 
   onCancel = () => {
+    const { transaction, metrics, hideModal } = this.props;
     Engine.rejectPendingApproval(
-      this.props.transaction.id,
+      transaction.id,
       ethErrors.provider.userRejectedRequest(),
       {
         ignoreMissing: true,
         logErrors: false,
       },
     );
-    AnalyticsV2.trackEvent(
+    metrics.trackEvent(
       MetaMetricsEvents.APPROVAL_CANCELLED,
       this.getAnalyticsParams(),
     );
-    this.props.hideModal();
+    hideModal();
 
     NotificationManager.showSimpleNotification({
       status: `simple_notification_rejected`,
@@ -910,4 +910,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 Approve.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(Approve);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Approve));
