@@ -33,7 +33,6 @@ async function main(): Promise<void> {
   const data = {
     hook_info: {
       type: 'bitrise',
-      build_trigger_token: process.env.BITRISE_BUILD_TRIGGER_TOKEN,
     },
     build_params: {
       branch: process.env.GITHUB_HEAD_REF,
@@ -58,6 +57,7 @@ async function main(): Promise<void> {
     data,
     {
       headers: {
+        'Authorization': `Bearer ${process.env.BITRISE_BUILD_TRIGGER_TOKEN}`,
         'Content-Type': 'application/json',
       },
     },
