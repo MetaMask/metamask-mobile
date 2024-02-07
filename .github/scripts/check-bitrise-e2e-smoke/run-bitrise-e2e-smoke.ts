@@ -39,22 +39,22 @@ async function main(): Promise<void> {
       branch: process.env.GITHUB_HEAD_REF,
       pipeline_id: e2ePipeline,
       commit_message: `Triggered by (${workflowName}) workflow in ${pullRequestLink}`,
-      environments: [
-        {
-          "is_expand": true,
-          "mapped_to": "GITHUB_PR_NUMBER",
-          "value": pullRequestNumber
-        }
-      ],
+      // environments: [
+      //   {
+      //     "is_expand": true,
+      //     "mapped_to": "GITHUB_PR_NUMBER",
+      //     "value": pullRequestNumber
+      //   }
+      // ],
     },
     triggered_by: workflowName,
   };
 
-  const bitriseProjectUrl = `https://app.bitrise.io/app/${process.env.BITRISE_APP_ID}`;
+  const bitriseProjectUrl = `https://api.bitrise.io/v0.1/apps/${process.env.BITRISE_APP_ID}/builds`;
 
   // Start Bitrise build.
   const bitriseBuildResponse = await axios.post(
-    `${bitriseProjectUrl}/build/start.json`,
+    bitriseProjectUrl,
     data,
     {
       headers: {
