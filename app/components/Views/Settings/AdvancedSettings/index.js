@@ -583,7 +583,7 @@ class AdvancedSettings extends PureComponent {
                         true: colors.primary.default,
                         false: colors.border.muted,
                       }}
-                      thumbColor={importedColors.white}
+                      thumbColor={theme.brandColors.white['000']}
                       style={styles.switch}
                       ios_backgroundColor={colors.border.muted}
                       accessibilityLabel={strings(
@@ -604,7 +604,7 @@ class AdvancedSettings extends PureComponent {
                     link
                     onPress={this.openLinkAboutStx}
                   >
-                    Learn more
+                    Learn more.
                   </Text>
                 </Text>
               </View>
