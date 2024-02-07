@@ -8,7 +8,6 @@ import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
 } from '../../util/networks';
-import URL from 'url-parse';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
 import {
@@ -16,8 +15,7 @@ import {
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import { BannerAlertSeverity } from '../../component-library/components/Banners/Banner';
-import { strings } from '../../../locales/i18n';
+import checkSafeNetwork from './networkChecker.util';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -228,56 +226,12 @@ const wallet_addEthereumChain = async ({
     ticker,
   };
 
-  const alerts = [];
-  const safeChainsListRequest = await fetch(
-    'https://chainid.network/chains.json',
+  const alerts = await checkSafeNetwork(
+    getDecimalChainId(_chainId),
+    requestData.rpcUrl,
+    requestData.chainName,
+    requestData.ticker,
   );
-  const safeChainsList = await safeChainsListRequest.json();
-  const matchedChain = safeChainsList.find(
-    (chain) => toHex(chain.chainId.toString()) === _chainId,
-  );
-
-  if (matchedChain) {
-    const { origin } = new URL(requestData.rpcUrl);
-    if (!matchedChain.rpc?.map((rpc) => new URL(rpc).origin).includes(origin)) {
-      alerts.push({
-        alertError: strings('add_custom_network.invalid_rpc_url'),
-        alertSeverity: BannerAlertSeverity.Error,
-        alertOrigin: 'rpc_url',
-      });
-    }
-    if (matchedChain.nativeCurrency?.decimals !== EVM_NATIVE_TOKEN_DECIMALS) {
-      alerts.push({
-        alertError: strings('add_custom_network.invalid_chain_token_decimals'),
-        alertSeverity: BannerAlertSeverity.Warning,
-        alertOrigin: 'decimals',
-      });
-    }
-    if (
-      matchedChain.name?.toLowerCase() !== requestData.chainName.toLowerCase()
-    ) {
-      alerts.push({
-        alertError: strings('add_custom_network.unrecognized_chain_name'),
-        alertSeverity: BannerAlertSeverity.Warning,
-        alertOrigin: 'chain_name',
-      });
-    }
-    if (matchedChain.nativeCurrency?.symbol !== requestData.ticker) {
-      alerts.push({
-        alertError: strings('add_custom_network.unrecognized_chain_ticker'),
-        alertSeverity: BannerAlertSeverity.Warning,
-        alertOrigin: 'chain_ticker',
-      });
-    }
-  }
-
-  if (!matchedChain) {
-    alerts.push({
-      alertError: strings('add_custom_network.unrecognized_chain_id'),
-      alertSeverity: BannerAlertSeverity.Error,
-      alertOrigin: 'unknown_chain',
-    });
-  }
 
   requestData.alerts = alerts;
 

@@ -936,15 +936,19 @@ class Confirm extends PureComponent {
     this.setState({ hexDataModalVisible: !hexDataModalVisible });
   };
 
+  updateTransactionStateWithUpdatedNonce = (nonceValue) => {
+    this.props.setNonce(nonceValue);
+    this.setState({ preparedTransaction: {} });
+  };
+
   renderCustomNonceModal = () => {
-    const { setNonce } = this.props;
     const { proposedNonce, nonce } = this.props.transaction;
     return (
       <CustomNonceModal
         proposedNonce={proposedNonce}
         nonceValue={nonce}
         close={() => this.toggleConfirmationModal(REVIEW)}
-        save={setNonce}
+        save={this.updateTransactionStateWithUpdatedNonce}
       />
     );
   };

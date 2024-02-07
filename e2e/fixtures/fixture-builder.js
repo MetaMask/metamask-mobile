@@ -178,6 +178,7 @@ class FixtureBuilder {
               useTokenDetection: true,
               useNftDetection: false,
               displayNftMedia: true,
+              useSafeChainsListValidation: false,
               isMultiAccountBalancesEnabled: true,
               disabledRpcMethodPreferences: {
                 eth_sign: false,
@@ -201,6 +202,7 @@ class FixtureBuilder {
                 useTokenDetection: true,
                 useNftDetection: false,
                 displayNftMedia: true,
+                useSafeChainsListValidation: false,
                 isMultiAccountBalancesEnabled: true,
                 disabledRpcMethodPreferences: {
                   eth_sign: false,
