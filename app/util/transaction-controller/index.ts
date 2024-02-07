@@ -27,27 +27,21 @@ export function handleMethodData(
   ...args: Parameters<BaseTransactionController['handleMethodData']>
 ) {
   const { TransactionController } = Engine.context;
-  return TransactionController.handleMethodData.bind(TransactionController)(
-    ...args,
-  );
+  return TransactionController.handleMethodData(...args);
 }
 
 export function getNonceLock(
   ...args: Parameters<BaseTransactionController['getNonceLock']>
 ) {
   const { TransactionController } = Engine.context;
-  return TransactionController.getNonceLock.bind(TransactionController)(
-    ...args,
-  );
+  return TransactionController.getNonceLock(...args);
 }
 
 export function speedUpTransaction(
   ...args: Parameters<BaseTransactionController['speedUpTransaction']>
 ) {
   const { TransactionController } = Engine.context;
-  return TransactionController.speedUpTransaction.bind(TransactionController)(
-    ...args,
-  );
+  return TransactionController.speedUpTransaction(...args);
 }
 
 export function startIncomingTransactionPolling(
@@ -56,9 +50,7 @@ export function startIncomingTransactionPolling(
   >
 ) {
   const { TransactionController } = Engine.context;
-  return TransactionController.startIncomingTransactionPolling.bind(
-    TransactionController,
-  )(...args);
+  return TransactionController.startIncomingTransactionPolling(...args);
 }
 
 export function stopIncomingTransactionPolling(
@@ -67,43 +59,33 @@ export function stopIncomingTransactionPolling(
   >
 ) {
   const { TransactionController } = Engine.context;
-  return TransactionController.stopIncomingTransactionPolling.bind(
-    TransactionController,
-  )(...args);
+  return TransactionController.stopIncomingTransactionPolling(...args);
 }
 
 export function updateIncomingTransactions(
   ...args: Parameters<BaseTransactionController['updateIncomingTransactions']>
 ) {
   const { TransactionController } = Engine.context;
-  return TransactionController.updateIncomingTransactions.bind(
-    TransactionController,
-  )(...args);
+  return TransactionController.updateIncomingTransactions(...args);
 }
 
 export function updateSecurityAlertResponse(
   ...args: Parameters<BaseTransactionController['updateSecurityAlertResponse']>
 ) {
   const { TransactionController } = Engine.context;
-  return TransactionController.updateSecurityAlertResponse.bind(
-    TransactionController,
-  )(...args);
+  return TransactionController.updateSecurityAlertResponse(...args);
 }
 
 export function updateTransaction(
   ...args: Parameters<BaseTransactionController['updateTransaction']>
 ) {
   const { TransactionController } = Engine.context;
-  return TransactionController.updateTransaction.bind(TransactionController)(
-    ...args,
-  );
+  return TransactionController.updateTransaction(...args);
 }
 
 export function wipeTransactions(
   ...args: Parameters<BaseTransactionController['wipeTransactions']>
 ) {
   const { TransactionController } = Engine.context;
-  return TransactionController.wipeTransactions.bind(TransactionController)(
-    ...args,
-  );
+  return TransactionController.wipeTransactions(...args);
 }
