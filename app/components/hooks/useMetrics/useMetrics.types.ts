@@ -25,4 +25,5 @@ export interface IUseMetricsHook {
   getDeleteRegulationCreationDate(): DataDeleteDate;
   getDeleteRegulationId(): string | undefined;
   isDataRecorded(): boolean;
+  getMetaMetricsId(): Promise<string | undefined>;
 }

@@ -48,8 +48,7 @@ import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from 'react-native-search-api';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
@@ -99,7 +98,6 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
 import { selectChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
-import { useMetrics } from '../../hooks/useMetrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
@@ -289,7 +287,7 @@ export const BrowserTab = (props) => {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
   const favicon = useFavicon(url.current);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, isEnabled, getMetaMetricsId } = useMetrics();
 
   /**
    * Is the current tab the active tab
@@ -684,8 +682,8 @@ export const BrowserTab = (props) => {
    */
   const injectHomePageScripts = async (bookmarks) => {
     const { current } = webviewRef;
-    const analyticsEnabled = Analytics.checkEnabled();
-    const disctinctId = await Analytics.getDistinctId();
+    const analyticsEnabled = isEnabled();
+    const disctinctId = await getMetaMetricsId();
     const homepageScripts = `
 			window.__mmFavorites = ${JSON.stringify(bookmarks || props.bookmarks)};
 			window.__mmSearchEngine = "${props.searchEngine}";
