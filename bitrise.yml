@@ -185,10 +185,21 @@ workflows:
           title: Restore Yarn cache directory
           inputs:
             - key: '{{ .OS }}-{{ .Arch }}-yarn-cache'
-      - yarn@0:
+      - script@1:
           inputs:
-            - command: setup
-          title: Yarn Setup
+            - content: |-
+                #!/usr/bin/env bash
+                # `yarn setup` without rm -rf node_modules and a conditional yarn install.
+                yarn clean:ios
+                yarn clean:android
+                if [ ! -d "node_modules" ]; then
+                  # Execute yarn install only if node_modules doesn't exist
+                  yarn --frozen-lockfile
+                fi
+                yarn allow-scripts 
+                ./scripts/build_ppom.sh 
+                ./scripts/postinstall.sh
+          title: Yarn alternative setup 
       - save-cache@1:
           title: Save Yarn cache directory
           inputs:
