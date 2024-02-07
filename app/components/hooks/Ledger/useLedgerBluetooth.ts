@@ -6,6 +6,7 @@ import {
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
 } from '../../../core/Ledger/Ledger';
+import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 
 export enum LedgerCommunicationErrors {
   LedgerDisconnected = 'LedgerDisconnected',
@@ -90,7 +91,9 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 
     if (!transportRef.current && deviceId) {
       try {
-        const BluetoothTransport: any = {};
+        const BluetoothTransport: any = await import(
+          '@ledgerhq/react-native-hw-transport-ble'
+        );
         transportRef.current = await BluetoothTransport.default.open(deviceId);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         transportRef.current?.on('disconnect', (e: any) => {
@@ -140,7 +143,7 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
       }
       // Initialise the keyring and check for pre-conditions (is the correct app running?)
       const appName = await connectLedgerHardware(
-        transportRef.current as any,
+        transportRef.current as unknown as BleTransport,
         deviceId,
       );
 
