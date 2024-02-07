@@ -39,7 +39,13 @@ async function main(): Promise<void> {
       branch: process.env.GITHUB_HEAD_REF,
       pipeline_id: e2ePipeline,
       commit_message: `Triggered by (${workflowName}) workflow in ${pullRequestLink}`,
-      // pull_request_id: pullRequestNumber
+      environments: [
+        {
+          "is_expand": true,
+          "mapped_to": "GITHUB_PR_NUMBER",
+          "value": pullRequestNumber
+        }
+      ],
     },
     triggered_by: workflowName,
   };
@@ -57,16 +63,13 @@ async function main(): Promise<void> {
     },
   );
 
-  // if (!bitriseBuildResponse.data.build_slug) {
-  //   core.setFailed(`Bitrise build slug not found`);
-  //   process.exit(1);
-  // }
+  if (!bitriseBuildResponse.data.build_slug) {
+    core.setFailed(`Bitrise build slug not found`);
+    process.exit(1);
+  }
 
-  // const buildLink = `${bitriseProjectUrl}/pipelines/${bitriseBuildResponse.data.build_slug}`;
-  // const message = `E2E test started on Bitrise: ${buildLink}\nYou can also kick off another Bitrise E2E smoke test by removing and re-applying the (${e2eLabel}) label`;
-  const message = 'hello'
-
-  console.log(bitriseBuildResponse)
+  const buildLink = `${bitriseProjectUrl}/pipelines/${bitriseBuildResponse.data.build_slug}`;
+  const message = `E2E test started on Bitrise: ${buildLink}\nYou can also kick off another Bitrise E2E smoke test by removing and re-applying the (${e2eLabel}) label`;
 
   if (bitriseBuildResponse.status === 201) {
     console.log(message);

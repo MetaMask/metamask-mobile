@@ -275,7 +275,7 @@ workflows:
             - body: |-
                 Bitrise build passed!
             - repository_url: '$GIT_REPOSITORY_URL'
-            - issue_number: '$BITRISE_PULL_REQUEST'
+            - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
         # - slack@3:
         #     inputs:
