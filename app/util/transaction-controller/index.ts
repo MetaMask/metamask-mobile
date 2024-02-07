@@ -72,15 +72,6 @@ export function stopIncomingTransactionPolling(
   )(...args);
 }
 
-export function stopTransaction(
-  ...args: Parameters<BaseTransactionController['stopTransaction']>
-) {
-  const { TransactionController } = Engine.context;
-  return TransactionController.stopTransaction.bind(TransactionController)(
-    ...args,
-  );
-}
-
 export function updateIncomingTransactions(
   ...args: Parameters<BaseTransactionController['updateIncomingTransactions']>
 ) {

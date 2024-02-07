@@ -70,10 +70,7 @@ import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
-import {
-  updateTransaction,
-  stopTransaction,
-} from '../../../../util/transaction-controller';
+import { updateTransaction } from '../../../../util/transaction-controller';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -470,13 +467,13 @@ class Approve extends PureComponent {
     try {
       //manual cancel from UI when transaction is awaiting from ledger confirmation
       if (!approve) {
-        //stopTransaction will change transaction status to reject and throw error from event listener
+        //cancelTransaction will change transaction status to reject and throw error from event listener
         //component is being unmounted, error will be unhandled, hence remove listener before cancel
         TransactionController.hub.removeAllListeners(
           `${transactionId}:finished`,
         );
 
-        stopTransaction(transactionId);
+        TransactionController.cancelTransaction(transactionId);
 
         AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, gaParams);
 
