@@ -127,7 +127,8 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
   };
 
   const saveAndClose = () => {
-    save(nonce);
+    const numberNonce = Number(nonce);
+    save(numberNonce);
     close();
   };
 

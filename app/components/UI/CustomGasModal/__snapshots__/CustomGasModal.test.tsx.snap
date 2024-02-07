@@ -1002,7 +1002,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                 "textAlign": "center",
                               },
                               Object {
-                                "color": "#FCFCFC",
+                                "color": "#FFFFFF",
                               },
                               undefined,
                             ],

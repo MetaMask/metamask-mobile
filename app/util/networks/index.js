@@ -263,6 +263,16 @@ export function isprivateConnection(hostname) {
 }
 
 /**
+ * Set the value of safe chain validation using preference controller
+ *
+ * @param {boolean} value
+ */
+export function toggleUseSafeChainsListValidation(value) {
+  const { PreferencesController } = Engine.context;
+  PreferencesController.setUseSafeChainsListValidation(value);
+}
+
+/**
  * Returns custom block explorer for specific rpcTarget
  *
  * @param {string} rpcTargetUrl

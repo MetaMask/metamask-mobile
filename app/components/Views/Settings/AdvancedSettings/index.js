@@ -303,7 +303,7 @@ class AdvancedSettings extends PureComponent {
   renderTokenDetectionSection = () => {
     const { isTokenDetectionEnabled, chainId } = this.props;
     const { styles, colors } = this.getStyles();
-    const theme = this.context.theme || mockTheme;
+    const theme = this.context || mockTheme;
     if (!isTokenDetectionSupportedForNetwork(chainId)) {
       return null;
     }
@@ -351,7 +351,7 @@ class AdvancedSettings extends PureComponent {
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
-    const theme = this.context.theme || mockTheme;
+    const theme = this.context || mockTheme;
 
     return (
       <SafeAreaView style={baseStyles.flexGrow}>

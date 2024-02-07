@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		07CBADD9D4B441008304F8D3 /* EuclidCircularB-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = A98029A3662F4C1391489A6B /* EuclidCircularB-Light.otf */; };
 		0C119A06A4353DD11451F541 /* libPods-MetaMask-Flask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FA078AF57878ABB05D063C8F /* libPods-MetaMask-Flask.a */; };
-		0FD509E0336BF221F6527B24 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		0FD509E0336BF221F6527B24 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
@@ -140,7 +140,7 @@
 		B339FF31289ABD70001B89FB /* Mixpanel.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 15F7795722A1B79400B1DF8C /* Mixpanel.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF32289ABD70001B89FB /* Branch.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B339FF3C289ABF2C001B89FB /* MetaMask-QA-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B339FEA72899852C001B89FB /* MetaMask-QA-Info.plist */; };
-		B638844E306CAE9147B52C85 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		B638844E306CAE9147B52C85 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		BF39E5BAE0F34F9091FF6AC0 /* EuclidCircularB-Semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A8DE9C5BC0714D648276E123 /* EuclidCircularB-Semibold.otf */; };
 		CD13D926E1E84D9ABFE672C0 /* Roboto-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3E2492C67CF345CABD7B8601 /* Roboto-BlackItalic.ttf */; };
 		CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
@@ -148,7 +148,7 @@
 		CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		CFD8DFC828EDD4C800CC75F6 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		D171C39A8BD44DBEB6B68480 /* EuclidCircularB-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 42CBA652072F4BE2A8B815C1 /* EuclidCircularB-MediumItalic.otf */; };
-		D45BF85DECACCB74EDCBE88A /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		D45BF85DECACCB74EDCBE88A /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		DC6A024F56DD43E1A83B47B1 /* Roboto-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = D5FF0FF1DFB74B3C8BB99E09 /* Roboto-MediumItalic.ttf */; };
 		DDB2D8FF8BDA806A38D61B1B /* libPods-MetaMask-QA.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E0B857D61941CE8A3F59C662 /* libPods-MetaMask-QA.a */; };
 		E34DE917F6FC4438A6E88402 /* EuclidCircularB-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 13EE4910D3BD408A8FCCA5D7 /* EuclidCircularB-BoldItalic.otf */; };
@@ -386,9 +386,9 @@
 				153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */,
 				15F7795E22A1B7B500B1DF8C /* Mixpanel.framework in Frameworks */,
 				153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */,
-				0FD509E0336BF221F6527B24 /* (null) in Frameworks */,
-				D45BF85DECACCB74EDCBE88A /* (null) in Frameworks */,
-				B638844E306CAE9147B52C85 /* (null) in Frameworks */,
+				0FD509E0336BF221F6527B24 /* BuildFile in Frameworks */,
+				D45BF85DECACCB74EDCBE88A /* BuildFile in Frameworks */,
+				B638844E306CAE9147B52C85 /* BuildFile in Frameworks */,
 				7CFB6EF0B7853F1C4E863E5E /* libPods-MetaMask.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -672,10 +672,10 @@
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
-				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				15ACCA0022655C3A0063978B /* Embed Frameworks */,
 				802588CED3FC487A5D5263F0 /* [CP] Copy Pods Resources */,
 				C77EFC60F19570875F8DB3BD /* [CP] Embed Pods Frameworks */,
+				00DD1BFF1BD5951E006B06BC /* Bundle JS Code & Upload Sentry Files */,
 			);
 			buildRules = (
 			);
@@ -697,10 +697,10 @@
 				2EF282592B0FF86900D7B4B1 /* Sources */,
 				2EF282602B0FF86900D7B4B1 /* Frameworks */,
 				2EF282692B0FF86900D7B4B1 /* Resources */,
-				2EF282892B0FF86900D7B4B1 /* Bundle React Native code and images */,
 				2EF2828A2B0FF86900D7B4B1 /* Embed Frameworks */,
 				2EF2828D2B0FF86900D7B4B1 /* [CP] Copy Pods Resources */,
 				2EF2828E2B0FF86900D7B4B1 /* [CP] Embed Pods Frameworks */,
+				2EF282892B0FF86900D7B4B1 /* Bundle JS Code & Upload Sentry Files */,
 			);
 			buildRules = (
 			);
@@ -722,10 +722,10 @@
 				B339FF01289ABD70001B89FB /* Sources */,
 				B339FF06289ABD70001B89FB /* Frameworks */,
 				B339FF0F289ABD70001B89FB /* Resources */,
-				B339FF2F289ABD70001B89FB /* Bundle React Native code and images */,
 				B339FF30289ABD70001B89FB /* Embed Frameworks */,
 				8EF10BB14629809332947E5D /* [CP] Copy Pods Resources */,
 				EB3465C9579A347237ADD532 /* [CP] Embed Pods Frameworks */,
+				B339FF2F289ABD70001B89FB /* Bundle JS Code & Upload Sentry Files */,
 			);
 			buildRules = (
 			);
@@ -959,7 +959,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */ = {
+		00DD1BFF1BD5951E006B06BC /* Bundle JS Code & Upload Sentry Files */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -969,12 +969,12 @@
 			);
 			inputPaths = (
 			);
-			name = "Bundle React Native code and images";
+			name = "Bundle JS Code & Upload Sentry Files";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# All versions\nset -e\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\nif [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n\nif [ \"$PLATFORM_NAME\" != \"iphonesimulator\" ] && [ \"$CONFIGURATION\" == \"Release\" ]; then\n    # Upload Sentry source maps\n    ../node_modules/@sentry/cli/bin/sentry-cli react-native xcode\nfi\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n\n";
+			shellScript = "# Define script\nBUNDLE_AND_UPLOAD_TO_SENTRY=\"../scripts/ios/bundle-js-and-sentry-upload.sh\"\n\n# Give permissions to script\nchmod +x $BUNDLE_AND_UPLOAD_TO_SENTRY\n\n# Run script\n$BUNDLE_AND_UPLOAD_TO_SENTRY\n";
 		};
 		15FDD86321B76696006B7C35 /* Override xcconfig files */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1034,7 +1034,7 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ -e ../.ios.env ]\nthen\n    cp -rf ../.ios.env debug.xcconfig\n    cp -rf ../.ios.env release.xcconfig\nelse\n    cp -rf ../.ios.env.example debug.xcconfig\n    cp -rf ../.ios.env.example release.xcconfig\nfi\n\n";
 		};
-		2EF282892B0FF86900D7B4B1 /* Bundle React Native code and images */ = {
+		2EF282892B0FF86900D7B4B1 /* Bundle JS Code & Upload Sentry Files */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1044,12 +1044,12 @@
 			);
 			inputPaths = (
 			);
-			name = "Bundle React Native code and images";
+			name = "Bundle JS Code & Upload Sentry Files";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# All versions\nset -e\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\nif [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n\nif [ \"$PLATFORM_NAME\" != \"iphonesimulator\" ] && [ \"$CONFIGURATION\" == \"Release\" ]; then\n    # Upload Sentry source maps\n    ../node_modules/@sentry/cli/bin/sentry-cli react-native xcode\nfi\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n\n";
+			shellScript = "# Define script\nBUNDLE_AND_UPLOAD_TO_SENTRY=\"../scripts/ios/bundle-js-and-sentry-upload.sh\"\n\n# Give permissions to script\nchmod +x $BUNDLE_AND_UPLOAD_TO_SENTRY\n\n# Run script\n$BUNDLE_AND_UPLOAD_TO_SENTRY\n";
 		};
 		2EF2828D2B0FF86900D7B4B1 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1181,7 +1181,7 @@
 			shellPath = /bin/sh;
 			shellScript = "if [ -e ../.ios.env ]\nthen\n    cp -rf ../.ios.env debug.xcconfig\n    cp -rf ../.ios.env release.xcconfig\nelse\n    cp -rf ../.ios.env.example debug.xcconfig\n    cp -rf ../.ios.env.example release.xcconfig\nfi\n\n";
 		};
-		B339FF2F289ABD70001B89FB /* Bundle React Native code and images */ = {
+		B339FF2F289ABD70001B89FB /* Bundle JS Code & Upload Sentry Files */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1191,12 +1191,12 @@
 			);
 			inputPaths = (
 			);
-			name = "Bundle React Native code and images";
+			name = "Bundle JS Code & Upload Sentry Files";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [[ -s \"$HOME/.nvm/nvm.sh\" ]]; then\n. \"$HOME/.nvm/nvm.sh\"\nelif [[ -x \"$(command -v brew)\" && -s \"$(brew --prefix nvm)/nvm.sh\" ]]; then\n. \"$(brew --prefix nvm)/nvm.sh\"\nfi\n\nexport NODE_BINARY=$(which node)\n\nif [[ -s \"$HOME/.nvm/nvm.sh\" ]]; then\n. \"$HOME/.nvm/nvm.sh\"\nelif [[ -x \"$(command -v brew)\" && -s \"$(brew --prefix nvm)/nvm.sh\" ]]; then\n. \"$(brew --prefix nvm)/nvm.sh\"\nfi\n\nif [ ! -e \"${SENTRY_PROPERTIES}\" ]; then\n    export SENTRY_PROPERTIES=../sentry.properties\nfi\n\n\nif [ \"$PLATFORM_NAME\" == \"iphonesimulator\" ] && [ \"$CONFIGURATION\" == \"Release\" ]; then\n    ../node_modules/react-native/scripts/react-native-xcode.sh\nelse\n    ../node_modules/@sentry/cli/bin/sentry-cli react-native xcode \\\n    ../node_modules/react-native/scripts/react-native-xcode.sh\nfi\n";
+			shellScript = "# Define script\nBUNDLE_AND_UPLOAD_TO_SENTRY=\"../scripts/ios/bundle-js-and-sentry-upload.sh\"\n\n# Give permissions to script\nchmod +x $BUNDLE_AND_UPLOAD_TO_SENTRY\n\n# Run script\n$BUNDLE_AND_UPLOAD_TO_SENTRY\n";
 		};
 		C77EFC60F19570875F8DB3BD /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1372,7 +1372,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift$(inherited)",
+					"${inherited}",
+				);
 				LLVM_LTO = YES;
 				MARKETING_VERSION = 7.15.0;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1434,7 +1437,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift$(inherited)",
+					"${inherited}",
+				);
 				LLVM_LTO = YES;
 				MARKETING_VERSION = 7.15.0;
 				ONLY_ACTIVE_ARCH = NO;
