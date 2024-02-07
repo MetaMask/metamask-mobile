@@ -96,6 +96,7 @@
     "selectedAddress": "",
     "useTokenDetection": true,
     "useNftDetection": false,
+    "useSafeChainsListValidation": true,
     "displayNftMedia": true,
     "securityAlertsEnabled": false,
     "isMultiAccountBalancesEnabled": true,

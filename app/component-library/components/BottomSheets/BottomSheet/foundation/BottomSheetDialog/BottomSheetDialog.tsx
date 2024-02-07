@@ -230,7 +230,7 @@ const BottomSheetDialog = forwardRef<
     return (
       <KeyboardAvoidingView
         style={styles.base}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={
           Platform.OS === 'ios' ? -screenBottomPadding : frameY
         }
