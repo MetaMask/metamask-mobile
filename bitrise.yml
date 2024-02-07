@@ -184,7 +184,7 @@ workflows:
       - restore-cache@2:
           title: Restore Yarn cache directory
           inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-yarn-cache'
+            - key: 'yarn-cache-{{ .OS }}-{{ .Arch }}'
       - script@1:
           inputs:
             - content: |-
@@ -203,14 +203,14 @@ workflows:
       - save-cache@1:
           title: Save Yarn cache directory
           inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-yarn-cache'
+            - key: 'yarn-cache-{{ .OS }}-{{ .Arch }}'
             - paths: |-
                 $YARN_CACHE_DIR
       # Manual cache path needed here because the `yarn` step only caches for the `install` command
       - save-cache@1:
           title: Save cache dependencies
           inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
+            - key: 'node-modules-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}'
             - paths: |-
                 node_modules
   prep_environment:
@@ -231,7 +231,7 @@ workflows:
       - restore-cache@2:
           title: Restore cache dependencies
           inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
+            - key: 'node-modules-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}'
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
