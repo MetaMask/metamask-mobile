@@ -19,7 +19,7 @@
     "setup": "yarn clean && yarn pod:install && yarn allow-scripts && ./scripts/build_ppom.sh && ./scripts/postinstall.sh",
     "setup2a": "yarn clean:ios && yarn clean:android",
     "setup2b": "yarn --frozen-lockfile",
-    "setup2c": "yarn allow-scripts && ./scripts/build_ppom.sh && ./scripts/postinstall.sh",
+    "setup2c": "yarn allow-scripts",
     "setup2d": "./scripts/build_ppom.sh",
     "setup2e": "./scripts/build-inpage-bridge.sh",
     "setup2f": "node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs' --hack",
