@@ -567,7 +567,7 @@ export default class AndroidService extends EventEmitter2 {
       // Always set the method to metamask_batch otherwise it may not have been set correctly because of the batch rpc flow.
       rpcMethod = RPC_METHODS.METAMASK_BATCH;
       DevLogger.log(
-        `Connection::sendMessage chainRPCs=${chainRPCs} COMPLETED!`,
+        `AndroidService::sendMessage chainRPCs=${chainRPCs} COMPLETED!`,
       );
     }
 
@@ -575,7 +575,7 @@ export default class AndroidService extends EventEmitter2 {
 
     if (!rpcMethod && forceRedirect !== true) {
       DevLogger.log(
-        `Connection::sendMessage no rpc method --- rpcMethod=${rpcMethod} forceRedirect=${forceRedirect} --- skip goBack()`,
+        `AndroidService::sendMessage no rpc method --- rpcMethod=${rpcMethod} forceRedirect=${forceRedirect} --- skip goBack()`,
       );
       return;
     }
@@ -588,12 +588,13 @@ export default class AndroidService extends EventEmitter2 {
 
       if (!this.rpcQueueManager.isEmpty()) {
         DevLogger.log(
-          `Connection::sendMessage NOT empty --- skip goBack()`,
+          `AndroidService::sendMessage NOT empty --- skip goBack()`,
           this.rpcQueueManager.get(),
         );
         return;
       }
 
+      DevLogger.log(`AndroidService::sendMessage empty --- goBack()`);
       Minimizer.goBack();
     } catch (error) {
       Logger.log(error, `AndroidService:: error waiting for empty rpc queue`);

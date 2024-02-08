@@ -66,11 +66,16 @@ export const handleSendMessage = async ({
     Logger.log(err, `Connection::sendMessage failed to send`);
   });
 
-  if (connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) return;
+  if (connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
+    DevLogger.log(
+      `[handleSendMessage] origin=${connection.origin} --- skip goBack()`,
+    );
+    return;
+  }
 
   if (!canRedirect) {
     DevLogger.log(
-      `[handleSendMessage] canDirect=false method=${method} --- skip goBack()`,
+      `[handleSendMessage] canRedirect=false method=${method} --- skip goBack()`,
       connection.rpcQueueManager,
     );
     return;
@@ -99,6 +104,7 @@ export const handleSendMessage = async ({
         screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
       });
     } else {
+      DevLogger.log(`[handleSendMessage] goBack()`);
       await Minimizer.goBack();
     }
   } catch (err) {

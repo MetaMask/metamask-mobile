@@ -4,7 +4,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import Device from '../../../../util/device';
 import Engine from '../../../Engine';
-import { Minimizer } from '../../../NativeModules';
 import SDKConnect, { approveHostProps } from '../../SDKConnect';
 import handleConnectionReady from '../../handlers/handleConnectionReady';
 import DevLogger from '../../utils/DevLogger';
@@ -50,8 +49,6 @@ function handleClientsReady({
               instance.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
                 screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
               });
-            } else {
-              Minimizer.goBack();
             }
           }
         },
