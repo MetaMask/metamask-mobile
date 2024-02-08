@@ -17,6 +17,7 @@ export const handleSendMessage = async ({
   msg: any;
   connection: Connection;
 }) => {
+  DevLogger.log(`[handleSendMessage] msg`, msg);
   connection.setLoading(false);
 
   const msgId = msg?.data?.id + '';
