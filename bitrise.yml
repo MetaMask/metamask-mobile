@@ -177,27 +177,23 @@ workflows:
       - restore-cocoapods-cache@2: {}
       - yarn@0:
           inputs:
-            - command: clean:ios
-          title: yarn clean:ios 
+            - command: bitrise:clean
+          title: yarn bitrise:clean 
       - yarn@0:
           inputs:
-            - command: clean:android
-          title: yarn clean:android 
-      - yarn@0:
-          inputs:
-            - args: --frozen-lockfile
-          title: yarn install 
+            - command: bitrise:install
+          title: yarn bitrise:install 
       # Save node_modules directory to cache immediately after install since future steps modify it.
-      # - save-cache@1:
-      #     title: Save node_modules directory
-      #     inputs:
-      #       - key: 'node-modules-{{ .Arch }}-{{ .OS }}-{{ checksum "yarn.lock" }}'
-      #       - paths: |-
-      #           node_modules
+      - save-cache@1:
+          title: Save node_modules directory
+          inputs:
+            - key: 'node-modules-{{ .Arch }}-{{ .OS }}-{{ checksum "yarn.lock" }}'
+            - paths: |-
+                node_modules
       - yarn@0:
           inputs:
-            - command: postinstall
-          title: yarn postinstall
+            - command: bitrise:postinstall
+          title: yarn bitrise:postinstall
   prep_environment:
     steps:
       - script@1:
