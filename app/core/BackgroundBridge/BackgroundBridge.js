@@ -221,36 +221,37 @@ export class BackgroundBridge extends EventEmitter {
     });
   }
 
-  notifySelectedAddressChanged(selectedAddress) {
-    // Only notify if selectedAddress is approved
-    getPermittedAccounts(this.channelId ?? this.hostname)
-      .then((approvedAccounts) => {
-        // Check if selectedAddress is approved
-        const found = approvedAccounts
-          .map((addr) => addr.toLowerCase())
-          .includes(selectedAddress.toLowerCase());
+  async notifySelectedAddressChanged(selectedAddress) {
+    try {
+      let approvedAccounts = await getPermittedAccounts(
+        this.channelId ?? this.hostname,
+      );
 
-        if (found) {
-          // Set selectedAddress as first value in array
-          approvedAccounts = [
-            selectedAddress,
-            ...approvedAccounts.filter(
-              (addr) => addr.toLowerCase() !== selectedAddress.toLowerCase(),
-            ),
-          ];
-        }
-        DevLogger.log(
-          `notifySelectedAddressChanged hostname: ${this.hostname}: ${selectedAddress}`,
-          approvedAccounts,
-        );
-        this.sendNotification({
-          method: NOTIFICATION_NAMES.accountsChanged,
-          params: approvedAccounts,
-        });
-      })
-      .catch((e) => {
-        DevLogger.log(`notifySelectedAddressChanged: ${e}`);
+      // Check if selectedAddress is approved
+      const found = approvedAccounts
+        .map((addr) => addr.toLowerCase())
+        .includes(selectedAddress.toLowerCase());
+
+      if (found) {
+        // Set selectedAddress as first value in array
+        approvedAccounts = [
+          selectedAddress,
+          ...approvedAccounts.filter(
+            (addr) => addr.toLowerCase() !== selectedAddress.toLowerCase(),
+          ),
+        ];
+      }
+      DevLogger.log(
+        `notifySelectedAddressChanged hostname: ${this.hostname}: ${selectedAddress}`,
+        approvedAccounts,
+      );
+      this.sendNotification({
+        method: NOTIFICATION_NAMES.accountsChanged,
+        params: approvedAccounts,
       });
+    } catch (err) {
+      console.error(`notifySelectedAddressChanged: ${err}`);
+    }
   }
 
   onStateUpdate(memState) {
