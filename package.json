@@ -18,7 +18,7 @@
     "format": "prettier '**/*.{js,ts,tsx,json,feature}' --write",
     "setup": "yarn clean && yarn pod:install && yarn allow-scripts && ./scripts/build_ppom.sh && ./scripts/postinstall.sh",
     "setup2a": "yarn clean:ios && yarn clean:android",
-    "setup2b": "yarn yarn --frozen-lockfile",
+    "setup2b": "yarn --frozen-lockfile",
     "setup2c": "yarn allow-scripts && ./scripts/build_ppom.sh && ./scripts/postinstall.sh",
     "setup2d": "./scripts/build_ppom.sh",
     "setup2e": "./scripts/build-inpage-bridge.sh",
