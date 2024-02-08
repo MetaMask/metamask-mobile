@@ -4110,10 +4110,10 @@
     "@metamask/utils" "^5.0.0"
     readable-stream "3.6.2"
 
-"@metamask/ppom-validator@0.23.0":
-  version "0.23.0"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.23.0.tgz#04129c354c8024fc52828687a63cf6a5906c5ec7"
-  integrity sha512-DVsY00tEWLMI2yacETGrovlEvHEGfl+KTgeZGrZL9v6ekZOaAt5P7BVlh6YFw6YJraVEzS/Y7IQJAYbr0xJN/w==
+"@metamask/ppom-validator@0.24.0":
+  version "0.24.0"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.24.0.tgz#86ee0146a51984f6c39fe4830e37270d734d8b83"
+  integrity sha512-M//3ptaByku1FVTCtcCmJcYqU/6j/uehT2tHMoNtimwLKBfx3p3nPZMjR4avOsY5JtDNZAZmECMEMkONwySOZA==
   dependencies:
     "@metamask/base-controller" "^3.0.0"
     "@metamask/controller-utils" "^8.0.1"
