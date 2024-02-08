@@ -94,6 +94,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   };
 
   // Extract connection info from sdk
+  // FIXME should be replaced by passing dynamic parameters to the PermissionController
   const sdkConnection = SDKConnect.getInstance().getConnection({ channelId });
   const hostname = (
     sdkConnection?.originatorInfo?.url ?? metadataOrigin

@@ -283,7 +283,10 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public getConnection({ channelId }: { channelId: string }) {
-    return this.state.connections[channelId];
+    return (
+      this.state.connections[channelId] ??
+      this.state.androidConnections[channelId]
+    );
   }
 
   public getApprovedHosts(_context?: string) {

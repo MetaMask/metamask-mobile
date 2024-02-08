@@ -279,7 +279,7 @@ export default class AndroidService extends EventEmitter2 {
     // };
     // return approvalController.add(approvalRequest);
     return permissionsController.requestPermissions(
-      { origin },
+      { origin: channelId },
       { eth_accounts: {} },
       { id: channelId },
     );
@@ -357,6 +357,7 @@ export default class AndroidService extends EventEmitter2 {
               originatorInfo: this.connections[sessionId]?.originatorInfo ?? {},
               channelId: sessionId,
             });
+            DevLogger.log(`Permissions request sent and accepted...`);
 
             // Create new bridge
             this.setupBridge(this.connections[sessionId]);
