@@ -31,7 +31,6 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
 import ImportedEngine from '../../../core/Engine';
-import { v1 as random } from 'uuid';
 import { getDecimalChainId } from '../../../util/networks';
 
 // Internal dependencies
@@ -44,6 +43,9 @@ import {
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
+import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
+import { getPermittedAccounts } from '../../../core/Permissions';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -124,14 +126,20 @@ const WalletActions = () => {
     DevLogger.log(`Checking permissions now...`);
     const Engine = ImportedEngine as any;
     try {
-      const hostname = 'sdk://19a02b89-1e4d-4aa6-9000-d3b8bd082ef3';
-      await Engine.context.ApprovalController.clear();
-      await Engine.context.PermissionController.requestPermissions(
-        { origin: hostname },
-        { eth_accounts: {} },
-        { id: random() },
+      // const hostname = 'sdk://19a02b89-1e4d-4aa6-9000-d3b8bd082ef3';
+
+      // await Engine.context.ApprovalController.clear();
+      // await Engine.context.PermissionController.requestPermissions(
+      //   { origin: hostname },
+      //   { eth_accounts: {} },
+      //   { id: random() },
+      // );
+      const permissionController = Engine.context
+        .PermissionController as PermissionController<any, any>;
+      DevLogger.log(`perm`, permissionController);
+      const acc = await getPermittedAccounts(
+        '7704bea0f5d4533548cfcfc022b77e50ee02519e79bb1adbe179e47d2d75ab73',
       );
-      const acc = await getPermittedAccounts(hostname);
       DevLogger.log(`Permissions: ${JSON.stringify(acc)}`);
     } catch (error) {
       console.error(`Error checking permissions`, error);

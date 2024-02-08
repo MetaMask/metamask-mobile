@@ -700,6 +700,7 @@ class Engine {
       // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
+        allowedEvents: [`PermissionController:stateChange`],
         allowedActions: [
           `${approvalController.name}:addRequest`,
           `${approvalController.name}:hasRequest`,

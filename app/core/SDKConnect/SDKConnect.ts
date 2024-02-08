@@ -31,6 +31,7 @@ import {
   updateOriginatorInfos,
   updateSDKLoadingState,
 } from './StateManagement';
+import DevLogger from './utils/DevLogger';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -225,6 +226,17 @@ export class SDKConnect extends EventEmitter2 {
 
   async addAndroidConnection(connection: ConnectionProps) {
     return addAndroidConnection(connection, this);
+  }
+
+  public async refreshChannel({ channelId }: { channelId: string }) {
+    const session = this.state.connected[channelId];
+    if (!session) {
+      DevLogger.log(`SDKConnect::refreshChannel - session not found`);
+      return;
+    }
+    DevLogger.log(`SDKConnect::refreshChannel channelId=${channelId}`);
+    // Force enitting updated accounts
+    session.backgroundBridge?.notifySelectedAddressChanged();
   }
 
   /**

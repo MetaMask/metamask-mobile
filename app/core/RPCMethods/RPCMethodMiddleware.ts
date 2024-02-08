@@ -97,11 +97,13 @@ export interface RPCMethodsMiddleParameters {
 export const checkActiveAccountAndChainId = async ({
   address,
   chainId,
+  channelId,
   checkSelectedAddress,
   hostname,
 }: {
   address?: string;
   chainId?: number;
+  channelId?: string;
   checkSelectedAddress: boolean;
   hostname: string;
 }) => {
@@ -111,6 +113,7 @@ export const checkActiveAccountAndChainId = async ({
     DevLogger.log('checkActiveAccountAndChainId', {
       address,
       chainId,
+      channelId,
       checkSelectedAddress,
       hostname,
       formattedAddress,
@@ -127,9 +130,23 @@ export const checkActiveAccountAndChainId = async ({
       AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       '',
     );
-    const accounts = await getPermittedAccounts(validHostname);
+    const accounts = await getPermittedAccounts(channelId ?? validHostname);
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
+    DevLogger.log(
+      `checkActiveAccountAndChainId`,
+      JSON.stringify(
+        {
+          validHostname,
+          accounts,
+          channelId,
+          normalizedAccounts,
+          formattedAddress,
+        },
+        null,
+        2,
+      ),
+    );
     if (!normalizedAccounts.includes(formattedAddress)) {
       isInvalidAccount = true;
     }
@@ -195,6 +212,7 @@ const generateRawSignature = async ({
   isMMSDK,
   isWalletConnect,
   chainId,
+  channelId,
   getSource,
   checkTabActive,
 }: any) => {
@@ -215,6 +233,7 @@ const generateRawSignature = async ({
   checkTabActive();
   await checkActiveAccountAndChainId({
     hostname,
+    channelId,
     address: req.params[0],
     chainId,
     checkSelectedAddress: isMMSDK || isWalletConnect,
@@ -263,22 +282,12 @@ export const getRpcMethodMiddleware = ({
   isWalletConnect,
   // For MM SDK
   isMMSDK,
-  getApprovedHosts,
   injectHomePageScripts,
   // For analytics
   analytics,
 }: RPCMethodsMiddleParameters) =>
   // all user facing RPC calls not implemented by the provider
   createAsyncMiddleware(async (req: any, res: any, next: any) => {
-    // Utility function for getting accounts for either WalletConnect or MetaMask SDK.
-    const getAccounts = (): string[] => {
-      const selectedAddress =
-        Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
-      const approvedHosts = getApprovedHosts(hostname) || {};
-      const isEnabled = isWalletConnect || approvedHosts[hostname];
-      return isEnabled && selectedAddress ? [selectedAddress] : [];
-    };
-
     // Used by eth_accounts and eth_coinbase RPCs.
     const getEthAccounts = async () => {
       res.result = await getPermittedAccounts(hostname);
@@ -558,6 +567,7 @@ export const getRpcMethodMiddleware = ({
             await checkActiveAccountAndChainId({
               hostname,
               address: from,
+              channelId,
               chainId,
               checkSelectedAddress: isMMSDK || isWalletConnect,
             });
@@ -596,6 +606,7 @@ export const getRpcMethodMiddleware = ({
         if (req.params[1].length === 66 || req.params[1].length === 67) {
           await checkActiveAccountAndChainId({
             hostname,
+            channelId,
             address: req.params[0].from,
             checkSelectedAddress: isMMSDK || isWalletConnect,
           });
@@ -643,6 +654,7 @@ export const getRpcMethodMiddleware = ({
         checkTabActive();
         await checkActiveAccountAndChainId({
           hostname,
+          channelId,
           address: params.from,
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
@@ -690,6 +702,7 @@ export const getRpcMethodMiddleware = ({
         checkTabActive();
         await checkActiveAccountAndChainId({
           hostname,
+          channelId,
           address: req.params[1],
           checkSelectedAddress: isMMSDK || isWalletConnect,
         });
@@ -726,6 +739,7 @@ export const getRpcMethodMiddleware = ({
           icon,
           analytics,
           isMMSDK,
+          channelId,
           isWalletConnect,
           chainId,
           getSource,
@@ -746,6 +760,7 @@ export const getRpcMethodMiddleware = ({
           icon,
           analytics,
           isMMSDK,
+          channelId,
           isWalletConnect,
           chainId,
           getSource,
@@ -877,9 +892,7 @@ export const getRpcMethodMiddleware = ({
       metamask_getProviderState: async () => {
         res.result = {
           ...getProviderState(),
-          accounts: isMMSDK
-            ? getAccounts()
-            : await getPermittedAccounts(hostname),
+          accounts: await getPermittedAccounts(hostname),
         };
       },
 

@@ -113,10 +113,13 @@ export class BackgroundBridge extends EventEmitter {
     // FIXME trying to subscribe to PermissionController events
     try {
       const pc = Engine.context.PermissionController;
-      DevLogger.log(`engine`, pc);
-      DevLogger.log(`messageGingSystem`, pc.messagingSystem);
-      pc.messagingSystem.subscribe(`${pc.name}:stateChange`, () => {
-        DevLogger.log(`PermissionController:`, pc.state);
+      DevLogger.log(`messageGingSystem pc.name=${pc.name}`, pc.messagingSystem);
+      pc.messagingSystem.subscribe(`${pc.name}:stateChange`, (newState) => {
+        // check if origin matches current channel
+        const channelSubject = newState.subjects[this.channelId];
+        if (!channelSubject) return;
+        const permissions = channelSubject.permissions;
+        DevLogger.log(`PermissionController:stateChange event`, permissions);
       });
     } catch (err) {
       DevLogger.log(`Error in BackgroundBridge: ${err}`);
@@ -214,15 +217,12 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   notifySelectedAddressChanged(selectedAddress) {
-    DevLogger.log(
-      `notifySelectedAddressChanged hostname: ${this.hostname}: ${selectedAddress}`,
-    );
-
     // Only notify if selectedAddress is approved
     getPermittedAccounts(this.channelId ?? this.hostname)
       .then((approvedAccounts) => {
         DevLogger.log(
-          `notifySelectedAddressChanged: ${JSON.stringify(approvedAccounts)}`,
+          `notifySelectedAddressChanged hostname: ${this.hostname}: ${selectedAddress}`,
+          approvedAccounts,
         );
         this.sendNotification({
           method: NOTIFICATION_NAMES.accountsChanged,
@@ -368,6 +368,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   sendNotification(payload) {
+    DevLogger.log(`BackgroundBridge::sendNotification: `, payload);
     this.engine && this.engine.emit('notification', payload);
   }
 
