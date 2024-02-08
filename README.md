@@ -10,11 +10,22 @@ For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or
 
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
 
+## Documentation
+- [Development Environment Setup](./docs/readme/environment.md)
+- [Architecture](./docs/readme/architecture.md)
+- [Running Tests](./docs/readme/testing.md)
+- [Build Troubleshooting](./docs/readme/troubleshooting.md)
+- [Debugging](./docs/readme/debugging.md)
+- [Storybook](./docs/readme/storybook.md)
+- [Miscellaneous](./docs/readme/miscellaneous.md)
+
 ## Getting started
 
-### [Environment setup](./docs/readme/environment.md)
+### Environment setup
 
-Make sure your development environment has all the tools needed to run this project
+Before running the app, make sure your development environment has all the required tools.
+
+[Setup your development environment](./docs/readme/environment.md)
 
 ### Building the app
 
@@ -38,6 +49,8 @@ cp .android.env.example .android.env && \
 cp .js.env.example .js.env
 ```
 
+### Running the app
+
 **Run Metro bundler**
 ```bash
 yarn watch
@@ -53,21 +66,3 @@ yarn start:ios
 ```bash
 yarn start:android
 ```
-
-## [Running Tests](./docs/readme/testing.md)
-_TODO: Add description_
-
-## [Build Troubleshooting](./docs/readme/troubleshooting.md)
-_TODO: Add description_
-
-## [Debugging](./docs/readme/debugging.md)
-_TODO: Add description_
-
-## [Architecture](./docs/readme/architecture.md)
-_TODO: Add description_
-
-## [Storybook](./docs/readme/storybook.md)
-_TODO: Add description_
-
-## [Miscellaneous](./docs/readme/miscellaneous.md)
-_TODO: Add description_
