@@ -70,8 +70,8 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
       _title = 'sdk_disconnect_modal.disconnect_account';
       _description = 'sdk_disconnect_modal.disconnect_account_desc';
     } else if (channelId) {
-      _title = 'sdk_disconnect_modal.disconnect_all_account';
-      _description = 'sdk_disconnect_modal.disconnect_account';
+      _title = 'sdk_disconnect_modal.disconnect_all_accounts';
+      _description = 'sdk_disconnect_modal.disconnect_all_accounts_desc';
     } else {
       _title = 'sdk_disconnect_modal.disconnect_all';
       _description = 'sdk_disconnect_modal.disconnect_all_desc';
@@ -84,7 +84,10 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
     if (account && channelId) {
       removePermittedAccounts(channelId, [account]);
     } else if (!account && channelId) {
-      SDKConnect.getInstance().removeChannel({ channelId });
+      SDKConnect.getInstance().removeChannel({
+        channelId,
+        sendTerminate: true,
+      });
     }
 
     DevLogger.log(

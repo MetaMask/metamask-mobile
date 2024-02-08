@@ -919,8 +919,9 @@
     "disconnect_all": "Disconnect from all sites?",
     "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
     "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
     "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_all_account_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
     "disconnect_confirm": "Disconnect",
     "cancel": "Cancel"
   },

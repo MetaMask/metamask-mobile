@@ -91,9 +91,8 @@ export const handleSendMessage = async ({
       `[handleSendMessage] method=${method} trigger=${connection.trigger} origin=${connection.origin} id=${msgId} goBack()`,
     );
 
-    // TODO investigate android resume state to make sure it doesn't prevent goBack() Keep as comment for reference.
     // Trigger should be removed after redirect so we don't redirect the dapp next time and go back to nothing.
-    // connection.trigger = 'resume';
+    connection.trigger = 'resume';
 
     // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
     if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {

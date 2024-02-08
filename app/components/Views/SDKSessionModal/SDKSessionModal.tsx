@@ -200,12 +200,14 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
           variant={ButtonVariants.Primary}
           style={styles.disconnectBtn}
           onPress={() => {
+            DevLogger.log(`Disconnect all accounts channelId=${channelId}`);
             navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.SDK_DISCONNECT,
               params: {
-                channelId: undefined,
+                channelId,
                 account: undefined,
                 accountsLength: permittedAccountsAddresses.length,
+                dapp: urlOrTitle,
               },
             });
           }}
