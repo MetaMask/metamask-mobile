@@ -17,7 +17,6 @@ export const handleSendMessage = async ({
   msg: any;
   connection: Connection;
 }) => {
-  DevLogger.log(`[handleSendMessage] msg`, msg);
   connection.setLoading(false);
 
   const msgId = msg?.data?.id + '';
@@ -31,11 +30,8 @@ export const handleSendMessage = async ({
       msg,
       batchRPCManager: connection.batchRPCManager,
       backgroundBridge: connection.backgroundBridge,
-      sendMessage: ({ msg: newmsg }: { msg: any }) => {
-        DevLogger.log(`[handleSendMessage] initial msg`, msg);
-        DevLogger.log(`[handleSendMessage]     new msg`, newmsg);
-        return handleSendMessage({ msg: newmsg, connection });
-      },
+      sendMessage: ({ msg: newmsg }: { msg: any }) =>
+        handleSendMessage({ msg: newmsg, connection }),
     });
 
     // check if lastrpc or if an error occured during the chain
@@ -95,6 +91,7 @@ export const handleSendMessage = async ({
       `[handleSendMessage] method=${method} trigger=${connection.trigger} origin=${connection.origin} id=${msgId} goBack()`,
     );
 
+    // TODO investigate android resume state to make sure it doesn't prevent goBack() Keep as comment for reference.
     // Trigger should be removed after redirect so we don't redirect the dapp next time and go back to nothing.
     // connection.trigger = 'resume';
 

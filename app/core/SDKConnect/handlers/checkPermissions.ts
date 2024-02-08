@@ -47,9 +47,6 @@ export const checkPermissions = async ({
     return true;
   }
 
-  // const approvalController = (
-  //   engine.context as { ApprovalController: ApprovalController }
-  // ).ApprovalController;
   const permissionsController = (
     engine.context as { PermissionController: PermissionController<any, any> }
   ).PermissionController;
@@ -70,10 +67,6 @@ export const checkPermissions = async ({
     return true;
   }
 
-  DevLogger.log(
-    `checkPermissions approved=${approved}`,
-    connection.originatorInfo,
-  );
   const origin = connection.channelId;
   const acc = await getPermittedAccounts(origin);
   if (acc.length > 0) {
@@ -81,11 +74,6 @@ export const checkPermissions = async ({
       `checkPermissions acc founds length=${acc.length} -- APPROVED`,
     );
     return true;
-  }
-
-  if (connection.initialConnection) {
-    // Clear previous permissions if already approved.
-    // permissionsController.clea
   }
 
   DevLogger.log(`checkPermissions request permissions`, acc);
