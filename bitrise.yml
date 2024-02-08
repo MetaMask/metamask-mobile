@@ -174,6 +174,17 @@ workflows:
       - setup
       - prep_environment
     steps:
+      - script@1:
+          title: Check if node_modules was restored
+          inputs:
+            - content: |-
+                if [ -d "node_modules" ]; then
+                  echo "Cache hit, node_modules restored."
+                  envman add --key NODE_MODULES_CACHE_HIT --value "true"
+                else
+                  echo "Cache miss, node_modules not restored."
+                  envman add --key NODE_MODULES_CACHE_HIT --value "false"
+                fi
       - restore-cocoapods-cache@2: {}
       - yarn@0:
           inputs:
@@ -186,6 +197,7 @@ workflows:
       # Save node_modules directory to cache immediately after install since future steps modify it.
       - save-cache@1:
           title: Save node_modules directory
+          run_if: '{{not (enveq "NODE_MODULES_CACHE_HIT" "true")}}'
           inputs:
             - key: 'node-modules-{{ .Arch }}-{{ .OS }}-{{ checksum "yarn.lock" }}'
             - paths: |-
