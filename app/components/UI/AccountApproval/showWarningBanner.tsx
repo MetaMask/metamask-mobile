@@ -17,7 +17,7 @@ import {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
-import AnalyticsV2 from '../../../util/analyticsV2';
+
 import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
 
 const descriptionArray = [

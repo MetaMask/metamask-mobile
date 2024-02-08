@@ -48,8 +48,10 @@ import CollectibleMedia from '../../../UI/CollectibleMedia';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../core/TransactionTypes';
-import Analytics from '../../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  withMetricsAwareness,
+} from '../../../hooks/useMetrics';
 import { shallowEqual, renderShortText } from '../../../../util/general';
 import {
   isTestNet,
@@ -61,7 +63,6 @@ import {
   isTestNetworkWithFaucet,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 import { addHexPrefix } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -226,6 +227,10 @@ class Confirm extends PureComponent {
      * Boolean that indicates if the network supports buy
      */
     isNativeTokenBuySupported: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -372,6 +377,7 @@ class Confirm extends PureComponent {
       navigation,
       providerType,
       isPaymentRequest,
+      metrics,
     } = this.props;
 
     this.updateNavBar();
@@ -382,7 +388,7 @@ class Confirm extends PureComponent {
       pollToken,
     });
     // For analytics
-    AnalyticsV2.trackEvent(
+    metrics.trackEvent(
       MetaMetricsEvents.SEND_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
@@ -535,13 +541,10 @@ class Confirm extends PureComponent {
   };
 
   onModeChange = (mode) => {
+    const { metrics } = this.props;
     this.setState({ mode });
     if (mode === EDIT) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEvent(
-          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
-        );
-      });
+      metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
     }
   };
 
@@ -744,7 +747,7 @@ class Confirm extends PureComponent {
     gaParams,
   ) => {
     const { TransactionController } = Engine.context;
-    const { navigation } = this.props;
+    const { navigation, metrics } = this.props;
     // Manual cancel from UI or rejected from ledger device.
     try {
       if (!approve) {
@@ -765,7 +768,7 @@ class Confirm extends PureComponent {
             assetType,
           });
           this.checkRemoveCollectible();
-          AnalyticsV2.trackEvent(
+          metrics.trackEvent(
             MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
             gaParams,
           );
@@ -786,6 +789,7 @@ class Confirm extends PureComponent {
       navigation,
       resetTransaction,
       gasEstimateType,
+      metrics,
     } = this.props;
 
     const {
@@ -865,7 +869,7 @@ class Confirm extends PureComponent {
           assetType,
         });
         this.checkRemoveCollectible();
-        AnalyticsV2.trackEvent(MetaMetricsEvents.SEND_TRANSACTION_COMPLETED, {
+        metrics.trackEvent(MetaMetricsEvents.SEND_TRANSACTION_COMPLETED, {
           ...this.getAnalyticsParams(),
           ...this.withBlockaidMetricsParams(),
         });
@@ -882,9 +886,7 @@ class Confirm extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
+        metrics.trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
       }
     }
     this.setState({ transactionConfirmed: false });
@@ -1006,15 +1008,13 @@ class Confirm extends PureComponent {
   };
 
   buyEth = () => {
-    const { navigation } = this.props;
+    const { navigation, metrics } = this.props;
     try {
       navigation.navigate(Routes.RAMP.BUY);
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
-    });
+    metrics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
   };
 
   goToFaucet = () => {
@@ -1073,12 +1073,13 @@ class Confirm extends PureComponent {
   };
 
   onContactUsClicked = () => {
+    const { metrics } = this.props;
     const analyticsParams = {
       ...this.getAnalyticsParams(),
       ...this.withBlockaidMetricsParams(),
       external_link_clicked: 'security_alert_support_link',
     };
-    AnalyticsV2.trackEvent(
+    metrics.trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
       analyticsParams,
     );
@@ -1342,4 +1343,7 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Confirm);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Confirm));

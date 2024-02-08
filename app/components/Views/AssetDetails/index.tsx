@@ -29,8 +29,7 @@ import {
 } from '../../../util/number';
 import WarningMessage from '../SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import {
   selectChainId,
@@ -102,6 +101,7 @@ interface Props {
 }
 
 const AssetDetails = (props: Props) => {
+  const { trackEvent } = useMetrics();
   const { address } = props.route.params;
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -178,7 +178,7 @@ const AssetDetails = (props: Props) => {
                   tokenSymbol: symbol,
                 }),
               });
-              AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+              trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
                 location: 'token_details',
                 token_standard: 'ERC20',
                 asset_type: 'token',

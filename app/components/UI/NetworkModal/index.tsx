@@ -17,9 +17,7 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import InfoModal from '../Swaps/components/InfoModal';
 import ImageIcons from '../../UI/ImageIcon';
 import { useDispatch } from 'react-redux';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { MetaMetricsEvents, useMetrics } from 'app/components/hooks/useMetrics';
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -124,6 +122,7 @@ const NetworkModals = (props: NetworkProps) => {
     onNetworkSwitch,
   } = props;
 
+  const { trackEvent } = useMetrics();
   const [showDetails, setShowDetails] = React.useState(false);
   const [showInfo, setShowInfo] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
@@ -202,7 +201,7 @@ const NetworkModals = (props: NetworkProps) => {
       symbol: ticker,
     };
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+    trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
 
     closeModal();
     if (onNetworkSwitch) {

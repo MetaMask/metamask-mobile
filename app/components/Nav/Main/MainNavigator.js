@@ -61,8 +61,7 @@ import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
@@ -325,6 +324,7 @@ const SettingsFlow = () => (
 );
 
 const HomeTabs = () => {
+  const { trackEvent } = useMetrics();
   const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
@@ -364,7 +364,7 @@ const HomeTabs = () => {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
+        trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
           chain_id: chainId,
         });
@@ -378,7 +378,7 @@ const HomeTabs = () => {
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+        trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
           chain_id: chainId,
           source: 'Navigation Tab',
@@ -391,16 +391,14 @@ const HomeTabs = () => {
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
       callback: () => {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-        );
+        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
+        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
       },
       rootScreenName: Routes.SETTINGS_VIEW,
       unmountOnBlur: true,

@@ -12,7 +12,7 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../../util/analyticsV2';
+
 import { strings } from '../../../../../../../locales/i18n';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';

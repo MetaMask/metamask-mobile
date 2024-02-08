@@ -62,8 +62,10 @@ import collectiblesTransferInformation from '../../../../util/collectibles-trans
 import { strings } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
 import { BN } from 'ethereumjs-util';
-import Analytics from '../../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  withMetricsAwareness,
+} from '../../../hooks/useMetrics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../UI/NetworkMainAssetLogo';
 import { renderShortText } from '../../../../util/general';
@@ -476,6 +478,10 @@ class Amount extends PureComponent {
      * String that indicates the current chain id
      */
     chainId: PropTypes.string,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -629,6 +635,7 @@ class Amount extends PureComponent {
       transactionState: { transaction },
       providerType,
       onConfirm,
+      metrics,
     } = this.props;
     const {
       inputValue,
@@ -678,11 +685,8 @@ class Amount extends PureComponent {
     } else {
       await this.prepareTransaction(value);
     }
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT,
-        { network: providerType },
-      );
+    metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT, {
+      network: providerType,
     });
 
     setSelectedAsset(selectedAsset);
@@ -1259,14 +1263,15 @@ class Amount extends PureComponent {
       amountError === strings('transaction.insufficient');
 
     const navigateToBuyOrSwaps = () => {
+      const { metrics } = this.props;
       if (isSwappable) {
-        Analytics.trackEventWithParameters(MetaMetricsEvents.LINK_CLICKED, {
+        metrics.trackEvent(MetaMetricsEvents.LINK_CLICKED, {
           location: 'insufficient_funds_warning',
           text: 'swap_tokens',
         });
         navigateToSwap();
       } else if (isNetworkBuyNativeTokenSupported && selectedAsset.isETH) {
-        Analytics.trackEventWithParameters(MetaMetricsEvents.LINK_CLICKED, {
+        metrics.trackEvent(MetaMetricsEvents.LINK_CLICKED, {
           location: 'insufficient_funds_warning',
           text: 'buy_more',
         });
@@ -1538,4 +1543,7 @@ const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Amount);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Amount));

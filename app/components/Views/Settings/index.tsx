@@ -1,16 +1,10 @@
 import React, { useCallback, useEffect } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  InteractionManager,
-  Alert,
-} from 'react-native';
+import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { getSettingsNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import Analytics from '../../../core/Analytics/Analytics';
-import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from 'app/components/hooks/useMetrics';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
@@ -44,6 +38,7 @@ const createStyles = (colors: Colors) =>
   });
 
 const Settings = () => {
+  const { trackEvent } = useMetrics();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation<any>();
@@ -62,12 +57,6 @@ const Settings = () => {
   useEffect(() => {
     updateNavBar();
   }, [updateNavBar]);
-
-  const trackEvent = (event: IMetaMetricsEvent) => {
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(event);
-    });
-  };
 
   const onPressGeneral = () => {
     trackEvent(MetaMetricsEvents.SETTINGS_GENERAL);

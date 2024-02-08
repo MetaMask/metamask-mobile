@@ -49,7 +49,8 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { getSwapsQuotesNavbar } from '../Navbar';
 import ScreenView from '../../Base/ScreenView';
 import Text from '../../Base/Text';
@@ -68,7 +69,6 @@ import GasEditModal from './components/GasEditModal';
 import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { swapsTokensSelector } from '../../../reducers/swaps';
@@ -97,7 +97,6 @@ import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
 } from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
-import { useMetrics } from '../../hooks/useMetrics';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -387,13 +386,13 @@ function SwapsQuotesView({
   setRecipient,
   resetTransaction,
 }) {
+  const { trackEvent, trackAnonymousEvent } = useMetrics();
   const navigation = useNavigation();
   /* Get params from navigation */
   const route = useRoute();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { trackEvent, trackAnonymousEvent } = useMetrics();
 
   const {
     sourceTokenAddress,

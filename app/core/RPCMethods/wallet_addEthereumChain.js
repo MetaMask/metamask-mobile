@@ -9,8 +9,7 @@ import {
   isSafeChainId,
 } from '../../util/networks';
 import URL from 'url-parse';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../../util/analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../Analytics';
 import {
   selectChainId,
   selectNetworkConfigurations,
@@ -36,6 +35,8 @@ const wallet_addEthereumChain = async ({
   startApprovalFlow,
   endApprovalFlow,
 }) => {
+  const metrics = MetaMetrics.getInstance();
+
   const { CurrencyRateController, NetworkController, ApprovalController } =
     Engine.context;
 
@@ -157,8 +158,8 @@ const wallet_addEthereumChain = async ({
         },
       });
     } catch (e) {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+      metrics.trackEvent(
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED.category,
         analyticsParams,
       );
       throw ethErrors.provider.userRejectedRequest();
@@ -167,7 +168,10 @@ const wallet_addEthereumChain = async ({
     CurrencyRateController.setNativeCurrency(networkConfiguration.ticker);
     NetworkController.setActiveNetwork(networkConfigurationId);
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
+    metrics.trackEvent(
+      MetaMetricsEvents.NETWORK_SWITCHED.category,
+      analyticsParams,
+    );
 
     res.result = null;
     return;
@@ -293,8 +297,8 @@ const wallet_addEthereumChain = async ({
     ...analytics,
   };
 
-  AnalyticsV2.trackEvent(
-    MetaMetricsEvents.NETWORK_REQUESTED,
+  metrics.trackEvent(
+    MetaMetricsEvents.NETWORK_REQUESTED.category,
     analyticsParamsAdd,
   );
 
@@ -314,8 +318,8 @@ const wallet_addEthereumChain = async ({
         requestData,
       });
     } catch (e) {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+      metrics.trackEvent(
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED.category,
         analyticsParamsAdd,
       );
       throw ethErrors.provider.userRejectedRequest();
@@ -340,7 +344,10 @@ const wallet_addEthereumChain = async ({
         },
       );
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+    metrics.trackEvent(
+      MetaMetricsEvents.NETWORK_ADDED.category,
+      analyticsParamsAdd,
+    );
 
     await waitForInteraction();
 

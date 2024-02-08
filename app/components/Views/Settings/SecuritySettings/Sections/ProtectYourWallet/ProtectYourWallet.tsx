@@ -12,7 +12,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import SeedPhraseVideo from '../../../../../UI/SeedPhraseVideo';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../../util/analyticsV2';
+
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { LEARN_MORE_URL } from '../../../../../../constants/urls';

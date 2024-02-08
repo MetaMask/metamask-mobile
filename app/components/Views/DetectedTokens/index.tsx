@@ -1,13 +1,13 @@
 // Third party dependencies
 import React, { useRef, useState, useCallback, useMemo } from 'react';
-import { StyleSheet, View, Text, InteractionManager } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Token as TokenType } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
 import { FlatList } from 'react-native-gesture-handler';
 
 // External Dependencies
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from 'app/components/hooks/useMetrics';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import Token from './components/Token';
@@ -16,7 +16,6 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { getDecimalChainId } from '../../../util/networks';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
@@ -67,6 +66,7 @@ interface IgnoredTokensByAddress {
 }
 
 const DetectedTokens = () => {
+  const { trackEvent } = useMetrics();
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const detectedTokens = useSelector(selectDetectedTokens);
@@ -123,15 +123,13 @@ const DetectedTokens = () => {
             (await TokensController.ignoreTokens(tokensToIgnore));
           if (tokensToImport.length > 0) {
             await TokensController.addTokens(tokensToImport);
-            InteractionManager.runAfterInteractions(() =>
-              tokensToImport.forEach(({ address, symbol }) =>
-                AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
-                  token_address: address,
-                  token_symbol: symbol,
-                  chain_id: getDecimalChainId(chainId),
-                  source: 'detected',
-                }),
-              ),
+            tokensToImport.forEach(({ address, symbol }) =>
+              trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
+                token_address: address,
+                token_symbol: symbol,
+                chain_id: getDecimalChainId(chainId),
+                source: 'detected',
+              }),
             );
           }
           NotificationManager.showSimpleNotification({
@@ -145,7 +143,7 @@ const DetectedTokens = () => {
         }
       });
     },
-    [chainId, detectedTokens, ignoredTokens],
+    [chainId, detectedTokens, ignoredTokens, trackEvent],
   );
 
   const triggerIgnoreAllTokens = () => {
@@ -153,15 +151,13 @@ const DetectedTokens = () => {
       onConfirm: () => dismissModalAndTriggerAction(true),
       isHidingAll: true,
     });
-    InteractionManager.runAfterInteractions(() =>
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-        location: 'token_detection',
-        token_standard: 'ERC20',
-        asset_type: 'token',
-        tokens: detectedTokensForAnalytics,
-        chain_id: getDecimalChainId(chainId),
-      }),
-    );
+    trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+      location: 'token_detection',
+      token_standard: 'ERC20',
+      asset_type: 'token',
+      tokens: detectedTokensForAnalytics,
+      chain_id: getDecimalChainId(chainId),
+    });
   };
 
   const triggerImportTokens = async () => {
@@ -251,7 +247,7 @@ const DetectedTokens = () => {
     if (hasPendingAction) {
       return;
     }
-    AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
+    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
       source: 'detected',
       tokens: detectedTokensForAnalytics,
       chain_id: getDecimalChainId(chainId),

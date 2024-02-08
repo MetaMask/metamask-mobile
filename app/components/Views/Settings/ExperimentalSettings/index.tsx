@@ -11,8 +11,7 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { UpdatePPOMInitializationStatus } from '../../../../actions/experimental';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
@@ -35,6 +34,7 @@ const storage = new MMKV(); // id: mmkv.default
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
+  const { trackEvent } = useMetrics();
   const { PreferencesController } = Engine.context;
 
   const dispatch = useDispatch();
@@ -59,7 +59,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const toggleSecurityAlertsEnabled = () => {
     if (securityAlertsEnabled) {
       PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
         {
           security_alerts_enabled: false,

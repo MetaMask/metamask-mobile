@@ -2,8 +2,7 @@
 import { useEffect, useRef } from 'react';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
@@ -13,6 +12,7 @@ export interface PermissionApprovalProps {
 }
 
 const PermissionApproval = (props: PermissionApprovalProps) => {
+  const { trackEvent } = useMetrics();
   const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
   const isProcessing = useRef<boolean>(false);
@@ -35,7 +35,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
 
     isProcessing.current = true;
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
+    trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
       number_of_accounts: totalAccounts,
       source: 'PERMISSION SYSTEM',
     });
@@ -46,7 +46,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
         permissionRequestId: id,
       }),
     );
-  }, [approvalRequest, totalAccounts, props.navigation]);
+  }, [approvalRequest, totalAccounts, props.navigation, trackEvent]);
 
   return null;
 };

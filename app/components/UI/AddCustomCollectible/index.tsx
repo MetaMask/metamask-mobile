@@ -15,8 +15,7 @@ import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 import { useTheme } from '../../../util/theme';
 import { CUSTOM_TOKEN_CONTAINER_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
@@ -70,6 +69,7 @@ const AddCustomCollectible = ({
   navigation,
   collectibleContract,
 }: AddCustomCollectibleProps) => {
+  const { trackEvent } = useMetrics();
   const [mounted, setMounted] = useState<boolean>(true);
   const [address, setAddress] = useState<string>('');
   const [tokenId, setTokenId] = useState<string>('');
@@ -189,10 +189,7 @@ const AddCustomCollectible = ({
     const { NftController } = Engine.context as any;
     NftController.addNft(address, tokenId);
 
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.COLLECTIBLE_ADDED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_ADDED, getAnalyticsParams());
     setLoading(false);
     navigation.goBack();
   };

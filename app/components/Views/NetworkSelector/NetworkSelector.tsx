@@ -36,8 +36,7 @@ import {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import Engine from '../../../core/Engine';
-import analyticsV2 from '../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
@@ -56,6 +55,7 @@ import {
 import styles from './NetworkSelector.styles';
 
 const NetworkSelector = () => {
+  const { trackEvent } = useMetrics();
   const { navigate } = useNavigation();
   const theme = useTheme();
   const { colors } = theme;
@@ -78,7 +78,7 @@ const NetworkSelector = () => {
 
     sheetRef.current?.onCloseBottomSheet();
 
-    analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: providerConfig.chainId,
       from_network:
         providerConfig.type === 'rpc'
@@ -104,7 +104,7 @@ const NetworkSelector = () => {
       NetworkController.setActiveNetwork(networkConfigurationId);
 
       sheetRef.current?.onCloseBottomSheet();
-      analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
+      trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
         chain_id: providerConfig.chainId,
         from_network: providerConfig.type,
         to_network: nickname,

@@ -30,8 +30,7 @@ import AccountDetails from '../../../components/UI/HardwareWallet/AccountDetails
 
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -77,6 +76,7 @@ const createStyles = (colors: any) =>
   });
 
 const LedgerAccountInfo = () => {
+  const { trackEvent } = useMetrics();
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const [account, setAccount] = useState('');
@@ -118,7 +118,7 @@ const LedgerAccountInfo = () => {
   const onForgetDevice = async () => {
     await forgetLedger();
     dispatch(setReloadAccounts(true));
-    AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
+    trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
       device_type: 'Ledger',
     });
     navigation.dispatch(StackActions.pop(2));

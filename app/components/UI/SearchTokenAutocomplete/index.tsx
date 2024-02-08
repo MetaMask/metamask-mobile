@@ -11,9 +11,7 @@ import ActionView from '../ActionView';
 import AssetSearch from '../AssetSearch';
 import AssetList from '../AssetList';
 import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
@@ -53,6 +51,7 @@ interface Props {
  * Component that provides ability to add searched assets with metadata.
  */
 const SearchTokenAutocomplete = ({ navigation }: Props) => {
+  const { trackEvent } = useMetrics();
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAsset, setSelectedAsset] = useState({});
@@ -111,7 +110,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       name,
     });
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
+    trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
 
     // Clear state before closing
     setSearchResults([]);
@@ -140,6 +139,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     navigation,
     getAnalyticsParams,
     name,
+    trackEvent,
   ]);
 
   const renderTokenDetectionBanner = useCallback(() => {

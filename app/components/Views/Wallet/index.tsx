@@ -17,8 +17,7 @@ import { strings } from '../../../../locales/i18n';
 import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
@@ -83,6 +82,7 @@ const createStyles = ({ colors, typography }: Theme) =>
  * Main view for the wallet
  */
 const Wallet = ({ navigation }: any) => {
+  const { trackEvent } = useMetrics();
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
@@ -142,13 +142,10 @@ const Wallet = ({ navigation }: any) => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
-    Analytics.trackEventWithParameters(
-      MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
-      {
-        chain_id: providerConfig.chainId,
-      },
-    );
-  }, [navigate, providerConfig.chainId]);
+    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
+      chain_id: providerConfig.chainId,
+    });
+  }, [navigate, providerConfig.chainId, trackEvent]);
   const { colors: themeColors } = useTheme();
 
   /**

@@ -3,9 +3,7 @@ import { SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import EthereumAddress from '../../EthereumAddress';
 import Engine from '../../../../core/Engine';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-
+import { MetaMetricsEvents, useMetrics } from 'app/components/hooks/useMetrics';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import StyledButton from '../../StyledButton';
@@ -56,6 +54,7 @@ const AddNickname = (props: AddNicknameProps) => {
     networkConfigurations,
   } = props;
 
+  const { trackEvent } = useMetrics();
   const [newNickname, setNewNickname] = useState(addressNickname);
   const [addressErr, setAddressErr] = useState(null);
   const [addressHasError, setAddressHasError] = useState(false);
@@ -109,10 +108,7 @@ const AddNickname = (props: AddNicknameProps) => {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
 
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
   };
 
   const saveTokenNickname = () => {
@@ -124,7 +120,7 @@ const AddNickname = (props: AddNicknameProps) => {
       providerChainId,
     );
     closeModal();
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
       getAnalyticsParams(),
     );

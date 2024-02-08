@@ -18,9 +18,7 @@ import HorizontalSelector from '../../Base/HorizontalSelector';
 import { isMainnetByChainId } from '../../../util/networks';
 import BigNumber from 'bignumber.js';
 import FadeAnimationView from '../FadeAnimationView';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { MetaMetricsEvents, useMetrics } from 'app/components/hooks/useMetrics';
 import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
@@ -62,6 +60,7 @@ const EditGasFee1559Update = ({
   selectedGasObject,
   onlyGas,
 }: EditGasFee1559UpdateProps) => {
+  const { trackEvent } = useMetrics();
   const [modalInfo, updateModalInfo] = useState({
     isVisible: false,
     value: '',
@@ -129,13 +128,13 @@ const EditGasFee1559Update = ({
 
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
     }
     setShowAdvancedOptions(!showAdvancedOptions);
-  }, [getAnalyticsParams, showAdvancedOptions]);
+  }, [getAnalyticsParams, showAdvancedOptions, trackEvent]);
 
   const toggleLearnMoreModal = useCallback(() => {
     setShowLearnMoreModal(!showLearnMoreModal);
@@ -149,10 +148,7 @@ const EditGasFee1559Update = ({
   );
 
   const save = useCallback(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.GAS_FEE_CHANGED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
 
     const newGasPriceObject = {
       suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
@@ -161,7 +157,7 @@ const EditGasFee1559Update = ({
     };
 
     onSave(gasTransaction, newGasPriceObject);
-  }, [getAnalyticsParams, onSave, gasTransaction, gasObject]);
+  }, [getAnalyticsParams, onSave, gasTransaction, gasObject, trackEvent]);
 
   const changeGas = useCallback(
     (gas, option) => {

@@ -7,8 +7,7 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../util/walletconnect';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import {
   getAddressAccountType,
   isExternalHardwareAccount,
@@ -59,6 +58,7 @@ const PersonalSign = ({
   toggleExpandedMessage,
   showExpandedMessage,
 }: PersonalSignProps) => {
+  const { trackEvent } = useMetrics();
   const navigation = useNavigation();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
   const { securityAlertResponse } = useSelector(
@@ -106,7 +106,7 @@ const PersonalSign = ({
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           getAnalyticsParams(),
         );
@@ -122,7 +122,7 @@ const PersonalSign = ({
         onSignatureError,
       );
     };
-  }, [getAnalyticsParams, messageParams.metamaskId]);
+  }, [getAnalyticsParams, messageParams.metamaskId, trackEvent]);
 
   const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {
@@ -145,20 +145,14 @@ const PersonalSign = ({
   const rejectSignature = async () => {
     await onReject();
     showWalletConnectNotification(false);
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGNATURE_REJECTED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.SIGNATURE_REJECTED, getAnalyticsParams());
   };
 
   const confirmSignature = async () => {
     if (!isExternalHardwareAccount(messageParams.from)) {
       await onConfirm();
       showWalletConnectNotification(true);
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SIGNATURE_APPROVED,
-        getAnalyticsParams(),
-      );
+      trackEvent(MetaMetricsEvents.SIGNATURE_APPROVED, getAnalyticsParams());
     } else {
       navigation.navigate(
         ...(await createExternalSignModelNav(

@@ -15,9 +15,7 @@ import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
 import { UR } from '@ngraveio/bc-ur';
 import Alert, { AlertType } from '../../Base/Alert';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
@@ -73,6 +71,7 @@ const createStyles = (colors: any) =>
   });
 
 const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
+  const { trackEvent } = useMetrics();
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -138,23 +137,20 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, [QRState.sync, hideScanner, showScanner]);
 
   const onConnectHardware = useCallback(async () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
+    trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
       device_type: 'QR Hardware',
     });
     resetError();
     const _accounts = await KeyringController.connectQRHardware(0);
     setAccounts(_accounts);
-  }, [KeyringController, resetError]);
+  }, [KeyringController, resetError, trackEvent]);
 
   const onScanSuccess = useCallback(
     (ur: UR) => {
       hideScanner();
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS,
-        {
-          device_type: 'QR Hardware',
-        },
-      );
+      trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS, {
+        device_type: 'QR Hardware',
+      });
       if (ur.type === SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
         KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
       } else {
@@ -162,7 +158,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       }
       resetError();
     },
-    [KeyringController, hideScanner, resetError],
+    [KeyringController, hideScanner, resetError, trackEvent],
   );
 
   const onScanError = useCallback(
