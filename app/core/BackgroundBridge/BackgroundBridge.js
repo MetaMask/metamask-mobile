@@ -278,7 +278,6 @@ export class BackgroundBridge extends EventEmitter {
       this.notifyChainChanged(publicState);
     }
 
-    DevLogger.log(`onStateUpdate: ${JSON.stringify(memState)}`);
     // ONLY NEEDED FOR WC FOR NOW, THE BROWSER HANDLES THIS NOTIFICATION BY ITSELF
     if (this.isWalletConnect || this.isRemoteConn) {
       if (this.addressSent !== memState.selectedAddress) {

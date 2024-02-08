@@ -145,7 +145,6 @@ export default {
     ANDROID_SDK: 'AndroidSDK',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
     SERVER_URL: process.env.SDK_COMMLAYER_URL ?? DEFAULT_SERVER_URL,
-    // SERVER_URL: 'https://metamask-sdk.dev-api.cx.metamask.io/',
     PLATFORM: 'metamask-mobile',
     SDK_REMOTE_ORIGIN: 'MMSDKREMOTE::',
     UNKNOWN_PARAM: 'UNKNOWN',

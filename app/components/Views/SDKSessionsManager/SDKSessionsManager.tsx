@@ -25,7 +25,6 @@ import { AndroidClient } from '../../../core/SDKConnect/AndroidSDK/android-sdk-t
 import { ConnectionProps } from '../../../core/SDKConnect/Connection';
 import { SDKConnect } from '../../../core/SDKConnect/SDKConnect';
 import SDKSessionItem from './SDKSessionItem';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
 interface SDKSessionsManagerProps {
   navigation: StackNavigationProp<any>;
@@ -80,9 +79,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
     useRoute<RouteProp<{ params: { trigger?: number } }, 'params'>>();
 
   const sdk = SDKConnect.getInstance();
-  DevLogger.log(`params`, JSON.stringify(route, null, 2));
   const { trigger } = route.params ?? { trigger: undefined };
-  // const { trigger } = route.params as any;
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
   const [connections, setConnections] = useState<ConnectionProps[]>([]);
@@ -98,10 +95,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
     });
   }, [navigate]);
 
-  DevLogger.log(`render SDKSessionManager`);
-
   useEffect(() => {
-    DevLogger.log(`SDKSessionsManager: useEffect`, props);
     const refreshSDKState = async () => {
       const _connections = sdk.getConnections();
       const _connected = sdk.getConnected();
