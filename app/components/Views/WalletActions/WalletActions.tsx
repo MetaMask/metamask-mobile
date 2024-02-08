@@ -1,26 +1,39 @@
 // Third party dependencies.
-import React, { useRef } from 'react';
-import { View, Platform } from 'react-native';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import React, { useRef } from 'react';
+import { Platform, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 
 // External dependencies.
+import { strings } from '../../../../locales/i18n';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { toggleReceiveModal } from '../../../actions/modals';
+import { newAssetTransaction } from '../../../actions/transaction';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../../component-library/hooks';
+import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
+import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
+import WalletAction from '../../../components/UI/WalletAction';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
+import { swapsLivenessSelector } from '../../../reducers/swaps';
 import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
-import { toggleReceiveModal } from '../../../actions/modals';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
+import { getEther } from '../../../util/transactions';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import Analytics from '../../../core/Analytics/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { strings } from '../../../../locales/i18n';
@@ -30,11 +43,9 @@ import { useStyles } from '../../../component-library/hooks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
-import ImportedEngine from '../../../core/Engine';
 import { getDecimalChainId } from '../../../util/networks';
 
 // Internal dependencies
-import styleSheet from './WalletActions.styles';
 import {
   WALLET_BRIDGE,
   WALLET_BUY,
@@ -46,6 +57,7 @@ import {
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 import { getPermittedAccounts } from '../../../core/Permissions';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import { PermissionController } from '@metamask/permission-controller';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -122,67 +134,9 @@ const WalletActions = () => {
     });
   };
 
-  const onCheckPermissions = async () => {
-    DevLogger.log(`Checking permissions now...`);
-    const Engine = ImportedEngine as any;
-    try {
-      // const hostname = 'sdk://19a02b89-1e4d-4aa6-9000-d3b8bd082ef3';
-
-      // await Engine.context.ApprovalController.clear();
-      // await Engine.context.PermissionController.requestPermissions(
-      //   { origin: hostname },
-      //   { eth_accounts: {} },
-      //   { id: random() },
-      // );
-      const permissionController = Engine.context
-        .PermissionController as PermissionController<any, any>;
-      DevLogger.log(`perm`, permissionController);
-      const acc = await getPermittedAccounts(
-        '7704bea0f5d4533548cfcfc022b77e50ee02519e79bb1adbe179e47d2d75ab73',
-      );
-      DevLogger.log(`Permissions: ${JSON.stringify(acc)}`);
-    } catch (error) {
-      console.error(`Error checking permissions`, error);
-    }
-  };
-
-  const simulateSDK = async () => {
-    DevLogger.log(`Simulating SDK now...`);
-    try {
-      const id = '19a02b89-1e4d-4aa6-9000-d3b8bd082ef3';
-      const origin = AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
-      SDKConnect.getInstance().connectToChannel({
-        id,
-        origin,
-        trigger: 'deeplink',
-        otherPublicKey: '0x1234567890123456789012345678901234567890',
-      });
-    } catch (error) {
-      console.error(`Error simulating SDK`, error);
-    }
-  };
-
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
-        <WalletAction
-          actionTitle="Debug"
-          actionDescription="Check Permissions"
-          iconName={IconName.Add}
-          iconSize={AvatarSize.Md}
-          onPress={onCheckPermissions}
-          iconStyle={styles.icon}
-          {...generateTestId(Platform, WALLET_BUY)}
-        />
-        <WalletAction
-          actionTitle="Debug"
-          actionDescription="Simulate SDK"
-          iconName={IconName.Add}
-          iconSize={AvatarSize.Md}
-          onPress={simulateSDK}
-          iconStyle={styles.icon}
-          {...generateTestId(Platform, WALLET_BUY)}
-        />
         {isNetworkRampSupported && (
           <WalletAction
             actionTitle={strings('asset_overview.buy_button')}

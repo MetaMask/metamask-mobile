@@ -1178,7 +1178,9 @@ class Engine {
         ...context,
         [controller.name]: controller,
       }),
-      {},
+      {
+        controllerMessenger: this.controllerMessenger,
+      },
     ) as typeof this.context;
 
     const {
