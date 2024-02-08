@@ -1,3 +1,4 @@
+// Third party dependencies
 import React, { PureComponent } from 'react';
 import {
   Platform,
@@ -8,22 +9,22 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
-import { getEditableOptions } from '../../../../UI/Navbar';
-import StyledButton from '../../../../UI/StyledButton';
-import Engine from '../../../../../core/Engine';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import ActionSheet from 'react-native-actionsheet';
+
+// External dependencies
+import { fontStyles } from '../../../../../styles/common';
+import { getEditableOptions } from '../../../../UI/Navbar';
+import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import {
   renderShortAddress,
   validateAddressOrENS,
 } from '../../../../../util/address';
 import ErrorMessage from '../../../SendFlow/ErrorMessage';
-import AntIcon from 'react-native-vector-icons/AntDesign';
-import ActionSheet from 'react-native-actionsheet';
 import { mockTheme, ThemeContext } from '../../../../../util/theme';
 import {
   CONTACT_ALREADY_SAVED,
@@ -34,6 +35,17 @@ import { createQRScannerNavDetails } from '../../../QRScanner';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { selectIdentities } from '../../../../../selectors/preferencesController';
 import { AddContactViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
+import Label from '../../../../../component-library/components/Form/Label';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
+import Icon, {
+  IconSize,
+  IconColor,
+  IconName,
+} from '../../../../../component-library/components/Icons/Icon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -68,10 +80,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 24,
     },
     label: {
-      fontSize: 14,
       paddingVertical: 12,
-      color: colors.text.default,
-      ...fontStyles.bold,
     },
     buttonsWrapper: {
       marginVertical: 12,
@@ -344,7 +353,7 @@ class ContactForm extends PureComponent {
       >
         <KeyboardAwareScrollView style={styles.informationWrapper}>
           <View style={styles.scrollWrapper}>
-            <Text style={styles.label}>{strings('address_book.name')}</Text>
+            <Label style={styles.label}>{strings('address_book.name')}</Label>
             <TextInput
               editable={this.state.editable}
               autoCapitalize={'none'}
@@ -364,8 +373,9 @@ class ContactForm extends PureComponent {
               testID={AddContactViewSelectorsIDs.NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
-
-            <Text style={styles.label}>{strings('address_book.address')}</Text>
+            <Label style={styles.label}>
+              {strings('address_book.address')}
+            </Label>
             <View
               style={[styles.input, editable ? {} : styles.textInputDisaled]}
             >
@@ -401,17 +411,16 @@ class ContactForm extends PureComponent {
                   onPress={this.onScan}
                   style={styles.iconWrapper}
                 >
-                  <AntIcon
-                    name="scan1"
-                    size={20}
-                    color={colors.primary.default}
+                  <Icon
+                    name={IconName.Scan}
+                    size={IconSize.Md}
+                    color={IconColor.Primary}
                     style={styles.scanIcon}
                   />
                 </TouchableOpacity>
               )}
             </View>
-
-            <Text style={styles.label}>{strings('address_book.memo')}</Text>
+            <Label style={styles.label}>{strings('address_book.memo')}</Label>
             <View
               style={[styles.input, editable ? {} : styles.textInputDisaled]}
             >
@@ -451,26 +460,29 @@ class ContactForm extends PureComponent {
             <View style={styles.buttonsWrapper}>
               <View style={styles.buttonsContainer}>
                 <View style={styles.actionButton}>
-                  <StyledButton
-                    type={'confirm'}
-                    disabled={!addressReady || !name || !!addressError}
+                  <Button
+                    variant={ButtonVariants.Primary}
+                    isDisabled={!addressReady || !name || !!addressError}
                     onPress={this.saveContact}
                     testID={AddContactViewSelectorsIDs.ADD_BUTTON}
-                  >
-                    {strings(`address_book.${mode}_contact`)}
-                  </StyledButton>
+                    label={strings(`address_book.${mode}_contact`)}
+                    size={ButtonSize.Lg}
+                    width={ButtonWidthTypes.Full}
+                  />
                 </View>
                 {mode === EDIT && (
                   <View style={styles.actionButton}>
-                    <StyledButton
+                    <Button
+                      variant={ButtonVariants.Link}
+                      size={ButtonSize.Lg}
+                      isDanger
                       style={styles.actionButton}
-                      type={'warning-empty'}
-                      disabled={!addressReady || !name || !!addressError}
+                      isDisabled={!addressReady || !name || !!addressError}
                       onPress={this.onDelete}
                       testID={AddContactViewSelectorsIDs.DELETE_BUTTON}
-                    >
-                      {strings(`address_book.delete`)}
-                    </StyledButton>
+                      label={strings(`address_book.delete`)}
+                      width={ButtonWidthTypes.Full}
+                    />
                   </View>
                 )}
               </View>
