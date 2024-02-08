@@ -19,7 +19,6 @@ const createMigratedStorage = (reducerName: string) => ({
             await FilesystemStorage.setItem(
               key,
               JSON.stringify(parsedRoot.engine.backgroundState[key]),
-              false,
             );
           }
         }
