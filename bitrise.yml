@@ -191,6 +191,10 @@ workflows:
           title: Yarn Alternative Setup a 
       - yarn@0:
           inputs:
+            - command: setup2a2
+          title: Yarn Alternative Setup a2 
+      - yarn@0:
+          inputs:
             - command: setup2b
           title: Yarn Alternative Setup b 
       - yarn@0:
