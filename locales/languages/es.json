@@ -7,8 +7,6 @@
     "deceptive_request_title": "Esta es una solicitud engañosa",
     "failed_title": "Es posible que la solicitud no sea segura",
     "failed_description": "Debido a un error, el proveedor de seguridad no verificó esta solicitud. Proceda con precaución.",
-    "loading_title": "Esta solicitud todavía se está simulando. Recomendamos esperar a su finalización.",
-    "loading_complete_title": "Simulación completada. Revise esta solicitud antes de continuar.",
     "malicious_domain_description": "Está interactuando con un dominio malicioso. Si aprueba esta solicitud, podría perder sus activos.",
     "other_description": "Si aprueba esta solicitud, podría perder sus activos.",
     "raw_signature_farming_description": "Si aprueba esta solicitud, podría perder sus activos.",
