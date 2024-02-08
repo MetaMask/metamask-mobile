@@ -10,36 +10,6 @@ For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or
 
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
 
-## Table of Contents
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-- [MetaMask](#metamask)
-  - [Environment Setup](#environment-setup)
-    - [Device Environment Setup](#device-environment-setup)
-      - [Android](#android)
-    - [Building Locally](#building-locally)
-      - [Android](#android-1)
-      - [iOS](#ios)
-      - [Build Troubleshooting](./docs/readme/troubleshooting.md)
-    - [Debugging](./docs/readme/debugging.md)
-      - [Debugging Physical iOS devices](#debugging-physical-ios-devices)
-      - [Debug a website inside the WebView (in-app browser)](#debug-a-website-inside-the-webview-in-app-browser)
-    - [Running Tests](./docs/readme/testing.md)
-      - [Unit Tests](#unit-tests)
-      - [E2E Tests](#e2e-tests)
-        - [Platforms](#platforms)
-        - [Test wallet](#test-wallet)
-        - [Detox](#detox)
-    - [iOS](#ios-1)
-      - [Appium](#appium)
-    - [Changing dependencies](#changing-dependencies)
-    - [Architecture](./docs/readme/architecture.md)
-    - [Storybook](./docs/readme/storybook.md)
-    - [Miscellaneous](./docs/readme/miscellaneous.md)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 ## Getting started
 
 ### [Environment setup](./docs/readme/environment.md)
