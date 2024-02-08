@@ -1,8 +1,6 @@
 import { PermissionController } from '@metamask/permission-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
-import { RestrictedMethods } from '../../../core/Permissions/constants';
-import { errorCodes as rpcErrorCodes } from 'eth-rpc-errors';
 import { getPermittedAccounts } from '../../../core/Permissions';
 import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
@@ -85,22 +83,6 @@ export const checkPermissions = async ({
 
   try {
     await connection.approvalPromise;
-    try {
-      const accountsWithLastUsed =
-        await Engine.context.PermissionController.executeRestrictedMethod(
-          origin,
-          RestrictedMethods.eth_accounts,
-        );
-      const validated = accountsWithLastUsed.map(
-        ({ address }: { address: string }) => address.toLowerCase(),
-      );
-      DevLogger.log(`checkPermissions approved`, validated);
-    } catch (error: any) {
-      if (error.code === rpcErrorCodes.provider.unauthorized) {
-        return [];
-      }
-      throw error;
-    }
     // Clear previous permissions if already approved.
     connection.revalidate({ channelId: connection.channelId });
     connection.approvalPromise = undefined;
