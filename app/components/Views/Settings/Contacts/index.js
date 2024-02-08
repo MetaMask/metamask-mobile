@@ -1,18 +1,24 @@
+// Third party dependencies
 import React, { PureComponent } from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import ActionSheet from 'react-native-actionsheet';
+
+// External dependencies
 import { strings } from '../../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { connect } from 'react-redux';
 import AddressList from '../../SendFlow/AddressList';
-import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
-import ActionSheet from 'react-native-actionsheet';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import Routes from '../../../../../app/constants/navigation/Routes';
-
 import { ContactsViewSelectorIDs } from '../../../../../e2e/selectors/Settings/Contacts/ContacsView.selectors';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -146,14 +152,15 @@ class Contacts extends PureComponent {
           onIconPress={this.onIconPress}
           onAccountLongPress={this.onAddressLongPress}
         />
-        <StyledButton
-          type={'confirm'}
-          containerStyle={styles.addContact}
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          style={styles.addContact}
           onPress={this.goToAddContact}
           testID={ContactsViewSelectorIDs.ADD_BUTTON}
-        >
-          {strings('address_book.add_contact')}
-        </StyledButton>
+          label={strings('address_book.add_contact')}
+          width={ButtonWidthTypes.Full}
+        />
         <ActionSheet
           ref={this.createActionSheetRef}
           title={strings('address_book.delete_contact')}
