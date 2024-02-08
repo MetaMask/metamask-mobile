@@ -196,20 +196,17 @@ buildAndroidRunFlask(){
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM"
+	react-native run-ios --port=$WATCHER_PORT
 }
 
 buildIosSimulatorQA(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
+	react-native run-ios --port=$WATCHER_PORT --scheme "MetaMask-QA"
 }
 
 buildIosSimulatorFlask(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-Flask"
+	react-native run-ios --port=$WATCHER_PORT --scheme "MetaMask-Flask"
 }
 
 buildIosSimulatorE2E(){
@@ -276,7 +273,7 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
+		./node_modules/.bin/react-native run-ios --configuration Release
 	fi
 }
 
@@ -405,7 +402,7 @@ buildAndroidRelease(){
 buildAndroidFlaskRelease(){
 	# remap flask env variables to match what the app expects
 	remapFlaskEnvVariables
-	
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.flask || true
 	fi
