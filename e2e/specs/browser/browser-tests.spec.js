@@ -13,6 +13,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
+import blacklistURLs from '../../resources/blacklistURLs';
 
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
@@ -28,6 +29,7 @@ describe(SmokeCore('Browser Tests'), () => {
     await device.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
+    await device.setURLBlacklist(blacklistURLs);
     await loginToApp();
   });
 
