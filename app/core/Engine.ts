@@ -179,6 +179,7 @@ import ExtendedKeyringTypes from '../constants/keyringTypes';
 import { UpdatePPOMInitializationStatus } from '../actions/experimental';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -334,6 +335,16 @@ class Engine {
    */
   snapExecutionService: WebviewExecutionService;
   ///: END:ONLY_INCLUDE_IF
+
+  // This is here to resolve the circular dependency between the txController and stxController initialization
+  txController: TransactionController;
+  stxController: SmartTransactionsController;
+  getExternalPendingTransactions(address: string) {
+    return this.stxController.getTransactions({
+      addressFrom: address,
+      status: SmartTransactionStatuses.PENDING,
+    });
+  }
 
   /**
    * Creates a CoreController instance
@@ -835,7 +846,7 @@ class Engine {
     );
     ///: END:ONLY_INCLUDE_IF
 
-    const txController = new TransactionController({
+    this.txController = new TransactionController({
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
       getNetworkState: () => networkController.state,
@@ -864,20 +875,22 @@ class Engine {
         ),
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
+      getExternalPendingTransactions:
+        this.getExternalPendingTransactions.bind(this),
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
-    const stxController = new SmartTransactionsController(
+    this.stxController = new SmartTransactionsController(
       {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        getNonceLock: txController.getNonceLock.bind(txController),
+        getNonceLock: this.txController.getNonceLock.bind(this.txController),
         confirmExternalTransaction:
-          txController.confirmExternalTransaction.bind(txController),
+          this.txController.confirmExternalTransaction.bind(this.txController),
         provider: networkController.getProviderAndBlockTracker().provider,
 
         // TODO stx controller will call it like this:
@@ -904,7 +917,7 @@ class Engine {
       initialState.SmartTransactionsController,
     );
 
-    Logger.log('STX Engine, stxController.name', stxController.name);
+    Logger.log('STX Engine, stxController.name', this.stxController.name);
 
     const controllers = [
       keyringController,
@@ -1003,8 +1016,8 @@ class Engine {
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
       }),
-      txController,
-      stxController,
+      this.txController,
+      this.stxController,
       new SwapsController(
         {
           // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
@@ -1149,7 +1162,7 @@ class Engine {
 
     // TODO fix stxController.name, right now its set to 'BaseController'
     // Can take this out once that's fixed
-    this.context.SmartTransactionsController = stxController;
+    this.context.SmartTransactionsController = this.stxController;
 
     const {
       NftController: nfts,
