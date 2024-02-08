@@ -1236,10 +1236,10 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.15.0
+      VERSION_NAME: 7.15.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1245
+      VERSION_NUMBER: 1251
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.15.0
