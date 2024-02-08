@@ -175,73 +175,29 @@ workflows:
       - prep_environment
     steps:
       - restore-cocoapods-cache@2: {}
-      # - script@1:
-      #     inputs:
-      #       - content: |-
-      #           #!/usr/bin/env bash
-      #           envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-      #     title: Get Yarn cache directory
-      # - restore-cache@2:
-      #     title: Restore yarn cache directory
-      #     inputs:
-      #       - key: 'yarn-cache-{{ .OS }}-{{ .Arch }}'
       - yarn@0:
           inputs:
-            - command: setup2a
-          title: Yarn Alternative Setup a 
-      - yarn@0:
-          inputs:
-            - command: setup2a2
-          title: Yarn Alternative Setup a2 
-      - yarn@0:
-          inputs:
-            - command: setup2b
-          title: Yarn Alternative Setup b 
-      - yarn@0:
-          inputs:
-            - command: setup2c
-          title: Yarn Alternative Setup c
-      - yarn@0:
-          inputs:
-            - command: setup2d
-          title: Yarn Alternative Setup d
-      - yarn@0:
-          inputs:
-            - command: setup2e
-          title: Yarn Alternative Setup e
-      - yarn@0:
-          inputs:
-            - command: setup2f
-          title: Yarn Alternative Setup f
-      - yarn@0:
-          inputs:
-            - command: setup2g
-          title: Yarn Alternative Setup g
-      - yarn@0:
-          inputs:
-            - command: setup2h
-          title: Yarn Alternative Setup h
-      - yarn@0:
-          inputs:
-            - command: setup2i
-          title: Yarn Alternative Setup i
-      - yarn@0:
-          inputs:
-            - command: setup2j
-          title: Yarn Alternative Setup j
-      # - save-cache@1:
-      #     title: Save yarn cache directory
-      #     inputs:
-      #       - key: 'yarn-cache-{{ .OS }}-{{ .Arch }}'
-      #       - paths: |-
-      #           $YARN_CACHE_DIR
-      # Manual cache path needed here because the `yarn` step only caches for the `install` command
+            - args: --frozen-lockfile
+          title: yarn install 
+      # Save node_modules directory to cache immediately after install since future steps modify it.
       - save-cache@1:
           title: Save node_modules directory
           inputs:
             - key: 'node-modules-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}'
-            - paths: |-
-                node_modules
+            - paths: 
+              - node_modules
+      - yarn@0:
+          inputs:
+            - command: clean:ios
+          title: yarn clean:ios 
+      - yarn@0:
+          inputs:
+            - command: clean:android
+          title: yarn clean:android 
+      - yarn@0:
+          inputs:
+            - command: postinstall
+          title: yarn postinstall
   prep_environment:
     steps:
       - script@1:
