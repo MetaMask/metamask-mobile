@@ -2373,8 +2373,7 @@
     "blockaid": {
       "title": "Gehen Sie mit Sicherheitsbenachrichtigungen auf Nummer sicher.",
       "description_1": "Vermeiden Sie bekannte Betrügereien und bewahren Sie gleichzeitig Ihre Privatsphäre mit Sicherheitsbenachrichtigungen von Blockaid. Diese Funktion ist auf Arbitrum, Avalanche, BNB Chain, Ethereum Mainnet, Linea, Optimism und Polygon verfügbar.",
-      "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen.",
-      "action_text": "Sicherheitsbenachrichtigungen aktivieren"
+      "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen."
     },
     "sell": {
       "title": "Auszahlen leicht gemacht",

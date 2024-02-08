@@ -2373,8 +2373,7 @@
     "blockaid": {
       "title": "Güvenlik uyarıları ile güvende kalın",
       "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
-      "description_2": "Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin.",
-      "action_text": "Güvenlik uyarılarını etkinleştir"
+      "description_2": "Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin."
     },
     "sell": {
       "title": "Paraya çevirmek artık kolay",

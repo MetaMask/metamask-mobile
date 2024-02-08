@@ -2373,8 +2373,7 @@
     "blockaid": {
       "title": "Đảm bảo an toàn với cảnh báo bảo mật",
       "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
-      "description_2": "Luôn tự thẩm định trước khi chấp thuận các yêu cầu.",
-      "action_text": "Bật cảnh báo bảo mật"
+      "description_2": "Luôn tự thẩm định trước khi chấp thuận các yêu cầu."
     },
     "sell": {
       "title": "Rút tiền dễ dàng",

@@ -2373,8 +2373,7 @@
     "blockaid": {
       "title": "Избегайте угроз с помощью оповещений безопасности",
       "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
-      "description_2": "Всегда проводите собственную комплексную проверку перед утверждением запросов.",
-      "action_text": "Включить оповещения безопасности"
+      "description_2": "Всегда проводите собственную комплексную проверку перед утверждением запросов."
     },
     "sell": {
       "title": "Вывод средств стал проще",
