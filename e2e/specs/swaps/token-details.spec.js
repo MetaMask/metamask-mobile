@@ -1,5 +1,4 @@
 'use strict';
-
 import { SmokeSwaps } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
@@ -8,11 +7,13 @@ import {
   importWalletWithRecoveryPhrase,
 } from '../../viewHelper';
 import Networks from '../../resources/networks.json';
+import blacklistURLs from '../../resources/blacklistURLs';
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.launchApp();
+    await device.setURLBlacklist(blacklistURLs);
   });
 
   it('should import wallet and go to the wallet view', async () => {
