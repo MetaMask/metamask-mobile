@@ -17,14 +17,14 @@ const styles = (colors: Colors) =>
     },
     buttons: {
       flexDirection: 'row',
-      marginHorizontal: -5,
+      marginHorizontal: -4,
     },
     button: {
       flex: 1,
-      marginHorizontal: 5,
+      marginHorizontal: 4,
     },
     title: {
-      fontSize: 20,
+      marginBottom: 8,
     },
   });
 

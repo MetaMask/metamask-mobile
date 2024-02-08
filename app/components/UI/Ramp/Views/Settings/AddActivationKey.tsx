@@ -1,11 +1,18 @@
+// Third party dependencies
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import Text from '../../../../Base/Text';
-import StyledButton from '../../../StyledButton';
+// External dependencies
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../../../component-library/components/Buttons/Button';
 
 import { getNavigationOptionsTitle } from '../../../Navbar';
 import {
@@ -16,6 +23,8 @@ import { useTheme } from '../../../../../util/theme';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { regex } from '../../../../../util/regex';
+
+// Internal dependencies
 import styles from './Settings.styles';
 
 interface AddActivationKeyParams {
@@ -64,7 +73,7 @@ function AddActivationKey() {
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content>
-          <Text style={style.title}>
+          <Text style={style.title} variant={TextVariant.BodyLGMedium}>
             {strings('app_settings.fiat_on_ramp.add_activation_key')}
           </Text>
           <Row>
@@ -89,23 +98,21 @@ function AddActivationKey() {
           </Row>
 
           <Row style={style.buttons}>
-            <StyledButton
-              key="confirm-button"
-              type="confirm"
-              disabled={!regex.activationKey.test(newKey)}
-              containerStyle={style.button}
-              onPress={handleSubmit}
-            >
-              {strings('app_settings.fiat_on_ramp.add')}
-            </StyledButton>
-            <StyledButton
-              key="cancel-button"
-              type="cancel"
-              containerStyle={style.button}
+            <Button
+              variant={ButtonVariants.Secondary}
+              size={ButtonSize.Lg}
+              style={style.button}
               onPress={handleCancel}
-            >
-              {strings('app_settings.fiat_on_ramp.cancel')}
-            </StyledButton>
+              label={strings('app_settings.fiat_on_ramp.cancel')}
+            />
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              style={style.button}
+              onPress={handleSubmit}
+              label={strings('app_settings.fiat_on_ramp.add')}
+              isDisabled={!regex.activationKey.test(newKey)}
+            />
           </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
