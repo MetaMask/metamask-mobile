@@ -175,16 +175,16 @@ workflows:
       - prep_environment
     steps:
       - restore-cocoapods-cache@2: {}
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-          title: Get Yarn cache directory
-      - restore-cache@2:
-          title: Restore yarn cache directory
-          inputs:
-            - key: 'yarn-cache-{{ .OS }}-{{ .Arch }}'
+      # - script@1:
+      #     inputs:
+      #       - content: |-
+      #           #!/usr/bin/env bash
+      #           envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
+      #     title: Get Yarn cache directory
+      # - restore-cache@2:
+      #     title: Restore yarn cache directory
+      #     inputs:
+      #       - key: 'yarn-cache-{{ .OS }}-{{ .Arch }}'
       - yarn@0:
           inputs:
             - command: setup2a
@@ -225,12 +225,12 @@ workflows:
           inputs:
             - command: setup2j
           title: Yarn Alternative Setup j
-      - save-cache@1:
-          title: Save yarn cache directory
-          inputs:
-            - key: 'yarn-cache-{{ .OS }}-{{ .Arch }}'
-            - paths: |-
-                $YARN_CACHE_DIR
+      # - save-cache@1:
+      #     title: Save yarn cache directory
+      #     inputs:
+      #       - key: 'yarn-cache-{{ .OS }}-{{ .Arch }}'
+      #       - paths: |-
+      #           $YARN_CACHE_DIR
       # Manual cache path needed here because the `yarn` step only caches for the `install` command
       - save-cache@1:
           title: Save node_modules directory
