@@ -182,7 +182,7 @@ workflows:
                 envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
           title: Get Yarn cache directory
       - restore-cache@2:
-          title: Restore Yarn cache directory
+          title: Restore yarn cache directory
           inputs:
             - key: 'yarn-cache-{{ .OS }}-{{ .Arch }}'
       - yarn@0:
@@ -190,14 +190,14 @@ workflows:
             - command: setup2
           title: Yarn Alternative Setup 
       - save-cache@1:
-          title: Save Yarn cache directory
+          title: Save yarn cache directory
           inputs:
             - key: 'yarn-cache-{{ .OS }}-{{ .Arch }}'
             - paths: |-
                 $YARN_CACHE_DIR
       # Manual cache path needed here because the `yarn` step only caches for the `install` command
       - save-cache@1:
-          title: Save cache dependencies
+          title: Save node_modules directory
           inputs:
             - key: 'node-modules-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}'
             - paths: |-
@@ -218,7 +218,7 @@ workflows:
                 asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
       - restore-cache@2:
-          title: Restore cache dependencies
+          title: Restore node_modules directory
           inputs:
             - key: 'node-modules-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}'
 
