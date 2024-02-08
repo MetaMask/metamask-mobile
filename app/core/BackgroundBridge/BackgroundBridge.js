@@ -220,6 +220,28 @@ export class BackgroundBridge extends EventEmitter {
     // Only notify if selectedAddress is approved
     getPermittedAccounts(this.channelId ?? this.hostname)
       .then((approvedAccounts) => {
+        // Check if selectedAddress is approved
+        let found = false;
+        if (
+          approvedAccounts
+            .map((addr) => addr.toLowerCase())
+            .includes(selectedAddress.toLowerCase())
+        ) {
+          DevLogger.log(
+            `notifySelectedAddressChanged: ${selectedAddress} is approved`,
+          );
+          found = true;
+        }
+
+        if (found) {
+          // Set selectedAddress as first value in array
+          approvedAccounts = [
+            selectedAddress,
+            ...approvedAccounts.filter(
+              (addr) => addr.toLowerCase() !== selectedAddress.toLowerCase(),
+            ),
+          ];
+        }
         DevLogger.log(
           `notifySelectedAddressChanged hostname: ${this.hostname}: ${selectedAddress}`,
           approvedAccounts,
