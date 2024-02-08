@@ -39,107 +39,48 @@ For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or
 
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
 
-## Prerequisites
+## Getting started
 
-### Environment Setup
+### [Environment setup](./docs/readme/environment.md)
 
-The code is built using React-Native and running code locally requires a Mac or Linux OS.
+Make sure your development environment has all the tools needed to run this project
 
-1. ### Install Node with [nvm](https://github.com/creationix/nvm#installation)
+### Building the app
 
-   - `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash`
-   - `nvm install 18.18.2`
-   - `nvm use 18.18.2`
-     - Usage: `nvm alias default 18.18.2` (or whatever version you need - this sets the working version)
+**Clone the project**
+```bash
+git clone git@github.com:MetaMask/metamask-mobile.git && \
+cd metamask-mobile
+```
 
-2. ### Install [Yarn v1](https://yarnpkg.com/en/docs/install)
+**Install dependencies**
 
-   One way to install Yarn v1 is by using brew:
+```bash
+yarn setup
+```
+_Not the usual install command, this will run scripts and a lengthy postinstall flow_
 
-   ```bash
-   npm install yarn@1.22.19
-   ```
+**Setup environment variables**
+```bash
+cp .ios.env.example .ios.env && \
+cp .android.env.example .android.env && \
+cp .js.env.example .js.env
+```
 
-   To check you've installed the right version:
+**Run Metro bundler**
+```bash
+yarn watch
+```
+_Like a local server for the app_
 
-   ```bash
-   yarn --version
-   ```
+**Run on a iOS device**
+```bash
+yarn start:ios 
+```
 
-3. ### Install Xcode
+**Run on an Android device**
+```bash
+yarn start:android
+```
 
-   - From the [App Store](https://apps.apple.com/us/app/xcode/id497799835?mt=12)
-   - Install Command Line Tools - `cmd + ,` to open settings - `Locations` tab - Select the most recent version in the Command Line Tools dropdown
-     ![Alt text](image.png)
-
-4. ### Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html)
-
-   - `sudo gem install cocoapods -v 1.12.1`
-
-5. ### Install [Android Studio](https://developer.android.com/studio)
-   - Install [Java](https://www.java.com/en/download/). To check if Java is already installed, run:
-     ```
-     java -version
-     ```
-   - Install the Android NDK (version `21.4.7075529`), via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
-     - Go to Settings > Appearance & Behavior > System Settings > Android SDK
-       - Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
-     - Select `SDK Tools` tab
-     - Check `Show Package Details` option below the tools list to show available versions
-     - Locate `NDK (Side-by-side)` option in the tools list
-     - Check NDK version `24.0.8215888`
-     - Locate `CMake` option in the tools list
-     - Check CMake version `3.22.1`
-     - Click "Apply" or "OK" to download
-   - Finally, start the emulator from Android Studio:
-     - Open "Virtual Device Manager"
-     - Launch emulator for "Pixel 5 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
-
-## Building the App
-
-1. ### Clone this repo:
-
-   ```bash
-   git clone git@github.com:MetaMask/metamask-mobile.git
-   cd metamask-mobile
-   ```
-
-   - _MetaMask Internal Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
-
-   ```
-     cp .ios.env.example .ios.env && \
-     cp .android.env.example .android.env && \
-     cp .js.env.example .js.env
-   ```
-
-   - Note: after updating env vars, make sure to run `source .js.env` on the root of the project
-
-2. ### Install the app:
-
-   ```
-   yarn setup
-   ```
-
-   _Not the usual install command, this will run scripts and a lengthy postinstall flow_
-
-3. ### Start the packager
-
-   ```bash
-   yarn watch
-   ```
-
-   _Like a local server for the app_
-
-4. ### Run the App on a Local Simulator/Emulator
-
-   #### Android
-
-   ```bash
-   yarn start:android
-   ```
-
-   #### iOS
-
-   ```bash
-   yarn start:ios
-   ```
+## [Debugging](./docs/readme/debugging.md)
