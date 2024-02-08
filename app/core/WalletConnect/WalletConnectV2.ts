@@ -550,6 +550,7 @@ export class WC2Manager {
     //  Open session proposal modal for confirmation / rejection
     const { id, params } = proposal;
 
+    // TODO keeping as comments for reference, needs to migrate to redux store instead of DefaultPreference.
     // const {
     //   // proposer,
     //   // requiredNamespaces,
@@ -557,15 +558,15 @@ export class WC2Manager {
     //   // sessionProperties,
     //   // relays,
     // } = params;
+    // const url = proposer.metadata.url ?? '';
+    // const name = proposer.metadata.description ?? '';
+    // const icons = proposer.metadata.icons;
 
     const pairingTopic = proposal.params.pairingTopic;
     DevLogger.log(
       `WC2::session_proposal id=${id} pairingTopic=${pairingTopic}`,
       params,
     );
-    // const url = proposer.metadata.url ?? '';
-    // const name = proposer.metadata.description ?? '';
-    // const icons = proposer.metadata.icons;
 
     const permissionsController = (
       Engine.context as { PermissionController: PermissionController<any, any> }
