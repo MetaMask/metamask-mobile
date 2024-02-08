@@ -252,32 +252,6 @@ export default class AndroidService extends EventEmitter2 {
       Engine.context as { PermissionController: PermissionController<any, any> }
     ).PermissionController;
 
-    // const approvalController = (
-    //   Engine.context as { ApprovalController: ApprovalController }
-    // ).ApprovalController;
-    // const approvalRequest = {
-    //   origin: AppConstants.MM_SDK.ANDROID_SDK,
-    //   type: ApprovalTypes.CONNECT_ACCOUNTS,
-    //   requestData: {
-    //     hostname: originatorInfo?.title ?? '',
-    //     pageMeta: {
-    //       channelId,
-    //       reconnect: false,
-    //       origin: AppConstants.MM_SDK.ANDROID_SDK,
-    //       url: originatorInfo?.url ?? '',
-    //       title: originatorInfo?.title ?? '',
-    //       icon: originatorInfo?.icon ?? '',
-    //       otps: [],
-    //       analytics: {
-    //         request_source: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
-    //         request_platform:
-    //           originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
-    //       },
-    //     } as Json,
-    //   },
-    //   id: channelId,
-    // };
-    // return approvalController.add(approvalRequest);
     return permissionsController.requestPermissions(
       { origin: channelId },
       { eth_accounts: {} },
@@ -357,7 +331,6 @@ export default class AndroidService extends EventEmitter2 {
               originatorInfo: this.connections[sessionId]?.originatorInfo ?? {},
               channelId: sessionId,
             });
-            DevLogger.log(`Permissions request sent and accepted...`);
 
             // Create new bridge
             this.setupBridge(this.connections[sessionId]);
