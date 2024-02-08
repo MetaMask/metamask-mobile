@@ -130,6 +130,62 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
     expect(fromTokenMinimalUnit(1e16, 6)).toEqual('10000000000');
     expect(fromTokenMinimalUnit(1e18, 18)).toEqual('1');
   });
+
+  it('rounds number by default', () => {
+    expect(fromTokenMinimalUnit(new BN('1000000000000000000'), 18)).toEqual(
+      '1',
+    );
+    expect(fromTokenMinimalUnit(new BN('10000000000000000000'), 18)).toEqual(
+      '10',
+    );
+    expect(fromTokenMinimalUnit(new BN('100000000000000000000'), 18)).toEqual(
+      '100',
+    );
+    expect(fromTokenMinimalUnit(new BN('1000000000000000000000'), 18)).toEqual(
+      '1000',
+    );
+    expect(fromTokenMinimalUnit(new BN('10000000000000000000000'), 18)).toEqual(
+      '10000',
+    );
+
+    // test decimal greater than 30,000
+    expect(fromTokenMinimalUnit(new BN('50000000000000000000000'), 18)).toEqual(
+      '49999.999999999995805696',
+    );
+
+    // test decimal less than 1e-14
+    expect(fromTokenMinimalUnit(hexToBN('576129d2d21d64a5'), 18)).toEqual(
+      '6.296359739485676544',
+    );
+  });
+
+  it('does not round number if isRounding is false', () => {
+    expect(
+      fromTokenMinimalUnit(new BN('1000000000000000000'), 18, false),
+    ).toEqual('1');
+    expect(
+      fromTokenMinimalUnit(new BN('10000000000000000000'), 18, false),
+    ).toEqual('10');
+    expect(
+      fromTokenMinimalUnit(new BN('100000000000000000000'), 18, false),
+    ).toEqual('100');
+    expect(
+      fromTokenMinimalUnit(new BN('1000000000000000000000'), 18, false),
+    ).toEqual('1000');
+    expect(
+      fromTokenMinimalUnit(new BN('10000000000000000000000'), 18, false),
+    ).toEqual('10000');
+
+    // test decimal greater than 30,000
+    expect(
+      fromTokenMinimalUnit(new BN('50000000000000000000000'), 18, false),
+    ).toEqual('50000');
+
+    // test decimal less than 1e-14
+    expect(
+      fromTokenMinimalUnit(hexToBN('576129d2d21d64a5'), 18, false),
+    ).toEqual('6.296359739485676709');
+  });
 });
 
 describe('Number utils :: fromTokenMinimalUnitString', () => {

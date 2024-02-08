@@ -208,8 +208,8 @@ exports[`CustomNonceModal should render correctly 1`] = `
           <View
             style={
               Object {
-                "backgroundColor": "#FFD33D19",
-                "borderColor": "#F66A0A",
+                "backgroundColor": "#BF520819",
+                "borderColor": "#BF5208",
                 "borderRadius": 8,
                 "borderWidth": 1,
                 "display": "flex",
@@ -222,7 +222,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
           >
             <Icon
               allowFontScaling={false}
-              color="#F66A0A"
+              color="#BF5208"
               name="exclamation-circle"
               size={16}
               style={
