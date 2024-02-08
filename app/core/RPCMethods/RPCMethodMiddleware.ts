@@ -118,14 +118,6 @@ export const checkActiveAccountAndChainId = async ({
       hostname,
       formattedAddress,
     });
-    // if (checkSelectedAddress) {
-    //   const selectedAddress =
-    //     Engine.context.PreferencesController.state.selectedAddress;
-    //   if (formattedAddress !== safeToChecksumAddress(selectedAddress)) {
-    //     isInvalidAccount = true;
-    //   }
-    // } else {
-    // For Browser use permissions
     const validHostname = hostname?.replace(
       AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       '',
@@ -133,25 +125,10 @@ export const checkActiveAccountAndChainId = async ({
     const accounts = await getPermittedAccounts(channelId ?? validHostname);
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
-    DevLogger.log(
-      `checkActiveAccountAndChainId`,
-      JSON.stringify(
-        {
-          validHostname,
-          accounts,
-          channelId,
-          normalizedAccounts,
-          formattedAddress,
-        },
-        null,
-        2,
-      ),
-    );
     if (!normalizedAccounts.includes(formattedAddress)) {
       isInvalidAccount = true;
     }
 
-    // }
     if (isInvalidAccount) {
       if (accounts.length > 0) {
         // Permissions issue --- requesting incorrect address
@@ -471,55 +448,19 @@ export const getRpcMethodMiddleware = ({
       },
       eth_requestAccounts: async () => {
         const { params } = req;
-        // if (isWalletConnect) {
-        //   let { selectedAddress } = Engine.context.PreferencesController.state;
-        //   selectedAddress = selectedAddress?.toLowerCase();
-        //   res.result = [selectedAddress];
-        // } else if (isMMSDK) {
-        //   try {
-        //     const approved = getApprovedHosts(hostname)[hostname];
-
-        //     if (!approved) {
-        //       // Prompts user approval UI in RootRPCMethodsUI.js.
-        //       await requestUserApproval({
-        //         type: ApprovalTypes.CONNECT_ACCOUNTS,
-        //         requestData: { hostname },
-        //       });
-        //     }
-        //     // Stores approvals in SDKConnect.ts.
-        //     approveHost?.(hostname);
-        //     const accounts = getAccounts();
-        //     res.result = accounts;
-        //   } catch (e) {
-        //     throw ethErrors.provider.userRejectedRequest(
-        //       'User denied account authorization.',
-        //     );
-        //   }
-        // } else {
-        // Check against permitted accounts.
         const validHostname = hostname.replace(
           AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
           '',
         );
-        DevLogger.log(
-          `eth_requestAccounts hostname=${hostname} channelId=${channelId} validHostname=${validHostname}`,
-          params,
-        );
         const permittedAccounts = await getPermittedAccounts(
           channelId ?? validHostname,
         );
-        DevLogger.log(
-          `eth_requestAccounts permitted accounts`,
-          permittedAccounts,
-        );
+
         if (!params?.force && permittedAccounts.length) {
           res.result = permittedAccounts;
         } else {
           try {
             checkTabActive();
-            DevLogger.log(
-              `eth_requestAccounts requestPermissions requestId=${validHostname}`,
-            );
             // await Engine.context.ApprovalController.clear();
             await Engine.context.PermissionController.requestPermissions(
               { origin: channelId ?? validHostname },
@@ -536,7 +477,6 @@ export const getRpcMethodMiddleware = ({
             }
           }
         }
-        // }
       },
       eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
