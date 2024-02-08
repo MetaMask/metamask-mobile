@@ -177,7 +177,6 @@ const AccountConnectMultiSelector = ({
           isMultiSelect
           isRemoveAccountEnabled
           isAutoScrollEnabled={isAutoScrollEnabled}
-          // style={{ flex: 1, minHeight: 150 }}
         />
         <View style={styles.sdkInfoContainer}>
           <View style={styles.sdkInfoDivier} />

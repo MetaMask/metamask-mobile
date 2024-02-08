@@ -49,9 +49,6 @@ const styleSheet = (params: { theme: Theme }) => {
       height: 1,
       width: '100%',
     },
-    dontRememberCheckbox: {
-      width: '100%',
-    },
     disabled: {
       opacity: 0.5,
     },
