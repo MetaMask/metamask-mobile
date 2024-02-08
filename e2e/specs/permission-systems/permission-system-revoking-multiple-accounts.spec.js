@@ -1,19 +1,16 @@
 'use strict';
 import TestHelpers from '../../helpers';
-
 import Browser from '../../pages/Browser';
-
 import AccountListView from '../../pages/AccountListView';
 import TabBarComponent from '../../pages/TabBarComponent';
-
 import ConnectModal from '../../pages/modals/ConnectModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
-
 import { loginToApp } from '../../viewHelper';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
+import blacklistURLs from '../../resources/blacklistURLs';
 
 const SUSHI_SWAP = 'https://app.sushi.com/swap';
 const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
@@ -34,6 +31,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         restartDevice: true,
       },
       async () => {
+        await device.setURLBlacklist(blacklistURLs);
         //should navigate to browser
         await loginToApp();
         await TabBarComponent.tapBrowser();

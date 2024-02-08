@@ -20,6 +20,7 @@ import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
+import blacklistURLs from '../../resources/blacklistURLs';
 
 const PASSWORD = '12345678';
 
@@ -41,6 +42,7 @@ describe(
           restartDevice: true,
         },
         async () => {
+          await device.setURLBlacklist(blacklistURLs);
           await loginToApp();
 
           //validate connection to test dapp
