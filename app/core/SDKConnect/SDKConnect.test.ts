@@ -93,6 +93,7 @@ describe('SDKConnect', () => {
   >;
 
   const mockRemoveAll = removeAll as jest.MockedFunction<typeof removeAll>;
+  mockRemoveAll.mockResolvedValue(Promise.resolve());
 
   const mockInvalidateChannel = invalidateChannel as jest.MockedFunction<
     typeof invalidateChannel
