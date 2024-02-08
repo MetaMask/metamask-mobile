@@ -1229,6 +1229,7 @@ index 28c078a..5f8a015 100644
  /**
   * confirm
   */
+#   This patch made to overridde the restrictions that webView is imposing to the native Alert, by restricting its size.
 +
 +- (void)webView:(WKWebView *)webView requestMediaCapturePermissionForOrigin:(WKSecurityOrigin *)origin initiatedByFrame:(WKFrameInfo *)frame type:(WKMediaCaptureType)type decisionHandler:(void (^)(WKPermissionDecision decision))decisionHandler  API_AVAILABLE(ios(15.0)){
 +    
