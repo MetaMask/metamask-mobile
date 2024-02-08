@@ -11,14 +11,15 @@ const createMigratedStorage = (reducerName: string) => ({
         return res;
       }
       if (Platform.OS === 'android') {
-        const root = await FilesystemStorage.getItem('root');
+        const root = await FilesystemStorage.getItem('persist:root');
         if (root) {
           const parsedRoot = JSON.parse(root);
-
           if (parsedRoot?.engine?.backgroundState?.[key]) {
             await FilesystemStorage.setItem(
               key,
-              JSON.stringify(parsedRoot.engine.backgroundState[key]),
+              JSON.stringify(
+                parsedRoot.engine.backgroundState[key.replace('persist:', '')],
+              ),
             );
           }
         }
