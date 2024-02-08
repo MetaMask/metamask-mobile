@@ -11,10 +11,10 @@ For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
 
 ## Documentation
-- [Development Environment Setup](./docs/readme/environment.md)
 - [Architecture](./docs/readme/architecture.md)
-- [Running Tests](./docs/readme/testing.md)
+- [Development Environment Setup](./docs/readme/environment.md)
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
+- [Testing](./docs/readme/testing.md)
 - [Debugging](./docs/readme/debugging.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
