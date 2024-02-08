@@ -62,7 +62,6 @@ npm install -g yarn
 ```
 
 ## Android
-TBA
 
 Install [Android Studio](https://developer.android.com/studio)
 
@@ -82,5 +81,7 @@ Set environment variable `JAVA_HOME=/Applications/Android Studio.app/Contents/jb
    - Finally, start the emulator from Android Studio:
      - Open "Virtual Device Manager"
      - Launch emulator for "Pixel 5 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
+
+WIP
 
 You are ready to setup metamask-mobile project in your system!
