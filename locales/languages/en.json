@@ -903,6 +903,7 @@
     "disconnect_all_info": "If you remove your connections to all sites, you’ll need to give permission to connect again.",
     "disconnect": "Disconnect",
     "disconnect_all": "Disconnect all",
+    "disconnect_all_accounts": "Disconnect all Accounts",
     "manage": "Manage",
     "cancel": "Cancel",
     "loading": "Connecting to MetaMask...",

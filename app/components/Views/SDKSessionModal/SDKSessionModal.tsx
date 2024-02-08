@@ -32,6 +32,7 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../util/theme';
+import { strings } from '../../../../locales/i18n';
 
 const createStyles = (
   _colors: ThemeColors,
@@ -186,18 +187,17 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
                   });
                 }
               }}
-              label={'Disconnect'}
+              label={strings('sdk.disconnect')}
             />
           </View>
         </Cell>
       ))}
       <View style={styles.actionsContainer}>
         <Button
-          label={'Disconnect all accounts'}
+          label={strings('sdk.disconnect_all_accounts')}
           variant={ButtonVariants.Primary}
           style={styles.disconnectBtn}
           onPress={() => {
-            DevLogger.log(`Disconnect all accounts`);
             navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.SDK_DISCONNECT,
               params: {

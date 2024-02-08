@@ -22,6 +22,7 @@ import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import Routes from '../../../../app/constants/navigation/Routes';
 
 const createStyles = (
   _colors: ThemeColors,
@@ -98,11 +99,11 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
       SDKConnect.getInstance().removeAll();
     }
 
-    navigate('SDKSessionsManager', { trigger: Math.random() });
+    navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Math.random() });
   };
 
   const onCancel = () => {
-    navigate('SDKSessionsManager');
+    navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER);
   };
 
   return (
