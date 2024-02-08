@@ -505,7 +505,9 @@ export const getRpcMethodMiddleware = ({
           `eth_requestAccounts hostname=${hostname} channelId=${channelId} validHostname=${validHostname}`,
           params,
         );
-        const permittedAccounts = await getPermittedAccounts(validHostname);
+        const permittedAccounts = await getPermittedAccounts(
+          channelId ?? validHostname,
+        );
         DevLogger.log(
           `eth_requestAccounts permitted accounts`,
           permittedAccounts,
@@ -520,9 +522,9 @@ export const getRpcMethodMiddleware = ({
             );
             // await Engine.context.ApprovalController.clear();
             await Engine.context.PermissionController.requestPermissions(
-              { origin: channelId ?? hostname },
+              { origin: channelId ?? validHostname },
               { eth_accounts: {} },
-              { id: validHostname },
+              { id: channelId ?? validHostname },
             );
             const acc = await getPermittedAccounts(hostname);
             res.result = acc;
