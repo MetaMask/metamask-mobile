@@ -232,12 +232,12 @@ workflows:
             - paths: |-
                 $YARN_CACHE_DIR
       # Manual cache path needed here because the `yarn` step only caches for the `install` command
-      # - save-cache@1:
-      #     title: Save node_modules directory
-      #     inputs:
-      #       - key: 'node-modules-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}'
-      #       - paths: |-
-      #           node_modules
+      - save-cache@1:
+          title: Save node_modules directory
+          inputs:
+            - key: 'node-modules-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}'
+            - paths: |-
+                node_modules
   prep_environment:
     steps:
       - script@1:
@@ -253,10 +253,10 @@ workflows:
                 asdf install yarn "$YARN_VERSION"
                 asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
-      # - restore-cache@2:
-      #     title: Restore node_modules directory
-      #     inputs:
-      #       - key: 'node-modules-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}'
+      - restore-cache@2:
+          title: Restore node_modules directory
+          inputs:
+            - key: 'node-modules-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}'
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
