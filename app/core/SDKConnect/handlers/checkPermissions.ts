@@ -95,32 +95,6 @@ export const checkPermissions = async ({
     { id: connection.channelId },
   );
 
-  // const approvalRequest = {
-  //   origin: connection.origin,
-  //   type: ApprovalTypes.CONNECT_ACCOUNTS,
-  //   requestData: {
-  //     hostname: connection.originatorInfo?.title ?? '',
-  //     pageMeta: {
-  //       channelId: connection.channelId,
-  //       reconnect: !connection.initialConnection,
-  //       origin: connection.origin,
-  //       url: connection.originatorInfo?.url ?? '',
-  //       title: connection.originatorInfo?.title ?? '',
-  //       icon: connection.originatorInfo?.icon ?? '',
-  //       otps: connection.otps ?? [],
-  //       apiVersion: connection.originatorInfo?.apiVersion,
-  //       analytics: {
-  //         request_source: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
-  //         request_platform:
-  //           connection.originatorInfo?.platform ??
-  //           AppConstants.MM_SDK.UNKNOWN_PARAM,
-  //       },
-  //     } as Json,
-  //   },
-  //   id: connection.channelId,
-  // };
-  // connection.approvalPromise = approvalController.add(approvalRequest);
-
   try {
     await connection.approvalPromise;
     try {

@@ -110,17 +110,22 @@ export class BackgroundBridge extends EventEmitter {
       this.onUnlock.bind(this),
     );
 
-    // FIXME trying to subscribe to PermissionController events
     try {
       const pc = Engine.context.PermissionController;
-      DevLogger.log(`messageGingSystem pc.name=${pc.name}`, pc.messagingSystem);
-      pc.messagingSystem.subscribe(`${pc.name}:stateChange`, (newState) => {
-        // check if origin matches current channel
-        const channelSubject = newState.subjects[this.channelId];
-        if (!channelSubject) return;
-        const permissions = channelSubject.permissions;
-        DevLogger.log(`PermissionController:stateChange event`, permissions);
-      });
+      const controllerMessenger = Engine.context.controllerMessenger;
+      controllerMessenger.subscribe(
+        `${pc.name}:stateChange`,
+        (subjectWithPermission) => {
+          DevLogger.log(
+            `PermissionController:stateChange event`,
+            subjectWithPermission,
+          );
+          // Inform dapp about updated permissions
+          const selectedAddress = this.getState().selectedAddress;
+          this.notifySelectedAddressChanged(selectedAddress);
+        },
+        (state) => state.subjects[this.channelId],
+      );
     } catch (err) {
       DevLogger.log(`Error in BackgroundBridge: ${err}`);
     }
