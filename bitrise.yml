@@ -183,7 +183,7 @@ workflows:
       - save-cache@1:
           title: Save node_modules directory
           inputs:
-            - key: 'node-modules-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}'
+            - key: 'node-modules-{{ .Arch }}-{{ .OS }}-{{ checksum "yarn.lock" }}'
             - paths: 
               - node_modules
       - yarn@0:
@@ -216,7 +216,7 @@ workflows:
       - restore-cache@2:
           title: Restore node_modules directory
           inputs:
-            - key: 'node-modules-{{ .OS }}-{{ .Arch }}-{{ checksum "yarn.lock" }}'
+            - key: 'node-modules-{{ .Arch }}-{{ .OS }}-{{ checksum "yarn.lock" }}'
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
