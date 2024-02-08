@@ -904,6 +904,7 @@
     "disconnect": "Disconnect",
     "disconnect_all": "Disconnect all",
     "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
     "manage": "Manage",
     "cancel": "Cancel",
     "loading": "Connecting to MetaMask...",

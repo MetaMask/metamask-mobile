@@ -442,7 +442,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   return (
-    <BottomSheet onClose={handleSheetDismiss} ref={sheetRef}>
+    <BottomSheet
+      onClose={handleSheetDismiss}
+      customMarginTop={150}
+      ref={sheetRef}
+    >
       {renderConnectScreens()}
     </BottomSheet>
   );

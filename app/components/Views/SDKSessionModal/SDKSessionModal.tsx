@@ -131,7 +131,9 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
         <BottomSheetHeader>
-          <Text variant={TextVariant.HeadingMD}>Manage Connections</Text>
+          <Text variant={TextVariant.HeadingMD}>
+            {strings('sdk.manage_connections')}
+          </Text>
         </BottomSheetHeader>
         <TagUrl imageSource={{ uri: icon }} label={urlOrTitle} />
         {version && platform && (
