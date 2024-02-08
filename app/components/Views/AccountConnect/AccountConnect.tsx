@@ -95,16 +95,11 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   // Extract connection info from sdk
   // FIXME should be replaced by passing dynamic parameters to the PermissionController
+  // TODO: Retrive wallet connect connection info from channelId
   const sdkConnection = SDKConnect.getInstance().getConnection({ channelId });
   const hostname = (
     sdkConnection?.originatorInfo?.url ?? metadataOrigin
   ).replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
-
-  DevLogger.log(
-    `AccountConnect rendering channelId=${channelId} hostname=${hostname} metadataOrigin=${metadataOrigin}`,
-    sdkConnection?.originatorInfo,
-  );
-  DevLogger.log(`initial connection`, sdkConnection);
 
   const origin: string = useSelector(getActiveTabUrl, isEqual);
 
@@ -177,10 +172,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       },
       approvedAccounts: selectedAccounts,
     };
-    DevLogger.log(
-      `handleConnect request hostname=${hostname}`,
-      JSON.stringify(request, null, 2),
-    );
 
     const connectedAccountLength = selectedAccounts.length;
     const activeAddress = selectedAccounts[0].address;
@@ -236,7 +227,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     hostInfo,
     accounts,
     ensByAccountAddress,
-    hostname,
     accountAvatarType,
     Engine.context.PermissionController,
     toastRef,
