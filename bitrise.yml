@@ -187,8 +187,44 @@ workflows:
             - key: 'yarn-cache-{{ .OS }}-{{ .Arch }}'
       - yarn@0:
           inputs:
-            - command: setup2
-          title: Yarn Alternative Setup 
+            - command: setup2a
+          title: Yarn Alternative Setup a 
+      - yarn@0:
+          inputs:
+            - command: setup2b
+          title: Yarn Alternative Setup b 
+      - yarn@0:
+          inputs:
+            - command: setup2c
+          title: Yarn Alternative Setup c
+      - yarn@0:
+          inputs:
+            - command: setup2d
+          title: Yarn Alternative Setup d
+      - yarn@0:
+          inputs:
+            - command: setup2e
+          title: Yarn Alternative Setup e
+      - yarn@0:
+          inputs:
+            - command: setup2f
+          title: Yarn Alternative Setup f
+      - yarn@0:
+          inputs:
+            - command: setup2g
+          title: Yarn Alternative Setup g
+      - yarn@0:
+          inputs:
+            - command: setup2h
+          title: Yarn Alternative Setup h
+      - yarn@0:
+          inputs:
+            - command: setup2i
+          title: Yarn Alternative Setup i
+      - yarn@0:
+          inputs:
+            - command: setup2j
+          title: Yarn Alternative Setup j
       - save-cache@1:
           title: Save yarn cache directory
           inputs:
