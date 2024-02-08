@@ -178,15 +178,15 @@ const AccountConnectMultiSelector = ({
           isRemoveAccountEnabled
           isAutoScrollEnabled={isAutoScrollEnabled}
         />
-        <View style={styles.sdkInfoContainer}>
-          <View style={styles.sdkInfoDivier} />
-          {connection?.originatorInfo?.apiVersion && (
+        {connection?.originatorInfo?.apiVersion && (
+          <View style={styles.sdkInfoContainer}>
+            <View style={styles.sdkInfoDivier} />
             <Text color={TextColor.Muted}>
               SDK {connection?.originatorInfo?.platform} v
               {connection?.originatorInfo?.apiVersion}
             </Text>
-          )}
-        </View>
+          </View>
+        )}
         <View style={styles.addAccountButtonContainer}>
           <Button
             variant={ButtonVariants.Link}
