@@ -184,8 +184,8 @@ workflows:
           title: Save node_modules directory
           inputs:
             - key: 'node-modules-{{ .Arch }}-{{ .OS }}-{{ checksum "yarn.lock" }}'
-            - paths: 
-              - node_modules
+            - paths: |-
+                node_modules
       - yarn@0:
           inputs:
             - command: clean:ios
