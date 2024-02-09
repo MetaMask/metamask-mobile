@@ -84,7 +84,7 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "color": "#FCFCFC",
+          "color": "#FFFFFF",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -145,7 +145,7 @@ exports[`AssetActionButtons should render type information correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "color": "#FCFCFC",
+          "color": "#FFFFFF",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -201,14 +201,14 @@ exports[`AssetActionButtons should render type receive correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      color="#FCFCFC"
+      color="#FFFFFF"
       name="keyboard-tab"
       size={20}
       style={
         Array [
           Object {
             "alignContent": "center",
-            "color": "#FCFCFC",
+            "color": "#FFFFFF",
             "justifyContent": "center",
             "textAlign": "center",
           },
@@ -279,7 +279,7 @@ exports[`AssetActionButtons should render type send correctly 1`] = `
       style={
         Object {
           "alignContent": "center",
-          "color": "#FCFCFC",
+          "color": "#FFFFFF",
           "justifyContent": "center",
           "textAlign": "center",
         }
@@ -341,7 +341,7 @@ exports[`AssetActionButtons should render type swap correctly 1`] = `
         Array [
           Object {
             "alignContent": "center",
-            "color": "#FCFCFC",
+            "color": "#FFFFFF",
             "justifyContent": "center",
             "textAlign": "center",
           },

@@ -411,11 +411,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderRevokeScreen,
   ]);
 
-  return (
-    <BottomSheet isFullscreen ref={sheetRef}>
-      {renderPermissionsScreens()}
-    </BottomSheet>
-  );
+  return <BottomSheet ref={sheetRef}>{renderPermissionsScreens()}</BottomSheet>;
 };
 
 export default AccountPermissions;

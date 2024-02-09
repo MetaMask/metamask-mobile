@@ -92,6 +92,7 @@ function CollectibleContractElement({
   chainId,
   selectedAddress,
   removeFavoriteCollectible,
+  toggleRemovingProgress,
 }) {
   const [collectiblesGrid, setCollectiblesGrid] = useState([]);
   const [collectiblesVisible, setCollectiblesVisible] = useState(
@@ -149,7 +150,11 @@ function CollectibleContractElement({
 
   const handleMenuAction = (index) => {
     if (index === 1) {
+      // set toggle to true
+      toggleRemovingProgress();
       removeNft();
+      // set toggle to false to indicate that removing the NFT has finished
+      toggleRemovingProgress();
     } else if (index === 0) {
       refreshMetadata();
     }
@@ -301,6 +306,7 @@ CollectibleContractElement.propTypes = {
    * Dispatch remove collectible from favorites action
    */
   removeFavoriteCollectible: PropTypes.func,
+  toggleRemovingProgress: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({

@@ -18,11 +18,12 @@ import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import AccountInfoCard from '../AccountInfoCard';
-import ActionView from '../ActionView';
+import ActionView, { ConfirmButtonState } from '../ActionView';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import QRSigningDetails from '../QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import WebsiteIcon from '../WebsiteIcon';
+import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -334,6 +335,14 @@ class SignatureRequest extends PureComponent {
         expandedHeight = styles.expandedHeight1;
       }
     }
+
+    let confirmButtonState = ConfirmButtonState.Normal;
+    if (securityAlertResponse?.result_type === ResultType.Malicious) {
+      confirmButtonState = ConfirmButtonState.Error;
+    } else if (securityAlertResponse?.result_type === ResultType.Warning) {
+      confirmButtonState = ConfirmButtonState.Warning;
+    }
+
     return (
       <View testID={this.props.testID} style={[styles.root, expandedHeight]}>
         <ActionView
@@ -348,6 +357,7 @@ class SignatureRequest extends PureComponent {
           onCancelPress={this.onReject}
           onConfirmPress={this.onConfirm}
           confirmButtonMode="sign"
+          confirmButtonState={confirmButtonState}
         >
           <View>
             <View style={styles.signingInformation}>
