@@ -70,30 +70,60 @@ The code is built using React-Native and running code locally requires a Mac or 
 
    - From the [App Store](https://apps.apple.com/us/app/xcode/id497799835?mt=12)
    - Install Command Line Tools - `cmd + ,` to open settings - `Locations` tab - Select the most recent version in the Command Line Tools dropdown
-     ![Alt text](image.png)
+     ![Alt text](./docs/assets/command-line-tools.png)
 
 4. ### Install [cocoapods](https://guides.cocoapods.org/using/getting-started.html)
 
    - `sudo gem install cocoapods -v 1.12.1`
 
 5. ### Install [Android Studio](https://developer.android.com/studio)
-   - Install [Java](https://www.java.com/en/download/). To check if Java is already installed, run:
-     ```
-     java -version
-     ```
-   - Install the Android NDK (version `21.4.7075529`), via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
-     - Go to Settings > Appearance & Behavior > System Settings > Android SDK
-       - Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
-     - Select `SDK Tools` tab
-     - Check `Show Package Details` option below the tools list to show available versions
-     - Locate `NDK (Side-by-side)` option in the tools list
+
+- Follow the default recommended settings
+
+6. ### Install the Java Developer Kit (JDK)
+
+   ```
+     brew tap homebrew/cask-versions
+
+     brew install --cask zulu17
+   ```
+
+   - Add these exports to your `.zshrc` or `.bashrc` file:
+
+   ```
+      export PATH=~/Library/Android/sdk/tools:$PATH
+      export PATH=~/Library/Android/sdk/platform-tools:$PATH
+      export ANDROID_HOME=$HOME/Library/Android/sdk
+      export PATH=$PATH:$ANDROID_HOME/emulator
+
+      export JAVA_HOME=/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home
+   ```
+
+   - NOTE: _If you have already installed JDK on your system, we recommend JDK 17. You may encounter problems using higher JDK versions._
+
+7. ### Install - Specific Android NDK Verision in Android Studio
+
+   #### In Android Studio
+
+   - NOTE: \_The "Welcome to Android Studio" page will also bring you here.
+   - Select `Tools` tab from Android Studio application menu
+     - `SDK Manager`
+       ![Alt text](./docs/assets/sdk-manager.png)
+   - Check `Show Package Details` option below the tools list to show available versions
+     ![Alt text](./docs/assets/package-details.png)
+   - Locate `NDK (Side-by-side)` option in the tools list
+     ![Alt text](./docs/assets/ndk-sidebyside.png)
      - Check NDK version `24.0.8215888`
-     - Locate `CMake` option in the tools list
+   - Locate `CMake` option in the tools list
+     ![Alt text](./docs/assets/cmake.png)
      - Check CMake version `3.22.1`
-     - Click "Apply" or "OK" to download
+   - Click "Apply" or "OK" to download
+
    - Finally, start the emulator from Android Studio:
+     ![Alt text](./docs/assets/virtual-device.png)
      - Open "Virtual Device Manager"
      - Launch emulator for "Pixel 5 <relevant API version mentioned in [React Native Getting Started](https://reactnative.dev/docs/environment-setup#installing-dependencies)>"
+       - NOTE: _You might need to create a device_
 
 ## Building the App
 
