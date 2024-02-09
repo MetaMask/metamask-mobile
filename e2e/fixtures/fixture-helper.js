@@ -157,7 +157,6 @@ export async function withFixtures(options, testSuite) {
         delete: true,
         launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
       });
-      await device.setURLBlacklist(blacklistURLs);
     }
 
     await testSuite({ contractRegistry });

@@ -218,8 +218,7 @@ export default class TestHelpers {
   }
 
   static relaunchApp() {
-    device.launchApp({ newInstance: true });
-    device.setURLBlacklist(blacklistURLs);
+    return device.launchApp({ newInstance: true });
   }
 
   static delay(ms) {
