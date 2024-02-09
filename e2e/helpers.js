@@ -4,6 +4,8 @@ import {
   getGanachePort,
   getLocalTestDappPort,
 } from './fixtures/utils';
+import blacklistURLs from './resources/blacklistURLs';
+
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
     await waitFor(element(by.id(elementId)))
@@ -217,7 +219,8 @@ export default class TestHelpers {
   }
 
   static relaunchApp() {
-    return device.launchApp({ newInstance: true });
+    device.launchApp({ newInstance: true });
+    device.setURLBlacklist(blacklistURLs);
   }
 
   static delay(ms) {
