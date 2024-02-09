@@ -185,14 +185,6 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
-      # Manual cache path needed here because the `yarn` step only caches for the `install` command
-      # TODO(dbrans): update the key to include the yarn version.
-      # - save-cache@1:
-      #     title: Save cache dependencies
-      #     inputs:
-      #       - key: 'yarn-cache-{{ checksum "yarn.lock" }}'
-      #       - paths: |-
-      #           $YARN_CACHE_DIR
   prep_environment:
     steps:
       - script@1:
@@ -208,10 +200,6 @@ workflows:
                 asdf install yarn "$YARN_VERSION"
                 asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
-      - restore-cache@2:
-          title: Restore cache dependencies
-          inputs:
-            - key: 'yarn-cache-{{ checksum "yarn.lock" }}'
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
