@@ -21,7 +21,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { selectGasFeeEstimates } from '../../../selectors/transactions';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 
 const UpdateEIP1559Tx = ({
   gas,

@@ -23,7 +23,7 @@ import {
   LegacyProps,
   UseGasTransactionProps,
 } from './types';
-import { selectGasFeeEstimates } from '../../selectors/transactions';
+import { selectGasFeeEstimates } from '../../selectors/confirmTransaction';
 
 /**
  *

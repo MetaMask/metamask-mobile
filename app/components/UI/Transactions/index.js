@@ -69,7 +69,7 @@ import {
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { TOKEN_OVERVIEW_TXN_SCREEN } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import { selectGasFeeEstimates } from '../../../selectors/transactions';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({

@@ -31,7 +31,7 @@ import StyledButton from '../StyledButton';
 import InfoModal from '../Swaps/components/InfoModal';
 import createStyles from './styles';
 import { EditGasFeeLegacyUpdateProps, EditLegacyGasTransaction } from './types';
-import { selectGasFeeEstimates } from '../../../selectors/transactions';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 
 const GAS_LIMIT_INCREMENT = new BigNumber(1000);
 const GAS_PRICE_INCREMENT = new BigNumber(1);

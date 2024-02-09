@@ -50,7 +50,7 @@ import {
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { selectGasFeeEstimates } from '../../../selectors/transactions';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 
 const EDIT = 'edit';
 const REVIEW = 'review';

@@ -98,7 +98,7 @@ import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
 } from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
-import { selectGasFeeEstimates } from '../../../selectors/transactions';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {

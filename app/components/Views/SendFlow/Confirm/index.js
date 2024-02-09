@@ -113,7 +113,7 @@ import {
 } from '../../../../util/blockaid';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 import TransactionBlockaidBanner from '../../../../components/UI/TransactionBlockaidBanner/TransactionBlockaidBanner';
-import { selectGasFeeEstimates } from '../../../../selectors/transactions';
+import { selectGasFeeEstimates } from '../../../../selectors/confirmTransaction';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';

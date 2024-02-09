@@ -9,7 +9,7 @@ import EditGasFee1559 from '../../UI/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../UI/EditGasFeeLegacyUpdate';
 import createStyles from './CustomGasModal.styles';
 import { CustomGasModalProps } from './CustomGasModal.types';
-import { selectGasFeeEstimates } from '../../../selectors/transactions';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 
 const CustomGasModal = ({
   gasSelected,

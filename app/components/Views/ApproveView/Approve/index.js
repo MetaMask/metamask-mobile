@@ -70,7 +70,7 @@ import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
-import { selectGasFeeEstimates } from '../../../../selectors/transactions';
+import { selectGasFeeEstimates } from '../../../../selectors/confirmTransaction';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
