@@ -7,7 +7,7 @@ import {
   importWalletWithRecoveryPhrase,
 } from '../../viewHelper';
 import Networks from '../../resources/networks.json';
-import blacklistURLs from '../../resources/test-parameters';
+import blacklistURLs from '../../resources/blacklistURLs';
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {

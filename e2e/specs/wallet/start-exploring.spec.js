@@ -14,7 +14,7 @@ import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
-import blacklistURLs from '../../resources/test-parameters';
+import blacklistURLs from '../../resources/blacklistURLs';
 
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';

@@ -18,7 +18,7 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeSwaps } from '../../tags';
-import blacklistURLs from '../../resources/test-parameters';
+import blacklistURLs from '../../resources/blacklistURLs';
 
 const fixtureServer = new FixtureServer();
 

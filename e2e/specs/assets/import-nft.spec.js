@@ -7,7 +7,7 @@ import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Collectibles from '../../resources/collectibles.json';
-import blacklistURLs from '../../resources/test-parameters';
+import blacklistURLs from '../../resources/blacklistURLs';
 
 describe(SmokeCore('Import NFT'), () => {
   const GOERLI = 'Goerli Test Network';

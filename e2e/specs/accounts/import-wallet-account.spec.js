@@ -4,7 +4,7 @@ import WalletView from '../../pages/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';
 import ImportAccountView from '../../pages/ImportAccountView';
-import blacklistURLs from '../../resources/test-parameters';
+import blacklistURLs from '../../resources/blacklistURLs';
 
 describe(Regression('Import account via private to wallet'), () => {
   // This key is for testing private key import only
