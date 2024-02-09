@@ -10,20 +10,6 @@ const createMigratedStorage = (reducerName: string) => ({
         // Using the new storage system
         return res;
       }
-      if (Platform.OS === 'android') {
-        const root = await FilesystemStorage.getItem('persist:root');
-        if (root) {
-          const parsedRoot = JSON.parse(root);
-          if (parsedRoot?.engine?.backgroundState?.[key]) {
-            await FilesystemStorage.setItem(
-              key,
-              JSON.stringify(
-                parsedRoot.engine.backgroundState[key.replace('persist:', '')],
-              ),
-            );
-          }
-        }
-      }
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to get persisted ${key}: ${reducerName}`,
