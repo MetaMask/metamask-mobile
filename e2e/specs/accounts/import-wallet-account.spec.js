@@ -4,7 +4,7 @@ import WalletView from '../../pages/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';
 import ImportAccountView from '../../pages/ImportAccountView';
-import blacklistURLs from '../../resources/blacklistURLs';
+import { blacklistURLs } from '../../init';
 
 describe(Regression('Import account via private to wallet'), () => {
   // This key is for testing private key import only
@@ -14,8 +14,11 @@ describe(Regression('Import account via private to wallet'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(200000);
-    await device.launchApp();
-    await device.setURLBlacklist(blacklistURLs);
+    await device.launchApp({
+      launchArgs: {
+        detoxURLBlacklistRegex: blacklistURLs,
+      },
+    });
   });
 
   it('should import wallet and go to the wallet view', async () => {

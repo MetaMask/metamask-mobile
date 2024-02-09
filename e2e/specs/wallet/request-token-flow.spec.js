@@ -17,7 +17,7 @@ import TestHelpers from '../../helpers';
 import WalletView from '../../pages/WalletView';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
-import blacklistURLs from '../../resources/blacklistURLs';
+import { blacklistURLs } from '../../init';
 
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 const fixtureServer = new FixtureServer();
@@ -31,9 +31,11 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
       permissions: { notifications: 'YES' },
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        detoxURLBlacklistRegex: blacklistURLs,
+      },
     });
-    await device.setURLBlacklist(blacklistURLs);
   });
 
   beforeEach(() => {

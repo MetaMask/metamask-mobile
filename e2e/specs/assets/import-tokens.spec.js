@@ -12,7 +12,7 @@ import {
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import { loginToApp } from '../../viewHelper';
-import blacklistURLs from '../../resources/blacklistURLs';
+import { blacklistURLs } from '../../init';
 
 const fixtureServer = new FixtureServer();
 
@@ -23,9 +23,11 @@ describe(SmokeCore('Import Tokens'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        detoxURLBlacklistRegex: blacklistURLs,
+      },
     });
-    await device.setURLBlacklist(blacklistURLs);
     await loginToApp();
   });
 

@@ -18,7 +18,7 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeSwaps } from '../../tags';
-import blacklistURLs from '../../resources/blacklistURLs';
+import { blacklistURLs } from '../../init';
 
 const fixtureServer = new FixtureServer();
 
@@ -33,9 +33,11 @@ describe(SmokeSwaps('Swap from Actions'), () => {
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
       permissions: { notifications: 'YES' },
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        detoxURLBlacklistRegex: blacklistURLs,
+      },
     });
-    await device.setURLBlacklist(blacklistURLs);
     await loginToApp();
   });
 

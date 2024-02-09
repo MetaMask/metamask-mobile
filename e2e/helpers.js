@@ -4,7 +4,6 @@ import {
   getGanachePort,
   getLocalTestDappPort,
 } from './fixtures/utils';
-import blacklistURLs from './resources/blacklistURLs';
 
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {

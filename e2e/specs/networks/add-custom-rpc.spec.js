@@ -18,7 +18,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
-import blacklistURLs from '../../resources/blacklistURLs';
+import { blacklistURLs } from '../../init';
 
 const fixtureServer = new FixtureServer();
 const GORELI = 'Goerli Test Network';
@@ -32,9 +32,11 @@ describe(Regression('Custom RPC Tests'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        detoxURLBlacklistRegex: blacklistURLs,
+      },
     });
-    await device.setURLBlacklist(blacklistURLs);
     await loginToApp();
   });
 

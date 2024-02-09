@@ -7,13 +7,16 @@ import {
   importWalletWithRecoveryPhrase,
 } from '../../viewHelper';
 import Networks from '../../resources/networks.json';
-import blacklistURLs from '../../resources/blacklistURLs';
+import { blacklistURLs } from '../../init';
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await device.launchApp();
-    await device.setURLBlacklist(blacklistURLs);
+    await device.launchApp({
+      launchArgs: {
+        detoxURLBlacklistRegex: blacklistURLs,
+      },
+    });
   });
 
   it('should import wallet and go to the wallet view', async () => {

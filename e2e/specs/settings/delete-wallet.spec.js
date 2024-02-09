@@ -13,7 +13,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
-import blacklistURLs from '../../resources/blacklistURLs';
+import { blacklistURLs } from '../../init';
 
 describe(
   SmokeCore('Log in into the app, change password then delete wallet flow'),

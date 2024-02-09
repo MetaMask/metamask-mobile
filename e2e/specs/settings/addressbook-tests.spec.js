@@ -21,7 +21,7 @@ import CommonView from '../../pages/CommonView';
 import messages from '../../../locales/languages/en.json';
 import DeleteContactModal from '../../pages/modals/DeleteContactModal';
 import Assertions from '../../utils/Assertions';
-import blacklistURLs from '../../resources/blacklistURLs';
+import { blacklistURLs } from '../../init';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -36,9 +36,11 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        detoxURLBlacklistRegex: blacklistURLs,
+      },
     });
-    await device.setURLBlacklist(blacklistURLs);
     await loginToApp();
   });
 

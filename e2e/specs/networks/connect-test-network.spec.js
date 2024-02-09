@@ -3,7 +3,7 @@ import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import WalletView from '../../pages/WalletView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-import blacklistURLs from '../../resources/blacklistURLs';
+import { blacklistURLs } from '../../init';
 
 const GORELI = 'Goerli Test Network';
 const ETHEREUM = 'Ethereum Main Network';
@@ -11,8 +11,11 @@ const ETHEREUM = 'Ethereum Main Network';
 describe(Regression('Connect to a Test Network'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await device.launchApp();
-    await device.setURLBlacklist(blacklistURLs);
+    await device.launchApp({
+      launchArgs: {
+        detoxURLBlacklistRegex: blacklistURLs,
+      },
+    });
   });
 
   it('should import wallet and go to the wallet view', async () => {
