@@ -13,7 +13,7 @@ jest.mock('../store', () => {
   mockGetState = jest.fn();
   mockGetState.mockImplementation(() => ({
     browser: {
-      visitedDappsByHostName: {},
+      visitedDappsByHostname: {},
     },
     engine: {
       backgroundState: {
@@ -27,6 +27,7 @@ jest.mock('../store', () => {
   return {
     store: {
       getState: mockGetState,
+      dispatch: jest.fn(),
     },
   };
 });
@@ -39,7 +40,7 @@ describe('trackDappVisitedEvent', () => {
   it('should track with isFirstVisit = true', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
-        visitedDappsByHostName: {},
+        visitedDappsByHostname: {},
       },
       engine: {
         backgroundState: {
@@ -71,7 +72,7 @@ describe('trackDappVisitedEvent', () => {
   it('should track with isFirstVisit = false', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
-        visitedDappsByHostName: { 'uniswap.org': true },
+        visitedDappsByHostname: { 'uniswap.org': true },
       },
       engine: {
         backgroundState: {
@@ -103,7 +104,7 @@ describe('trackDappVisitedEvent', () => {
   it('should track with the correct number of connected accounts', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
-        visitedDappsByHostName: { 'uniswap.org': true },
+        visitedDappsByHostname: { 'uniswap.org': true },
       },
       engine: {
         backgroundState: {
@@ -135,7 +136,7 @@ describe('trackDappVisitedEvent', () => {
   it('should track with the correct number of wallet accounts', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
-        visitedDappsByHostName: { 'uniswap.org': true },
+        visitedDappsByHostname: { 'uniswap.org': true },
       },
       engine: {
         backgroundState: {

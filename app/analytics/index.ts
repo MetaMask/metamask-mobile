@@ -2,6 +2,7 @@ import { selectIdentities } from '../selectors/preferencesController';
 import { store } from '../store';
 import { MetaMetricsEvents } from '../core/Analytics';
 import AnalyticsV2 from '../util/analyticsV2';
+import { addToVisitedDapp } from '../actions/browser';
 
 /**
  * Tracks Dapp visited event
@@ -24,6 +25,10 @@ export const trackDappVisitedEvent = ({
   const accountByAddress = selectIdentities(store.getState());
   const numberOfWalletAccounts = Object.keys(accountByAddress).length;
 
+  // Add Dapp hostname to visited dapps
+  store.dispatch(addToVisitedDapp(hostname));
+
+  // Track DAPP_VISITED event
   AnalyticsV2.trackEvent(MetaMetricsEvents.DAPP_VISITED, {
     is_first_visit: isFirstVisit,
     number_of_accounts: numberOfWalletAccounts,
