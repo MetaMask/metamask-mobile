@@ -13,7 +13,6 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
-import blacklistURLs from '../../init';
 
 describe(
   SmokeCore('Log in into the app, change password then delete wallet flow'),
@@ -28,7 +27,6 @@ describe(
     it('should log in into the app, change password then delete wallet flow', async () => {
       const fixture = new FixtureBuilder().build();
       await withFixtures({ fixture, restartDevice: true }, async () => {
-        await device.setURLBlacklist(blacklistURLs);
         await loginToApp();
 
         // should go to settings then security & privacy
