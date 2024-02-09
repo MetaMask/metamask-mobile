@@ -363,11 +363,6 @@ export const getRpcMethodMiddleware = ({
               '',
             );
           }
-          DevLogger.log(
-            `wallet_requestPermissions hostname=${hostname} isMMSDK=${isMMSDK}`,
-            requestId,
-          );
-          DevLogger.log(`params`, req.params);
           requestPermissionsHandler
             .implementation(
               req,
