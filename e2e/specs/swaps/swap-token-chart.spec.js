@@ -17,7 +17,7 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
-import blacklistURLs from '../../init';
+import blacklistURLs from '../../resources/test-parameters';
 
 const fixtureServer = new FixtureServer();
 

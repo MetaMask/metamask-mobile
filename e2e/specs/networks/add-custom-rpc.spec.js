@@ -18,7 +18,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
-import blacklistURLs from '../../init';
+import blacklistURLs from '../../resources/test-parameters';
 
 const fixtureServer = new FixtureServer();
 const GORELI = 'Goerli Test Network';
