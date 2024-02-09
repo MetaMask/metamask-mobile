@@ -9,7 +9,6 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
-import blacklistURLs from '../../init';
 
 describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
   beforeAll(async () => {
@@ -27,7 +26,6 @@ describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
         restartDevice: true,
       },
       async () => {
-        await device.setURLBlacklist(blacklistURLs);
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Browser.isVisible();
