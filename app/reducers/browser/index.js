@@ -1,3 +1,4 @@
+import { BrowserActionTypes } from '../../actions/browser';
 import AppConstants from '../../core/AppConstants';
 
 const initialState = {
@@ -7,20 +8,26 @@ const initialState = {
   favicons: [],
   activeTab: null,
   // Keep track of visited Dapps, which is used for MetaMetricsEvents.DAPP_VIEWED event
-  visitedDappsByHostName: {},
+  visitedDappsByHostname: {},
 };
 const browserReducer = (state = initialState, action) => {
   switch (action.type) {
+    case BrowserActionTypes.ADD_TO_VISITED_DAPP: {
+      const { hostname } = action;
+      return {
+        ...state,
+        visitedDappsByHostname: {
+          ...state.visitedDappsByHostname,
+          [hostname]: true,
+        },
+      };
+    }
     case 'ADD_TO_BROWSER_HISTORY': {
-      const { url, name, hostname } = action;
+      const { url, name } = action;
 
       return {
         ...state,
         history: [...state.history, { url, name }].slice(0, 50),
-        visitedDappsByHostName: {
-          ...state.visitedDappsByHostName,
-          [hostname]: true,
-        },
       };
     }
     case 'ADD_TO_BROWSER_WHITELIST':

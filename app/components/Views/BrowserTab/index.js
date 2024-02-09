@@ -761,7 +761,6 @@ export const BrowserTab = (props) => {
     props.addToBrowserHistory({
       name: siteInfo.title,
       url: getMaskedUrl(siteInfo.url),
-      hostname: new URL(siteInfo.url).hostname,
     });
   };
 
@@ -1659,8 +1658,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   addBookmark: (bookmark) => dispatch(addBookmark(bookmark)),
-  addToBrowserHistory: ({ url, name, hostname }) =>
-    dispatch(addToHistory({ url, name, hostname })),
+  addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
   addToWhitelist: (url) => dispatch(addToWhitelist(url)),
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
