@@ -20,7 +20,7 @@ import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
-import { blacklistURLs } from '../../init';
+import blacklistURLs from '../../init';
 
 const PASSWORD = '12345678';
 

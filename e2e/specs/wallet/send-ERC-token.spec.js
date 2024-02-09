@@ -10,7 +10,7 @@ import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import TokenOverview from '../../pages/TokenOverview';
-import { blacklistURLs } from '../../init';
+import blacklistURLs from '../../init';
 
 const TOKEN_ADDRESS = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';

@@ -12,7 +12,7 @@ import {
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import { loginToApp } from '../../viewHelper';
-import { blacklistURLs } from '../../init';
+import blacklistURLs from '../../init';
 
 const fixtureServer = new FixtureServer();
 
