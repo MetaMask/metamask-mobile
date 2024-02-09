@@ -2,6 +2,7 @@ import Engine from '../../../core/Engine';
 import { persistReducer } from 'redux-persist';
 import { combineReducers, Reducer } from 'redux';
 import createPersistConfig from '../../../store/persistConfig';
+import { cloneDeep } from 'lodash';
 
 const controllerNames = [
   { name: 'AccountTrackerController', initialState: {} },
@@ -76,6 +77,8 @@ const controllerNames = [
   },
 ];
 
+const legacySubscribeControllers = ['TransactionController'];
+
 const controllerReducer =
   ({
     controllerName,
@@ -98,7 +101,19 @@ const controllerReducer =
         return returnedState;
       }
       case `UPDATE_BG_STATE_${controllerName}`: {
-        return { ...Engine.state[controllerName as keyof typeof Engine.state] };
+        const newState =
+          Engine.state[controllerName as keyof typeof Engine.state];
+
+        // The BaseControllerV1 controllers modify the original state object on update,
+        // rather than replacing it as done in BaseControllerV2.
+        // This introduces two issues:
+        // - Memoized selectors do not fire on nested objects since the references don't change.
+        // - Deep comparison selectors do not fire since the cached objects are references to the original
+        //  state object which has been mutated.
+        // This is resolved by doing a deep clone in this scenario to force an entirely new object.
+        return legacySubscribeControllers.includes(controllerName)
+          ? cloneDeep(newState)
+          : { ...newState };
       }
       default:
         return state;

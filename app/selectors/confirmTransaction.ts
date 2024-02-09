@@ -1,4 +1,3 @@
-import { createSelector } from 'reselect';
 import { selectTransactions } from './transactionController';
 import { RootState } from '../reducers';
 import {
@@ -6,6 +5,8 @@ import {
   selectGasFeeControllerEstimates,
 } from './gasFeeController';
 import { mergeGasFeeControllerAndTransactionGasFeeEstimates } from '@metamask/transaction-controller';
+import { createSelector } from 'reselect';
+import { createDeepEqualSelector } from './util';
 
 export const selectCurrentTransaction = (state: RootState) => state.transaction;
 
@@ -16,9 +17,14 @@ export const selectCurrentTransactionMetadata = createSelector(
     transactions.find((tx) => tx.id === currentTransaction?.id),
 );
 
-export const selectCurrentTransactionGasFeeEstimates = createSelector(
+const selectCurrentTransactionGasFeeEstimatesStrict = createSelector(
   selectCurrentTransactionMetadata,
   (transactionMetadata) => transactionMetadata?.gasFeeEstimates,
+);
+
+export const selectCurrentTransactionGasFeeEstimates = createDeepEqualSelector(
+  selectCurrentTransactionGasFeeEstimatesStrict,
+  (gasFeeEstimates) => gasFeeEstimates,
 );
 
 export const selectGasFeeEstimates = createSelector(

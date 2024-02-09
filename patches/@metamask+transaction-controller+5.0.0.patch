@@ -2496,18 +2496,18 @@ index 0000000..775672b
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/TestGasFeeFlow.d.ts.map b/node_modules/@metamask/transaction-controller/dist/gas-flows/TestGasFeeFlow.d.ts.map
 new file mode 100644
-index 0000000..3b04d2e
+index 0000000..a4a0c99
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/TestGasFeeFlow.d.ts.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"TestGasFeeFlow.d.ts","sourceRoot":"","sources":["../../src/gas-flows/TestGasFeeFlow.ts"],"names":[],"mappings":"AAMA,OAAO,KAAK,EAEV,UAAU,EACV,iBAAiB,EACjB,kBAAkB,EAClB,eAAe,EAChB,MAAM,UAAU,CAAC;AAalB,qBAAa,cAAe,YAAW,UAAU;;IAG/C,kBAAkB,CAAC,eAAe,EAAE,eAAe,GAAG,OAAO;IAOvD,UAAU,CAAC,OAAO,EAAE,iBAAiB,GAAG,OAAO,CAAC,kBAAkB,CAAC;CA4B1E"}
++{"version":3,"file":"TestGasFeeFlow.d.ts","sourceRoot":"","sources":["../../src/gas-flows/TestGasFeeFlow.ts"],"names":[],"mappings":"AAMA,OAAO,KAAK,EAEV,UAAU,EACV,iBAAiB,EACjB,kBAAkB,EAClB,eAAe,EAChB,MAAM,UAAU,CAAC;AAclB,qBAAa,cAAe,YAAW,UAAU;;IAG/C,kBAAkB,CAAC,eAAe,EAAE,eAAe,GAAG,OAAO;IAOvD,UAAU,CAAC,OAAO,EAAE,iBAAiB,GAAG,OAAO,CAAC,kBAAkB,CAAC;CA8B1E"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/TestGasFeeFlow.js b/node_modules/@metamask/transaction-controller/dist/gas-flows/TestGasFeeFlow.js
 new file mode 100644
-index 0000000..6450681
+index 0000000..dcdb529
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/TestGasFeeFlow.js
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,69 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -2534,6 +2534,7 @@ index 0000000..6450681
 +exports.TestGasFeeFlow = void 0;
 +const controller_utils_1 = require("@metamask/controller-utils");
 +const constants_1 = require("../constants");
++const ethereumjs_util_1 = require("ethereumjs-util");
 +const MULTIPLIER = 10e17;
 +const LEVEL_INCREMENTS = {
 +    low: 0,
@@ -2553,7 +2554,9 @@ index 0000000..6450681
 +        return __awaiter(this, void 0, void 0, function* () {
 +            const { transactionMeta } = request;
 +            __classPrivateFieldSet(this, _TestGasFeeFlow_increment, __classPrivateFieldGet(this, _TestGasFeeFlow_increment, "f") + 1, "f");
-+            const gas = (0, controller_utils_1.hexToBN)(transactionMeta.transaction.gas).toNumber();
++            const gasRaw = transactionMeta.transaction.gas;
++            const gasBN = ethereumjs_util_1.BN.isBN(gasRaw) ? gasRaw : (0, controller_utils_1.hexToBN)(gasRaw);
++            const gas = gasBN.toNumber();
 +            return {
 +                estimates: {
 +                    low: __classPrivateFieldGet(this, _TestGasFeeFlow_instances, "m", _TestGasFeeFlow_getFeeLevel).call(this, 'low', gas),
@@ -2577,11 +2580,11 @@ index 0000000..6450681
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/TestGasFeeFlow.js.map b/node_modules/@metamask/transaction-controller/dist/gas-flows/TestGasFeeFlow.js.map
 new file mode 100644
-index 0000000..1d0d59f
+index 0000000..9324cf4
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/TestGasFeeFlow.js.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"TestGasFeeFlow.js","sourceRoot":"","sources":["../../src/gas-flows/TestGasFeeFlow.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;AAAA,iEAIoC;AASpC,4CAAyC;AAEzC,MAAM,UAAU,GAAG,KAAK,CAAC;AAEzB,MAAM,gBAAgB,GAAG;IACvB,GAAG,EAAE,CAAC;IACN,MAAM,EAAE,CAAC;IACT,IAAI,EAAE,CAAC;CACR,CAAC;AAIF,MAAa,cAAc;IAA3B;;QACE,oCAAa,CAAC,EAAC;IAqCjB,CAAC;IAnCC,kBAAkB,CAAC,eAAgC;QACjD,OAAO,CACL,eAAe,CAAC,OAAO;YACvB,IAAA,sCAAmB,EAAC,qBAAS,CAAC,OAAO,CAAC,CAAC,QAAQ,EAAE,CAClD,CAAC;IACJ,CAAC;IAEK,UAAU,CAAC,OAA0B;;YACzC,MAAM,EAAE,eAAe,EAAE,GAAG,OAAO,CAAC;YAEpC,uHAAmB,CAAC,MAAA,CAAC;YAErB,MAAM,GAAG,GAAG,IAAA,0BAAO,EAAC,eAAe,CAAC,WAAW,CAAC,GAAa,CAAC,CAAC,QAAQ,EAAE,CAAC;YAE1E,OAAO;gBACL,SAAS,EAAE;oBACT,GAAG,EAAE,uBAAA,IAAI,8DAAa,MAAjB,IAAI,EAAc,KAAK,EAAE,GAAG,CAAC;oBAClC,MAAM,EAAE,uBAAA,IAAI,8DAAa,MAAjB,IAAI,EAAc,QAAQ,EAAE,GAAG,CAAC;oBACxC,IAAI,EAAE,uBAAA,IAAI,8DAAa,MAAjB,IAAI,EAAc,MAAM,EAAE,GAAG,CAAC;iBACrC;aACF,CAAC;QACJ,CAAC;KAAA;CAcF;AAtCD,wCAsCC;yJAZc,KAAY,EAAE,GAAW;IACpC,MAAM,YAAY,GAAG,IAAI,CAAC,KAAK,CAC7B,CAAC,CAAC,uBAAA,IAAI,iCAAW,GAAG,gBAAgB,CAAC,KAAK,CAAC,CAAC,GAAG,UAAU,CAAC,GAAG,GAAG,CACjE,CAAC;IAEF,MAAM,oBAAoB,GAAG,IAAI,CAAC,KAAK,CAAC,YAAY,GAAG,GAAG,CAAC,CAAC;IAE5D,OAAO;QACL,YAAY,EAAE,IAAA,wBAAK,EAAC,YAAY,CAAC;QACjC,oBAAoB,EAAE,IAAA,wBAAK,EAAC,oBAAoB,CAAC;KAClD,CAAC;AACJ,CAAC","sourcesContent":["import {\n  convertHexToDecimal,\n  hexToBN,\n  toHex,\n} from '@metamask/controller-utils';\n\nimport type {\n  GasFeeEstimatesLevel,\n  GasFeeFlow,\n  GasFeeFlowRequest,\n  GasFeeFlowResponse,\n  TransactionMeta,\n} from '../types';\nimport { CHAIN_IDS } from '../constants';\n\nconst MULTIPLIER = 10e17;\n\nconst LEVEL_INCREMENTS = {\n  low: 0,\n  medium: 1,\n  high: 2,\n};\n\ntype Level = keyof typeof LEVEL_INCREMENTS;\n\nexport class TestGasFeeFlow implements GasFeeFlow {\n  #increment = 0;\n\n  matchesTransaction(transactionMeta: TransactionMeta): boolean {\n    return (\n      transactionMeta.chainId ===\n      convertHexToDecimal(CHAIN_IDS.SEPOLIA).toString()\n    );\n  }\n\n  async getGasFees(request: GasFeeFlowRequest): Promise<GasFeeFlowResponse> {\n    const { transactionMeta } = request;\n\n    this.#increment += 1;\n\n    const gas = hexToBN(transactionMeta.transaction.gas as string).toNumber();\n\n    return {\n      estimates: {\n        low: this.#getFeeLevel('low', gas),\n        medium: this.#getFeeLevel('medium', gas),\n        high: this.#getFeeLevel('high', gas),\n      },\n    };\n  }\n\n  #getFeeLevel(level: Level, gas: number): GasFeeEstimatesLevel {\n    const maxFeePerGas = Math.floor(\n      ((this.#increment + LEVEL_INCREMENTS[level]) * MULTIPLIER) / gas,\n    );\n\n    const maxPriorityFeePerGas = Math.floor(maxFeePerGas * 0.2);\n\n    return {\n      maxFeePerGas: toHex(maxFeePerGas),\n      maxPriorityFeePerGas: toHex(maxPriorityFeePerGas),\n    };\n  }\n}\n"]}
++{"version":3,"file":"TestGasFeeFlow.js","sourceRoot":"","sources":["../../src/gas-flows/TestGasFeeFlow.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;AAAA,iEAIoC;AASpC,4CAAyC;AACzC,qDAAqC;AAErC,MAAM,UAAU,GAAG,KAAK,CAAC;AAEzB,MAAM,gBAAgB,GAAG;IACvB,GAAG,EAAE,CAAC;IACN,MAAM,EAAE,CAAC;IACT,IAAI,EAAE,CAAC;CACR,CAAC;AAIF,MAAa,cAAc;IAA3B;;QACE,oCAAa,CAAC,EAAC;IAuCjB,CAAC;IArCC,kBAAkB,CAAC,eAAgC;QACjD,OAAO,CACL,eAAe,CAAC,OAAO;YACvB,IAAA,sCAAmB,EAAC,qBAAS,CAAC,OAAO,CAAC,CAAC,QAAQ,EAAE,CAClD,CAAC;IACJ,CAAC;IAEK,UAAU,CAAC,OAA0B;;YACzC,MAAM,EAAE,eAAe,EAAE,GAAG,OAAO,CAAC;YAEpC,uHAAmB,CAAC,MAAA,CAAC;YAErB,MAAM,MAAM,GAAG,eAAe,CAAC,WAAW,CAAC,GAAG,CAAC;YAC/C,MAAM,KAAK,GAAG,oBAAE,CAAC,IAAI,CAAC,MAAM,CAAC,CAAC,CAAC,CAAC,MAAM,CAAC,CAAC,CAAC,IAAA,0BAAO,EAAC,MAAgB,CAAC,CAAC;YACnE,MAAM,GAAG,GAAG,KAAK,CAAC,QAAQ,EAAE,CAAC;YAE7B,OAAO;gBACL,SAAS,EAAE;oBACT,GAAG,EAAE,uBAAA,IAAI,8DAAa,MAAjB,IAAI,EAAc,KAAK,EAAE,GAAG,CAAC;oBAClC,MAAM,EAAE,uBAAA,IAAI,8DAAa,MAAjB,IAAI,EAAc,QAAQ,EAAE,GAAG,CAAC;oBACxC,IAAI,EAAE,uBAAA,IAAI,8DAAa,MAAjB,IAAI,EAAc,MAAM,EAAE,GAAG,CAAC;iBACrC;aACF,CAAC;QACJ,CAAC;KAAA;CAcF;AAxCD,wCAwCC;yJAZc,KAAY,EAAE,GAAW;IACpC,MAAM,YAAY,GAAG,IAAI,CAAC,KAAK,CAC7B,CAAC,CAAC,uBAAA,IAAI,iCAAW,GAAG,gBAAgB,CAAC,KAAK,CAAC,CAAC,GAAG,UAAU,CAAC,GAAG,GAAG,CACjE,CAAC;IAEF,MAAM,oBAAoB,GAAG,IAAI,CAAC,KAAK,CAAC,YAAY,GAAG,GAAG,CAAC,CAAC;IAE5D,OAAO;QACL,YAAY,EAAE,IAAA,wBAAK,EAAC,YAAY,CAAC;QACjC,oBAAoB,EAAE,IAAA,wBAAK,EAAC,oBAAoB,CAAC;KAClD,CAAC;AACJ,CAAC","sourcesContent":["import {\n  convertHexToDecimal,\n  hexToBN,\n  toHex,\n} from '@metamask/controller-utils';\n\nimport type {\n  GasFeeEstimatesLevel,\n  GasFeeFlow,\n  GasFeeFlowRequest,\n  GasFeeFlowResponse,\n  TransactionMeta,\n} from '../types';\nimport { CHAIN_IDS } from '../constants';\nimport { BN } from 'ethereumjs-util';\n\nconst MULTIPLIER = 10e17;\n\nconst LEVEL_INCREMENTS = {\n  low: 0,\n  medium: 1,\n  high: 2,\n};\n\ntype Level = keyof typeof LEVEL_INCREMENTS;\n\nexport class TestGasFeeFlow implements GasFeeFlow {\n  #increment = 0;\n\n  matchesTransaction(transactionMeta: TransactionMeta): boolean {\n    return (\n      transactionMeta.chainId ===\n      convertHexToDecimal(CHAIN_IDS.SEPOLIA).toString()\n    );\n  }\n\n  async getGasFees(request: GasFeeFlowRequest): Promise<GasFeeFlowResponse> {\n    const { transactionMeta } = request;\n\n    this.#increment += 1;\n\n    const gasRaw = transactionMeta.transaction.gas;\n    const gasBN = BN.isBN(gasRaw) ? gasRaw : hexToBN(gasRaw as string);\n    const gas = gasBN.toNumber();\n\n    return {\n      estimates: {\n        low: this.#getFeeLevel('low', gas),\n        medium: this.#getFeeLevel('medium', gas),\n        high: this.#getFeeLevel('high', gas),\n      },\n    };\n  }\n\n  #getFeeLevel(level: Level, gas: number): GasFeeEstimatesLevel {\n    const maxFeePerGas = Math.floor(\n      ((this.#increment + LEVEL_INCREMENTS[level]) * MULTIPLIER) / gas,\n    );\n\n    const maxPriorityFeePerGas = Math.floor(maxFeePerGas * 0.2);\n\n    return {\n      maxFeePerGas: toHex(maxFeePerGas),\n      maxPriorityFeePerGas: toHex(maxPriorityFeePerGas),\n    };\n  }\n}\n"]}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.d.ts b/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.d.ts
 new file mode 100644
