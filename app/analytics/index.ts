@@ -19,9 +19,9 @@ export const trackDappVisitedEvent = ({
   hostname: string;
   numberOfConnectedAccounts: number;
 }) => {
-  const visitedDappsByHostName =
-    store.getState().browser.visitedDappsByHostName;
-  const isFirstVisit = !visitedDappsByHostName[hostname];
+  const visitedDappsByHostname =
+    store.getState().browser.visitedDappsByHostname;
+  const isFirstVisit = !visitedDappsByHostname[hostname];
   const accountByAddress = selectIdentities(store.getState());
   const numberOfWalletAccounts = Object.keys(accountByAddress).length;
 
