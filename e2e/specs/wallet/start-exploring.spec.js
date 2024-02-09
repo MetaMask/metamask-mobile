@@ -24,7 +24,6 @@ describe(SmokeCore('Start Exploring'), () => {
     jest.setTimeout(150000);
     await device.launchApp({
       launchArgs: {
-        fixtureServerPort: `${getFixturesServerPort()}`,
         detoxURLBlacklistRegex: blacklistURLs,
       },
     });
