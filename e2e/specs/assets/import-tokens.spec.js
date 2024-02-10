@@ -22,9 +22,7 @@ describe(SmokeCore('Import Tokens'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      launchArgs: {
-        fixtureServerPort: `${getFixturesServerPort()}`,
-      },
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
   });

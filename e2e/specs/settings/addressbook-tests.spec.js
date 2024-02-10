@@ -35,9 +35,7 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
-      launchArgs: {
-        fixtureServerPort: `${getFixturesServerPort()}`,
-      },
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
   });

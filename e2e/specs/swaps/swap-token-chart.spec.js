@@ -31,9 +31,7 @@ describe(Regression('Swap from Token view'), () => {
     await loadFixture(fixtureServer, { fixture });
     await device.launchApp({
       permissions: { notifications: 'YES' },
-      launchArgs: {
-        fixtureServerPort: `${getFixturesServerPort()}`,
-      },
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
   });
