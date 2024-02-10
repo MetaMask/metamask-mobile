@@ -280,9 +280,11 @@ export default class TestHelpers {
   }
 
   /**
-   * A string representation of the blacklisted endpoint patterns,
+   * Returns a string representation of the blacklisted endpoint patterns,
    * formatted for use in a regular expression.
-   * @type {string}
+   *
+   * @static
+   * @returns {string} The formatted string of blacklisted endpoint patterns.
    */
   static getBlacklistURLs() {
     return `\\("${blacklistEndPoints.join('","')}"\\)`;
