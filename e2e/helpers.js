@@ -4,6 +4,7 @@ import {
   getGanachePort,
   getLocalTestDappPort,
 } from './fixtures/utils';
+import blacklistURLs from './resources/blacklistURLs';
 
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
@@ -153,6 +154,7 @@ export default class TestHelpers {
       sourceApp: 'io.metamask',
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
+        detoxURLBlacklistRegex: blacklistURLs,
       },
     });
   }
@@ -222,6 +224,9 @@ export default class TestHelpers {
   static relaunchApp() {
     return device.launchApp({
       newInstance: true,
+      launchArgs: {
+        detoxURLBlacklistRegex: blacklistURLs,
+      },
     });
   }
 
