@@ -5,6 +5,7 @@
     ".*api2.branch.io/*",
     ".*api.etherscan.io/*",
     ".*static.metafi.codefi.network/*",
-    ".*rpc.tenderly.co/*"
+    ".*rpc.tenderly.co/*",
+    ".*api-goerli.etherscan.io/*"
   ]
 }
