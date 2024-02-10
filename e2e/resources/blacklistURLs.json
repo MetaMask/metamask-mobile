@@ -6,6 +6,7 @@
     ".*api.etherscan.io/*",
     ".*static.metafi.codefi.network/*",
     ".*rpc.tenderly.co/*",
-    ".*api-goerli.etherscan.io/*"
+    ".*api-goerli.etherscan.io/*",
+    ".*cloudflare-ipfs.com/*"
   ]
 }
