@@ -5,7 +5,6 @@ import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';
 import ImportAccountView from '../../pages/ImportAccountView';
 
-
 describe(Regression('Import account via private to wallet'), () => {
   // This key is for testing private key import only
   // I should NEVER hold any eth or token
