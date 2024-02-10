@@ -7,18 +7,13 @@ import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Collectibles from '../../resources/collectibles.json';
-import blacklistURLs from '../../resources/blacklistURLs';
 
 describe(SmokeCore('Import NFT'), () => {
   const GOERLI = 'Goerli Test Network';
 
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await device.launchApp({
-      launchArgs: {
-        detoxURLBlacklistRegex: blacklistURLs,
-      },
-    });
+    await device.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {

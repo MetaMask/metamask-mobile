@@ -12,7 +12,6 @@ import {
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import { loginToApp } from '../../viewHelper';
-import blacklistURLs from '../../resources/blacklistURLs';
 
 const fixtureServer = new FixtureServer();
 
@@ -25,7 +24,6 @@ describe(SmokeCore('Import Tokens'), () => {
     await device.launchApp({
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
-        detoxURLBlacklistRegex: blacklistURLs,
       },
     });
     await loginToApp();

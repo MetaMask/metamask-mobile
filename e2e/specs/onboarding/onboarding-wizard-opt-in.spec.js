@@ -19,7 +19,6 @@ import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
-import blacklistURLs from '../../resources/blacklistURLs';
 
 const PASSWORD = '12345678';
 
@@ -28,11 +27,7 @@ describe(
   () => {
     beforeAll(async () => {
       jest.setTimeout(150000);
-      await device.launchApp({
-        launchArgs: {
-          detoxURLBlacklistRegex: blacklistURLs,
-        },
-      });
+      await device.launchApp();
     });
 
     it('should be able to opt-in of the onboarding-wizard', async () => {

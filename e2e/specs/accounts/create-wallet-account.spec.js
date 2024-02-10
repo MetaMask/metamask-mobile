@@ -3,16 +3,11 @@ import { Regression } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';
-import blacklistURLs from '../../resources/blacklistURLs';
 
 describe(Regression('Create wallet account'), () => {
   beforeAll(async () => {
     jest.setTimeout(200000);
-    await device.launchApp({
-      launchArgs: {
-        detoxURLBlacklistRegex: blacklistURLs,
-      },
-    });
+    await device.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {

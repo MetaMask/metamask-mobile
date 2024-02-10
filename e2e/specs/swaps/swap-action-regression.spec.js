@@ -18,7 +18,6 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
-import blacklistURLs from '../../resources/blacklistURLs';
 
 const fixtureServer = new FixtureServer();
 
@@ -35,7 +34,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       permissions: { notifications: 'YES' },
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
-        detoxURLBlacklistRegex: blacklistURLs,
       },
     });
     await loginToApp();

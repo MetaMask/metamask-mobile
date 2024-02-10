@@ -14,7 +14,6 @@ import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
 import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
-import blacklistURLs from '../../resources/blacklistURLs';
 
 const ACCOUNT = 'Test Account One';
 const PASSWORD = '12345678';
@@ -22,11 +21,7 @@ const PASSWORD = '12345678';
 describe(SmokeCore('Start Exploring'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await device.launchApp({
-      launchArgs: {
-        detoxURLBlacklistRegex: blacklistURLs,
-      },
-    });
+    await device.launchApp();
   });
 
   it('should show the onboarding screen', async () => {
