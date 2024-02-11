@@ -287,6 +287,9 @@ export default class TestHelpers {
    * @returns {string} The formatted string of blacklisted endpoint patterns.
    */
   static getBlacklistURLs() {
-    return `\\("${blacklistEndPoints.join('","')}"\\)`;
+    return device.getPlatform() === 'android'
+      ? // eslint-disable-next-line no-console
+        '\\(".*infura\\.io/*",".*cdn\\.branch\\.io/*",".*api2\\.branch\\.io/*",".*api\\.etherscan\\.io/*",".*static\\.metafi\\.codefi\\.network/*",".*rpc\\.tenderly\\.co/.*",".*api\\.etherscan\\.io/*",".*cloudflare-ipfs\\.com/*"\\)'
+      : `\\("${blacklistEndPoints.join('","')}"\\)`;
   }
 }
