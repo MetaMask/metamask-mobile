@@ -4,7 +4,10 @@ import {
   getGanachePort,
   getLocalTestDappPort,
 } from './fixtures/utils';
-import { blacklistEndPoints } from './resources/blacklistURLs.json';
+import {
+  blacklistEndPoints,
+  blacklistEndPointString,
+} from './resources/blacklistURLs.json';
 
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
@@ -288,8 +291,7 @@ export default class TestHelpers {
    */
   static getBlacklistURLs() {
     return device.getPlatform() === 'android'
-      ? // eslint-disable-next-line no-console
-        '\\(".*infura\\.io/*",".*cdn\\.branch\\.io/*",".*api2\\.branch\\.io/*",".*api\\.etherscan\\.io/*",".*static\\.metafi\\.codefi\\.network/*",".*rpc\\.tenderly\\.co/.*",".*api\\.etherscan\\.io/*",".*cloudflare-ipfs\\.com/*"\\)'
+      ? blacklistEndPointString
       : `\\("${blacklistEndPoints.join('","')}"\\)`;
   }
 }
