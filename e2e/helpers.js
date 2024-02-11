@@ -5,8 +5,8 @@ import {
   getLocalTestDappPort,
 } from './fixtures/utils';
 import {
-  blacklistEndPoints,
-  blacklistEndPointString,
+  blacklistURLs,
+  blacklistURLsString,
 } from './resources/blacklistURLs.json';
 
 export default class TestHelpers {
@@ -291,7 +291,7 @@ export default class TestHelpers {
    */
   static getBlacklistURLs() {
     return device.getPlatform() === 'android'
-      ? blacklistEndPointString
-      : `\\("${blacklistEndPoints.join('","')}"\\)`;
+      ? blacklistURLsString
+      : `\\("${blacklistURLs.join('","')}"\\)`;
   }
 }
