@@ -3,8 +3,8 @@ import { SmokeSwaps } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
 import {
-  switchToGoreliNetwork,
   importWalletWithRecoveryPhrase,
+  switchToSepoliaNetwork,
 } from '../../viewHelper';
 import Networks from '../../resources/networks.json';
 
@@ -31,7 +31,7 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
   });
 
   it('should not display the chart when using Goerli test network', async () => {
-    await switchToGoreliNetwork();
+    await switchToSepoliaNetwork();
     await WalletView.tapOnToken(Networks.Goerli.providerConfig.ticker);
     await TokenOverview.isVisible();
     await TokenOverview.ChartNotVisible();

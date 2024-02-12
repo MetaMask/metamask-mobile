@@ -4,11 +4,16 @@ import { ETH_ACTIONS } from '../../../constants/deeplinks';
 import { NetworkSwitchErrorType } from '../../../constants/error';
 import DeeplinkManager from '../DeeplinkManager';
 import handleEthereumUrl from './handleEthereumUrl';
+import { getDecimalChainId } from '../../../util/networks';
 
 jest.mock('react-native');
 
 jest.mock('eth-url-parser', () => ({
   parse: jest.fn(),
+}));
+
+jest.mock('../../../util/networks', () => ({
+  getDecimalChainId: jest.fn(),
 }));
 
 jest.mock('../../../../locales/i18n', () => ({
@@ -18,6 +23,7 @@ jest.mock('../../../../locales/i18n', () => ({
 describe('handleEthereumUrl', () => {
   let deeplinkManager: DeeplinkManager;
   const mockParse = parse as jest.Mock;
+  const mockGetDecimalChainId = getDecimalChainId as jest.Mock;
 
   const mockHandleNetworkSwitch = jest.fn();
   const mockNavigate = jest.fn();
@@ -64,6 +70,25 @@ describe('handleEthereumUrl', () => {
       'deeplink.invalid',
       'Error: Invalid URL',
     );
+  });
+
+  it('Should show deprecation modal if url is a goerli url', () => {
+    const url = 'ethereum:transfer';
+    const origin = 'test_origin';
+    mockParse.mockReturnValue({
+      function_name: ETH_ACTIONS.TRANSFER,
+      chain_id: 5,
+    });
+
+    mockGetDecimalChainId.mockReturnValue(5);
+
+    handleEthereumUrl({ deeplinkManager, url, origin });
+
+    expect(deeplinkManager.navigation.navigate).toHaveBeenCalledWith(
+      'DeprecatedNetworkDetails',
+      {},
+    );
+    expect(deeplinkManager._handleNetworkSwitch).toHaveBeenCalledTimes(0);
   });
 
   it('should navigates to SendView for TRANSFER action', () => {

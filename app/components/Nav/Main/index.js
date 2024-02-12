@@ -11,7 +11,6 @@ import {
   AppState,
   StyleSheet,
   View,
-  Linking,
   PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
@@ -101,7 +100,6 @@ const Main = (props) => {
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
-  const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -382,10 +380,6 @@ const Main = (props) => {
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
         />
-        {renderDeprecatedNetworkAlert(
-          props.chainId,
-          props.backUpSeedphraseVisible,
-        )}
         <SkipAccountSecurityModal
           modalVisible={showRemindLaterModal}
           onCancel={skipAccountModalSecureNow}
@@ -448,10 +442,6 @@ Main.propTypes = {
    * Current chain id
    */
   chainId: PropTypes.string,
-  /**
-   * backup seed phrase modal visible
-   */
-  backUpSeedphraseVisible: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({

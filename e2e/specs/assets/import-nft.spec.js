@@ -9,7 +9,7 @@ import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Collectibles from '../../resources/collectibles.json';
 
 describe(SmokeCore('Import NFT'), () => {
-  const GOERLI = 'Goerli Test Network';
+  const SEPOLIA = 'Sepolia Test Network';
 
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -20,13 +20,13 @@ describe(SmokeCore('Import NFT'), () => {
     await importWalletWithRecoveryPhrase();
   });
 
-  it('should switch to Goerli network', async () => {
+  it('should switch to Sepolia network', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.isVisible();
     await NetworkListModal.tapTestNetworkSwitch();
     await NetworkListModal.isTestNetworkToggleOn();
-    await NetworkListModal.changeNetwork(GOERLI);
-    await WalletView.isNetworkNameVisible(GOERLI);
+    await NetworkListModal.changeNetwork(SEPOLIA);
+    await WalletView.isNetworkNameVisible(SEPOLIA);
   });
 
   it('should dismiss network education modal', async () => {
