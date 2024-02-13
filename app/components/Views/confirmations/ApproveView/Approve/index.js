@@ -844,7 +844,6 @@ class Approve extends PureComponent {
               </AnimatedTransactionModal>
             )}
 
-            {/* TODO Disable if isSmartTransaction */}
             {mode !== 'review' &&
               (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET ? (
                 <EditGasFee1559

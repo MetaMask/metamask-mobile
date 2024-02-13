@@ -885,7 +885,6 @@ class TransactionEditor extends PureComponent {
           </KeyboardAwareScrollView>
         )}
 
-        {/* TODO Disable if isSmartTransaction  */}
         {mode !== 'review' &&
           (showLegacyGasEditModal ? (
             <EditGasFeeLegacy

@@ -2184,7 +2184,6 @@ function SwapsQuotesView({
                           } `}
                         </Text>
                         <TouchableOpacity
-                          // TODO disable if isSmartTransaction
                           disabled={unableToSwap || isSmartTransaction}
                           onPress={
                             unableToSwap

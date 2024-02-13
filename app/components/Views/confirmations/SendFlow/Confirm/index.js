@@ -1243,7 +1243,6 @@ class Confirm extends PureComponent {
             onlyGas={false}
             multiLayerL1FeeTotal={multiLayerL1FeeTotal}
           />
-          {/* TODO disable if isSmartTransaction */}
           {mode === EDIT && (
             <CustomGasModal
               gasSelected={gasSelected}
