@@ -101,7 +101,7 @@ describe('MetaMetrics', () => {
     });
 
     it('disables metrics', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
 
       // Enable first as it is disabled by default
       await metaMetrics.enable();
@@ -170,7 +170,7 @@ describe('MetaMetrics', () => {
     });
 
     it('tracks anonymous event', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
       await metaMetrics.enable();
       const event = 'event1';
       const properties = { prop1: 'value1' };
@@ -190,7 +190,7 @@ describe('MetaMetrics', () => {
     });
 
     it('tracks anonymous event without param', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
       await metaMetrics.enable();
       const event = 'event1';
 
@@ -209,7 +209,7 @@ describe('MetaMetrics', () => {
     });
 
     it('does not track anonymous event if disabled', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
       const event = 'event1';
       const properties = { prop1: 'value1' };
 
@@ -240,7 +240,7 @@ describe('MetaMetrics', () => {
 
   describe('Grouping', () => {
     it('groups user', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
       await metaMetrics.enable();
       const groupId = 'group1';
       const groupTraits = { trait1: 'value1' };
@@ -253,7 +253,7 @@ describe('MetaMetrics', () => {
     });
 
     it('does not groups user if disabled', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
       const groupId = 'group1';
       const groupTraits = { trait1: 'value1' };
       metaMetrics.group(groupId, groupTraits);
@@ -277,7 +277,7 @@ describe('MetaMetrics', () => {
     });
 
     it('does not add traits to user when disabled', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
       const userTraits = { trait1: 'value1' };
       await metaMetrics.addTraitsToUser(userTraits);
       const { segmentMockClient } = global as any;
@@ -287,7 +287,7 @@ describe('MetaMetrics', () => {
 
   describe('Lifecycle', () => {
     it('resets', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
       await metaMetrics.reset();
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.reset).toHaveBeenCalledWith(true);
@@ -295,7 +295,7 @@ describe('MetaMetrics', () => {
     });
 
     it('flushes the segment client', async () => {
-      const metaMetrics = await TestMetaMetrics.getInstance();
+      const metaMetrics = TestMetaMetrics.getInstance();
       await metaMetrics.flush();
       const { segmentMockClient } = global as any;
       expect(segmentMockClient.flush).toHaveBeenCalled();
@@ -303,6 +303,29 @@ describe('MetaMetrics', () => {
   });
 
   describe('Ids', () => {
+    it('is returned from DefaultPreference when instance not configured', async () => {
+      const UUID = '00000000-0000-0000-0000-000000000000';
+      mockGet.mockImplementation(async (key: string) =>
+        key === METAMETRICS_ID ? UUID : '',
+      );
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
+      expect(DefaultPreference.get).toHaveBeenCalledWith(METAMETRICS_ID);
+    });
+
+    it('is returned from memory when instance configured', async () => {
+      const testID = '00000000-0000-0000-0000-000000000000';
+      mockGet.mockImplementation(async () => testID);
+      const metaMetrics = TestMetaMetrics.getInstance();
+      expect(await metaMetrics.configure()).toBeTruthy();
+
+      // reset the call count to checj no new calls are made
+      mockGet.mockClear();
+
+      expect(await metaMetrics.getMetaMetricsId()).toEqual(testID);
+      expect(DefaultPreference.get).not.toHaveBeenCalled();
+    });
+
     it('uses Mixpanel ID if it is set', async () => {
       const mixPanelUUID = '00000000-0000-0000-0000-000000000000';
       mockGet.mockImplementation(async () => mixPanelUUID);
@@ -318,6 +341,7 @@ describe('MetaMetrics', () => {
         mixPanelUUID,
       );
       expect(DefaultPreference.get).not.toHaveBeenCalledWith(METAMETRICS_ID);
+      expect(await metaMetrics.getMetaMetricsId()).toEqual(mixPanelUUID);
     });
 
     it('uses Metametrics ID if it is set', async () => {
@@ -334,29 +358,30 @@ describe('MetaMetrics', () => {
       );
       expect(DefaultPreference.get).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
       expect(DefaultPreference.set).not.toHaveBeenCalled();
+      expect(await metaMetrics.getMetaMetricsId()).toEqual(UUID);
     });
 
     it('maintains same user id', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
-      const metricsId = mockSet.mock.calls[0][1];
+      const metricsId = await metaMetrics.getMetaMetricsId();
       expect(metricsId).not.toEqual('');
 
       // create a new instance and check that user id was not changed
-      await TestMetaMetrics.getInstance();
+      TestMetaMetrics.getInstance();
 
       expect(DefaultPreference.set).not.toHaveBeenCalledWith(
         METAMETRICS_ID,
         '',
       );
       expect(DefaultPreference.get).toHaveBeenNthCalledWith(3, METAMETRICS_ID);
+      expect(await metaMetrics.getMetaMetricsId()).toEqual(metricsId);
     });
 
     it('resets user id', async () => {
       const metaMetrics = TestMetaMetrics.getInstance();
       expect(await metaMetrics.configure()).toBeTruthy();
-      const metricsId = mockSet.mock.calls[0][1];
-
+      const metricsId = await metaMetrics.getMetaMetricsId();
       expect(metricsId).not.toEqual('');
 
       // reset the instance and SDK must reset user id
@@ -375,11 +400,10 @@ describe('MetaMetrics', () => {
       expect(segmentMockClient.reset).toHaveBeenCalledWith(true);
 
       // create a new instance and check user id is different
-      await TestMetaMetrics.getInstance();
-      const metricsId2 = mockSet.mock.calls[2][1];
+      TestMetaMetrics.getInstance();
+      const metricsId2 = await metaMetrics.getMetaMetricsId();
 
       expect(metricsId2).not.toEqual('');
-
       expect(metricsId).not.toEqual(metricsId2);
     });
   });
@@ -387,7 +411,7 @@ describe('MetaMetrics', () => {
   describe('Delete regulation', () => {
     describe('delete request', () => {
       it('data deletion task succeeds', async () => {
-        const metaMetrics = await TestMetaMetrics.getInstance();
+        const metaMetrics = TestMetaMetrics.getInstance();
         (axios as jest.MockedFunction<typeof axios>).mockResolvedValue({
           status: 200,
           data: { data: { regulateId: 'TWV0YU1hc2t1c2Vzbm9wb2ludCE' } },
@@ -413,7 +437,7 @@ describe('MetaMetrics', () => {
       });
 
       it('data deletion task fails', async () => {
-        const metaMetrics = await TestMetaMetrics.getInstance();
+        const metaMetrics = TestMetaMetrics.getInstance();
         (axios as jest.MockedFunction<typeof axios>).mockRejectedValue({
           response: {
             status: 422,
@@ -573,7 +597,7 @@ describe('MetaMetrics', () => {
 
       it('data deletion task check fails without METAMETRICS_DELETION_REGULATION_ID', async () => {
         DefaultPreference.get = jest.fn().mockResolvedValue(undefined);
-        const metaMetrics = await TestMetaMetrics.getInstance();
+        const metaMetrics = TestMetaMetrics.getInstance();
 
         const {
           hasCollectedDataSinceDeletionRequest,

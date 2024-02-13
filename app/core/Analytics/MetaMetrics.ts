@@ -676,6 +676,14 @@ class MetaMetrics implements IMetaMetrics {
    * @returns true if events have been recorded since the last deletion request
    */
   isDataRecorded = (): boolean => this.dataRecorded;
+
+  /**
+   * Get the current MetaMetrics ID
+   *
+   * @returns the current MetaMetrics ID
+   */
+  getMetaMetricsId = async (): Promise<string | undefined> =>
+    this.metametricsId || (await this.#getMetaMetricsId());
 }
 
 export default MetaMetrics;

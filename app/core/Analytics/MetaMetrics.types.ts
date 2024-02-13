@@ -96,6 +96,8 @@ export interface IMetaMetrics {
   isDataRecorded(): boolean;
 
   configure(): Promise<boolean>;
+
+  getMetaMetricsId(): Promise<string | undefined>;
 }
 
 /**
