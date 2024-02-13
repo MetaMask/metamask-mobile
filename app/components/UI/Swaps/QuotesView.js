@@ -937,7 +937,8 @@ function SwapsQuotesView({
       try {
         resetTransaction();
 
-        if (isSmartTransaction) {
+        // TODO probably remove the stx path since just route all stx thru the tx publish hook
+        if (false) {
           Logger.log(
             'STX QuotesView handleSwapTransaction isSmartTransaction',
             isSmartTransaction,
