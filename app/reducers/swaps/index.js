@@ -11,6 +11,7 @@ import { selectContractBalances } from '../../selectors/tokenBalancesController'
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
 export const SWAPS_SET_HAS_ONBOARDED = 'SWAPS_SET_HAS_ONBOARDED';
+export const SWAPS_SET_SMART_TX_FEATURE_FLAG = 'SWAPS_SET_SMART_TX';
 const MAX_TOKENS_WITH_BALANCE = 5;
 
 // * Action Creator
@@ -21,6 +22,10 @@ export const setSwapsLiveness = (live, chainId) => ({
 export const setSwapsHasOnboarded = (hasOnboarded) => ({
   type: SWAPS_SET_HAS_ONBOARDED,
   payload: hasOnboarded,
+});
+export const setSwapsSmartTxFeatureFlag = (active) => ({
+  type: SWAPS_SET_SMART_TX_FEATURE_FLAG,
+  payload: active,
 });
 
 // * Functions
@@ -54,6 +59,11 @@ export const swapsLivenessSelector = createSelector(
   swapsStateSelector,
   chainIdSelector,
   (swapsState, chainId) => swapsState[chainId]?.isLive || false,
+);
+
+export const swapsSmartTxEnabled = createSelector(
+  swapsStateSelector,
+  (swapsState) => swapsState.smartTransactions,
 );
 
 /**
@@ -218,6 +228,14 @@ function swapsReducer(state = initialState, action) {
       return {
         ...state,
         hasOnboarded: Boolean(action.payload),
+      };
+    }
+    case SWAPS_SET_SMART_TX_FEATURE_FLAG: {
+      return {
+        ...state,
+        // TODO - uncomment when not in dev
+        // smartTransactions: action.payload,
+        smartTransactions: true,
       };
     }
     default: {

@@ -130,18 +130,17 @@ export const getSmartTransactionsEnabled = (state: RootState) => {
   const isAllowedNetwork =
     ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS.includes(chainId);
 
+  const smartTransactionsFeatureFlagEnabled = state.swaps.smartTransactions;
+
   const smartTransactionsLiveness =
     state.engine.backgroundState.SmartTransactionsController
       .smartTransactionsState?.liveness;
 
-  Logger.log(
-    'STX state.engine.backgroundState.SmartTransactionsController.smartTransactionsState',
-    state.engine.backgroundState.SmartTransactionsController
-      .smartTransactionsState,
-  );
-
   return Boolean(
-    isAllowedNetwork && !addrIshardwareAccount && smartTransactionsLiveness,
+    isAllowedNetwork &&
+      !addrIshardwareAccount &&
+      smartTransactionsFeatureFlagEnabled &&
+      smartTransactionsLiveness,
   );
 };
 

@@ -53,9 +53,8 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../component-library/components/Banners/Banner';
-import { swapsUtils } from '@metamask/swaps-controller';
-import { APIType } from '@metamask/swaps-controller/dist/swapsInterfaces';
 import AppConstants from '../../../../../app/core/AppConstants';
+import { swapsSmartTxEnabled } from '../../../../../app/reducers/swaps';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -193,6 +192,10 @@ class AdvancedSettings extends PureComponent {
      * Boolean that checks if smart transactions is enabled
      */
     smartTransactionsOptInStatus: PropTypes.bool,
+    /**
+     * Boolean that checks if smart transactions feature flag is enabled
+     */
+    smartTransactionsFeatureFlag: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -233,8 +236,6 @@ class AdvancedSettings extends PureComponent {
 
     this.props.route?.params?.scrollToBottom &&
       this.scrollView?.current?.scrollToEnd({ animated: true });
-
-    this.checkSmartTransactionsFeatureFlag();
   };
 
   componentDidUpdate = () => {
@@ -243,23 +244,6 @@ class AdvancedSettings extends PureComponent {
 
   componentWillUnmount = () => {
     this.mounted = false;
-  };
-
-  checkSmartTransactionsFeatureFlag = async () => {
-    const swapsFeatureFlagsUrl = swapsUtils.getBaseApiURL(APIType.FEATURE_FLAG);
-    const res = await fetch(swapsFeatureFlagsUrl);
-    const data = await res.json();
-
-    const { mobileActive, mobileActiveIOS, mobileActiveAndroid } =
-      data.smartTransactions;
-
-    // TODO uncomment when ready
-    // if (Device.isIos() && mobileActive && mobileActiveIOS) {
-    //   this.setState({ smartTransactionsFeatureFlagEnabled: true });
-    // } else if (Device.isAndroid() && mobileActive && mobileActiveAndroid) {
-    //   this.setState({ smartTransactionsFeatureFlagEnabled: true });
-    // }
-    this.setState({ smartTransactionsFeatureFlagEnabled: true });
   };
 
   displayResetAccountModal = () => {
@@ -387,9 +371,9 @@ class AdvancedSettings extends PureComponent {
       setShowCustomNonce,
       enableEthSign,
       smartTransactionsOptInStatus,
+      smartTransactionsFeatureFlag,
     } = this.props;
-    const { resetModalVisible, smartTransactionsFeatureFlagEnabled } =
-      this.state;
+    const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
     const theme = this.context || mockTheme;
 
@@ -569,7 +553,7 @@ class AdvancedSettings extends PureComponent {
               />
             </View>
 
-            {smartTransactionsFeatureFlagEnabled && (
+            {smartTransactionsFeatureFlag && (
               <View style={styles.setting}>
                 <View style={styles.titleContainer}>
                   <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
@@ -626,6 +610,7 @@ const mapStateToProps = (state) => ({
   isTokenDetectionEnabled: selectUseTokenDetection(state),
   chainId: selectChainId(state),
   smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
+  smartTransactionsFeatureFlag: swapsSmartTxEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

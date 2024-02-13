@@ -203,7 +203,7 @@
     "@metamask/snaps-rpc-methods": "^3.2.1",
     "@metamask/snaps-utils": "^3.2.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/swaps-controller": "^6.9.3",
+    "@metamask/swaps-controller": "file:.yalc/@metamask/swaps-controller",
     "@metamask/transaction-controller": "^6.1.0",
     "@metamask/utils": "^8.1.0",
     "@ngraveio/bc-ur": "^1.1.6",

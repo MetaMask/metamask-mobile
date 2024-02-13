@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import {
   setSwapsLiveness,
+  setSwapsSmartTxFeatureFlag,
   swapsLivenessSelector,
 } from '../../../reducers/swaps';
 import Device from '../../../util/device';
@@ -47,6 +48,35 @@ function SwapLiveness() {
       setLiveness(false, chainId);
     }
   }, [setLiveness, chainId]);
+
+  // TODO improve this
+  useEffect(() => {
+    const checkSmartTransactions = async () => {
+      const featureFlags = await swapsUtils.fetchSwapsFeatureFlags();
+
+      const isIphone = Device.isIos();
+      const isAndroid = Device.isAndroid();
+
+      let isActiveForDevice = false;
+      if (
+        isIphone &&
+        featureFlags?.smartTransactions?.mobileActiveIOS !== undefined
+      ) {
+        isActiveForDevice = featureFlags?.smartTransactions?.mobileActiveIOS;
+      } else if (
+        isAndroid &&
+        featureFlags?.smartTransactions?.mobileActiveAndroid !== undefined
+      ) {
+        isActiveForDevice =
+          featureFlags?.smartTransactions?.mobileActiveAndroid;
+      }
+
+      const isMobileActive = featureFlags?.smartTransactions.mobileActive;
+
+      dispatch(setSwapsSmartTxFeatureFlag(isMobileActive && isActiveForDevice));
+    };
+    checkSmartTransactions();
+  }, [dispatch]);
 
   useEffect(() => {
     if (isSwapsAllowed(chainId) && !isLive) {
