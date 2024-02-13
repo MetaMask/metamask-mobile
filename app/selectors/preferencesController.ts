@@ -4,6 +4,7 @@ import { RootState } from '../reducers';
 import { isHardwareAccount } from '../../app/util/address';
 import { selectChainId } from './networkController';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
+import Logger from '../util/Logger';
 
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine.backgroundState.PreferencesController;
@@ -129,7 +130,19 @@ export const getSmartTransactionsEnabled = (state: RootState) => {
   const isAllowedNetwork =
     ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS.includes(chainId);
 
-  return Boolean(isAllowedNetwork && !addrIshardwareAccount);
+  const smartTransactionsLiveness =
+    state.engine.backgroundState.SmartTransactionsController
+      .smartTransactionsState?.liveness;
+
+  Logger.log(
+    'STX state.engine.backgroundState.SmartTransactionsController.smartTransactionsState',
+    state.engine.backgroundState.SmartTransactionsController
+      .smartTransactionsState,
+  );
+
+  return Boolean(
+    isAllowedNetwork && !addrIshardwareAccount && smartTransactionsLiveness,
+  );
 };
 
 // TODO optimize using createSelector

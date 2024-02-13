@@ -1150,6 +1150,10 @@ class Engine {
       }
     }
 
+    // TODO fix stxController.name, right now its set to 'BaseController'
+    // Can take this out once that's fixed
+    this.stxController.name = 'SmartTransactionsController';
+
     // set initial state
     // TODO: Pass initial state into each controller constructor instead
     // This is being set post-construction for now to ensure it's functionally equivalent with
@@ -1181,9 +1185,7 @@ class Engine {
       {},
     ) as typeof this.context;
 
-    // TODO fix stxController.name, right now its set to 'BaseController'
-    // Can take this out once that's fixed
-    this.context.SmartTransactionsController = this.stxController;
+    Logger.log('STX this.context', Object.keys(this.context));
 
     const {
       NftController: nfts,
@@ -1540,6 +1542,7 @@ export default {
       TokenBalancesController,
       TokenRatesController,
       TransactionController,
+      SmartTransactionsController,
       SwapsController,
       GasFeeController,
       TokensController,
@@ -1580,6 +1583,7 @@ export default {
       TokenRatesController,
       TokensController,
       TransactionController,
+      SmartTransactionsController,
       SwapsController,
       GasFeeController,
       TokenDetectionController,
