@@ -24,26 +24,30 @@ export const whatsNew: WhatsNew = {
       },
       {
         type: 'title',
-        title: 'Introducing smart transactions',
+        title: strings('whats_new.stx.title'),
       },
       {
         type: 'description',
-        description:
-          'Smart transactions make MetaMask even more reliable, private, and cost-effective than ever before.',
+        description: strings('whats_new.stx.description_1'),
       },
       {
         type: 'description',
-        description:
-          'They are automatically enabled for your convenience, but you can turn them off in Settings whenever you want.',
+        description: strings('whats_new.stx.description_2'),
       },
       {
         type: 'button',
-        buttonText: 'Manage in settings',
+        buttonText: strings('whats_new.stx.settings'),
         buttonType: 'transparent-blue',
         onPress: (props) =>
           props.navigation.navigate(Routes.SETTINGS_VIEW, {
             screen: Routes.SETTINGS.ADVANCED_SETTINGS,
           }),
+      },
+      {
+        type: 'button',
+        buttonText: strings('whats_new.stx.action_text'),
+        buttonType: 'blue',
+        onPress: (props) => props.navigation.navigate(Routes.WALLET_VIEW),
       },
     ],
     [
