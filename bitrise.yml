@@ -454,16 +454,22 @@ workflows:
                 sudo apt install ccache
       - restore-cache@2:
           title: Restore CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - restore-cache@2:
           title: Restore build from cache
           inputs:
             - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{or (not (enveq "BITRISE_CACHE_HIT" "exact")) (enveq "CURRENT_BRANCH" "main")}}'
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}'
           is_always_run: false
           inputs:
             - content: |-
@@ -616,16 +622,22 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/clang++
       - restore-cache@2:
           title: Restore CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - restore-cache@2:
           title: Restore build from cache
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{or (not (enveq "BITRISE_CACHE_HIT" "exact")) (enveq "CURRENT_BRANCH" "main")}}'
+          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}'
           is_always_run: false
           inputs:
             - content: |-
