@@ -24,7 +24,7 @@ import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
+import trackAfterInteractions from '../../../util/metrics/TrackOnboarding/trackOnboarding.ts';
 import Logger from '../../../util/Logger';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 

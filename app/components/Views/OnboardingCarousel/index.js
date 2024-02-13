@@ -24,7 +24,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
+import trackAfterInteractions from '../../../util/metrics/TrackOnboarding/trackOnboarding.ts';
 import Logger from '../../../util/Logger';
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;

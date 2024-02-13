@@ -63,7 +63,7 @@ import {
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
+import trackAfterInteractions from '../../../util/metrics/TrackOnboarding/trackOnboarding.ts';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
