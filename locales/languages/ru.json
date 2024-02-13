@@ -7,8 +7,6 @@
     "deceptive_request_title": "Это запрос с целью обмана",
     "failed_title": "Запрос может быть небезопасным",
     "failed_description": "Из-за ошибки этот запрос не был подтвержден поставщиком услуг безопасности. Действуйте осторожно.",
-    "loading_title": "Этот запрос все еще моделируется. Рекомендуем дождаться завершения процесса.",
-    "loading_complete_title": "Моделирование завершено. Прежде чем продолжить, просмотрите этот запрос.",
     "malicious_domain_description": "Вы взаимодействуете с вредоносным доменом. Если вы одобрите этот запрос, вы можете потерять свои активы.",
     "other_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
     "raw_signature_farming_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
@@ -2373,8 +2371,7 @@
     "blockaid": {
       "title": "Избегайте угроз с помощью оповещений безопасности",
       "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
-      "description_2": "Всегда проводите собственную комплексную проверку перед утверждением запросов.",
-      "action_text": "Включить оповещения безопасности"
+      "description_2": "Всегда проводите собственную комплексную проверку перед утверждением запросов."
     },
     "sell": {
       "title": "Вывод средств стал проще",

@@ -7,8 +7,6 @@
     "deceptive_request_title": "Dies ist eine betrügerische Anfrage.",
     "failed_title": "Anfrage ist möglicherweise nicht sicher",
     "failed_description": "Aufgrund eines Fehlers wurde diese Anfrage vom Sicherheitsanbieter nicht überprüft. Gehen Sie mit Bedacht vor.",
-    "loading_title": "Dieser Anfrage wird derzeit noch simuliert. Wir empfehlen, den Abschluss der Simulation abzuwarten.",
-    "loading_complete_title": "Simulation abgeschlossen. Überprüfen Sie diese Anfrage, bevor Sie fortfahren.",
     "malicious_domain_description": "Sie haben es mit einer bösartigen Domain zu tun. Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "other_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "raw_signature_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
@@ -2373,8 +2371,7 @@
     "blockaid": {
       "title": "Gehen Sie mit Sicherheitsbenachrichtigungen auf Nummer sicher.",
       "description_1": "Vermeiden Sie bekannte Betrügereien und bewahren Sie gleichzeitig Ihre Privatsphäre mit Sicherheitsbenachrichtigungen von Blockaid. Diese Funktion ist auf Arbitrum, Avalanche, BNB Chain, Ethereum Mainnet, Linea, Optimism und Polygon verfügbar.",
-      "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen.",
-      "action_text": "Sicherheitsbenachrichtigungen aktivieren"
+      "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen."
     },
     "sell": {
       "title": "Auszahlen leicht gemacht",

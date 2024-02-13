@@ -264,6 +264,7 @@ class NetworkSettings extends PureComponent {
     showPopularNetworkModal: false,
     popularNetwork: {},
     showWarningModal: false,
+    showNetworkDetailsModal: false,
   };
 
   inputRpcURL = React.createRef();
@@ -802,6 +803,18 @@ class NetworkSettings extends PureComponent {
     navigation.goBack();
   };
 
+  showNetworkModal = (networkConfiguration) => {
+    this.setState({
+      showPopularNetworkModal: true,
+      popularNetwork: {
+        ...networkConfiguration,
+        formattedRpcUrl: networkConfiguration.warning
+          ? null
+          : hideKeyFromUrl(networkConfiguration.rpcUrl),
+      },
+    });
+  };
+
   customNetwork = (networkTypeOrRpcUrl) => {
     const {
       rpcUrl,
@@ -846,7 +859,33 @@ class NetworkSettings extends PureComponent {
       ? { ...styles.button, ...styles.disabledButton }
       : styles.button;
 
-    return (
+    const url = new URL(rpcUrl);
+    const decimalChainId = this.getDecimalChainId(chainId);
+
+    const selectedNetwork = {
+      rpcUrl: url.href,
+      chainId: decimalChainId,
+      ticker,
+      nickname,
+      rpcPrefs: {
+        blockExplorerUrl,
+      },
+    };
+
+    const shouldNetworkSwitchPopToWallet =
+      route.params?.shouldNetworkSwitchPopToWallet ?? true;
+
+    return this.state.showNetworkDetailsModal ? (
+      <CustomNetwork
+        isNetworkModalVisible={this.state.showNetworkDetailsModal}
+        closeNetworkModal={this.toggleNetworkDetailsModal}
+        selectedNetwork={selectedNetwork}
+        toggleWarningModal={this.toggleWarningModal}
+        showNetworkModal={this.showNetworkModal}
+        switchTab={this.tabView}
+        shouldNetworkSwitchPopToWallet={shouldNetworkSwitchPopToWallet}
+      />
+    ) : (
       <SafeAreaView
         style={styles.wrapper}
         testID={NetworksViewSelectorsIDs.CONTAINER}
@@ -961,7 +1000,7 @@ class NetworkSettings extends PureComponent {
               )}
               {...generateTestId(Platform, BLOCK_EXPLORER_FIELD)}
               placeholderTextColor={colors.text.muted}
-              onSubmitEditing={this.addRpcUrl}
+              onSubmitEditing={this.toggleNetworkDetailsModal}
               keyboardAppearance={themeAppearance}
             />
           </View>
@@ -1004,7 +1043,7 @@ class NetworkSettings extends PureComponent {
                     <Button
                       size={ButtonSize.Lg}
                       variant={ButtonVariants.Primary}
-                      onPress={this.addRpcUrl}
+                      onPress={this.toggleNetworkDetailsModal}
                       testID={
                         NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON
                       }
@@ -1023,22 +1062,29 @@ class NetworkSettings extends PureComponent {
     );
   };
 
-  showNetworkModal = (networkConfiguration) =>
-    this.setState({
-      showPopularNetworkModal: true,
-      popularNetwork: {
-        ...networkConfiguration,
-        formattedRpcUrl: networkConfiguration.warning
-          ? null
-          : hideKeyFromUrl(networkConfiguration.rpcUrl),
-      },
-    });
-
   onCancel = () =>
     this.setState({ showPopularNetworkModal: false, popularNetwork: {} });
 
   toggleWarningModal = () =>
     this.setState({ showWarningModal: !this.state.showWarningModal });
+
+  toggleNetworkDetailsModal = async () => {
+    const { rpcUrl, chainId: stateChainId } = this.state;
+    const formChainId = stateChainId.trim().toLowerCase();
+
+    // Ensure chainId is a 0x-prefixed, lowercase hex string
+    let chainId = formChainId;
+    if (!chainId.startsWith('0x')) {
+      chainId = `0x${parseInt(chainId, 10).toString(16)}`;
+    }
+
+    if (!(await this.validateChainIdOnSubmit(formChainId, chainId, rpcUrl))) {
+      return;
+    }
+    this.setState({
+      showNetworkDetailsModal: !this.state.showNetworkDetailsModal,
+    });
+  };
 
   goToLearnMore = () => Linking.openURL(strings('networks.learn_more_url'));
 

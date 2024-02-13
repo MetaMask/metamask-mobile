@@ -7,8 +7,6 @@
     "deceptive_request_title": "Bu, aldatıcı bir taleptir",
     "failed_title": "Talep güvenli olmayabilir",
     "failed_description": "Bu talep bir hatadan dolayı güvenlik sağlayıcısı tarafından doğrulanmadı. Dikkatli bir şekilde ilerleyin.",
-    "loading_title": "Bu talep hala simüle ediliyor. Tamamlanmasını beklemenizi tavsiye ederiz.",
-    "loading_complete_title": "Simülasyon tamamlandı. İlerlemeden önce bu talebi inceleyin.",
     "malicious_domain_description": "Kötü niyetli bir alanla etkileşimde bulunuyorsunuz. Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
     "other_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
     "raw_signature_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
@@ -2373,8 +2371,7 @@
     "blockaid": {
       "title": "Güvenlik uyarıları ile güvende kalın",
       "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
-      "description_2": "Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin.",
-      "action_text": "Güvenlik uyarılarını etkinleştir"
+      "description_2": "Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin."
     },
     "sell": {
       "title": "Paraya çevirmek artık kolay",
