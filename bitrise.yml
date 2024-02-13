@@ -427,6 +427,12 @@ workflows:
     # after_run:
     #   - _notify_failure_on_slack
     steps:
+      - script@1:
+          title: Check native folder diff for Android
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh android
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
@@ -439,12 +445,6 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
-      - script@1:
-          title: Check native folder diff for Android
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh android
       - script@1:
           title: Install CCache & symlink
           inputs:
@@ -589,6 +589,12 @@ workflows:
     # after_run:
     #   - _notify_failure_on_slack
     steps:
+      - script@1:
+          title: Check native folder diff for iOS
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh ios
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -602,12 +608,6 @@ workflows:
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
           title: Set Env Path for caching deps
-      - script@1:
-          title: Check native folder diff for iOS
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh ios
       - script@1:
           title: Install CCache & symlink
           inputs:
