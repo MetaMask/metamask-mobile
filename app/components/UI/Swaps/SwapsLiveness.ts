@@ -49,7 +49,7 @@ function SwapLiveness() {
     }
   }, [setLiveness, chainId]);
 
-  // TODO improve this
+  // TODO improve this with error handling like
   useEffect(() => {
     const checkSmartTransactions = async () => {
       const featureFlags = await swapsUtils.fetchSwapsFeatureFlags();
