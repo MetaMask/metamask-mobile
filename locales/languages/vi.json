@@ -7,8 +7,6 @@
     "deceptive_request_title": "Đây là một yêu cầu lừa đảo",
     "failed_title": "Yêu cầu có thể không an toàn",
     "failed_description": "Do có lỗi, yêu cầu này đã không được nhà cung cấp dịch vụ bảo mật xác minh. Hãy thực hiện cẩn thận.",
-    "loading_title": "Yêu cầu này vẫn đang được mô phỏng. Chúng tôi khuyên bạn nên đợi quá trình mô phỏng hoàn tất.",
-    "loading_complete_title": "Mô phỏng đã hoàn tất. Vui lòng xem lại yêu cầu này trước khi tiếp tục.",
     "malicious_domain_description": "Bạn đang tương tác với một tên miền độc hại. Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "other_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "raw_signature_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
@@ -2373,8 +2371,7 @@
     "blockaid": {
       "title": "Đảm bảo an toàn với cảnh báo bảo mật",
       "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
-      "description_2": "Luôn tự thẩm định trước khi chấp thuận các yêu cầu.",
-      "action_text": "Bật cảnh báo bảo mật"
+      "description_2": "Luôn tự thẩm định trước khi chấp thuận các yêu cầu."
     },
     "sell": {
       "title": "Rút tiền dễ dàng",

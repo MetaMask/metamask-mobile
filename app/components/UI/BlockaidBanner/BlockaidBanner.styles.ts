@@ -36,6 +36,38 @@ const styleSheet = (_params: {
       marginRight: 10,
       marginBottom: 20,
     },
+    bannerSectionSmall: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderRadius: 4,
+      borderColor: _params.theme.colors.border.default,
+      marginTop: 20,
+      marginLeft: 10,
+      marginRight: 10,
+      marginBottom: 20,
+      padding: 10,
+    },
+    bannerSectionSmallSpaced: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderWidth: 1,
+      borderRadius: 4,
+      borderColor: _params.theme.colors.border.default,
+      marginTop: 20,
+      marginLeft: 10,
+      marginRight: 10,
+      marginBottom: 20,
+      padding: 10,
+    },
+    infoText: {
+      marginLeft: 8,
+    },
+    flexRowSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
   });
 
 export default styleSheet;

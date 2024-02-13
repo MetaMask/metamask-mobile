@@ -98,7 +98,7 @@
     "useNftDetection": false,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
-    "securityAlertsEnabled": false,
+    "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false
