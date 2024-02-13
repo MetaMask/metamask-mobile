@@ -180,6 +180,8 @@ import { UpdatePPOMInitializationStatus } from '../actions/experimental';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { getIsSmartTransaction } from '../selectors/preferencesController';
+import { publishHook as smartPublishHook } from '../components/UI/Swaps/utils/smart-tx';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -877,6 +879,25 @@ class Engine {
       provider: networkController.getProviderAndBlockTracker().provider,
       getExternalPendingTransactions:
         this.getExternalPendingTransactions.bind(this),
+
+      hooks: {
+        publish: (transactionMeta) => {
+          const isSmartTransaction = getIsSmartTransaction(store.getState());
+
+          Logger.log(
+            'STX',
+            'publish hook isSmartTransaction',
+            isSmartTransaction,
+          );
+
+          return smartPublishHook({
+            transactionMeta,
+            transactionController: this.txController,
+            smartTransactionsController: this.stxController,
+            isSmartTransaction,
+          });
+        },
+      },
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();

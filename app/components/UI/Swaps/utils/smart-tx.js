@@ -30,8 +30,6 @@ export const createSignedTransactions = async (
     unsignedTransactionsWithFees,
   );
 
-  Logger.log('STX', process.env.DEBUG);
-
   const signedTransactions =
     await TransactionController.approveTransactionsWithSameNonce(
       unsignedTransactionsWithFees,
@@ -92,3 +90,94 @@ export const signAndSendSmartTransaction = async (
 
   return res.uuid;
 };
+
+export async function publishHook(request) {
+  const {
+    transactionMeta,
+    smartTransactionsController,
+    transactionController,
+    isSmartTransaction,
+  } = request;
+
+  Logger.log('STX - Executing publish hook', transactionMeta);
+
+  const { chainId, transaction: txParams } = transactionMeta;
+
+  if (!isSmartTransaction) {
+    Logger.log('STX - Skipping hook as not enabled for chain', chainId);
+
+    // Will cause TransactionController to publish to the RPC provider as normal.
+    return { transactionHash: undefined };
+  }
+
+  try {
+    Logger.log('STX - Fetching fees', txParams, chainId);
+    const feesResponse = await smartTransactionsController.getFees(
+      { ...txParams, chainId },
+      undefined,
+    );
+
+    Logger.log('STX - Retrieved fees', feesResponse);
+
+    const signedTransactions = await createSignedTransactions(
+      txParams,
+      feesResponse.tradeTxFees?.fees ?? [],
+      false,
+      transactionController,
+    );
+
+    const signedCanceledTransactions = await createSignedTransactions(
+      txParams,
+      feesResponse.tradeTxFees?.cancelFees || [],
+      true,
+      transactionController,
+    );
+
+    Logger.log('STX - Generated signed transactions', {
+      signedTransactions,
+      signedCanceledTransactions,
+    });
+
+    Logger.log('STX - Submitting signed transactions');
+
+    const response = await smartTransactionsController.submitSignedTransactions(
+      {
+        signedTransactions,
+        signedCanceledTransactions,
+        txParams,
+        // Patched into controller to skip unnecessary call to confirmExternalTransaction.
+        skipConfirm: true,
+      },
+    );
+
+    const uuid = response?.uuid;
+
+    if (!uuid) {
+      throw new Error('No smart transaction UUID');
+    }
+
+    Logger.log('STX - Received UUID', uuid);
+
+    smartTransactionsController.eventEmitter.on(`${uuid}:status`, (status) => {
+      Logger.log('STX - Status update', status);
+    });
+
+    const transactionHash = await new Promise((resolve) => {
+      smartTransactionsController.eventEmitter.once(
+        `${uuid}:transaction-hash`,
+        (hash) => {
+          resolve(hash);
+        },
+      );
+    });
+
+    Logger.log('STX - Received hash', transactionHash);
+
+    return { transactionHash };
+  } catch (error) {
+    Logger.log('STX - publish hook Error', error);
+    Logger.error(error);
+    // Will cause TransactionController to publish to the RPC provider as normal.
+    return { transactionHash: undefined };
+  }
+}
