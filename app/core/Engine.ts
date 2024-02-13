@@ -364,6 +364,7 @@ class Engine {
         // TODO: Use previous value when preferences UI is available
         useNftDetection: false,
         displayNftMedia: true,
+        securityAlertsEnabled: true,
       },
     );
 
