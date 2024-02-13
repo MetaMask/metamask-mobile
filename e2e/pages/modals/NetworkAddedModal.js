@@ -13,15 +13,23 @@ class NetworkAddedModal {
   }
 
   get switchNetworkButton() {
-    return Matchers.getElementByID(
-      NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON,
-    );
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(
+          NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON,
+        )
+      : Matchers.getElementByID(
+          NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON,
+        );
   }
 
   get closeNetworkButton() {
-    return Matchers.getElementByID(
-      NetworkAddedModalSelectorsIDs.CLOSE_NETWORK_BUTTON,
-    );
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(
+          NetworkAddedModalSelectorsIDs.CLOSE_NETWORK_BUTTON,
+        )
+      : Matchers.getElementByID(
+          NetworkAddedModalSelectorsIDs.CLOSE_NETWORK_BUTTON,
+        );
   }
 
   async tapSwitchToNetwork() {

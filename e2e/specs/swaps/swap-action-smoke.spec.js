@@ -19,8 +19,6 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeSwaps } from '../../tags';
 import Assertions from '../../utils/Assertions';
-import { TransactionDetailsModalSelectorsText } from '../../selectors/Modals/TransactionDetailsModal.selectors';
-import CommonView from '../../pages/CommonView';
 
 const fixtureServer = new FixtureServer();
 
@@ -94,10 +92,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         DetailsModal.title,
         DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
       );
-      await Assertions.checkIfElementToHaveText(
-        CommonView.statusConfirmed,
-        TransactionDetailsModalSelectorsText.CONFIRMED,
-      );
+      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
       await DetailsModal.tapOnCloseIcon();
     },
   );

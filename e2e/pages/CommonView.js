@@ -18,11 +18,6 @@ class CommonView {
   get errorMessage() {
     return Matchers.getElementByID(CommonSelectorsIDs.ERROR_MESSAGE);
   }
-
-  get statusConfirmed() {
-    return Matchers.getElementByID(CommonSelectorsIDs.STATUS_CONFIRMED);
-  }
-
   async tapBackButton() {
     await Gestures.waitAndTap(this.backButton);
   }

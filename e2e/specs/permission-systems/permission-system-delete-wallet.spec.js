@@ -48,7 +48,7 @@ describe(
           await Browser.isVisible();
           await Browser.navigateToTestDApp();
           await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-          await Assertions.checkIfVisible(ConnectedAccountsModal.container);
+          await Assertions.checkIfVisible(ConnectedAccountsModal.title);
           await NetworkListModal.isNotVisible();
           await ConnectedAccountsModal.scrollToBottomOfModal();
 
@@ -94,7 +94,7 @@ describe(
           await TabBarComponent.tapBrowser();
           await Browser.isVisible();
           await Browser.tapNetworkAvatarButtonOnBrowser();
-          await Assertions.checkIfNotVisible(ConnectedAccountsModal.container);
+          await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
           await NetworkListModal.isVisible();
         },
       );

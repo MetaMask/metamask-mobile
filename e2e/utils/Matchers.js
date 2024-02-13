@@ -46,6 +46,10 @@ class Matchers {
     return element(by.id(parentElement).withDescendant(by.id(childElement)));
   }
 
+  static async getElementIDWithAncestor(childElement, parentElement) {
+    return element(by.id(childElement).withAncestor(by.id(parentElement)));
+  }
+
   /**
    * Get element by web ID.
    *

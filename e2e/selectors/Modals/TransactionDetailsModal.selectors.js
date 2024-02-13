@@ -6,6 +6,7 @@ export const TransactionDetailsModalSelectorsText = {
 };
 
 export const TransactionDetailsModalSelectorsIDs = {
+  BODY: 'details-modal',
   TITLE: 'details-modal-title',
   CLOSE_ICON: 'details-modal-close-icon',
 };

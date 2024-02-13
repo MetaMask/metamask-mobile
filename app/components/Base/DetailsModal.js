@@ -106,7 +106,13 @@ const DetailsModalBody = ({ style, ...props }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  return <View style={[styles.body, style]} {...props} />;
+  return (
+    <View
+      testID={TransactionDetailsModalSelectorsIDs.BODY}
+      style={[styles.body, style]}
+      {...props}
+    />
+  );
 };
 const DetailsModalSection = ({ style, borderBottom, ...props }) => {
   const { colors } = useTheme();

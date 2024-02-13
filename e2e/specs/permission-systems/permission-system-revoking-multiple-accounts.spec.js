@@ -52,7 +52,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await Browser.navigateToTestDApp();
         await Browser.isAccountToastVisible('Account 1');
         await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-        await Assertions.checkIfVisible(ConnectedAccountsModal.container);
+        await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await TestHelpers.delay(1000);
         await AccountListView.tapAddAccountButton();
@@ -68,7 +68,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await ConnectedAccountsModal.tapDisconnectAllButton();
         await Browser.isRevokeAllAccountToastVisible();
         await Browser.tapNetworkAvatarButtonOnBrowser();
-        await Assertions.checkIfNotVisible(ConnectedAccountsModal.container);
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await NetworkListModal.isVisible();
         await NetworkListModal.swipeToDismissModal();
         await NetworkListModal.isNotVisible();
