@@ -683,7 +683,7 @@ class MetaMetrics implements IMetaMetrics {
    * @returns the current MetaMetrics ID
    */
   getMetaMetricsId = async (): Promise<string | undefined> =>
-    this.metametricsId || (await this.#getMetaMetricsId());
+    this.metametricsId ?? (await this.#getMetaMetricsId());
 }
 
 export default MetaMetrics;
