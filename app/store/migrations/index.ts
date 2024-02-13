@@ -1,4 +1,4 @@
-import { MigrationManifest } from 'redux-persist';
+import { PersistedState } from 'redux-persist';
 
 import migration00 from './000';
 import migration01 from './001';
@@ -30,7 +30,16 @@ import migration26 from './026';
 import migration27 from './027';
 import migration28 from './028';
 
-export const migrations: MigrationManifest = {
+/**
+ * Migrations allow for synchronous functions as well as Promises
+ */
+interface CustomMigrationManifest {
+  [key: string]:
+    | ((state: PersistedState) => PersistedState)
+    | ((state: PersistedState) => Promise<unknown>);
+}
+
+export const migrations: CustomMigrationManifest = {
   0: migration00,
   1: migration01,
   2: migration02,
