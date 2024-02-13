@@ -251,7 +251,7 @@ class ReceiveRequest extends PureComponent {
   };
 
   render() {
-    const theme = this.context.theme || mockTheme;
+    const theme = this.context || mockTheme;
     const colors = theme.colors;
     const styles = createStyles(theme);
 
