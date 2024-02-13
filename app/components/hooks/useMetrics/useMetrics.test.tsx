@@ -62,6 +62,7 @@ describe('useMetrics', () => {
         "enable": [MockFunction],
         "getDeleteRegulationCreationDate": [MockFunction],
         "getDeleteRegulationId": [MockFunction],
+        "getMetaMetricsId": undefined,
         "isDataRecorded": [MockFunction],
         "isEnabled": [MockFunction],
         "trackAnonymousEvent": [Function],
