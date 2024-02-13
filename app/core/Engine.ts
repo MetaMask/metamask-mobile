@@ -119,6 +119,7 @@ import {
   LoggingControllerState,
   LoggingControllerActions,
 } from '@metamask/logging-controller';
+import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,
@@ -363,6 +364,7 @@ class Engine {
         // TODO: Use previous value when preferences UI is available
         useNftDetection: false,
         displayNftMedia: true,
+        securityAlertsEnabled: true,
       },
     );
 
@@ -521,6 +523,9 @@ class Engine {
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
+    const ledgerKeyringBuilder = () => new LedgerKeyring();
+    ledgerKeyringBuilder.type = LedgerKeyring.type;
+
     const keyringController = new KeyringController({
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
@@ -550,7 +555,7 @@ class Engine {
       }),
       state: initialKeyringState || initialState.KeyringController,
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
-      keyringBuilders: [qrKeyringBuilder],
+      keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)

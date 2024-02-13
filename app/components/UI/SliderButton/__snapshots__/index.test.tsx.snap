@@ -91,7 +91,7 @@ exports[`SliderButton should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#FCFCFC",
+            "color": "#FFFFFF",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -137,7 +137,7 @@ exports[`SliderButton should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#FCFCFC",
+            "color": "#FFFFFF",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -164,7 +164,7 @@ exports[`SliderButton should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#FCFCFC",
+          "backgroundColor": "#FFFFFF",
           "borderColor": "#0260A4",
           "borderRadius": 60,
           "borderWidth": 9.6,
