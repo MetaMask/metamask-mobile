@@ -1,4 +1,4 @@
-import trackAfterInteractions from './trackAfterInteractions';
+import trackOnboarding from './trackOnboarding';
 
 const { InteractionManager } = jest.requireActual('react-native');
 InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
@@ -30,11 +30,7 @@ describe('trackAfterInteractions', () => {
 
     mockEnabled.mockReturnValue(false);
 
-    await trackAfterInteractions(
-      mockEvent,
-      mockProperties,
-      mockSaveOnboardingEvent,
-    );
+    await trackOnboarding(mockEvent, mockProperties, mockSaveOnboardingEvent);
 
     expect(mockSaveOnboardingEvent).toHaveBeenCalledWith(mockEvent.category);
     expect(mockTrackEvent).not.toHaveBeenCalled();
@@ -46,7 +42,7 @@ describe('trackAfterInteractions', () => {
 
     mockEnabled.mockReturnValue(true);
 
-    await trackAfterInteractions(mockEvent, mockProperties);
+    await trackOnboarding(mockEvent, mockProperties);
 
     expect(mockSaveOnboardingEvent).not.toHaveBeenCalledWith();
     expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -61,7 +57,7 @@ describe('trackAfterInteractions', () => {
 
     mockEnabled.mockReturnValue(true);
 
-    await trackAfterInteractions(mockEvent, mockProperties);
+    await trackOnboarding(mockEvent, mockProperties);
 
     expect(mockSaveOnboardingEvent).not.toHaveBeenCalledWith();
     expect(mockTrackEvent).toHaveBeenCalledWith(
