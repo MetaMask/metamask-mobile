@@ -604,7 +604,7 @@ class AdvancedSettings extends PureComponent {
                     link
                     onPress={this.openLinkAboutStx}
                   >
-                    Learn more.
+                    {strings('app_settings.smart_transactions_learn_more')}
                   </Text>
                 </Text>
               </View>
