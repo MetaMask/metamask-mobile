@@ -449,6 +449,10 @@ workflows:
           title: Restore build from cache
           inputs:
             - key: apk-cache-{{ .CommitHash }}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}      
       - script@1:
           title: Run detox build
           run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
@@ -479,6 +483,11 @@ workflows:
           inputs:
             - key: apk-cache-{{ .CommitHash }}
             - paths: android/app/build/outputs
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - paths: node_modules
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -496,6 +505,10 @@ workflows:
           title: Restore cache build
           inputs:
             - key: apk-cache-{{ .CommitHash }}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
       - script@1:
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
