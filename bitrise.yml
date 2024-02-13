@@ -424,8 +424,8 @@ workflows:
     before_run:
       - code_setup
       - e2e_setup
-    after_run:
-      - _notify_failure_on_slack
+    # after_run:
+    #   - _notify_failure_on_slack
     steps:
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
@@ -458,7 +458,7 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
       - script@1:
           title: Set skip ccache upload
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}'
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -469,7 +469,7 @@ workflows:
             - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}'
+          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
             - content: |-
@@ -506,8 +506,8 @@ workflows:
       - setup
       - prep_environment
       - e2e_setup
-    after_run:
-      - _notify_failure_on_slack
+    # after_run:
+    #   - _notify_failure_on_slack
     steps:
       - restore-gradle-cache@2: {}
       - restore-cache@2:
@@ -586,8 +586,8 @@ workflows:
     before_run:
       - code_setup
       - e2e_setup
-    after_run:
-      - _notify_failure_on_slack
+    # after_run:
+    #   - _notify_failure_on_slack
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -626,7 +626,7 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
       - script@1:
           title: Set skip ccache upload
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}'
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -637,7 +637,7 @@ workflows:
             - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}'
+          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
             - content: |-
@@ -672,8 +672,8 @@ workflows:
       - setup
       - prep_environment
       - e2e_setup
-    after_run:
-      - _notify_failure_on_slack
+    # after_run:
+    #   - _notify_failure_on_slack
     steps:
       - restore-cache@2:
           title: Restore cache build
