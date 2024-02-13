@@ -66,7 +66,7 @@ export default async function migrate(state: unknown) {
     );
     return state;
   }
-
+  console.log('STATE engine', state.engine);
   // Engine already exists. No need to migrate.
   if (state.engine) {
     return state;
@@ -86,7 +86,9 @@ export default async function migrate(state: unknown) {
         persistedControllerData,
       );
       if (persistedControllerData) {
-        newEngineState[persistedControllerKey] = persistedControllerData;
+        newEngineState[persistedControllerKey] = JSON.parse(
+          persistedControllerData,
+        );
       }
     } catch (e) {
       // Persisted controller data doesn't exists
@@ -98,7 +100,7 @@ export default async function migrate(state: unknown) {
   });
 
   await Promise.all(controllerMigration);
-
+  console.log('ENTER new Engine state after promise all', newEngineState);
   // Set engine property on root object
   state.engine = newEngineState;
 
