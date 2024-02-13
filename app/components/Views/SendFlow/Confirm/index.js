@@ -113,6 +113,7 @@ import {
   isBlockaidFeatureEnabled,
 } from '../../../../util/blockaid';
 import ppomUtil from '../../../../lib/ppom/ppom-util';
+import { ResultType } from '../../../../components/UI/BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../../../../components/UI/TransactionBlockaidBanner/TransactionBlockaidBanner';
 
 const EDIT = 'edit';
@@ -935,15 +936,19 @@ class Confirm extends PureComponent {
     this.setState({ hexDataModalVisible: !hexDataModalVisible });
   };
 
+  updateTransactionStateWithUpdatedNonce = (nonceValue) => {
+    this.props.setNonce(nonceValue);
+    this.setState({ preparedTransaction: {} });
+  };
+
   renderCustomNonceModal = () => {
-    const { setNonce } = this.props;
     const { proposedNonce, nonce } = this.props.transaction;
     return (
       <CustomNonceModal
         proposedNonce={proposedNonce}
         nonceValue={nonce}
         close={() => this.toggleConfirmationModal(REVIEW)}
-        save={setNonce}
+        save={this.updateTransactionStateWithUpdatedNonce}
       />
     );
   };
@@ -1084,6 +1089,34 @@ class Confirm extends PureComponent {
       analyticsParams,
     );
   };
+
+  getConfirmButtonStyles() {
+    const { transactionMeta } = this.state;
+    const { transaction } = this.props;
+    const { currentTransactionSecurityAlertResponse } = transaction;
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    let confirmButtonStyle = {};
+    if (
+      transactionMeta.id &&
+      currentTransactionSecurityAlertResponse?.id &&
+      currentTransactionSecurityAlertResponse.id === transactionMeta.id
+    ) {
+      if (
+        currentTransactionSecurityAlertResponse?.response?.result_type ===
+        ResultType.Malicious
+      ) {
+        confirmButtonStyle = styles.confirmButtonError;
+      } else if (
+        currentTransactionSecurityAlertResponse?.response?.result_type ===
+        ResultType.Warning
+      ) {
+        confirmButtonStyle = styles.confirmButtonWarning;
+      }
+    }
+    return confirmButtonStyle;
+  }
 
   render = () => {
     const { selectedAsset, paymentRequest } = this.props.transactionState;
@@ -1280,7 +1313,7 @@ class Confirm extends PureComponent {
               Boolean(errorMessage) ||
               isAnimating
             }
-            containerStyle={styles.buttonNext}
+            containerStyle={[styles.buttonNext, this.getConfirmButtonStyles()]}
             onPress={this.onNext}
             testID={ConfirmViewSelectorsIDs.SEND_BUTTON}
           >

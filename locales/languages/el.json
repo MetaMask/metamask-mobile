@@ -7,8 +7,6 @@
     "deceptive_request_title": "Πρόκειται για παραπλανητικό αίτημα",
     "failed_title": "Το αίτημα μπορεί να μην είναι ασφαλές",
     "failed_description": "Λόγω σφάλματος, αυτό το αίτημα δεν επαληθεύτηκε από τον πάροχο ασφαλείας. Προχωρήστε με προσοχή.",
-    "loading_title": "Το αίτημα αυτό εξακολουθεί να προσομοιώνεται. Συνιστούμε να περιμένετε την ολοκλήρωσή του.",
-    "loading_complete_title": "Η προσομοίωση ολοκληρώθηκε. Ελέγξτε αυτό το αίτημα πριν προχωρήσετε.",
     "malicious_domain_description": "Αλληλεπιδράτε με έναν κακόβουλο τομέα. Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
     "other_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
     "raw_signature_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
@@ -2373,8 +2371,7 @@
     "blockaid": {
       "title": "Μείνετε ασφαλείς με ειδοποιήσεις ασφαλείας",
       "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
-      "description_2": "Πάντα να προβαίνετε σε δικό σας επιμελή έλεγχο προτού εγκρίνετε τα αιτήματα.",
-      "action_text": "Ενεργοποίηση ειδοποιήσεων ασφαλείας"
+      "description_2": "Πάντα να προβαίνετε σε δικό σας επιμελή έλεγχο προτού εγκρίνετε τα αιτήματα."
     },
     "sell": {
       "title": "Εύκολη ανάληψη μετρητών",

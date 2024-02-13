@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import Eth from 'ethjs-query';
-import ActionView from '../../UI/ActionView';
+import ActionView, { ConfirmButtonState } from '../../UI/ActionView';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../Navbar';
 import { connect } from 'react-redux';
@@ -95,6 +95,7 @@ import { isNetworkRampNativeTokenSupported } from '../Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import SkeletonText from '../Ramp/components/SkeletonText';
 import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
+import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import { regex } from '../../../util/regex';
 
@@ -412,6 +413,7 @@ class ApproveTransactionReview extends PureComponent {
     const approveAmount = fromTokenMinimalUnit(
       hexToBN(encodedHexAmount),
       tokenDecimals,
+      false,
     );
 
     const { name: method } = await getMethodData(data);
@@ -700,6 +702,30 @@ class ApproveTransactionReview extends PureComponent {
     );
   };
 
+  getConfirmButtonState() {
+    const { transaction } = this.props;
+    const { id, currentTransactionSecurityAlertResponse } = transaction;
+    let confirmButtonState = ConfirmButtonState.Normal;
+    if (
+      id &&
+      currentTransactionSecurityAlertResponse?.id &&
+      currentTransactionSecurityAlertResponse.id === id
+    ) {
+      if (
+        currentTransactionSecurityAlertResponse?.response?.result_type ===
+        ResultType.Malicious
+      ) {
+        confirmButtonState = ConfirmButtonState.Error;
+      } else if (
+        currentTransactionSecurityAlertResponse?.response?.result_type ===
+        ResultType.Warning
+      ) {
+        confirmButtonState = ConfirmButtonState.Warning;
+      }
+    }
+    return confirmButtonState;
+  }
+
   renderDetails = () => {
     const {
       originalApproveAmount,
@@ -813,6 +839,7 @@ class ApproveTransactionReview extends PureComponent {
               onCancelPress={this.onCancelPress}
               onConfirmPress={this.onConfirmPress}
               confirmDisabled={shouldDisableConfirmButton}
+              confirmButtonState={this.getConfirmButtonState()}
             >
               <View style={styles.actionViewChildren}>
                 <ScrollView nestedScrollEnabled>
