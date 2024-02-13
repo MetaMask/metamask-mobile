@@ -7,6 +7,14 @@ import configureMockStore from 'redux-mock-store';
 const mockStore = configureMockStore();
 const store = mockStore({});
 
+jest.mock('react-native-ble-plx', () => ({
+  BleManager: () => ({
+    onStateChange: () => ({
+      remove: jest.fn(),
+    }),
+  }),
+}));
+
 describe('Scan', () => {
   it('should render correctly', () => {
     const wrapper = shallow(

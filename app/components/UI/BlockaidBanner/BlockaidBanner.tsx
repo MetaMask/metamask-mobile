@@ -44,6 +44,9 @@ import {
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../util/networks';
 import { selectIsSecurityAlertsEnabled } from '../../../selectors/preferencesController';
 import BlockaidVersionInfo from '../../../lib/ppom/blockaid-version';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
 
 const getReportUrl = (encodedData: string) =>
   `${FALSE_POSITIVE_REPORT_BASE_URL}?data=${encodeURIComponent(
@@ -149,19 +152,11 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
 
   if (securityAlertResponse.reason === Reason.requestInProgress) {
     return (
-      <View style={styles.bannerWrapperMargined}>
-        <BannerAlert
-          severity={BannerAlertSeverity.Warning}
-          title={strings('blockaid_banner.loading_title')}
-          startAccessory={
-            <ActivityIndicator
-              size="small"
-              color={theme.colors.warning.default}
-            />
-          }
-        >
-          <Attribution styles={styles} />
-        </BannerAlert>
+      <View style={styles.bannerSectionSmall}>
+        <ActivityIndicator size="small" color={theme.colors.icon.default} />
+        <Text style={styles.infoText}>
+          {strings('blockaid_banner.loading_title')}
+        </Text>
       </View>
     );
   }
@@ -169,16 +164,18 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   if (result_type === ResultType.Benign) {
     if (displayPositiveResponse) {
       return (
-        <View style={styles.bannerWrapperMargined}>
-          <BannerAlert
-            severity={BannerAlertSeverity.Info}
-            title={strings('blockaid_banner.loading_complete_title')}
-            onClose={() => {
-              setDisplayPositiveResponse(false);
-            }}
-          >
-            <Attribution styles={styles} />
-          </BannerAlert>
+        <View style={styles.bannerSectionSmallSpaced}>
+          <View style={styles.flexRowSection}>
+            <Icon name={IconName.Confirmation} size={IconSize.Lg} />
+            <Text style={styles.infoText}>
+              {strings('blockaid_banner.loading_complete_title')}
+            </Text>
+          </View>
+          <ButtonIcon
+            size={ButtonIconSizes.Sm}
+            onPress={() => setDisplayPositiveResponse(false)}
+            iconName={IconName.Close}
+          />
         </View>
       );
     }
