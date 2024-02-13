@@ -20,7 +20,6 @@ jest.mock('../../core/Engine', () => ({
 
       // Proxy methods
       handleMethodData: jest.fn(),
-      cancelTransaction: jest.fn(),
       getNonceLock: jest.fn(),
       speedUpTransaction: jest.fn(),
       startIncomingTransactionPolling: jest.fn(),

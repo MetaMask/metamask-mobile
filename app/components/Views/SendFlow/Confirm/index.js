@@ -114,7 +114,6 @@ import {
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 import { ResultType } from '../../../../components/UI/BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../../../../components/UI/TransactionBlockaidBanner/TransactionBlockaidBanner';
-import { cancelTransaction } from '../../../../util/transaction-controller';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -753,7 +752,7 @@ class Confirm extends PureComponent {
         TransactionController.hub.removeAllListeners(
           `${transactionMeta.id}:finished`,
         );
-        cancelTransaction(transactionMeta.id);
+        TransactionController.cancelTransaction(transactionMeta.id);
       } else {
         await new Promise((resolve) => resolve(result));
 
