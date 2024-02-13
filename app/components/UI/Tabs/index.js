@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Platform,
 } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
@@ -230,10 +229,7 @@ export default class Tabs extends PureComponent {
 
     return (
       <View style={styles.noTabs}>
-        <Text
-          style={styles.noTabsTitle}
-          testID={MULTI_TAB_NO_TABS_MESSAGE}
-        >
+        <Text style={styles.noTabsTitle} testID={MULTI_TAB_NO_TABS_MESSAGE}>
           {strings('browser.no_tabs_title')}
         </Text>
         <Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
