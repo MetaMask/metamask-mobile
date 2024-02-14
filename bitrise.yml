@@ -424,8 +424,8 @@ workflows:
     before_run:
       - code_setup
       - e2e_setup
-    # after_run:
-    #   - _notify_failure_on_slack
+    after_run:
+      - _notify_failure_on_slack
     steps:
       - script@1:
           title: Check native folder diff for Android
@@ -506,8 +506,8 @@ workflows:
       - setup
       - prep_environment
       - e2e_setup
-    # after_run:
-    #   - _notify_failure_on_slack
+    after_run:
+      - _notify_failure_on_slack
     steps:
       - restore-gradle-cache@2: {}
       - restore-cache@2:
@@ -586,8 +586,8 @@ workflows:
     before_run:
       - code_setup
       - e2e_setup
-    # after_run:
-    #   - _notify_failure_on_slack
+    after_run:
+      - _notify_failure_on_slack
     steps:
       - script@1:
           title: Check native folder diff for iOS
@@ -672,8 +672,8 @@ workflows:
       - setup
       - prep_environment
       - e2e_setup
-    # after_run:
-    #   - _notify_failure_on_slack
+    after_run:
+      - _notify_failure_on_slack
     steps:
       - restore-cache@2:
           title: Restore cache build
