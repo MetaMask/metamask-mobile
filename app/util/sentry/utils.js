@@ -83,12 +83,18 @@ function removeDeviceName(report) {
     report.contexts.device.name = null;
 }
 
+function removeSES(report) {
+  const stacktraceFrames = report.exception.values[0].stacktrace.frames;
+  const filteredFrames = stacktraceFrames.filter(
+    (frame) => frame.filename !== 'app:///ses.cjs',
+  );
+  report.exception.values[0].stacktrace.frames = filteredFrames;
+}
+
 function rewriteReport(report) {
   try {
-    report.exception.values[0].stacktrace.frames =
-      report.exception.values[0].stacktrace.frames.filter(
-        (frame) => frame.filename !== 'app:///ses.cjs',
-      );
+    // filter out SES from error stack trace
+    removeSES(report);
     // simplify certain complex error messages (e.g. Ethjs)
     simplifyErrorMessages(report);
     // remove urls from error message
