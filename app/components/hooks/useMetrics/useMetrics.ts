@@ -31,6 +31,7 @@ import { IUseMetricsHook } from './useMetrics.types';
  *   getDeleteRegulationId,
  *   isDataRecorded,
  *   isEnabled,
+ *   getMetaMetricsId,
  * } = useMetrics();
  */
 const useMetrics = (): IUseMetricsHook => {
@@ -111,6 +112,7 @@ const useMetrics = (): IUseMetricsHook => {
     getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId,
     isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
     isEnabled: MetaMetrics.getInstance().isEnabled,
+    getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId,
   };
 };
 
