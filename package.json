@@ -175,7 +175,7 @@
     "@ledgerhq/react-native-hw-transport-ble": "^6.29.5",
     "@metamask/address-book-controller": "^3.0.0",
     "@metamask/approval-controller": "^3.4.0",
-    "@metamask/assets-controllers": "^8.0.0",
+    "@metamask/assets-controllers": "^9.0.0",
     "@metamask/base-controller": "^3.0.0",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",

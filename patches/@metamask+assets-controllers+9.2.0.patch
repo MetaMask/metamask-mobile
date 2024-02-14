@@ -1,85 +1,36 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index 10dc83c..4a31cc7 100644
+index 18802c9..c82eaaa 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-@@ -31,7 +31,7 @@ class AccountTrackerController extends base_controller_1.BaseController {
-      * @param config - Initial options used to configure this controller.
-      * @param state - Initial state to set on this controller.
-      */
--    constructor({ onPreferencesStateChange, getIdentities, }, config, state) {
-+    constructor({ onPreferencesStateChange, getIdentities,  getSelectedAddress, getMultiAccountBalancesEnabled, }, config, state) {
-         super(config, state);
-         this.mutex = new async_mutex_1.Mutex();
-         /**
-@@ -39,17 +39,28 @@ class AccountTrackerController extends base_controller_1.BaseController {
-          */
-         this.name = 'AccountTrackerController';
-         /**
--         * Refreshes all accounts in the current keychain.
-+         * Refreshes the balances of the accounts depending on the multi-account setting.
-+         * If multi-account is disabled, only updates the selected account balance.
-+         * If multi-account is enabled, updates balances for all accounts.
-+         *
-+         * @async
-          */
-         this.refresh = () => __awaiter(this, void 0, void 0, function* () {
-             this.syncAccounts();
-             const accounts = Object.assign({}, this.state.accounts);
-+            const isMultiAccountBalancesEnabled = this.getMultiAccountBalancesEnabled()
-+            if (!isMultiAccountBalancesEnabled) {
-+                const selectedAddress = this.getSelectedAddress();
-+                const balance = yield this.getBalanceFromChain(selectedAddress);
-+                if (!balance) return;
-+                accounts[selectedAddress] = { balance: (0, controller_utils_1.BNToHex)(balance) };
-+                this.update({ accounts });
-+                return;
-+            }
-             for (const address in accounts) {
--                yield (0, controller_utils_1.safelyExecuteWithTimeout)(() => __awaiter(this, void 0, void 0, function* () {
--                    (0, utils_1.assert)(this.ethQuery, 'Provider not set.');
--                    const balance = yield (0, controller_utils_1.query)(this.ethQuery, 'getBalance', [address]);
--                    accounts[address] = { balance: (0, controller_utils_1.BNToHex)(balance) };
--                }));
+@@ -53,6 +53,8 @@ class AccountTrackerController extends base_controller_1.BaseController {
+                 ? Object.keys(accounts)
+                 : [this.getSelectedAddress()];
+             for (const address of accountsToUpdate) {
 +                const balance = yield this.getBalanceFromChain(address);
-+                if (!balance) continue;
-+                accounts[address] = { balance: (0, controller_utils_1.BNToHex)(balance) };
-             }
-             this.update({ accounts });
-         });
-@@ -59,6 +70,8 @@ class AccountTrackerController extends base_controller_1.BaseController {
-         this.defaultState = { accounts: {} };
-         this.initialize();
-         this.getIdentities = getIdentities;
-+        this.getSelectedAddress = getSelectedAddress;
-+        this.getMultiAccountBalancesEnabled = getMultiAccountBalancesEnabled;
-         onPreferencesStateChange(() => {
-             this.refresh();
-         });
-@@ -108,6 +121,22 @@ class AccountTrackerController extends base_controller_1.BaseController {
-             }, this.config.interval);
-         });
-     }
++                if(!balance) continue;
+                 accounts[address] = {
+                     balance: (0, controller_utils_1.BNToHex)(yield this.getBalanceFromChain(address)),
+                 };
+diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.ts b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.ts
+index 58e0ffa..383f8cb 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.ts
+@@ -83,6 +83,13 @@ export declare class AssetsContractController extends BaseController<AssetsContr
+      * @returns Promise resolving to the 'decimals'.
+      */
+     getERC20TokenDecimals(address: string): Promise<string>;
 +    /**
-+     * Fetches the balance of a given address from the blockchain.
++     * Query for the decimals for a given ERC20 asset.
 +     *
-+     * @async
-+     * @param {string} address - The account address to fetch the balance for.
-+     * @returns {Promise<string>} - A promise that resolves to the balance in a hex string format.
++     * @param address - ERC20 asset contract address.
++     * @returns Promise resolving to the 'decimals'.
 +     */
-+    getBalanceFromChain(address) {
-+        return __awaiter(this, void 0, void 0, function* () {
-+            let balance;
-+            yield (0, controller_utils_1.safelyExecuteWithTimeout)(() => __awaiter(this, void 0, void 0, function* () {
-+                balance = yield (0, controller_utils_1.query)(this.ethQuery, 'getBalance', [address]);
-+            }));
-+            return balance;
-+        });
-+    }
++    getERC20TokenName(address: string): Promise<any>;
      /**
-      * Sync accounts balances with some additional addresses.
+      * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
-index 422660e..a3cbb18 100644
+index 422660e..ac98cc9 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.js
 @@ -34,6 +34,12 @@ exports.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID = {
@@ -108,7 +59,7 @@ index 422660e..a3cbb18 100644
 +    getERC20TokenName(address) {
 +        return __awaiter(this, void 0, void 0, function* () {
 +            if (this.erc20Standard === undefined) {
-+                throw new Error(MISSING_PROVIDER_ERROR);
++                throw new Error(exports.MISSING_PROVIDER_ERROR);
 +            }
 +            return yield this.erc20Standard.getTokenName(address);
 +        });
@@ -117,10 +68,10 @@ index 422660e..a3cbb18 100644
       * Enumerate assets assigned to an owner.
       *
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
-index 360c8b7..f10bad0 100644
+index e06276e..9ce857a 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.ts
-@@ -59,6 +59,74 @@ export interface NftContract {
+@@ -73,6 +73,74 @@ export interface NftContract {
      schemaName?: string;
      externalLink?: string;
  }
@@ -195,7 +146,7 @@ index 360c8b7..f10bad0 100644
  /**
   * @type NftMetadata
   *
-@@ -94,6 +162,8 @@ export interface NftMetadata {
+@@ -108,6 +176,8 @@ export interface NftMetadata {
      creator?: ApiNftCreator;
      lastSale?: ApiNftLastSale;
      transactionId?: string;
@@ -204,7 +155,7 @@ index 360c8b7..f10bad0 100644
  }
  interface AccountParams {
      userAddress: string;
-@@ -109,7 +179,8 @@ export interface NftConfig extends BaseConfig {
+@@ -123,7 +193,8 @@ export interface NftConfig extends BaseConfig {
      selectedAddress: string;
      chainId: Hex;
      ipfsGateway: string;
@@ -214,10 +165,10 @@ index 360c8b7..f10bad0 100644
      useIPFSSubdomains: boolean;
  }
  /**
-@@ -138,8 +209,9 @@ export interface NftState extends BaseState {
-  */
+@@ -169,8 +240,9 @@ export declare type NftControllerMessenger = RestrictedControllerMessenger<typeo
  export declare class NftController extends BaseController<NftConfig, NftState> {
      private mutex;
+     private messagingSystem;
 -    private getNftApi;
 +    public getNftApi;
      private getNftContractInformationApi;
@@ -225,11 +176,20 @@ index 360c8b7..f10bad0 100644
      /**
       * Helper method to update nested state for allNfts and allNftContracts.
       *
+@@ -242,7 +314,7 @@ export declare class NftController extends BaseController<NftConfig, NftState> {
+      * @param nftMetadata - NFT optional information (name, image and description).
+      * @param nftContract - An object containing contract data of the NFT being added.
+      * @param accountParams - The chain ID and address of network and account to which the nftContract should be added.
+-     * @param source - Whether the NFT was detected, added manually or suggested by a dapp.
++     * @param source - Whether the NFT was detected, added manually or suggested by a dapp.   * @returns Promise resolving to the current NFT list.
+      * @returns Promise resolving to the current NFT list.
+      */
+     private addIndividualNft;
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.js b/node_modules/@metamask/assets-controllers/dist/NftController.js
-index 5f414e4..0d0ed41 100644
+index bafcc75..e22a3a7 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.js
-@@ -9,13 +9,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
+@@ -9,17 +9,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
      });
  };
  Object.defineProperty(exports, "__esModule", { value: true });
@@ -237,10 +197,16 @@ index 5f414e4..0d0ed41 100644
 +exports.NftController = exports.OpenSeaV2ChainIds = void 0;
  const events_1 = require("events");
  const ethereumjs_util_1 = require("ethereumjs-util");
+-const address_1 = require("@ethersproject/address");
  const async_mutex_1 = require("async-mutex");
+ const uuid_1 = require("uuid");
+-const rpc_errors_1 = require("@metamask/rpc-errors");
  const base_controller_1 = require("@metamask/base-controller");
  const controller_utils_1 = require("@metamask/controller-utils");
++const rpc_errors_1 = require("@metamask/rpc-errors");
++const address_1 = require("@ethersproject/address");
  const assetsUtil_1 = require("./assetsUtil");
+ const constants_1 = require("./constants");
 +var OpenSeaV2ChainIds;
 +(function (OpenSeaV2ChainIds) {
 +    OpenSeaV2ChainIds["ethereum"] = "ethereum";
@@ -248,7 +214,7 @@ index 5f414e4..0d0ed41 100644
  const ALL_NFTS_STATE_KEY = 'allNfts';
  const ALL_NFTS_CONTRACTS_STATE_KEY = 'allNftContracts';
  /**
-@@ -55,8 +59,9 @@ class NftController extends base_controller_1.BaseController {
+@@ -64,8 +68,9 @@ class NftController extends base_controller_1.BaseController {
              selectedAddress: '',
              chainId: initialChainId,
              ipfsGateway: controller_utils_1.IPFS_DEFAULT_GATEWAY_URL,
@@ -259,10 +225,10 @@ index 5f414e4..0d0ed41 100644
          };
          this.defaultState = {
              allNftContracts: {},
-@@ -71,23 +76,27 @@ class NftController extends base_controller_1.BaseController {
-         this.getERC1155BalanceOf = getERC1155BalanceOf;
+@@ -81,23 +86,27 @@ class NftController extends base_controller_1.BaseController {
          this.getERC1155TokenURI = getERC1155TokenURI;
          this.onNftAdded = onNftAdded;
+         this.messagingSystem = messenger;
 -        onPreferencesStateChange(({ selectedAddress, ipfsGateway, openSeaEnabled }) => {
 -            this.configure({ selectedAddress, ipfsGateway, openSeaEnabled });
 +        onPreferencesStateChange(({ selectedAddress, ipfsGateway, displayNftMedia, isIpfsGatewayEnabled, }) => {
@@ -297,7 +263,7 @@ index 5f414e4..0d0ed41 100644
      }
      /**
       * Helper method to update nested state for allNfts and allNftContracts.
-@@ -119,46 +128,41 @@ class NftController extends base_controller_1.BaseController {
+@@ -129,46 +138,41 @@ class NftController extends base_controller_1.BaseController {
       */
      getNftInformationFromApi(contractAddress, tokenId) {
          return __awaiter(this, void 0, void 0, function* () {
@@ -366,7 +332,7 @@ index 5f414e4..0d0ed41 100644
          });
      }
      /**
-@@ -170,13 +174,44 @@ class NftController extends base_controller_1.BaseController {
+@@ -180,13 +184,44 @@ class NftController extends base_controller_1.BaseController {
       */
      getNftInformationFromTokenURI(contractAddress, tokenId) {
          return __awaiter(this, void 0, void 0, function* () {
@@ -413,7 +379,7 @@ index 5f414e4..0d0ed41 100644
              try {
                  const object = yield (0, controller_utils_1.handleFetch)(tokenURI);
                  // TODO: Check image_url existence. This is not part of EIP721 nor EIP1155
-@@ -189,6 +224,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -199,6 +234,7 @@ class NftController extends base_controller_1.BaseController {
                      description: object.description,
                      standard,
                      favorite: false,
@@ -421,7 +387,7 @@ index 5f414e4..0d0ed41 100644
                  };
              }
              catch (_a) {
-@@ -198,6 +234,8 @@ class NftController extends base_controller_1.BaseController {
+@@ -208,6 +244,8 @@ class NftController extends base_controller_1.BaseController {
                      description: null,
                      standard: standard || null,
                      favorite: false,
@@ -430,7 +396,7 @@ index 5f414e4..0d0ed41 100644
                  };
              }
          });
-@@ -249,18 +287,29 @@ class NftController extends base_controller_1.BaseController {
+@@ -259,18 +297,29 @@ class NftController extends base_controller_1.BaseController {
       * @returns Promise resolving to the current NFT name and image.
       */
      getNftInformation(contractAddress, tokenId) {
@@ -448,7 +414,7 @@ index 5f414e4..0d0ed41 100644
                  }));
              }
 -            return Object.assign(Object.assign({}, openSeaMetadata), { name: (_b = (_a = blockchainMetadata.name) !== null && _a !== void 0 ? _a : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.name) !== null && _b !== void 0 ? _b : null, description: (_d = (_c = blockchainMetadata.description) !== null && _c !== void 0 ? _c : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.description) !== null && _d !== void 0 ? _d : null, image: (_f = (_e = blockchainMetadata.image) !== null && _e !== void 0 ? _e : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.image) !== null && _f !== void 0 ? _f : null, standard: (_h = (_g = blockchainMetadata.standard) !== null && _g !== void 0 ? _g : openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.standard) !== null && _h !== void 0 ? _h : null });
-+            if (blockchainMetadata.error && openSeaMetadata.error) {
++            if (blockchainMetadata.error && (openSeaMetadata === null || openSeaMetadata === void 0 ? void 0 : openSeaMetadata.error)) {
 +                return {
 +                    image: null,
 +                    name: null,
@@ -463,7 +429,7 @@ index 5f414e4..0d0ed41 100644
          });
      }
      /**
-@@ -272,32 +321,22 @@ class NftController extends base_controller_1.BaseController {
+@@ -282,32 +331,22 @@ class NftController extends base_controller_1.BaseController {
      getNftContractInformationFromApi(contractAddress) {
          return __awaiter(this, void 0, void 0, function* () {
              /* istanbul ignore if */
@@ -505,7 +471,7 @@ index 5f414e4..0d0ed41 100644
                  }
              }
              // If we've reached this point we were unable to fetch data from either the proxy or opensea so we return
-@@ -347,7 +386,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -357,7 +396,7 @@ class NftController extends base_controller_1.BaseController {
                  return yield this.getNftContractInformationFromContract(contractAddress);
              }));
              let openSeaContractData;
@@ -514,10 +480,19 @@ index 5f414e4..0d0ed41 100644
                  openSeaContractData = yield (0, controller_utils_1.safelyExecute)(() => __awaiter(this, void 0, void 0, function* () {
                      return yield this.getNftContractInformationFromApi(contractAddress);
                  }));
-@@ -428,6 +467,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -387,7 +426,7 @@ class NftController extends base_controller_1.BaseController {
+      * @param nftMetadata - NFT optional information (name, image and description).
+      * @param nftContract - An object containing contract data of the NFT being added.
+      * @param accountParams - The chain ID and address of network and account to which the nftContract should be added.
+-     * @param source - Whether the NFT was detected, added manually or suggested by a dapp.
++     * @param source - Whether the NFT was detected, added manually or suggested by a dapp.   * @returns Promise resolving to the current NFT list.
+      * @returns Promise resolving to the current NFT list.
+      */
+     addIndividualNft(address, tokenId, nftMetadata, nftContract, accountParams, source = constants_1.Source.Custom) {
+@@ -439,6 +478,7 @@ class NftController extends base_controller_1.BaseController {
                          tokenId: tokenId.toString(),
                          standard: nftMetadata.standard,
-                         source: detection ? 'detected' : 'custom',
+                         source,
 +                        tokenURI: nftMetadata.tokenURI,
                      });
                  }
@@ -556,7 +531,7 @@ index 34d0107..881a358 100644
      }, config?: Partial<NftDetectionConfig>, state?: Partial<BaseState>);
      /**
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
-index 0762f57..2f2cbdb 100644
+index 8111dd8..b30b79f 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 @@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
@@ -565,10 +540,10 @@ index 0762f57..2f2cbdb 100644
  const controller_utils_1 = require("@metamask/controller-utils");
 +const assetsUtil_1 = require("./assetsUtil");
 +const NftController_1 = require("./NftController");
+ const constants_1 = require("./constants");
  const DEFAULT_INTERVAL = 180000;
  /**
-  * Controller that passively polls on a set interval for NFT auto detection
-@@ -27,11 +29,12 @@ class NftDetectionController extends base_controller_1.BaseController {
+@@ -28,11 +30,12 @@ class NftDetectionController extends base_controller_1.BaseController {
       * @param options.onNetworkStateChange - Allows subscribing to network controller state changes.
       * @param options.getOpenSeaApiKey - Gets the OpenSea API key, if one is set.
       * @param options.addNft - Add an NFT.
@@ -582,7 +557,7 @@ index 0762f57..2f2cbdb 100644
          super(config, state);
          /**
           * Name of this controller used during composition
-@@ -73,47 +76,40 @@ class NftDetectionController extends base_controller_1.BaseController {
+@@ -74,47 +77,40 @@ class NftDetectionController extends base_controller_1.BaseController {
          });
          this.getOpenSeaApiKey = getOpenSeaApiKey;
          this.addNft = addNft;
@@ -632,7 +607,7 @@ index 0762f57..2f2cbdb 100644
 -                    : (pagingFinish = true);
 -                offset += 50;
 -            } while (!pagingFinish);
-+                    const newNfts = yield Promise.all(nftApiResponse.nfts.map((nftV2) => __awaiter(this, void 0, void 0, function* () {
++                const newNfts = yield Promise.all(nftApiResponse.nfts.map((nftV2) => __awaiter(this, void 0, void 0, function* () {
 +                    var _a, _b;
 +                    const nftV1 = (0, assetsUtil_1.mapOpenSeaNftV2ToV1)(nftV2);
 +                    // If the image hasn't been processed into OpenSea's CDN, the image_url will be null.
@@ -651,11 +626,29 @@ index 0762f57..2f2cbdb 100644
              return nfts;
          });
      }
+diff --git a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.d.ts b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.d.ts
+index 0df38d9..8ebe5b5 100644
+--- a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.d.ts
+@@ -19,6 +19,13 @@ export declare class ERC20Standard {
+      * @returns Promise resolving to the 'decimals'.
+      */
+     getTokenDecimals(address: string): Promise<string>;
++    /**
++     * Query for the name for a given ERC20 asset.
++     *
++     * @param address - ERC20 asset contract string.
++     * @returns Promise resolving to the 'name'.
++     */
++    getTokenName(address: string): Promise<any>;
+     /**
+      * Query for symbol for a given ERC20 asset.
+      *
 diff --git a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
-index 9ddbc28..58421d3 100644
+index 9ddbc28..02c5f13 100644
 --- a/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
 +++ b/node_modules/@metamask/assets-controllers/dist/Standards/ERC20Standard.js
-@@ -57,6 +57,27 @@ class ERC20Standard {
+@@ -57,6 +57,28 @@ class ERC20Standard {
              }
          });
      }
@@ -665,25 +658,26 @@ index 9ddbc28..58421d3 100644
 +     * @param address - ERC20 asset contract string.
 +     * @returns Promise resolving to the 'name'.
 +     */
-+    getTokenName(address){
++    getTokenName(address) {
 +        return __awaiter(this, void 0, void 0, function* () {
 +            const contract = new contracts_1.Contract(address, metamask_eth_abis_1.abiERC20, this.provider);
 +            try {
 +                const name = yield contract.name();
 +                return name.toString();
-+            } catch (err) {
-+            // Mirror previous implementation
-+            if (err.message.includes('call revert exception')) {
-+                throw new Error('Failed to parse token name');
 +            }
-+            throw err;
++            catch (err) {
++                // Mirror previous implementation
++                if (err.message.includes('call revert exception')) {
++                    throw new Error('Failed to parse token name');
++                }
++                throw err;
 +            }
 +        });
 +    }
      /**
       * Query for symbol for a given ERC20 asset.
       *
-@@ -83,7 +104,8 @@ class ERC20Standard {
+@@ -83,7 +105,8 @@ class ERC20Standard {
              try {
                  const utf8 = (0, ethereumjs_util_1.toUtf8)(result);
                  if (utf8.length > 0) {
@@ -693,11 +687,54 @@ index 9ddbc28..58421d3 100644
                  }
              }
              catch (_b) {
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.ts
+index dfb0d40..7e62909 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.d.ts
+@@ -33,6 +33,7 @@ export declare class TokenDetectionController extends BaseController<TokenDetect
+     name: string;
+     private getBalancesInSingleCall;
+     private addDetectedTokens;
++    private updateTokensName;
+     private getTokensState;
+     private getTokenListState;
+     /**
+@@ -44,6 +45,7 @@ export declare class TokenDetectionController extends BaseController<TokenDetect
+      * @param options.onTokenListStateChange - Allows subscribing to token list controller state changes.
+      * @param options.getBalancesInSingleCall - Gets the balances of a list of tokens for the given address.
+      * @param options.addDetectedTokens - Add a list of detected tokens.
++     * @param options.updateTokensName - Updates the token name.
+      * @param options.getTokenListState - Gets the current state of the TokenList controller.
+      * @param options.getTokensState - Gets the current state of the Tokens controller.
+      * @param options.getNetworkState - Gets the state of the network controller.
+@@ -51,12 +53,13 @@ export declare class TokenDetectionController extends BaseController<TokenDetect
+      * @param config - Initial options used to configure this controller.
+      * @param state - Initial state to set on this controller.
+      */
+-    constructor({ onPreferencesStateChange, onNetworkStateChange, onTokenListStateChange, getBalancesInSingleCall, addDetectedTokens, getTokenListState, getTokensState, getNetworkState, getPreferencesState, }: {
++    constructor({ onPreferencesStateChange, onNetworkStateChange, onTokenListStateChange, getBalancesInSingleCall, addDetectedTokens, updateTokensName, getTokenListState, getTokensState, getNetworkState, getPreferencesState, }: {
+         onPreferencesStateChange: (listener: (preferencesState: PreferencesState) => void) => void;
+         onNetworkStateChange: (listener: (networkState: NetworkState) => void) => void;
+         onTokenListStateChange: (listener: (tokenListState: TokenListState) => void) => void;
+         getBalancesInSingleCall: AssetsContractController['getBalancesInSingleCall'];
+         addDetectedTokens: TokensController['addDetectedTokens'];
++        updateTokensName: TokensController['updateTokensName'];
+         getTokenListState: () => TokenListState;
+         getTokensState: () => TokensState;
+         getNetworkState: () => NetworkState;
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
-index 4ed4990..9af95c1 100644
+index 4ed4990..04d12e8 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.js
-@@ -34,7 +34,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+@@ -27,6 +27,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+      * @param options.onTokenListStateChange - Allows subscribing to token list controller state changes.
+      * @param options.getBalancesInSingleCall - Gets the balances of a list of tokens for the given address.
+      * @param options.addDetectedTokens - Add a list of detected tokens.
++     * @param options.updateTokensName - Updates the token name.
+      * @param options.getTokenListState - Gets the current state of the TokenList controller.
+      * @param options.getTokensState - Gets the current state of the Tokens controller.
+      * @param options.getNetworkState - Gets the state of the network controller.
+@@ -34,7 +35,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
       * @param config - Initial options used to configure this controller.
       * @param state - Initial state to set on this controller.
       */
@@ -706,7 +743,7 @@ index 4ed4990..9af95c1 100644
          const { providerConfig: { chainId: defaultChainId }, } = getNetworkState();
          const { useTokenDetection: defaultUseTokenDetection } = getPreferencesState();
          super(config, state);
-@@ -47,6 +47,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+@@ -47,6 +48,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
          this.getTokensState = getTokensState;
          this.getTokenListState = getTokenListState;
          this.addDetectedTokens = addDetectedTokens;
@@ -714,21 +751,17 @@ index 4ed4990..9af95c1 100644
          this.getBalancesInSingleCall = getBalancesInSingleCall;
          onTokenListStateChange(({ tokenList }) => {
              const hasTokens = Object.keys(tokenList).length;
-@@ -132,7 +133,12 @@ class TokenDetectionController extends base_controller_1.BaseController {
+@@ -132,6 +134,9 @@ class TokenDetectionController extends base_controller_1.BaseController {
              const tokensAddresses = tokens.map(
              /* istanbul ignore next*/ (token) => token.address.toLowerCase());
              const { tokenList } = this.getTokenListState();
--            const tokensToDetect = [];
-+
 +            if (tokens.length && !tokens[0].name) {
 +                this.updateTokensName(tokenList);
 +            }
-+            
-+                const tokensToDetect = [];
+             const tokensToDetect = [];
              for (const address in tokenList) {
                  if (!tokensAddresses.includes(address)) {
-                     tokensToDetect.push(address);
-@@ -161,7 +167,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+@@ -161,7 +166,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
                          }
                          const caseInsensitiveTokenKey = Object.keys(tokenList).find((i) => i.toLowerCase() === tokenAddress.toLowerCase()) || '';
                          if (ignored === undefined) {
@@ -737,23 +770,22 @@ index 4ed4990..9af95c1 100644
                              tokensToAdd.push({
                                  address: tokenAddress,
                                  decimals,
-@@ -169,6 +175,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
+@@ -169,6 +174,7 @@ class TokenDetectionController extends base_controller_1.BaseController {
                                  aggregators,
                                  image: iconUrl,
                                  isERC721: false,
-+                                name
++                                name,
                              });
                          }
                      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-index 480ecaf..9cccbc9 100644
+index 480ecaf..7ee90b0 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.ts
-@@ -1,29 +1,10 @@
+@@ -1,29 +1,9 @@
 -import type { Hex } from '@metamask/utils';
 -import { BaseController, BaseConfig, BaseState } from '@metamask/base-controller';
-+import { BaseController } from '@metamask/base-controller';
-+import type { BaseConfig, BaseState } from '@metamask/base-controller';
++import type { BaseConfig, BaseController, BaseState } from '@metamask/base-controller';
  import type { NetworkState } from '@metamask/network-controller';
 +import type { PreferencesState } from '@metamask/preferences-controller';
 +import type { AbstractTokenPricesService } from './token-prices-service/abstract-token-prices-service';
@@ -784,7 +816,7 @@ index 480ecaf..9cccbc9 100644
  /**
   * @type Token
   *
-@@ -41,6 +22,7 @@ export interface Token {
+@@ -41,6 +21,7 @@ export interface Token {
      image?: string;
      balanceError?: unknown;
      isERC721?: boolean;
@@ -792,7 +824,7 @@ index 480ecaf..9cccbc9 100644
  }
  /**
   * @type TokenRatesConfig
-@@ -56,7 +38,17 @@ export interface TokenRatesConfig extends BaseConfig {
+@@ -56,7 +37,17 @@ export interface TokenRatesConfig extends BaseConfig {
      interval: number;
      nativeCurrency: string;
      chainId: Hex;
@@ -811,7 +843,7 @@ index 480ecaf..9cccbc9 100644
      threshold: number;
  }
  interface ContractExchangeRates {
-@@ -66,21 +58,20 @@ interface ContractExchangeRates {
+@@ -66,21 +57,20 @@ interface ContractExchangeRates {
   * @type TokenRatesState
   *
   * Token rates controller state
@@ -837,7 +869,7 @@ index 480ecaf..9cccbc9 100644
      /**
       * Name of this controller used during composition
       */
-@@ -89,83 +80,41 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
+@@ -89,83 +79,41 @@ export declare class TokenRatesController extends BaseController<TokenRatesConfi
       * Creates a TokenRatesController instance.
       *
       * @param options - The controller options.
@@ -940,10 +972,10 @@ index 480ecaf..9cccbc9 100644
  //# sourceMappingURL=TokenRatesController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-index 4e60e4d..cd8fdb7 100644
+index 4e60e4d..d1e389b 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.js
-@@ -8,280 +8,321 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
+@@ -8,37 +8,61 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
          step((generator = generator.apply(thisArg, _arguments || [])).next());
      });
  };
@@ -1028,12 +1060,7 @@ index 4e60e4d..cd8fdb7 100644
  }
  /**
   * Controller that passively polls on a set interval for token-to-fiat exchange rates
-  * for tokens stored in the TokensController
-  */
-+// This is using BaseController on BaseController v3, which relates to BaseController V1
-+// When rebase this patch doesn't forget about change this to `BaseController` instead of `BaseControllerV1`
- class TokenRatesController extends base_controller_1.BaseController {
-     /**
+@@ -49,239 +73,254 @@ class TokenRatesController extends base_controller_1.BaseController {
       * Creates a TokenRatesController instance.
       *
       * @param options - The controller options.
@@ -1183,7 +1210,7 @@ index 4e60e4d..cd8fdb7 100644
 +            if (this.config.chainId !== chainId ||
 +                this.config.nativeCurrency !== ticker) {
 +                this.update({ contractExchangeRates: {} });
-+                this.configure({ chainId, nativeCurrency: ticker || 'ETH' });
++                this.configure({ chainId, nativeCurrency: ticker ?? 'ETH' });
 +                if (__classPrivateFieldGet(this, _TokenRatesController_pollState, "f") === PollState.Active) {
 +                    yield this.updateExchangeRates();
 +                }
@@ -1429,7 +1456,7 @@ index 4e60e4d..cd8fdb7 100644
 +        const [contractExchangeRates, fallbackCurrencyToNativeCurrencyConversionRate,] = yield Promise.all([
 +            __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_fetchAndMapExchangeRatesForSupportedNativeCurrency).call(this, {
 +                tokenAddresses,
-+                chainId:  this.config.chainId,
++                chainId: this.config.chainId,
 +                nativeCurrency: controller_utils_1.FALL_BACK_VS_CURRENCY,
 +            }),
 +            getCurrencyConversionRate({
@@ -1476,8 +1503,91 @@ index 4e60e4d..cd8fdb7 100644
  exports.default = TokenRatesController;
  //# sourceMappingURL=TokenRatesController.js.map
 \ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.d.ts b/node_modules/@metamask/assets-controllers/dist/TokensController.d.ts
+index de3f851..d4c7c32 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokensController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/TokensController.d.ts
+@@ -7,6 +7,8 @@ import { BaseController, BaseConfig, BaseState, RestrictedControllerMessenger }
+ import type { PreferencesState } from '@metamask/preferences-controller';
+ import type { NetworkState } from '@metamask/network-controller';
+ import type { Token } from './TokenRatesController';
++import { TokenListMap } from './TokenListController';
++import type { AssetsContractController } from './AssetsContractController';
+ /**
+  * @type TokensConfig
+  *
+@@ -86,6 +88,7 @@ export declare class TokensController extends BaseController<TokensConfig, Token
+     private ethersProvider;
+     private abortController;
+     private messagingSystem;
++    private getERC20TokenName;
+     /**
+      * Fetch metadata for a token.
+      *
+@@ -111,14 +114,16 @@ export declare class TokensController extends BaseController<TokensConfig, Token
+      * @param options.config - Initial options used to configure this controller.
+      * @param options.state - Initial state to set on this controller.
+      * @param options.messenger - The controller messenger.
++     * @param options.getERC20TokenName - Allows fetch an ERC-20 token name
+      */
+-    constructor({ chainId: initialChainId, onPreferencesStateChange, onNetworkStateChange, config, state, messenger, }: {
++    constructor({ chainId: initialChainId, onPreferencesStateChange, onNetworkStateChange, config, state, messenger, getERC20TokenName, }: {
+         chainId: Hex;
+         onPreferencesStateChange: (listener: (preferencesState: PreferencesState) => void) => void;
+         onNetworkStateChange: (listener: (networkState: NetworkState) => void) => void;
+         config?: Partial<TokensConfig>;
+         state?: Partial<TokensState>;
+         messenger: TokensControllerMessenger;
++        getERC20TokenName: AssetsContractController['getERC20TokenName'];
+     });
+     _instantiateNewEthersProvider(): any;
+     /**
+@@ -127,11 +132,17 @@ export declare class TokensController extends BaseController<TokensConfig, Token
+      * @param address - Hex address of the token contract.
+      * @param symbol - Symbol of the token.
+      * @param decimals - Number of decimals the token uses.
+-     * @param image - Image of the token.
+-     * @param interactingAddress - The address of the account to add a token to.
++     * @param options - Object containing name and image of the token
++     * @param options.name - Name of the token
++     * @param options.image - Image of the token
++     * @param options.interactingAddress - The address of the account to add a token to.
+      * @returns Current token list.
+      */
+-    addToken(address: string, symbol: string, decimals: number, image?: string, interactingAddress?: string): Promise<Token[]>;
++    addToken(address: string, symbol: string, decimals: number, { name, image, interactingAddress, }: {
++        name?: string;
++        image?: string;
++        interactingAddress?: string;
++    }): Promise<Token[]>;
+     /**
+      * Add a batch of tokens.
+      *
+@@ -164,6 +175,11 @@ export declare class TokensController extends BaseController<TokensConfig, Token
+      * @returns The new token object with the added isERC721 field.
+      */
+     updateTokenType(tokenAddress: string): Promise<Token>;
++    /**
++     * This is a function that updates the tokens name for the tokens name if it is not defined
++     * @param tokenList - Represents the fetched token list from service API
++     */
++    updateTokensName(tokenList: TokenListMap): Promise<void>;
+     /**
+      * Detects whether or not a token is ERC-721 compatible.
+      *
+@@ -175,8 +191,8 @@ export declare class TokensController extends BaseController<TokensConfig, Token
+     _createEthersContract(tokenAddress: string, abi: string, ethersProvider: any): Contract;
+     _generateRandomId(): string;
+     /**
+-     * Adds a new suggestedAsset to the list of watched assets.
+-     * Parameters will be validated according to the asset type being watched.
++     * Adds a new suggestedAsset to state. Parameters will be validated according to
++     * asset type being watched. A `<suggestedAssetMeta.id>:pending` hub event will be emitted once added.
+      *
+      * @param asset - The asset to be watched. For now only ERC20 tokens are accepted.
+      * @param type - The asset type.
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.js b/node_modules/@metamask/assets-controllers/dist/TokensController.js
-index e630b79..0d67362 100644
+index 69ed995..5372bc3 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokensController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/TokensController.js
 @@ -43,8 +43,9 @@ class TokensController extends base_controller_1.BaseController {
@@ -1487,7 +1597,7 @@ index e630b79..0d67362 100644
 +     * @param options.getERC20TokenName - Allows fetch an ERC-20 token name
       */
 -    constructor({ chainId: initialChainId, onPreferencesStateChange, onNetworkStateChange, config, state, messenger, }) {
-+    constructor({ chainId: initialChainId, onPreferencesStateChange, onNetworkStateChange, config, state, messenger, getERC20TokenName}) {
++    constructor({ chainId: initialChainId, onPreferencesStateChange, onNetworkStateChange, config, state, messenger, getERC20TokenName, }) {
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
          /**
@@ -1512,7 +1622,7 @@ index e630b79..0d67362 100644
       * @returns Current token list.
       */
 -    addToken(address, symbol, decimals, image, interactingAddress) {
-+    addToken(address, symbol, decimals, { name, image, interactingAddress }) {
++    addToken(address, symbol, decimals, { name, image, interactingAddress, }) {
          var _a, _b, _c;
          return __awaiter(this, void 0, void 0, function* () {
              const { allTokens, allIgnoredTokens, allDetectedTokens } = this.state;
@@ -1520,7 +1630,7 @@ index e630b79..0d67362 100644
                          }),
                      isERC721,
                      aggregators: (0, assetsUtil_1.formatAggregatorNames)((tokenMetadata === null || tokenMetadata === void 0 ? void 0 : tokenMetadata.aggregators) || []),
-+                    name
++                    name,
                  };
                  const previousEntry = newTokens.find((token) => token.address.toLowerCase() === address.toLowerCase());
                  if (previousEntry) {
@@ -1537,7 +1647,7 @@ index e630b79..0d67362 100644
                          decimals,
                          image,
                          aggregators,
-+                        name
++                        name,
                      };
                      newTokensMap[address] = formattedToken;
                      importedTokensMap[address.toLowerCase()] = true;
@@ -1546,7 +1656,7 @@ index e630b79..0d67362 100644
              try {
                  incomingDetectedTokens.forEach((tokenToAdd) => {
 -                    const { address, symbol, decimals, image, aggregators, isERC721 } = tokenToAdd;
-+                    const { address, symbol, decimals, image, aggregators, isERC721, name } = tokenToAdd;
++                    const { address, symbol, decimals, image, aggregators, isERC721, name, } = tokenToAdd;
                      const checksumAddress = (0, controller_utils_1.toChecksumHexAddress)(address);
                      const newEntry = {
                          address: checksumAddress,
@@ -1554,49 +1664,60 @@ index e630b79..0d67362 100644
                          image,
                          isERC721,
                          aggregators,
-+                        name
++                        name,
                      };
                      const previousImportedEntry = newTokens.find((token) => token.address.toLowerCase() === checksumAddress.toLowerCase());
                      if (previousImportedEntry) {
-@@ -363,6 +370,22 @@ class TokensController extends base_controller_1.BaseController {
+@@ -363,6 +370,21 @@ class TokensController extends base_controller_1.BaseController {
              return tokens[tokenIndex];
          });
      }
-+
 +    /**
 +     * This is a function that updates the tokens name for the tokens name if it is not defined
 +     * @param tokenList - Represents the fetched token list from service API
 +     */
-+    async updateTokensName(tokenList) {
-+        const { tokens } = this.state;
-+
-+        const newTokens = tokens.map((token) => {
-+            const newToken = tokenList[token.address.toLowerCase()];
-+          return (!token.name && newToken?.name) ? { ...token, name: newToken.name } : {...token};
++    updateTokensName(tokenList) {
++        return __awaiter(this, void 0, void 0, function* () {
++            const { tokens } = this.state;
++            const newTokens = tokens.map((token) => {
++                const newToken = tokenList[token.address.toLowerCase()];
++                return !token.name && (newToken === null || newToken === void 0 ? void 0 : newToken.name)
++                    ? Object.assign(Object.assign({}, token), { name: newToken.name }) : Object.assign({}, token);
++            });
++            this.update({ tokens: newTokens });
 +        });
-+
-+        this.update({ tokens: newTokens });
 +    }
-+
      /**
       * Detects whether or not a token is ERC-721 compatible.
       *
-@@ -426,7 +449,17 @@ class TokensController extends base_controller_1.BaseController {
+@@ -403,8 +425,8 @@ class TokensController extends base_controller_1.BaseController {
+         return (0, uuid_1.v1)();
+     }
+     /**
+-     * Adds a new suggestedAsset to the list of watched assets.
+-     * Parameters will be validated according to the asset type being watched.
++     * Adds a new suggestedAsset to state. Parameters will be validated according to
++     * asset type being watched. A `<suggestedAssetMeta.id>:pending` hub event will be emitted once added.
+      *
+      * @param asset - The asset to be watched. For now only ERC20 tokens are accepted.
+      * @param type - The asset type.
+@@ -426,7 +448,18 @@ class TokensController extends base_controller_1.BaseController {
              };
              (0, assetsUtil_1.validateTokenToWatch)(asset);
              yield this._requestApproval(suggestedAssetMeta);
 -            yield this.addToken(asset.address, asset.symbol, asset.decimals, asset.image, suggestedAssetMeta.interactingAddress);
 +            let name;
-+            try{
++            try {
 +                name = yield this.getERC20TokenName(asset.address);
-+            } catch (error) {
++            }
++            catch (error) {
 +                name = undefined;
 +            }
 +            yield this.addToken(asset.address, asset.symbol, asset.decimals, {
 +                name,
 +                image: asset.image,
 +                interactingAddress: suggestedAssetMeta.interactingAddress,
-+              });
++            });
          });
      }
      /**
@@ -1620,7 +1741,7 @@ index 71117bb..0d75e81 100644
  /**
   * Check if token detection is enabled for certain networks.
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
-index ef7b7e3..bdbed60 100644
+index 79d7147..921f04f 100644
 --- a/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 +++ b/node_modules/@metamask/assets-controllers/dist/assetsUtil.js
 @@ -121,6 +121,12 @@ var SupportedTokenDetectionNetworks;
@@ -1778,9 +1899,18 @@ index 9526321..5f08fce 100644
  //# sourceMappingURL=index.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/index.js b/node_modules/@metamask/assets-controllers/dist/index.js
-index d4d8682..96d7224 100644
+index d4d8682..1b151e6 100644
 --- a/node_modules/@metamask/assets-controllers/dist/index.js
 +++ b/node_modules/@metamask/assets-controllers/dist/index.js
+@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
+     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.getFormattedIpfsUrl = exports.formatIconUrlWithProxy = exports.isTokenDetectionSupportedForNetwork = void 0;
++exports.CodefiTokenPricesServiceV2 = exports.getFormattedIpfsUrl = exports.formatIconUrlWithProxy = exports.isTokenDetectionSupportedForNetwork = void 0;
+ __exportStar(require("./AccountTrackerController"), exports);
+ __exportStar(require("./AssetsContractController"), exports);
+ __exportStar(require("./CurrencyRateController"), exports);
 @@ -29,4 +29,6 @@ var assetsUtil_1 = require("./assetsUtil");
  Object.defineProperty(exports, "isTokenDetectionSupportedForNetwork", { enumerable: true, get: function () { return assetsUtil_1.isTokenDetectionSupportedForNetwork; } });
  Object.defineProperty(exports, "formatIconUrlWithProxy", { enumerable: true, get: function () { return assetsUtil_1.formatIconUrlWithProxy; } });
@@ -1870,7 +2000,7 @@ index 0000000..6b79d8f
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.d.ts b/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.d.ts
 new file mode 100644
-index 0000000..2318810
+index 0000000..13ba996
 --- /dev/null
 +++ b/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.d.ts
 @@ -0,0 +1,80 @@
@@ -1891,7 +2021,7 @@ index 0000000..2318810
 + * endpoint, but in hexadecimal form (for consistency with how we represent
 + * chain IDs in other places).
 + */
-+export declare const SUPPORTED_CHAIN_IDS: readonly ["1", "10", "25", "56", "57", "66", "70", "82", "88", "100", "106", "122", "128", "137", "250", "288", "321", "328", "361", "1088", "1284", "1285", "8453", "336", "10000", "42161", "42220", "42294", "43114", "535824", "1313161554", "1666600000"];
++export declare const SUPPORTED_CHAIN_IDS: readonly ["0x1", "0xa", "0x19", "0x38", "0x39", "0x42", "0x46", "0x52", "0x58", "0x64", "0x6a", "0x7a", "0x80", "0x89", "0xfa", "0x120", "0x141", "0x144", "0x169", "0x440", "0x504", "0x505", "0x2105", "0x150", "0x2710", "0xa4b1", "0xa4ec", "0xa516", "0xa86a", "0x518af", "0x4e454152", "0x63564c40"];
 +/**
 + * A chain ID that can be supplied in the URL for the `/spot-prices` endpoint,
 + * but in hexadecimal form (for consistency with how we represent chain IDs in
@@ -1957,10 +2087,10 @@ index 0000000..2318810
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js b/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js
 new file mode 100644
-index 0000000..da8609b
+index 0000000..fedd210
 --- /dev/null
 +++ b/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js
-@@ -0,0 +1,331 @@
+@@ -0,0 +1,329 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -1986,7 +2116,7 @@ index 0000000..da8609b
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.CodefiTokenPricesServiceV2 = exports.SUPPORTED_CHAIN_IDS = exports.SUPPORTED_CURRENCIES = void 0;
 +const controller_utils_1 = require("@metamask/controller-utils");
-+const { hexToNumber } = require("@metamask/utils");
++const utils_1 = require("@metamask/utils");
 +const cockatiel_1 = require("cockatiel");
 +/**
 + * The list of currencies that can be supplied as the `vsCurrency` parameter to
@@ -2122,72 +2252,70 @@ index 0000000..da8609b
 + * chain IDs in other places).
 + */
 +exports.SUPPORTED_CHAIN_IDS = [
-+   // Ethereum Mainnet
-+  '0x1',
-+  // OP Mainnet
-+  '0xa',
-+  // Cronos Mainnet
-+  '0x19',
-+  // BNB Smart Chain Mainnet
-+  '0x38',
-+  // Syscoin Mainnet
-+  '0x39',
-+  // OKXChain Mainnet
-+  '0x42',
-+  // Hoo Smart Chain
-+  '0x46',
-+  // Meter Mainnet
-+  '0x52',
-+  // TomoChain
-+  '0x58',
-+  // Gnosis
-+  '0x64',
-+  // Velas EVM Mainnet
-+  '0x6a',
-+  // Fuse Mainnet
-+  '0x7a',
-+  // Huobi ECO Chain Mainnet
-+  '0x80',
-+  // Polygon Mainnet
-+  '0x89',
-+  // Fantom Opera
-+  '0xfa',
-+  // Boba Network
-+  '0x120',
-+  // KCC Mainnet
-+  '0x141',
-+  // zkSync Era Mainnet
-+  '0x144',
-+  // Theta Mainnet
-+  '0x169',
-+  // Metis Andromeda Mainnet
-+  '0x440',
-+  // Moonbeam
-+  '0x504',
-+  // Moonriver
-+  '0x505',
-+  // Base
-+  '0x2105',
-+  // Shiden
-+  '0x150',
-+  // Smart Bitcoin Cash
-+  '0x2710',
-+  // Arbitrum One
-+  '0xa4b1',
-+  // Celo Mainnet
-+  '0xa4ec',
-+  // Oasis Emerald
-+  '0xa516',
-+  // Avalanche C-Chain
-+  '0xa86a',
-+  // Polis Mainnet
-+  '0x518af',
-+  // Aurora Mainnet
-+  '0x4e454152',
-+  // Harmony Mainnet Shard 0
-+  '0x63564c40',
-+  // Linea Mainnet
-+  '0xe708',
++    // Ethereum Mainnet
++    '0x1',
++    // OP Mainnet
++    '0xa',
++    // Cronos Mainnet
++    '0x19',
++    // BNB Smart Chain Mainnet
++    '0x38',
++    // Syscoin Mainnet
++    '0x39',
++    // OKXChain Mainnet
++    '0x42',
++    // Hoo Smart Chain
++    '0x46',
++    // Meter Mainnet
++    '0x52',
++    // TomoChain
++    '0x58',
++    // Gnosis
++    '0x64',
++    // Velas EVM Mainnet
++    '0x6a',
++    // Fuse Mainnet
++    '0x7a',
++    // Huobi ECO Chain Mainnet
++    '0x80',
++    // Polygon Mainnet
++    '0x89',
++    // Fantom Opera
++    '0xfa',
++    // Boba Network
++    '0x120',
++    // KCC Mainnet
++    '0x141',
++    // zkSync Era Mainnet
++    '0x144',
++    // Theta Mainnet
++    '0x169',
++    // Metis Andromeda Mainnet
++    '0x440',
++    // Moonbeam
++    '0x504',
++    // Moonriver
++    '0x505',
++    // Base
++    '0x2105',
++    // Shiden
++    '0x150',
++    // Smart Bitcoin Cash
++    '0x2710',
++    // Arbitrum One
++    '0xa4b1',
++    // Celo Mainnet
++    '0xa4ec',
++    // Oasis Emerald
++    '0xa516',
++    // Avalanche C-Chain
++    '0xa86a',
++    // Polis Mainnet
++    '0x518af',
++    // Aurora Mainnet
++    '0x4e454152',
++    // Harmony Mainnet Shard 0
++    '0x63564c40',
 +];
 +/**
 + * All requests to V2 of the Price API start with this.
@@ -2237,7 +2365,7 @@ index 0000000..da8609b
 +     */
 +    fetchTokenPrices({ chainId, tokenAddresses, currency, }) {
 +        return __awaiter(this, void 0, void 0, function* () {
-+            const chainIdAsNumber = hexToNumber(chainId);
++            const chainIdAsNumber = (0, utils_1.hexToNumber)(chainId);
 +            const url = new URL(`${BASE_URL}/chains/${chainIdAsNumber}/spot-prices`);
 +            url.searchParams.append('tokenAddresses', tokenAddresses.join(','));
 +            url.searchParams.append('vsCurrency', currency);
