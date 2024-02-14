@@ -30,7 +30,7 @@ describe('trackAfterInteractions', () => {
 
     mockEnabled.mockReturnValue(false);
 
-    await trackOnboarding(mockEvent, mockProperties, mockSaveOnboardingEvent);
+    trackOnboarding(mockEvent, mockProperties, mockSaveOnboardingEvent);
 
     expect(mockSaveOnboardingEvent).toHaveBeenCalledWith(mockEvent.category);
     expect(mockTrackEvent).not.toHaveBeenCalled();
@@ -40,9 +40,9 @@ describe('trackAfterInteractions', () => {
     const mockEvent = { category: 'testEvent' };
     const mockProperties = { prop: 'testProp' };
 
-    mockEnabled.mockReturnValue(true);
+    mockEnabled.mockReturnValue(false);
 
-    await trackOnboarding(mockEvent, mockProperties);
+    trackOnboarding(mockEvent, mockProperties);
 
     expect(mockSaveOnboardingEvent).not.toHaveBeenCalledWith();
     expect(mockTrackEvent).toHaveBeenCalledWith(
@@ -57,12 +57,15 @@ describe('trackAfterInteractions', () => {
 
     mockEnabled.mockReturnValue(true);
 
-    await trackOnboarding(mockEvent, mockProperties);
+    trackOnboarding(mockEvent, mockProperties);
+    trackOnboarding(mockEvent);
 
-    expect(mockSaveOnboardingEvent).not.toHaveBeenCalledWith();
+    expect(mockSaveOnboardingEvent).not.toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
     expect(mockTrackEvent).toHaveBeenCalledWith(
       mockEvent.category,
       mockProperties,
     );
+    expect(mockTrackEvent).toHaveBeenCalledWith(mockEvent.category, {});
   });
 });

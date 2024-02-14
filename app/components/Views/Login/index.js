@@ -42,10 +42,8 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
-import {
-  trackErrorAsAnalytics,
-  trackEventV2 as trackEvent,
-} from '../../../util/analyticsV2';
+import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';

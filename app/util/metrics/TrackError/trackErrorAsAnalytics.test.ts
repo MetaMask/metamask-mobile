@@ -1,5 +1,6 @@
 import trackErrorAsAnalytics from './trackErrorAsAnalytics';
 import MetaMetrics from '../../../core/Analytics/MetaMetrics';
+import { IMetaMetricsEvent } from '../../../core/Analytics';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 
@@ -19,8 +20,8 @@ describe('trackErrorAsAnalytics', () => {
     jest.clearAllMocks();
   });
 
-  it('calls trackEvent with error name', async () => {
-    const testEvent = { category: 'testEvent' };
+  it('calls trackEvent with event object', async () => {
+    const testEvent: IMetaMetricsEvent = { category: 'testEvent' };
     const errorMessage = 'This is an error message';
     const otherInfo = 'Other info about the error';
 
@@ -31,6 +32,34 @@ describe('trackErrorAsAnalytics', () => {
       event: testEvent.category,
       errorMessage,
       otherInfo,
+    });
+  });
+
+  it('calls trackEvent with event name string', async () => {
+    const testEventName = 'testEvent';
+    const errorMessage = 'This is an error message';
+    const otherInfo = 'Other info about the error';
+
+    trackErrorAsAnalytics(testEventName, errorMessage, otherInfo);
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith('Error occurred', {
+      error: true,
+      event: testEventName,
+      errorMessage,
+      otherInfo,
+    });
+  });
+
+  it('calls trackEvent without otherInfo', async () => {
+    const testEvent: IMetaMetricsEvent = { category: 'testEvent' };
+    const errorMessage = 'This is an error message';
+
+    trackErrorAsAnalytics(testEvent, errorMessage);
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith('Error occurred', {
+      error: true,
+      event: testEvent.category,
+      errorMessage,
     });
   });
 });

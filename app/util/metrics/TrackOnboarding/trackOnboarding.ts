@@ -8,14 +8,14 @@ import { JsonMap } from '@segment/analytics-react-native';
  * @param properties - the properties map for the event
  * @param saveOnboardingEvent - function to store onboarding event before optin
  */
-const trackOnboarding = async (
+const trackOnboarding = (
   event: IMetaMetricsEvent,
   properties: JsonMap = {},
   saveOnboardingEvent?: (event: string) => {
     event: object;
     type: string;
   },
-): Promise<void> =>
+): void => {
   InteractionManager.runAfterInteractions(async () => {
     const metrics = MetaMetrics.getInstance();
     const isOnboardingDelayedEvent =
@@ -26,5 +26,6 @@ const trackOnboarding = async (
       metrics.trackEvent(event.category, properties);
     }
   });
+};
 
 export default trackOnboarding;

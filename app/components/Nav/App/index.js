@@ -30,7 +30,7 @@ import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { routingInstrumentation } from '../../../util/sentry/utils';
 import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';

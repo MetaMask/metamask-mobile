@@ -3,7 +3,6 @@ import {
   IMetaMetricsEvent,
   MetaMetrics,
 } from '../../../core/Analytics';
-import Logger from '../../Logger';
 import { InteractionManager } from 'react-native';
 
 function isIMetaMetricsEvent(event: any): event is IMetaMetricsEvent {
@@ -24,18 +23,14 @@ const trackErrorAsAnalytics = (
   errorMessage: string,
   otherInfo?: string,
 ) => {
-  try {
-    InteractionManager.runAfterInteractions(async () => {
-      MetaMetrics.getInstance().trackEvent(EVENT_NAME.ERROR, {
-        error: true,
-        event: isIMetaMetricsEvent(event) ? event.category : event,
-        errorMessage,
-        ...(otherInfo && { otherInfo }),
-      });
+  InteractionManager.runAfterInteractions(async () => {
+    MetaMetrics.getInstance().trackEvent(EVENT_NAME.ERROR, {
+      error: true,
+      event: isIMetaMetricsEvent(event) ? event.category : event,
+      errorMessage,
+      ...(otherInfo && { otherInfo }),
     });
-  } catch (error) {
-    Logger.error(error, 'Error logging analytics - trackErrorAsAnalytics');
-  }
+  });
 };
 
 export default trackErrorAsAnalytics;
