@@ -19,12 +19,14 @@ const initialState = {
       ...initialBackgroundState,
       AddressBookController: {
         addressBook: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
-            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-            chainId: '1',
-            isEns: false,
-            memo: '',
-            name: 'aa',
+          '0x1': {
+            '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+              address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+              chainId: '0x1',
+              isEns: false,
+              memo: '',
+              name: 'aa',
+            },
           },
         },
       },
