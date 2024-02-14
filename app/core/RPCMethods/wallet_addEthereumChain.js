@@ -8,14 +8,15 @@ import {
   isPrefixedFormattedHexString,
   isSafeChainId,
 } from '../../util/networks';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../../util/analyticsV2';
+import URL from 'url-parse';
+import { MetaMetrics, MetaMetricsEvents } from '../Analytics';
 import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import checkSafeNetwork from './networkChecker.util';
+import { BannerAlertSeverity } from '../../component-library/components/Banners/Banner';
+import { strings } from '../../../locales/i18n';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -34,6 +35,8 @@ const wallet_addEthereumChain = async ({
   startApprovalFlow,
   endApprovalFlow,
 }) => {
+  const metrics = MetaMetrics.getInstance();
+
   const { CurrencyRateController, NetworkController, ApprovalController } =
     Engine.context;
 
@@ -155,8 +158,8 @@ const wallet_addEthereumChain = async ({
         },
       });
     } catch (e) {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+      metrics.trackEvent(
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED.category,
         analyticsParams,
       );
       throw ethErrors.provider.userRejectedRequest();
@@ -165,7 +168,10 @@ const wallet_addEthereumChain = async ({
     CurrencyRateController.setNativeCurrency(networkConfiguration.ticker);
     NetworkController.setActiveNetwork(networkConfigurationId);
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
+    metrics.trackEvent(
+      MetaMetricsEvents.NETWORK_SWITCHED.category,
+      analyticsParams,
+    );
 
     res.result = null;
     return;
@@ -231,12 +237,56 @@ const wallet_addEthereumChain = async ({
     ticker,
   };
 
-  const alerts = await checkSafeNetwork(
-    chainIdDecimal,
-    requestData.rpcUrl,
-    requestData.chainName,
-    requestData.ticker,
+  const alerts = [];
+  const safeChainsListRequest = await fetch(
+    'https://chainid.network/chains.json',
   );
+  const safeChainsList = await safeChainsListRequest.json();
+  const matchedChain = safeChainsList.find(
+    (chain) => chain.chainId.toString() === chainIdDecimal,
+  );
+
+  if (matchedChain) {
+    const { origin } = new URL(requestData.rpcUrl);
+    if (!matchedChain.rpc?.map((rpc) => new URL(rpc).origin).includes(origin)) {
+      alerts.push({
+        alertError: strings('add_custom_network.invalid_rpc_url'),
+        alertSeverity: BannerAlertSeverity.Error,
+        alertOrigin: 'rpc_url',
+      });
+    }
+    if (matchedChain.nativeCurrency?.decimals !== EVM_NATIVE_TOKEN_DECIMALS) {
+      alerts.push({
+        alertError: strings('add_custom_network.invalid_chain_token_decimals'),
+        alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'decimals',
+      });
+    }
+    if (
+      matchedChain.name?.toLowerCase() !== requestData.chainName.toLowerCase()
+    ) {
+      alerts.push({
+        alertError: strings('add_custom_network.unrecognized_chain_name'),
+        alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'chain_name',
+      });
+    }
+    if (matchedChain.nativeCurrency?.symbol !== requestData.ticker) {
+      alerts.push({
+        alertError: strings('add_custom_network.unrecognized_chain_ticker'),
+        alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'chain_ticker',
+      });
+    }
+  }
+
+  if (!matchedChain) {
+    alerts.push({
+      alertError: strings('add_custom_network.unrecognized_chain_id'),
+      alertSeverity: BannerAlertSeverity.Error,
+      alertOrigin: 'unknown_chain',
+    });
+  }
 
   requestData.alerts = alerts;
 
@@ -247,8 +297,8 @@ const wallet_addEthereumChain = async ({
     ...analytics,
   };
 
-  AnalyticsV2.trackEvent(
-    MetaMetricsEvents.NETWORK_REQUESTED,
+  metrics.trackEvent(
+    MetaMetricsEvents.NETWORK_REQUESTED.category,
     analyticsParamsAdd,
   );
 
@@ -268,8 +318,8 @@ const wallet_addEthereumChain = async ({
         requestData,
       });
     } catch (e) {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+      metrics.trackEvent(
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED.category,
         analyticsParamsAdd,
       );
       throw ethErrors.provider.userRejectedRequest();
@@ -294,7 +344,10 @@ const wallet_addEthereumChain = async ({
         },
       );
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+    metrics.trackEvent(
+      MetaMetricsEvents.NETWORK_ADDED.category,
+      analyticsParamsAdd,
+    );
 
     await waitForInteraction();
 

@@ -1,6 +1,5 @@
 import Engine from '../../core/Engine';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
 import { getAddressAccountType } from '../address';
 import NotificationManager from '../../core/NotificationManager';
 import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
@@ -94,10 +93,10 @@ export const handleSignatureAction = async (
 ) => {
   await onAction();
   showWalletConnectNotification(messageParams, confirmation);
-  AnalyticsV2.trackEvent(
+  MetaMetrics.getInstance().trackEvent(
     confirmation
-      ? MetaMetricsEvents.SIGNATURE_APPROVED
-      : MetaMetricsEvents.SIGNATURE_REJECTED,
+      ? MetaMetricsEvents.SIGNATURE_APPROVED.category
+      : MetaMetricsEvents.SIGNATURE_REJECTED.category,
     getAnalyticsParams(messageParams, signType, securityAlertResponse),
   );
 };

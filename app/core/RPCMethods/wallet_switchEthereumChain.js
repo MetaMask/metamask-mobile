@@ -5,8 +5,7 @@ import {
   isPrefixedFormattedHexString,
   isSafeChainId,
 } from '../../util/networks';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../../util/analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../Analytics';
 import {
   selectChainId,
   selectNetworkConfigurations,
@@ -119,7 +118,10 @@ const wallet_switchEthereumChain = async ({
       NetworkController.setProviderType(existingNetworkDefault.networkType);
     }
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
+    MetaMetrics.getInstance().trackEvent(
+      MetaMetricsEvents.NETWORK_SWITCHED.category,
+      analyticsParams,
+    );
 
     res.result = null;
     return;

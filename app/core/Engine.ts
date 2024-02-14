@@ -119,7 +119,6 @@ import {
   LoggingControllerState,
   LoggingControllerActions,
 } from '@metamask/logging-controller';
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,
@@ -141,8 +140,7 @@ import Logger from '../util/Logger';
 import { EndowmentPermissions } from '../constants/permissions';
 ///: END:ONLY_INCLUDE_IF
 import { isZero } from '../util/lodash';
-import { MetaMetricsEvents } from './Analytics';
-import AnalyticsV2 from '../util/analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from './Analytics';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   SnapBridge,
@@ -366,7 +364,6 @@ class Engine {
         // TODO: Use previous value when preferences UI is available
         useNftDetection: false,
         displayNftMedia: true,
-        securityAlertsEnabled: true,
       },
     );
 
@@ -524,9 +521,6 @@ class Engine {
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    const ledgerKeyringBuilder = () => new LedgerKeyring();
-    ledgerKeyringBuilder.type = LedgerKeyring.type;
-
     const keyringController = new KeyringController({
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
@@ -556,7 +550,7 @@ class Engine {
       }),
       state: initialKeyringState || initialState.KeyringController,
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
-      keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
+      keyringBuilders: [qrKeyringBuilder],
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -861,13 +855,16 @@ class Engine {
           ),
         addDetectedTokens: async (tokens) => {
           // Track detected tokens event
-          AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
-            token_standard: 'ERC20',
-            asset_type: 'token',
-            chain_id: getDecimalChainId(
-              networkController.state.providerConfig.chainId,
-            ),
-          });
+          MetaMetrics.getInstance().trackEvent(
+            MetaMetricsEvents.TOKEN_DETECTED.category,
+            {
+              token_standard: 'ERC20',
+              asset_type: 'token',
+              chain_id: getDecimalChainId(
+                networkController.state.providerConfig.chainId,
+              ),
+            },
+          );
           tokensController.addDetectedTokens(tokens);
         },
         // @ts-expect-error This is added in a patch, but types weren't updated
