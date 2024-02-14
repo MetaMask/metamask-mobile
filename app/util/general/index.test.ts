@@ -5,7 +5,7 @@ import {
   renderShortText,
   getURLProtocol,
   isIPFSUri,
-  deepJSONParse
+  deepJSONParse,
 } from '.';
 
 describe('capitalize', () => {
@@ -125,11 +125,17 @@ describe('isIPFSUri', () => {
 describe('deepJSONParse function', () => {
   it('should properly parse a JSON string with nested objects', () => {
     const expectedObject = {
-        name: 'John ETH',
-        address: {
-            city: 'New York',
-            zip: '10001',
-        },
+      name: 'John ETH',
+      address: {
+        city: 'New York',
+        zip: '10001',
+        realBool: true,
+        fakeBool: 'false',
+        realNum: 2,
+        fakeNum: '2',
+        realUnd: undefined,
+        fakeUnd: 'undefined',
+      },
     };
     const jsonString = JSON.stringify(expectedObject);
     expect(deepJSONParse(jsonString)).toEqual(expectedObject);
@@ -155,5 +161,4 @@ describe('deepJSONParse function', () => {
       age: '30',
     });
   });
-
 });

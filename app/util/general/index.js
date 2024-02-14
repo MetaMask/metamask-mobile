@@ -131,24 +131,24 @@ export const deepJSONParse = (jsonString) => {
   function parseProperties(obj) {
     Object.keys(obj).forEach((key) => {
       if (typeof obj[key] === 'string') {
-        try {
-          // Attempt to parse the string as JSON
-          const parsed = JSON.parse(obj[key]);
-          obj[key] = parsed;
-          // If the parsed value is an object, parse its properties too
-          if (typeof parsed === 'object') {
-            parseProperties(parsed);
+        // Only check when a string begins with either curly braces or bracket
+        const likelyJson = /^\s*(\{.*\}|\[.*\])\s*$/.test(obj[key]);
+        if (likelyJson) {
+          try {
+            // Attempt to parse the string as JSON
+            const parsed = JSON.parse(obj[key]);
+            obj[key] = parsed;
+            // If the parsed value is an object, parse its properties too
+            if (typeof parsed === 'object') {
+              parseProperties(parsed);
+            }
+          } catch (e) {
+            // If parsing throws, it's not a JSON string, so do nothing
           }
-        } catch (e) {
-          // If parsing throws, it's not a JSON string, so do nothing
         }
       } else if (typeof obj[key] === 'object') {
         // If it's an object, parse its properties
         parseProperties(obj[key]);
-      }
-       // Stringify the value back to preserve original types
-       if (typeof obj[key] !== 'string' && typeof obj[key] !== 'object') {
-        obj[key] = String(obj[key]);
       }
     });
   }
@@ -158,4 +158,3 @@ export const deepJSONParse = (jsonString) => {
 
   return parsedObject;
 };
-
