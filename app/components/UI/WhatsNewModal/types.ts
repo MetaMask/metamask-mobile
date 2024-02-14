@@ -41,7 +41,7 @@ type SlideContentType =
 
 type WhatsNewSlides = SlideContentType[][];
 
-type VersionString = `${number}.${number}.${number}`;
+type VersionString = `${number}.${number}.${number}` | `${number}.${number}`;
 
 export interface WhatsNew {
   onlyUpdates: boolean;
