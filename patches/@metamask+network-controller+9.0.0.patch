@@ -1,0 +1,72 @@
+diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.js b/node_modules/@metamask/network-controller/dist/NetworkController.js
+index 8a57064..c99d717 100644
+--- a/node_modules/@metamask/network-controller/dist/NetworkController.js
++++ b/node_modules/@metamask/network-controller/dist/NetworkController.js
+@@ -22,7 +22,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+-var _NetworkController_instances, _NetworkController_ethQuery, _NetworkController_infuraProjectId, _NetworkController_trackMetaMetricsEvent, _NetworkController_previousProviderConfig, _NetworkController_providerProxy, _NetworkController_blockTrackerProxy, _NetworkController_configureProvider, _NetworkController_refreshNetwork, _NetworkController_registerProvider, _NetworkController_setupInfuraProvider, _NetworkController_setupStandardProvider, _NetworkController_updateProvider, _NetworkController_getNetworkId, _NetworkController_getLatestBlock, _NetworkController_determineEIP1559Compatibility, _NetworkController_setProviderAndBlockTracker;
++var _NetworkController_instances, _NetworkController_ethQuery, _NetworkController_infuraProjectId, _NetworkController_trackMetaMetricsEvent, _NetworkController_previousProviderConfig, _NetworkController_providerProxy, _NetworkController_blockTrackerProxy, _NetworkController_configureProvider, _NetworkController_refreshNetwork, _NetworkController_registerProvider, _NetworkController_setupInfuraProvider, _NetworkController_setupStandardProvider, _NetworkController_updateProvider, _NetworkController_getNetworkId, _NetworkController_getLatestBlock, _NetworkController_determineEIP1559Compatibility, _NetworkController_setProviderAndBlockTracker, _NetworkController_destroyed;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.NetworkController = exports.defaultState = void 0;
+ const swappable_obj_proxy_1 = require("@metamask/swappable-obj-proxy");
+@@ -133,6 +133,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+         _NetworkController_previousProviderConfig.set(this, void 0);
+         _NetworkController_providerProxy.set(this, void 0);
+         _NetworkController_blockTrackerProxy.set(this, void 0);
++        _NetworkController_destroyed.set(this, void 0);
+         if (!infuraProjectId || typeof infuraProjectId !== 'string') {
+             throw new Error('Invalid Infura project ID');
+         }
+@@ -145,6 +146,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+             return __classPrivateFieldGet(this, _NetworkController_ethQuery, "f");
+         });
+         __classPrivateFieldSet(this, _NetworkController_previousProviderConfig, this.state.providerConfig, "f");
++        __classPrivateFieldSet(this, _NetworkController_destroyed, false, "f");
+     }
+     getProviderAndBlockTracker() {
+         return {
+@@ -188,6 +190,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+                 networkChanged = true;
+                 this.messagingSystem.unsubscribe('NetworkController:networkDidChange', listener);
+             };
++
+             this.messagingSystem.subscribe('NetworkController:networkDidChange', listener);
+             let updatedNetworkStatus;
+             let updatedNetworkId = null;
+@@ -230,11 +233,12 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+                     updatedNetworkStatus = constants_1.NetworkStatus.Unknown;
+                 }
+             }
+-            if (networkChanged) {
++            if (networkChanged || __classPrivateFieldGet(this, _NetworkController_destroyed, "f")) {
+                 // If the network has changed, then `lookupNetwork` either has been or is
+                 // in the process of being called, so we don't need to go further.
+                 return;
+             }
++         
+             this.messagingSystem.unsubscribe('NetworkController:networkDidChange', listener);
+             this.update((state) => {
+                 state.networkId = updatedNetworkId;
+@@ -443,16 +447,19 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+     destroy() {
+         var _a;
+         return __awaiter(this, void 0, void 0, function* () {
++            __classPrivateFieldSet(this, _NetworkController_destroyed, true, "f");
+             yield ((_a = __classPrivateFieldGet(this, _NetworkController_blockTrackerProxy, "f")) === null || _a === void 0 ? void 0 : _a.destroy());
+         });
+     }
+ }
+ exports.NetworkController = NetworkController;
+-_NetworkController_ethQuery = new WeakMap(), _NetworkController_infuraProjectId = new WeakMap(), _NetworkController_trackMetaMetricsEvent = new WeakMap(), _NetworkController_previousProviderConfig = new WeakMap(), _NetworkController_providerProxy = new WeakMap(), _NetworkController_blockTrackerProxy = new WeakMap(), _NetworkController_instances = new WeakSet(), _NetworkController_configureProvider = function _NetworkController_configureProvider(type, rpcUrl, chainId) {
++_NetworkController_ethQuery = new WeakMap(), _NetworkController_infuraProjectId = new WeakMap(), _NetworkController_trackMetaMetricsEvent = new WeakMap(), _NetworkController_previousProviderConfig = new WeakMap(), _NetworkController_providerProxy = new WeakMap(), _NetworkController_blockTrackerProxy = new WeakMap(), _NetworkController_destroyed = new WeakMap(), _NetworkController_instances = new WeakSet(), _NetworkController_configureProvider = function _NetworkController_configureProvider(type, rpcUrl, chainId) {
+     switch (type) {
+         case controller_utils_1.NetworkType.mainnet:
+         case controller_utils_1.NetworkType.goerli:
+         case controller_utils_1.NetworkType.sepolia:
++        case controller_utils_1.NetworkType["linea-goerli"]:
++        case controller_utils_1.NetworkType["linea-mainnet"]:
+             __classPrivateFieldGet(this, _NetworkController_instances, "m", _NetworkController_setupInfuraProvider).call(this, type);
+             break;
+         case controller_utils_1.NetworkType.rpc:
