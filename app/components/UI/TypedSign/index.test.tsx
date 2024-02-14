@@ -12,7 +12,9 @@ import AppConstants from '../../../core/AppConstants';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import analyticsV2 from '../../../util/analyticsV2';
+import MetaMetrics from '../../../core/Analytics/MetaMetrics';
+
+jest.mock('../../../core/Analytics/MetaMetrics');
 
 jest.mock('../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
@@ -301,6 +303,16 @@ describe('TypedSign', () => {
   });
 
   describe('trackEvent', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    const mockMetrics = {
+      trackEvent: jest.fn(),
+    };
+
+    (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
+
     it('tracks event for rejected requests', async () => {
       mockReject.mockClear();
 
@@ -324,24 +336,20 @@ describe('TypedSign', () => {
 
       expect(mockReject).toHaveBeenCalledTimes(1);
 
-      const rejectedMocks = (
-        analyticsV2.trackEvent as jest.Mock
-      ).mock.calls.filter((call) => call[0].category === 'Signature Rejected');
-
-      const mockCallsLength = rejectedMocks.length;
-
-      const lastMockCall = rejectedMocks[mockCallsLength - 1];
-
-      expect(lastMockCall[0]).toEqual({ category: 'Signature Rejected' });
-      expect(lastMockCall[1]).toEqual({
-        account_type: 'Metamask',
-        dapp_host_name: undefined,
-        chain_id: undefined,
-        signature_type: undefined,
-        version: undefined,
-        security_alert_response: 'Benign',
-        security_alert_reason: '',
-        ppom_eth_chainId_count: 1,
+      await waitFor(() => {
+        expect(mockMetrics.trackEvent.mock.calls[0][0]).toEqual(
+          'Signature Rejected',
+        );
+        expect(mockMetrics.trackEvent.mock.calls[0][1]).toEqual({
+          account_type: 'Metamask',
+          dapp_host_name: undefined,
+          chain_id: undefined,
+          signature_type: undefined,
+          version: undefined,
+          security_alert_response: 'Benign',
+          security_alert_reason: '',
+          ppom_eth_chainId_count: 1,
+        });
       });
     });
 
@@ -364,24 +372,20 @@ describe('TypedSign', () => {
       );
       fireEvent.press(signButton);
 
-      const signedMocks = (
-        analyticsV2.trackEvent as jest.Mock
-      ).mock.calls.filter((call) => call[0].category === 'Signature Approved');
-
-      const mockCallsLength = signedMocks.length;
-
-      const lastMockCall = signedMocks[mockCallsLength - 1];
-
-      expect(lastMockCall[0]).toEqual({ category: 'Signature Approved' });
-      expect(lastMockCall[1]).toEqual({
-        account_type: 'Metamask',
-        dapp_host_name: undefined,
-        chain_id: undefined,
-        version: undefined,
-        signature_type: undefined,
-        security_alert_response: 'Benign',
-        security_alert_reason: '',
-        ppom_eth_chainId_count: 1,
+      await waitFor(() => {
+        expect(mockMetrics.trackEvent.mock.calls[0][0]).toEqual(
+          'Signature Approved',
+        );
+        expect(mockMetrics.trackEvent.mock.calls[0][1]).toEqual({
+          account_type: 'Metamask',
+          dapp_host_name: undefined,
+          chain_id: undefined,
+          version: undefined,
+          signature_type: undefined,
+          security_alert_response: 'Benign',
+          security_alert_reason: '',
+          ppom_eth_chainId_count: 1,
+        });
       });
     });
   });
