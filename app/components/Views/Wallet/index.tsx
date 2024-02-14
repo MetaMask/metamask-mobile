@@ -246,7 +246,9 @@ const Wallet = ({ navigation }: any) => {
     let assets = tokens;
 
     if (
-      accountsByChainId[toHexadecimal(providerConfig.chainId)][selectedAddress]
+      accountsByChainId?.[toHexadecimal(providerConfig.chainId)]?.[
+        selectedAddress
+      ]
     ) {
       balance = renderFromWei(
         accountsByChainId[toHexadecimal(providerConfig.chainId)][
