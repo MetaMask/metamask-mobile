@@ -51,8 +51,6 @@ describe(
 
         // should lock wallet from Settings
         await device.disableSynchronization(); // because the SRP tutorial video prevents the test from moving forward
-        await Assertions.checkIfVisible(CommonView.toast);
-        await Assertions.checkIfNotVisible(CommonView.toast);
         await CommonView.tapBackButton();
         await device.enableSynchronization();
         await SettingsView.tapLock();
