@@ -707,24 +707,24 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   Object {
                                     "alignItems": "center",
                                     "borderRadius": 8,
-                                    "height": 32,
+                                    "height": 24,
                                     "justifyContent": "center",
                                     "opacity": 1,
-                                    "width": 32,
+                                    "width": 24,
                                   }
                                 }
                               >
                                 <SvgMock
                                   color="#D73847"
-                                  height={24}
+                                  height={16}
                                   name="Danger"
                                   style={
                                     Object {
-                                      "height": 24,
-                                      "width": 24,
+                                      "height": 16,
+                                      "width": 16,
                                     }
                                   }
-                                  width={24}
+                                  width={16}
                                 />
                               </TouchableOpacity>
                               <Modal
@@ -1790,24 +1790,24 @@ exports[`Tokens should render correctly 1`] = `
                                   Object {
                                     "alignItems": "center",
                                     "borderRadius": 8,
-                                    "height": 32,
+                                    "height": 24,
                                     "justifyContent": "center",
                                     "opacity": 1,
-                                    "width": 32,
+                                    "width": 24,
                                   }
                                 }
                               >
                                 <SvgMock
                                   color="#D73847"
-                                  height={24}
+                                  height={16}
                                   name="Danger"
                                   style={
                                     Object {
-                                      "height": 24,
-                                      "width": 24,
+                                      "height": 16,
+                                      "width": 16,
                                     }
                                   }
-                                  width={24}
+                                  width={16}
                                 />
                               </TouchableOpacity>
                               <Modal
@@ -2881,24 +2881,24 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   Object {
                                     "alignItems": "center",
                                     "borderRadius": 8,
-                                    "height": 32,
+                                    "height": 24,
                                     "justifyContent": "center",
                                     "opacity": 1,
-                                    "width": 32,
+                                    "width": 24,
                                   }
                                 }
                               >
                                 <SvgMock
                                   color="#D73847"
-                                  height={24}
+                                  height={16}
                                   name="Danger"
                                   style={
                                     Object {
-                                      "height": 24,
-                                      "width": 24,
+                                      "height": 16,
+                                      "width": 16,
                                     }
                                   }
-                                  width={24}
+                                  width={16}
                                 />
                               </TouchableOpacity>
                               <Modal

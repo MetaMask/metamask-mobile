@@ -174,7 +174,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             setShowScamWarningModal(true);
           }}
           variant={ButtonIconVariants.Primary}
-          size={IconSize.Xl}
+          size={IconSize.Lg}
           iconColorOverride={IconColor.Error}
         />
       );
@@ -205,9 +205,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         </Box>
         <Box style={styles.boxContent}>
           <ButtonSecondary
-            label={'Edit network details'}
+            label={strings('networks.edit_network_details')}
             onPress={goToNetworkEdit}
             style={styles.editNetworkButton}
+            size={ButtonSize.Lg}
           />
         </Box>
       </Box>

@@ -112,6 +112,14 @@ const createStyles = (colors) =>
       padding: 10,
       color: colors.text.default,
     },
+    inputWithFocus: {
+      ...fontStyles.normal,
+      borderColor: colors.primary.default,
+      borderRadius: 5,
+      borderWidth: 2,
+      padding: 10,
+      color: colors.text.default,
+    },
     warningText: {
       ...fontStyles.normal,
       color: colors.error.default,
@@ -287,6 +295,8 @@ class NetworkSettings extends PureComponent {
     showWarningModal: false,
     showNetworkDetailsModal: false,
     matchedChain: null,
+    isNameFieldFocused: false,
+    isSymbolFieldFocused: false,
   };
 
   inputRpcURL = React.createRef();
@@ -845,6 +855,22 @@ class NetworkSettings extends PureComponent {
     this.getCurrentState();
   };
 
+  onNameFocused = () => {
+    this.setState({ isNameFieldFocused: true });
+  };
+
+  onNameBlur = () => {
+    this.setState({ isNameFieldFocused: false });
+  };
+
+  onSymbolFocused = () => {
+    this.setState({ isSymbolFieldFocused: true });
+  };
+
+  onSymbolBlur = () => {
+    this.setState({ isSymbolFieldFocused: false });
+  };
+
   jumpToRpcURL = () => {
     const { current } = this.inputRpcURL;
     current && current.focus();
@@ -922,6 +948,8 @@ class NetworkSettings extends PureComponent {
       warningName,
       enableAction,
       inputWidth,
+      isNameFieldFocused,
+      isSymbolFieldFocused,
     } = this.state;
     const { route } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
@@ -948,13 +976,21 @@ class NetworkSettings extends PureComponent {
     ];
 
     const inputErrorNameStyle = [
-      warningName ? styles.inputWithError : styles.input,
+      warningName
+        ? isNameFieldFocused
+          ? styles.inputWithFocus
+          : styles.inputWithError
+        : styles.input,
       inputWidth,
       isCustomMainnet ? styles.onboardingInput : undefined,
     ];
 
     const inputErrorSymbolStyle = [
-      warningSymbol ? styles.inputWithError : styles.input,
+      warningSymbol
+        ? isSymbolFieldFocused
+          ? styles.inputWithFocus
+          : styles.inputWithError
+        : styles.input,
       inputWidth,
       isCustomMainnet ? styles.onboardingInput : undefined,
     ];
@@ -1018,7 +1054,11 @@ class NetworkSettings extends PureComponent {
               onChangeText={this.onNicknameChange}
               placeholder={strings('app_settings.network_name_placeholder')}
               placeholderTextColor={colors.text.muted}
-              onBlur={this.validateName}
+              onBlur={() => {
+                this.validateName();
+                this.onNameBlur();
+              }}
+              onFocus={this.onNameFocused}
               onSubmitEditing={this.jumpToRpcURL}
               testID={NetworksViewSelectorsIDs.NETWORK_NAME_INPUT}
               keyboardAppearance={themeAppearance}
@@ -1105,7 +1145,11 @@ class NetworkSettings extends PureComponent {
               value={ticker}
               editable={editable}
               onChangeText={this.onTickerChange}
-              onBlur={this.validateSymbol}
+              onBlur={() => {
+                this.validateSymbol();
+                this.onSymbolBlur();
+              }}
+              onFocus={this.onSymbolFocused}
               placeholder={strings('app_settings.network_symbol_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}

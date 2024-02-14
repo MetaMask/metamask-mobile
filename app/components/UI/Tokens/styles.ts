@@ -106,7 +106,7 @@ const createStyles = (colors: Colors) =>
     },
     box: {
       backgroundColor: colors.background.default,
-      paddingHorizontal: 20,
+      paddingHorizontal: 8,
       paddingBottom: 20,
       borderWidth: 0,
       padding: 0,

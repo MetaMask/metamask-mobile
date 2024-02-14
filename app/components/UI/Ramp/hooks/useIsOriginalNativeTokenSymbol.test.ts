@@ -165,7 +165,7 @@ describe('useNativeTokenFiatAmount', () => {
 
     await act(async () => {
       result = renderHook(() =>
-        useIsOriginalNativeTokenSymbol('5', 'ETH', 'goerli'),
+        useIsOriginalNativeTokenSymbol('5', 'GoerliETH', 'goerli'),
       );
     });
     // expect this to pass because the chainId is in the CHAIN_ID_TO_CURRENCY_SYMBOL_MAP
