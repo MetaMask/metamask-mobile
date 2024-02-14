@@ -3,7 +3,7 @@ import { captureException } from '@sentry/react-native';
 import { deepJSONParse } from '../../util/general';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 
-const controllerList = [
+export const controllerList = [
   { name: 'AccountTrackerController' },
   { name: 'AddressBookController' },
   { name: 'AssetsContractController' },
@@ -77,7 +77,7 @@ export default async function migrate(state: unknown) {
     string,
     Record<string, unknown>
   >;
-
+  // newEngineState = { backgroundState: {} }
   // Populate root object with controller data
   const controllerMergeMigration = controllerList.map(
     async ({ name: controllerName }) => {
@@ -87,10 +87,12 @@ export default async function migrate(state: unknown) {
         const persistedControllerData = await FilesystemStorage.getItem(
           persistedControllerKey,
         );
+
         if (persistedControllerData) {
           const persistedControllerJSON = deepJSONParse(
             persistedControllerData,
           );
+
           if (hasProperty(persistedControllerJSON, '_persist')) {
             const { _persist, ...controllerJSON } = persistedControllerJSON;
             newEngineState.backgroundState[controllerName] = controllerJSON;
@@ -113,6 +115,7 @@ export default async function migrate(state: unknown) {
 
   // Execute controller merge migration in parallel
   await Promise.all(controllerMergeMigration);
+  console.log('<<<<<<RUNNING TEST>>>>>>>', controllerMergeMigration.length);
 
   // Set engine on root object
   state.engine = newEngineState;
