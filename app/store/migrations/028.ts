@@ -66,47 +66,70 @@ export default async function migrate(state: unknown) {
     );
     return state;
   }
-  console.log('STATE engine', state.engine);
   // Engine already exists. No need to migrate.
   if (state.engine) {
+    // console.log('MIGRATION 28 - NO MIGRATION NEEDED');
     return state;
   }
 
   const newEngineState = {} as Record<string, unknown>;
-  console.log('MIGRATION 28 - newEngineState', newEngineState);
+  // console.log('MIGRATION 28 - newEngineState', newEngineState);
 
-  const controllerMigration = controllerList.map(async ({ name }) => {
+  const controllerMergeMigration = controllerList.map(async ({ name }) => {
     const persistedControllerKey = `persist:${name}`;
     try {
       const persistedControllerData = await FilesystemStorage.getItem(
         persistedControllerKey,
       );
-      console.log(
-        `MIGRATION 28 - persistedControllerData ${persistedControllerKey}`,
-        persistedControllerData,
-      );
+      // console.log(
+      //   `MIGRATION 28 - persistedControllerData ${persistedControllerKey}`,
+      //   persistedControllerData,
+      // );
       if (persistedControllerData) {
-        newEngineState[persistedControllerKey] = JSON.parse(
-          persistedControllerData,
-        );
+        const persistedControllerJSON = JSON.parse(persistedControllerData);
+        const { _persist, ...controllerJSON } = persistedControllerJSON;
+        newEngineState[persistedControllerKey] = controllerJSON;
       }
     } catch (e) {
-      // Persisted controller data doesn't exists
-      console.log(
-        `MIGRATION 28 - persistedControllerDataError ${persistedControllerKey}`,
-        e,
-      );
+      // console.log(
+      //   `MIGRATION 28 - persistedControllerDataError ${persistedControllerKey}`,
+      //   e,
+      // );
     }
   });
 
-  await Promise.all(controllerMigration);
-  console.log('ENTER new Engine state after promise all', newEngineState);
+  // Populate root object with controller data
+  await Promise.all(controllerMergeMigration);
+
+  try {
+    const rootKey = `persist:root`;
+    await FilesystemStorage.setItem(rootKey, JSON.stringify(state));
+    const rootData = (await FilesystemStorage.getItem(rootKey)) || '';
+    const rootJson = JSON.parse(rootData);
+    if (rootJson?.engine) {
+      // Root file successfully populated with controller data - Delete persisted json files
+      const controllerDeleteMigration = controllerList.map(async ({ name }) => {
+        const persistedControllerKey = `persist:${name}`;
+        try {
+          await FilesystemStorage.removeItem(persistedControllerKey);
+        } catch (e) {
+          // console.log(
+          //   'MIGRATION 28 - FAILED TO REMOVE',
+          //   persistedControllerKey,
+          // );
+        }
+      });
+
+      // Delete lingering persisted files
+      await Promise.all(controllerDeleteMigration);
+    }
+  } catch (e) {
+    // console.log(`MIGRATION 28 - FAILED TO CLEAN PERSISTED FILES`, e);
+  }
+
+  // console.log('MIGRATION 28 - FINAL STATE', newEngineState);
   // Set engine property on root object
   state.engine = newEngineState;
-
-  // TODO: Do we need to also update the persisted files
-  // Update persisted root?
-  // Delete persisted controllers?
 
   return state;
 }
