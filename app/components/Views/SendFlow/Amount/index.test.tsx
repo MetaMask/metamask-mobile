@@ -78,7 +78,7 @@ const initialState = {
         providerConfig: {
           ticker: 'ETH',
           type: 'mainnet',
-          chainId: '1',
+          chainId: '0x1',
         },
       },
       AccountTrackerController: {
@@ -94,8 +94,8 @@ const initialState = {
         },
       },
       NftController: {
-        allNfts: { [CURRENT_ACCOUNT]: { '1': [] } },
-        allNftContracts: { [CURRENT_ACCOUNT]: { '1': [] } },
+        allNfts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
+        allNftContracts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
       },
     },
   },

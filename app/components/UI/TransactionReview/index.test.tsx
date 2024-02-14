@@ -85,7 +85,7 @@ const mockState = {
       },
       NetworkController: {
         providerConfig: {
-          chainId: '1',
+          chainId: '0x1',
           type: 'sepolia',
           nickname: 'Sepolia',
         },

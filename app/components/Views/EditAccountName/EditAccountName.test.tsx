@@ -18,7 +18,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const mockInitialState = {
-  swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
+  swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {
     step: 0,
   },

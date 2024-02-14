@@ -20,6 +20,7 @@ import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { isEqual } from 'lodash';
 import { SigningModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { getDecimalChainId } from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -120,7 +121,7 @@ const WatchAssetRequest = ({
         token_address: asset?.address,
         token_symbol: asset?.symbol,
         dapp_host_name: url?.host,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         source: 'Dapp suggested (watchAsset)',
       };
     } catch (error) {

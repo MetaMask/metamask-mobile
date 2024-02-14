@@ -1,4 +1,4 @@
-import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
+import { ChainId, NetworkType } from '@metamask/controller-utils';
 import {
   isMainNet,
   isTestNet,
@@ -32,7 +32,7 @@ jest.mock('./../../core/Engine', () => ({
       setProviderType: () => jest.fn(),
       state: {
         providerConfig: {
-          chainId: '3',
+          chainId: '0x3',
         },
       },
     },
@@ -62,7 +62,7 @@ describe('network-utils', () => {
 
   describe('isMainNet', () => {
     it(`should return true if the given chain ID is Ethereum Mainnet`, () => {
-      expect(isMainNet('1')).toEqual(true);
+      expect(isMainNet('0x1')).toEqual(true);
     });
     it(`should return false if the selected network is not Ethereum Mainnet`, () => {
       expect(isMainNet('42')).toEqual(false);
@@ -78,7 +78,7 @@ describe('network-utils', () => {
 
     for (const networkType of testnets) {
       it(`should return true if the given chain ID is for '${networkType}'`, () => {
-        expect(isTestNet(NetworksChainId[networkType])).toEqual(true);
+        expect(isTestNet(ChainId[networkType])).toEqual(true);
       });
     }
 
