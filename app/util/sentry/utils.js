@@ -85,6 +85,10 @@ function removeDeviceName(report) {
 
 function rewriteReport(report) {
   try {
+    report.exception.values[0].stacktrace.frames =
+      report.exception.values[0].stacktrace.frames.filter(
+        (frame) => frame.filename !== 'app:///ses.cjs',
+      );
     // simplify certain complex error messages (e.g. Ethjs)
     simplifyErrorMessages(report);
     // remove urls from error message
