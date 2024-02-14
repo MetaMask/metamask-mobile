@@ -27,6 +27,7 @@ import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
+  getDecimalChainId,
   getNetworkImageSource,
   getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
@@ -145,7 +146,7 @@ const Wallet = ({ navigation }: any) => {
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
       {
-        chain_id: providerConfig.chainId,
+        chain_id: getDecimalChainId(providerConfig.chainId),
       },
     );
   }, [navigate, providerConfig.chainId]);
