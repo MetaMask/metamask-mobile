@@ -83,6 +83,13 @@ function removeDeviceName(report) {
     report.contexts.device.name = null;
 }
 
+/**
+ * Removes SES from the Sentry error event stack trace.
+ * By default, SES is shown as the top level frame, which can obscure errors.
+ * We filter it out by identifying the SES stack trace frame simply by 'filename',
+ * since the 'context_line' is rather verbose.
+ * @param {*} report - the error event
+ */
 function removeSES(report) {
   const stacktraceFrames = report.exception.values[0].stacktrace.frames;
   const filteredFrames = stacktraceFrames.filter(
