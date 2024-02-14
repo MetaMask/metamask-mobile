@@ -412,6 +412,7 @@ class ApproveTransactionReview extends PureComponent {
     const approveAmount = fromTokenMinimalUnit(
       hexToBN(encodedHexAmount),
       tokenDecimals,
+      false,
     );
 
     const { name: method } = await getMethodData(data);
