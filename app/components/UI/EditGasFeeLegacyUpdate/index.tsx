@@ -22,7 +22,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useGasTransaction } from '../../../core/GasPolling/GasPolling';
 import { selectChainId } from '../../../selectors/networkController';
 import AnalyticsV2 from '../../../util/analyticsV2';
-import { isMainnetByChainId } from '../../../util/networks';
+import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import Alert, { AlertType } from '../../Base/Alert';
 import RangeInput from '../../Base/RangeInput';
@@ -95,7 +95,7 @@ const EditGasFeeLegacy = ({
   const save = useCallback(() => {
     AnalyticsV2.trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, {
       ...analyticsParams,
-      chain_id: chainId,
+      chain_id: getDecimalChainId(chainId),
       function_type: view,
       gas_mode: 'Basic',
     });

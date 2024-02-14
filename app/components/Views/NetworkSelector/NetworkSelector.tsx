@@ -25,6 +25,7 @@ import { selectShowTestNetworks } from '../../../selectors/preferencesController
 import Networks, {
   compareRpcUrls,
   getAllNetworks,
+  getDecimalChainId,
   getNetworkImageSource,
   isTestNet,
 } from '../../../util/networks';
@@ -79,7 +80,7 @@ const NetworkSelector = () => {
     sheetRef.current?.onCloseBottomSheet();
 
     analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: providerConfig.chainId,
+      chain_id: getDecimalChainId(providerConfig.chainId),
       from_network:
         providerConfig.type === 'rpc'
           ? providerConfig.nickname
@@ -105,7 +106,7 @@ const NetworkSelector = () => {
 
       sheetRef.current?.onCloseBottomSheet();
       analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-        chain_id: providerConfig.chainId,
+        chain_id: getDecimalChainId(providerConfig.chainId),
         from_network: providerConfig.type,
         to_network: nickname,
       });
@@ -124,8 +125,7 @@ const NetworkSelector = () => {
           imageSource: images.ETHEREUM,
         }}
         isSelected={
-          chainId.toString() === providerConfig.chainId &&
-          !providerConfig.rpcTarget
+          chainId === providerConfig.chainId && !providerConfig.rpcUrl
         }
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
@@ -144,7 +144,7 @@ const NetworkSelector = () => {
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
         }}
-        isSelected={chainId.toString() === providerConfig.chainId}
+        isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
@@ -169,8 +169,7 @@ const NetworkSelector = () => {
               imageSource: image,
             }}
             isSelected={Boolean(
-              chainId.toString() === providerConfig.chainId &&
-                providerConfig.rpcTarget,
+              chainId === providerConfig.chainId && providerConfig.rpcUrl,
             )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
@@ -195,7 +194,7 @@ const NetworkSelector = () => {
             name,
             imageSource,
           }}
-          isSelected={chainId.toString() === providerConfig.chainId}
+          isSelected={chainId === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
         />

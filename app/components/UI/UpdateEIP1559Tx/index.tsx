@@ -21,6 +21,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { getDecimalChainId } from '../../../util/networks';
 
 const UpdateEIP1559Tx = ({
   gas,
@@ -215,7 +216,7 @@ const UpdateEIP1559Tx = ({
   };
 
   const getGasAnalyticsParams = () => ({
-    chain_id: chainId,
+    chain_id: getDecimalChainId(chainId),
     gas_estimate_type: gasEstimateType,
     gas_mode: gasSelected ? 'Basic' : 'Advanced',
     speed_set: gasSelected || undefined,

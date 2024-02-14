@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Settings from '../../Views/Settings';
@@ -73,6 +73,7 @@ import isUrl from 'is-url';
 import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
 import URL from 'url-parse';
 import Logger from '../../../util/Logger';
+import { getDecimalChainId } from '../../../util/networks';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -332,7 +333,7 @@ const HomeTabs = () => {
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
-    return NetworksChainId[providerConfig.type];
+    return ChainId[providerConfig.type];
   });
 
   const amountOfBrowserOpenTabs = useSelector(
@@ -366,7 +367,7 @@ const HomeTabs = () => {
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
         });
       },
       rootScreenName: Routes.WALLET_VIEW,
@@ -380,7 +381,7 @@ const HomeTabs = () => {
       callback: () => {
         AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
           source: 'Navigation Tab',
           active_connected_dapp: activeConnectedDapp,
           number_of_open_tabs: amountOfBrowserOpenTabs,
