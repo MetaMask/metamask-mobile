@@ -116,3 +116,41 @@ export const isIPFSUri = (uri) => {
     ipfsUriRegex.test(uri)
   );
 };
+
+/**
+ * Parse stringified JSON that has deeply nested stringified properties
+ *
+ * @param {string} jsonString - JSON string
+ * @returns {Object} - Parsed JSON object
+ */
+export const deepJSONParse = (jsonString) => {
+  // Parse the initial JSON string
+  const parsedObject = JSON.parse(jsonString);
+
+  // Function to recursively parse stringified properties
+  function parseProperties(obj) {
+    Object.keys(obj).forEach((key) => {
+      if (typeof obj[key] === 'string') {
+        try {
+          // Attempt to parse the string as JSON
+          const parsed = JSON.parse(obj[key]);
+          obj[key] = parsed;
+          // If the parsed value is an object, parse its properties too
+          if (typeof parsed === 'object') {
+            parseProperties(parsed);
+          }
+        } catch (e) {
+          // If parsing throws, it's not a JSON string, so do nothing
+        }
+      } else if (typeof obj[key] === 'object') {
+        // If it's an object, parse its properties
+        parseProperties(obj[key]);
+      }
+    });
+  }
+
+  // Start parsing from the root object
+  parseProperties(parsedObject);
+
+  return parsedObject;
+};
