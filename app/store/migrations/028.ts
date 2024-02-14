@@ -77,7 +77,6 @@ export default async function migrate(state: unknown) {
     string,
     Record<string, unknown>
   >;
-  // newEngineState = { backgroundState: {} }
   // Populate root object with controller data
   const controllerMergeMigration = controllerList.map(
     async ({ name: controllerName }) => {

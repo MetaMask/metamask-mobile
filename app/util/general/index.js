@@ -146,6 +146,10 @@ export const deepJSONParse = (jsonString) => {
         // If it's an object, parse its properties
         parseProperties(obj[key]);
       }
+       // Stringify the value back to preserve original types
+       if (typeof obj[key] !== 'string' && typeof obj[key] !== 'object') {
+        obj[key] = String(obj[key]);
+      }
     });
   }
 
@@ -154,3 +158,4 @@ export const deepJSONParse = (jsonString) => {
 
   return parsedObject;
 };
+
