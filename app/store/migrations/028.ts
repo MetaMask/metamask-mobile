@@ -114,7 +114,6 @@ export default async function migrate(state: unknown) {
 
   // Execute controller merge migration in parallel
   await Promise.all(controllerMergeMigration);
-  console.log('<<<<<<RUNNING TEST>>>>>>>', controllerMergeMigration.length);
 
   // Set engine on root object
   state.engine = newEngineState;
