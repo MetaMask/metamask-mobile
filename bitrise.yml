@@ -449,10 +449,6 @@ workflows:
           title: Restore build from cache
           inputs:
             - key: apk-cache-{{ .CommitHash }}
-      - restore-cache@2:
-          title: Restore cache node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}      
       - script@1:
           title: Run detox build
           run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
@@ -656,6 +652,11 @@ workflows:
             - paths: |-
                 ios/build/Build
                 ../Library/Detox/ios
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - paths: node_modules
   ios_e2e_test:
     before_run:
       - setup
@@ -669,6 +670,10 @@ workflows:
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
       - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
