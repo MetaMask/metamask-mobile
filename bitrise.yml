@@ -126,6 +126,12 @@ stages:
       - run_tag_smoke_accounts_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
+      - ios_build_regression_tests: {}
+      - android_build_regression_tests: {}
+  run_regression_e2e_ios_android_stage:
+    workflows:
+      # - ios_run_regression_tests: {}
+      # - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_swaps_ios: {}
@@ -134,7 +140,6 @@ stages:
       - run_tag_smoke_core_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-
 
       - run_tag_regression_confirmations_ios: {}
       - run_tag_regression_confirmations_android: {}
@@ -145,18 +150,6 @@ stages:
       - run_tag_regression_accounts_ios: {}
       - run_tag_regression_accounts_android: {}
 
-      
-
-
-
-
-
-
-      
-  run_regression_e2e_ios_android_stage:
-    workflows:
-      - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -410,10 +403,6 @@ workflows:
     after_run:
       - android_e2e_test
   run_tag_regression_accounts_ios:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-20.04
-        machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
       - TEST_SUITE_TAG: '.*RegressionAccounts.*'
@@ -429,7 +418,6 @@ workflows:
       - TEST_SUITE_TAG: '.*RegressionAccounts.*'
     after_run:
       - android_e2e_test
-    
   # ios_run_regression_tests:
   #   envs:
   #     - TEST_SUITE: 'Regression'
@@ -517,7 +505,7 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeAccounts.*'
     after_run:
       - android_e2e_test
-  
+    
 
   e2e_setup:
     steps:
@@ -636,15 +624,6 @@ workflows:
                 #!/usr/bin/env bash
                 if [ -n "$TEST_SUITE_FOLDER" ]; then
                   echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                TEST_SUITE="Regression"
-                else
-                TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
                 fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
