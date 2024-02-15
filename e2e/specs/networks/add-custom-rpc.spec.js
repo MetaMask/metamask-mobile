@@ -6,6 +6,8 @@ import WalletView from '../../pages/WalletView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
+import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -16,6 +18,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
+import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 const GORELI = 'Goerli Test Network';
@@ -64,6 +67,15 @@ describe(Regression('Custom RPC Tests'), () => {
       await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
       await NetworkView.tapRpcNetworkAddButton();
     }
+
+    await TestHelpers.delay(3000);
+    await Assertions.checkIfVisible(NetworkApprovalModal.container);
+    await NetworkApprovalModal.tapApproveButton();
+
+    await TestHelpers.delay(3000);
+    await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
+    await NetworkAddedModal.tapSwitchToNetwork();
+
     await TestHelpers.delay(3000);
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible('xDai');

@@ -19,6 +19,10 @@ export const CONNECTING_TO_A_DECEPTIVE_SITE =
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
+// SES
+export const SES_URL =
+  'https://github.com/endojs/endo/blob/master/packages/ses/README.md';
+
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
 export const KEYSTONE_LEARN_MORE =
@@ -27,7 +31,7 @@ export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 
 // MixPanel
 export const MIXPANEL_PROXY_ENDPOINT_BASE_URL =
-  'https://proxy.metafi-dev.codefi.network/mixpanel/v1/api/app';
+  'https://proxy.metafi.codefi.network/mixpanel/v1/api/app';
 
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';

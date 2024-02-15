@@ -41,10 +41,11 @@ import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { isNetworkRampSupported } from '../Ramp/common/utils';
+import { isNetworkRampSupported } from '../Ramp/utils';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
+import { getDecimalChainId } from '../../../util/networks';
 
 const createStyles = (theme) =>
   StyleSheet.create({
@@ -199,7 +200,7 @@ class ReceiveRequest extends PureComponent {
           {
             text: 'Buy Native Token',
             location: 'Receive Modal',
-            chain_id_destination: this.props.chainId,
+            chain_id_destination: getDecimalChainId(this.props.chainId),
           },
         );
       });
@@ -251,7 +252,7 @@ class ReceiveRequest extends PureComponent {
   };
 
   render() {
-    const theme = this.context.theme || mockTheme;
+    const theme = this.context || mockTheme;
     const colors = theme.colors;
     const styles = createStyles(theme);
 

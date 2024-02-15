@@ -1,0 +1,13 @@
+{
+  "blacklistURLs": [
+    ".*infura.io/.*",
+    ".*cdn.branch.io/.*",
+    ".*api2.branch.io/.*",
+    ".*api.etherscan.io/.*",
+    ".*static.metafi.codefi.network/.*",
+    ".*rpc.tenderly.co/.*",
+    ".*api-goerli.etherscan.io/.*",
+    ".*cloudflare-ipfs.com/.*",
+    ".*stale.*"
+  ]
+}

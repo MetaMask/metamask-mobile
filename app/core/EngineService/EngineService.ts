@@ -13,10 +13,8 @@ interface InitializeEngineResult {
   error?: string;
 }
 
-const UPDATE_BG_STATE_KEY = (controllerName: string) =>
-  `UPDATE_BG_STATE_${controllerName}`;
-const INIT_BG_STATE_KEY = (controllerName: string) =>
-  `INIT_BG_STATE_${controllerName}`;
+const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
+const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
 class EngineService {
   private engineInitialized = false;
 
@@ -98,19 +96,13 @@ class EngineService {
     if (isBlockaidFeatureEnabled()) {
       controllers.push({
         name: 'PPOMController',
-        key: AppConstants.PPOM_INITIALISATION_STATE_CHANGE_EVENT,
+        key: `${engine.context.PPOMController.name}:stateChange`,
       });
     }
 
     engine?.datamodel?.subscribe?.(() => {
       if (!this.engineInitialized) {
-        controllers.forEach((controller) => {
-          const { name } = controller;
-          store.dispatch({
-            type: INIT_BG_STATE_KEY(name),
-            payload: { key: name },
-          });
-        });
+        store.dispatch({ type: INIT_BG_STATE_KEY });
         this.engineInitialized = true;
       }
     });
@@ -118,10 +110,7 @@ class EngineService {
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () => {
-        store.dispatch({
-          type: UPDATE_BG_STATE_KEY(name),
-          payload: { key: name },
-        });
+        store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
       };
       if (key) {
         engine.controllerMessenger.subscribe(key, update_bg_state_cb);

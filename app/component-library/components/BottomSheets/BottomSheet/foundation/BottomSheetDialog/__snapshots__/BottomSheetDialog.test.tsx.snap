@@ -1,0 +1,76 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BottomSheetDialog should render correctly 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    Array [
+      Object {
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+      },
+      Object {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    onLayout={[Function]}
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "borderColor": "#D6D9DC",
+          "borderTopLeftRadius": 8,
+          "borderTopRightRadius": 8,
+          "borderWidth": 1,
+          "maxHeight": 1083,
+          "overflow": "hidden",
+          "paddingBottom": 3,
+          "shadowColor": "#0000001A",
+          "shadowOffset": Object {
+            "height": 2,
+            "width": 0,
+          },
+          "shadowOpacity": 1,
+          "shadowRadius": 40,
+        },
+        Object {
+          "transform": Array [
+            Object {
+              "translateY": 1334,
+            },
+          ],
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "padding": 4,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "backgroundColor": "#D6D9DC",
+            "borderRadius": 2,
+            "height": 4,
+            "width": 40,
+          }
+        }
+      />
+    </View>
+  </View>
+</View>
+`;
