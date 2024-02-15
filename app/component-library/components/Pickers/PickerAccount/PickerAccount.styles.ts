@@ -29,7 +29,7 @@ const styleSheet = (params: {
       marginRight: 16,
     },
     accountAddressLabel: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     cellAccount: {
       flex: 1,
@@ -46,7 +46,7 @@ const styleSheet = (params: {
       marginHorizontal: 5,
       paddingHorizontal: 5,
       ...fontStyles.bold,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       borderWidth: 1,
       borderRadius: 10,
       borderColor: colors.border.default,

@@ -178,7 +178,7 @@ function FiatSelectModal({
                       name="ios-close-circle"
                       size={20}
                       style={styles.searchIcon}
-                      color={colors.icon.alternative}
+                      color={colors.icon.secondary}
                     />
                   </TouchableOpacity>
                 )}

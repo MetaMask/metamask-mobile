@@ -45,7 +45,7 @@ const createStyles = (colors, shadows) =>
       height: DIAMETER,
       borderRadius: DIAMETER,
       borderWidth: MARGIN,
-      borderColor: colors.primary.alternative,
+      borderColor: colors.primary.secondary,
       backgroundColor: colors.primary.inverse,
     },
     trackBack: {
@@ -56,7 +56,7 @@ const createStyles = (colors, shadows) =>
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: DIAMETER,
-      backgroundColor: colors.primary.alternative,
+      backgroundColor: colors.primary.secondary,
     },
     trackBackGradient: {
       position: 'absolute',
@@ -154,7 +154,7 @@ function SliderButton({
   });
   const trackFrontBackgroundColor = completion.interpolate({
     inputRange: [0, 1],
-    outputRange: [colors.primary.alternative, colors.success.default],
+    outputRange: [colors.primary.secondary, colors.success.default],
   });
 
   useEffect(() => {

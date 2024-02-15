@@ -38,7 +38,7 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
     } as TextStyle,
     tooltipLine: {
-      color: theme.colors.icon.alternative,
+      color: theme.colors.icon.secondary,
     },
     tooltipCircle: {
       color: theme.colors.primary.inverse,

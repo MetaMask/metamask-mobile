@@ -57,7 +57,7 @@ const createStyles = (colors) =>
       lineHeight: 19,
       marginTop: 12,
       marginBottom: 25,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       justifyContent: 'center',
       textAlign: 'center',
       ...fontStyles.normal,

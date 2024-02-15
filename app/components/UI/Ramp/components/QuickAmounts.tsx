@@ -59,7 +59,7 @@ const Amount = ({ amount, onPress, isBuy, ...props }: AmountProps) => {
       {!isBuy && value === 1 && isNative ? (
         <Icon
           name={IconName.Sparkle}
-          color={IconColor.Alternative}
+          color={IconColor.secondary}
           size={IconSize.Sm}
         />
       ) : null}

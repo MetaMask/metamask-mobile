@@ -280,7 +280,7 @@ const EditGasFeeLegacy = ({
                   <View style={styles.headerTitleSide} />
                   <Text
                     variant={TextVariant.BodyLGMedium}
-                    color={TextColor.Alternative}
+                    color={TextColor.secondary}
                   >
                     {gasFeeSecondary}
                   </Text>
@@ -307,7 +307,7 @@ const EditGasFeeLegacy = ({
                     <View style={styles.headerTitleSide} />
                     <Text
                       variant={TextVariant.BodyLGMedium}
-                      color={TextColor.Alternative}
+                      color={TextColor.secondary}
                     >
                       {gasFeeSecondary}
                     </Text>
@@ -346,7 +346,7 @@ const EditGasFeeLegacy = ({
                           <Text variant={TextVariant.BodyMDBold}>
                             {strings('edit_gas_fee_eip1559.gas_price')}{' '}
                           </Text>
-                          <Text color={TextColor.Alternative}>(GWEI) </Text>
+                          <Text color={TextColor.secondary}>(GWEI) </Text>
 
                           <TouchableOpacity
                             hitSlop={styles.hitSlop}
@@ -395,7 +395,7 @@ const EditGasFeeLegacy = ({
               toggleModal={() => setShowRangeInfoModal(false)}
               body={
                 <View>
-                  <Text color={TextColor.Alternative}>
+                  <Text color={TextColor.secondary}>
                     {infoText === 'gas_limit' &&
                       strings(
                         'edit_gas_fee_eip1559.learn_more_gas_limit_legacy',

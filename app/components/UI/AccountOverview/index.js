@@ -117,7 +117,7 @@ const createStyles = (colors) =>
     amountFiat: {
       fontSize: 12,
       paddingTop: 5,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
     },
     identiconBorder: {

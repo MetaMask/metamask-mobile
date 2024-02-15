@@ -54,7 +54,7 @@ const ClearPrivacy = () => {
       </Text>
       <Text
         variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        color={TextColor.secondary}
         style={styles.desc}
       >
         {strings('app_settings.clear_privacy_desc')}

@@ -61,10 +61,10 @@ const createStyles = (colors) =>
     cancel: {
       backgroundColor: colors.background.default,
       borderWidth: 1,
-      borderColor: colors.text.alternative,
+      borderColor: colors.text.secondary,
     },
     cancelText: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     signingCancel: {
       backgroundColor: colors.background.default,
@@ -91,10 +91,10 @@ const createStyles = (colors) =>
     neutral: {
       backgroundColor: colors.background.default,
       borderWidth: 1,
-      borderColor: colors.text.alternative,
+      borderColor: colors.text.secondary,
     },
     neutralText: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     sign: {
       backgroundColor: colors.primary.default,

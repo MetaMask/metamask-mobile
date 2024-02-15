@@ -49,7 +49,7 @@ const createStyles = (colors) =>
     },
     content: {
       fontSize: 16,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       paddingTop: 10,
       ...fontStyles.normal,
     },
@@ -84,7 +84,7 @@ const createStyles = (colors) =>
       textAlignVertical: 'center',
       paddingRight: 5,
       marginTop: Device.isAndroid() ? -2 : 4,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.light,
     },
     credits: {

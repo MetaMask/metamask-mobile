@@ -332,7 +332,7 @@ class AdvancedSettings extends PureComponent {
         </View>
         <Text
           variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.desc}
         >
           {strings('app_settings.token_detection_description')}
@@ -387,7 +387,7 @@ class AdvancedSettings extends PureComponent {
               </Text>
               <Text
                 variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                color={TextColor.secondary}
                 style={styles.desc}
               >
                 {strings('app_settings.reset_desc')}
@@ -422,7 +422,7 @@ class AdvancedSettings extends PureComponent {
               </View>
               <Text
                 variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                color={TextColor.secondary}
                 style={styles.desc}
               >
                 {strings('app_settings.hex_desc')}
@@ -465,7 +465,7 @@ class AdvancedSettings extends PureComponent {
               </View>
               <Text
                 variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                color={TextColor.secondary}
                 style={styles.desc}
               >
                 {strings('app_settings.enable_eth_sign_desc')}
@@ -501,7 +501,7 @@ class AdvancedSettings extends PureComponent {
               </View>
               <Text
                 variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                color={TextColor.secondary}
                 style={styles.desc}
               >
                 {strings('app_settings.custom_nonce_desc')}
@@ -514,7 +514,7 @@ class AdvancedSettings extends PureComponent {
               </Text>
               <Text
                 variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                color={TextColor.secondary}
                 style={styles.desc}
               >
                 {strings('app_settings.state_logs_desc')}

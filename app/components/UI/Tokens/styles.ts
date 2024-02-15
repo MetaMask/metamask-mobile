@@ -52,7 +52,7 @@ const createStyles = (colors: Colors) =>
       marginLeft: 20,
     },
     balanceFiat: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
       textTransform: 'uppercase',
     },
@@ -66,7 +66,7 @@ const createStyles = (colors: Colors) =>
       overflow: 'hidden',
     },
     emptyText: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       marginBottom: 8,
       fontSize: 14,
     },

@@ -47,7 +47,7 @@ const createStyle = (colors: any) =>
     },
     text: {
       ...fontStyles.normal,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     image: {
       width: 150,

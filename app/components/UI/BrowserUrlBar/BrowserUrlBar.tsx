@@ -48,7 +48,7 @@ const BrowserUrlBar = ({ url, route, onPress }: BrowserUrlBarProps) => {
     <TouchableOpacity onPress={onPress}>
       <View style={styles.main} testID={BrowserViewSelectorsIDs.URL_INPUT}>
         <Icon
-          color={theme.colors.icon.alternative}
+          color={theme.colors.icon.secondary}
           name={secureConnectionIcon}
           size={IconSize.Sm}
         />

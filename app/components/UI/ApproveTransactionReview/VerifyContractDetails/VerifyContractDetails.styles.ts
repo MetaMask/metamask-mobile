@@ -10,7 +10,7 @@ const createStyles = (colors: any) =>
       marginVertical: 8,
     },
     text: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     contractSection: {
       marginBottom: 8,

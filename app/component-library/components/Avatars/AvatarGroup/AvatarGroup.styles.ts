@@ -45,7 +45,7 @@ const styleSheet = (params: {
       justifyContent: 'center',
     },
     textStyle: {
-      color: theme.colors.text.alternative,
+      color: theme.colors.text.secondary,
       marginLeft: 2,
       bottom: 2,
     },

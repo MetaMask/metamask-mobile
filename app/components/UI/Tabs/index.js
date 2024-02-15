@@ -54,7 +54,7 @@ const createStyles = (colors, shadows) =>
     },
     noTabsDesc: {
       ...fontStyles.normal,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       fontSize: 14,
     },
     tabAction: {
@@ -80,7 +80,7 @@ const createStyles = (colors, shadows) =>
       fontSize: 16,
     },
     actionDisabled: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     tabsView: {
       flex: 1,

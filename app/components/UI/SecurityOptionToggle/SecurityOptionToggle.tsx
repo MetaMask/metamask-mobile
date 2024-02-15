@@ -64,7 +64,7 @@ const SecurityOptionToggle = ({
       {description ? (
         <Text
           variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.desc}
         >
           {description}

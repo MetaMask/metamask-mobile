@@ -35,7 +35,7 @@ export const createStyles = (colors: any) =>
     description: {
       fontSize: 14,
       fontFamily: 'EuclidCircularB-Regular',
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       textAlign: 'center',
       lineHeight: 20,
       paddingHorizontal: 30,

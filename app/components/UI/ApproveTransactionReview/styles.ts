@@ -61,7 +61,7 @@ const createStyles = (colors: any) =>
       marginTop: 8,
     },
     iconDropdown: {
-      color: colors.icon.alternative,
+      color: colors.icon.secondary,
     },
     actionTouchable: {
       flexDirection: 'column',

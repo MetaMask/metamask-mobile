@@ -393,7 +393,7 @@ const Settings: React.FC = () => {
       </Text>
       <Text
         variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        color={TextColor.secondary}
         style={styles.desc}
       >
         {strings('app_settings.manage_sdk_connections_text')}
@@ -421,7 +421,7 @@ const Settings: React.FC = () => {
       </Text>
       <Text
         variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        color={TextColor.secondary}
         style={styles.desc}
       >
         {strings('app_settings.clear_history_desc')}
@@ -492,7 +492,7 @@ const Settings: React.FC = () => {
       </View>
       <Text
         variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        color={TextColor.secondary}
         style={styles.desc}
       >
         {strings('app_settings.metametrics_description')}
@@ -535,7 +535,7 @@ const Settings: React.FC = () => {
       </View>
       <Text
         variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        color={TextColor.secondary}
         style={styles.desc}
       >
         {strings('app_settings.batch_balance_requests_description')}
@@ -616,7 +616,7 @@ const Settings: React.FC = () => {
         </View>
         <Text
           variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.desc}
         >
           {strings('app_settings.display_nft_media_desc_new')}
@@ -650,7 +650,7 @@ const Settings: React.FC = () => {
         </View>
         <Text
           variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.desc}
         >
           {strings('app_settings.use_safe_chains_list_validation_desc_1')}
@@ -690,7 +690,7 @@ const Settings: React.FC = () => {
         </View>
         <Text
           variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.desc}
         >
           {strings('app_settings.autodetect_nft_desc')}
@@ -732,7 +732,7 @@ const Settings: React.FC = () => {
       </View>
       <Text
         variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        color={TextColor.secondary}
         style={styles.desc}
       >
         {strings('app_settings.ipfs_gateway_content')}
@@ -741,7 +741,7 @@ const Settings: React.FC = () => {
         <View style={styles.accessory}>
           <Text
             variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
+            color={TextColor.secondary}
             style={styles.desc}
           >
             {strings('app_settings.ipfs_gateway_desc')}
@@ -932,7 +932,7 @@ const Settings: React.FC = () => {
         </Text>
         <Text
           variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.desc}
         >
           {strings('app_settings.incoming_transactions_content')}
@@ -981,7 +981,7 @@ const Settings: React.FC = () => {
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <Text
           variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={{ ...styles.subHeading, ...styles.firstSetting }}
         >
           {strings('app_settings.privacy_browser_subheading')}
@@ -993,7 +993,7 @@ const Settings: React.FC = () => {
 
         <Text
           variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.subHeading}
         >
           {strings('app_settings.network_provider')}
@@ -1001,7 +1001,7 @@ const Settings: React.FC = () => {
         {renderUseSafeChainsListValidation()}
         <Text
           variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.subHeading}
         >
           {strings('app_settings.transactions_subheading')}
@@ -1011,7 +1011,7 @@ const Settings: React.FC = () => {
         {renderHistoryModal()}
         <Text
           variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.subHeading}
         >
           {strings('app_settings.token_nft_ens_subheading')}
@@ -1021,7 +1021,7 @@ const Settings: React.FC = () => {
         {renderIpfsGateway()}
         <Text
           variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.subHeading}
         >
           {strings('app_settings.security_check_subheading')}
@@ -1031,7 +1031,7 @@ const Settings: React.FC = () => {
         </View>
         <Text
           variant={TextVariant.BodyLGMedium}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.subHeading}
         >
           {strings('app_settings.analytics_subheading')}

@@ -30,7 +30,7 @@ function TabBar({ ...props }) {
     <DefaultTabBar
       underlineStyle={styles.tabUnderlineStyle}
       activeTextColor={colors.primary.default}
-      inactiveTextColor={colors.text.alternative}
+      inactiveTextColor={colors.text.secondary}
       backgroundColor={colors.background.default}
       tabStyle={styles.tabStyle}
       textStyle={styles.textStyle}

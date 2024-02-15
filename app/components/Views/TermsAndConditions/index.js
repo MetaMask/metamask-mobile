@@ -12,7 +12,7 @@ const createStyles = (colors) =>
   StyleSheet.create({
     text: {
       ...fontStyles.normal,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       textAlign: 'center',
       fontSize: 10,
     },

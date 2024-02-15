@@ -34,7 +34,7 @@ const createStyles = (colors: Colors) =>
       color: colors.success.default,
     },
     grey: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     primary: {
       color: colors.text.default,

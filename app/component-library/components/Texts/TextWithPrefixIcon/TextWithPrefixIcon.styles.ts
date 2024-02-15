@@ -30,8 +30,8 @@ const styleSheet = (params: {
     case TextColor.Inverse:
       iconColor = theme.colors.primary.inverse;
       break;
-    case TextColor.Alternative:
-      iconColor = theme.colors.text.alternative;
+    case TextColor.secondary:
+      iconColor = theme.colors.text.secondary;
       break;
     case TextColor.Muted:
       iconColor = theme.colors.text.muted;
@@ -40,7 +40,7 @@ const styleSheet = (params: {
       iconColor = theme.colors.primary.default;
       break;
     case TextColor.PrimaryAlternative:
-      iconColor = theme.colors.primary.alternative;
+      iconColor = theme.colors.primary.secondary;
       break;
     case TextColor.Success:
       iconColor = theme.colors.success.default;
@@ -49,7 +49,7 @@ const styleSheet = (params: {
       iconColor = theme.colors.error.default;
       break;
     case TextColor.ErrorAlternative:
-      iconColor = theme.colors.error.alternative;
+      iconColor = theme.colors.error.secondary;
       break;
     case TextColor.Warning:
       iconColor = theme.colors.warning.default;

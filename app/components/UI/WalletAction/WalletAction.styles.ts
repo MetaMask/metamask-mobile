@@ -24,7 +24,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 16,
     },
     descriptionLabel: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
   });
 };

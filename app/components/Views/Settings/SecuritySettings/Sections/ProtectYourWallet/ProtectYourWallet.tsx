@@ -67,7 +67,7 @@ const ProtectYourWallet = ({
 
       <Text
         variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        color={TextColor.secondary}
         style={styles.desc}
       >
         {strings(

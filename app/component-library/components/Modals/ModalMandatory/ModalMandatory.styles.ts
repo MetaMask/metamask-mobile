@@ -65,7 +65,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 16,
       marginBottom: 4,
       textAlign: 'center',
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...(typography.sBodySM as TextStyle),
     },
   });

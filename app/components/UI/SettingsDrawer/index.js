@@ -102,7 +102,7 @@ const SettingsDrawer = ({
             {title}
           </Text>
           {description && (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.secondary}>
               {description}
             </Text>
           )}

@@ -63,13 +63,13 @@ const createStyles = (colors, typography) =>
       padding: 15,
     },
     fromDeviceText: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       fontSize: 14,
       marginBottom: 10,
       ...fontStyles.normal,
     },
     importText: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       fontSize: 14,
       ...fontStyles.bold,
       alignContent: 'center',
@@ -101,7 +101,7 @@ const createStyles = (colors, typography) =>
     },
     listItemAmount: {
       ...typography.sBodyMD,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
   });
 

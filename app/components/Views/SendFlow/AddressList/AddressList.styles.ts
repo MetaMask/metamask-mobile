@@ -20,10 +20,10 @@ const styleSheet = (colors: Colors) =>
     },
     labelElementText: {
       marginHorizontal: 16,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       paddingBottom: 8,
     },
-    contactLabel: { marginHorizontal: 8, color: colors.text.alternative },
+    contactLabel: { marginHorizontal: 8, color: colors.text.secondary },
     yourContactcWrapper: { marginTop: 16 },
   });
 

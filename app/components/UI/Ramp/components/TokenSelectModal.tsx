@@ -41,7 +41,7 @@ const createStyles = (colors: Colors) =>
     },
     networkLabelText: {
       fontSize: 12,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     listItem: {
       paddingHorizontal: 24,

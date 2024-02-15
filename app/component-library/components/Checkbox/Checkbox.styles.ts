@@ -66,7 +66,7 @@ const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
     },
     icon: {
       color: isReadOnly
-        ? theme.colors.icon.alternative
+        ? theme.colors.icon.secondary
         : theme.colors.primary.inverse,
     },
     label: {

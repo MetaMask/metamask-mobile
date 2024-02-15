@@ -18,7 +18,7 @@ const styleSheet = (params: { theme: Theme }) => {
     description: {
       textAlign: 'center',
       marginVertical: 16,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     sheetActionContainer: {
       marginTop: 16,

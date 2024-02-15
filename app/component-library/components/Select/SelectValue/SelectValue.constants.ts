@@ -10,7 +10,7 @@ import { SelectValueProps } from './SelectValue.types';
 export const DEFAULT_SELECTVALUE_LABEL_TEXTVARIANT = TextVariant.BodyMD;
 export const DEFAULT_SELECTVALUE_LABEL_TEXTCOLOR = TextColor.Default;
 export const DEFAULT_SELECTVALUE_DESCRIPTION_TEXTVARIANT = TextVariant.BodySM;
-export const DEFAULT_SELECTVALUE_DESCRIPTION_TEXTCOLOR = TextColor.Alternative;
+export const DEFAULT_SELECTVALUE_DESCRIPTION_TEXTCOLOR = TextColor.secondary;
 
 // Sample consts
 export const SAMPLE_SELECTVALUE_PROPS: SelectValueProps = {

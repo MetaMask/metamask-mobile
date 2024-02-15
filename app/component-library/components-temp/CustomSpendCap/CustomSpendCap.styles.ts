@@ -33,7 +33,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginTop: 16,
     },
     description: {
-      color: theme.colors.text.alternative,
+      color: theme.colors.text.secondary,
     },
     errorDescription: {
       color: colors.error.default,

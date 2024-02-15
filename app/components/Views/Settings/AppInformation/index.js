@@ -73,14 +73,14 @@ const createStyles = (colors) =>
       fontSize: 18,
       textAlign: 'left',
       marginBottom: 20,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
     },
     branchInfo: {
       fontSize: 18,
       textAlign: 'left',
       marginBottom: 20,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
     },
   });

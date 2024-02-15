@@ -25,7 +25,7 @@ const styleSheet = (params: {
   let borderColor;
 
   if (isReadOnly) {
-    iconColor = theme.colors.icon.alternative;
+    iconColor = theme.colors.icon.secondary;
     borderColor = theme.colors.background.default;
   } else if (isDanger) {
     iconColor = theme.colors.error.default;

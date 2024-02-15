@@ -212,7 +212,7 @@ const NetworkSelector = () => {
 
   const renderTestNetworksSwitch = () => (
     <View style={styles.switchContainer}>
-      <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodyLGMedium} color={TextColor.secondary}>
         {strings('networks.show_test_networks')}
       </Text>
       <Switch

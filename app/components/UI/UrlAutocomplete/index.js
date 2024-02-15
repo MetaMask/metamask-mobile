@@ -38,7 +38,7 @@ const createStyles = (colors) =>
     },
     url: {
       fontSize: 12,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
     },
     item: {

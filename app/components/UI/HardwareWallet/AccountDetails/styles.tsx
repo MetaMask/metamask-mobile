@@ -26,7 +26,7 @@ export const createStyle = (colors: any) =>
       ...fontStyles.normal,
     },
     information: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
     },
   });

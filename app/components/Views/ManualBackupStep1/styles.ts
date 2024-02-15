@@ -47,7 +47,7 @@ export const createStyles = (colors: any) =>
       borderRadius: 8,
     },
     seedPhraseConcealer: {
-      backgroundColor: colors.overlay.alternative,
+      backgroundColor: colors.overlay.secondary,
       alignItems: 'center',
       borderRadius: 8,
       paddingHorizontal: 24,

@@ -91,7 +91,7 @@ const ClearCookiesSection = () => {
         </Text>
         <Text
           variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           style={styles.desc}
         >
           {strings('app_settings.clear_cookies_desc')}

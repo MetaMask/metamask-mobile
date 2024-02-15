@@ -29,7 +29,7 @@ const AutoLock = () => {
       </Text>
       <Text
         variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        color={TextColor.secondary}
         style={styles.desc}
       >
         {strings('app_settings.auto_lock_desc')}

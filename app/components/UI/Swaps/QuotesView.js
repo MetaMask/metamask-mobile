@@ -167,14 +167,14 @@ const createStyles = (colors) =>
       marginHorizontal: 5,
     },
     tokenText: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       fontSize: Device.isSmallDevice() ? 16 : 18,
     },
     tokenTextDestination: {
       color: colors.text.default,
     },
     arrowDown: {
-      color: colors.icon.alternative,
+      color: colors.icon.secondary,
       fontSize: Device.isSmallDevice() ? 22 : 25,
       marginHorizontal: 15,
       marginTop: Device.isSmallDevice() ? 2 : 4,
@@ -237,7 +237,7 @@ const createStyles = (colors) =>
     infoIcon: {
       fontSize: 12,
       margin: 3,
-      color: colors.icon.alternative,
+      color: colors.icon.secondary,
     },
     ctaButton: {
       width: '100%',
@@ -261,7 +261,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 2,
     },
     gasInfoIcon: {
-      color: colors.icon.alternative,
+      color: colors.icon.secondary,
     },
     hitSlop: {
       top: 10,

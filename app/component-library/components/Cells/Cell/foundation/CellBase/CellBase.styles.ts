@@ -38,10 +38,10 @@ const styleSheet = (params: { theme: Theme; vars: CellBaseStyleSheetVars }) => {
       marginLeft: 16,
     },
     secondaryText: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     tertiaryText: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     tagLabel: {
       marginTop: 4,

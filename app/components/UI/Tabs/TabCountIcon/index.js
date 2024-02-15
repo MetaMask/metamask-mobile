@@ -11,13 +11,13 @@ const createStyles = (colors) =>
   StyleSheet.create({
     tabIcon: {
       borderWidth: 2,
-      borderColor: colors.text.alternative,
+      borderColor: colors.text.secondary,
       borderRadius: 6,
       alignItems: 'center',
       justifyContent: 'center',
     },
     tabCount: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       flex: 0,
       fontSize: 15,
       textAlign: 'center',

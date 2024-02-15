@@ -58,13 +58,13 @@ const createStyles = (colors) =>
       marginBottom: 10,
       ...fontStyles.normal,
       fontSize: 12,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     url: {
       marginBottom: 10,
       ...fontStyles.normal,
       fontSize: 12,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     emptyWrapper: {
       flex: 1,

@@ -48,7 +48,7 @@ const createStyles = (colors) =>
     },
     errorMessage: {
       textAlign: 'center',
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
       fontSize: 14,
       marginBottom: 10,

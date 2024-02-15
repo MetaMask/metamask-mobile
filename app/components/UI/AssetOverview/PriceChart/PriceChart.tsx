@@ -72,7 +72,7 @@ const PriceChart = ({
       ? theme.colors.success.default
       : priceDiff < 0
       ? theme.colors.error.default
-      : theme.colors.text.alternative;
+      : theme.colors.text.secondary;
 
   const apx = (size = 0) => {
     const width = Dimensions.get('window').width;
@@ -150,7 +150,7 @@ const PriceChart = ({
       <Path
         key="line"
         d={line}
-        stroke={chartHasData ? chartColor : theme.colors.text.alternative}
+        stroke={chartHasData ? chartColor : theme.colors.text.secondary}
         strokeWidth={apx(4)}
         fill="none"
         opacity={chartHasData ? 1 : 0.85}

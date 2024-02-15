@@ -52,7 +52,7 @@ const createStyles = (colors) =>
       fontSize: 12,
       marginTop: 4,
       marginRight: 8,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
     },
   });

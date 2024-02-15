@@ -47,7 +47,7 @@ const createStyles = (colors) =>
     },
     summarySecondary: {
       ...fontStyles.normal,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       fontSize: 24,
       textTransform: 'uppercase',
       textAlign: 'center',

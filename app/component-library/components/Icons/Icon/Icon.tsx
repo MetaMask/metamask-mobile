@@ -34,8 +34,8 @@ const Icon = ({
     case IconColor.Inverse:
       iconColor = theme.colors.primary.inverse;
       break;
-    case IconColor.Alternative:
-      iconColor = theme.colors.icon.alternative;
+    case IconColor.secondary:
+      iconColor = theme.colors.icon.secondary;
       break;
     case IconColor.Muted:
       iconColor = theme.colors.icon.muted;
@@ -44,7 +44,7 @@ const Icon = ({
       iconColor = theme.colors.primary.default;
       break;
     case IconColor.PrimaryAlternative:
-      iconColor = theme.colors.primary.alternative;
+      iconColor = theme.colors.primary.secondary;
       break;
     case IconColor.Success:
       iconColor = theme.colors.success.default;
@@ -53,7 +53,7 @@ const Icon = ({
       iconColor = theme.colors.error.default;
       break;
     case IconColor.ErrorAlternative:
-      iconColor = theme.colors.error.alternative;
+      iconColor = theme.colors.error.secondary;
       break;
     case IconColor.Warning:
       iconColor = theme.colors.warning.default;

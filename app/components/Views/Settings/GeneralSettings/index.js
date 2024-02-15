@@ -267,7 +267,7 @@ class Settings extends PureComponent {
   //   return (
   //     <View style={styles.setting}>
   //       <View>
-  //         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+  //         <Text variant={TextVariant.BodyMD} color={TextColor.secondary}>
   //           {strings('app_settings.theme_title', {
   //             theme: strings(`app_settings.theme_${AppThemeKey[appTheme]}`),
   //           })}
@@ -303,7 +303,7 @@ class Settings extends PureComponent {
             </Text>
             <Text
               variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+              color={TextColor.secondary}
               style={styles.desc}
             >
               {strings('app_settings.conversion_desc')}
@@ -325,7 +325,7 @@ class Settings extends PureComponent {
             </Text>
             <Text
               variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+              color={TextColor.secondary}
               style={styles.desc}
             >
               {strings('app_settings.primary_currency_desc')}
@@ -353,7 +353,7 @@ class Settings extends PureComponent {
             </Text>
             <Text
               variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+              color={TextColor.secondary}
               style={styles.desc}
             >
               {strings('app_settings.language_desc')}
@@ -377,7 +377,7 @@ class Settings extends PureComponent {
             </Text>
             <Text
               variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+              color={TextColor.secondary}
               style={styles.desc}
             >
               {strings('app_settings.engine_desc')}
@@ -416,7 +416,7 @@ class Settings extends PureComponent {
             </View>
             <Text
               variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+              color={TextColor.secondary}
               style={styles.desc}
             >
               {strings('app_settings.hide_zero_balance_tokens_desc')}
@@ -428,7 +428,7 @@ class Settings extends PureComponent {
             </Text>
             <Text
               variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+              color={TextColor.secondary}
               style={styles.desc}
             >
               {strings('app_settings.accounts_identicon_desc')}

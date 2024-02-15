@@ -95,7 +95,7 @@ const CustomNetwork = ({
               <WarningIcon
                 name="warning"
                 size={14}
-                color={colors.icon.alternative}
+                color={colors.icon.secondary}
                 style={styles.icon}
                 onPress={toggleWarningModal}
               />

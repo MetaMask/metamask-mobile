@@ -117,16 +117,13 @@ const DeleteMetaMetricsData = () => {
       descriptionText={
         hasCollectedData ? (
           <>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.secondary}>
               {strings('app_settings.delete_metrics_description_part_one')}
             </Text>{' '}
-            <Text
-              variant={TextVariant.BodyMDBold}
-              color={TextColor.Alternative}
-            >
+            <Text variant={TextVariant.BodyMDBold} color={TextColor.secondary}>
               {strings('app_settings.delete_metrics_description_part_two')}
             </Text>{' '}
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.secondary}>
               {strings('app_settings.delete_metrics_description_part_three')}
             </Text>{' '}
             <Button
@@ -138,13 +135,13 @@ const DeleteMetaMetricsData = () => {
           </>
         ) : (
           <>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.secondary}>
               {strings('app_settings.delete_metrics_description_part_four')}
             </Text>{' '}
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.secondary}>
               {deletionTaskDate}
             </Text>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.secondary}>
               {strings('app_settings.delete_metrics_description_part_five')}
             </Text>{' '}
             <Button

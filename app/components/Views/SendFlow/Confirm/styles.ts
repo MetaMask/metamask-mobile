@@ -15,7 +15,7 @@ const createStyles = (colors: any) =>
       ...fontStyles.normal,
       fontSize: 14,
       textAlign: 'center',
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       textTransform: 'uppercase',
       marginVertical: 3,
     },
@@ -61,7 +61,7 @@ const createStyles = (colors: any) =>
     collectibleTokenId: {
       ...fontStyles.normal,
       fontSize: 12,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       marginTop: 8,
       textAlign: 'center',
     },

@@ -28,7 +28,7 @@ const styleSheet = (params: {
           ? colors.success.default
           : priceDiff < 0
           ? colors.error.default
-          : colors.text.alternative,
+          : colors.text.secondary,
       lineHeight: 22,
     } as TextStyle,
     priceDiffIcon: {

@@ -20,7 +20,7 @@ const createStyles = (colors: any) =>
     addTextSubtitle: {
       ...fontStyles.normal,
       fontSize: 16,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       marginBottom: 24,
     },
     addInputWrapper: {

@@ -49,7 +49,7 @@ const createStyles = (colors) =>
     subtitle: {
       fontSize: 14,
       lineHeight: 20,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       marginTop: 8,
       textAlign: 'center',
       ...fontStyles.normal,

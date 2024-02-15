@@ -33,7 +33,7 @@ const createStyles = (colors: any) =>
     } as TextStyle,
     icon: {
       padding: 16,
-      color: colors.icon.alternative,
+      color: colors.icon.secondary,
     },
   });
 

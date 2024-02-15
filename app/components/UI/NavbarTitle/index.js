@@ -27,7 +27,7 @@ const createStyles = (colors) =>
     },
     networkName: {
       fontSize: 11,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
     },
     networkIcon: {

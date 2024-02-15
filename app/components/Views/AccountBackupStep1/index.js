@@ -93,14 +93,14 @@ const createStyles = (colors) =>
       textAlign: 'center',
       fontSize: 11,
       lineHeight: 20,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
     },
     startSubText: {
       textAlign: 'center',
       fontSize: 11,
       marginTop: 12,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
     },
     remindLaterContainer: {

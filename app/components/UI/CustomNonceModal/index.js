@@ -70,7 +70,7 @@ const createStyles = (colors) =>
     },
     currentSuggested: {
       fontSize: 14,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       marginBottom: 10,
     },
     nonceWarning: {

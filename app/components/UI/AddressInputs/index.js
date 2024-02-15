@@ -96,7 +96,7 @@ const createStyles = (colors, layout = 'horizontal') => {
       horizontalAlign: 'center',
       textAlign: 'center',
       paddingHorizontal: 8,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       borderWidth: 1,
       borderRadius: 8,
       borderColor: colors.border.default,
@@ -104,7 +104,7 @@ const createStyles = (colors, layout = 'horizontal') => {
     textBalance: {
       ...fontStyles.normal,
       fontSize: 12,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     label: {
       flexDirection: 'row',

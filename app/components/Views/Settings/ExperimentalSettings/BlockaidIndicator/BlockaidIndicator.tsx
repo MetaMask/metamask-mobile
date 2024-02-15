@@ -169,7 +169,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
               style={styles.goBackIcon}
               onPress={goBackToExperimentalScreen}
             >
-              <Icon name={IconName.Close} color={IconColor.Alternative} />
+              <Icon name={IconName.Close} color={IconColor.secondary} />
             </Pressable>
           </View>
 

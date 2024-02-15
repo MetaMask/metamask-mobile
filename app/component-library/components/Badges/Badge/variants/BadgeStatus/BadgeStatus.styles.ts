@@ -31,10 +31,10 @@ const styleSheet = (params: {
       stateColor = theme.colors.success.default;
       break;
     case BadgeStatusState.Inactive:
-      stateColor = theme.colors.icon.alternative;
+      stateColor = theme.colors.icon.secondary;
       break;
     default:
-      stateColor = theme.colors.icon.alternative;
+      stateColor = theme.colors.icon.secondary;
       break;
   }
 

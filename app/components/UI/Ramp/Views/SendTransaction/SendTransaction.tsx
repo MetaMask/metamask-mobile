@@ -223,7 +223,7 @@ function SendTransaction() {
               <Icon
                 name={IconName.Arrow2Down}
                 size={IconSize.Lg}
-                color={IconColor.Alternative}
+                color={IconColor.secondary}
               />
             </Row>
 
@@ -248,7 +248,7 @@ function SendTransaction() {
                   <Icon
                     name={IconName.Arrow2Down}
                     size={IconSize.Lg}
-                    color={IconColor.Alternative}
+                    color={IconColor.secondary}
                   />
                 </Row>
 
@@ -258,7 +258,7 @@ function SendTransaction() {
                       paymentMethodIcons={orderData.paymentMethod.icons}
                       paymentMethodType={orderData.paymentMethod.paymentType}
                       size={20}
-                      color={colors.icon.alternative}
+                      color={colors.icon.secondary}
                     />
                     <Text variant={TextVariant.HeadingMD} style={styles.normal}>
                       {orderData.paymentMethod.name}

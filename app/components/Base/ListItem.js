@@ -49,7 +49,7 @@ const createStyles = (colors) =>
     },
     fiatAmount: {
       fontSize: 12,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       textTransform: 'uppercase',
     },
   });

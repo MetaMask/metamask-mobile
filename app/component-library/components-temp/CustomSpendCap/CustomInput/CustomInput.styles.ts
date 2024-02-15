@@ -37,7 +37,7 @@ const styleSheet = (params: { theme: Theme }) => {
       ...typography.sBodyMD,
     } as TextStyle,
     maxValueText: {
-      color: theme.colors.text.alternative,
+      color: theme.colors.text.secondary,
     },
     warningValue: {
       color: theme.colors.error.default,

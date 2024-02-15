@@ -39,7 +39,7 @@ const createStyles = (colors: any) =>
     tokenDollarLabel: {
       ...(fontStyles.normal as any),
       fontSize: 14,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       marginBottom: 4,
     },
     tokenAddressContainer: {
@@ -49,7 +49,7 @@ const createStyles = (colors: any) =>
     tokenAddressLabel: {
       ...(fontStyles.normal as any),
       fontSize: 14,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     addressLinkContainer: {
       flexDirection: 'row',

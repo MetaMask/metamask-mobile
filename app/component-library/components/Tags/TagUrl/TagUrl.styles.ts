@@ -39,14 +39,14 @@ const styleSheet = (params: { theme: Theme; vars: TagUrlStyleSheetVars }) => {
       marginRight: 8,
     },
     label: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       flexShrink: 1,
     },
     cta: {
       marginLeft: 16,
     },
     icon: {
-      color: colors.icon.alternative,
+      color: colors.icon.secondary,
       marginRight: 4,
     },
   });

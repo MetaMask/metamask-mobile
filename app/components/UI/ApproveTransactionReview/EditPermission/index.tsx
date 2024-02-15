@@ -29,7 +29,7 @@ const createStyles = (colors: any) =>
     sectionExplanationText: {
       ...fontStyles.normal,
       fontSize: 12,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       marginVertical: 6,
     },
     option: {
@@ -93,7 +93,7 @@ const createStyles = (colors: any) =>
       ...fontStyles.normal,
       fontSize: 12,
       lineHeight: 18,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     textBlue: {
       color: colors.primary.default,

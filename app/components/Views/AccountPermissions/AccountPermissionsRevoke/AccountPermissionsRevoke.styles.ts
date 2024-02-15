@@ -17,7 +17,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     description: {
       marginVertical: 16,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     sheetActionContainer: {
       marginVertical: 16,

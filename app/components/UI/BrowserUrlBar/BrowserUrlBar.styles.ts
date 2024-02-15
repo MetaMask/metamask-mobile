@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) =>
     },
     text: {
       marginLeft: 8,
-      color: params.theme.colors.text.alternative,
+      color: params.theme.colors.text.secondary,
     },
   });
 

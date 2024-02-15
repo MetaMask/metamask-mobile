@@ -19,7 +19,7 @@ const createStyles = (colors) =>
       borderRadius: 8,
     },
     defaultFlashFloating: {
-      backgroundColor: colors.overlay.alternative,
+      backgroundColor: colors.overlay.secondary,
       padding: 16,
       flexDirection: 'row',
       flex: 1,

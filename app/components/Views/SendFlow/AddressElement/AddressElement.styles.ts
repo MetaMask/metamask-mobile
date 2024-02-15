@@ -19,12 +19,12 @@ const styleSheet = (colors: Colors) =>
       color: colors.text.default,
     },
     addressTextAddress: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     accountNameLabelText: {
       marginLeft: 4,
       paddingHorizontal: 8,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       borderWidth: 1,
       borderRadius: 8,
       borderColor: colors.border.default,

@@ -17,7 +17,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     infoIcon: {
       marginLeft: 8,
-      color: colors.icon.alternative,
+      color: colors.icon.secondary,
     },
     data: {
       marginTop: 4,

@@ -154,7 +154,7 @@ const createStyles = (colors) =>
       marginLeft: 7,
       marginTop: 3,
       fontSize: 18,
-      color: colors.icon.alternative,
+      color: colors.icon.secondary,
     },
     accountBalance: {
       fontSize: 14,
@@ -166,7 +166,7 @@ const createStyles = (colors) =>
     accountAddress: {
       fontSize: 12,
       lineHeight: 17,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
     },
     buttons: {
@@ -238,7 +238,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 15,
       paddingTop: 2,
       fontSize: 16,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       ...fontStyles.normal,
     },
     menuItemWarningText: {
@@ -252,7 +252,7 @@ const createStyles = (colors) =>
     menuItemIconImage: {
       width: 22,
       height: 22,
-      tintColor: colors.icon.alternative,
+      tintColor: colors.icon.secondary,
     },
     selectedMenuItemIconImage: {
       width: 22,
@@ -270,10 +270,10 @@ const createStyles = (colors) =>
       paddingVertical: 3,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: colors.icon.alternative,
+      borderColor: colors.icon.secondary,
     },
     importedText: {
-      color: colors.icon.alternative,
+      color: colors.icon.secondary,
       fontSize: 10,
       ...fontStyles.bold,
     },
@@ -751,9 +751,7 @@ class DrawerView extends PureComponent {
   getIcon(name, size) {
     const colors = this.context.colors || mockTheme.colors;
 
-    return (
-      <Icon name={name} size={size || 24} color={colors.icon.alternative} />
-    );
+    return <Icon name={name} size={size || 24} color={colors.icon.secondary} />;
   }
 
   getFeatherIcon(name, size) {
@@ -763,7 +761,7 @@ class DrawerView extends PureComponent {
       <FeatherIcon
         name={name}
         size={size || 24}
-        color={colors.icon.alternative}
+        color={colors.icon.secondary}
       />
     );
   }
@@ -775,7 +773,7 @@ class DrawerView extends PureComponent {
       <MaterialIcon
         name={name}
         size={size || 24}
-        color={colors.icon.alternative}
+        color={colors.icon.secondary}
       />
     );
   }

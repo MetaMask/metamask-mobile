@@ -106,7 +106,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         {strings('experimental_settings.wallet_connect_dapps')}
       </Text>
       <Text
-        color={TextColor.Alternative}
+        color={TextColor.secondary}
         variant={TextVariant.BodyMD}
         style={styles.desc}
       >
@@ -139,7 +139,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           {strings('experimental_settings.security_alerts')}
         </Text>
         <Text
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           variant={TextVariant.BodyMD}
           style={styles.desc}
         >
@@ -165,7 +165,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
       </View>
 
       <Text
-        color={TextColor.Alternative}
+        color={TextColor.secondary}
         variant={TextVariant.BodyMD}
         style={styles.desc}
       >
@@ -201,7 +201,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           />
         </View>
         <Text
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           variant={TextVariant.BodyMD}
           style={styles.desc}
         >

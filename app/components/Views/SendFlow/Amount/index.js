@@ -205,14 +205,14 @@ const createStyles = (colors) =>
       paddingVertical: 2,
       borderRadius: 8,
       flexDirection: 'row',
-      borderColor: colors.text.alternative,
+      borderColor: colors.text.secondary,
       borderWidth: 1,
       right: -2,
     },
     textSwitch: {
       ...fontStyles.normal,
       fontSize: 14,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       textTransform: 'uppercase',
     },
     switchWrapper: {
@@ -284,7 +284,7 @@ const createStyles = (colors) =>
     textAssetFiat: {
       ...fontStyles.normal,
       fontSize: 12,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       textAlign: 'right',
       textTransform: 'uppercase',
     },
@@ -310,13 +310,13 @@ const createStyles = (colors) =>
     collectibleName: {
       ...fontStyles.normal,
       fontSize: 32,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       textAlign: 'center',
     },
     collectibleId: {
       ...fontStyles.normal,
       fontSize: 14,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       marginTop: 8,
       textAlign: 'center',
     },

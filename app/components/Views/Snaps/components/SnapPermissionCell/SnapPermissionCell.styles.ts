@@ -25,7 +25,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'flex-start',
     },
     secondaryText: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     iconWrapper: {
       marginTop: 16,

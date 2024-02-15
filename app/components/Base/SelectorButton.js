@@ -17,7 +17,7 @@ const createStyles = (colors) =>
     },
     caretDown: {
       textAlign: 'right',
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       marginLeft: 10,
       marginRight: 5,
     },

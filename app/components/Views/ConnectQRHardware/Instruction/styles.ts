@@ -24,7 +24,7 @@ export const createStyles = (theme: Theme) =>
       fontSize: 24,
       marginBottom: 20,
       ...fontStyles.normal,
-      color: theme.colors.text.alternative,
+      color: theme.colors.text.secondary,
     },
     textContainer: {
       width: '100%',
@@ -34,7 +34,7 @@ export const createStyles = (theme: Theme) =>
       fontSize: 14,
       marginBottom: 24,
       ...fontStyles.normal,
-      color: theme.colors.text.alternative,
+      color: theme.colors.text.secondary,
     },
     link: {
       color: theme.colors.primary.default,

@@ -271,7 +271,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
           cx={radius}
           cy={radius}
           r={innerRadius}
-          stroke={colors.primary.alternative}
+          stroke={colors.primary.secondary}
           strokeWidth={strokeWidth}
           strokeLinecap={'round'}
         />

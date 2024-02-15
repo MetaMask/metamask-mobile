@@ -58,7 +58,7 @@ const createStyles = (colors) =>
     sectionTitle: {
       ...fontStyles.normal,
       fontSize: 10,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       marginBottom: 8,
     },
   });

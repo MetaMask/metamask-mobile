@@ -41,7 +41,7 @@ const ContractBoxBase = ({
 
   const IconView = ({ onPress, name, size, testID }: IconViewProps) => (
     <Pressable style={styles.icon} onPress={onPress} testID={testID}>
-      <Icon color={colors.icon.alternative} name={name} size={size} />
+      <Icon color={colors.icon.secondary} name={name} size={size} />
     </Pressable>
   );
 

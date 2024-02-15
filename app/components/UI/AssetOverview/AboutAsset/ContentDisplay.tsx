@@ -32,13 +32,13 @@ const ContentDisplay = ({
     <View>
       <Text
         numberOfLines={isExpanded ? undefined : numberOfLines}
-        color={TextColor.Alternative}
+        color={TextColor.secondary}
       >
         {content}
       </Text>
       {disclaimer && isExpanded && (
         <Text
-          color={TextColor.Alternative}
+          color={TextColor.secondary}
           variant={TextVariant.BodyXS}
           style={styles.disclaimer}
         >

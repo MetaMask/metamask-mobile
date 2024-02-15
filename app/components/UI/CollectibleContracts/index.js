@@ -81,10 +81,10 @@ const createStyles = (colors) =>
     },
     emptyTitleText: {
       fontSize: 24,
-      color: colors.text.alternative,
+      color: colors.text.secondary,
     },
     emptyText: {
-      color: colors.text.alternative,
+      color: colors.text.secondary,
       marginBottom: 8,
       fontSize: 14,
     },
