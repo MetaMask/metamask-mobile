@@ -32,7 +32,7 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
 
   it('should not display the chart when using Goerli test network', async () => {
     await switchToSepoliaNetwork();
-    await WalletView.tapOnToken(Networks.Goerli.providerConfig.ticker);
+    await WalletView.tapOnToken(Networks.Sepolia.providerConfig.ticker);
     await TokenOverview.isVisible();
     await TokenOverview.ChartNotVisible();
     await TokenOverview.TokenQuoteIsNotZero();
