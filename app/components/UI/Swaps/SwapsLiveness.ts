@@ -6,10 +6,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import AppConstants from '../../../core/AppConstants';
 import {
   setSwapsLiveness,
-  setSwapsSmartTxFeatureFlag,
   swapsLivenessSelector,
 } from '../../../reducers/swaps';
-import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';
 import { isSwapsAllowed } from './utils';
@@ -21,8 +19,8 @@ function SwapLiveness() {
   const chainId = useSelector((state: EngineState) => selectChainId(state));
   const dispatch = useDispatch();
   const setLiveness = useCallback(
-    (liveness, currentChainId) => {
-      dispatch(setSwapsLiveness(liveness, currentChainId));
+    (currentChainId, featureFlags) => {
+      dispatch(setSwapsLiveness(currentChainId, featureFlags));
     },
     [dispatch],
   );
@@ -31,56 +29,12 @@ function SwapLiveness() {
       const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
         AppConstants.SWAPS.CLIENT_ID,
       );
-      const data = swapsUtils.getSwapsFeatureFlagsByChainId(
-        featureFlags,
-        chainId,
-      );
-
-      const isIphone = Device.isIos();
-      const isAndroid = Device.isAndroid();
-      const featureFlagKey = isIphone
-        ? 'mobileActiveIOS'
-        : isAndroid
-        ? 'mobileActiveAndroid'
-        : 'mobileActive';
-      const liveness =
-        // @ts-expect-error interface mismatch
-        typeof data === 'boolean' ? data : data?.[featureFlagKey] ?? false;
-      setLiveness(liveness, chainId);
+      setLiveness(chainId, featureFlags);
     } catch (error) {
       Logger.error(error as any, 'Swaps: error while fetching swaps liveness');
-      setLiveness(false, chainId);
+      setLiveness(chainId, null);
     }
   }, [setLiveness, chainId]);
-
-  // TODO improve this with error handling like
-  useEffect(() => {
-    const checkSmartTransactions = async () => {
-      const featureFlags = await swapsUtils.fetchSwapsFeatureFlags();
-
-      const isIphone = Device.isIos();
-      const isAndroid = Device.isAndroid();
-
-      let isActiveForDevice = false;
-      if (
-        isIphone &&
-        featureFlags?.smartTransactions?.mobileActiveIOS !== undefined
-      ) {
-        isActiveForDevice = featureFlags?.smartTransactions?.mobileActiveIOS;
-      } else if (
-        isAndroid &&
-        featureFlags?.smartTransactions?.mobileActiveAndroid !== undefined
-      ) {
-        isActiveForDevice =
-          featureFlags?.smartTransactions?.mobileActiveAndroid;
-      }
-
-      const isMobileActive = featureFlags?.smartTransactions.mobileActive;
-
-      dispatch(setSwapsSmartTxFeatureFlag(isMobileActive && isActiveForDevice));
-    };
-    checkSmartTransactions();
-  }, [dispatch]);
 
   useEffect(() => {
     if (isSwapsAllowed(chainId) && !isLive) {

@@ -7,6 +7,8 @@ import { lte } from '../../util/lodash';
 import { selectChainId } from '../../selectors/networkController';
 import { selectTokens } from '../../selectors/tokensController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
+import Device from '../../util/device';
+import { swapsUtils } from '@metamask/swaps-controller';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -15,17 +17,13 @@ export const SWAPS_SET_SMART_TX_FEATURE_FLAG = 'SWAPS_SET_SMART_TX';
 const MAX_TOKENS_WITH_BALANCE = 5;
 
 // * Action Creator
-export const setSwapsLiveness = (live, chainId) => ({
+export const setSwapsLiveness = (chainId, featureFlags) => ({
   type: SWAPS_SET_LIVENESS,
-  payload: { live, chainId },
+  payload: { chainId, featureFlags },
 });
 export const setSwapsHasOnboarded = (hasOnboarded) => ({
   type: SWAPS_SET_HAS_ONBOARDED,
   payload: hasOnboarded,
-});
-export const setSwapsSmartTxFeatureFlag = (active) => ({
-  type: SWAPS_SET_SMART_TX_FEATURE_FLAG,
-  payload: active,
 });
 
 // * Functions
@@ -214,28 +212,53 @@ export const initialState = {
 function swapsReducer(state = initialState, action) {
   switch (action.type) {
     case SWAPS_SET_LIVENESS: {
-      const { live, chainId } = action.payload;
+      const { chainId, featureFlags } = action.payload;
       const data = state[chainId];
+
+      if (!featureFlags) {
+        return {
+          ...state,
+          [chainId]: {
+            ...data,
+            isLive: false,
+          },
+        };
+      }
+
+      const featureFlagsByChainId = swapsUtils.getSwapsFeatureFlagsByChainId(
+        featureFlags,
+        chainId,
+      );
+
+      const isIphone = Device.isIos();
+      const isAndroid = Device.isAndroid();
+      const featureFlagKey = isIphone
+        ? 'mobileActiveIOS'
+        : isAndroid
+        ? 'mobileActiveAndroid'
+        : 'mobileActive';
+
+      const liveness =
+        // @ts-expect-error interface mismatch
+        typeof featureFlagsByChainId === 'boolean'
+          ? featureFlagsByChainId
+          : featureFlagsByChainId?.[featureFlagKey] ?? false;
+
       return {
         ...state,
         [chainId]: {
           ...data,
-          isLive: live,
+          isLive: liveness,
         },
+        // TODO - uncomment when not in dev
+        // smartTransactions: true,
+        smartTransactions: featureFlags?.smartTransactions[featureFlagKey],
       };
     }
     case SWAPS_SET_HAS_ONBOARDED: {
       return {
         ...state,
         hasOnboarded: Boolean(action.payload),
-      };
-    }
-    case SWAPS_SET_SMART_TX_FEATURE_FLAG: {
-      return {
-        ...state,
-        // TODO - uncomment when not in dev
-        // smartTransactions: action.payload,
-        smartTransactions: true,
       };
     }
     default: {

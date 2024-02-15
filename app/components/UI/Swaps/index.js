@@ -263,7 +263,7 @@ function SwapsAmountView({
           AppConstants.SWAPS.CLIENT_ID,
         );
 
-        const data = swapsUtils.getSwapsFeatureFlagsByChainId(
+        const featureFlagsByChainId = swapsUtils.getSwapsFeatureFlagsByChainId(
           featureFlags,
           chainId,
         );
@@ -276,8 +276,11 @@ function SwapsAmountView({
           ? 'mobileActiveAndroid'
           : 'mobileActive';
         const liveness =
-          typeof data === 'boolean' ? data : data?.[featureFlagKey] ?? false;
-        setLiveness(liveness, chainId);
+          typeof featureFlagsByChainId === 'boolean'
+            ? featureFlagsByChainId
+            : featureFlagsByChainId?.[featureFlagKey] ?? false;
+        setLiveness(chainId, featureFlags);
+
         if (liveness) {
           // Triggered when a user enters the MetaMask Swap feature
           InteractionManager.runAfterInteractions(() => {
@@ -306,7 +309,7 @@ function SwapsAmountView({
         }
       } catch (error) {
         Logger.error(error, 'Swaps: error while fetching swaps liveness');
-        setLiveness(false, chainId);
+        setLiveness(chainId, null);
         navigation.pop();
       }
     })();
@@ -1039,8 +1042,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   setHasOnboarded: (hasOnboarded) =>
     dispatch(setSwapsHasOnboarded(hasOnboarded)),
-  setLiveness: (liveness, chainId) =>
-    dispatch(setSwapsLiveness(liveness, chainId)),
+  setLiveness: (chainId, featureFlags) =>
+    dispatch(setSwapsLiveness(chainId, featureFlags)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SwapsAmountView);
