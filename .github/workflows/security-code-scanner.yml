@@ -19,7 +19,12 @@ jobs:
         with:
           repo: ${{ github.repository }}
           paths_ignored: |
-            example
+            e2e/
+            docs/
+            storybook/
+            .storybook/
+            **/*.test.js
+
           rules_excluded: example
           mixpanel_project_token: ${{secrets.SECURITY_CODE_SCANNER_MIXPANEL_TOKEN}}
           slack_webhook: ${{ secrets.APPSEC_BOT_SLACK_WEBHOOK }}
