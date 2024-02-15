@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionCore } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
@@ -24,7 +24,7 @@ import CommonView from '../../pages/CommonView';
 const PASSWORD = '12345678';
 
 describe(
-  Regression('Permission System: Deleting wallet after connecting to a dapp'),
+  RegressionCore('Permission System: Deleting wallet after connecting to a dapp'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(150000);

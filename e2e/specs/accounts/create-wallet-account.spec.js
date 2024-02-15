@@ -1,10 +1,10 @@
 'use strict';
-import { Regression } from '../../tags';
+import { RegressionAccounts } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';
 
-describe(Regression('Create wallet account'), () => {
+describe(RegressionAccounts('Create wallet account'), () => {
   beforeAll(async () => {
     jest.setTimeout(200000);
     await device.launchApp();

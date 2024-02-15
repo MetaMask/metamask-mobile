@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionCore } from '../../tags';
 import NetworkView from '../../pages/Settings/NetworksView';
 import WalletView from '../../pages/WalletView';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -24,7 +24,7 @@ const GORELI = 'Goerli Test Network';
 const XDAI_URL = 'https://rpc.gnosischain.com';
 const MAINNET = 'Ethereum Main Network';
 
-describe(Regression('Custom RPC Tests'), () => {
+describe(RegressionCore('Custom RPC Tests'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();

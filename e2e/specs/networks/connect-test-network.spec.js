@@ -1,4 +1,4 @@
-import { Regression } from '../../tags';
+import { RegressionCore } from '../../tags';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import WalletView from '../../pages/WalletView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
@@ -7,7 +7,7 @@ import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 const GORELI = 'Goerli Test Network';
 const ETHEREUM = 'Ethereum Main Network';
 
-describe(Regression('Connect to a Test Network'), () => {
+describe(RegressionCore('Connect to a Test Network'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.launchApp();

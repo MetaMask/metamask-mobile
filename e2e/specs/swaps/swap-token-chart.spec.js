@@ -16,11 +16,11 @@ import Networks from '../../resources/networks.json';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { Regression } from '../../tags';
+import { RegressionSwaps } from '../../tags';
 
 const fixtureServer = new FixtureServer();
 
-describe(Regression('Swap from Token view'), () => {
+describe(RegressionSwaps('Swap from Token view'), () => {
   const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();

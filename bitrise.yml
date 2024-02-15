@@ -122,10 +122,37 @@ stages:
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
-      - ios_build_regression_tests: {}
-      - android_build_regression_tests: {}
+      - run_tag_smoke_confirmations_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
+      - run_tag_smoke_core_ios: {}
+      - run_tag_smoke_core_android: {}
+      - run_tag_smoke_accounts_ios: {}
+      - run_tag_smoke_accounts_android: {}
+
+
+      - run_tag_regression_confirmations_ios: {}
+      - run_tag_regression_confirmations_android: {}
+      - run_tag_regression_swaps_ios: {}
+      - run_tag_regression_swaps_android: {}
+      - run_tag_regression_core_ios: {}
+      - run_tag_regression_core_android: {}
+      - run_tag_regression_accounts_ios: {}
+      - run_tag_regression_accounts_android: {}
+
+      
+
+
+
+
+
+
+      
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -336,34 +363,96 @@ workflows:
 
   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection
-  ios_build_regression_tests:
+  run_tag_regression_confirmations_ios:
     envs:
-      - TEST_SUITE: 'Regression'
-    after_run:
-      - ios_e2e_build
-  ios_run_regression_tests:
-    envs:
-      - TEST_SUITE: 'Regression'
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
+      - TEST_SUITE_TAG: '.*RegressionConfirmations.*'
     after_run:
       - ios_e2e_test
-  android_build_regression_tests:
+  run_tag_regression_confirmations_android:
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE: 'Regression'
-    after_run:
-      - android_e2e_build
-  android_run_regression_tests:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-20.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE: 'Regression'
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
+      - TEST_SUITE_TAG: '.*RegressionConfirmations.*'
     after_run:
       - android_e2e_test
+  run_tag_regression_swaps_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
+      - TEST_SUITE_TAG: '.*RegressionSwaps.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_regression_swaps_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
+      - TEST_SUITE_TAG: '.*RegressionSwaps.*'
+    after_run:
+      - android_e2e_test
+  run_tag_regression_core_ios:
+    envs:
+      - TEST_SUITE_TAG: '.*RegressionCore.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_regression_core_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*RegressionCore.*'
+    after_run:
+      - android_e2e_test
+  run_tag_regression_accounts_ios:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*RegressionAccounts.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_regression_accounts_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*RegressionAccounts.*'
+    after_run:
+      - android_e2e_test
+    
+  # ios_run_regression_tests:
+  #   envs:
+  #     - TEST_SUITE: 'Regression'
+  #   after_run:
+  #     - ios_e2e_test
+  # android_build_regression_tests:
+  #   meta:
+  #     bitrise.io:
+  #       stack: linux-docker-android-20.04
+  #       machine_type_id: elite-xl
+  #   envs:
+  #     - TEST_SUITE: 'Regression'
+  #   after_run:
+  #     - android_e2e_build
+  # android_run_regression_tests:
+  #   meta:
+  #     bitrise.io:
+  #       stack: linux-docker-android-20.04
+  #       machine_type_id: elite-xl
+  #   envs:
+  #     - TEST_SUITE: 'Regression'
+  #   after_run:
+  #     - android_e2e_test
 
   ### Seperating workflows so they run concurrently during smoke runs
   run_tag_smoke_confirmations_ios:
@@ -412,6 +501,23 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
+  run_tag_smoke_accounts_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_accounts_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
+      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - android_e2e_test
+  
 
   e2e_setup:
     steps:

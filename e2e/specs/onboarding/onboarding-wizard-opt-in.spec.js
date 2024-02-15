@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionCore } from '../../tags';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
@@ -23,7 +23,7 @@ import Assertions from '../../utils/Assertions';
 const PASSWORD = '12345678';
 
 describe(
-  Regression('Onboarding wizard opt-in, metametrics opt out from settings'),
+  RegressionCore('Onboarding wizard opt-in, metametrics opt out from settings'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(150000);

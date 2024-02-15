@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionCore } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import ImportAccountView from '../../pages/ImportAccountView';
 import TabBarComponent from '../../pages/TabBarComponent';
@@ -23,7 +23,7 @@ const SEPOLIA = 'Sepolia Test Network';
 
 const accountPrivateKey = Accounts.getAccountPrivateKey();
 describe(
-  Regression(
+  RegressionCore(
     'Permission System Test: Revoking accounts after connecting to a dapp',
   ),
   () => {

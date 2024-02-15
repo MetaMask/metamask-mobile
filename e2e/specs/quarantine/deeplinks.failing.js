@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { RegressionCore } from '../../tags';
 
 import ConnectModal from '../../pages/modals/ConnectModal';
 import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
@@ -41,7 +41,7 @@ const networkErrorBodyMessage =
 
 const validAccount = Accounts.getValidAccount();
 
-describe(Regression('Deep linking Tests'), () => {
+describe(RegressionCore('Deep linking Tests'), () => {
   beforeEach(() => {
     jest.setTimeout(150000);
   });
