@@ -67,7 +67,7 @@ describe('Migration #24', () => {
     expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
       networkConfigurations: {},
       networkDetails: {
-        EIPS: { 1559: false },
+        EIPS: {},
       },
       networkId: null,
       networkStatus: 'unknown',
@@ -94,7 +94,7 @@ describe('Migration #24', () => {
     expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
       networkConfigurations: {},
       networkDetails: {
-        EIPS: { 1559: false },
+        EIPS: {},
       },
       networkId: '1',
       networkStatus: 'available',

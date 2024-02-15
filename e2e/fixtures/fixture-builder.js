@@ -130,7 +130,7 @@ class FixtureBuilder {
                 chainId: '0x1',
               },
               networkDetails: {
-                EIPS: { 1559: false },
+                EIPS: {},
               },
               networkConfigurations: {
                 networkId1: {
