@@ -63,6 +63,7 @@ import {
   selectUseNftDetection,
   selectShowIncomingTransactionNetworks,
   selectShowTestNetworks,
+  selectUseSafeChainsListValidation,
 } from '../../../../selectors/preferencesController';
 import {
   SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
@@ -86,6 +87,7 @@ import {
   BATCH_BALANCE_REQUESTS_SECTION,
   BIOMETRY_CHOICE_STRING,
   CLEAR_BROWSER_HISTORY_SECTION,
+  DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
   HASH_STRING,
   HASH_TO_TEST,
   IPFS_GATEWAY_SECTION,
@@ -94,6 +96,7 @@ import {
   NFT_DISPLAY_MEDIA_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
   SDK_SECTION,
+  USE_SAFE_CHAINS_LIST_VALIDATION,
 } from './SecuritySettings.constants';
 import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
 import { CellVariant } from '../../../../component-library/components/Cells/Cell';
@@ -101,9 +104,9 @@ import { AvatarVariant } from '../../../../component-library/components/Avatars/
 import Networks, {
   getAllNetworks,
   getNetworkImageSource,
+  toggleUseSafeChainsListValidation,
 } from '../../../../util/networks';
 import images from 'images/image-icons';
-import { toHexadecimal } from '../../../../util/number';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Text, {
@@ -156,6 +159,10 @@ const Settings: React.FC = () => {
   );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
+  const useSafeChainsListValidation = useSelector(
+    selectUseSafeChainsListValidation,
+  );
+
   const useNftDetection = useSelector(selectUseNftDetection);
 
   const seedphraseBackedUp = useSelector(
@@ -619,6 +626,43 @@ const Settings: React.FC = () => {
     [colors, styles, displayNftMedia, theme],
   );
 
+  const renderUseSafeChainsListValidation = useCallback(
+    () => (
+      <View style={styles.halfSetting} testID={USE_SAFE_CHAINS_LIST_VALIDATION}>
+        <View style={styles.titleContainer}>
+          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+            {strings('wallet.network_details_check')}
+          </Text>
+          <View style={styles.switchElement}>
+            <Switch
+              value={useSafeChainsListValidation}
+              onValueChange={toggleUseSafeChainsListValidation}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={theme.brandColors.white['000']}
+              style={styles.switch}
+              ios_backgroundColor={colors.border.muted}
+              testID={DISPLAY_SAFE_CHAINS_LIST_VALIDATION}
+            />
+          </View>
+        </View>
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.desc}
+        >
+          {strings('app_settings.use_safe_chains_list_validation_desc_1')}
+          <Text variant={TextVariant.BodyMDBold}>chainid.network </Text>
+          {strings('app_settings.use_safe_chains_list_validation_desc_2')}{' '}
+          chainid.network
+        </Text>
+      </View>
+    ),
+    [colors, styles, useSafeChainsListValidation, theme.brandColors.white],
+  );
+
   const renderAutoDetectNft = useCallback(
     () => (
       <View
@@ -737,7 +781,7 @@ const Settings: React.FC = () => {
 
   const renderShowIncomingTransactions = () => {
     const renderMainnet = () => {
-      const { name: mainnetName, hexChainId } = Networks.mainnet;
+      const { name: mainnetName, chainId } = Networks.mainnet;
       return (
         <Cell
           variant={CellVariant.Display}
@@ -751,9 +795,9 @@ const Settings: React.FC = () => {
           style={styles.cellBorder}
         >
           <Switch
-            value={showIncomingTransactionsNetworks[hexChainId]}
+            value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(hexChainId, value)
+              toggleEnableIncomingTransactions(chainId, value)
             }
             trackColor={{
               true: colors.primary.default,
@@ -768,7 +812,7 @@ const Settings: React.FC = () => {
     };
 
     const renderLineaMainnet = () => {
-      const { name: lineaMainnetName, hexChainId } = Networks['linea-mainnet'];
+      const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
 
       return (
         <Cell
@@ -783,9 +827,9 @@ const Settings: React.FC = () => {
           style={styles.cellBorder}
         >
           <Switch
-            value={showIncomingTransactionsNetworks[hexChainId]}
+            value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(hexChainId, value)
+              toggleEnableIncomingTransactions(chainId, value)
             }
             trackColor={{
               true: colors.primary.default,
@@ -804,9 +848,7 @@ const Settings: React.FC = () => {
         ({ nickname, rpcUrl, chainId }) => {
           if (!chainId) return null;
 
-          const hexChainId = `0x${toHexadecimal(chainId)}`;
-
-          if (!Object.keys(myNetworks).includes(hexChainId)) return null;
+          if (!Object.keys(myNetworks).includes(chainId)) return null;
 
           const { name } = { name: nickname || rpcUrl };
           //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
@@ -817,7 +859,7 @@ const Settings: React.FC = () => {
               key={chainId}
               variant={CellVariant.Display}
               title={name}
-              secondaryText={myNetworks[hexChainId].domain}
+              secondaryText={myNetworks[chainId].domain}
               avatarProps={{
                 variant: AvatarVariant.Network,
                 name,
@@ -826,9 +868,9 @@ const Settings: React.FC = () => {
               style={styles.cellBorder}
             >
               <Switch
-                value={showIncomingTransactionsNetworks[hexChainId]}
+                value={showIncomingTransactionsNetworks[chainId]}
                 onValueChange={(value) =>
-                  toggleEnableIncomingTransactions(hexChainId, value)
+                  toggleEnableIncomingTransactions(chainId, value)
                 }
                 trackColor={{
                   true: colors.primary.default,
@@ -847,15 +889,14 @@ const Settings: React.FC = () => {
       const NetworksTyped = Networks as NetworksI;
       const getOtherNetworks = () => getAllNetworks().slice(2);
       return getOtherNetworks().map((networkType) => {
-        const { name, imageSource, chainId, hexChainId } =
-          NetworksTyped[networkType];
-        if (!hexChainId) return null;
+        const { name, imageSource, chainId } = NetworksTyped[networkType];
+        if (!chainId) return null;
         return (
           <Cell
             key={chainId}
             variant={CellVariant.Display}
             title={name}
-            secondaryText={myNetworks[hexChainId].domain}
+            secondaryText={myNetworks[chainId].domain}
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -864,10 +905,9 @@ const Settings: React.FC = () => {
             style={styles.cellBorder}
           >
             <Switch
-              value={showIncomingTransactionsNetworks[hexChainId]}
+              value={showIncomingTransactionsNetworks[chainId]}
               onValueChange={(value) => {
-                hexChainId &&
-                  toggleEnableIncomingTransactions(hexChainId, value);
+                chainId && toggleEnableIncomingTransactions(chainId, value);
               }}
               trackColor={{
                 true: colors.primary.default,
@@ -950,6 +990,15 @@ const Settings: React.FC = () => {
         <ClearPrivacy />
         {renderClearBrowserHistorySection()}
         <ClearCookiesSection />
+
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={styles.subHeading}
+        >
+          {strings('app_settings.network_provider')}
+        </Text>
+        {renderUseSafeChainsListValidation()}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

@@ -399,7 +399,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   return (
-    <BottomSheet onClose={handleSheetDismiss} isFullscreen ref={sheetRef}>
+    <BottomSheet onClose={handleSheetDismiss} ref={sheetRef}>
       {renderConnectScreens()}
     </BottomSheet>
   );

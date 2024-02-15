@@ -140,6 +140,8 @@ loadJSEnv(){
 			source $JS_ENV_FILE
 		fi
 	fi
+	# Disable auto Sentry file upload by default
+	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 }
 
 
@@ -258,6 +260,8 @@ generateArchivePackages() {
 }
 
 buildIosRelease(){
+	# Enable Sentry to auto upload source maps and debug symbols
+	export SENTRY_DISABLE_AUTO_UPLOAD="false"
 	prebuild_ios
 
 	# Replace release.xcconfig with ENV vars
@@ -268,8 +272,6 @@ buildIosRelease(){
 		brew install watchman
 		cd ios
 		generateArchivePackages "MetaMask"
-		# Generate sourcemaps
-		yarn sourcemaps:ios
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -292,8 +294,6 @@ buildIosFlaskRelease(){
 		brew install watchman
 		cd ios
 		generateArchivePackages "MetaMask-Flask"
-		# Generate sourcemaps
-		yarn sourcemaps:ios
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -336,8 +336,6 @@ buildIosQA(){
 		brew install watchman
 		cd ios
 		generateArchivePackages "MetaMask-QA"
-		# Generate sourcemaps
-		yarn sourcemaps:ios
 	else
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
@@ -353,6 +351,7 @@ buildAndroidQA(){
 	fi
 
 	prebuild_android
+
 	# Generate APK
 	cd android && ./gradlew assembleQaRelease -x app:createBundleFlaskDebugJsAndAssets --no-daemon --max-workers 2
 
@@ -362,8 +361,6 @@ buildAndroidQA(){
 	fi
 
 	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate sourcemaps
-		yarn sourcemaps:android
 		# Generate checksum
 		yarn build:android:checksum:qa
 	fi
@@ -377,6 +374,9 @@ buildAndroidRelease(){
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
 	fi
+
+	# Enable Sentry to auto upload source maps and debug symbols
+	export SENTRY_DISABLE_AUTO_UPLOAD="false"
 	prebuild_android
 
 	# GENERATE APK
@@ -388,8 +388,6 @@ buildAndroidRelease(){
 	fi
 
 	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate sourcemaps
-		yarn sourcemaps:android
 		# Generate checksum
 		yarn build:android:checksum
 	fi
@@ -417,8 +415,6 @@ buildAndroidFlaskRelease(){
 	fi
 
 	if [ "$PRE_RELEASE" = true ] ; then
-		# Generate sourcemaps
-		yarn sourcemaps:android
 		# Generate checksum
 		yarn build:android:checksum:flask
 	fi

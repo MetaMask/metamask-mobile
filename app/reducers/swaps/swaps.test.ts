@@ -16,14 +16,14 @@ describe('swaps reducer', () => {
     const initalState = reducer(undefined, emptyAction);
     const notLiveState = reducer(initalState, {
       type: SWAPS_SET_LIVENESS,
-      payload: { live: false, chainId: 1 },
+      payload: { live: false, chainId: '0x1' },
     });
-    expect(notLiveState['1'].isLive).toBe(false);
+    expect(notLiveState['0x1'].isLive).toBe(false);
     const liveState = reducer(initalState, {
       type: SWAPS_SET_LIVENESS,
-      payload: { live: true, chainId: 1 },
+      payload: { live: true, chainId: '0x1' },
     });
-    expect(liveState['1'].isLive).toBe(true);
+    expect(liveState['0x1'].isLive).toBe(true);
   });
 
   it('should set has onboarded', () => {

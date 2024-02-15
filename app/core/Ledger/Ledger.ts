@@ -1,28 +1,8 @@
-import Engine from '../Engine';
+import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
+import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
-
-// Mock interface for the SerializationOptions
-interface SerializationOptions {
-  vault: any;
-  keyrings: any[];
-  isUnlocked: boolean;
-  encryptionKey: string;
-  encryptionSalt: string;
-}
-
-// Mock interface for the LedgerKeyring
-interface LedgerKeyring {
-  setTransport: (transport: any, deviceId: string) => void;
-  getAppAndVersion: () => Promise<{ appName: string }>;
-  getDefaultAccount: () => Promise<string>;
-  openEthApp: () => Promise<void>;
-  quitApp: () => Promise<void>;
-  forgetDevice: () => void;
-  deserialize: (keyringSerialized: SerializationOptions) => void;
-  deviceId: string;
-  getName: () => string;
-}
+import Engine from '../Engine';
 
 /**
  * Add LedgerKeyring.
@@ -44,29 +24,11 @@ export const addLedgerKeyring = async (): Promise<LedgerKeyring> => {
 export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
   const keyringController = Engine.context.KeyringController;
   // There should only be one ledger keyring.
-  const keyring = keyringController().getKeyringsByType(
+  const keyring = keyringController.getKeyringsByType(
     ExtendedKeyringTypes.ledger,
-  )[0] as unknown as LedgerKeyring;
+  );
 
-  if (keyring) {
-    return keyring;
-  }
-
-  return await addLedgerKeyring();
-};
-
-/**
- * Restores the Ledger Keyring. This is only used at the time the user resets the account's password at the moment.
- *
- * @param keyringSerialized - The serialized keyring;
- */
-export const restoreLedgerKeyring = async (
-  keyringSerialized: SerializationOptions,
-): Promise<void> => {
-  const keyringController = Engine.context.KeyringController;
-
-  (await getLedgerKeyring()).deserialize(keyringSerialized);
-  keyringController.updateIdentities(await keyringController.getAccounts());
+  return keyring.length ? keyring[0] : await addLedgerKeyring();
 };
 
 /**
@@ -77,7 +39,7 @@ export const restoreLedgerKeyring = async (
  * @returns The name of the currently open application on the device
  */
 export const connectLedgerHardware = async (
-  transport: any,
+  transport: BleTransport,
   deviceId: string,
 ): Promise<string> => {
   const keyring = await getLedgerKeyring();
@@ -88,33 +50,24 @@ export const connectLedgerHardware = async (
 
 /**
  * Retrieve the first account from the Ledger device.
- *
+ * @param isAccountImportReq - Whether we need to import a ledger account by calling addNewAccountForKeyring
  * @returns The default (first) account on the device
  */
-export const unlockLedgerDefaultAccount = async (): Promise<{
+export const unlockLedgerDefaultAccount = async (
+  isAccountImportReq: boolean,
+): Promise<{
   address: string;
   balance: string;
 }> => {
   const keyringController = Engine.context.KeyringController;
-  const preferencesController = Engine.context.PreferencesController;
+
   const keyring = await getLedgerKeyring();
-  const oldAccounts = await keyringController.getAccounts();
-  await keyringController.addNewAccountForKeyring(keyring);
-  const newAccounts = await keyringController.getAccounts();
 
-  keyringController.updateIdentities(newAccounts);
-  newAccounts.forEach((address: string) => {
-    if (!oldAccounts.includes(address)) {
-      if (keyringController.setAccountLabel) {
-        // The first ledger account is always returned.
-        keyringController.setAccountLabel(address, `${keyring.getName()} 1`);
-      }
-      preferencesController.setSelectedAddress(address);
-    }
-  });
-  await keyringController.persistAllKeyrings();
-
+  if (isAccountImportReq) {
+    await keyringController.addNewAccountForKeyring(keyring);
+  }
   const address = await keyring.getDefaultAccount();
+
   return {
     address,
     balance: `0x0`,
@@ -183,6 +136,6 @@ export const ledgerSignTypedMessage = async (
         | Record<string, unknown>
         | Record<string, unknown>[],
     },
-    { version },
+    version,
   );
 };
