@@ -1,14 +1,10 @@
 'use strict';
 import TestHelpers from '../../helpers';
-
 import Browser from '../../pages/Browser';
-
 import AccountListView from '../../pages/AccountListView';
 import TabBarComponent from '../../pages/TabBarComponent';
-
 import ConnectModal from '../../pages/modals/ConnectModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
-
 import { loginToApp } from '../../viewHelper';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
