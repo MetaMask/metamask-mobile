@@ -33,6 +33,7 @@ export const createSignedTransactions = async (
   const signedTransactions =
     await TransactionController.approveTransactionsWithSameNonce(
       unsignedTransactionsWithFees,
+      { hasNonce: true },
     );
 
   Logger.log(
