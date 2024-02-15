@@ -104,12 +104,14 @@ import {
   SnapsRegistryState,
   SnapControllerEvents,
   SnapControllerActions,
-  buildSnapEndowmentSpecifications,
-  buildSnapRestrictedMethodSpecifications,
   PersistedSnapControllerState,
 } from '@metamask/snaps-controllers';
 import { Snap } from '@metamask/snaps-utils';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
+import {
+  buildSnapEndowmentSpecifications,
+  buildSnapRestrictedMethodSpecifications,
+} from '@metamask/snaps-rpc-methods';
 import { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
@@ -948,7 +950,6 @@ class Engine {
           },
           updateTransactions: true,
         },
-        // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
           name: 'TransactionController',
           allowedActions: [`${approvalController.name}:addRequest`],
