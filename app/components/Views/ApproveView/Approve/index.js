@@ -52,7 +52,7 @@ import {
   selectChainId,
   selectProviderType,
   selectTicker,
-  selectRpcTarget,
+  selectRpcUrl,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import {
@@ -900,7 +900,7 @@ const mapStateToProps = (state) => ({
   showCustomNonce: state.settings.showCustomNonce,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcTarget(state),
+  providerRpcTarget: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
 });
 

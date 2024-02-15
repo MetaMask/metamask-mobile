@@ -87,6 +87,7 @@ import {
   SWAP_DEST_TOKEN,
   SWAP_MAX_SLIPPAGE,
 } from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { getDecimalChainId } from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -283,7 +284,7 @@ function SwapsAmountView({
               activeCurrency: swapsTokens?.find((token) =>
                 toLowerCaseEquals(token.address, initialSource),
               )?.symbol,
-              chain_id: chainId,
+              chain_id: getDecimalChainId(chainId),
             };
             Analytics.trackEventWithParameters(
               MetaMetricsEvents.SWAPS_OPENED,

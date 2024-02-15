@@ -38,7 +38,7 @@ jest.mock('../Engine', () => ({
     },
     NetworkController: {
       state: {
-        providerConfig: { chainId: '1' },
+        providerConfig: { chainId: '0x1' },
       },
     },
   },
@@ -265,7 +265,10 @@ function setupGlobalState({
 const addressMock = '0x0000000000000000000000000000000000000001';
 const dataMock =
   '0x0000000000000000000000000000000000000000000000000000000000000000';
-const dataJsonMock = JSON.stringify({ test: 'data', domain: { chainId: '1' } });
+const dataJsonMock = JSON.stringify({
+  test: 'data',
+  domain: { chainId: '0x1' },
+});
 const hostMock = 'example.metamask.io';
 const signatureMock = '0x1234567890';
 
@@ -273,7 +276,7 @@ function setupSignature() {
   setupGlobalState({
     activeTab: 1,
     providerConfig: {
-      chainId: '1',
+      chainId: '0x1',
       type: RPC,
     },
     selectedAddress: addressMock,
@@ -520,7 +523,7 @@ describe('getRpcMethodMiddleware', () => {
           permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
           providerConfig: {
-            chainId: '1',
+            chainId: '0x1',
             type: RPC,
           },
         });
@@ -554,7 +557,7 @@ describe('getRpcMethodMiddleware', () => {
           permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
           providerConfig: {
-            chainId: '1',
+            chainId: '0x1',
             type: RPC,
           },
         });
@@ -590,7 +593,7 @@ describe('getRpcMethodMiddleware', () => {
           permittedAccounts: {},
           // Set minimal network controller state to support validation
           providerConfig: {
-            chainId: '1',
+            chainId: '0x1',
             type: RPC,
           },
         });
@@ -626,7 +629,7 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
           providerConfig: {
-            chainId: '1',
+            chainId: '0x1',
             type: RPC,
           },
           selectedAddress: mockAddress,
@@ -657,7 +660,7 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
           providerConfig: {
-            chainId: '1',
+            chainId: '0x1',
             type: RPC,
           },
           selectedAddress: differentMockAddress,
@@ -693,7 +696,7 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
           providerConfig: {
-            chainId: '1',
+            chainId: '0x1',
             type: RPC,
           },
           selectedAddress: mockAddress,
@@ -724,7 +727,7 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
           providerConfig: {
-            chainId: '1',
+            chainId: '0x1',
             type: RPC,
           },
           selectedAddress: differentMockAddress,
@@ -754,12 +757,12 @@ describe('getRpcMethodMiddleware', () => {
 
     it('skips account validation if the account is missing from the transaction parameters', async () => {
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = { chainId: 1 } as Transaction;
+      const mockTransactionParameters = { chainId: '0x1' };
       setupGlobalState({
         addTransactionResult: Promise.resolve('fake-hash'),
         // Set minimal network controller state to support validation
         providerConfig: {
-          chainId: '1',
+          chainId: '0x1',
           type: RPC,
         },
       });

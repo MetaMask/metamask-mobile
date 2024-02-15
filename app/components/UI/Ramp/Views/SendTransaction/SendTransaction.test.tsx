@@ -404,7 +404,7 @@ describe('SendTransaction View', () => {
       Array [
         Array [
           Object {
-            "chainId": 1,
+            "chainId": "0x1",
             "from": "0x1234",
             "to": "0x34256",
             "value": "0x2bea80d2171600",

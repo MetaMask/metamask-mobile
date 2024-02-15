@@ -47,6 +47,7 @@ import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../util/blockaid';
+import { getDecimalChainId } from '../../../util/networks';
 
 import { updateTransaction } from '../../../util/transaction-controller';
 
@@ -302,7 +303,7 @@ class Approval extends PureComponent {
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: transaction?.origin,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
         asset_type: { value: transaction?.assetType, anonymous: true },
         gas_estimate_type: gasEstimateType,

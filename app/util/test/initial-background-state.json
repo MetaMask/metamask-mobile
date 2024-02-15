@@ -26,7 +26,6 @@
   "TokensController": {
     "tokens": [],
     "ignoredTokens": [],
-    "suggestedAssets": [],
     "detectedTokens": [],
     "allTokens": {},
     "allIgnoredTokens": {},
@@ -64,10 +63,10 @@
     "networkConfigurations": {},
     "providerConfig": {
       "type": "mainnet",
-      "chainId": "1"
+      "chainId": "0x1"
     },
     "networkDetails": {
-      "isEIP1559Compatible": false
+      "EIPS": {}
     },
     "networkId": null,
     "networkStatus": "unknown"
@@ -98,7 +97,7 @@
     "useNftDetection": false,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
-    "securityAlertsEnabled": false,
+    "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false
@@ -189,7 +188,7 @@
     "usedGasEstimate": null,
     "usedCustomGas": null,
     "chainCache": {
-      "1": {
+      "0x1": {
         "aggregatorMetadata": null,
         "tokens": null,
         "topAssets": null,

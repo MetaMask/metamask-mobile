@@ -20,7 +20,7 @@ import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/device';
-import { isMainnetByChainId } from '../../../util/networks';
+import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
 import FadeAnimationView from '../FadeAnimationView';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';
@@ -153,7 +153,7 @@ const EditGasFeeLegacy = ({
     try {
       return {
         ...analyticsParams,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         function_type: view,
         gas_mode: selectedOption ? 'Basic' : 'Advanced',
         speed_set: selectedOption || undefined,
