@@ -17,6 +17,7 @@ import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { useTheme } from '../../../util/theme';
+import { isNumber } from '../../../util/number';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -167,7 +168,11 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
                 // autoFocus
                 autoCapitalize="none"
                 autoCorrect={false}
-                onChangeText={onChangeText}
+                onChangeText={(text) => {
+                  if (isNumber(text)) {
+                    onChangeText(text);
+                  }
+                }}
                 placeholder={String(proposedNonce)}
                 placeholderTextColor={colors.text.muted}
                 spellCheck={false}
