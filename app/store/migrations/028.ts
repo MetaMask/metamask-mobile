@@ -2,6 +2,7 @@ import { hasProperty, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { deepJSONParse } from '../../util/general';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
+import Device from '../../util/device';
 
 export const controllerList = [
   { name: 'AccountTrackerController' },
@@ -121,7 +122,11 @@ export default async function migrate(state: unknown) {
   try {
     const rootKey = `persist:root`;
     // Manually update the persisted root file
-    await FilesystemStorage.setItem(rootKey, JSON.stringify(state));
+    await FilesystemStorage.setItem(
+      rootKey,
+      JSON.stringify(state),
+      Device.isIos(),
+    );
     // Root file successfully populated with controller data - Can safely delete persisted controller files
     const controllerDeleteMigration = controllerList.map(async ({ name }) => {
       const persistedControllerKey = `persist:${name}`;
