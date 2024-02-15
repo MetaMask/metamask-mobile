@@ -377,6 +377,10 @@
     "nfts_autodetection_title": "NFT detection",
     "nfts_autodetection_desc": "Allow MetaMask to automatically detect NFTs from OpenSea and display in your MetaMask wallet.",
     "network_details_check": "Network details check",
+    "network_with_chain_id": "The network with chain ID",
+    "use_the_currency_symbol": "uses the currency symbol",
+    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
+    "chain_id_currently_used": "This Chain ID is currently used by the",
     "network_check_validation_desc": "reduces your chances of connecting to a malicious or incorrect network.",
     "nfts_autodetection_cta": "Turn on NFT detection in Settings",
     "learn_more": "Learn more",
@@ -715,7 +719,6 @@
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
     "network_symbol_label": "Symbol",
-    "network_symbol_placeholder": "Symbol (optional)",
     "network_block_explorer_label": "Block Explorer URL",
     "network_block_explorer_placeholder": "Block Explorer URL (optional)",
     "network_chain_id_warning": "Invalid Chain ID",
@@ -885,7 +888,8 @@
     "transactions_subheading": "Transactions",
     "network_provider": "Network provider",
     "token_nft_ens_subheading": "Token, NFT, and ENS autodetection",
-    "security_check_subheading": "Security checks"
+    "security_check_subheading": "Security checks",
+    "symbol_required": "Symbol is required."
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1460,6 +1464,7 @@
     "add": "Add",
     "cancel": "Cancel",
     "approve": "Approve",
+    "edit_network_details":"Edit network details",
     "malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Network Information",
@@ -2377,9 +2382,10 @@
     "title": "What's new",
     "blockaid": {
       "title": "Stay safe with security alerts",
-      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
+      "description_1": "Steer safe from known scams while still protecting your privacy with security alerts powered by Blockaid. This feature is now on by default for all MetaMask users.",
       "description_2": "Always do your own due diligence before approving requests.",
-      "action_text": "Enable security alerts"
+      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
+      "got_it": "Got it"
     },
     "sell": {
       "title": "Cashing out made easy",

@@ -1,6 +1,6 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import { JsonRpcEngine } from 'json-rpc-engine';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';
@@ -174,7 +174,7 @@ export class BackgroundBridge extends EventEmitter {
     let chainId;
 
     if (isInitialNetwork) {
-      chainId = NetworksChainId[networkType];
+      chainId = ChainId[networkType];
     } else if (networkType === 'rpc') {
       chainId = providerConfig.chainId;
     }
