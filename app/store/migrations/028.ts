@@ -88,9 +88,9 @@ export default async function migrate(state: unknown) {
         );
 
         if (persistedControllerData) {
-          const persistedControllerJSON = deepJSONParse(
-            persistedControllerData,
-          );
+          const persistedControllerJSON = deepJSONParse({
+            jsonString: persistedControllerData,
+          });
 
           if (hasProperty(persistedControllerJSON, '_persist')) {
             const { _persist, ...controllerJSON } = persistedControllerJSON;
