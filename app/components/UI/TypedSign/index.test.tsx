@@ -337,10 +337,10 @@ describe('TypedSign', () => {
       expect(mockReject).toHaveBeenCalledTimes(1);
 
       await waitFor(() => {
-        expect(mockMetrics.trackEvent.mock.calls[0][0]).toEqual(
+        expect(mockMetrics.trackEvent.mock.calls[2][0]).toEqual(
           'Signature Rejected',
         );
-        expect(mockMetrics.trackEvent.mock.calls[0][1]).toEqual({
+        expect(mockMetrics.trackEvent.mock.calls[2][1]).toEqual({
           account_type: 'Metamask',
           dapp_host_name: undefined,
           chain_id: undefined,
@@ -373,10 +373,10 @@ describe('TypedSign', () => {
       fireEvent.press(signButton);
 
       await waitFor(() => {
-        expect(mockMetrics.trackEvent.mock.calls[0][0]).toEqual(
+        expect(mockMetrics.trackEvent.mock.calls[2][0]).toEqual(
           'Signature Approved',
         );
-        expect(mockMetrics.trackEvent.mock.calls[0][1]).toEqual({
+        expect(mockMetrics.trackEvent.mock.calls[2][1]).toEqual({
           account_type: 'Metamask',
           dapp_host_name: undefined,
           chain_id: undefined,
