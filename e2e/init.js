@@ -1,4 +1,4 @@
-import TestHelpers from './helpers';
+import Utilities from './utils/Utilities';
 
 /**
  * Before all tests, modify the app launch arguments to include the blacklistURLs.
@@ -6,6 +6,6 @@ import TestHelpers from './helpers';
  */
 beforeAll(async () => {
   device.appLaunchArgs.modify({
-    detoxURLBlacklistRegex: TestHelpers.getBlacklistURLs(),
+    detoxURLBlacklistRegex: Utilities.BlacklistURLs,
   });
 });

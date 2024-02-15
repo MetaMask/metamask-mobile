@@ -4,10 +4,7 @@ import {
   getGanachePort,
   getLocalTestDappPort,
 } from './fixtures/utils';
-import {
-  blacklistURLs,
-  blacklistURLsString,
-} from './resources/blacklistURLs.json';
+import Utilities from './utils/Utilities';
 
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
@@ -157,7 +154,7 @@ export default class TestHelpers {
       sourceApp: 'io.metamask',
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
-        detoxURLBlacklistRegex: this.getBlacklistURLs(),
+        detoxURLBlacklistRegex: Utilities.BlacklistURLs,
       },
     });
   }
@@ -228,7 +225,7 @@ export default class TestHelpers {
     return device.launchApp({
       newInstance: true,
       launchArgs: {
-        detoxURLBlacklistRegex: this.getBlacklistURLs(),
+        detoxURLBlacklistRegex: Utilities.BlacklistURLs,
       },
     });
   }
@@ -280,18 +277,5 @@ export default class TestHelpers {
       await device.reverseTcpPort(getFixturesServerPort());
       await device.reverseTcpPort(getLocalTestDappPort());
     }
-  }
-
-  /**
-   * Returns a string representation of the blacklisted endpoint patterns,
-   * formatted for use in a regular expression.
-   *
-   * @static
-   * @returns {string} The formatted string of blacklisted endpoint patterns.
-   */
-  static getBlacklistURLs() {
-    return device.getPlatform() === 'android'
-      ? blacklistURLsString
-      : `\\("${blacklistURLs.join('","')}"\\)`;
   }
 }
