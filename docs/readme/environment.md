@@ -69,9 +69,8 @@ Install [Android Studio](https://developer.android.com/studio)
 Set environment variable `JAVA_HOME=/Applications/Android Studio.app/Contents/jbr/Contents/Home` to use java version shipped on the Android Studio App 
 
    
-   - Install the Android NDK (version `21.4.7075529`), via [Android Studio](https://developer.android.com/studio)'s SDK Manager.
-     - Go to Settings > Appearance & Behavior > System Settings > Android SDK
-       - Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
+   - Go to Settings > Appearance & Behavior > System Settings > Android SDK
+   - Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
      - Select `SDK Tools` tab
      - Check `Show Package Details` option below the tools list to show available versions
      - Locate `NDK (Side-by-side)` option in the tools list
