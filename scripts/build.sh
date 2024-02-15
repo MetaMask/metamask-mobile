@@ -203,12 +203,14 @@ buildIosSimulator(){
 
 buildIosSimulatorQA(){
 	prebuild_ios
-	react-native run-ios --port=$WATCHER_PORT --scheme "MetaMask-QA"
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
 }
 
 buildIosSimulatorFlask(){
 	prebuild_ios
-	react-native run-ios --port=$WATCHER_PORT --scheme "MetaMask-Flask"
+	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-Flask"
 }
 
 buildIosSimulatorE2E(){
@@ -275,7 +277,7 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios --configuration Release
+		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
 	fi
 }
 
