@@ -76,7 +76,7 @@ const createStyles = (colors, typography) =>
     },
     importRowBody: {
       alignItems: 'center',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       paddingTop: 10,
     },
     listItemDate: {
@@ -544,7 +544,7 @@ class TransactionElement extends PureComponent {
         <TouchableHighlight
           style={styles.row}
           onPress={this.onPressItem}
-          underlayColor={colors.background.alternative}
+          underlayColor={colors.background.secondary}
           activeOpacity={1}
         >
           {this.renderTxElement(transactionElement)}

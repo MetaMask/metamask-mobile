@@ -390,7 +390,7 @@ const CollectibleOverview = ({
                   <RemoteImage
                     fadeIn
                     placeholderStyle={{
-                      backgroundColor: colors.background.alternative,
+                      backgroundColor: colors.background.secondary,
                     }}
                     source={{ uri: collectible.logo }}
                     style={styles.userImage}

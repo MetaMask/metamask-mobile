@@ -129,7 +129,7 @@ const createStyles = (colors) =>
       width: '100%',
     },
     timerWrapper: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       borderRadius: 20,
       marginVertical: 12,
       paddingVertical: 4,

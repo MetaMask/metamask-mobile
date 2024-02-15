@@ -71,9 +71,7 @@ const Identicon: React.FC<IdenticonProps> = ({
   }
 
   return (
-    <FadeIn
-      placeholderStyle={{ backgroundColor: colors.background.alternative }}
-    >
+    <FadeIn placeholderStyle={{ backgroundColor: colors.background.secondary }}>
       {image}
     </FadeIn>
   );

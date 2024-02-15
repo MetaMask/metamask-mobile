@@ -41,7 +41,7 @@ const createStyles = (theme) =>
       right: 0,
       bottom: 0,
       left: 0,
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.secondary,
       borderRadius: 12,
     },
     errorContainer: {

@@ -14,7 +14,7 @@ const INSET = 25;
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     content: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       paddingVertical: 12,
     },
     amount: {

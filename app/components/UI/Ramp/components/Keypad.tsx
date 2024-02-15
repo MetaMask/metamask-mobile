@@ -10,7 +10,7 @@ const createStyles = (colors: Colors, shadows: Shadows) =>
   StyleSheet.create({
     keypad: {
       paddingHorizontal: 24,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
     },
     digitButton: {
       borderRadius: 8,

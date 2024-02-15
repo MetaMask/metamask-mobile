@@ -34,7 +34,7 @@ const styleSheet = (params: {
 
   const fallbackAvatarStyle = showFallback
     ? {
-        backgroundColor: theme.colors.background.alternative,
+        backgroundColor: theme.colors.background.secondary,
         justifyContent: 'center',
         alignItems: 'center',
         borderColor: theme.colors.border.muted,

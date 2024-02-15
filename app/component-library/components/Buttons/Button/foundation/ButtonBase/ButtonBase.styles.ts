@@ -38,7 +38,7 @@ const styleSheet = (params: {
     base: Object.assign(
       {
         flexDirection: 'row',
-        backgroundColor: theme.colors.background.alternative,
+        backgroundColor: theme.colors.background.secondary,
         height: isAutoSize ? size : Number(size),
         alignItems: 'center',
         justifyContent: 'center',

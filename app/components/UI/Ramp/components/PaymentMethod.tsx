@@ -27,7 +27,7 @@ const createStyles = (colors: Colors) =>
     iconWrapper: {
       width: 38,
       height: 38,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       borderRadius: 6,
       justifyContent: 'center',
       alignItems: 'center',

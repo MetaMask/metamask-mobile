@@ -18,7 +18,7 @@ const styleSheet = StyleSheet.create({
     width: toastWidth,
     left: marginWidth,
     bottom: 0,
-    backgroundColor: colors.background.alternative,
+    backgroundColor: colors.background.secondary,
     borderRadius: 4,
     padding,
     flexDirection: 'row',

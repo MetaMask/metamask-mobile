@@ -15,7 +15,7 @@ const createStyles = (colors) =>
       paddingVertical: 24,
     },
     feeWrapper: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       textAlign: 'center',
       padding: 16,
       borderRadius: 8,

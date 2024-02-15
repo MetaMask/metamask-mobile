@@ -206,7 +206,7 @@ const createStyles = (colors, shadows) =>
     searchWrapper: {
       flexDirection: 'row',
       borderRadius: 30,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       height: Device.isAndroid() ? 40 : 30,
       flex: 1,
     },

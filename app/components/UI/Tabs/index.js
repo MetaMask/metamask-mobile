@@ -44,7 +44,7 @@ const createStyles = (colors, shadows) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
     },
     noTabsTitle: {
       ...fontStyles.normal,
@@ -101,7 +101,7 @@ const createStyles = (colors, shadows) =>
     },
     tabs: {
       flex: 1,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
     },
     tabsContent: {
       padding: 15,

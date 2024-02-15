@@ -143,7 +143,7 @@ class WebsiteIcon extends PureComponent {
             placeholderStyle={{
               backgroundColor: transparent
                 ? colors.transparent
-                : colors.background.alternative,
+                : colors.background.secondary,
             }}
           >
             <Image

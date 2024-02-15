@@ -33,7 +33,7 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 32,
       height: 32,
       borderRadius: 16,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       justifyContent: 'center',
       alignItems: 'center',
     },

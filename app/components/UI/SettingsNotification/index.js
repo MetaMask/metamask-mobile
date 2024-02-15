@@ -31,7 +31,7 @@ const createStyles = (colors) =>
       backgroundColor: colors.error.muted,
     },
     normal: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
     },
     check: {
       color: colors.success.default,

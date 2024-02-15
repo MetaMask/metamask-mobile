@@ -7,7 +7,7 @@ import { useTheme } from '../../util/theme';
 const createStyles = (colors) =>
   StyleSheet.create({
     container: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       paddingVertical: 8,
       paddingHorizontal: 10,
       borderRadius: 100,

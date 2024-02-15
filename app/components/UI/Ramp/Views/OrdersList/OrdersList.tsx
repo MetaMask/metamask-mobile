@@ -77,7 +77,7 @@ function OrdersList() {
           ? () => handleNavigateToTxDetails(item.id)
           : undefined
       }
-      underlayColor={colors.background.alternative}
+      underlayColor={colors.background.secondary}
       activeOpacity={1}
     >
       <OrderListItem order={item} />

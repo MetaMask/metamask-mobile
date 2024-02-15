@@ -62,7 +62,7 @@ const createStyle = (colors: any) =>
       alignItems: 'center',
       justifyContent: 'center',
       borderColor: colors.border.default,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
     },
     button: {
       width: '100%',

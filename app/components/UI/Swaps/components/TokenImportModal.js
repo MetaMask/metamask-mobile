@@ -43,7 +43,7 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     tokenAddress: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       width: '100%',
       borderRadius: 20,
       marginVertical: 6,

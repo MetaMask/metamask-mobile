@@ -36,7 +36,7 @@ const createStyles = (colors: any) =>
     textContainer: {
       alignItems: 'center',
       justifyContent: 'flex-start',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       borderRadius: 8,
     },
     textWrapper: {

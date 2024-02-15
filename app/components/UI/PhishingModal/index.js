@@ -45,7 +45,7 @@ const createStyles = (colors) =>
       justifyContent: 'center',
     },
     phishingModalInfo: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       paddingTop: 20,
       paddingHorizontal: 20,
     },

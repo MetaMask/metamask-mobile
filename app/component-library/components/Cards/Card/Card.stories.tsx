@@ -25,7 +25,7 @@ export const Card = {
       <View
         style={{
           height: 50,
-          backgroundColor: mockTheme.colors.background.alternative,
+          backgroundColor: mockTheme.colors.background.secondary,
           alignItems: 'center',
           justifyContent: 'center',
         }}

@@ -95,7 +95,7 @@ const createStyles = (colors) =>
     },
     header: {
       paddingTop: Device.isIphoneX() ? 60 : 24,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       height: Device.isIphoneX() ? 110 : 74,
       flexDirection: 'column',
       paddingBottom: 0,
@@ -120,7 +120,7 @@ const createStyles = (colors) =>
     },
     account: {
       flex: 1,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
     },
     accountBgOverlay: {
       borderBottomColor: colors.border.muted,

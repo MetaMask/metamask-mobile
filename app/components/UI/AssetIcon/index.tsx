@@ -37,7 +37,7 @@ const createStyles = (colors: any) =>
       borderRadius: 25,
       overflow: 'hidden',
     },
-    placeholder: { backgroundColor: colors.background.alternative },
+    placeholder: { backgroundColor: colors.background.secondary },
   });
 
 /**

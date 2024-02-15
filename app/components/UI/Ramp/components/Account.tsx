@@ -23,7 +23,7 @@ const createStyles = (colors: Colors) =>
       marginHorizontal: 5,
     },
     container: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       paddingVertical: 8,
       paddingHorizontal: 10,
       borderRadius: 100,

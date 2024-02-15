@@ -57,7 +57,7 @@ const CustomInput = ({
         isEditDisabled && {
           ...styles.container,
           ...styles.fixedPadding,
-          backgroundColor: colors.background.alternative,
+          backgroundColor: colors.background.secondary,
         },
       ]}
       testID={CUSTOM_SPEND_CAP_INPUT_TEST_ID}

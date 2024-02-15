@@ -17,7 +17,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.secondary,
       paddingVertical: 2,
       paddingHorizontal: 8,
       borderRadius: 16,

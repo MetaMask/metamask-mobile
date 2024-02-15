@@ -69,7 +69,7 @@ const createStyles = (theme) =>
       margin: 15,
       padding: 9,
       paddingHorizontal: 15,
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.secondary,
       borderRadius: 30,
     },
     copyButton: {

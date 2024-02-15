@@ -45,7 +45,7 @@ export const Accordion = {
     <AccordionComponent {...args}>
       <View
         style={{
-          backgroundColor: mockTheme.colors.background.alternative,
+          backgroundColor: mockTheme.colors.background.secondary,
           alignItems: 'center',
           justifyContent: 'center',
         }}

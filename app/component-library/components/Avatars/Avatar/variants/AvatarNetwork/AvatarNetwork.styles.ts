@@ -24,7 +24,7 @@ const styleSheet = (params: {
   const { size, style, showFallback } = vars;
   const baseStyle: ViewStyle = showFallback
     ? {
-        backgroundColor: theme.colors.background.alternative,
+        backgroundColor: theme.colors.background.secondary,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
