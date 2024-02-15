@@ -28,10 +28,14 @@ function SwapLiveness() {
   );
   const checkLiveness = useCallback(async () => {
     try {
-      const data = await swapsUtils.fetchSwapsFeatureLiveness(
-        chainId,
+      const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
         AppConstants.SWAPS.CLIENT_ID,
       );
+      const data = swapsUtils.getSwapsFeatureFlagsByChainId(
+        featureFlags,
+        chainId,
+      );
+
       const isIphone = Device.isIos();
       const isAndroid = Device.isAndroid();
       const featureFlagKey = isIphone
