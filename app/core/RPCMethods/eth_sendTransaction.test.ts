@@ -25,7 +25,7 @@ jest.mock('../../core/Engine', () => ({
     },
     NetworkController: {
       state: {
-        providerConfig: { chainId: '1' },
+        providerConfig: { chainId: '0x1' },
       },
     },
   },

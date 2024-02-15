@@ -19,7 +19,7 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 const mockEngine = Engine;
 
 const initialState = {
-  swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
+  swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   engine: {
     backgroundState: {
       ...initialBackgroundState,

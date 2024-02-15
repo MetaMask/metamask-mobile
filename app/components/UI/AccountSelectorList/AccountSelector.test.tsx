@@ -41,7 +41,7 @@ const initialState = {
         providerConfig: {
           ticker: 'ETH',
           type: 'mainnet',
-          chainId: '1',
+          chainId: '0x1',
         },
       },
       AccountTrackerController: {

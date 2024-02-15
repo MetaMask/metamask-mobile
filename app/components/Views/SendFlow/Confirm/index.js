@@ -29,7 +29,7 @@ import {
 } from '../../../../util/transactions';
 import StyledButton from '../../../UI/StyledButton';
 import { WalletDevice } from '@metamask/transaction-controller';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import {
   prepareTransaction,
@@ -59,6 +59,7 @@ import {
   fetchEstimatedMultiLayerL1Fee,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
+  getDecimalChainId,
 } from '../../../../util/networks';
 import Text from '../../../Base/Text';
 import AnalyticsV2 from '../../../../util/analyticsV2';
@@ -275,7 +276,7 @@ class Confirm extends PureComponent {
       return {
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
         account_type: getAddressAccountType(fromSelectedAddress),
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         gas_estimate_type: gasEstimateType,
         gas_mode: gasSelected ? 'Basic' : 'Advanced',
         speed_set: gasSelected || undefined,
@@ -672,7 +673,7 @@ class Confirm extends PureComponent {
       chainId,
     } = this.props;
     const { fromSelectedAddress } = this.state;
-    if (assetType === 'ERC721' && chainId !== NetworksChainId.mainnet) {
+    if (assetType === 'ERC721' && chainId !== ChainId.mainnet) {
       const { NftController } = Engine.context;
       removeFavoriteCollectible(fromSelectedAddress, chainId, selectedAsset);
       NftController.removeNft(selectedAsset.address, selectedAsset.tokenId);
@@ -935,15 +936,19 @@ class Confirm extends PureComponent {
     this.setState({ hexDataModalVisible: !hexDataModalVisible });
   };
 
+  updateTransactionStateWithUpdatedNonce = (nonceValue) => {
+    this.props.setNonce(nonceValue);
+    this.setState({ preparedTransaction: {} });
+  };
+
   renderCustomNonceModal = () => {
-    const { setNonce } = this.props;
     const { proposedNonce, nonce } = this.props.transaction;
     return (
       <CustomNonceModal
         proposedNonce={proposedNonce}
         nonceValue={nonce}
         close={() => this.toggleConfirmationModal(REVIEW)}
-        save={setNonce}
+        save={this.updateTransactionStateWithUpdatedNonce}
       />
     );
   };

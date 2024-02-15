@@ -62,6 +62,7 @@ import {
   isMainnetByChainId,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
+  getDecimalChainId,
 } from '../../../util/networks';
 import CustomSpendCap from '../../../component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -79,7 +80,7 @@ import {
   selectNetworkConfigurations,
   selectProviderType,
   selectTicker,
-  selectRpcTarget,
+  selectRpcUrl,
 } from '../../../selectors/networkController';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../selectors/tokensController';
@@ -412,6 +413,7 @@ class ApproveTransactionReview extends PureComponent {
     const approveAmount = fromTokenMinimalUnit(
       hexToBN(encodedHexAmount),
       tokenDecimals,
+      false,
     );
 
     const { name: method } = await getMethodData(data);
@@ -535,7 +537,7 @@ class ApproveTransactionReview extends PureComponent {
       const params = {
         account_type: getAddressAccountType(transaction?.from),
         dapp_host_name: transaction?.origin,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         active_currency: { value: tokenSymbol, anonymous: true },
         number_tokens_requested: {
           value: originalApproveAmount,
@@ -1264,7 +1266,7 @@ const mapStateToProps = (state) => ({
   tokensLength: selectTokensLength(state),
   accountsLength: selectAccountsLength(state),
   providerType: selectProviderType(state),
-  providerRpcTarget: selectRpcTarget(state),
+  providerRpcTarget: selectRpcUrl(state),
   primaryCurrency: state.settings.primaryCurrency,
   activeTabUrl: getActiveTabUrl(state),
   chainId: selectChainId(state),
