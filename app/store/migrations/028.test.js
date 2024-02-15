@@ -107,7 +107,7 @@ describe('Migration #28', () => {
     expect(deepJSONParseMock).toHaveBeenCalledTimes(controllerList.length);
     expect(hasPropertyMock).toHaveBeenCalledTimes(controllerList.length);
     expect(getItemMock).toHaveBeenCalledTimes(controllerList.length);
-    expect(setItemMock).toHaveBeenCalledWith('persist:root', mockValue);
+    expect(setItemMock).toHaveBeenCalledWith('persist:root', mockValue, true);
     expect(removeItemMock).toHaveBeenCalledTimes(controllerList.length);
     expect(result).toEqual({ engine: { backgroundState: mockEngine } });
     expect(
