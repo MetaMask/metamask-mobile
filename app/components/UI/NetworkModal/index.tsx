@@ -127,7 +127,7 @@ const NetworkModals = (props: NetworkProps) => {
   const checkNetwork = useCallback(async () => {
     if (useSafeChainsListValidation) {
       const alertsNetwork = await checkSafeNetwork(
-        chainId,
+        getDecimalChainId(chainId),
         rpcUrl,
         nickname,
         ticker,
