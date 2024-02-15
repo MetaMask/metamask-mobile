@@ -31,7 +31,7 @@ export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 
 // MixPanel
 export const MIXPANEL_PROXY_ENDPOINT_BASE_URL =
-  'https://proxy.metafi-dev.codefi.network/mixpanel/v1/api/app';
+  'https://proxy.metafi.codefi.network/mixpanel/v1/api/app';
 
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';

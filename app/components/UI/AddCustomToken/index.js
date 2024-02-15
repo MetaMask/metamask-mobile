@@ -35,6 +35,7 @@ import {
 import { NFT_IDENTIFIER_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { regex } from '../../../../app/util/regex';
 import { AddCustomTokenViewSelectorsIDs } from '../../../../e2e/selectors/AddCustomTokenView.selectors';
+import { getDecimalChainId } from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -112,7 +113,7 @@ export default class AddCustomToken extends PureComponent {
       return {
         token_address: address,
         token_symbol: symbol,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         source: 'Custom token',
       };
     } catch (error) {

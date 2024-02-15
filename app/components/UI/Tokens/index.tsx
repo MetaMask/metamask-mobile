@@ -319,7 +319,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',
         location: 'Home Screen',
-        chain_id_destination: chainId,
+        chain_id_destination: getDecimalChainId(chainId),
       });
     });
   };

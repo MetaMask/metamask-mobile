@@ -7,8 +7,6 @@
     "deceptive_request_title": "Cette demande est trompeuse",
     "failed_title": "Cette demande peut présenter des risques",
     "failed_description": "À cause d’une erreur, cette demande n’a pas été vérifiée par le fournisseur de services de sécurité. Veuillez agir avec prudence.",
-    "loading_title": "Cette demande est toujours en cours de simulation. Nous vous recommandons d’attendre qu’elle soit terminée.",
-    "loading_complete_title": "La simulation est terminée. Examinez cette demande avant de continuer.",
     "malicious_domain_description": "Vous interagissez avec un domaine malveillant. Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "other_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "raw_signature_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
@@ -2373,8 +2371,7 @@
     "blockaid": {
       "title": "Restez en sécurité grâce aux alertes de sécurité",
       "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
-      "description_2": "Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande.",
-      "action_text": "Activer les alertes de sécurité"
+      "description_2": "Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande."
     },
     "sell": {
       "title": "L’encaissement simplifié",

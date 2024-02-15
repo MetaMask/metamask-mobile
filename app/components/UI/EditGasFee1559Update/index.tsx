@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
-import { isMainnetByChainId } from '../../../util/networks';
+import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
 import BigNumber from 'bignumber.js';
 import FadeAnimationView from '../FadeAnimationView';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -117,7 +117,7 @@ const EditGasFee1559Update = ({
     try {
       return {
         ...analyticsParams,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         function_type: analyticsParams.view,
         gas_mode: selectedOption ? 'Basic' : 'Advanced',
         speed_set: selectedOption || undefined,
