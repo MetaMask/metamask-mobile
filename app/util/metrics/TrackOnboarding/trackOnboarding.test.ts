@@ -19,7 +19,7 @@ jest.mock('../../../core/Analytics', () => ({
 
 const mockSaveOnboardingEvent = jest.fn();
 
-describe('trackAfterInteractions', () => {
+describe('TrackOnboarding', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });

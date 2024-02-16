@@ -34,8 +34,7 @@ import { createStyles } from './styles';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
-import trackAfterInteractions from '../../../util/metrics/TrackOnboarding/trackOnboarding.ts';
-import Logger from '../../../util/Logger';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding.ts';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 /**
@@ -70,11 +69,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
-  const track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('ManualBackupStep1', `Failed to track ${event}`);
-    });
-  };
+  const track = (event, properties) => trackOnboarding(event, properties);
 
   useEffect(() => {
     const getSeedphrase = async () => {

@@ -62,7 +62,7 @@ import AnimatedFox from 'react-native-animated-fox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
-import trackAfterInteractions from '../../../util/metrics/TrackOnboarding/trackOnboarding.ts';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding.ts';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -259,11 +259,7 @@ class ChoosePassword extends PureComponent {
   // Flag to know if password in keyring was set or not
   keyringControllerPasswordSet = false;
 
-  track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('ChoosePassword', `Failed to track ${event}`);
-    });
-  };
+  track = (event, properties) => trackOnboarding(event, properties);
 
   updateNavBar = () => {
     const { route, navigation } = this.props;

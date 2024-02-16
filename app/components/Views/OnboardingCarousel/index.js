@@ -24,8 +24,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import trackAfterInteractions from '../../../util/metrics/TrackOnboarding/trackOnboarding.ts';
-import Logger from '../../../util/Logger';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding.ts';
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
@@ -141,15 +140,8 @@ class OnboardingCarousel extends PureComponent {
     currentTab: 1,
   };
 
-  track = (event, properties) => {
-    trackAfterInteractions(
-      event,
-      properties,
-      this.props.saveOnboardingEvent,
-    ).catch(() => {
-      Logger.log('OnboardingCarousel', `Failed to track ${event}`);
-    });
-  };
+  track = (event, properties) =>
+    trackOnboarding(event, properties, this.props.saveOnboardingEvent);
 
   onPressGetStarted = () => {
     this.props.navigation.navigate('Onboarding');

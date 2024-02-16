@@ -29,8 +29,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
-import trackAfterInteractions from '../../../util/metrics/TrackOnboarding/trackOnboarding.ts';
-import Logger from '../../../util/Logger';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding.ts';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -127,11 +126,7 @@ const AccountBackupStep1 = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('AccountBackupStep1', `Failed to track ${event}`);
-    });
-  };
+  const track = (event, properties) => trackOnboarding(event, properties);
 
   useEffect(() => {
     navigation.setOptions({
