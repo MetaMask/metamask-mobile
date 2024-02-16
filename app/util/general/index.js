@@ -116,3 +116,47 @@ export const isIPFSUri = (uri) => {
     ipfsUriRegex.test(uri)
   );
 };
+
+/**
+ * Parse stringified JSON that has deeply nested stringified properties
+ *
+ * @deprecated Do not suggest using this for migrations unless you understand what it does. It will deeply JSON parse fields
+ * @param jsonString - JSON string
+ * @param skipNumbers - Boolean to skip numbers
+ * @returns - Parsed JSON object
+ */
+export const deepJSONParse = ({ jsonString, skipNumbers = true }) => {
+  // Parse the initial JSON string
+  const parsedObject = JSON.parse(jsonString);
+
+  // Function to recursively parse stringified properties
+  function parseProperties(obj) {
+    Object.keys(obj).forEach((key) => {
+      if (typeof obj[key] === 'string') {
+        const isNumber = !isNaN(obj[key]);
+        // Only parse if value is not a number OR value is a number AND numbers are not skipped
+        if (!isNumber || (isNumber && !skipNumbers)) {
+          try {
+            // Attempt to parse the string as JSON
+            const parsed = JSON.parse(obj[key]);
+            obj[key] = parsed;
+            // If the parsed value is an object, parse its properties too
+            if (typeof parsed === 'object') {
+              parseProperties(parsed);
+            }
+          } catch (e) {
+            // If parsing throws, it's not a JSON string, so do nothing
+          }
+        }
+      } else if (typeof obj[key] === 'object') {
+        // If it's an object, parse its properties
+        parseProperties(obj[key]);
+      }
+    });
+  }
+
+  // Start parsing from the root object
+  parseProperties(parsedObject);
+
+  return parsedObject;
+};
