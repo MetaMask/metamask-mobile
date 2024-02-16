@@ -17,7 +17,7 @@ const trackAfterInteractions = async (
   },
 ): Promise<void> =>
   InteractionManager.runAfterInteractions(async () => {
-    const metrics = await MetaMetrics.getInstance();
+    const metrics = MetaMetrics.getInstance();
     const isOnboardingDelayedEvent =
       !metrics.isEnabled() && saveOnboardingEvent;
     if (isOnboardingDelayedEvent) {
