@@ -19,6 +19,7 @@ import hi from './languages/hi';
 import id from './languages/id';
 import ja from './languages/ja';
 import ko from './languages/ko';
+import mn from './languages/mn';
 import pt from './languages/pt';
 import ru from './languages/ru';
 import tl from './languages/tl';
@@ -36,6 +37,7 @@ export const supportedTranslations = {
   id,
   ja,
   ko,
+  mn,
   pt,
   ru,
   tl,
@@ -114,6 +116,7 @@ export function getLanguages() {
     id: 'Bahasa Indonesian',
     ja: 'Japanese',
     ko: 'Korean',
+    mn: 'Mongolian',
     pt: 'Portuguese - Brazil',
     ru: 'Russian',
     tl: 'Filipino',
