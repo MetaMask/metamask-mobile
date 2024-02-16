@@ -3,6 +3,7 @@ import {
   AggregatorNetwork,
   OrderOrderTypeEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
+import { toHex } from '@metamask/controller-utils';
 import { merge } from 'lodash';
 import fiatOrderReducer, {
   addActivationKey,
@@ -658,7 +659,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '56',
+                chainId: '0x38',
               },
             },
           },
@@ -758,7 +759,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '56',
+                chainId: '0x38',
               },
             },
             PreferencesController: {
@@ -813,7 +814,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -885,7 +886,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '11155111',
+                chainId: toHex('11155111'),
               },
             },
             PreferencesController: {
@@ -940,7 +941,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '11155111',
+                chainId: '0xaa36a7',
               },
             },
             PreferencesController: {
@@ -1017,7 +1018,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1039,7 +1040,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '56',
+                chainId: '0x38',
               },
             },
             PreferencesController: {
@@ -1096,7 +1097,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1171,7 +1172,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1203,7 +1204,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '56',
+                chainId: '0x38',
               },
             },
             PreferencesController: {
@@ -1250,7 +1251,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1272,7 +1273,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1341,7 +1342,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1403,7 +1404,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '56',
+                chainId: '0x38',
               },
             },
             PreferencesController: {
@@ -1553,7 +1554,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
           },
@@ -1568,7 +1569,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1313161554',
+                chainId: '0x4e454152',
               },
             },
           },
@@ -1583,7 +1584,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '918273645',
+                chainId: '0x36bbbe6d',
               },
             },
           },

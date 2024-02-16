@@ -1,0 +1,179 @@
+import React from 'react';
+import { ConnectedComponent } from 'react-redux';
+import { waitFor } from '@testing-library/react-native';
+import Confirm from '.';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
+import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import analyticsV2 from '../../../../../util/analyticsV2';
+import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/BlockaidBanner/BlockaidBanner.constants';
+
+const mockInitialState = {
+  engine: {
+    backgroundState: {
+      ...initialBackgroundState,
+      NetworkController: {
+        network: '1',
+        providerConfig: {
+          ticker: 'ETH',
+          type: 'mainnet',
+          chainId: '0x1',
+        },
+      },
+      AccountTrackerController: {
+        accounts: {
+          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': { balance: '0' },
+        },
+      },
+      CurrencyRateController: {
+        currentCurrency: 'USD',
+        conversionRate: 1,
+      },
+      PreferencesController: {
+        identities: {
+          '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58': { name: 'Account1' },
+        },
+        securityAlertsEnabled: true,
+      },
+      KeyringController: {
+        keyrings: [{ accounts: ['0x'], type: 'HD Key Tree' }],
+      },
+    },
+  },
+  settings: {
+    showHexData: true,
+  },
+  transaction: {
+    currentTransactionSecurityAlertResponse: {
+      id: 1,
+      response: {
+        result_type: 'Malicious',
+        reason: 'blur_farming',
+        providerRequestsCount: {},
+        chainId: '0x1',
+      },
+    },
+    selectedAsset: {},
+    transaction: {
+      from: '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58',
+      to: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+      value: '0x2',
+    },
+  },
+  fiatOrders: {
+    networks: [
+      {
+        active: true,
+        chainId: 1,
+        chainName: 'Ethereum Mainnet',
+        nativeTokenSupported: true,
+      },
+    ],
+  },
+};
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest
+    .fn()
+    .mockImplementation((callback) => callback(mockInitialState)),
+}));
+
+jest.mock('../../../../../core/GasPolling/GasPolling', () => ({
+  ...jest.requireActual('../../../../../core/GasPolling/GasPolling'),
+  startGasPolling: jest.fn(),
+  stopGasPolling: jest.fn(),
+}));
+
+jest.mock('../../../../../util/ENSUtils', () => ({
+  ...jest.requireActual('../../../../../util/ENSUtils'),
+  doENSReverseLookup: jest.fn(),
+}));
+
+jest.mock('../../../../../lib/ppom/ppom-util', () => ({
+  ...jest.requireActual('../../../../../lib/ppom/ppom-util'),
+  validateRequest: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    TokensController: {
+      addToken: jest.fn(),
+    },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58'],
+          },
+        ],
+      },
+    },
+    TransactionController: {
+      addTransaction: jest.fn().mockResolvedValue({
+        result: {},
+        transactionMeta: {
+          id: 1,
+        },
+      }),
+      updateSecurityAlertResponse: jest.fn(),
+    },
+  },
+}));
+jest.mock('../../../../../util/custom-gas', () => ({
+  ...jest.requireActual('../../../../../util/custom-gas'),
+  getGasLimit: jest.fn(),
+}));
+jest.mock('../../../../../util/transactions', () => ({
+  ...jest.requireActual('../../../../../util/transactions'),
+  decodeTransferData: jest.fn().mockImplementation(() => ['0x2']),
+}));
+
+function render(Component: React.ComponentType | ConnectedComponent<any, any>) {
+  return renderScreen(
+    Component,
+    {
+      name: Routes.SEND_FLOW.CONFIRM,
+    },
+    {
+      state: mockInitialState,
+    },
+  );
+}
+
+describe('Confirm', () => {
+  it('should render correctly', async () => {
+    const wrapper = render(Confirm);
+    await waitFor(() => {
+      expect(wrapper).toMatchSnapshot();
+    });
+  });
+
+  it('displays blockaid banner', async () => {
+    const trackEventSypy = jest
+      .spyOn(analyticsV2, 'trackEvent')
+      .mockImplementation((name, params) => {
+        expect(name).toBeDefined();
+        expect(params).toBeDefined();
+      });
+
+    const { queryByText, queryByTestId } = render(Confirm);
+
+    await waitFor(async () => {
+      expect(
+        await queryByText(
+          'If you approve this request, someone can steal your assets listed on Blur.',
+        ),
+      ).toBeDefined();
+
+      expect(await queryByTestId(TESTID_ACCORDION_CONTENT)).toBeDefined();
+      expect(
+        await queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
+      ).toBeDefined();
+      expect(await queryByText('Something doesn’t look right?')).toBeDefined();
+
+      expect(trackEventSypy).toHaveBeenCalledTimes(1);
+    });
+  });
+});
