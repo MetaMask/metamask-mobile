@@ -100,7 +100,7 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
-import MetaMetrics from '../../../core/Analytics/MetaMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -230,6 +230,7 @@ const VaultRecoveryFlow = () => (
 );
 
 const App = ({ userLoggedIn }) => {
+  const { getMetaMetricsId } = useMetrics();
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -369,14 +370,15 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     const initAnalytics = async () => {
-      await MetaMetrics.getInstance();
+      const metaMetricsId = await getMetaMetricsId();
+      Logger.log(`MetaMetrics initialised with ID: ${metaMetricsId}`);
       await Analytics.init();
     };
 
     initAnalytics().catch((err) => {
       Logger.error(err, 'Error initializing analytics');
     });
-  }, []);
+  }, [getMetaMetricsId]);
 
   useEffect(() => {
     // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.

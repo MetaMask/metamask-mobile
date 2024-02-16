@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Alert, Linking, Platform } from 'react-native';
 import {
   DataDeleteResponseStatus,
-  MetaMetrics,
   MetaMetricsEvents,
 } from '../../../../../core/Analytics';
+import { useMetrics } from '../../../../hooks/useMetrics';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../../../constants/urls';
@@ -18,7 +18,6 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { IMetaMetrics } from '../../../../../core/Analytics/MetaMetrics.types';
 import useDataDeletion from './useDataDeletion';
 
 interface DeleteMetaMetricsDataProps {
@@ -71,15 +70,14 @@ interface DeleteMetaMetricsDataProps {
  * ```
  */
 const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
+  const { checkDataDeleteStatus, trackEvent, createDataDeletionTask } =
+    useMetrics();
+
   /** metricsOptin prop is used to update the component when the user toggles the opt-in switch
    * We don't need the value to determine if the deletion button should be enabled or not
    * but we need to track the switch change to update the component.
    */
   const { metricsOptin } = props;
-
-  /** metametricsRef is used to store the metametrics instance as it's used multiple times in the component.
-   */
-  const metricsRef = useRef<IMetaMetrics | undefined>();
 
   const {
     isDataDeletionAvailable,
@@ -90,17 +88,11 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
   } = useDataDeletion();
 
   const checkInitialStatus = useCallback(async () => {
-    const metrics = await MetaMetrics.getInstance();
-    if (!metrics) {
-      return;
-    }
-    metricsRef.current = metrics;
-
     const {
       deletionRequestDate,
       dataDeletionRequestStatus,
       hasCollectedDataSinceDeletionRequest,
-    } = await metrics.checkDataDeleteStatus();
+    } = await checkDataDeleteStatus();
 
     setDataTrackedSinceLastDeletion(hasCollectedDataSinceDeletionRequest);
     setDeletionTaskDate(deletionRequestDate);
@@ -109,6 +101,7 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
     setDataTrackedSinceLastDeletion,
     setDeletionTaskDate,
     setDataDeletionTaskStatus,
+    checkDataDeleteStatus,
   ]);
 
   const showDeleteTaskError = () => {
@@ -124,8 +117,8 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
   };
 
   const trackDataDeletionRequest = () => {
-    metricsRef.current?.trackEvent(
-      MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION.category,
+    trackEvent(
+      MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION,
       {
         os: Platform.OS,
         os_version: Platform.Version,
@@ -137,7 +130,7 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
 
   const deleteMetaMetrics = async () => {
     try {
-      const deleteResponse = await metricsRef.current?.createDataDeletionTask();
+      const deleteResponse = await createDataDeletionTask();
 
       if (DataDeleteResponseStatus.ok === deleteResponse?.status) {
         await checkInitialStatus();

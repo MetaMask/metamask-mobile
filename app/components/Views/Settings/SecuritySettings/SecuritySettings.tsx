@@ -31,10 +31,7 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2, {
-  trackErrorAsAnalytics,
-} from '../../../../util/analyticsV2';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { Authentication } from '../../../../core';
 import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme } from '../../../../util/theme';
@@ -121,6 +118,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+import { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -135,6 +133,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
+  const { trackEvent, isEnabled, enable, addTraitsToUser } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -233,10 +232,9 @@ const Settings: React.FC = () => {
   }, []);
 
   const checkAnalyticsEnabled = useCallback(async () => {
-    const metrics = await MetaMetrics.getInstance();
-    metrics.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS.category, {});
-    setAnalyticsEnabled(metrics.isEnabled());
-  }, []);
+    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
+    setAnalyticsEnabled(isEnabled());
+  }, [trackEvent, isEnabled]);
 
   useEffect(() => {
     updateNavBar();
@@ -447,7 +445,6 @@ const Settings: React.FC = () => {
   );
 
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
-    const metrics = await MetaMetrics.getInstance();
     if (metricsEnabled) {
       Analytics.enable();
 
@@ -455,30 +452,24 @@ const Settings: React.FC = () => {
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
-      await metrics.enable();
+      await enable();
       setAnalyticsEnabled(true);
 
       InteractionManager.runAfterInteractions(async () => {
         // Segment metrics optin tracking
-        await metrics.addTraitsToUser(consolidatedTraits);
-        metrics.trackEvent(
-          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
-          {
-            analytics_option_selected: 'Metrics Opt in',
-            updated_after_onboarding: true,
-          },
-        );
+        await addTraitsToUser(consolidatedTraits);
+        trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+          analytics_option_selected: 'Metrics Opt in',
+          updated_after_onboarding: true,
+        });
         // Legacy metrics optin tracking
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-          {
-            analytics_option_selected: 'Metrics Opt in',
-            updated_after_onboarding: true,
-          },
-        );
+        trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+          analytics_option_selected: 'Metrics Opt in',
+          updated_after_onboarding: true,
+        });
       });
     } else {
-      await metrics.enable(false);
+      await enable(false);
       Analytics.disable();
       setAnalyticsEnabled(false);
       Alert.alert(

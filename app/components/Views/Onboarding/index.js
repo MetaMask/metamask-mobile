@@ -39,8 +39,8 @@ import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { EXISTING_USER } from '../../../constants/storage';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
-
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
@@ -161,6 +161,10 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   notificationAnimated = new Animated.Value(100);
@@ -273,7 +277,7 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     const action = async () => {
-      const metrics = await MetaMetrics.getInstance();
+      const { metrics } = this.props;
       if (metrics.isEnabled()) {
         this.props.navigation.navigate('ChoosePassword', {
           [PREVIOUS_SCREEN]: ONBOARDING,
@@ -295,7 +299,7 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     const action = async () => {
-      const metrics = await MetaMetrics.getInstance();
+      const { metrics } = this.props;
       if (metrics.isEnabled()) {
         this.props.navigation.push(
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
@@ -317,7 +321,7 @@ class Onboarding extends PureComponent {
 
   track = (event) => {
     InteractionManager.runAfterInteractions(async () => {
-      const metrics = await MetaMetrics.getInstance();
+      const { metrics } = this.props;
       if (metrics.isEnabled()) {
         metrics.trackEvent(event.category);
       } else {
@@ -495,4 +499,7 @@ const mapDispatchToProps = (dispatch) => ({
   saveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Onboarding));
