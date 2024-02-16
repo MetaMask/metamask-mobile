@@ -882,10 +882,10 @@
     "@babel/helper-validator-identifier" "^7.22.20"
     to-fast-properties "^2.0.0"
 
-"@blockaid/ppom_release@^1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@blockaid/ppom_release/-/ppom_release-1.4.0.tgz#43646b09dfe8ec155da7df9ff0ba1ebedb4de04b"
-  integrity sha512-AEfEFXphHXeR91LSQ3pteENUjNlO6zmYPJBj/i2H/COXAR7nRGAJ6qf2LUXMiH4canwqTJfAeFNiFmxSJryCKg==
+"@blockaid/ppom_release@^1.4.1":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@blockaid/ppom_release/-/ppom_release-1.4.1.tgz#be445c5b664efe34498a29b29bfb7846a799e31c"
+  integrity sha512-wWtlz49PYvdzSnyfQ1Tj69m9vnF4iEAs/RBEcmBvldpBskY5PCkVzk+O0CT8v8M9v09VYKDdolFlIRuB+RLzMQ==
 
 "@discoveryjs/json-ext@^0.5.0":
   version "0.5.7"
