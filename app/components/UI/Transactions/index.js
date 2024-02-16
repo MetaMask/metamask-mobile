@@ -47,7 +47,7 @@ import { validateTransactionActionBalance } from '../../../util/transactions';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import TransactionActionModal from '../TransactionActionModal';
 import TransactionElement from '../TransactionElement';
-import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
+import UpdateEIP1559Tx from '../../Views/confirmations/components/UpdateEIP1559Tx';
 import RetryModal from './RetryModal';
 import PriceChartContext, {
   PriceChartProvider,
@@ -249,13 +249,13 @@ class Transactions extends PureComponent {
 
   updateBlockExplorer = () => {
     const {
-      providerConfig: { type, rpcTarget },
+      providerConfig: { type, rpcUrl },
       networkConfigurations,
     } = this.props;
     let blockExplorer;
     if (type === RPC) {
       blockExplorer =
-        findBlockExplorerForRpc(rpcTarget, networkConfigurations) ||
+        findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
     }
 

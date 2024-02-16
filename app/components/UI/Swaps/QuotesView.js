@@ -37,6 +37,7 @@ import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
+  getDecimalChainId,
 } from '../../../util/networks';
 import {
   getErrorMessage,
@@ -722,7 +723,7 @@ function SwapsQuotesView({
                 // eslint-disable-next-line no-mixed-spaces-and-tabs
               )
             : '',
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
         };
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.GAS_FEES_CHANGED,
@@ -830,7 +831,7 @@ function SwapsQuotesView({
           ),
           network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
           other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
         },
         paramsForAnalytics: {
           sentAt: currentBlock.timestamp,
@@ -886,7 +887,7 @@ function SwapsQuotesView({
             'usd',
           ),
           network_fees_ETH: renderFromWei(toWei(selectedQuoteValue?.ethFee)),
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
         };
         Analytics.trackEventWithParameters(MetaMetricsEvents.SWAP_STARTED, {});
         Analytics.trackEventWithParameters(
@@ -1128,7 +1129,7 @@ function SwapsQuotesView({
         ),
         custom_spend_limit_set: originalAmount !== currentAmount,
         custom_spend_limit_amount: currentAmount,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
       };
       Analytics.trackEventWithParameters(
         MetaMetricsEvents.EDIT_SPEND_LIMIT_OPENED,
@@ -1183,7 +1184,7 @@ function SwapsQuotesView({
         ),
         network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
         available_quotes: allQuotes.length,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
       };
       Analytics.trackEventWithParameters(MetaMetricsEvents.QUOTES_RECEIVED, {});
       Analytics.trackEventWithParameters(
@@ -1233,7 +1234,7 @@ function SwapsQuotesView({
         ),
         network_fees_ETH: renderFromWei(toWei(selectedQuoteValue.ethFee)),
         available_quotes: allQuotes.length,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
       };
       Analytics.trackEventWithParameters(
         MetaMetricsEvents.ALL_AVAILABLE_QUOTES_OPENED,
@@ -1272,7 +1273,7 @@ function SwapsQuotesView({
         request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
         slippage,
         custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
       };
       if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
         InteractionManager.runAfterInteractions(() => {
@@ -1575,7 +1576,7 @@ function SwapsQuotesView({
       token_to: destinationToken.symbol,
       request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
       custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
-      chain_id: chainId,
+      chain_id: getDecimalChainId(chainId),
     };
     navigation.setParams({ requestedTrade: data });
     navigation.setParams({ selectedQuote: undefined });

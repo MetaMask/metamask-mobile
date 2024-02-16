@@ -7,6 +7,8 @@
     "deceptive_request_title": "Cette demande est trompeuse",
     "failed_title": "Cette demande peut présenter des risques",
     "failed_description": "À cause d’une erreur, cette demande n’a pas été vérifiée par le fournisseur de services de sécurité. Veuillez agir avec prudence.",
+    "loading_title": "En train de vérifier s’il y a des alertes de sécurité…",
+    "loading_complete_title": "Aucune alerte reçue",
     "malicious_domain_description": "Vous interagissez avec un domaine malveillant. Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "other_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "raw_signature_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
@@ -19,7 +21,7 @@
     "transfer_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",
     "before_you_proceed": "Avant de poursuivre",
     "enable_blockaid_alerts": "Pour activer cette fonction, nous devons mettre en place des alertes de sécurité. Cette page devra rester ouverte pendant la configuration des alertes. Cela prendra moins d’une minute.",
-    "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
+    "enable_blockaid_alerts_description": "Cette page doit rester ouverte pendant la configuration des alertes de sécurité. Ce processus prendra moins d’une minute.",
     "setting_up_alerts": "Mise en place d’alertes de sécurité",
     "setting_up_alerts_description": "Nous travaillons aussi vite que possible pour mettre en place des alertes de sécurité. Tenez bon, nous avons presque terminé.",
     "setup_complete": "Mise en place terminée",
@@ -374,8 +376,12 @@
     "no_nfts_yet": "Aucun NFT pour le moment",
     "nfts_autodetection_title": "Détection de NFT",
     "nfts_autodetection_desc": "Cela permet à MetaMask de détecter automatiquement les NFT d’OpenSea et de les afficher dans votre portefeuille MetaMask.",
-    "network_details_check": "Network details check",
-    "network_check_validation_desc": "reduces your chances of connecting to a malicious or incorrect network.",
+    "network_details_check": "Vérification des détails du réseau",
+    "network_with_chain_id": "The network with chain ID",
+    "use_the_currency_symbol": "uses the currency symbol",
+    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
+    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_check_validation_desc": "réduit les risques de connexion au mauvais réseau ou à un réseau malveillant.",
     "nfts_autodetection_cta": "Activez la détection de NFT dans les paramètres",
     "learn_more": "En savoir plus",
     "add_collectibles": "Importer des NFT",
@@ -406,7 +412,7 @@
     "display_media_nft_warning": "L’affichage des supports et des données NFT peut exposer votre adresse IP à des serveurs centralisés. N’importez un NFT que si vous comprenez les risques encourus.",
     "nfts_autodetect_title": "Détection automatique des NFT",
     "nfts_autodetect_cta": "Activez la détection automatique des NFT dans les Paramètres",
-    "turn_on_network_check_cta": "Turn on network details check",
+    "turn_on_network_check_cta": "Activer la vérification des détails du réseau",
     "display_nft_media_cta_new_1": "Pour voir un NFT, activez l’option « Afficher les supports NFT » dans",
     "display_nft_media_cta_new_2": "Paramètres > Sécurité et confidentialité."
   },
@@ -600,10 +606,10 @@
     "please_wait": "Veuillez patienter"
   },
   "account_selector": {
-    "prev": "PREV",
-    "next": "NEXT",
-    "unlock": "Unlock",
-    "forget": "Forget this device"
+    "prev": "PRÉCÉDENT",
+    "next": "SUIVANT",
+    "unlock": "Déverrouiller",
+    "forget": "Oublier cet appareil"
   },
   "app_settings": {
     "title": "Paramètres",
@@ -712,7 +718,6 @@
     "network_chain_id_label": "ID de chaîne",
     "network_chain_id_placeholder": "ID de chaîne",
     "network_symbol_label": "Symbole",
-    "network_symbol_placeholder": "Symbole (facultatif)",
     "network_block_explorer_label": "URL de l’explorateur de blocs",
     "network_block_explorer_placeholder": "URL de l’explorateur de blocs (facultatif)",
     "network_chain_id_warning": "ID de chaîne non valide",
@@ -756,6 +761,9 @@
     "invalid_password": "Mot de passe incorrect",
     "invalid_password_message": "Le mot de passe était incorrect. Veuillez réessayer.",
     "security_heading": "Sécurité",
+    "ses_heading": "Verrouillage du code",
+    "ses_description": "Il s’agit d’une fonction expérimentale qui bloque toute modification non autorisée du code JavaScript de l’application.",
+    "ses_link": "En savoir plus",
     "privacy_heading": "Confidentialité",
     "failed_to_fetch_chain_id": "Impossible de récupérer l’identificateur de chaîne. Votre URL de RPC est-elle correcte ?",
     "endpoint_returned_different_chain_id": "Le point terminal a renvoyé un identificateur de chaîne différent : %{chainIdReturned}",
@@ -826,8 +834,8 @@
     "incoming_transactions_title": "Afficher les transactions entrantes",
     "incoming_transactions_content": "Cela dépend du réseau que vous sélectionnez et qui exposera votre adresse Ethereum et votre adresse IP.",
     "display_nft_media_desc_new": "L’affichage des médias et des données NFT expose votre adresse IP à OpenSea ou à de tierces parties. La détection automatique des NFT dépend de cette fonctionnalité et ne sera pas disponible si elle est désactivée. Si les médias NFT sont entièrement hébergés sur IPFS, ils peuvent toujours être affichés même si cette fonctionnalité est désactivée.",
-    "use_safe_chains_list_validation_desc_1": "MetaMask uses a third-party service called ",
-    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  ",
+    "use_safe_chains_list_validation_desc_1": "MetaMask utilise un service tiers appelé ",
+    "use_safe_chains_list_validation_desc_2": "pour afficher des détails précis et standardisés concernant les réseaux. Cela réduit les risques de connexion au mauvais réseau ou à un réseau malveillant. En utilisant cette fonctionnalité, vous exposez votre adresse IP à  ",
     "snaps": {
       "title": "Snaps",
       "description": "Aperçu et gestion de vos Snaps",
@@ -877,9 +885,10 @@
     "privacy_browser_subheading": "Effacer les données privées ou les données du navigateur",
     "analytics_subheading": "Analyse",
     "transactions_subheading": "Transactions",
-    "network_provider": "Network provider",
+    "network_provider": "Fournisseur de réseau",
     "token_nft_ens_subheading": "Détection automatique des jetons, NFT et ENS",
-    "security_check_subheading": "Contrôles de sécurité"
+    "security_check_subheading": "Contrôles de sécurité",
+    "symbol_required": "Symbol is required."
   },
   "sdk": {
     "disconnect_title": "Déconnecter tous les sites ?",
@@ -1436,7 +1445,7 @@
     "status_ok": "Tous les systèmes sont opérationnels",
     "status_not_ok": "Le réseau rencontre quelques problèmes",
     "want_to_add_network": "Vous voulez ajouter ce réseau ?",
-    "add_custom_network": "Add custom network",
+    "add_custom_network": "Ajouter un réseau personnalisé",
     "network_infomation": "Vous pourrez ainsi utiliser ce réseau dans MetaMask",
     "network_endorsement": "MetaMask ne vérifie pas les réseaux personnalisés ni leur sécurité.",
     "learn_about": "En savoir plus sur",
@@ -1446,14 +1455,15 @@
     "network_rpc_url": "URL du réseau",
     "view_details": "Voir les détails",
     "network_details": "Détails du réseau",
-    "network_select_confirm_use_safe_check": "Selecting Confirm turns on Network details check. You can turn off Network details check in ",
-    "network_settings_security_privacy": "Settings > Security and privacy",
+    "network_select_confirm_use_safe_check": "En sélectionnant « Confirmer », vous activez la vérification des détails du réseau. Vous pouvez désactiver la vérification des détails du réseau dans ",
+    "network_settings_security_privacy": "Paramètres > Sécurité et confidentialité",
     "network_currency_symbol": "Symbole de la devise",
     "network_block_explorer_url": "URL de l’explorateur de blocs",
     "search": "Chercher un réseau ajouté précédemment",
     "add": "Ajouter",
     "cancel": "Annuler",
     "approve": "Approuver",
+    "edit_network_details": "Edit network details",
     "malicious_network_warning": "Un fournisseur de réseau malveillant peut mentir quant à l’état de la blockchain et enregistrer votre activité sur le réseau. N’ajoutez que des réseaux personnalisés auxquels vous faites confiance.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Informations sur le réseau",
@@ -1692,7 +1702,7 @@
   },
   "manual_backup_step_1": {
     "action": "Notez votre phrase secrète de récupération",
-    "info": "Voici votre phrase secrète de récupération. Notez-la sur un papier et conservez-la dans un endroit sûr. Il vous sera demandé de la saisir à nouveau (dans l’ordre) à l’étape suivante.",
+    "info": "Voici votre phrase secrète de récupération. Notez-la sur un papier et conservez-la dans un endroit sûr. Il vous sera demandé de saisir la séquence de mots (dans le bon ordre) à l’étape suivante.",
     "continue": "Continuer",
     "reveal": "Appuyez pour révéler votre phrase secrète de récupération",
     "watching": "Assurez-vous que personne ne regarde votre écran.",
@@ -1835,7 +1845,7 @@
     "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos demandes de transaction et de signature. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité. En l’activant, vous acceptez les conditions d’utilisation du fournisseur.",
     "select_provider": "Sélectionnez votre fournisseur préféré",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
+    "blockaid_desc": "Protection de la vie privée : aucune donnée n’est partagée avec des tiers. Disponible sur Arbitrum, Avalanche, BNB chain, Optimism, Polygon et le réseau principal Ethereum.",
     "switch_network": "Veuillez passer à Mainnet ou à Sepolia"
   },
   "walletconnect_sessions": {
@@ -2028,6 +2038,7 @@
     "get_new_quotes": "Obtenir de nouvelles cotations",
     "quotes_timeout": "Expiration des cotations",
     "request_new_quotes": "Veuillez demander de nouvelles cotations pour obtenir le meilleur taux actuellement disponible.",
+    "terms_of_service": "Terms of Service",
     "amount_to_buy": "Quantité à acheter",
     "amount_to_sell": "Quantité à vendre",
     "want_to_buy": "Vous voulez acheter",
@@ -2321,7 +2332,7 @@
       "approve_pending": "Approuver le swap de {{sourceToken}}",
       "approve_confirmed": "Swap de {{sourceToken}} approuvé"
     },
-    "medium_selected_warning": "Puisque les swaps dépendent du facteur temps, le réglage « Moyen » n’est pas recommandé.",
+    "medium_selected_warning": "Le réglage « Moyen » n’est pas recommandé, car les swaps sont très sensibles au facteur temps.",
     "high_recommendation": "Les swaps étant généralement sensibles au facteur temps, le réglage « Élevé » permettra d’éviter les pertes potentielles dues aux fluctuations des conditions du marché.",
     "recommended": "Recommandé",
     "recommended_gas": "Frais de gaz recommandés",
@@ -2350,7 +2361,7 @@
     "not_supported": "Lien profond non pris en charge"
   },
   "error_screen": {
-    "title": "Une erreur s’est produite",
+    "title": "Une erreur est survenue",
     "subtitle": "Vos informations ne peuvent pas être affichées. Ne vous inquiétez pas, votre portefeuille et vos fonds sont en sécurité.",
     "try_again_button": "Réessayer",
     "submit_ticket_1": "Veuillez signaler ce problème afin que nous puissions le résoudre :",
@@ -2370,9 +2381,10 @@
     "title": "Nouveautés",
     "blockaid": {
       "title": "Restez en sécurité grâce aux alertes de sécurité",
-      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
+      "description_1": "Évitez les arnaques les plus courantes et protégez vos données privées grâce aux alertes de sécurité fournies par Blockaid. Cette fonctionnalité est désormais activée par défaut pour tous les utilisateurs de MetaMask.",
       "description_2": "Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande.",
-      "action_text": "Activer les alertes de sécurité"
+      "description_3": "Disponible sur Arbitrum, Avalanche, BNB chain, Linea, Optimism, Polygon et le réseau principal Ethereum.",
+      "got_it": "D’accord"
     },
     "sell": {
       "title": "L’encaissement simplifié",
@@ -2390,7 +2402,7 @@
   "switch_custom_network": {
     "title_existing_network": "Ce site souhaite changer de réseau",
     "title_new_network": "Nouveau réseau ajouté",
-    "switch_warning": "Le réseau sélectionné dans MetaMask sera alors remplacé par un réseau précédemment ajouté :",
+    "switch_warning": "Ceci permet de remplacer le réseau sélectionné dans MetaMask par un réseau précédemment ajouté :",
     "available": "est désormais disponible dans le sélecteur de réseau.",
     "cancel": "Annuler",
     "switch": "Changer de réseau"
@@ -2434,7 +2446,7 @@
     "max_fee": "Frais maximums",
     "estimate": "Estimation",
     "recommended_gas_fee": "Frais de gaz recommandés",
-    "swaps_warning": "Les swaps sont très sensibles au facteur temps. Le réglage « Élevé » permettra d’éviter les pertes potentielles dues aux fluctuations des conditions du marché.",
+    "swaps_warning": "Les swaps étant très sensibles au facteur temps, le réglage « Élevé » permet d’éviter les pertes potentielles dues aux fluctuations des conditions du marché.",
     "priority_fee_at_least_0_error": "Les frais de priorité doivent être d’au moins 1 GWEI",
     "learn_more": {
       "title": "Comment puis-je choisir ?",
@@ -2738,10 +2750,7 @@
     "error_during_connection_message": "Nous avons rencontré un petit souci lors de la connexion de votre Ledger Nano X. Appuyez sur « Retry » (Réessayer) ci-dessous pour recommencer. Cela se produit parfois lorsque l’application ETH de votre Ledger Nano X est ouverte au début du processus de couplage avec MetaMask Mobile.",
     "how_to_install_eth_webview_title": "Comment installer l’application Ethereum",
     "nonce_too_low": "Nonce trop court",
-    "nonce_too_low_error": "Le nonce défini est trop court",
-    "ledger_beta_alert": "Activation de l’intégration de Ledger",
-    "ledger_beta_alert_description": "Vous avez trouvé une fonction expérimentale ! En continuant, vous acceptez d’utiliser cette fonction expérimentale à vos propres risques.",
-    "ledger_beta_cta": "Continuer"
+    "nonce_too_low_error": "Le nonce défini est trop court"
   },
   "account_actions": {
     "edit_name": "Modifier le nom du compte",
