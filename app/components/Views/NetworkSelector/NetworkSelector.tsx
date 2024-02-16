@@ -67,11 +67,16 @@ const NetworkSelector = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const onNetworkChange = (type: string) => {
-    const { NetworkController, CurrencyRateController, TransactionController } =
-      Engine.context;
+    const {
+      NetworkController,
+      CurrencyRateController,
+      TransactionController,
+      AccountTrackerController,
+    } = Engine.context;
 
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(type);
+    AccountTrackerController.refresh();
 
     setTimeout(async () => {
       await TransactionController.updateIncomingTransactions();
