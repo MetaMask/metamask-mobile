@@ -13,9 +13,9 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../locales/i18n';
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
@@ -25,6 +25,7 @@ import { selectShowTestNetworks } from '../../../selectors/preferencesController
 import Networks, {
   compareRpcUrls,
   getAllNetworks,
+  getDecimalChainId,
   getNetworkImageSource,
   isTestNet,
 } from '../../../util/networks';
@@ -59,7 +60,7 @@ const NetworkSelector = () => {
   const { navigate } = useNavigation();
   const theme = useTheme();
   const { colors } = theme;
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
@@ -76,10 +77,10 @@ const NetworkSelector = () => {
       await TransactionController.updateIncomingTransactions();
     }, 1000);
 
-    sheetRef.current?.hide();
+    sheetRef.current?.onCloseBottomSheet();
 
     analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: providerConfig.chainId,
+      chain_id: getDecimalChainId(providerConfig.chainId),
       from_network:
         providerConfig.type === 'rpc'
           ? providerConfig.nickname
@@ -103,9 +104,9 @@ const NetworkSelector = () => {
 
       NetworkController.setActiveNetwork(networkConfigurationId);
 
-      sheetRef.current?.hide();
+      sheetRef.current?.onCloseBottomSheet();
       analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-        chain_id: providerConfig.chainId,
+        chain_id: getDecimalChainId(providerConfig.chainId),
         from_network: providerConfig.type,
         to_network: nickname,
       });
@@ -124,8 +125,7 @@ const NetworkSelector = () => {
           imageSource: images.ETHEREUM,
         }}
         isSelected={
-          chainId.toString() === providerConfig.chainId &&
-          !providerConfig.rpcTarget
+          chainId === providerConfig.chainId && !providerConfig.rpcUrl
         }
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
@@ -144,7 +144,7 @@ const NetworkSelector = () => {
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
         }}
-        isSelected={chainId.toString() === providerConfig.chainId}
+        isSelected={chainId === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
@@ -169,8 +169,7 @@ const NetworkSelector = () => {
               imageSource: image,
             }}
             isSelected={Boolean(
-              chainId.toString() === providerConfig.chainId &&
-                providerConfig.rpcTarget,
+              chainId === providerConfig.chainId && providerConfig.rpcUrl,
             )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
@@ -195,7 +194,7 @@ const NetworkSelector = () => {
             name,
             imageSource,
           }}
-          isSelected={chainId.toString() === providerConfig.chainId}
+          isSelected={chainId === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
         />
@@ -204,7 +203,7 @@ const NetworkSelector = () => {
   };
 
   const goToNetworkSettings = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.ADD_NETWORK, {
         shouldNetworkSwitchPopToWallet: false,
       });
@@ -235,7 +234,7 @@ const NetworkSelector = () => {
   );
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <BottomSheet ref={sheetRef}>
       <SheetHeader title={strings('networks.select_network')} />
       <ScrollView {...generateTestId(Platform, NETWORK_SCROLL_ID)}>
         {renderMainnet()}
@@ -254,7 +253,7 @@ const NetworkSelector = () => {
         style={styles.addNetworkButton}
         {...generateTestId(Platform, ADD_NETWORK_BUTTON)}
       />
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 

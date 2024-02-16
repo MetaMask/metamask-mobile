@@ -18,7 +18,7 @@ import { strings } from '../../../../locales/i18n';
 import Alert, { AlertType } from '../../Base/Alert';
 import HorizontalSelector from '../../Base/HorizontalSelector';
 import Device from '../../../util/device';
-import { isMainnetByChainId } from '../../../util/networks';
+import { getDecimalChainId, isMainnetByChainId } from '../../../util/networks';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import FadeAnimationView from '../FadeAnimationView';
@@ -29,11 +29,12 @@ import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
-
-const GAS_LIMIT_INCREMENT = new BigNumber(1000);
-const GAS_INCREMENT = new BigNumber(1);
-const GAS_LIMIT_MIN = new BigNumber(21000);
-const GAS_MIN = new BigNumber(0);
+import {
+  GAS_LIMIT_INCREMENT,
+  GAS_PRICE_INCREMENT as GAS_INCREMENT,
+  GAS_LIMIT_MIN,
+  GAS_PRICE_MIN as GAS_MIN,
+} from '../../../util/gasUtils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -204,7 +205,7 @@ const EditGasFee1559 = ({
     try {
       return {
         ...analyticsParams,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         function_type: view,
         gas_mode: selectedOption ? 'Basic' : 'Advanced',
         speed_set: selectedOption || undefined,

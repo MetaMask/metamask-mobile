@@ -6,7 +6,7 @@ import {
   View,
   TextStyle,
 } from 'react-native';
-import { Theme } from '@metamask/design-tokens';
+import type { Theme } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -27,6 +27,7 @@ import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
+  getDecimalChainId,
   getNetworkImageSource,
   getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
@@ -145,7 +146,7 @@ const Wallet = ({ navigation }: any) => {
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
       {
-        chain_id: providerConfig.chainId,
+        chain_id: getDecimalChainId(providerConfig.chainId),
       },
     );
   }, [navigate, providerConfig.chainId]);

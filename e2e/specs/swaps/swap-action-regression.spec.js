@@ -18,6 +18,7 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
+import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
@@ -87,8 +88,12 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         sourceTokenSymbol,
         destTokenSymbol,
       );
-      await DetailsModal.isTitleVisible(sourceTokenSymbol, destTokenSymbol);
-      await DetailsModal.isStatusCorrect('Confirmed');
+      await Assertions.checkIfVisible(DetailsModal.title);
+      await Assertions.checkIfElementToHaveText(
+        DetailsModal.title,
+        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+      );
+      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
       await DetailsModal.tapOnCloseIcon();
     },
   );

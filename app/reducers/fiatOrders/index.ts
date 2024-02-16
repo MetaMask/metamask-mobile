@@ -1,6 +1,6 @@
 import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
-import { Region } from '../../components/UI/Ramp/common/types';
+import { Region } from '../../components/UI/Ramp/types';
 import { selectChainId } from '../../selectors/networkController';
 import { selectSelectedAddress } from '../../selectors/preferencesController';
 import {
@@ -15,7 +15,9 @@ import {
   FiatOrdersState,
 } from './types';
 import type { RootState } from '../';
-import { isTestNet } from '../../util/networks';
+import { getDecimalChainId, isTestNet } from '../../util/networks';
+import { toHex } from '@metamask/controller-utils';
+
 export type { FiatOrder } from './types';
 
 /** Action Creators */
@@ -143,8 +145,7 @@ const ordersSelector = (state: RootState) =>
   (state.fiatOrders.orders as FiatOrdersState['orders']) || [];
 export const chainIdSelector: (state: RootState) => string = (
   state: RootState,
-) => selectChainId(state);
-
+) => getDecimalChainId(selectChainId(state));
 export const selectedAddressSelector: (state: RootState) => string = (
   state: RootState,
 ) => selectSelectedAddress(state);
@@ -174,7 +175,8 @@ export const getOrders = createSelector(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        (isTestNet(chainId) || Number(order.network) === Number(chainId)),
+        (isTestNet(toHex(chainId)) ||
+          Number(order.network) === Number(chainId)),
     ),
 );
 
@@ -244,6 +246,7 @@ export const networkShortNameSelector = createSelector(
       (aggregatorNetwork) =>
         Number(aggregatorNetwork.chainId) === Number(chainId),
     );
+
     return network?.shortName;
   },
 );
