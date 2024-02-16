@@ -12,9 +12,9 @@ import AppConstants from '../../../../../core/AppConstants';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import MetaMetrics from '../../../core/Analytics/MetaMetrics';
+import MetaMetrics from '../../../../../core/Analytics/MetaMetrics';
 
-jest.mock('../../../core/Analytics/MetaMetrics');
+jest.mock('../../../../../core/Analytics/MetaMetrics');
 
 jest.mock('../../../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
