@@ -938,7 +938,7 @@ class Engine {
       initialState.SmartTransactionsController,
     );
 
-    // TODO fix stxController.name, right now its set to 'BaseController', need to open a PR in that repo
+    // TODO STX fix stxController.name, right now its set to 'BaseController', need to open a PR in that repo
     // Can take this out once that's fixed
     this.stxController.name = 'SmartTransactionsController';
     Logger.log('STX Engine, stxController.name', this.stxController.name);
