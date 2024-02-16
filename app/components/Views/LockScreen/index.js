@@ -133,8 +133,15 @@ class LockScreen extends PureComponent {
   async unlockKeychain() {
     const { bioStateMachineId } = this.props;
     try {
-      // Retreive the credentials
+      // Retrieve the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
+
+      // Log to provide insights into bug research.
+      // Check https://github.com/MetaMask/mobile-planning/issues/1507
+      const { selectedAddress } = this.props;
+      if (typeof selectedAddress !== 'string') {
+        Logger.error('unlockKeychain error', 'selectedAddress is not a string');
+      }
       await Authentication.appTriggeredAuth({
         selectedAddress: this.props.selectedAddress,
         bioStateMachineId,
