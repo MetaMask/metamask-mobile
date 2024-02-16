@@ -14,6 +14,9 @@ import AsyncStorage from '../../store/async-storage-wrapper';
  * @returns Boolean indicating whether or not to show whats new modal
  */
 export const shouldShowWhatsNewModal = async () => {
+  // TODO STX remove this, only for debugging
+  // return true;
+
   const whatsNewAppVersionSeen = await AsyncStorage.getItem(
     WHATS_NEW_APP_VERSION_SEEN,
   );
