@@ -884,11 +884,9 @@ class NetworkSettings extends PureComponent {
       : styles.button;
 
     const url = new URL(rpcUrl);
-    const decimalChainId = this.getDecimalChainId(chainId);
 
     const selectedNetwork = {
       rpcUrl: url.href,
-      chainId: decimalChainId,
       ticker,
       nickname,
       rpcPrefs: {
@@ -903,7 +901,7 @@ class NetworkSettings extends PureComponent {
       <CustomNetwork
         isNetworkModalVisible={this.state.showNetworkDetailsModal}
         closeNetworkModal={this.toggleNetworkDetailsModal}
-        selectedNetwork={selectedNetwork}
+        selectedNetwork={{ ...selectedNetwork, chainId: toHex(chainId) }}
         toggleWarningModal={this.toggleWarningModal}
         showNetworkModal={this.showNetworkModal}
         switchTab={this.tabView}
