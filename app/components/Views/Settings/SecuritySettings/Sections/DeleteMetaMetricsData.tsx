@@ -141,7 +141,7 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
 
       if (DataDeleteResponseStatus.ok === deleteResponse?.status) {
         await checkInitialStatus();
-        await trackDataDeletionRequest();
+        trackDataDeletionRequest();
       } else {
         showDeleteTaskError();
       }
