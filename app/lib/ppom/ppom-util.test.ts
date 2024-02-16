@@ -19,7 +19,7 @@ jest.mock('../../core/Engine', () => ({
     },
     NetworkController: {
       state: {
-        providerConfig: { chainId: '1' },
+        providerConfig: { chainId: '0x1' },
       },
     },
   },
@@ -59,7 +59,7 @@ const mockSignatureRequest = {
 describe('validateResponse', () => {
   beforeEach(() => {
     Engine.context.PreferencesController.state.securityAlertsEnabled = true;
-    Engine.context.NetworkController.state.providerConfig.chainId = '1';
+    Engine.context.NetworkController.state.providerConfig.chainId = '0x1';
   });
 
   afterEach(() => {
@@ -82,7 +82,7 @@ describe('validateResponse', () => {
       TransactionActions,
       'setTransactionSecurityAlertResponse',
     );
-    Engine.context.NetworkController.state.providerConfig.chainId = '250';
+    Engine.context.NetworkController.state.providerConfig.chainId = '0xfa';
     await PPOMUtil.validateRequest(mockRequest, '123');
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
     expect(spyTransactionAction).toBeCalledTimes(0);

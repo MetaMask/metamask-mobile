@@ -11,6 +11,7 @@ import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { getBlockaidMetricsParams } from '../blockaid';
 import Device from '../device';
+import { getDecimalChainId } from '../networks';
 
 export const typedSign = {
   V1: 'eth_signTypedData',
@@ -39,7 +40,7 @@ export const getAnalyticsParams = (
     return {
       account_type: getAddressAccountType(messageParams.from),
       dapp_host_name: url && url?.host,
-      chain_id: chainId,
+      chain_id: getDecimalChainId(chainId),
       signature_type: signType,
       version: messageParams?.version,
       ...pageInfo?.analytics,

@@ -38,7 +38,7 @@ const checkSafeNetwork = async (
         alertOrigin: 'decimals',
       });
     }
-    if (matchedChain.name?.toLowerCase() !== nickname.toLowerCase()) {
+    if (matchedChain.name?.toLowerCase() !== nickname?.toLowerCase()) {
       alerts.push({
         alertError: strings('add_custom_network.unrecognized_chain_name'),
         alertSeverity: BannerAlertSeverity.Warning,
