@@ -888,7 +888,7 @@ class NetworkSettings extends PureComponent {
     const selectedNetwork = {
       rpcUrl: url.href,
       ticker,
-      nickname: nickname ?? '',
+      nickname,
       rpcPrefs: {
         blockExplorerUrl,
       },
