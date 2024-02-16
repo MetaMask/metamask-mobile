@@ -133,7 +133,7 @@ class LockScreen extends PureComponent {
   async unlockKeychain() {
     const { bioStateMachineId } = this.props;
     try {
-      // Retreive the credentials
+      // Retrieve the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
 
       // Log to provide insights into bug research.
