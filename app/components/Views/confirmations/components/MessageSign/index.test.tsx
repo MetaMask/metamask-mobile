@@ -14,10 +14,10 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 // eslint-disable-next-line import/no-namespace
 import * as addressUtils from '../../../../../util/address';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
-import useMetrics from '../../hooks/useMetrics/useMetrics';
-import MetaMetrics from '../../../core/Analytics/MetaMetrics';
+import useMetrics from '../../../../hooks/useMetrics/useMetrics';
+import MetaMetrics from '../../../../../core/Analytics/MetaMetrics';
 
-jest.mock('../../../core/Analytics/MetaMetrics');
+jest.mock('../../../../../core/Analytics/MetaMetrics');
 
 const fakeAddress = '0xE413f7dB07f9B93936189867588B1440D823e651';
 
