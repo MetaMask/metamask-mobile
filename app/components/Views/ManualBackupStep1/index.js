@@ -82,10 +82,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
             setView(CONFIRM_PASSWORD);
           }
         } catch (e) {
-          Logger.error(
-            'Error trying to recover SRP from keyring-controller',
-            e,
-          );
+          Logger.error('Error trying to recover SRP from keyring-controller');
           setView(CONFIRM_PASSWORD);
         }
       }
