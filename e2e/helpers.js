@@ -4,6 +4,8 @@ import {
   getGanachePort,
   getLocalTestDappPort,
 } from './fixtures/utils';
+import Utilities from './utils/Utilities';
+
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
     await waitFor(element(by.id(elementId)))
@@ -150,7 +152,10 @@ export default class TestHelpers {
       newInstance: true,
       url: inputURL,
       sourceApp: 'io.metamask',
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+      },
     });
   }
 
@@ -217,7 +222,12 @@ export default class TestHelpers {
   }
 
   static relaunchApp() {
-    return device.launchApp({ newInstance: true });
+    return device.launchApp({
+      newInstance: true,
+      launchArgs: {
+        detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+      },
+    });
   }
 
   static delay(ms) {
