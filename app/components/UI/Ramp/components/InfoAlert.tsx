@@ -51,6 +51,7 @@ interface Props {
   dismissButtonText?: string;
   providerWebsite?: string;
   providerPrivacyPolicy?: string;
+  providerTermsOfService?: string;
   providerSupport?: string;
   dismiss?: () => any;
 }
@@ -64,6 +65,7 @@ const InfoAlert: React.FC<Props> = ({
   dismiss,
   providerWebsite,
   providerPrivacyPolicy,
+  providerTermsOfService,
   providerSupport,
 }: Props) => {
   const { colors, themeAppearance } = useTheme();
@@ -88,6 +90,18 @@ const InfoAlert: React.FC<Props> = ({
       trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
         location: 'Quotes Screen',
         text: 'Provider Privacy Policy',
+        url_domain: url,
+      });
+    },
+    [trackEvent],
+  );
+
+  const handleTermsOfServiceLinkPress = useCallback(
+    (url: string) => {
+      Linking.openURL(url);
+      trackEvent('ONRAMP_EXTERNAL_LINK_CLICKED', {
+        location: 'Quotes Screen',
+        text: 'Provider Terms of Service',
         url_domain: url,
       });
     },
@@ -166,6 +180,17 @@ const InfoAlert: React.FC<Props> = ({
             >
               <Text small link underline centered>
                 {strings('app_information.privacy_policy')}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {Boolean(providerTermsOfService) && (
+            <TouchableOpacity
+              onPress={() =>
+                handleTermsOfServiceLinkPress(providerTermsOfService as string)
+              }
+            >
+              <Text small link underline centered>
+                {strings('fiat_on_ramp_aggregator.terms_of_service')}
               </Text>
             </TouchableOpacity>
           )}

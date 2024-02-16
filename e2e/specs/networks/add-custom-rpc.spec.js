@@ -18,6 +18,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
+import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 const GORELI = 'Goerli Test Network';
@@ -68,12 +69,12 @@ describe(Regression('Custom RPC Tests'), () => {
     }
 
     await TestHelpers.delay(3000);
-    await NetworkApprovalModal.isVisible();
+    await Assertions.checkIfVisible(NetworkApprovalModal.container);
     await NetworkApprovalModal.tapApproveButton();
 
     await TestHelpers.delay(3000);
-    await NetworkAddedModal.isVisible();
-    await NetworkAddedModal.tapSwitchToNetworkButton();
+    await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
+    await NetworkAddedModal.tapSwitchToNetwork();
 
     await TestHelpers.delay(3000);
     await WalletView.isVisible();

@@ -29,11 +29,12 @@ import TimeEstimateInfoModal from '../TimeEstimateInfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
-
-const GAS_LIMIT_INCREMENT = new BigNumber(1000);
-const GAS_INCREMENT = new BigNumber(1);
-const GAS_LIMIT_MIN = new BigNumber(21000);
-const GAS_MIN = new BigNumber(0);
+import {
+  GAS_LIMIT_INCREMENT,
+  GAS_PRICE_INCREMENT as GAS_INCREMENT,
+  GAS_LIMIT_MIN,
+  GAS_PRICE_MIN as GAS_MIN,
+} from '../../../util/gasUtils';
 
 const createStyles = (colors) =>
   StyleSheet.create({

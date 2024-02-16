@@ -47,6 +47,17 @@ class Matchers {
   }
 
   /**
+   * Get element with ancestor.
+   *
+   * @param {string} childElement - The ID of the child element to locate within the parent element.
+   * @param {string} parentElement - Matches elements with at least one descendant that matches the specified matcher.
+   * @return {Promise<Detox.IndexableNativeElement>} - Resolves to the located element
+   */
+  static async getElementIDWithAncestor(childElement, parentElement) {
+    return element(by.id(childElement).withAncestor(by.id(parentElement)));
+  }
+
+  /**
    * Get element by web ID.
    *
    * @param {string} webID - The web ID of the element to locate

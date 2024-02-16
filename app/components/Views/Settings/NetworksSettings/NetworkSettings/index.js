@@ -36,7 +36,7 @@ import AnalyticsV2 from '../../../../../util/analyticsV2';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PopularList from '../../../../../util/networks/customNetworks';
-import WarningMessage from '../../../../Views/SendFlow/WarningMessage';
+import WarningMessage from '../../../confirmations/SendFlow/WarningMessage';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import {
   DEFAULT_MAINNET_CUSTOM_NAME,
@@ -884,11 +884,9 @@ class NetworkSettings extends PureComponent {
       : styles.button;
 
     const url = new URL(rpcUrl);
-    const decimalChainId = this.getDecimalChainId(chainId);
 
     const selectedNetwork = {
       rpcUrl: url.href,
-      chainId: decimalChainId,
       ticker,
       nickname,
       rpcPrefs: {
@@ -903,7 +901,7 @@ class NetworkSettings extends PureComponent {
       <CustomNetwork
         isNetworkModalVisible={this.state.showNetworkDetailsModal}
         closeNetworkModal={this.toggleNetworkDetailsModal}
-        selectedNetwork={selectedNetwork}
+        selectedNetwork={{ ...selectedNetwork, chainId: toHex(chainId) }}
         toggleWarningModal={this.toggleWarningModal}
         showNetworkModal={this.showNetworkModal}
         switchTab={this.tabView}

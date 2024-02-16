@@ -26,7 +26,7 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
@@ -36,6 +36,7 @@ import {
   hexToBN,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  toHexadecimal,
   weiToFiat,
 } from '../../../util/number';
 import { getEther } from '../../../util/transactions';
@@ -65,7 +66,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
-  const accounts = useSelector(selectAccounts);
+  const accountsByChainId = useSelector(selectAccountsByChainId);
   const primaryCurrency = useSelector(
     (state: RootStateOrAny) => state.settings.primaryCurrency,
   );
@@ -165,9 +166,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   let balance, balanceFiat;
   if (asset.isETH) {
-    balance = renderFromWei(accounts[selectedAddress]?.balance);
+    balance = renderFromWei(
+      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+    );
     balanceFiat = weiToFiat(
-      hexToBN(accounts[selectedAddress].balance),
+      hexToBN(
+        accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+      ),
       conversionRate,
       currentCurrency,
     );
