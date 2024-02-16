@@ -531,7 +531,7 @@ index 34d0107..881a358 100644
      }, config?: Partial<NftDetectionConfig>, state?: Partial<BaseState>);
      /**
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
-index 8111dd8..b30b79f 100644
+index 8111dd8..7432085 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 @@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
@@ -557,7 +557,16 @@ index 8111dd8..b30b79f 100644
          super(config, state);
          /**
           * Name of this controller used during composition
-@@ -74,47 +77,40 @@ class NftDetectionController extends base_controller_1.BaseController {
+@@ -57,8 +60,6 @@ class NftDetectionController extends base_controller_1.BaseController {
+             if (selectedAddress !== previouslySelectedAddress ||
+                 !useNftDetection !== disabled) {
+                 this.configure({ selectedAddress, disabled: !useNftDetection });
+-            }
+-            if (useNftDetection !== undefined) {
+                 if (useNftDetection) {
+                     this.start();
+                 }
+@@ -74,47 +75,40 @@ class NftDetectionController extends base_controller_1.BaseController {
          });
          this.getOpenSeaApiKey = getOpenSeaApiKey;
          this.addNft = addNft;
