@@ -3,9 +3,7 @@ import { SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/WalletView';
 import AddCustomTokenView from '../../pages/AddCustomTokenView';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
-import { importWalletWithRecoveryPhrase, loginToApp } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import {
   withFixtures,
   defaultGanacheOptions,
@@ -14,30 +12,9 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 
 describe(SmokeCore('Import NFT'), () => {
-  const SEPOLIA = 'Sepolia Test Network';
-
   beforeAll(async () => {
     jest.setTimeout(150000);
     await device.launchApp();
-  });
-
-  it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase();
-  });
-
-  it('should switch to Sepolia network', async () => {
-    await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.isVisible();
-    await NetworkListModal.tapTestNetworkSwitch();
-    await NetworkListModal.isTestNetworkToggleOn();
-    await NetworkListModal.changeNetwork(SEPOLIA);
-    await WalletView.isNetworkNameVisible(SEPOLIA);
-  });
-
-  it('should dismiss network education modal', async () => {
-    await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
   });
 
   it('should add a collectible', async () => {
