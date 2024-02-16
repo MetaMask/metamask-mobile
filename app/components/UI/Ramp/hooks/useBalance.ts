@@ -10,7 +10,6 @@ import { selectSelectedAddress } from '../../../../selectors/preferencesControll
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectChainId } from '../../../../selectors/networkController';
-
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
   balanceToFiat,

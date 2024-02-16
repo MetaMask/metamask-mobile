@@ -96,7 +96,7 @@ const Wallet = ({ navigation }: any) => {
   const { colors } = theme;
 
   /**
-   * Map of accountsByChain to information objects including balances
+   * Map of accountsByChainId to information objects including balances
    */
   const accountsByChainId = useSelector(selectAccountsByChainId);
 

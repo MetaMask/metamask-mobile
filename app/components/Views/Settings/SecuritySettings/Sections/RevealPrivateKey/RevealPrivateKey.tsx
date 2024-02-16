@@ -32,7 +32,6 @@ const RevealPrivateKey = () => {
   const navigation = useNavigation();
 
   const accounts = useSelector(selectAccounts);
-
   const identities = useSelector(selectIdentities);
   const selectedAddress = useSelector(selectSelectedAddress);
 
