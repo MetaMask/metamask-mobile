@@ -4126,15 +4126,7 @@
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
 
-"@metamask/post-message-stream@7.0.0":
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/post-message-stream/-/post-message-stream-7.0.0.tgz#b7698909ec54923b6a6990b8d46cc15c2810d840"
-  integrity sha512-+dTUNtuNY9o4ooPiXEOqSkqQWQ9APkVx3dAkBvAsJLetAGXvmoBeIMN1DL2QU+9BTbQ9JyJ6NycQnhvwRRc1HQ==
-  dependencies:
-    "@metamask/utils" "^5.0.0"
-    readable-stream "3.6.2"
-
-"@metamask/post-message-stream@^8.0.0":
+"@metamask/post-message-stream@8.0.0", "@metamask/post-message-stream@^8.0.0":
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/post-message-stream/-/post-message-stream-8.0.0.tgz#101a54c2a4029879691ce83065638493d7822f48"
   integrity sha512-Bk5LQRxD2IJMJWKY8Yuy+86gracExv2jpjHVWm5Ek7njtdzS0Z10ABpC+yekc8vsRaJ6+xgr64wLHWbYNUqEyg==
@@ -4415,7 +4407,7 @@
     semver "^7.3.8"
     superstruct "^1.0.3"
 
-"@metamask/utils@^5.0.0", "@metamask/utils@^5.0.1", "@metamask/utils@^5.0.2":
+"@metamask/utils@^5.0.1", "@metamask/utils@^5.0.2":
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-5.0.2.tgz#140ba5061d90d9dac0280c19cab101bc18c8857c"
   integrity sha512-yfmE79bRQtnMzarnKfX7AEJBwFTxvTyw3nBQlu/5rmGXrjAeAMltoGxO62TFurxrQAFMNa/fEjIHNvungZp0+g==
