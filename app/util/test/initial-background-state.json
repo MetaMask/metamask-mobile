@@ -14,7 +14,7 @@
   "AccountTrackerController": {
     "accounts": {},
     "accountsByChainId": {
-      "1": {}
+      "0x1": {}
     }
   },
   "AddressBookController": {

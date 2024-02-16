@@ -132,6 +132,7 @@ import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
+  toHexadecimal,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -1226,7 +1227,9 @@ class Engine {
     let tokenFiat = 0;
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
     if (
-      accountsByChainId[toHexadecimal(networkProvider.chainId)][selectedAddress]
+      accountsByChainId?.[toHexadecimal(networkProvider.chainId)]?.[
+        selectedAddress
+      ]
     ) {
       ethFiat = weiToFiatNumber(
         accountsByChainId[toHexadecimal(networkProvider.chainId)][

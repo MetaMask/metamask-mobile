@@ -11,7 +11,7 @@ import TagUrl from '../../../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectProviderConfig } from '../../../../../selectors/networkController';
 import { selectIdentities } from '../../../../../selectors/preferencesController';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {
   getLabelTextByAddress,
   renderAccountName,
