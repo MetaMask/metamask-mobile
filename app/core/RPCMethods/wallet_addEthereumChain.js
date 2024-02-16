@@ -1,12 +1,12 @@
 import { InteractionManager } from 'react-native';
 import validUrl from 'valid-url';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import {
+  getDecimalChainId,
   isPrefixedFormattedHexString,
-  isSafeChainId,
 } from '../../util/networks';
 import { MetaMetrics, MetaMetricsEvents } from '../Analytics';
 import {
@@ -107,17 +107,13 @@ const wallet_addEthereumChain = async ({
     );
   }
 
-  if (!isSafeChainId(parseInt(_chainId, 16))) {
+  if (!isSafeChainId(_chainId)) {
     throw ethErrors.rpc.invalidParams(
       `Invalid chain ID "${_chainId}": numerical value greater than max safe value. Received:\n${chainId}`,
     );
   }
 
-  const chainIdDecimal = parseInt(_chainId, 16).toString(10);
-
-  if (
-    Object.values(NetworksChainId).find((value) => value === chainIdDecimal)
-  ) {
+  if (Object.values(ChainId).find((value) => value === _chainId)) {
     throw ethErrors.rpc.invalidParams(
       `May not specify default MetaMask chain.`,
     );
@@ -125,20 +121,19 @@ const wallet_addEthereumChain = async ({
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const existingEntry = Object.entries(networkConfigurations).find(
-    ([, networkConfiguration]) =>
-      networkConfiguration.chainId === chainIdDecimal,
+    ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
   );
 
   if (existingEntry) {
     const [networkConfigurationId, networkConfiguration] = existingEntry;
     const currentChainId = selectChainId(store.getState());
-    if (currentChainId === chainIdDecimal) {
+    if (currentChainId === _chainId) {
       res.result = null;
       return;
     }
 
     const analyticsParams = {
-      chain_id: _chainId,
+      chain_id: getDecimalChainId(_chainId),
       source: 'Custom Network API',
       symbol: networkConfiguration.ticker,
       ...analytics,
@@ -236,7 +231,7 @@ const wallet_addEthereumChain = async ({
   };
 
   const alerts = await checkSafeNetwork(
-    chainIdDecimal,
+    getDecimalChainId(_chainId),
     requestData.rpcUrl,
     requestData.chainName,
     requestData.ticker,
@@ -245,7 +240,7 @@ const wallet_addEthereumChain = async ({
   requestData.alerts = alerts;
 
   const analyticsParamsAdd = {
-    chain_id: chainIdDecimal,
+    chain_id: getDecimalChainId(_chainId),
     source: 'Custom Network API',
     symbol: ticker,
     ...analytics,
@@ -278,12 +273,11 @@ const wallet_addEthereumChain = async ({
       );
       throw ethErrors.provider.userRejectedRequest();
     }
-
     const networkConfigurationId =
       await NetworkController.upsertNetworkConfiguration(
         {
           rpcUrl: firstValidRPCUrl,
-          chainId: chainIdDecimal,
+          chainId: _chainId,
           ticker,
           nickname: chainName,
           rpcPrefs: {

@@ -17,7 +17,7 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 const mockEngine = Engine;
 
 const mockInitialState = {
-  swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
+  swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   fiatOrders: {
     networks: [
       {
@@ -32,7 +32,7 @@ const mockInitialState = {
     backgroundState: {
       ...initialBackgroundState,
       NetworkController: {
-        providerConfig: { type: 'mainnet', chainId: '1', ticker: 'ETH' },
+        providerConfig: { type: 'mainnet', chainId: '0x1', ticker: 'ETH' },
       },
     },
   },
@@ -93,7 +93,7 @@ describe('WalletActions', () => {
 
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
     const mockState = {
-      swaps: { '1': { isLive: false }, hasOnboarded: false, isLive: true },
+      swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: true },
       fiatOrders: {
         networks: [
           {

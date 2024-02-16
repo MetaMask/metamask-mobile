@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Platform,
 } from 'react-native';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
@@ -21,7 +20,6 @@ import {
 } from '../../hooks/useMetrics';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   MULTI_TAB_ADD_BUTTON,
   MULTI_TAB_CLOSE_ALL_BUTTON,
@@ -237,10 +235,7 @@ class Tabs extends PureComponent {
 
     return (
       <View style={styles.noTabs}>
-        <Text
-          style={styles.noTabsTitle}
-          {...generateTestId(Platform, MULTI_TAB_NO_TABS_MESSAGE)}
-        >
+        <Text style={styles.noTabsTitle} testID={MULTI_TAB_NO_TABS_MESSAGE}>
           {strings('browser.no_tabs_title')}
         </Text>
         <Text style={styles.noTabsDesc}>{strings('browser.no_tabs_desc')}</Text>
@@ -294,7 +289,7 @@ class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionleft]}
           onPress={closeAllTabs}
-          {...generateTestId(Platform, MULTI_TAB_CLOSE_ALL_BUTTON)}
+          testID={MULTI_TAB_CLOSE_ALL_BUTTON}
         >
           <Text
             style={[
@@ -309,7 +304,7 @@ class Tabs extends PureComponent {
           <TouchableOpacity
             style={styles.newTabIconButton}
             onPress={this.onNewTabPress}
-            {...generateTestId(Platform, MULTI_TAB_ADD_BUTTON)}
+            testID={MULTI_TAB_ADD_BUTTON}
           >
             <MaterialCommunityIcon
               name="plus"
@@ -322,7 +317,7 @@ class Tabs extends PureComponent {
         <TouchableOpacity
           style={[styles.tabAction, styles.tabActionRight]}
           onPress={closeTabsView}
-          {...generateTestId(Platform, MULTI_TAB_DONE_BUTTON)}
+          testID={MULTI_TAB_DONE_BUTTON}
         >
           <Text
             style={[
