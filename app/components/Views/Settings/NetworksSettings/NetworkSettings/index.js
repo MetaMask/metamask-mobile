@@ -7,7 +7,6 @@ import {
   TextInput,
   SafeAreaView,
   Linking,
-  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import {
@@ -54,18 +53,6 @@ import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import { themeAppearanceLight } from '../../../../../constants/storage';
 import { scale, moderateScale } from 'react-native-size-matters';
 import CustomNetwork from './CustomNetworkView/CustomNetwork';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
-import {
-  INPUT_CHAIN_ID_FIELD,
-  INPUT_RPC_URL_FIELD,
-  INPUT_NETWORK_NAME,
-  NETWORKS_SYMBOL_INPUT_FIELD,
-  BLOCK_EXPLORER_FIELD,
-  REMOVE_NETWORK_BUTTON,
-  CUSTOM_NETWORKS_TAB_ID,
-  POPULAR_NETWORKS_TAB_ID,
-  RPC_WARNING_BANNER_ID,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -933,7 +920,7 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_name_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToRpcURL}
-              {...generateTestId(Platform, INPUT_NETWORK_NAME)}
+              testID={NetworksViewSelectorsIDs.NETWORK_NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
             <Text style={styles.label}>
@@ -951,13 +938,13 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_rpc_placeholder')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToChainId}
-              {...generateTestId(Platform, INPUT_RPC_URL_FIELD)}
+              testID={NetworksViewSelectorsIDs.RPC_URL_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {warningRpcUrl && (
               <View
                 style={styles.warningContainer}
-                testID={RPC_WARNING_BANNER_ID}
+                testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}
               >
                 <Text style={styles.warningText}>{warningRpcUrl}</Text>
               </View>
@@ -979,7 +966,7 @@ class NetworkSettings extends PureComponent {
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpToSymbol}
               keyboardType={'numbers-and-punctuation'}
-              {...generateTestId(Platform, INPUT_CHAIN_ID_FIELD)}
+              testID={NetworksViewSelectorsIDs.CHAIN_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {warningChainId ? (
@@ -1003,7 +990,7 @@ class NetworkSettings extends PureComponent {
               placeholder={strings('app_settings.network_symbol_label')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}
-              {...generateTestId(Platform, NETWORKS_SYMBOL_INPUT_FIELD)}
+              testID={NetworksViewSelectorsIDs.NETWORKS_SYMBOL_INPUT}
               keyboardAppearance={themeAppearance}
             />
 
@@ -1027,7 +1014,7 @@ class NetworkSettings extends PureComponent {
               placeholder={strings(
                 'app_settings.network_block_explorer_placeholder',
               )}
-              {...generateTestId(Platform, BLOCK_EXPLORER_FIELD)}
+              testID={NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.toggleNetworkDetailsModal}
               keyboardAppearance={themeAppearance}
@@ -1053,7 +1040,7 @@ class NetworkSettings extends PureComponent {
                       variant={ButtonVariants.Secondary}
                       isDanger
                       onPress={this.removeRpcUrl}
-                      testID={REMOVE_NETWORK_BUTTON}
+                      testID={NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
                       style={{ ...styles.button, ...styles.cancel }}
                       label={strings('app_settings.delete')}
                     />
@@ -1164,7 +1151,7 @@ class NetworkSettings extends PureComponent {
                 tabLabel={strings('app_settings.popular')}
                 key={AppConstants.ADD_CUSTOM_NETWORK_POPULAR_TAB_ID}
                 style={styles.networksWrapper}
-                testID={POPULAR_NETWORKS_TAB_ID}
+                testID={NetworksViewSelectorsIDs.POPULAR_NETWORKS_CONTAINER}
               >
                 <CustomNetwork
                   isNetworkModalVisible={this.state.showPopularNetworkModal}
@@ -1181,7 +1168,7 @@ class NetworkSettings extends PureComponent {
               <View
                 tabLabel={strings('app_settings.custom_network_name')}
                 key={AppConstants.ADD_CUSTOM_NETWORK_CUSTOM_TAB_ID}
-                testID={CUSTOM_NETWORKS_TAB_ID}
+                testID={NetworksViewSelectorsIDs.CUSTOM_NETWORKS_CONTAINER}
               >
                 {this.customNetwork()}
               </View>
