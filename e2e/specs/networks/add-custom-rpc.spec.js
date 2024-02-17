@@ -48,7 +48,7 @@ describe(Regression('Custom RPC Tests'), () => {
   it('should go to settings then networks', async () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
-    await NetworkView.isNetworkViewVisible();
+    await Assertions.checkIfVisible(NetworkView.networkContainer);
   });
 
   it('should add xDai network', async () => {
@@ -58,7 +58,7 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkView.switchToCustomNetworks();
     await NetworkView.typeInNetworkName('xDai');
     await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
-    await NetworkView.isRPCWarningVisble(); // Check that warning is displayed
+    await Assertions.checkIfVisible(NetworkView.rpcWarningBanner);
     await NetworkView.clearRpcInputBox();
     await NetworkView.typeInRpcUrl(XDAI_URL);
     await NetworkView.typeInChainId('100');
@@ -95,7 +95,7 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkListModal.isNetworkNameVisibleInListOfNetworks('xDai');
   });
 
-  it('should switch to Goreli then dismiss the network education modal', async () => {
+  it('should switch to Sepolia then dismiss the network education modal', async () => {
     await NetworkListModal.isTestNetworkToggleOn();
     await NetworkListModal.changeNetwork(GORELI);
     await NetworkEducationModal.isVisible();
@@ -121,8 +121,8 @@ describe(Regression('Custom RPC Tests'), () => {
     await TestHelpers.delay(3000);
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
-    await NetworkView.isNetworkViewVisible();
-    await NetworkView.removeNetwork(); // Tap on xDai to remove network
+    await Assertions.checkIfVisible(NetworkView.networkContainer);
+    await NetworkView.tapRemoveNetwork('xDai'); // Tap on xDai to remove network
     await NetworkEducationModal.tapGotItButton();
     await TabBarComponent.tapWallet();
     await WalletView.isVisible();
