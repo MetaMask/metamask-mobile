@@ -4,7 +4,7 @@ import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
 import {
   Reason,
   ResultType,
-} from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';

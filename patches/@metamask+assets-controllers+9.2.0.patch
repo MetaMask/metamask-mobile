@@ -1,16 +1,161 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
+index ad327da..56a1ae3 100644
+--- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
++++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
+@@ -1,6 +1,7 @@
+ import type { Provider } from 'eth-query';
+ import { BaseConfig, BaseController, BaseState } from '@metamask/base-controller';
+ import { PreferencesState } from '@metamask/preferences-controller';
++import { NetworkState } from '@metamask/network-controller';
+ /**
+  * @type AccountInformation
+  *
+@@ -30,6 +31,9 @@ export interface AccountTrackerState extends BaseState {
+     accounts: {
+         [address: string]: AccountInformation;
+     };
++    accountsByChainId: Record<string, {
++        [address: string]: AccountInformation;
++    }>;
+ }
+ /**
+  * Controller that tracks the network balances for all user accounts.
+@@ -46,6 +50,7 @@ export declare class AccountTrackerController extends BaseController<AccountTrac
+     private getIdentities;
+     private getSelectedAddress;
+     private getMultiAccountBalancesEnabled;
++    private readonly getCurrentChainId;
+     /**
+      * Creates an AccountTracker instance.
+      *
+@@ -54,14 +59,16 @@ export declare class AccountTrackerController extends BaseController<AccountTrac
+      * @param options.getIdentities - Gets the identities from the Preferences store.
+      * @param options.getSelectedAddress - Gets the selected address from the Preferences store.
+      * @param options.getMultiAccountBalancesEnabled - Gets the multi account balances enabled flag from the Preferences store.
++     * @param options.getCurrentChainId - Gets the chain ID for the current network from the Network store.
+      * @param config - Initial options used to configure this controller.
+      * @param state - Initial state to set on this controller.
+      */
+-    constructor({ onPreferencesStateChange, getIdentities, getSelectedAddress, getMultiAccountBalancesEnabled, }: {
++    constructor({ onPreferencesStateChange, getIdentities, getSelectedAddress, getMultiAccountBalancesEnabled, getCurrentChainId, }: {
+         onPreferencesStateChange: (listener: (preferencesState: PreferencesState) => void) => void;
+         getIdentities: () => PreferencesState['identities'];
+         getSelectedAddress: () => PreferencesState['selectedAddress'];
+         getMultiAccountBalancesEnabled: () => PreferencesState['isMultiAccountBalancesEnabled'];
++        getCurrentChainId: () => NetworkState['providerConfig']['chainId'];
+     }, config?: Partial<AccountTrackerConfig>, state?: Partial<AccountTrackerState>);
+     /**
+      * Sets a new provider.
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index 18802c9..c82eaaa 100644
+index 18802c9..002f27c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-@@ -53,6 +53,8 @@ class AccountTrackerController extends base_controller_1.BaseController {
+@@ -18,6 +18,7 @@ const async_mutex_1 = require("async-mutex");
+ const base_controller_1 = require("@metamask/base-controller");
+ const utils_1 = require("@metamask/utils");
+ const controller_utils_1 = require("@metamask/controller-utils");
++const lodash_1 = require("lodash");
+ /**
+  * Controller that tracks the network balances for all user accounts.
+  */
+@@ -30,10 +31,11 @@ class AccountTrackerController extends base_controller_1.BaseController {
+      * @param options.getIdentities - Gets the identities from the Preferences store.
+      * @param options.getSelectedAddress - Gets the selected address from the Preferences store.
+      * @param options.getMultiAccountBalancesEnabled - Gets the multi account balances enabled flag from the Preferences store.
++     * @param options.getCurrentChainId - Gets the chain ID for the current network from the Network store.
+      * @param config - Initial options used to configure this controller.
+      * @param state - Initial state to set on this controller.
+      */
+-    constructor({ onPreferencesStateChange, getIdentities, getSelectedAddress, getMultiAccountBalancesEnabled, }, config, state) {
++    constructor({ onPreferencesStateChange, getIdentities, getSelectedAddress, getMultiAccountBalancesEnabled, getCurrentChainId, }, config, state) {
+         super(config, state);
+         this.mutex = new async_mutex_1.Mutex();
+         /**
+@@ -46,23 +48,36 @@ class AccountTrackerController extends base_controller_1.BaseController {
+          * If multi-account is enabled, updates balances for all accounts.
+          */
+         this.refresh = () => __awaiter(this, void 0, void 0, function* () {
+-            this.syncAccounts();
++            const chainId = this.getCurrentChainId();
++            this.syncAccounts(chainId);
+             const accounts = Object.assign({}, this.state.accounts);
++            const accountsByChainId = Object.assign({}, this.state.accountsByChainId);
++            const accountsForChain = Object.assign({}, accountsByChainId[chainId]);
+             const isMultiAccountBalancesEnabled = this.getMultiAccountBalancesEnabled();
+             const accountsToUpdate = isMultiAccountBalancesEnabled
                  ? Object.keys(accounts)
                  : [this.getSelectedAddress()];
              for (const address of accountsToUpdate) {
-+                const balance = yield this.getBalanceFromChain(address);
-+                if(!balance) continue;
++                const hexBalance = yield this.getBalanceFromChain(address);
                  accounts[address] = {
-                     balance: (0, controller_utils_1.BNToHex)(yield this.getBalanceFromChain(address)),
+-                    balance: (0, controller_utils_1.BNToHex)(yield this.getBalanceFromChain(address)),
++                    balance: (0, controller_utils_1.BNToHex)(hexBalance),
                  };
++                accountsForChain[address] = { balance: (0, controller_utils_1.BNToHex)(hexBalance) };
+             }
+-            this.update({ accounts });
++            this.update({
++                accounts,
++                accountsByChainId: Object.assign(Object.assign({}, accountsByChainId), { [chainId]: accountsForChain }),
++            });
+         });
+         this.defaultConfig = {
+             interval: 10000,
+         };
+-        this.defaultState = { accounts: {} };
++        this.defaultState = {
++            accounts: {},
++            accountsByChainId: {
++                [getCurrentChainId()]: {},
++            },
++        };
+         this.initialize();
+         this.getIdentities = getIdentities;
+         this.getSelectedAddress = getSelectedAddress;
+@@ -70,21 +85,41 @@ class AccountTrackerController extends base_controller_1.BaseController {
+         onPreferencesStateChange(() => {
+             this.refresh();
+         });
++        this.getCurrentChainId = getCurrentChainId;
+         this.poll();
+     }
+-    syncAccounts() {
++    syncAccounts(newChainId) {
+         const { accounts } = this.state;
++        const accountsByChainId = (0, lodash_1.cloneDeep)(this.state.accountsByChainId);
+         const addresses = Object.keys(this.getIdentities());
+         const existing = Object.keys(accounts);
++        if (!accountsByChainId[newChainId]) {
++            accountsByChainId[newChainId] = {};
++            existing.forEach((address) => {
++                accountsByChainId[newChainId][address] = { balance: '0x0' };
++            });
++        }
+         const newAddresses = addresses.filter((address) => existing.indexOf(address) === -1);
+         const oldAddresses = existing.filter((address) => addresses.indexOf(address) === -1);
+         newAddresses.forEach((address) => {
+             accounts[address] = { balance: '0x0' };
+         });
++        Object.keys(accountsByChainId).forEach((chainId) => {
++            newAddresses.forEach((address) => {
++                accountsByChainId[chainId][address] = {
++                    balance: '0x0',
++                };
++            });
++        });
+         oldAddresses.forEach((address) => {
+             delete accounts[address];
+         });
+-        this.update({ accounts: Object.assign({}, accounts) });
++        Object.keys(accountsByChainId).forEach((chainId) => {
++            oldAddresses.forEach((address) => {
++                delete accountsByChainId[chainId][address];
++            });
++        });
++        this.update({ accounts: Object.assign({}, accounts), accountsByChainId });
+     }
+     /**
+      * Sets a new provider.
 diff --git a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.ts b/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.ts
 index 58e0ffa..383f8cb 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AssetsContractController.d.ts
