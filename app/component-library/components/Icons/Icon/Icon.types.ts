@@ -102,6 +102,7 @@ export enum IconName {
   CheckBoxOff = 'CheckBoxOff',
   CheckBoxOn = 'CheckBoxOn',
   CheckCircleOff = 'CheckCircleOff',
+  CheckCircle = 'CheckCircle',
   Check = 'Check',
   CircleX = 'CircleX',
   Clock = 'Clock',

@@ -10,12 +10,16 @@ import { Store, AnyAction } from 'redux';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import Device from '../../../../util/device';
+
+const originalFetch = global.fetch;
 
 const mockStore = configureMockStore();
 let initialState: any;
 let store: Store<any, AnyAction>;
 const mockNavigate = jest.fn();
 let mockSetDisabledRpcMethodPreference: jest.Mock<any, any>;
+let mockSetSmartTransactionsOptInStatus: jest.Mock<any, any>;
 
 beforeEach(() => {
   initialState = {
@@ -27,6 +31,7 @@ beforeEach(() => {
   store = mockStore(initialState);
   mockNavigate.mockClear();
   mockSetDisabledRpcMethodPreference.mockClear();
+  mockSetSmartTransactionsOptInStatus.mockClear();
 });
 
 jest.mock('@react-navigation/native', () => {
@@ -43,11 +48,13 @@ const mockEngine = Engine;
 
 jest.mock('../../../../core/Engine', () => {
   mockSetDisabledRpcMethodPreference = jest.fn();
+  mockSetSmartTransactionsOptInStatus = jest.fn();
   return {
     init: () => mockEngine.init({}),
     context: {
       PreferencesController: {
         setDisabledRpcMethodPreference: mockSetDisabledRpcMethodPreference,
+        setSmartTransactionsOptInStatus: mockSetSmartTransactionsOptInStatus,
       },
     },
   };
@@ -144,5 +151,186 @@ describe('AdvancedSettings', () => {
       'eth_sign',
       false,
     );
+  });
+
+  describe('Smart Transactions Opt In', () => {
+    afterEach(() => {
+      global.fetch = originalFetch;
+    });
+
+    describe('iOS', () => {
+      Device.isIos = jest.fn().mockReturnValue(true);
+      Device.isAndroid = jest.fn().mockReturnValue(false);
+
+      it('should hide the Smart Transaction Opt In if feature flag is disabled', () => {
+        global.fetch = jest.fn(() => ({
+          json: () => ({
+            smartTransactions: {
+              mobileActive: true,
+              mobileActiveIOS: true,
+              mobileActiveAndroid: true,
+            },
+          }),
+        }));
+
+        const { queryByLabelText } = renderWithProvider(
+          <AdvancedSettings
+            navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+          />,
+          {
+            state: initialState,
+          },
+        );
+
+        // Check that the Smart Transaction Opt In is not in the document
+        const switchElement = queryByLabelText(
+          strings('app_settings.smart_transactions_opt_in_heading'),
+        );
+        expect(switchElement).toBeNull();
+      });
+      it('should show the Smart Transaction Opt In if feature flag is enabled', async () => {
+        global.fetch = jest.fn(() => ({
+          json: () => ({
+            smartTransactions: {
+              mobileActive: true,
+              mobileActiveIOS: true,
+              mobileActiveAndroid: true,
+            },
+          }),
+        }));
+
+        const { findByLabelText } = renderWithProvider(
+          <AdvancedSettings
+            navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+          />,
+          {
+            state: initialState,
+          },
+        );
+
+        // Check that the Smart Transaction Opt In is not in the document
+        const switchElement = await findByLabelText(
+          strings('app_settings.smart_transactions_opt_in_heading'),
+        );
+        expect(switchElement).not.toBeNull();
+      });
+    });
+    describe('Android', () => {
+      Device.isIos = jest.fn().mockReturnValue(false);
+      Device.isAndroid = jest.fn().mockReturnValue(true);
+
+      it('should hide the Smart Transaction Opt In if feature flag is disabled', () => {
+        global.fetch = jest.fn(() => ({
+          json: () => ({
+            smartTransactions: {
+              mobileActive: true,
+              mobileActiveIOS: true,
+              mobileActiveAndroid: true,
+            },
+          }),
+        }));
+
+        const { queryByLabelText } = renderWithProvider(
+          <AdvancedSettings
+            navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+          />,
+          {
+            state: initialState,
+          },
+        );
+
+        // Check that the Smart Transaction Opt In is not in the document
+        const switchElement = queryByLabelText(
+          strings('app_settings.smart_transactions_opt_in_heading'),
+        );
+        expect(switchElement).toBeNull();
+      });
+      it('should show the Smart Transaction Opt In if feature flag is enabled', async () => {
+        global.fetch = jest.fn(() => ({
+          json: () => ({
+            smartTransactions: {
+              mobileActive: true,
+              mobileActiveIOS: true,
+              mobileActiveAndroid: true,
+            },
+          }),
+        }));
+
+        const { findByLabelText } = renderWithProvider(
+          <AdvancedSettings
+            navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+          />,
+          {
+            state: initialState,
+          },
+        );
+
+        // Check that the Smart Transaction Opt In is not in the document
+        const switchElement = await findByLabelText(
+          strings('app_settings.smart_transactions_opt_in_heading'),
+        );
+        expect(switchElement).not.toBeNull();
+      });
+    });
+
+    it('should render smart transactions opt in switch off by default', async () => {
+      Device.isIos = jest.fn().mockReturnValue(false);
+      Device.isAndroid = jest.fn().mockReturnValue(true);
+
+      global.fetch = jest.fn(() => ({
+        json: () => ({
+          smartTransactions: {
+            mobileActive: true,
+            mobileActiveIOS: true,
+            mobileActiveAndroid: true,
+          },
+        }),
+      }));
+
+      const { findByLabelText } = renderWithProvider(
+        <AdvancedSettings
+          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+        />,
+        {
+          state: initialState,
+        },
+      );
+
+      const switchElement = await findByLabelText(
+        strings('app_settings.smart_transactions_opt_in_heading'),
+      );
+      expect(switchElement.props.value).toBe(false);
+    });
+    it('should call PreferencesController.setSmartTransactionsOptInStatus when smart transactions opt in is pressed', async () => {
+      Device.isIos = jest.fn().mockReturnValue(false);
+      Device.isAndroid = jest.fn().mockReturnValue(true);
+
+      global.fetch = jest.fn(() => ({
+        json: () => ({
+          smartTransactions: {
+            mobileActive: true,
+            mobileActiveIOS: true,
+            mobileActiveAndroid: true,
+          },
+        }),
+      }));
+
+      const { findByLabelText } = renderWithProvider(
+        <AdvancedSettings
+          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
+        />,
+        {
+          state: initialState,
+        },
+      );
+
+      const switchElement = await findByLabelText(
+        strings('app_settings.smart_transactions_opt_in_heading'),
+      );
+
+      fireEvent(switchElement, 'onValueChange', true);
+
+      expect(mockSetSmartTransactionsOptInStatus).toBeCalledWith(true);
+    });
   });
 });

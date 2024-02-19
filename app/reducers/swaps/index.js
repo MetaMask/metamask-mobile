@@ -7,16 +7,19 @@ import { lte } from '../../util/lodash';
 import { selectChainId } from '../../selectors/networkController';
 import { selectTokens } from '../../selectors/tokensController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
+import Device from '../../util/device';
+import Logger from '../../util/Logger';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
 export const SWAPS_SET_HAS_ONBOARDED = 'SWAPS_SET_HAS_ONBOARDED';
+export const SWAPS_SET_SMART_TX_FEATURE_FLAG = 'SWAPS_SET_SMART_TX';
 const MAX_TOKENS_WITH_BALANCE = 5;
 
 // * Action Creator
-export const setSwapsLiveness = (live, chainId) => ({
+export const setSwapsLiveness = (chainId, featureFlags) => ({
   type: SWAPS_SET_LIVENESS,
-  payload: { live, chainId },
+  payload: { chainId, featureFlags },
 });
 export const setSwapsHasOnboarded = (hasOnboarded) => ({
   type: SWAPS_SET_HAS_ONBOARDED,
@@ -54,6 +57,28 @@ export const swapsLivenessSelector = createSelector(
   swapsStateSelector,
   chainIdSelector,
   (swapsState, chainId) => swapsState[chainId]?.isLive || false,
+);
+
+/**
+ * Returns if smart transactions are enabled in feature flags
+ */
+export const swapsSmartTxFlagEnabled = createSelector(
+  swapsStateSelector,
+  chainIdSelector,
+  (swapsState, chainId) => {
+    if (!swapsState[chainId]?.smartTransactions) return false;
+
+    return Object.keys(swapsState[chainId]?.smartTransactions).length > 0;
+  },
+);
+
+/**
+ * Returns the swaps feature flags
+ */
+export const getSwapsFeatureFlags = createSelector(
+  swapsStateSelector,
+  chainIdSelector,
+  (swapsState, chainId) => swapsState[chainId],
 );
 
 /**
@@ -204,13 +229,41 @@ export const initialState = {
 function swapsReducer(state = initialState, action) {
   switch (action.type) {
     case SWAPS_SET_LIVENESS: {
-      const { live, chainId } = action.payload;
+      const { chainId, featureFlags } = action.payload;
+
       const data = state[chainId];
+
+      if (!featureFlags) {
+        return {
+          ...state,
+          [chainId]: {
+            ...data,
+            ...featureFlags,
+            isLive: false,
+          },
+        };
+      }
+
+      const isIphone = Device.isIos();
+      const isAndroid = Device.isAndroid();
+      const featureFlagKey = isIphone
+        ? 'mobileActiveIOS'
+        : isAndroid
+        ? 'mobileActiveAndroid'
+        : 'mobileActive';
+
+      const liveness =
+        // @ts-expect-error interface mismatch
+        typeof featureFlagsByChainId === 'boolean'
+          ? featureFlags
+          : featureFlags?.[featureFlagKey] ?? false;
+
       return {
         ...state,
         [chainId]: {
           ...data,
-          isLive: live,
+          ...featureFlags,
+          isLive: liveness,
         },
       };
     }

@@ -88,6 +88,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -260,10 +261,15 @@ function SwapsAmountView({
   useEffect(() => {
     (async () => {
       try {
-        const data = await swapsUtils.fetchSwapsFeatureLiveness(
-          chainId,
+        const featureFlags = await swapsUtils.fetchSwapsFeatureLiveness(
+          __DEV__ &&
+            (chainId === NETWORKS_CHAIN_ID.GOERLI ||
+              chainId === NETWORKS_CHAIN_ID.SEPOLIA)
+            ? NETWORKS_CHAIN_ID.MAINNET
+            : chainId,
           AppConstants.SWAPS.CLIENT_ID,
         );
+
         const isIphone = Device.isIos();
         const isAndroid = Device.isAndroid();
         const featureFlagKey = isIphone
@@ -272,8 +278,11 @@ function SwapsAmountView({
           ? 'mobileActiveAndroid'
           : 'mobileActive';
         const liveness =
-          typeof data === 'boolean' ? data : data?.[featureFlagKey] ?? false;
-        setLiveness(liveness, chainId);
+          typeof data === 'boolean'
+            ? featureFlags
+            : featureFlags?.[featureFlagKey] ?? false;
+        setLiveness(chainId, featureFlags);
+
         if (liveness) {
           // Triggered when a user enters the MetaMask Swap feature
           InteractionManager.runAfterInteractions(() => {
@@ -295,7 +304,7 @@ function SwapsAmountView({
         }
       } catch (error) {
         Logger.error(error, 'Swaps: error while fetching swaps liveness');
-        setLiveness(false, chainId);
+        setLiveness(chainId, null);
         navigation.pop();
       }
     })();
@@ -1028,8 +1037,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   setHasOnboarded: (hasOnboarded) =>
     dispatch(setSwapsHasOnboarded(hasOnboarded)),
-  setLiveness: (liveness, chainId) =>
-    dispatch(setSwapsLiveness(liveness, chainId)),
+  setLiveness: (chainId, featureFlags) =>
+    dispatch(setSwapsLiveness(chainId, featureFlags)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SwapsAmountView);
