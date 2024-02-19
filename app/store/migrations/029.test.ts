@@ -1,4 +1,4 @@
-import migration from './028';
+import migration from './029';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import initialBackgroundState from '../../util/test/initial-background-state.json';
@@ -179,7 +179,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #28', () => {
+describe('Migration #29', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -190,7 +190,7 @@ describe('Migration #28', () => {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 28: Invalid engine state: 'object'",
+      errorMessage: "Migration 29: Invalid engine state: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -199,7 +199,7 @@ describe('Migration #28', () => {
           backgroundState: null,
         },
       }),
-      errorMessage: "Migration 28: Invalid engine backgroundState: 'object'",
+      errorMessage: "Migration 29: Invalid engine backgroundState: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -210,7 +210,7 @@ describe('Migration #28', () => {
           },
         },
       }),
-      errorMessage: "Migration 28: Invalid NetworkController state: 'object'",
+      errorMessage: "Migration 29: Invalid NetworkController state: 'object'",
       scenario: 'NetworkController state is invalid',
     },
     {
@@ -222,7 +222,7 @@ describe('Migration #28', () => {
         },
       }),
       errorMessage:
-        "Migration 28: Invalid NetworkController providerConfig: 'object'",
+        "Migration 29: Invalid NetworkController providerConfig: 'object'",
       scenario: 'providerConfig is invalid',
     },
     {
@@ -234,7 +234,7 @@ describe('Migration #28', () => {
         },
       }),
       errorMessage:
-        "Migration 28: Invalid NetworkController providerConfig chainId: 'null'",
+        "Migration 29: Invalid NetworkController providerConfig chainId: 'null'",
       scenario: 'chainId is invalid',
     },
     {
@@ -246,7 +246,7 @@ describe('Migration #28', () => {
         },
       }),
       errorMessage:
-        "Migration 28: Invalid NetworkController networkDetails: 'null'",
+        "Migration 29: Invalid NetworkController networkDetails: 'null'",
       scenario: 'networkDetails is invalid',
     },
     {
@@ -263,7 +263,7 @@ describe('Migration #28', () => {
         },
       }),
       errorMessage:
-        "Migration 28: Invalid NetworkController networkDetails isEIP1559Compatible: 'undefined'",
+        "Migration 29: Invalid NetworkController networkDetails isEIP1559Compatible: 'undefined'",
       scenario: 'networkDetails isEIP1559Compatible is invalid',
     },
     {
@@ -281,7 +281,7 @@ describe('Migration #28', () => {
         },
       }),
       errorMessage:
-        "Migration 28: Invalid NetworkController networkConfigurations: 'null'",
+        "Migration 29: Invalid NetworkController networkConfigurations: 'null'",
       scenario: 'networkConfigurations is invalid',
     },
     {
@@ -300,7 +300,7 @@ describe('Migration #28', () => {
           },
         },
       }),
-      errorMessage: "Migration 28: Invalid AddressBookController state: 'null'",
+      errorMessage: "Migration 29: Invalid AddressBookController state: 'null'",
       scenario: 'AddressBookController state is invalid',
     },
     {
@@ -319,7 +319,7 @@ describe('Migration #28', () => {
           },
         },
       }),
-      errorMessage: "Migration 28: Invalid SwapsController state: 'null'",
+      errorMessage: "Migration 29: Invalid SwapsController state: 'null'",
       scenario: 'SwapsController state is invalid',
     },
     {
@@ -338,7 +338,7 @@ describe('Migration #28', () => {
           },
         },
       }),
-      errorMessage: "Migration 28: Invalid NftController state: 'null'",
+      errorMessage: "Migration 29: Invalid NftController state: 'null'",
       scenario: 'NftController state is invalid',
     },
     {
@@ -357,7 +357,7 @@ describe('Migration #28', () => {
           },
         },
       }),
-      errorMessage: "Migration 28: Invalid TransactionController state: 'null'",
+      errorMessage: "Migration 29: Invalid TransactionController state: 'null'",
       scenario: 'TransactionController state is invalid',
     },
   ];
