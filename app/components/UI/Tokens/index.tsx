@@ -99,7 +99,6 @@ import ButtonIcon, {
   ButtonIconVariants,
 } from '../../../../app/component-library/components/Buttons/ButtonIcon';
 import Box from '../../UI/Ramp/components/Box';
-import ButtonSecondary from '../../../../app/component-library/components/Buttons/Button/variants/ButtonSecondary';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
@@ -168,9 +167,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       return (
         <ButtonIcon
           iconName={IconName.Danger}
-          onPressIn={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
+          onPressIn={() => {
             setShowScamWarningModal(true);
           }}
           variant={ButtonIconVariants.Primary}
@@ -200,11 +197,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
         <Box style={styles.boxContent}>
           <Text>
-            {`This network doesn't match its associated chain ID or name. Many popular tokens use the name ${ticker}, making it a target for scams. Scammers may trick you into sending them more valuable currency in return. Verify everything before you continue.`}
+            {strings('wallet.network_not_matching')}
+            {` ${ticker},`}
+            {strings('wallet.target_scam_network')}
           </Text>
         </Box>
         <Box style={styles.boxContent}>
-          <ButtonSecondary
+          <Button
+            variant={ButtonVariants.Secondary}
             label={strings('networks.edit_network_details')}
             onPress={goToNetworkEdit}
             style={styles.editNetworkButton}
@@ -310,22 +310,33 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     let mainBalance, secondaryBalance;
     mainBalance = TOKEN_BALANCE_LOADING;
 
+    // Set main and secondary balances based on the primary currency and asset type.
     if (primaryCurrency === 'ETH') {
+      // Default to displaying the formatted balance value and its fiat equivalent.
       mainBalance = balanceValueFormatted;
       secondaryBalance = balanceFiat;
+
+      // For ETH as a native currency, adjust display based on network safety.
       if (asset.isETH) {
+        // Main balance always shows the formatted balance value for ETH.
         mainBalance = balanceValueFormatted;
+        // Display fiat value as secondary balance only for original native tokens on safe networks.
         secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
       }
     } else {
+      // For non-ETH currencies, determine balances based on the presence of fiat value.
       mainBalance = !balanceFiat ? balanceValueFormatted : balanceFiat;
       secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
+
+      // Adjust balances for native currencies in non-ETH scenarios.
       if (asset.isETH) {
+        // Main balance logic: Show crypto value if fiat is absent or fiat value on safe networks.
         mainBalance = !balanceFiat
-          ? balanceValueFormatted
-          : isOriginalNativeTokenSymbol
+          ? balanceValueFormatted // Show crypto value if fiat setting is not preferred.
+          : isOriginalNativeTokenSymbol // Check for safe network to decide on fiat display.
           ? balanceFiat
           : null;
+        // Secondary balance mirrors the main balance logic for consistency.
         secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
       }
     }

@@ -1,9 +1,12 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
 import { fontStyles } from '../../../styles/common';
-import { Colors } from 'app/util/theme/models';
+import { Theme } from 'app/util/theme/models';
 
-const createStyles = (colors: Colors) =>
-  StyleSheet.create({
+const createStyles = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors, typography } = theme;
+
+  return StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
@@ -124,9 +127,9 @@ const createStyles = (colors: Colors) =>
     },
 
     textMoadlHeader: {
-      ...fontStyles.bold,
+      ...typography.sBodyMDBold,
       fontSize: 18,
-    },
+    } as TextStyle,
     editNetworkButton: {
       width: '100%',
     },
@@ -139,5 +142,6 @@ const createStyles = (colors: Colors) =>
       marginTop: 4,
     },
   });
+};
 
 export default createStyles;

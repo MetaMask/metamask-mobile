@@ -72,7 +72,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectUseSafeChainsListValidation } from '../../../../../../app/selectors/preferencesController';
 import axios from 'axios';
 
-const createStyles = (colors) =>
+const createStyles = (colors, typography) =>
   StyleSheet.create({
     base: {
       paddingHorizontal: 16,
@@ -105,7 +105,7 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     inputWithError: {
-      ...fontStyles.normal,
+      ...typography.sBodyMD,
       borderColor: colors.error.default,
       borderRadius: 5,
       borderWidth: 1,
@@ -113,7 +113,7 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     inputWithFocus: {
-      ...fontStyles.normal,
+      ...typography.sBodyMD,
       borderColor: colors.primary.default,
       borderRadius: 5,
       borderWidth: 2,
@@ -156,7 +156,7 @@ const createStyles = (colors) =>
       paddingVertical: 8,
       fontSize: 14,
       color: colors.text.default,
-      ...fontStyles.normal,
+      ...typography.sBodyMD,
     },
     buttonsWrapper: {
       marginVertical: 12,
@@ -228,6 +228,8 @@ const createStyles = (colors) =>
 const allNetworks = getAllNetworks();
 const allNetworksblockExplorerUrl = (networkName) =>
   `https://${networkName}.infura.io/v3/`;
+
+const CHAIN_ID_NETWORK_URL = 'https://chainid.network/chains.json';
 
 /**
  * Main view for app configurations
@@ -389,18 +391,16 @@ class NetworkSettings extends PureComponent {
       this.setState({ addMode: true });
     }
 
-    axios
-      .get('https://chainid.network/chains.json')
-      .then(({ data: safeChainsList }) => {
-        const matchedChain = safeChainsList.find(
-          (network) => network.networkId === parseInt(chainId),
-        );
-        this.setState({
-          matchedChain,
-        });
-        this.validateSymbol(ticker);
-        this.validateName(nickname);
+    axios.get(CHAIN_ID_NETWORK_URL).then(({ data: safeChainsList }) => {
+      const matchedChain = safeChainsList.find(
+        (network) => network.networkId === parseInt(chainId),
+      );
+      this.setState({
+        matchedChain,
       });
+      this.validateSymbol(ticker);
+      this.validateName(nickname);
+    });
 
     setTimeout(() => {
       this.setState({
@@ -840,6 +840,14 @@ class NetworkSettings extends PureComponent {
     this.getCurrentState();
   };
 
+  // this function will autofill the name field with the value in parameter
+  autoFillNameField = (nickName) => {
+    this.onNicknameChange(nickName);
+    this.setState({
+      warningName: undefined,
+    });
+  };
+
   onChainIDChange = async (chainId) => {
     await this.setState({ chainId, validatedChainId: false });
     this.getCurrentState();
@@ -848,6 +856,14 @@ class NetworkSettings extends PureComponent {
   onTickerChange = async (ticker) => {
     await this.setState({ ticker, validatedSymbol: false });
     this.getCurrentState();
+  };
+
+  // this function will autofill the symbol field with the value in parameter
+  autoFillSymbolField = (ticker) => {
+    this.onTickerChange(ticker);
+    this.setState({
+      warningSymbol: undefined,
+    });
   };
 
   onBlockExplorerUrlChange = async (blockExplorerUrl) => {
@@ -1070,10 +1086,7 @@ class NetworkSettings extends PureComponent {
                   <Text
                     style={styles.link}
                     onPress={() => {
-                      this.onNicknameChange(warningName);
-                      this.setState({
-                        warningName: undefined,
-                      });
+                      this.autoFillNameField(warningName);
                     }}
                   >
                     {warningName}
@@ -1164,10 +1177,7 @@ class NetworkSettings extends PureComponent {
                   <Text
                     style={styles.link}
                     onPress={() => {
-                      this.onTickerChange(warningSymbol);
-                      this.setState({
-                        warningSymbol: undefined,
-                      });
+                      this.autoFillSymbolField(warningSymbol);
                     }}
                   >
                     {`(${warningSymbol})`}

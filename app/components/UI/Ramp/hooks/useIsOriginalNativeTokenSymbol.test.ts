@@ -132,7 +132,7 @@ describe('useNativeTokenFiatAmount', () => {
     expect(spyFetch).toHaveBeenCalled();
   });
 
-  it('should return the correct value when the chainId is in the CHAIN_ID_TO_CURRENCY_SYMBOL_MAP', async () => {
+  it('should return the correct value when the chainId is in the CURRENCY_SYMBOL_BY_CHAIN_ID', async () => {
     mockSelectorState({
       engine: {
         backgroundState: {
@@ -168,13 +168,13 @@ describe('useNativeTokenFiatAmount', () => {
         useIsOriginalNativeTokenSymbol('0x5', 'GoerliETH', 'goerli'),
       );
     });
-    // expect this to pass because the chainId is in the CHAIN_ID_TO_CURRENCY_SYMBOL_MAP
+    // expect this to pass because the chainId is in the CURRENCY_SYMBOL_BY_CHAIN_ID
     expect(result.result.current).toBe(true);
     // expect that the chainlist API was not called
     expect(spyFetch).not.toHaveBeenCalled();
   });
 
-  it('should return the correct value when the chainId is not in the CHAIN_ID_TO_CURRENCY_SYMBOL_MAP', async () => {
+  it('should return the correct value when the chainId is not in the CURRENCY_SYMBOL_BY_CHAIN_ID', async () => {
     mockSelectorState({
       engine: {
         backgroundState: {

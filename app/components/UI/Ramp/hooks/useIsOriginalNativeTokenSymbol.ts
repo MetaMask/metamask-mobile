@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { CHAIN_ID_TO_CURRENCY_SYMBOL_MAP } from '../../../../../app/constants/network';
+import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../app/constants/network';
 import { selectUseSafeChainsListValidation } from '../../../../../app/selectors/preferencesController';
 import axios from 'axios';
 import { toHexadecimal } from '../../../../../app/util/number';
 
+const CHAIN_ID_NETWORK_URL = 'https://chainid.network/chains.json';
+
 /**
  * Hook that check if the used symbol match with the original symbol of given network
- * @returns {boolean} isOriginalNativeSymbol
+ * @returns Boolean indicating if the native symbol is correct
  */
 
 function useIsOriginalNativeTokenSymbol(
   chainId: string,
   ticker: string | undefined,
   type: string,
-) {
+): boolean {
   const [isOriginalNativeSymbol, setIsOriginalNativeSymbol] = useState(false);
 
   const useSafeChainsListValidation = useSelector(
@@ -24,22 +26,23 @@ function useIsOriginalNativeTokenSymbol(
   useEffect(() => {
     async function getNativeTokenSymbol(networkId: string) {
       try {
+        // Skip network safety checks and warning tooltip if privacy toggle is off.
         if (!useSafeChainsListValidation) {
           setIsOriginalNativeSymbol(true);
           return;
         }
 
+        // check first on the CURRENCY_SYMBOL_BY_CHAIN_ID
         const mappedCurrencySymbol =
-          CHAIN_ID_TO_CURRENCY_SYMBOL_MAP[toHexadecimal(networkId)];
+          CURRENCY_SYMBOL_BY_CHAIN_ID[toHexadecimal(networkId)];
 
         if (mappedCurrencySymbol) {
           setIsOriginalNativeSymbol(mappedCurrencySymbol === ticker);
           return;
         }
 
-        const { data: safeChainsList } = await axios.get(
-          'https://chainid.network/chains.json',
-        );
+        // check safety network using a third part
+        const { data: safeChainsList } = await axios.get(CHAIN_ID_NETWORK_URL);
 
         const matchedChain = safeChainsList.find(
           (network: { chainId: number }) =>
