@@ -8167,7 +8167,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }
@@ -8849,7 +8849,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }
@@ -9531,7 +9531,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }
