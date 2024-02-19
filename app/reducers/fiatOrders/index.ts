@@ -171,6 +171,7 @@ export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
     .filter(
       (order) =>
         order.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR &&
+        order.state === FIAT_ORDER_STATES.COMPLETED &&
         (order.data as Order)?.provider?.id,
     )
     .map((order) => (order.data as Order).provider.id);

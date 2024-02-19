@@ -1643,7 +1643,7 @@ describe('selectors', () => {
   });
 });
 
-describe.only('getOrdersProviders', () => {
+describe('getOrdersProviders', () => {
   function createMockOrderWithProviderId(provider: string) {
     return {
       ...mockOrder1,
