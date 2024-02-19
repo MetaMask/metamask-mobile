@@ -142,6 +142,11 @@
     "submitHistory": [],
     "transactions": []
   },
+  "SnapController": {
+    "snapStates": {},
+    "snaps": {},
+    "unencryptedSnapStates": {}
+  },
   "SubjectMetadataController": {
     "subjectMetadata": {}
   },
