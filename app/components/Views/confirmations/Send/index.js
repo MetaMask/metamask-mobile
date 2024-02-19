@@ -46,7 +46,7 @@ import AnalyticsV2 from '../../../../util/analyticsV2';
 import {
   addTransaction,
   estimateGas,
-} from '../../../util/transaction-controller';
+} from '../../../../util/transaction-controller';
 
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';

@@ -49,7 +49,7 @@ import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 import { getDecimalChainId } from '../../../../util/networks';
 
-import { updateTransaction } from '../../../util/transaction-controller';
+import { updateTransaction } from '../../../../util/transaction-controller';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
