@@ -29,10 +29,7 @@ import {
   IMetaMetrics,
   ISegmentClient,
 } from './MetaMetrics.types';
-import {
-  METAMETRICS_ANONYMOUS_ID,
-  SEGMENT_REGULATIONS_ENDPOINT,
-} from './MetaMetrics.constants';
+import { METAMETRICS_ANONYMOUS_ID } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 
@@ -384,10 +381,20 @@ class MetaMetrics implements IMetaMetrics {
    */
   #createDataDeletionTask = async (): Promise<IDeleteRegulationResponse> => {
     const segmentSourceId = process.env.SEGMENT_DELETE_API_SOURCE_ID;
+    const segmentRegulationEndpoint = process.env.SEGMENT_REGULATIONS_ENDPOINT;
+
+    if (!segmentSourceId || !segmentRegulationEndpoint) {
+      return {
+        status: DataDeleteResponseStatus.error,
+        error: 'Segment API source ID or endpoint not found',
+      };
+    }
+
     const regulationType = 'DELETE_ONLY';
+
     try {
       const response = await axios({
-        url: `${SEGMENT_REGULATIONS_ENDPOINT}/regulations/sources/${segmentSourceId}`,
+        url: `${segmentRegulationEndpoint}/regulations/sources/${segmentSourceId}`,
         method: 'POST',
         headers: this.#getSegmentApiHeaders(),
         data: JSON.stringify({
@@ -423,7 +430,10 @@ class MetaMetrics implements IMetaMetrics {
       // if no delete regulation id, return unknown status
       // regulation id is set when creating a new delete regulation
 
-      if (!this.deleteRegulationId) {
+      const segmentRegulationEndpoint =
+        process.env.SEGMENT_REGULATIONS_ENDPOINT;
+
+      if (!this.deleteRegulationId || !segmentRegulationEndpoint) {
         return {
           status: DataDeleteResponseStatus.error,
           dataDeleteStatus: DataDeleteStatus.unknown,
@@ -432,7 +442,7 @@ class MetaMetrics implements IMetaMetrics {
 
       try {
         const response = await axios({
-          url: `${SEGMENT_REGULATIONS_ENDPOINT}/regulations/${this.deleteRegulationId}`,
+          url: `${segmentRegulationEndpoint}/regulations/${this.deleteRegulationId}`,
           method: 'GET',
           headers: this.#getSegmentApiHeaders(),
         });
