@@ -176,6 +176,7 @@ describe('Quotes', () => {
       jest.useRealTimers();
     });
   });
+
   it('navigates and tracks event on SELL cancel button press', async () => {
     mockUseRampSDKValues.rampType = RampType.SELL;
     mockUseRampSDKValues.isSell = true;
@@ -224,6 +225,26 @@ describe('Quotes', () => {
 
   it('renders correctly after animation with quotes', async () => {
     render(Quotes);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    expect(screen.toJSON()).toMatchSnapshot();
+    act(() => {
+      jest.useRealTimers();
+    });
+  });
+
+  it('renders correctly after animation with quotes and expanded', async () => {
+    mockUseQuotesValues = {
+      ...mockUseQuotesInitialValues,
+      data: [
+        ...mockQuotesData.slice(0, 2),
+        { ...mockQuotesData[2], error: false },
+      ] as (QuoteResponse | QuoteError)[],
+    };
+    render(Quotes);
+    fireEvent.press(screen.getByRole('text', { name: 'Explore more options' }));
     act(() => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
