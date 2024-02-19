@@ -35,6 +35,7 @@ import {
   removeNotificationById,
   removeNotVisibleNotifications,
 } from '../../../actions/notification';
+import { STORAGE_IDS } from '../../../util/notifications/settings/storage/constants';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
@@ -306,8 +307,8 @@ const Main = (props) => {
        * Creates a channel (required for Android)
        */
       notifee.createChannel({
-        id: 'default',
-        name: 'Default Channel',
+        id: STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID,
+        name: 'Default',
         importance: AndroidImportance.HIGH,
       });
     }, 1000);
