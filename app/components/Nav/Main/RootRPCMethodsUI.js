@@ -23,7 +23,7 @@ import {
   getTokenAddressParam,
   calcTokenAmount,
   getTokenValueParamAsHex,
-  isSwapTransaction,
+  getIsInSwapFlowTransaction,
 } from '../../../util/transactions';
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
@@ -264,7 +264,14 @@ const RootRPCMethodsUI = (props) => {
       const to = transactionMeta.txParams.to?.toLowerCase();
       const { data } = transactionMeta.txParams;
 
-      if (isSwapTransaction(data, transactionMeta.origin, to, props.chainId)) {
+      if (
+        getIsInSwapFlowTransaction(
+          data,
+          transactionMeta.origin,
+          to,
+          props.chainId,
+        )
+      ) {
         autoSign(transactionMeta);
       } else {
         const {

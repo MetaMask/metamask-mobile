@@ -1,3 +1,4 @@
+import Device from '../../util/device';
 import reducer, {
   initialState,
   SWAPS_SET_LIVENESS,
@@ -12,18 +13,119 @@ describe('swaps reducer', () => {
     expect(state).toEqual(initialState);
   });
 
-  it('should set liveness', () => {
-    const initalState = reducer(undefined, emptyAction);
-    const notLiveState = reducer(initalState, {
-      type: SWAPS_SET_LIVENESS,
-      payload: { live: false, chainId: '0x1' },
+  describe('liveness', () => {
+    it('should set isLive to true for iOS when flag is true', () => {
+      Device.isIos = jest.fn().mockReturnValue(true);
+      Device.isAndroid = jest.fn().mockReturnValue(false);
+
+      const initalState = reducer(undefined, emptyAction);
+      const liveState = reducer(initalState, {
+        type: SWAPS_SET_LIVENESS,
+        payload: {
+          featureFlags: {
+            mobile_active: true,
+            extension_active: true,
+            fallback_to_v1: false,
+            fallbackToV1: false,
+            mobileActive: true,
+            extensionActive: true,
+            mobileActiveIOS: true,
+            mobileActiveAndroid: true,
+            smartTransactions: {
+              expectedDeadline: 45,
+              maxDeadline: 150,
+              returnTxHashAsap: false,
+            },
+          },
+          chainId: '0x1',
+        },
+      });
+      expect(liveState['0x1'].isLive).toBe(true);
     });
-    expect(notLiveState['0x1'].isLive).toBe(false);
-    const liveState = reducer(initalState, {
-      type: SWAPS_SET_LIVENESS,
-      payload: { live: true, chainId: '0x1' },
+    it('should set isLive to false for iOS when flag is false', () => {
+      Device.isIos = jest.fn().mockReturnValue(true);
+      Device.isAndroid = jest.fn().mockReturnValue(false);
+
+      const initalState = reducer(undefined, emptyAction);
+      const liveState = reducer(initalState, {
+        type: SWAPS_SET_LIVENESS,
+        payload: {
+          featureFlags: {
+            mobile_active: false,
+            extension_active: true,
+            fallback_to_v1: false,
+            fallbackToV1: false,
+            mobileActive: false,
+            extensionActive: true,
+            mobileActiveIOS: false,
+            mobileActiveAndroid: true,
+            smartTransactions: {
+              expectedDeadline: 45,
+              maxDeadline: 150,
+              returnTxHashAsap: false,
+            },
+          },
+          chainId: '0x1',
+        },
+      });
+      expect(liveState['0x1'].isLive).toBe(false);
     });
-    expect(liveState['0x1'].isLive).toBe(true);
+    it('should set isLive to true for Android when flag is true', () => {
+      Device.isIos = jest.fn().mockReturnValue(false);
+      Device.isAndroid = jest.fn().mockReturnValue(true);
+
+      const initalState = reducer(undefined, emptyAction);
+      const liveState = reducer(initalState, {
+        type: SWAPS_SET_LIVENESS,
+        payload: {
+          featureFlags: {
+            mobile_active: true,
+            extension_active: true,
+            fallback_to_v1: false,
+            fallbackToV1: false,
+            mobileActive: true,
+            extensionActive: true,
+            mobileActiveIOS: true,
+            mobileActiveAndroid: true,
+            smartTransactions: {
+              expectedDeadline: 45,
+              maxDeadline: 150,
+              returnTxHashAsap: false,
+            },
+          },
+          chainId: '0x1',
+        },
+      });
+      expect(liveState['0x1'].isLive).toBe(true);
+    });
+    it('should set isLive to false for Android when flag is false', () => {
+      Device.isIos = jest.fn().mockReturnValue(false);
+      Device.isAndroid = jest.fn().mockReturnValue(true);
+
+      const initalState = reducer(undefined, emptyAction);
+      const liveState = reducer(initalState, {
+        type: SWAPS_SET_LIVENESS,
+        payload: {
+          featureFlags: {
+            mobile_active: false,
+            extension_active: true,
+            fallback_to_v1: false,
+            fallbackToV1: false,
+            mobileActive: false,
+            extensionActive: true,
+            mobileActiveIOS: false,
+            mobileActiveAndroid: false,
+            smartTransactions: {
+              expectedDeadline: 45,
+              maxDeadline: 150,
+              returnTxHashAsap: false,
+            },
+          },
+          chainId: '0x1',
+        },
+      });
+      expect(liveState['0x1'].isLive).toBe(false);
+    });
   });
 
   it('should set has onboarded', () => {
