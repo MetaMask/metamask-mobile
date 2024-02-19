@@ -64,7 +64,7 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../util/transaction-controller', () => ({
+jest.mock('../../../../../util/transaction-controller', () => ({
   __esModule: true,
   estimateGas: jest.fn(() =>
     Promise.resolve({
