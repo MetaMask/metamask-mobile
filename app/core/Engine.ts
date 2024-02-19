@@ -187,6 +187,11 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
+import { getIsSmartTransaction } from '../selectors/preferencesController';
+import { publishHook as smartPublishHook } from '../util/smart-transactions/smart-tx';
+import { getSwapsFeatureFlags } from '../reducers/swaps';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -266,6 +271,7 @@ export interface EngineState {
   TokenBalancesController: TokenBalancesState;
   TokenRatesController: TokenRatesState;
   TransactionController: TransactionState;
+  SmartTransactionsController: any; // TODO look into improving this, smart tx cont. needs to export the SmartTransactionsControllerState type
   SwapsController: SwapsState;
   GasFeeController: GasFeeState;
   TokensController: TokensState;
@@ -319,6 +325,7 @@ class Engine {
         TokenRatesController: TokenRatesController;
         TokensController: TokensController;
         TransactionController: TransactionController;
+        SmartTransactionsController: SmartTransactionsController;
         SignatureController: SignatureController;
         SwapsController: SwapsController;
         AccountsController: AccountsController;
@@ -345,6 +352,9 @@ class Engine {
    */
   snapExecutionService: WebViewExecutionService;
   ///: END:ONLY_INCLUDE_IF
+
+  txController: TransactionController;
+  stxController: SmartTransactionsController;
 
   /**
    * Creates a CoreController instance
@@ -986,7 +996,104 @@ class Engine {
     });
     ///: END:ONLY_INCLUDE_IF
 
+    this.txController = new TransactionController({
+      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
+      blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
+      getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+      //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
+      getNetworkState: () => networkController.state,
+      getSelectedAddress: () => accountsController.getSelectedAccount().address,
+      incomingTransactions: {
+        apiKey: process.env.MM_ETHERSCAN_KEY,
+        isEnabled: () => {
+          const currentHexChainId =
+            networkController.state.providerConfig.chainId;
+          return Boolean(
+            preferencesController?.state?.showIncomingTransactions?.[
+              currentHexChainId
+            ],
+          );
+        },
+        updateTransactions: true,
+      },
+      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
+      messenger: this.controllerMessenger.getRestricted<
+        'TransactionController',
+        'ApprovalController:addRequest',
+        never
+      >({
+        name: 'TransactionController',
+        allowedActions: [`${approvalController.name}:addRequest`],
+      }),
+      onNetworkStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
+          listener,
+        ),
+      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
+      provider: networkController.getProviderAndBlockTracker().provider,
+
+      hooks: {
+        publish: (transactionMeta) => {
+          const isSmartTransaction = getIsSmartTransaction(store.getState());
+
+          Logger.log(
+            'STX',
+            'publish hook isSmartTransaction',
+            isSmartTransaction,
+          );
+
+          return smartPublishHook({
+            transactionMeta,
+            transactionController: this.txController,
+            smartTransactionsController: this.stxController,
+            isSmartTransaction,
+            approvalController,
+            featureFlags: getSwapsFeatureFlags(store.getState()),
+          });
+        },
+      },
+    });
+
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+
+    this.stxController = new SmartTransactionsController(
+      {
+        onNetworkStateChange: (listener) =>
+          this.controllerMessenger.subscribe(
+            AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            listener,
+          ),
+        getNonceLock: this.txController.getNonceLock.bind(this.txController),
+        confirmExternalTransaction:
+          this.txController.confirmExternalTransaction.bind(this.txController),
+        provider: networkController.getProviderAndBlockTracker().provider,
+
+        // TODO stx controller will call it like this:
+        // this.trackMetaMetricsEvent({
+        //   event: 'STX Status Updated',
+        //   category: 'swaps',
+        //   sensitiveProperties, // seems optional
+        // });
+        trackMetaMetricsEvent: (params: {
+          event: string;
+          category: string;
+          sensitiveProperties: any;
+        }) => {
+          const { event, ...restParams } = params;
+          AnalyticsV2.trackEvent(event, restParams);
+        },
+      },
+      {
+        supportedChainIds: [
+          NETWORKS_CHAIN_ID.MAINNET,
+          NETWORKS_CHAIN_ID.GOERLI,
+          NETWORKS_CHAIN_ID.SEPOLIA,
+        ],
+      },
+      initialState.SmartTransactionsController,
+    );
 
     const controllers = [
       keyringController,
@@ -1077,46 +1184,10 @@ class Engine {
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
       }),
-      new TransactionController({
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        blockTracker:
-          networkController.getProviderAndBlockTracker().blockTracker,
-        getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-        //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
-        getNetworkState: () => networkController.state,
-        getSelectedAddress: () =>
-          accountsController.getSelectedAccount().address,
-        incomingTransactions: {
-          apiKey: process.env.MM_ETHERSCAN_KEY,
-          isEnabled: () => {
-            const currentHexChainId =
-              networkController.state.providerConfig.chainId;
-            return Boolean(
-              preferencesController?.state?.showIncomingTransactions?.[
-                currentHexChainId
-              ],
-            );
-          },
-          updateTransactions: true,
-        },
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-        messenger: this.controllerMessenger.getRestricted<
-          'TransactionController',
-          'ApprovalController:addRequest',
-          never
-        >({
-          name: 'TransactionController',
-          allowedActions: [`${approvalController.name}:addRequest`],
-        }),
-        onNetworkStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
-            listener,
-          ),
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        provider: networkController.getProviderAndBlockTracker().provider,
-      }),
+
+      this.txController,
+      this.stxController,
+
       new SwapsController(
         {
           // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
@@ -1673,6 +1744,7 @@ export default {
       TokenBalancesController,
       TokenRatesController,
       TransactionController,
+      SmartTransactionsController,
       SwapsController,
       GasFeeController,
       TokensController,
@@ -1714,6 +1786,7 @@ export default {
       TokenRatesController,
       TokensController,
       TransactionController,
+      SmartTransactionsController,
       SwapsController,
       GasFeeController,
       TokenDetectionController,

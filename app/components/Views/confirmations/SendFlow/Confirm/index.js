@@ -119,6 +119,7 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectTransactionGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
+import { getIsSmartTransaction } from '../../../../../selectors/preferencesController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -240,6 +241,10 @@ class Confirm extends PureComponent {
      * Set transaction ID
      */
     setTransactionId: PropTypes.func,
+    /**
+     * Indicates if a transaction is going to be routed through smart tx
+     */
+    isSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -804,6 +809,7 @@ class Confirm extends PureComponent {
       navigation,
       resetTransaction,
       gasEstimateType,
+      isSmartTransaction,
     } = this.props;
 
     const {
@@ -870,9 +876,20 @@ class Confirm extends PureComponent {
       }
 
       await KeyringController.resetQRKeyringState();
-      await ApprovalController.accept(transactionMeta.id, undefined, {
-        waitForResult: true,
-      });
+
+      if (isSmartTransaction) {
+        await ApprovalController.accept(transactionMeta.id, undefined, {
+          waitForResult: false,
+        });
+        navigation && navigation.dangerouslyGetParent()?.pop();
+        Logger.log('STX Send Confirm');
+      } else {
+        await ApprovalController.accept(transactionMeta.id, undefined, {
+          waitForResult: true,
+        });
+        Logger.log('STX Send Confirm 2');
+      }
+
       await new Promise((resolve) => resolve(result));
 
       if (transactionMeta.error) {
@@ -894,7 +911,12 @@ class Confirm extends PureComponent {
         );
         stopGasPolling();
         resetTransaction();
-        navigation && navigation.dangerouslyGetParent()?.pop();
+
+        if (!isSmartTransaction) {
+          // We popped it already earlier
+          navigation && navigation.dangerouslyGetParent()?.pop();
+        }
+        Logger.log('STX Send Confirm 3');
       });
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
@@ -1398,6 +1420,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
+  isSmartTransaction: getIsSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

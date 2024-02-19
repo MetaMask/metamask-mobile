@@ -17,6 +17,27 @@ export const whatsNew: WhatsNew = {
    * Both slide count and slide content will be rendered in the same order as the data set.
    */
   slides: [
+    [
+      {
+        type: 'image',
+        image: require('../../../images/whats_new_sell.png'),
+      },
+      {
+        type: 'title',
+        title: strings('whats_new.sell.title'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.sell.description'),
+      },
+      // button to try it out
+      {
+        type: 'button',
+        buttonText: strings('whats_new.sell.action_text'),
+        buttonType: 'blue',
+        onPress: (props) => props.navigation.navigate(Routes.RAMP.SELL),
+      },
+    ],
     ...(isBlockaidFeatureEnabled()
       ? ([
           [

@@ -35,6 +35,7 @@ import {
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -97,11 +98,12 @@ const TransactionsView = ({
           case TX_SUBMITTED:
           case TX_SIGNED:
           case TX_UNAPPROVED:
+          case TX_PENDING:
             submittedTxs.push(tx);
             return false;
-          case TX_PENDING:
-            newPendingTxs.push(tx);
-            break;
+          // case TX_PENDING:
+          //   newPendingTxs.push(tx);
+          //   break;
           case TX_CONFIRMED:
             confirmedTxs.push(tx);
             break;
@@ -220,16 +222,39 @@ TransactionsView.propTypes = {
   chainId: PropTypes.string,
 };
 
-const mapStateToProps = (state) => ({
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  tokens: selectTokens(state),
-  selectedAddress: selectSelectedAddress(state),
-  identities: selectIdentities(state),
-  transactions: state.engine.backgroundState.TransactionController.transactions,
-  networkType: selectProviderType(state),
-  chainId: selectChainId(state),
-});
+const mapStateToProps = (state) => {
+  const chainId = selectChainId(state);
+  const nonSmartTransactions =
+    state.engine.backgroundState.TransactionController.transactions;
+  const smartTransactions =
+    state.engine.backgroundState.SmartTransactionsController
+      .smartTransactionsState.smartTransactions[chainId];
+
+  const filteredSmartTransactions = smartTransactions
+    ?.filter((stx) => stx.status !== 'success' && stx.status)
+    .map((stx) => ({
+      ...stx,
+      id: stx.uuid,
+      transaction: stx.txParams, // Expected field
+      transactionType: 'smart', // TODO get these types from TransactionType.smart from tx-controller
+      status: stx.status?.startsWith('cancelled')
+        ? SmartTransactionStatuses.cancelled
+        : stx.status,
+    }));
+
+  return {
+    conversionRate: selectConversionRate(state),
+    currentCurrency: selectCurrentCurrency(state),
+    tokens: selectTokens(state),
+    selectedAddress: selectSelectedAddress(state),
+    identities: selectIdentities(state),
+    transactions: [...nonSmartTransactions, ...filteredSmartTransactions].sort(
+      (a, b) => b.time - a.time,
+    ),
+    networkType: selectProviderType(state),
+    chainId,
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),

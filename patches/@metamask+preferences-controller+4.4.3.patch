@@ -12,16 +12,17 @@ index 323a8e8..0c5ed1b 100644
      securityAlertsEnabled: boolean;
      isMultiAccountBalancesEnabled: boolean;
      disabledRpcMethodPreferences: {
-@@ -43,6 +44,8 @@ export interface PreferencesState extends BaseState {
+@@ -43,6 +44,9 @@ export interface PreferencesState extends BaseState {
      };
      showTestNetworks: boolean;
      isIpfsGatewayEnabled: boolean;
 +    securityAlertsEnabled: boolean;
 +    showIncomingTransactions: {[hexChainId: string]: boolean};
++    smartTransactionsOptInStatus: boolean;
  }
  /**
   * Controller that stores shared settings and exposes convenience methods
-@@ -125,11 +128,17 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
+@@ -125,11 +129,17 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
       */
      setUseNftDetection(useNftDetection: boolean): void;
      /**
@@ -42,7 +43,7 @@ index 323a8e8..0c5ed1b 100644
      /**
       * Toggle the security alert enabled setting.
       *
-@@ -161,6 +170,11 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
+@@ -161,6 +171,16 @@ export declare class PreferencesController extends BaseController<BaseConfig, Pr
       * @param isIpfsGatewayEnabled - true to enable ipfs source
       */
      setIsIpfsGatewayEnabled(isIpfsGatewayEnabled: boolean): void;
@@ -50,7 +51,12 @@ index 323a8e8..0c5ed1b 100644
 +        chainId: string,
 +        isIncomingTransactionNetworkEnable: boolean,
 +    ):void;
-+
++     /**
++     * A setter for the user to opt into smart transactions
++     *
++     * @param smartTransactionsOptInStatus - true to opt into smart transactions
++     */
++     setSmartTransactionsOptInStatus(smartTransactionsOptInStatus:boolean): void;
  }
  export default PreferencesController;
  //# sourceMappingURL=PreferencesController.d.ts.map
@@ -125,7 +131,8 @@ index 1a98ab0..6f8c16e 100644
 +                                [ETHERSCAN_SUPPORTED_CHAIN_IDS.MOONBEAM_TESTNET]: true,
 +                                [ETHERSCAN_SUPPORTED_CHAIN_IDS.MOONRIVER]: true,
 +                                [ETHERSCAN_SUPPORTED_CHAIN_IDS.GNOSIS]: true,
-+                              }
++                              },
++            smartTransactionsOptInStatus: false,
          };
          this.initialize();
      }
@@ -191,6 +198,14 @@ index 1a98ab0..6f8c16e 100644
 +              },
 +            });
 +        }
++    /**
++     * A setter for the user to opt into smart transactions
++     *
++     * @param smartTransactionsOptInStatus - true to opt into smart transactions
++     */
++      setSmartTransactionsOptInStatus(smartTransactionsOptInStatus) {
++        this.update({ smartTransactionsOptInStatus });
++    }
  }
 +exports.ETHERSCAN_SUPPORTED_CHAIN_IDS = ETHERSCAN_SUPPORTED_CHAIN_IDS;
  exports.PreferencesController = PreferencesController;
