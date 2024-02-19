@@ -12,7 +12,6 @@ import {
   StyleSheet,
   View,
   Linking,
-  PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -22,7 +21,7 @@ import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import PushNotification from 'react-native-push-notification';
+import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
@@ -272,13 +271,12 @@ const Main = (props) => {
       'change',
       handleAppStateChange,
     );
-    PushNotification.configure({
-      requestPermissions: false,
-      onNotification: (notification) => {
+    notifee.onForegroundEvent(({ type, detail: notification }) => {
+      if (type === EventType.DELIVERED) {
         let data = null;
         if (Device.isAndroid()) {
-          if (notification.tag) {
-            data = JSON.parse(notification.tag);
+          if (notification.data) {
+            data = JSON.parse(notification.data);
           }
         } else if (notification.data) {
           data = notification.data;
@@ -289,11 +287,7 @@ const Main = (props) => {
           }
           props.navigation.navigate('TransactionsHome');
         }
-
-        if (Device.isIos()) {
-          notification.finish(PushNotificationIOS.FetchResult.NoData);
-        }
-      },
+      }
     });
 
     setTimeout(() => {
@@ -308,6 +302,14 @@ const Main = (props) => {
       removeConnectionStatusListener.current = NetInfo.addEventListener(
         connectionChangeHandler,
       );
+      /**
+       * Creates a channel (required for Android)
+       */
+      notifee.createChannel({
+        id: 'default',
+        name: 'Default Channel',
+        importance: AndroidImportance.HIGH,
+      });
     }, 1000);
 
     return function cleanup() {
