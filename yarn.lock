@@ -4052,7 +4052,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/network-controller@^10.0.0", "@metamask/network-controller@^10.2.0":
+"@metamask/network-controller@^10.0.0", "@metamask/network-controller@^10.2.0", "@metamask/network-controller@^10.3.1":
   version "10.3.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-10.3.1.tgz#ca0e9134b2600bd834c5193ce0f06e973ec3b152"
   integrity sha512-ohx9DnVI0a07yrYqxtMD460oBlXqsy+fcORRI5foiTLk3LudM4fdjLUG8u5JvYHUeEoIl8bkMZuwWxOFrqHB2g==
@@ -4434,17 +4434,17 @@
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-8.0.0.tgz#72f64b18a6157400ef3a3901c35819883524a048"
   integrity sha512-yy1eZ9fZfJSEJIUjqcigBehFv6vdPGmDkVnzpBpEJqxiMPZGnbR5dypMfo0XsPdp5Lvmawx47Kamuy4Ocsy+iw==
 
-"@metamask/transaction-controller@^6.1.0":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-6.1.0.tgz#19739cddc8326d4eb2ea49bc64525c3215d4d5dd"
-  integrity sha512-sIsMPscpcurQr/faX9Ax7kecsJEegy/zaE/e2V+d6zS9TuqpbW9V2jgn9uSp9LBMqigC7mW59KFrpsPcK0ePJA==
+"@metamask/transaction-controller@7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-7.1.0.tgz#0f6e0c4188df200e17d75d13e4a6af409673e488"
+  integrity sha512-VS/SX2pnt8nHMJoB0J0jlnkTbYqliK365wrV6oAAxhDGmsgAIT+DBPlh/594Xc5KanZzOl6/K6LGff7Q9lk2vw==
   dependencies:
     "@ethereumjs/common" "^2.6.1"
     "@ethereumjs/tx" "^3.5.2"
-    "@metamask/approval-controller" "^3.3.0"
-    "@metamask/base-controller" "^3.0.0"
-    "@metamask/controller-utils" "^4.0.1"
-    "@metamask/network-controller" "^10.2.0"
+    "@metamask/approval-controller" "^3.4.0"
+    "@metamask/base-controller" "^3.1.0"
+    "@metamask/controller-utils" "^4.2.0"
+    "@metamask/network-controller" "^10.3.1"
     "@metamask/utils" "^5.0.2"
     async-mutex "^0.2.6"
     babel-runtime "^6.26.0"
