@@ -142,10 +142,6 @@
     "submitHistory": [],
     "transactions": []
   },
-  "SnapController": {
-    "snapStates": {},
-    "snaps": {}
-  },
   "SubjectMetadataController": {
     "subjectMetadata": {}
   },
