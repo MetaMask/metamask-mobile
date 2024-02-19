@@ -1,7 +1,7 @@
 // Third party dependencies.
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { SafeAreaView, StyleSheet, Switch, View } from 'react-native';
+import { Linking, SafeAreaView, StyleSheet, Switch, View } from 'react-native';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
@@ -32,7 +32,9 @@ import Device from '../../../../util/device';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
+  getSmartTransactionsEnabled,
   selectDisabledRpcMethodPreferences,
+  selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
 import Routes from '../../../../constants/navigation/Routes';
@@ -54,6 +56,7 @@ import Banner, {
 } from '../../../../component-library/components/Banners/Banner';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { wipeTransactions } from '../../../../util/transaction-controller';
+import AppConstants from '../../../../../app/core/AppConstants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -191,6 +194,14 @@ class AdvancedSettings extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that checks if smart transactions is enabled
+     */
+    smartTransactionsOptInStatus: PropTypes.bool,
+    /**
+     * Boolean that checks if smart transactions feature flag is enabled
+     */
+    smartTransactionsEnabled: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -220,7 +231,7 @@ class AdvancedSettings extends PureComponent {
     );
   };
 
-  componentDidMount = () => {
+  componentDidMount = async () => {
     this.updateNavBar();
     this.mounted = true;
     // Workaround https://github.com/facebook/react-native/issues/9958
@@ -354,6 +365,17 @@ class AdvancedSettings extends PureComponent {
     );
   };
 
+  toggleSmartTransactionsOptInStatus = (smartTransactionsOptInStatus) => {
+    const { PreferencesController } = Engine.context;
+    PreferencesController.setSmartTransactionsOptInStatus(
+      smartTransactionsOptInStatus,
+    );
+  };
+
+  openLinkAboutStx = () => {
+    Linking.openURL(AppConstants.URLS.SMART_TXS);
+  };
+
   render = () => {
     const {
       showHexData,
@@ -361,6 +383,8 @@ class AdvancedSettings extends PureComponent {
       setShowHexData,
       setShowCustomNonce,
       enableEthSign,
+      smartTransactionsOptInStatus,
+      smartTransactionsEnabled,
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
@@ -541,6 +565,46 @@ class AdvancedSettings extends PureComponent {
                 style={styles.accessory}
               />
             </View>
+
+            <View style={styles.setting}>
+              <View style={styles.titleContainer}>
+                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                  {strings('app_settings.smart_transactions_opt_in_heading')}
+                </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    disabled={!smartTransactionsEnabled}
+                    value={smartTransactionsOptInStatus}
+                    onValueChange={this.toggleSmartTransactionsOptInStatus}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={theme.brandColors.white['000']}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                    accessibilityLabel={strings(
+                      'app_settings.smart_transactions_opt_in_heading',
+                    )}
+                  />
+                </View>
+              </View>
+
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.smart_transactions_opt_in_desc')}{' '}
+                <Text
+                  color={TextColor.Primary}
+                  link
+                  onPress={this.openLinkAboutStx}
+                >
+                  {strings('app_settings.smart_transactions_learn_more')}
+                </Text>
+              </Text>
+            </View>
           </View>
         </KeyboardAwareScrollView>
       </SafeAreaView>
@@ -557,6 +621,8 @@ const mapStateToProps = (state) => ({
   fullState: state,
   isTokenDetectionEnabled: selectUseTokenDetection(state),
   chainId: selectChainId(state),
+  smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
+  smartTransactionsEnabled: getSmartTransactionsEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -21,7 +21,10 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import { shouldShowWhatsNewModal } from '../../../util/onboarding';
+import {
+  shouldShowSmartTransactionsOptInModal,
+  shouldShowWhatsNewModal,
+} from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -201,13 +204,14 @@ const Wallet = ({ navigation }: any) => {
   const { colors: themeColors } = useTheme();
 
   /**
-   * Check to see if we need to show What's New modal
+   * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
    */
   useEffect(() => {
     if (wizardStep > 0) {
       // Do not check since it will conflict with the onboarding wizard
       return;
     }
+
     const checkWhatsNewModal = async () => {
       try {
         const shouldShowWhatsNew = await shouldShowWhatsNewModal();
@@ -220,8 +224,33 @@ const Wallet = ({ navigation }: any) => {
         Logger.log(error, "Error while checking What's New modal!");
       }
     };
-    checkWhatsNewModal();
-  }, [wizardStep, navigation]);
+
+    // Show STX opt in modal before What's New modal
+    // Fired on the first load of the wallet and also on network switch
+    const checkSmartTransactionsOptInModal = async () => {
+      try {
+        const showShowStxOptInModal =
+          await shouldShowSmartTransactionsOptInModal(
+            providerConfig.chainId,
+            providerConfig.rpcUrl,
+          );
+        if (showShowStxOptInModal) {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
+          });
+        } else {
+          await checkWhatsNewModal();
+        }
+      } catch (error) {
+        Logger.log(
+          error,
+          'Error while checking Smart Tranasctions Opt In modal!',
+        );
+      }
+    };
+
+    checkSmartTransactionsOptInModal();
+  }, [wizardStep, navigation, providerConfig.chainId, providerConfig.rpcUrl]);
 
   useEffect(
     () => {
