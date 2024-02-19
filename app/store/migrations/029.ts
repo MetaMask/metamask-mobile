@@ -67,6 +67,18 @@ export default function migrate(state: unknown) {
     return state;
   }
 
+  if (
+    !hasProperty(networkControllerState, 'providerConfig') ||
+    !isObject(networkControllerState.providerConfig)
+  ) {
+    captureException(
+      new Error(
+        `Migration 29: Invalid NetworkController providerConfig: '${typeof networkControllerState.providerConfig}'`,
+      ),
+    );
+    return state;
+  }
+
   if (!networkControllerState.providerConfig.chainId) {
     captureException(
       new Error(

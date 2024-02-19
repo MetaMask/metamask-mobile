@@ -217,6 +217,18 @@ describe('Migration #29', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
+            NetworkController: { providerConfig: null },
+          },
+        },
+      }),
+      errorMessage:
+        "Migration 29: Invalid NetworkController providerConfig: 'object'",
+      scenario: 'providerConfig is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
             NetworkController: { providerConfig: { chainId: null } },
           },
         },
