@@ -14,9 +14,10 @@ import useThunkDispatch from '../../../hooks/useThunkDispatch';
 import { useRampSDK } from '../sdk';
 import { getNotificationDetails, stateHasOrder } from '../utils';
 import useAnalytics from './useAnalytics';
-import { hexToBN } from '../../../../util/number';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { hexToBN, toHexadecimal } from '../../../../util/number';
+import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectChainId } from '../../../../selectors/networkController';
 
 function useHandleSuccessfulOrder() {
   const { selectedChainId, selectedAddress } = useRampSDK();
@@ -24,7 +25,8 @@ function useHandleSuccessfulOrder() {
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const trackEvent = useAnalytics();
-  const accounts = useSelector(selectAccounts);
+  const accountsByChainId = useSelector(selectAccountsByChainId);
+  const chainIdFromProvider = useSelector(selectChainId);
 
   const addTokenToTokensController = useCallback(
     async (token: CryptoCurrency) => {
@@ -108,8 +110,16 @@ function useHandleSuccessfulOrder() {
             provider_onramp: (order?.data as Order)?.provider?.name,
             chain_id_destination: selectedChainId,
             has_zero_currency_destination_balance: false,
-            has_zero_native_balance: accounts[selectedAddress]?.balance
-              ? (hexToBN(accounts[selectedAddress].balance) as any)?.isZero?.()
+            has_zero_native_balance: accountsByChainId[
+              toHexadecimal(chainIdFromProvider)
+            ][selectedAddress]?.balance
+              ? (
+                  hexToBN(
+                    accountsByChainId[toHexadecimal(chainIdFromProvider)][
+                      selectedAddress
+                    ].balance,
+                  ) as any
+                )?.isZero?.()
               : undefined,
             currency_source: (order?.data as Order)?.fiatCurrency.symbol,
             currency_destination: (order?.data as Order)?.cryptoCurrency.symbol,
@@ -118,7 +128,8 @@ function useHandleSuccessfulOrder() {
       });
     },
     [
-      accounts,
+      chainIdFromProvider,
+      accountsByChainId,
       addTokenToTokensController,
       dispatchThunk,
       handleDispatchUserWalletProtection,

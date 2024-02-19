@@ -45,7 +45,7 @@ const NetworkAdded = (props: NetworkAddedProps) => {
       </Text>
       <Text centered>
         <Text bold>{`"${strings('networks.network_name', {
-          networkName: nickname,
+          networkName: nickname ?? '',
         })}"`}</Text>
         <Text>{strings('networks.network_added')}</Text>
       </Text>

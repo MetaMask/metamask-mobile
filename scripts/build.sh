@@ -198,8 +198,7 @@ buildAndroidRunFlask(){
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM"
+	react-native run-ios --port=$WATCHER_PORT
 }
 
 buildIosSimulatorQA(){
@@ -402,7 +401,7 @@ buildAndroidRelease(){
 buildAndroidFlaskRelease(){
 	# remap flask env variables to match what the app expects
 	remapFlaskEnvVariables
-	
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.flask || true
 	fi

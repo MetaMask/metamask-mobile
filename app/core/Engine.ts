@@ -135,6 +135,7 @@ import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
+  toHexadecimal,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -844,6 +845,8 @@ class Engine {
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         getMultiAccountBalancesEnabled: () =>
           preferencesController.state.isMultiAccountBalancesEnabled,
+        getCurrentChainId: () =>
+          toHexadecimal(networkController.state.providerConfig.chainId),
       }),
       new AddressBookController(),
       assetsContractController,
@@ -1211,21 +1214,30 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       TokensController,
+      NetworkController,
     } = this.context;
     const { selectedAddress } = PreferencesController.state;
     const { currentCurrency } = CurrencyRateController.state;
+    const networkProvider = NetworkController.state.providerConfig;
     const conversionRate =
       CurrencyRateController.state.conversionRate === null
         ? 0
         : CurrencyRateController.state.conversionRate;
-    const { accounts } = AccountTrackerController.state;
+    const { accountsByChainId } = AccountTrackerController.state;
+
     const { tokens } = TokensController.state;
     let ethFiat = 0;
     let tokenFiat = 0;
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-    if (accounts[selectedAddress]) {
+    if (
+      accountsByChainId?.[toHexadecimal(networkProvider.chainId)]?.[
+        selectedAddress
+      ]
+    ) {
       ethFiat = weiToFiatNumber(
-        accounts[selectedAddress].balance,
+        accountsByChainId[toHexadecimal(networkProvider.chainId)][
+          selectedAddress
+        ].balance,
         conversionRate,
         decimalsToShow,
       );
