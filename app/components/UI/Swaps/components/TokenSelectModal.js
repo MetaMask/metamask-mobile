@@ -60,6 +60,7 @@ import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { getDecimalChainId } from '../../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -304,7 +305,7 @@ function TokenSelectModal({
       InteractionManager.runAfterInteractions(() => {
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED,
-          { address, symbol, chain_id: chainId },
+          { address, symbol, chain_id: getDecimalChainId(chainId) },
           true,
         );
       });
