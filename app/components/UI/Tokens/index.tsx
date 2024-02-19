@@ -119,7 +119,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     const providerConfig = selectProviderConfig(state);
     return getNetworkNameFromProviderConfig(providerConfig);
   });
-  const { type, rpcTarget } = useSelector(selectProviderConfig);
+  const { type, rpcUrl } = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -156,7 +156,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const goToNetworkEdit = () => {
     navigation.navigate(Routes.ADD_NETWORK, {
-      network: rpcTarget,
+      network: rpcUrl,
     });
 
     setShowScamWarningModal(false);

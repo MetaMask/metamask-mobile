@@ -17,7 +17,8 @@ function useIsOriginalNativeTokenSymbol(
   ticker: string | undefined,
   type: string,
 ): boolean {
-  const [isOriginalNativeSymbol, setIsOriginalNativeSymbol] = useState(false);
+  const [isOriginalNativeSymbol, setIsOriginalNativeSymbol] =
+    useState<boolean>(false);
 
   const useSafeChainsListValidation = useSelector(
     selectUseSafeChainsListValidation,

@@ -70,9 +70,10 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectUseSafeChainsListValidation } from '../../../../../../app/selectors/preferencesController';
-import axios from 'axios';
+import withIsOriginalNativeToken from './withIsOriginalNativeToken';
+import { compose } from 'redux';
 
-const createStyles = (colors, typography) =>
+const createStyles = (colors) =>
   StyleSheet.create({
     base: {
       paddingHorizontal: 16,
@@ -105,7 +106,7 @@ const createStyles = (colors, typography) =>
       color: colors.text.default,
     },
     inputWithError: {
-      ...typography.sBodyMD,
+      ...fontStyles.normal,
       borderColor: colors.error.default,
       borderRadius: 5,
       borderWidth: 1,
@@ -113,7 +114,7 @@ const createStyles = (colors, typography) =>
       color: colors.text.default,
     },
     inputWithFocus: {
-      ...typography.sBodyMD,
+      ...fontStyles.normal,
       borderColor: colors.primary.default,
       borderRadius: 5,
       borderWidth: 2,
@@ -156,7 +157,7 @@ const createStyles = (colors, typography) =>
       paddingVertical: 8,
       fontSize: 14,
       color: colors.text.default,
-      ...typography.sBodyMD,
+      ...fontStyles.normal,
     },
     buttonsWrapper: {
       marginVertical: 12,
@@ -229,8 +230,6 @@ const allNetworks = getAllNetworks();
 const allNetworksblockExplorerUrl = (networkName) =>
   `https://${networkName}.infura.io/v3/`;
 
-const CHAIN_ID_NETWORK_URL = 'https://chainid.network/chains.json';
-
 /**
  * Main view for app configurations
  */
@@ -270,9 +269,14 @@ class NetworkSettings extends PureComponent {
     metrics: PropTypes.object,
 
     /**
-     * Checks if network is valid
+     * Checks if toggle verification is enabled
      */
     useSafeChainsListValidation: PropTypes.bool,
+
+    /**
+     * Matched object from third provider
+     */
+    matchedChainNetwork: PropTypes.object,
   };
 
   state = {
@@ -339,7 +343,8 @@ class NetworkSettings extends PureComponent {
 
   componentDidMount = () => {
     this.updateNavBar();
-    const { route, networkConfigurations } = this.props;
+    const { route, networkConfigurations, matchedChainNetwork } = this.props;
+
     const isCustomMainnet = route.params?.isCustomMainnet;
     const networkTypeOrRpcUrl = route.params?.network;
     // if network is main, don't show popular network
@@ -391,15 +396,8 @@ class NetworkSettings extends PureComponent {
       this.setState({ addMode: true });
     }
 
-    axios.get(CHAIN_ID_NETWORK_URL).then(({ data: safeChainsList }) => {
-      const matchedChain = safeChainsList.find(
-        (network) => network.networkId === parseInt(chainId),
-      );
-      this.setState({
-        matchedChain,
-      });
-      this.validateSymbol(ticker);
-      this.validateName(nickname);
+    this.setState({
+      matchedChainNetwork,
     });
 
     setTimeout(() => {
@@ -709,20 +707,6 @@ class NetworkSettings extends PureComponent {
     }
 
     this.setState({ warningChainId: undefined, validatedChainId: true });
-  };
-  /**
-   * Validates if symbol exists
-   * @returns
-   */
-  validateSymbol = () => {
-    const { ticker } = this.state;
-    if (!ticker) {
-      return this.setState({
-        warningSymbol: strings('app_settings.symbol_required'),
-        validatedSymbol: true,
-      });
-    }
-    this.setState({ warningSymbol: undefined, validatedSymbol: true });
   };
 
   /**
@@ -1188,12 +1172,6 @@ class NetworkSettings extends PureComponent {
               </View>
             ) : null}
 
-            {warningSymbol ? (
-              <View style={styles.warningContainer}>
-                <Text style={styles.warningText}>{warningSymbol}</Text>
-              </View>
-            ) : null}
-
             <Text style={styles.label}>
               {strings('app_settings.network_block_explorer_label')}
             </Text>
@@ -1423,7 +1401,7 @@ const mapStateToProps = (state) => ({
   useSafeChainsListValidation: selectUseSafeChainsListValidation(state),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  withIsOriginalNativeToken,
 )(withMetricsAwareness(NetworkSettings));
