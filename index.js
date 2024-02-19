@@ -88,4 +88,7 @@ messaging().setBackgroundMessageHandler(onMessageReceived);
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () => Sentry.wrap(Root));
+AppRegistry.registerComponent(name, () =>
+  // Disable Sentry for E2E tests
+  process.env.IS_TEST === 'true' ? Root : Sentry.wrap(Root),
+);

@@ -1,4 +1,4 @@
-import { MigrationManifest } from 'redux-persist';
+import { MigrationManifest, PersistedState } from 'redux-persist';
 
 import migration00 from './000';
 import migration01 from './001';
@@ -28,6 +28,12 @@ import migration24 from './024';
 import migration25 from './025';
 import migration26 from './026';
 import migration27 from './027';
+import migration28 from './028';
+import migration29 from './029';
+
+// We do not keep track of the old state
+// We create this type for better readability
+type OldState = PersistedState;
 
 export const migrations: MigrationManifest = {
   0: migration00,
@@ -58,6 +64,8 @@ export const migrations: MigrationManifest = {
   25: migration25,
   26: migration26,
   27: migration27,
+  28: migration28 as unknown as (state: PersistedState) => PersistedState,
+  29: migration29 as unknown as (state: OldState) => PersistedState,
 };
 
 // The latest (i.e. highest) version number.
