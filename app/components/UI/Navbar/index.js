@@ -29,11 +29,7 @@ import PickerNetwork from '../../../component-library/components/Pickers/PickerN
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NAVBAR_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import {
-  NAV_ANDROID_BACK_BUTTON,
-  NETWORK_BACK_ARROW_BUTTON_ID,
-  NETWORK_SCREEN_CLOSE_ICON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
@@ -54,6 +50,7 @@ import {
 } from '../../../component-library/components/Texts/Text';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
+import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 
 const trackEvent = (event) => {
   InteractionManager.runAfterInteractions(() => {
@@ -216,7 +213,7 @@ export function getNavigationOptionsTitle(
           iconName={IconName.Close}
           onPress={navigationPop}
           style={innerStyles.accessories}
-          {...generateTestId(Platform, NETWORK_SCREEN_CLOSE_ICON)}
+          testID={NetworksViewSelectorsIDs.CLOSE_ICON}
         />
       ) : null,
     headerLeft: () =>
@@ -226,7 +223,7 @@ export function getNavigationOptionsTitle(
           iconName={IconName.ArrowLeft}
           onPress={navigationPop}
           style={innerStyles.accessories}
-          {...generateTestId(Platform, NETWORK_BACK_ARROW_BUTTON_ID)}
+          testID={NetworksViewSelectorsIDs.BACK_ARROW_BUTTON}
         />
       ),
     headerTintColor: themeColors.primary.default,
