@@ -23,7 +23,7 @@ const trackAfterInteractions = async (
     if (isOnboardingDelayedEvent) {
       saveOnboardingEvent(event.category);
     } else {
-      metrics.trackEvent(event.category, properties);
+      metrics.trackEvent(event, properties);
     }
   });
 

@@ -60,7 +60,7 @@ const useMetrics = (): IUseMetricsHook => {
   ) => {
     InteractionManager.runAfterInteractions(async () => {
       MetaMetrics.getInstance().trackAnonymousEvent(
-        event.category,
+        event,
         properties,
         saveDataRecording,
       );
@@ -93,7 +93,7 @@ const useMetrics = (): IUseMetricsHook => {
   ) => {
     InteractionManager.runAfterInteractions(async () => {
       MetaMetrics.getInstance().trackEvent(
-        event.category,
+        event,
         properties,
         saveDataRecording,
       );

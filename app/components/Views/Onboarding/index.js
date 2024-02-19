@@ -323,7 +323,7 @@ class Onboarding extends PureComponent {
     InteractionManager.runAfterInteractions(async () => {
       const { metrics } = this.props;
       if (metrics.isEnabled()) {
-        metrics.trackEvent(event.category);
+        metrics.trackEvent(event);
       } else {
         this.props.saveOnboardingEvent(event.category);
       }

@@ -27,6 +27,7 @@ import {
   IDeleteRegulationStatus,
   IDeleteRegulationStatusResponse,
   IMetaMetrics,
+  IMetaMetricsEvent,
   ISegmentClient,
 } from './MetaMetrics.types';
 import { METAMETRICS_ANONYMOUS_ID } from './MetaMetrics.constants';
@@ -48,7 +49,7 @@ import { Config } from '@segment/analytics-react-native/lib/typescript/src/types
  * ## Base tracking usage
  * ```
  * const metrics = MetaMetrics.getInstance();
- * metrics.trackEvent('event_name', { property: 'value' });
+ * metrics.trackEvent(event, { property: 'value' });
  * ```
  *
  * ## Enabling MetaMetrics
@@ -573,17 +574,17 @@ class MetaMetrics implements IMetaMetrics {
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
   trackAnonymousEvent(
-    event: string,
+    event: IMetaMetricsEvent,
     properties: JsonMap = {},
     saveDataRecording = true,
   ): void {
     if (this.enabled) {
       this.#trackEvent(
-        event,
+        event.category,
         { anonymous: true, ...properties },
         saveDataRecording,
       );
-      this.#trackEvent(event, { anonymous: true }, saveDataRecording);
+      this.#trackEvent(event.category, { anonymous: true }, saveDataRecording);
     }
   }
 
@@ -595,13 +596,13 @@ class MetaMetrics implements IMetaMetrics {
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
   trackEvent = (
-    event: string,
+    event: IMetaMetricsEvent,
     properties: JsonMap = {},
     saveDataRecording = true,
   ): void => {
     if (this.enabled) {
       this.#trackEvent(
-        event,
+        event.category,
         { anonymous: false, ...properties },
         saveDataRecording,
       );

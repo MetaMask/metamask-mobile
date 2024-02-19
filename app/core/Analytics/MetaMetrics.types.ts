@@ -52,23 +52,23 @@ export interface IMetaMetrics {
   group(groupId: string, groupTraits?: GroupTraits): void;
   /**
    * track an anonymous event, providing only anonymousId
-   * @param event - Analytics event name
+   * @param event - Analytics event
    * @param properties - Object containing any event relevant traits or properties (optional)
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
   trackAnonymousEvent(
-    event: string,
+    event: IMetaMetricsEvent,
     properties?: JsonMap,
     saveDataRecording?: boolean,
   ): void;
   /**
    * track an event
-   * @param event - Analytics event name
+   * @param event - Analytics event
    * @param properties - Object containing any event relevant traits or properties (optional)
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
   trackEvent(
-    event: string,
+    event: IMetaMetricsEvent,
     properties?: JsonMap,
     saveDataRecording?: boolean,
   ): void;
