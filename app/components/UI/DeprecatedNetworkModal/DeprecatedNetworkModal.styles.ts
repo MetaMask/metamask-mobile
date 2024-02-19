@@ -1,4 +1,5 @@
 import { Theme } from '@metamask/design-tokens';
+import Device from '../../../util/device';
 import { StyleSheet } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
@@ -12,18 +13,13 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopRightRadius: 20,
     },
     notch: {
-      width: 48,
-      height: 7,
+      width: 40,
+      height: 4,
       borderRadius: 4,
-      backgroundColor: colors.border.default,
-      marginTop: 12,
+      backgroundColor: colors.border.muted,
+      marginTop: 4,
       alignSelf: 'center',
       marginBottom: 16,
-    },
-    descriptionContainer: {
-      alignItems: 'center',
-      flexDirection: 'row',
-      padding: 16,
     },
     titleContainer: {
       flexDirection: 'row',
@@ -32,6 +28,13 @@ const styleSheet = (params: { theme: Theme }) => {
     centeredTitle: {
       fontSize: 18,
       textAlign: 'center',
+    },
+    centeredDescription: {
+      fontSize: 14,
+      textAlign: 'center',
+      marginTop: 8,
+      paddingRight: 16,
+      paddingLeft: 16,
     },
     footer: {
       flexDirection: 'row',
@@ -42,7 +45,11 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       marginLeft: 16,
       marginRight: 16,
-      marginTop: 16,
+      marginTop: 24,
+      marginBottom: Device.isAndroid() ? 21 : 0,
+    },
+    buttonLabel: {
+      fontSize: 14,
     },
   });
 };

@@ -43,15 +43,15 @@ const DeprecatedNetworkModal = () => {
 
         <View>
           <View>
-            <Text
-              variant={TextVariant.BodyLGMedium}
-              style={styles.centeredTitle}
-            >
+            <Text variant={TextVariant.HeadingMD} style={styles.centeredTitle}>
               {strings('networks.network_deprecated_title')}
             </Text>
           </View>
-          <View style={styles.descriptionContainer}>
-            <Text>
+          <View>
+            <Text
+              variant={TextVariant.BodyMD}
+              style={styles.centeredDescription}
+            >
               {strings('networks.network_deprecated_description')}{' '}
               <Text color={TextColor.Info} onPress={goToLearnMore}>
                 {strings('accounts.learn_more')}
@@ -62,9 +62,17 @@ const DeprecatedNetworkModal = () => {
             <Button
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
-              label="Got it"
               onPress={dismissModal}
               style={styles.button}
+              label={
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Default}
+                  style={styles.buttonLabel}
+                >
+                  {strings('network_information.got_it')}
+                </Text>
+              }
             />
           </View>
         </View>

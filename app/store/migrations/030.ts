@@ -3,18 +3,21 @@ import { SEPOLIA } from '../../../app/constants/network';
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { NetworkState } from '@metamask/network-controller';
+import NetworkList from '../../../app/util/networks';
 
 export default function migrate(state: unknown) {
   if (!isObject(state)) {
     captureException(
-      new Error(`Migration 30: Invalid state: '${typeof state}'`),
+      new Error(`Migration 30: Invalid state error: '${typeof state}'`),
     );
     return state;
   }
 
   if (!isObject(state.engine)) {
     captureException(
-      new Error(`Migration 30: Invalid engine state: '${typeof state.engine}'`),
+      new Error(
+        `Migration 30: Invalid engine state error: '${typeof state.engine}'`,
+      ),
     );
     return state;
   }
@@ -22,8 +25,8 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
-        `Migration 30: Invalid engine backgroundState: '${typeof state.engine
-          .backgroundState}'`,
+        `Migration 30: Invalid engine backgroundState error: '${typeof state
+          .engine.backgroundState}'`,
       ),
     );
     return state;
@@ -33,7 +36,7 @@ export default function migrate(state: unknown) {
   if (!isObject(networkControllerState)) {
     captureException(
       new Error(
-        `Migration 30: Invalid NetworkController state: '${typeof networkControllerState}'`,
+        `Migration 30: Invalid NetworkController state error: '${typeof networkControllerState}'`,
       ),
     );
     return state;
@@ -42,7 +45,7 @@ export default function migrate(state: unknown) {
   if (!networkControllerState.providerConfig.chainId) {
     captureException(
       new Error(
-        `Migration 30: Invalid NetworkController providerConfig chainId: '${JSON.stringify(
+        `Migration 30: NetworkController providerConfig chainId not found: '${JSON.stringify(
           networkControllerState.providerConfig.chainId,
         )}'`,
       ),
@@ -57,6 +60,7 @@ export default function migrate(state: unknown) {
       ticker: 'SepoliaETH',
       type: SEPOLIA,
     };
+    networkControllerState.networkId = `${NetworkList[SEPOLIA].networkId}`;
   }
   return state;
 }
