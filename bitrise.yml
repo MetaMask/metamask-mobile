@@ -174,25 +174,38 @@ workflows:
       - setup
       - prep_environment
     steps:
-      - restore-cocoapods-cache@2: {}
       - script@1:
+          title: Check if node_modules was restored
           inputs:
             - content: |-
-                #!/usr/bin/env bash
-                envman add --key YARN_CACHE_DIR --value "$(yarn cache dir)"
-          title: Get Yarn cache directory
+                if [ -d "node_modules" ]; then
+                  echo "Cache hit, node_modules restored."
+                  envman add --key NODE_MODULES_CACHE_HIT --value "true"
+                else
+                  echo "Cache miss, node_modules not restored."
+                  envman add --key NODE_MODULES_CACHE_HIT --value "false"
+                fi
+      - restore-cocoapods-cache@2: {}
       - yarn@0:
           inputs:
-            - command: setup
-          title: Yarn Setup
-      # Manual cache path needed here because the `yarn` step only caches for the `install` command
-      - save-cache@1:
-          title: Save cache dependencies
+            - command: bitrise:clean
+          title: yarn bitrise:clean 
+      - yarn@0:
           inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
+            - command: bitrise:install
+          title: yarn bitrise:install 
+      # Save node_modules directory to cache immediately after install since future steps modify it.
+      - save-cache@1:
+          title: Save node_modules directory
+          run_if: '{{not (enveq "NODE_MODULES_CACHE_HIT" "true")}}'
+          inputs:
+            - key: 'node-modules-{{ .Arch }}-{{ .OS }}-{{ checksum "yarn.lock" }}'
             - paths: |-
                 node_modules
-                $YARN_CACHE_DIR
+      - yarn@0:
+          inputs:
+            - command: bitrise:postinstall
+          title: yarn bitrise:postinstall
   prep_environment:
     steps:
       - script@1:
@@ -209,9 +222,9 @@ workflows:
                 asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
       - restore-cache@2:
-          title: Restore cache dependencies
+          title: Restore node_modules directory
           inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
+            - key: 'node-modules-{{ .Arch }}-{{ .OS }}-{{ checksum "yarn.lock" }}'
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
