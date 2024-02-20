@@ -1,0 +1,114 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonBase should render with role button by default 1`] = `
+<TouchableOpacity
+  activeOpacity={1}
+  onPress={[MockFunction]}
+  style={
+    Object {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      Object {
+        "color": "#24272A",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`ButtonBase should render with role button if passed 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
+  activeOpacity={1}
+  onPress={[MockFunction]}
+  style={
+    Object {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      Object {
+        "color": "#24272A",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`StyledButton should render with role button by default 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
+  activeOpacity={0.2}
+  onPress={[MockFunction]}
+  style={
+    Array [
+      Array [
+        Object {
+          "borderRadius": 100,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        Object {
+          "backgroundColor": "#0376C9",
+        },
+        undefined,
+      ],
+      null,
+    ]
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      Object {
+        "color": "#24272A",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Compare with this button
+  </Text>
+</TouchableOpacity>
+`;
