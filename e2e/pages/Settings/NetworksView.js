@@ -1,4 +1,3 @@
-import TestHelpers from '../../helpers';
 import {
   NetworksViewSelectorsIDs,
   NetworkViewSelectorsText,
@@ -84,8 +83,8 @@ class NetworkView {
   }
 
   async tapPopularNetworkByName(networkName) {
-    const element = Matchers.getElementByText(networkName);
-    await TestHelpers.tapByText(element);
+    const network = Matchers.getElementByText(networkName);
+    await Gestures.waitAndTap(network);
   }
   async typeInNetworkName(networkName) {
     await Gestures.typeTextAndHideKeyboard(this.networkNameInput, networkName);
