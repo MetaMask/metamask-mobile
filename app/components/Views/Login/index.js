@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {
   Alert,
   ActivityIndicator,
+  Keyboard,
   View,
   SafeAreaView,
   StyleSheet,
@@ -365,11 +366,20 @@ class Login extends PureComponent {
     );
 
     try {
+      // Log to provide insights into bug research.
+      // Check https://github.com/MetaMask/mobile-planning/issues/1507
+      const { selectedAddress } = this.props;
+      if (typeof selectedAddress !== 'string') {
+        Logger.error('Login error', 'selectedAddress is not a string');
+      }
+
       await Authentication.userEntryAuth(
         password,
         authType,
         this.props.selectedAddress,
       );
+
+      Keyboard.dismiss();
 
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
@@ -432,6 +442,12 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
+      // Log to provide insights into bug research.
+      // Check https://github.com/MetaMask/mobile-planning/issues/1507
+      const { selectedAddress } = this.props;
+      if (typeof selectedAddress !== 'string') {
+        Logger.error('unlockKeychain error', 'selectedAddress is not a string');
+      }
       await Authentication.appTriggeredAuth({
         selectedAddress: this.props.selectedAddress,
       });
@@ -507,8 +523,9 @@ class Login extends PureComponent {
       <ErrorBoundary navigation={this.props.navigation} view="Login">
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
-            style={styles.wrapper}
+            keyboardShouldPersistTaps="handled"
             resetScrollToCoords={{ x: 0, y: 0 }}
+            style={styles.wrapper}
           >
             <View testID={LoginViewSelectors.CONTAINER}>
               <View style={styles.foxWrapper}>

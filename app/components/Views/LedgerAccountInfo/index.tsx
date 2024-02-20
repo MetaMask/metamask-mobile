@@ -26,7 +26,7 @@ import {
 } from '../../../util/theme';
 import Text from '../../Base/Text';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import AccountDetails from '../ConnectQRHardware/AccountDetails';
+import AccountDetails from '../../../components/UI/HardwareWallet/AccountDetails';
 
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
@@ -143,12 +143,12 @@ const LedgerAccountInfo = () => {
 
   const toBlockExplorer = useCallback(
     (address: string) => {
-      const { type, rpcTarget } = provider;
+      const { type, rpcUrl } = provider;
       let accountLink: string;
 
       if (type === RPC) {
         const blockExplorer =
-          findBlockExplorerForRpc(rpcTarget, frequentRpcList) ||
+          findBlockExplorerForRpc(rpcUrl, frequentRpcList) ||
           NO_RPC_BLOCK_EXPLORER;
         accountLink = `${blockExplorer}/address/${address}`;
       } else {

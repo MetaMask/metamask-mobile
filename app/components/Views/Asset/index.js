@@ -32,7 +32,7 @@ import {
   selectChainId,
   selectNetworkId,
   selectNetworkConfigurations,
-  selectRpcTarget,
+  selectRpcUrl,
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
@@ -49,7 +49,7 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
-import { isNetworkRampNativeTokenSupported } from '../../UI/Ramp/common/utils';
+import { isNetworkRampNativeTokenSupported } from '../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
 import {
@@ -170,7 +170,7 @@ class Asset extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    rpcTarget: PropTypes.string,
+    rpcUrl: PropTypes.string,
     networkConfigurations: PropTypes.object,
     /**
      * Boolean that indicates if native token is supported to buy
@@ -196,13 +196,13 @@ class Asset extends PureComponent {
   navAddress = undefined;
 
   updateNavBar = (contentOffset = 0) => {
-    const { navigation, route, chainId, rpcTarget, networkConfigurations } =
+    const { navigation, route, chainId, rpcUrl, networkConfigurations } =
       this.props;
     const colors = this.context.colors || mockTheme.colors;
     const isNativeToken = route.params.isETH;
     const isMainnet = isMainnetByChainId(chainId);
     const blockExplorer = findBlockExplorerForRpc(
-      rpcTarget,
+      rpcUrl,
       networkConfigurations,
     );
 
@@ -589,7 +589,7 @@ const mapStateToProps = (state) => ({
   tokens: selectTokens(state),
   networkId: selectNetworkId(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  rpcTarget: selectRpcTarget(state),
+  rpcUrl: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
   isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),

@@ -7,7 +7,7 @@ import {
   View,
   Text,
 } from 'react-native';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
 import { strings } from '../../../../locales/i18n';
@@ -22,7 +22,7 @@ import { selectSelectedAddress } from '../../../selectors/preferencesController'
 
 const WIDTH = Dimensions.get('window').width - 88;
 
-const createStyles = (colors) =>
+const createStyles = (theme) =>
   StyleSheet.create({
     root: {
       flex: 1,
@@ -39,19 +39,19 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       padding: 28,
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.default,
       borderRadius: 8,
     },
     qrCode: {
       padding: 8,
-      backgroundColor: importedColors.white,
+      backgroundColor: theme.brandColors.white['000'],
     },
     addressWrapper: {
       alignItems: 'center',
       justifyContent: 'center',
       width: WIDTH,
       borderRadius: 8,
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.default,
       paddingVertical: 12,
     },
     closeIcon: {
@@ -64,7 +64,7 @@ const createStyles = (colors) =>
       paddingHorizontal: 28,
       paddingVertical: 4,
       ...fontStyles.normal,
-      color: colors.text.default,
+      color: theme.colors.text.default,
     },
     address: {
       ...fontStyles.normal,
@@ -72,7 +72,7 @@ const createStyles = (colors) =>
       paddingVertical: 4,
       fontSize: 16,
       textAlign: 'center',
-      color: colors.text.default,
+      color: theme.colors.text.default,
     },
   });
 
@@ -134,8 +134,9 @@ class AddressQRCode extends PureComponent {
   };
 
   render() {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const theme = this.context || mockTheme;
+    const colors = theme.colors;
+    const styles = createStyles(theme);
 
     return (
       <View style={styles.root}>
@@ -147,7 +148,7 @@ class AddressQRCode extends PureComponent {
             <IonicIcon
               name={'ios-close'}
               size={38}
-              color={colors.overlay.inverse}
+              color={colors.primary.inverse}
             />
           </TouchableOpacity>
           <View style={styles.qrCodeContainer}>

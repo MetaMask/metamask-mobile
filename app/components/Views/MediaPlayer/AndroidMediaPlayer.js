@@ -25,7 +25,7 @@ import AntIcon from 'react-native-vector-icons/AntDesign';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 
-const createStyles = (colors) =>
+const createStyles = (theme) =>
   StyleSheet.create({
     playerContainer: {
       flex: 0,
@@ -41,7 +41,7 @@ const createStyles = (colors) =>
       right: 0,
       bottom: 0,
       left: 0,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: theme.colors.background.alternative,
       borderRadius: 12,
     },
     errorContainer: {
@@ -121,7 +121,7 @@ const createStyles = (colors) =>
       height: 4,
       width: '100%',
       borderRadius: 2,
-      backgroundColor: importedColors.white,
+      backgroundColor: theme.brandColors.white['000'],
     },
     seekbarPermanentFill: {
       width: '100%',
@@ -137,6 +137,7 @@ const createStyles = (colors) =>
       top: 14,
       height: 14,
       width: 14,
+      backgroundColor: theme.brandColors.white['000'],
     },
     actionButton: {
       width: 44,
@@ -147,6 +148,9 @@ const createStyles = (colors) =>
     actionSeeker: {
       flex: 1,
       marginHorizontal: 8,
+    },
+    actionButtons: {
+      color: theme.brandColors.white['000'],
     },
   });
 
@@ -181,8 +185,8 @@ export default function VideoPlayer({
 
   const controlsTimeout = useRef();
 
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
   const animations = {
     bottomControl: {
@@ -437,7 +441,7 @@ export default function VideoPlayer({
     () =>
       renderControl(
         <FA5Icon
-          color={importedColors.white}
+          color={styles.actionButtons.color}
           size={18}
           name={`volume-${muted ? 'mute' : 'up'}`}
         />,
@@ -484,13 +488,7 @@ export default function VideoPlayer({
           style={[styles.seekbarHandle, { left: seekerPosition }]}
           pointerEvents={'none'}
         >
-          <View
-            style={[
-              styles.seekbarCircle,
-              { backgroundColor: importedColors.white },
-            ]}
-            pointerEvents={'none'}
-          />
+          <View style={styles.seekbarCircle} pointerEvents={'none'} />
         </View>
       </View>
     ),
@@ -507,7 +505,7 @@ export default function VideoPlayer({
     () =>
       renderControl(
         <FA5Icon
-          color={importedColors.white}
+          color={styles.actionButtons.color}
           size={16}
           name={paused ? 'play' : 'pause'}
         />,
@@ -552,11 +550,11 @@ export default function VideoPlayer({
   const renderClose = useCallback(
     () =>
       renderControl(
-        <AntIcon color={importedColors.white} size={16} name={'close'} />,
+        <AntIcon color={styles.actionButtons.color} size={16} name={'close'} />,
         onClose,
         {},
       ),
-    [onClose, renderControl],
+    [onClose, renderControl, styles],
   );
 
   const renderTopControls = () => (

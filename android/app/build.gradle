@@ -1,5 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "com.facebook.react"
+apply plugin: "io.sentry.android.gradle"
 
 import com.android.build.OutputFile
 
@@ -49,12 +50,55 @@ react {
     // hermesFlags = ["-O", "-output-source-map"]
 }
 
- project.ext.sentryCli = [
-	logLevel: "debug",
-	sentryProperties: System.getenv('SENTRY_PROPERTIES') ? System.getenv('SENTRY_PROPERTIES') : '../../sentry.properties'
+// Override default React Native to generate source maps for Hermes
+project.ext.react = [
+  bundleCommand: "ram-bundle",
+  bundleAssetName: "index.bundle",
+  entryFile: "index.js",
+  hermesCommand: "../../node_modules/hermes-engine/%OS-BIN%/hermesc",
+  cliPath: "../../node_modules/react-native/cli.js",
+  composeSourceMapsPath: "../../node_modules/react-native/scripts/compose-source-maps.js",
 ]
 
+// Sentry environment variables used by Sentry CLI to upload files. Upload is disabled by default
+// TODO - Move to JS side to be shared between platform - Android sets these automatically
+// System.env.SENTRY_DIST
+// System.env.SENTRY_RELEASE
+
+// Configure sentry properties
+project.ext.sentryCli = [
+    logLevel: "debug",
+    sentryProperties: System.getenv('SENTRY_PROPERTIES') ?: '../../sentry.properties'
+]
+
+// Sentry gradle from React Native (@sentry/react-native) that handles uploads Sentry source maps.
 apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
+
+// Sentry configuration used by Sentry Android gradle plugin (io.sentry.android.gradle), which handles uploading symbols.
+sentry {
+    // Enables or disables the automatic configuration of Native Symbols
+    // for Sentry. This executes sentry-cli automatically so
+    // you don't need to do it manually.
+    // Default is disabled.
+    autoUploadProguardMapping = shouldSentryAutoUpload()
+    uploadNativeSymbols = shouldSentryAutoUpload()
+
+    // Enables or disables the automatic upload of the app's native source code to Sentry.
+    // This executes sentry-cli with the --include-sources param automatically so
+    // you don't need to do it manually.
+    // This option has an effect only when [uploadNativeSymbols] is enabled.
+    // Default is disabled.
+    includeNativeSources = true
+
+    // `@sentry/react-native` ships with compatible `sentry-android`
+    // This option would install the latest version that ships with the SDK or SAGP (Sentry Android Gradle Plugin)
+    // which might be incompatible with the React Native SDK
+    // Enable auto-installation of Sentry components (sentry-android SDK and okhttp, timber and fragment integrations).
+    // Default is enabled.
+    autoInstallation {
+      enabled = false
+    }
+}
 
 def getPassword(String currentUser, String keyChain) {
 	def stdout = new ByteArrayOutputStream()
@@ -137,8 +181,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1235
-        versionName "7.12.5"
+        versionCode 1245
+        versionName "7.15.0"
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

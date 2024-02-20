@@ -2,11 +2,9 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
 import { connect } from 'react-redux';
-import { colors as importedColors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
-import Icon from 'react-native-vector-icons/Ionicons';
 import Device from '../../../util/device';
-import AntIcons from 'react-native-vector-icons/AntDesign';
 import Text from '../../Base/Text';
 import ActionSheet from 'react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
@@ -16,11 +14,16 @@ import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import Icon, {
+  IconName,
+  IconColor,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
 
-const createStyles = (colors) =>
+const createStyles = (colors, brandColors) =>
   StyleSheet.create({
     itemWrapper: {
       paddingHorizontal: 15,
@@ -62,11 +65,10 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      // This yellow doesn't change colors between themes
-      backgroundColor: importedColors.yellow,
       width: 32,
       height: 32,
       borderRadius: 16,
+      backgroundColor: brandColors.yellow['500'],
     },
   });
 
@@ -90,6 +92,7 @@ function CollectibleContractElement({
   chainId,
   selectedAddress,
   removeFavoriteCollectible,
+  toggleRemovingProgress,
 }) {
   const [collectiblesGrid, setCollectiblesGrid] = useState([]);
   const [collectiblesVisible, setCollectiblesVisible] = useState(
@@ -97,8 +100,8 @@ function CollectibleContractElement({
   );
   const actionSheetRef = useRef();
   const longPressedCollectible = useRef(null);
-  const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const { colors, themeAppearance, brandColors } = useTheme();
+  const styles = createStyles(colors, brandColors);
 
   const toggleCollectibles = useCallback(() => {
     setCollectiblesVisible(!collectiblesVisible);
@@ -147,7 +150,11 @@ function CollectibleContractElement({
 
   const handleMenuAction = (index) => {
     if (index === 1) {
+      // set toggle to true
+      toggleRemovingProgress();
       removeNft();
+      // set toggle to false to indicate that removing the NFT has finished
+      toggleRemovingProgress();
     } else if (index === 0) {
       refreshMetadata();
     }
@@ -206,10 +213,11 @@ function CollectibleContractElement({
       >
         <View style={styles.verticalAlignedContainer}>
           <Icon
-            name={`ios-arrow-${collectiblesVisible ? 'down' : 'forward'}`}
-            size={12}
-            color={colors.text.default}
-            style={styles.arrowIcon}
+            name={
+              collectiblesVisible ? IconName.ArrowDown : IconName.ArrowRight
+            }
+            size={IconSize.Xs}
+            color={IconColor.Default}
           />
         </View>
         <View style={styles.collectibleContractIconContainer}>
@@ -225,7 +233,11 @@ function CollectibleContractElement({
             />
           ) : (
             <View style={styles.favoritesLogoWrapper}>
-              <AntIcons color={importedColors.white} name={'star'} size={24} />
+              <Icon
+                name={IconName.Star}
+                color={IconColor.Inverse}
+                size={IconSize.Lg}
+              />
             </View>
           )}
         </View>
@@ -294,6 +306,7 @@ CollectibleContractElement.propTypes = {
    * Dispatch remove collectible from favorites action
    */
   removeFavoriteCollectible: PropTypes.func,
+  toggleRemovingProgress: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({

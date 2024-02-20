@@ -1,6 +1,9 @@
 process.env.TZ = 'America/Toronto';
 process.env.MM_BLOCKAID_UI_ENABLED = 'true';
 
+process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
+process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
+
 const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
@@ -22,6 +25,7 @@ const config = {
     '<rootDir>/app/util/test/',
     '<rootDir>/app/util/testUtils/',
     '<rootDir>/app/lib/ppom/ppom.html.js',
+    '<rootDir>/app/lib/ppom/blockaid-version.js',
   ],
   coverageReporters: ['text-summary', 'lcov'],
   coverageDirectory: '<rootDir>/tests/coverage',

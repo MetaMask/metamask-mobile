@@ -12,7 +12,10 @@
     "logs": {}
   },
   "AccountTrackerController": {
-    "accounts": {}
+    "accounts": {},
+    "accountsByChainId": {
+      "0x1": {}
+    }
   },
   "AddressBookController": {
     "addressBook": {}
@@ -26,7 +29,6 @@
   "TokensController": {
     "tokens": [],
     "ignoredTokens": [],
-    "suggestedAssets": [],
     "detectedTokens": [],
     "allTokens": {},
     "allIgnoredTokens": {},
@@ -43,7 +45,6 @@
     "chainStatus": {
       "0x1": {
         "chainId": "0x1",
-        "dataFetched": false,
         "versionInfo": []
       }
     },
@@ -65,10 +66,10 @@
     "networkConfigurations": {},
     "providerConfig": {
       "type": "mainnet",
-      "chainId": "1"
+      "chainId": "0x1"
     },
     "networkDetails": {
-      "isEIP1559Compatible": false
+      "EIPS": {}
     },
     "networkId": null,
     "networkStatus": "unknown"
@@ -97,8 +98,9 @@
     "selectedAddress": "",
     "useTokenDetection": true,
     "useNftDetection": false,
+    "useSafeChainsListValidation": true,
     "displayNftMedia": true,
-    "securityAlertsEnabled": false,
+    "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false
@@ -140,12 +142,12 @@
     "submitHistory": [],
     "transactions": []
   },
-  "SnapController":  {
+  "SnapController": {
     "snapStates": {},
-    "snaps":  {}
+    "snaps": {}
   },
-  "SubjectMetadataController":  {
-    "subjectMetadata":  {}
+  "SubjectMetadataController": {
+    "subjectMetadata": {}
   },
   "SwapsController": {
     "quotes": {},
@@ -189,7 +191,7 @@
     "usedGasEstimate": null,
     "usedCustomGas": null,
     "chainCache": {
-      "1": {
+      "0x1": {
         "aggregatorMetadata": null,
         "tokens": null,
         "topAssets": null,

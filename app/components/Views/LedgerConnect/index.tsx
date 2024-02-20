@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { useDispatch } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -19,7 +20,7 @@ import {
   useAssetFromTheme,
 } from '../../../util/theme';
 import Device from '../../../util/device';
-import { colors as importedColors, fontStyles } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
 import useLedgerBluetooth, {
   LedgerCommunicationErrors,
@@ -39,12 +40,12 @@ import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
 
-const createStyles = (colors: any) =>
+const createStyles = (theme: any) =>
   StyleSheet.create({
     container: {
       position: 'relative',
       flex: 1,
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.default,
       alignItems: 'center',
     },
     connectLedgerWrapper: {
@@ -105,14 +106,17 @@ const createStyles = (colors: any) =>
     openEthAppMessage: {
       marginTop: Device.getDeviceHeight() * 0.025,
     },
+    loader: {
+      color: theme.brandColors.white['000'],
+    },
   });
 
 const LedgerConnect = () => {
   const { AccountTrackerController } = Engine.context as any;
-  const { colors } = useAppThemeFromContext() ?? mockTheme;
+  const theme = useAppThemeFromContext() ?? mockTheme;
   const navigation = useNavigation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
-  const [selectedDevice, setSelectedDevice] = useState<any>(null);
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const [loading, setLoading] = useState(false);
   const [retryTimes, setRetryTimes] = useState(0);
@@ -120,9 +124,9 @@ const LedgerConnect = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getNavigationOptionsTitle('', navigation, true, colors),
+      getNavigationOptionsTitle('', navigation, true, theme.colors),
     );
-  }, [navigation, colors]);
+  }, [navigation, theme.colors]);
 
   const {
     isSendingLedgerCommands,
@@ -137,7 +141,7 @@ const LedgerConnect = () => {
       device_type: 'Ledger',
     });
     ledgerLogicToRun(async () => {
-      const account = await unlockLedgerDefaultAccount();
+      const account = await unlockLedgerDefaultAccount(true);
       await AccountTrackerController.syncBalanceWithAddresses([account]);
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: 'Ledger',
@@ -161,7 +165,7 @@ const LedgerConnect = () => {
   };
 
   const openHowToInstallEthApp = () => {
-    navigation.push('Webview', {
+    navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: LEDGER_SUPPORT_LINK,
@@ -319,10 +323,10 @@ const LedgerConnect = () => {
                 type="confirm"
                 onPress={connectLedger}
                 testID={'add-network-button'}
-                disabled={isSendingLedgerCommands}
+                disabled={loading || isSendingLedgerCommands}
               >
                 {loading || isSendingLedgerCommands ? (
-                  <ActivityIndicator color={importedColors.white} />
+                  <ActivityIndicator color={styles.loader.color} />
                 ) : ledgerError ? (
                   strings('ledger.retry')
                 ) : (

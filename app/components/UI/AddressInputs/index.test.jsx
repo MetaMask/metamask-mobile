@@ -26,7 +26,7 @@ const initialState = {
       },
       AddressBookController: {
         addressBook: {
-          1: {
+          '0x1': {
             '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
               address: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
               name: 'Account 2',

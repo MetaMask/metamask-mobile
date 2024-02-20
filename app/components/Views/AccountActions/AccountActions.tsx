@@ -6,9 +6,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
 
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../component-library/hooks';
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -45,7 +45,7 @@ import {
 
 const AccountActions = () => {
   const { styles } = useStyles(styleSheet, {});
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
 
@@ -55,14 +55,14 @@ const AccountActions = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer = useMemo(() => {
-    if (providerConfig?.rpcTarget && providerConfig.type === RPC) {
+    if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
       return findBlockExplorerForRpc(
-        providerConfig.rpcTarget,
+        providerConfig.rpcUrl,
         networkConfigurations,
       );
     }
     return null;
-  }, [networkConfigurations, providerConfig.rpcTarget, providerConfig.type]);
+  }, [networkConfigurations, providerConfig.rpcUrl, providerConfig.type]);
 
   const blockExplorerName = getBlockExplorerName(blockExplorer);
 
@@ -77,7 +77,7 @@ const AccountActions = () => {
   };
 
   const viewInEtherscan = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
         const url = `${blockExplorer}/address/${selectedAddress}`;
         const title = new URL(blockExplorer).hostname;
@@ -99,7 +99,7 @@ const AccountActions = () => {
   };
 
   const onShare = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       Share.open({
         message: selectedAddress,
       })
@@ -117,7 +117,7 @@ const AccountActions = () => {
   };
 
   const goToExportPrivateKey = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED,
         {},
@@ -140,7 +140,7 @@ const AccountActions = () => {
   );
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
         <AccountAction
           actionTitle={strings('account_actions.edit_name')}
@@ -173,7 +173,7 @@ const AccountActions = () => {
           {...generateTestId(Platform, SHOW_PRIVATE_KEY)}
         />
       </View>
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 

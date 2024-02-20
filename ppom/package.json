@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "devDependencies": {
     "@babel/preset-env": "^7.22.6",
-    "@blockaid/ppom_release": "^1.4.0",
+    "@blockaid/ppom_release": "^1.4.1",
     "babel-loader": "^9.1.2",
     "binary-base64-loader": "^1.0.0",
     "buffer": "^6.0.3",
@@ -20,7 +20,8 @@
     "lint": "eslint '**/*.{js,ts,tsx}'",
     "build-html": "webpack --mode production --config ./webpack.config.html.js",
     "build-html-js": "webpack --mode production --config ./webpack.config.html-js.js",
-    "build": "yarn clean && yarn build-html && yarn build-html-js",
+    "build-version": "webpack --mode production --config ./webpack.config.version.js",
+    "build": "yarn clean && yarn build-html && yarn build-html-js && yarn build-version",
     "clean": "rm -rf ../app/lib/ppom/ppom.html.js && rm -rf ./dist"
   }
 }

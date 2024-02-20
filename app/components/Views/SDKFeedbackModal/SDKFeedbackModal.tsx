@@ -1,21 +1,23 @@
-import SDKFeedback from '../../../../app/components/UI/SDKFeedback';
+// Third party dependencies
 import React, { useRef } from 'react';
 
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+// External dependencies
+import SDKFeedback from '../../../components/UI/SDKFeedback';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 
 const SDKLoadingModal = () => {
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <BottomSheet ref={sheetRef}>
       <SDKFeedback
         onConfirm={() => {
-          sheetRef.current?.hide();
+          sheetRef.current?.onCloseBottomSheet();
         }}
       />
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 
