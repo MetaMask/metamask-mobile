@@ -753,7 +753,7 @@ class Confirm extends PureComponent {
         TransactionController.hub.removeAllListeners(
           `${transactionMeta.id}:finished`,
         );
-        TransactionController.cancelTransaction(transactionMeta.id);
+        TransactionController.processApproval(transactionMeta.id);
       } else {
         await new Promise((resolve) => resolve(result));
 
