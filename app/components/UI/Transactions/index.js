@@ -71,7 +71,6 @@ import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { TOKEN_OVERVIEW_TXN_SCREEN } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import {
   speedUpTransaction,
-  stopTransaction,
   updateIncomingTransactions,
 } from '../../../util/transaction-controller';
 
@@ -604,7 +603,7 @@ class Transactions extends PureComponent {
           },
         });
       } else {
-        await stopTransaction(
+        await Engine.context.TransactionController.stopTransaction(
           this.cancelTxId,
           transactionObject?.suggestedMaxFeePerGasHex && {
             maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,

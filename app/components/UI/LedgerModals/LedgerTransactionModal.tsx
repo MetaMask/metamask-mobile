@@ -12,7 +12,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
 import {
   speedUpTransaction,
-  stopTransaction,
 } from '../../../util/transaction-controller';
 
 export const createLedgerTransactionModalNavDetails =
@@ -44,7 +43,7 @@ const LedgerTransactionModal = () => {
   const modalRef = useRef<ReusableModalRef | null>(null);
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyles(colors);
-  const { ApprovalController } = Engine.context as any;
+  const { TransactionController, ApprovalController } = Engine.context as any;
 
   const { transactionId, onConfirmationComplete, deviceId, replacementParams } =
     useParams<LedgerTransactionModalParams>();
@@ -55,7 +54,7 @@ const LedgerTransactionModal = () => {
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
       await speedUpTransaction(transactionId, replacementParams.eip1559GasFee);
     } else if (replacementParams?.type === LedgerReplacementTxTypes.CANCEL) {
-      await stopTransaction(transactionId, replacementParams.eip1559GasFee);
+      await TransactionController.stopTransaction(transactionId, replacementParams.eip1559GasFee);
     } else {
       // This requires the user to confirm on the ledger device
       await ApprovalController.accept(transactionId, undefined, {

@@ -36,7 +36,6 @@ import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import {
   speedUpTransaction,
-  stopTransaction,
 } from '../../../../util/transaction-controller';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
@@ -209,8 +208,10 @@ function TransactionNotification(props) {
     safelyExecute(() => speedUpTransaction(tx?.id));
   }, [safelyExecute, tx]);
 
-  const stopTx = useCallback(() => {
-    safelyExecute(() => stopTransaction(tx?.id));
+  const stopTransaction = useCallback(() => {
+    safelyExecute(() =>
+      Engine.context.TransactionController.stopTransaction(tx?.id),
+    );
   }, [safelyExecute, tx]);
 
   useEffect(() => {
@@ -327,7 +328,9 @@ function TransactionNotification(props) {
               <ActionContent
                 onCancelPress={onActionFinish}
                 onConfirmPress={
-                  transactionAction === ACTION_CANCEL ? stopTx : speedUpTx
+                  transactionAction === ACTION_CANCEL
+                    ? stopTransaction
+                    : speedUpTransaction
                 }
                 confirmText={strings('transaction.lets_try')}
                 confirmButtonMode={'confirm'}
