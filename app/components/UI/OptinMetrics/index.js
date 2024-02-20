@@ -314,13 +314,10 @@ class OptinMetrics extends PureComponent {
       this.props.clearOnboardingEvents();
 
       // track event for user opting in
-      metrics.trackEvent(
-        MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
-        {
-          analytics_option_selected: 'Metrics Opt In',
-          updated_after_onboarding: false,
-        },
-      );
+      metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: 'Metrics Opt In',
+        updated_after_onboarding: false,
+      });
     });
     this.continue();
   };
