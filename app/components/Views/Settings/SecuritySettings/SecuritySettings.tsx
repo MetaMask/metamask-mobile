@@ -231,7 +231,7 @@ const Settings: React.FC = () => {
     setHintText(manualBackup);
   }, []);
 
-  const checkAnalyticsEnabled = useCallback(async () => {
+  const checkAnalyticsEnabled = useCallback(() => {
     trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
     setAnalyticsEnabled(isEnabled());
   }, [trackEvent, isEnabled]);

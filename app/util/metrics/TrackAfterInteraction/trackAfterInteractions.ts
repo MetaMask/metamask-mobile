@@ -11,8 +11,8 @@ import { JsonMap } from '@segment/analytics-react-native';
 const trackAfterInteractions = async (
   event: IMetaMetricsEvent,
   properties: JsonMap = {},
-  saveOnboardingEvent?: (event: string) => {
-    event: object;
+  saveOnboardingEvent?: (event: IMetaMetricsEvent) => {
+    event: IMetaMetricsEvent;
     type: string;
   },
 ): Promise<void> =>
@@ -21,7 +21,7 @@ const trackAfterInteractions = async (
     const isOnboardingDelayedEvent =
       !metrics.isEnabled() && saveOnboardingEvent;
     if (isOnboardingDelayedEvent) {
-      saveOnboardingEvent(event.category);
+      saveOnboardingEvent(event);
     } else {
       metrics.trackEvent(event, properties);
     }

@@ -276,8 +276,6 @@ class MetaMetrics implements IMetaMetrics {
     } else {
       this.metametricsId = metametricsId;
     }
-
-    if (__DEV__) Logger.log(`Current MetaMatrics ID: ${this.metametricsId}`);
     return this.metametricsId;
   };
 
@@ -507,6 +505,8 @@ class MetaMetrics implements IMetaMetrics {
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
       this.#isConfigured = true;
+      if (__DEV__)
+        Logger.log(`MetaMetrics configured with ID: ${this.metametricsId}`);
     } catch (error: any) {
       Logger.error(error, 'Error initializing MetaMetrics');
     }
