@@ -50,10 +50,11 @@ async function main(): Promise<void> {
     triggered_by: workflowName,
   };
 
-  const bitriseProjectUrl = `https://app.bitrise.io/app/${process.env.BITRISE_APP_ID}/build/start.json`;
+  const bitriseProjectUrl = `https://app.bitrise.io/app/${process.env.BITRISE_APP_ID}`;
+  const bitriseBuildStartUrl = `${bitriseProjectUrl}/build/start.json`;
 
   // Start Bitrise build.
-  const bitriseBuildResponse = await axios.post(bitriseProjectUrl, data, {
+  const bitriseBuildResponse = await axios.post(bitriseBuildStartUrl, data, {
     headers: {
       'Content-Type': 'application/json',
     },
