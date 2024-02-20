@@ -244,7 +244,9 @@ describe('Quotes', () => {
       ] as (QuoteResponse | QuoteError)[],
     };
     render(Quotes);
-    fireEvent.press(screen.getByRole('text', { name: 'Explore more options' }));
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Explore more options' }),
+    );
     act(() => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();

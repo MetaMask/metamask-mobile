@@ -732,6 +732,8 @@ function Quotes() {
             expandedCount > 0
               ? [
                   {
+                    accessible: true,
+                    accessibilityRole: 'button',
                     variant: ButtonVariants.Link,
                     size: ButtonSize.Md,
                     label: strings(
