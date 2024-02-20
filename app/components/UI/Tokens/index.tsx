@@ -514,10 +514,16 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const renderNetworth = () => {
-    const fiatBalance = `${renderFiat(
-      Engine.getTotalFiatAccountBalance(),
-      currentCurrency,
-    )}`;
+    const balance = Engine.getTotalFiatAccountBalance();
+    let total;
+    if (isOriginalNativeTokenSymbol) {
+      const tokenFiatTotal = balance?.tokenFiat ?? 0;
+      const ethFiatTotal = balance?.ethFiat ?? 0;
+      total = tokenFiatTotal + ethFiatTotal;
+    } else {
+      total = balance?.tokenFiat ?? 0;
+    }
+    const fiatBalance = `${renderFiat(total, currentCurrency)}`;
 
     const onOpenPortfolio = () => {
       const existingPortfolioTab = browserTabs.find((tab: BrowserTab) =>

@@ -300,7 +300,6 @@ class NetworkSettings extends PureComponent {
     popularNetwork: {},
     showWarningModal: false,
     showNetworkDetailsModal: false,
-    matchedChain: null,
     isNameFieldFocused: false,
     isSymbolFieldFocused: false,
   };
@@ -343,7 +342,7 @@ class NetworkSettings extends PureComponent {
 
   componentDidMount = () => {
     this.updateNavBar();
-    const { route, networkConfigurations, matchedChainNetwork } = this.props;
+    const { route, networkConfigurations } = this.props;
 
     const isCustomMainnet = route.params?.isCustomMainnet;
     const networkTypeOrRpcUrl = route.params?.network;
@@ -395,10 +394,6 @@ class NetworkSettings extends PureComponent {
     } else {
       this.setState({ addMode: true });
     }
-
-    this.setState({
-      matchedChainNetwork,
-    });
 
     setTimeout(() => {
       this.setState({
@@ -713,14 +708,15 @@ class NetworkSettings extends PureComponent {
    * Validates that symbol match with the chainId, setting a warningSymbol if is invalid
    */
   validateSymbol = async () => {
-    const { ticker, matchedChain } = this.state;
-    const { useSafeChainsListValidation } = this.props;
+    const { ticker } = this.state;
+    const { useSafeChainsListValidation, matchedChainNetwork } = this.props;
 
     if (!useSafeChainsListValidation) {
       return;
     }
 
-    const symbol = matchedChain?.nativeCurrency?.symbol ?? null;
+    const symbol =
+      matchedChainNetwork?.matchedChainNetwork?.nativeCurrency?.symbol ?? null;
 
     const symbolToUse = symbol === ticker ? undefined : symbol;
 
@@ -733,14 +729,14 @@ class NetworkSettings extends PureComponent {
    * Validates that name match with the chainId, setting a warningName if is invalid
    */
   validateName = async () => {
-    const { matchedChain, nickname } = this.state;
-    const { useSafeChainsListValidation } = this.props;
+    const { nickname } = this.state;
+    const { useSafeChainsListValidation, matchedChainNetwork } = this.props;
 
     if (!useSafeChainsListValidation) {
       return;
     }
 
-    const name = matchedChain?.chain ?? null;
+    const name = matchedChainNetwork?.matchedChainNetwork?.chain ?? null;
 
     const nameToUse = name === nickname ? undefined : name;
 
