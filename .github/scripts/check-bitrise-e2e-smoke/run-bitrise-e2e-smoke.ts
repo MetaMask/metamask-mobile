@@ -34,13 +34,13 @@ async function main(): Promise<void> {
     build_params: {
       branch: process.env.GITHUB_HEAD_REF,
       pipeline_id: e2ePipeline,
-      environments: [
-        {
-          mapped_to: 'GITHUB_PR_NUMBER',
-          value: pullRequestNumber,
-          is_expand: true,
-        },
-      ],
+      // environments: [
+      //   {
+      //     mapped_to: 'GITHUB_PR_NUMBER',
+      //     value: pullRequestNumber,
+      //     is_expand: true,
+      //   },
+      // ],
       commit_message: `Triggered by (${workflowName}) workflow in ${pullRequestLink}`,
     },
     hook_info: {
