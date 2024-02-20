@@ -34,9 +34,7 @@ import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
-import {
-  speedUpTransaction,
-} from '../../../../util/transaction-controller';
+import { speedUpTransaction } from '../../../../util/transaction-controller';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';

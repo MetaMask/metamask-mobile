@@ -24,7 +24,6 @@ jest.mock('../../core/Engine', () => ({
       speedUpTransaction: jest.fn(),
       startIncomingTransactionPolling: jest.fn(),
       stopIncomingTransactionPolling: jest.fn(),
-      stopTransaction: jest.fn(),
       updateIncomingTransactions: jest.fn(),
       updateSecurityAlertResponse: jest.fn(),
       updateTransaction: jest.fn(),
