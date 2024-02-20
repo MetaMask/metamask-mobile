@@ -11,6 +11,7 @@ import {
 import { connect } from 'react-redux';
 import { isSafeChainId, toHex } from '@metamask/controller-utils';
 
+import { typography } from '@metamask/design-tokens';
 import {
   fontStyles,
   colors as staticColors,
@@ -106,19 +107,23 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     inputWithError: {
-      ...fontStyles.normal,
+      ...typography.sBodyMD,
       borderColor: colors.error.default,
       borderRadius: 5,
       borderWidth: 1,
-      padding: 10,
+      paddingTop: 2,
+      paddingBottom: 12,
+      paddingHorizontal: 12,
       color: colors.text.default,
     },
     inputWithFocus: {
-      ...fontStyles.normal,
+      ...typography.sBodyMD,
       borderColor: colors.primary.default,
       borderRadius: 5,
       borderWidth: 2,
-      padding: 10,
+      paddingTop: 2,
+      paddingBottom: 12,
+      paddingHorizontal: 12,
       color: colors.text.default,
     },
     warningText: {
@@ -157,7 +162,7 @@ const createStyles = (colors) =>
       paddingVertical: 8,
       fontSize: 14,
       color: colors.text.default,
-      ...fontStyles.normal,
+      ...typography.sBodyMD,
     },
     buttonsWrapper: {
       marginVertical: 12,
@@ -402,8 +407,12 @@ class NetworkSettings extends PureComponent {
     }, 100);
   };
 
-  componentDidUpdate = () => {
+  componentDidUpdate = (prevProps) => {
     this.updateNavBar();
+    if (this.props.matchedChainNetwork !== prevProps.matchedChainNetwork) {
+      this.validateName();
+      this.validateSymbol();
+    }
   };
 
   /**
@@ -522,10 +531,7 @@ class NetworkSettings extends PureComponent {
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
     // Check if CTA is disabled
     const isCtaDisabled =
-      !enableAction ||
-      this.disabledByRpcUrl() ||
-      this.disabledByChainId() ||
-      this.disabledBySymbol();
+      !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
 
     if (isCtaDisabled) {
       return;
@@ -791,18 +797,6 @@ class NetworkSettings extends PureComponent {
     return validatedChainId && !!warningChainId;
   };
 
-  /**
-   * Returns if action button should be disabled because of the symbol field
-   * Symbol field represents the ticker and needs to be set
-   */
-  disabledBySymbol = () => {
-    const { ticker, validatedSymbol, warningSymbol } = this.state;
-    if (!ticker) {
-      return true;
-    }
-    return validatedSymbol && !!warningSymbol;
-  };
-
   onRpcUrlChange = async (url) => {
     await this.setState({
       rpcUrl: url,
@@ -993,10 +987,8 @@ class NetworkSettings extends PureComponent {
 
     const isRPCEditable = isCustomMainnet || editable;
     const isActionDisabled =
-      !enableAction ||
-      this.disabledByRpcUrl() ||
-      this.disabledByChainId() ||
-      this.disabledBySymbol();
+      !enableAction || this.disabledByRpcUrl() || this.disabledByChainId();
+
     const rpcActionStyle = isActionDisabled
       ? { ...styles.button, ...styles.disabledButton }
       : styles.button;
