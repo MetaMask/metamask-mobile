@@ -37,7 +37,7 @@ async function main(): Promise<void> {
       environments: [
         {
           mapped_to: 'GITHUB_PR_NUMBER',
-          value: pullRequestNumber,
+          value: `${pullRequestNumber}`,
           is_expand: true,
         },
       ],
