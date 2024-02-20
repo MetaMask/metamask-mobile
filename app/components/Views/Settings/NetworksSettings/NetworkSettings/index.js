@@ -307,6 +307,7 @@ class NetworkSettings extends PureComponent {
     showNetworkDetailsModal: false,
     isNameFieldFocused: false,
     isSymbolFieldFocused: false,
+    isEdit: false,
   };
 
   inputRpcURL = React.createRef();
@@ -351,6 +352,8 @@ class NetworkSettings extends PureComponent {
 
     const isCustomMainnet = route.params?.isCustomMainnet;
     const networkTypeOrRpcUrl = route.params?.network;
+    const isEdit = route.params?.isEdit ?? false;
+
     // if network is main, don't show popular network
     let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
     // If no navigation param, user clicked on add network
@@ -395,6 +398,7 @@ class NetworkSettings extends PureComponent {
         ticker,
         editable,
         initialState,
+        isEdit,
       });
     } else {
       this.setState({ addMode: true });
@@ -408,10 +412,13 @@ class NetworkSettings extends PureComponent {
   };
 
   componentDidUpdate = (prevProps) => {
+    const { isEdit } = this.state;
     this.updateNavBar();
     if (this.props.matchedChainNetwork !== prevProps.matchedChainNetwork) {
-      this.validateName();
-      this.validateSymbol();
+      if (isEdit) {
+        this.validateName();
+        this.validateSymbol();
+      }
     }
   };
 
@@ -713,28 +720,39 @@ class NetworkSettings extends PureComponent {
   /**
    * Validates that symbol match with the chainId, setting a warningSymbol if is invalid
    */
-  validateSymbol = async () => {
-    const { ticker } = this.state;
-    const { useSafeChainsListValidation, matchedChainNetwork } = this.props;
+  validateSymbol = () => {
+    const { isEdit, ticker } = this.state;
+    if (isEdit) {
+      const { useSafeChainsListValidation, matchedChainNetwork } = this.props;
 
-    if (!useSafeChainsListValidation) {
+      if (!useSafeChainsListValidation) {
+        return;
+      }
+
+      const symbol =
+        matchedChainNetwork?.matchedChainNetwork?.nativeCurrency?.symbol ??
+        null;
+
+      const symbolToUse = symbol === ticker ? undefined : symbol;
+
+      this.setState({
+        warningSymbol: symbolToUse,
+      });
       return;
     }
-
-    const symbol =
-      matchedChainNetwork?.matchedChainNetwork?.nativeCurrency?.symbol ?? null;
-
-    const symbolToUse = symbol === ticker ? undefined : symbol;
-
-    this.setState({
-      warningSymbol: symbolToUse,
-    });
+    if (!ticker) {
+      return this.setState({
+        warningSymbol: strings('app_settings.symbol_required'),
+        validatedSymbol: true,
+      });
+    }
+    this.setState({ warningSymbol: undefined, validatedSymbol: true });
   };
 
   /**
    * Validates that name match with the chainId, setting a warningName if is invalid
    */
-  validateName = async () => {
+  validateName = () => {
     const { nickname } = this.state;
     const { useSafeChainsListValidation, matchedChainNetwork } = this.props;
 
@@ -795,6 +813,18 @@ class NetworkSettings extends PureComponent {
     const { chainId, validatedChainId, warningChainId } = this.state;
     if (!chainId) return true;
     return validatedChainId && !!warningChainId;
+  };
+
+  /**
+   * Returns if action button should be disabled because of the symbol field
+   * Symbol field represents the ticker and needs to be set
+   */
+  disabledBySymbol = () => {
+    const { ticker, validatedSymbol, warningSymbol } = this.state;
+    if (!ticker) {
+      return true;
+    }
+    return validatedSymbol && !!warningSymbol;
   };
 
   onRpcUrlChange = async (url) => {
@@ -940,6 +970,7 @@ class NetworkSettings extends PureComponent {
       inputWidth,
       isNameFieldFocused,
       isSymbolFieldFocused,
+      isEdit,
     } = this.state;
     const { route } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
@@ -966,7 +997,7 @@ class NetworkSettings extends PureComponent {
     ];
 
     const inputErrorNameStyle = [
-      warningName
+      warningName && isEdit
         ? isNameFieldFocused
           ? styles.inputWithFocus
           : styles.inputWithError
@@ -976,7 +1007,7 @@ class NetworkSettings extends PureComponent {
     ];
 
     const inputErrorSymbolStyle = [
-      warningSymbol
+      warningSymbol && isEdit
         ? isSymbolFieldFocused
           ? styles.inputWithFocus
           : styles.inputWithError
@@ -1006,6 +1037,37 @@ class NetworkSettings extends PureComponent {
 
     const shouldNetworkSwitchPopToWallet =
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
+
+    const renderWarningSymbol = () => {
+      if (warningSymbol) {
+        if (isEdit) {
+          return (
+            <View>
+              <Text style={styles.inlineWarning}>
+                {strings('wallet.network_with_chain_id')} {chainId}{' '}
+                {strings('wallet.use_the_currency_symbol')}{' '}
+                <Text
+                  style={styles.link}
+                  onPress={() => {
+                    this.autoFillSymbolField(warningSymbol);
+                  }}
+                >
+                  {`(${warningSymbol})`}
+                </Text>
+                {'. '}
+                {strings('wallet.use_correct_symbol')}
+              </Text>
+            </View>
+          );
+        }
+        return (
+          <View style={styles.warningContainer}>
+            <Text style={styles.warningText}>{warningSymbol}</Text>
+          </View>
+        );
+      }
+      return null;
+    };
 
     return this.state.showNetworkDetailsModal ? (
       <CustomNetwork
@@ -1051,7 +1113,7 @@ class NetworkSettings extends PureComponent {
               testID={NetworksViewSelectorsIDs.NETWORK_NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
-            {warningName ? (
+            {warningName && isEdit ? (
               <View>
                 <Text style={styles.inlineWarning}>
                   {strings('wallet.chain_id_currently_used')}{' '}
@@ -1135,30 +1197,13 @@ class NetworkSettings extends PureComponent {
                 this.onSymbolBlur();
               }}
               onFocus={this.onSymbolFocused}
-              placeholder={strings('app_settings.network_symbol_placeholder')}
+              placeholder={strings('app_settings.network_symbol_label')}
               placeholderTextColor={colors.text.muted}
               onSubmitEditing={this.jumpBlockExplorerURL}
               testID={NetworksViewSelectorsIDs.NETWORKS_SYMBOL_INPUT}
               keyboardAppearance={themeAppearance}
             />
-            {warningSymbol ? (
-              <View>
-                <Text style={styles.inlineWarning}>
-                  {strings('wallet.network_with_chain_id')} {chainId}{' '}
-                  {strings('wallet.use_the_currency_symbol')}{' '}
-                  <Text
-                    style={styles.link}
-                    onPress={() => {
-                      this.autoFillSymbolField(warningSymbol);
-                    }}
-                  >
-                    {`(${warningSymbol})`}
-                  </Text>
-                  {'. '}
-                  {strings('wallet.use_correct_symbol')}
-                </Text>
-              </View>
-            ) : null}
+            {renderWarningSymbol()}
 
             <Text style={styles.label}>
               {strings('app_settings.network_block_explorer_label')}

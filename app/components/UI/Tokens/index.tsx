@@ -157,6 +157,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const goToNetworkEdit = () => {
     navigation.navigate(Routes.ADD_NETWORK, {
       network: rpcUrl,
+      isEdit: true,
     });
 
     setShowScamWarningModal(false);
@@ -193,7 +194,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     >
       <Box style={styles.box}>
         <View style={styles.notch} />
-        <SheetHeader title={'This is a potential scam'} />
+        <SheetHeader title={strings('wallet.potential_scam')} />
 
         <Box style={styles.boxContent}>
           <Text>

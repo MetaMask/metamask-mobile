@@ -1,6 +1,7 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { Colors } from 'app/util/theme/models';
+import { typography } from '@metamask/design-tokens';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -124,9 +125,9 @@ const createStyles = (colors: Colors) =>
     },
 
     textMoadlHeader: {
-      ...fontStyles.bold,
+      ...typography.lBodyMDBold,
       fontSize: 18,
-    },
+    } as TextStyle,
     editNetworkButton: {
       width: '100%',
     },
