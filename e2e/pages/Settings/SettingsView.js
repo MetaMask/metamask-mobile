@@ -65,6 +65,10 @@ class SettingsView {
     await Gestures.waitAndTap(this.networksButton);
   }
 
+  async tapContacts() {
+    await Gestures.waitAndTap(this.contactsSettingsButton);
+  }
+
   async tapLock() {
     await this.scrollToLockButton();
     await Gestures.waitAndTap(this.lockSettingsButton);
