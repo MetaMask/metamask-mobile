@@ -13,6 +13,7 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StyledButton from '../../UI/StyledButton';
+import Logger from '../../../util/Logger';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -49,6 +50,11 @@ const WalletRestored = () => {
 
   const finishWalletRestore = useCallback(async (): Promise<void> => {
     try {
+      // Log to provide insights into bug research.
+      // Check https://github.com/MetaMask/mobile-planning/issues/1507
+      if (typeof selectedAddress !== 'string') {
+        Logger.error('Wallet restore error', 'selectedAddress is not a string');
+      }
       await Authentication.appTriggeredAuth({ selectedAddress });
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } catch (e) {

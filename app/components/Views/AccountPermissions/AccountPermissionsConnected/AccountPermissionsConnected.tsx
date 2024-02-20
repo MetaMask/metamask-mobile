@@ -140,10 +140,7 @@ const AccountPermissionsConnected = ({
   return (
     <>
       <SheetHeader title={strings('accounts.connected_accounts_title')} />
-      <View
-        style={styles.body}
-        testID={ConnectedAccountsSelectorsIDs.CONTAINER}
-      >
+      <View style={styles.body}>
         <TagUrl
           imageSource={favicon}
           label={urlWithProtocol}

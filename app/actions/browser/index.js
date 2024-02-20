@@ -1,4 +1,24 @@
 /**
+ * Browser actions for Redux
+ */
+export const BrowserActionTypes = {
+  ADD_TO_VISITED_DAPP: 'ADD_TO_VISITED_DAPP',
+};
+
+/**
+ * Adds a new entry to visited dapps
+ *
+ * @param {string} hostname - Dapp hostname
+ * @returns
+ */
+export function addToVisitedDapp(hostname) {
+  return {
+    type: BrowserActionTypes.ADD_TO_VISITED_DAPP,
+    hostname,
+  };
+}
+
+/**
  * Adds a new entry to the browser history
  *
  * @param {Object} website - The website that has been visited

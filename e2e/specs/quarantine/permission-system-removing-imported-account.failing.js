@@ -110,7 +110,7 @@ describe(
 
     it('imported account is not visible', async () => {
       await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-      await Assertions.checkIfNotVisible(ConnectedAccountsModal.container);
+      await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
       await AccountListView.accountNameNotVisible('Account 2');
     });
   },
