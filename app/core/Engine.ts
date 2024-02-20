@@ -345,8 +345,11 @@ class Engine {
     this.controllerMessenger = new ControllerMessenger();
 
     const approvalController = new ApprovalController({
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-      messenger: this.controllerMessenger.getRestricted({
+      messenger: this.controllerMessenger.getRestricted<
+        'ApprovalController',
+        never,
+        never
+      >({
         name: 'ApprovalController',
       }),
       showApprovalRequest: () => undefined,
@@ -376,9 +379,13 @@ class Engine {
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
       state: initialState.NetworkController,
-      messenger: this.controllerMessenger.getRestricted({
+      messenger: this.controllerMessenger.getRestricted<
+        'NetworkController',
+        never,
+        'NetworkController:networkDidChange'
+      >({
         name: 'NetworkController',
-        allowedEvents: [],
+        allowedEvents: ['NetworkController:networkDidChange'],
         allowedActions: [],
       }),
       // Metrics event tracking is handled in this repository instead
@@ -387,7 +394,6 @@ class Engine {
         // noop
       },
     };
-    // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
     const networkController = new NetworkController(networkControllerOpts);
 
     networkController.initializeProvider();
@@ -412,8 +418,11 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-        messenger: this.controllerMessenger.getRestricted({
+        messenger: this.controllerMessenger.getRestricted<
+          'NftController',
+          'ApprovalController:addRequest',
+          never
+        >({
           name: 'NftController',
           allowedActions: [`${approvalController.name}:addRequest`],
         }),
@@ -440,6 +449,7 @@ class Engine {
         ),
       },
       {
+        // @ts-expect-error NftController constructor config type is wrong
         useIPFSSubdomains: false,
         chainId: networkController.state.providerConfig.chainId,
       },
@@ -457,8 +467,11 @@ class Engine {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
       },
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-      messenger: this.controllerMessenger.getRestricted({
+      messenger: this.controllerMessenger.getRestricted<
+        'TokensController',
+        'ApprovalController:addRequest',
+        never
+      >({
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
       }),
@@ -474,15 +487,21 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-      messenger: this.controllerMessenger.getRestricted({
+      messenger: this.controllerMessenger.getRestricted<
+        'TokenListController',
+        never,
+        'NetworkController:stateChange'
+      >({
         name: 'TokenListController',
         allowedEvents: ['NetworkController:stateChange'],
       }),
     });
     const currencyRateController = new CurrencyRateController({
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-      messenger: this.controllerMessenger.getRestricted({
+      messenger: this.controllerMessenger.getRestricted<
+        'CurrencyRateController',
+        never,
+        never
+      >({
         name: 'CurrencyRateController',
       }),
       state: initialState.CurrencyRateController,
@@ -490,8 +509,11 @@ class Engine {
     currencyRateController.start();
 
     const gasFeeController = new GasFeeController({
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-      messenger: this.controllerMessenger.getRestricted({
+      messenger: this.controllerMessenger.getRestricted<
+        'GasFeeController',
+        never,
+        'NetworkController:stateChange'
+      >({
         name: 'GasFeeController',
         allowedEvents: ['NetworkController:stateChange'],
       }),
@@ -556,8 +578,11 @@ class Engine {
         preferencesController,
       ),
       encryptor,
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-      messenger: this.controllerMessenger.getRestricted({
+      messenger: this.controllerMessenger.getRestricted<
+        'KeyringController',
+        never,
+        never
+      >({
         name: 'KeyringController',
       }),
       state: initialKeyringState || initialState.KeyringController,
@@ -629,11 +654,9 @@ class Engine {
             'PhishingController:maybeUpdateState',
           ),
           isOnPhishingList: (origin: string) =>
-            this.controllerMessenger.call(
+            this.controllerMessenger.call<'PhishingController:testOrigin'>(
               'PhishingController:testOrigin',
-              // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
               origin,
-              // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
             ).result,
           showDialog: (
             origin: string,
@@ -660,7 +683,6 @@ class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     const permissionController = new PermissionController({
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
@@ -692,8 +714,11 @@ class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const subjectMetadataController = new SubjectMetadataController({
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-      messenger: this.controllerMessenger.getRestricted({
+      messenger: this.controllerMessenger.getRestricted<
+        'SubjectMetadataController',
+        'PermissionController:hasPermissions',
+        never
+      >({
         name: 'SubjectMetadataController',
         allowedActions: [`${permissionController.name}:hasPermissions`],
       }),
@@ -963,8 +988,11 @@ class Engine {
           },
           updateTransactions: true,
         },
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-        messenger: this.controllerMessenger.getRestricted({
+        messenger: this.controllerMessenger.getRestricted<
+          'TransactionController',
+          'ApprovalController:addRequest',
+          never
+        >({
           name: 'TransactionController',
           allowedActions: [`${approvalController.name}:addRequest`],
         }),
@@ -1007,8 +1035,11 @@ class Engine {
       approvalController,
       permissionController,
       new SignatureController({
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-        messenger: this.controllerMessenger.getRestricted({
+        messenger: this.controllerMessenger.getRestricted<
+          'SignatureController',
+          'ApprovalController:addRequest',
+          never
+        >({
           name: 'SignatureController',
           allowedActions: [`${approvalController.name}:addRequest`],
         }),
@@ -1039,8 +1070,11 @@ class Engine {
         },
       }),
       new LoggingController({
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers.
-        messenger: this.controllerMessenger.getRestricted({
+        messenger: this.controllerMessenger.getRestricted<
+          'LoggingController',
+          never,
+          never
+        >({
           name: 'LoggingController',
         }),
         state: initialState.LoggingController,
@@ -1057,11 +1091,13 @@ class Engine {
           chainId: networkController.state.providerConfig.chainId,
           blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
           cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-          // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-          messenger: this.controllerMessenger.getRestricted({
+          messenger: this.controllerMessenger.getRestricted<
+            'PPOMController',
+            never,
+            'NetworkController:stateChange'
+          >({
             name: 'PPOMController',
             allowedEvents: ['NetworkController:stateChange'],
-            allowedActions: [],
           }),
           onPreferencesChange: (listener) =>
             preferencesController.subscribe(listener),
