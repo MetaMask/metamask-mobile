@@ -528,9 +528,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @returns Boolean indicating if MetaMetrics is enabled or disabled
    */
-  isEnabled() {
-    return this.enabled;
-  }
+  isEnabled = () => this.enabled;
 
   /**
    * Add traits to the user and identify them
@@ -686,7 +684,7 @@ class MetaMetrics implements IMetaMetrics {
    *
    * @returns true if events have been recorded since the last deletion request
    */
-  isDataRecorded = (): boolean => this.dataRecorded;
+  isDataRecorded = () => this.dataRecorded;
 
   /**
    * Get the current MetaMetrics ID

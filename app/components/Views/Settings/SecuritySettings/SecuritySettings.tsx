@@ -231,16 +231,18 @@ const Settings: React.FC = () => {
     setHintText(manualBackup);
   }, []);
 
-  const checkAnalyticsEnabled = useCallback(() => {
-    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
-    setAnalyticsEnabled(isEnabled());
-  }, [trackEvent, isEnabled]);
-
   useEffect(() => {
     updateNavBar();
     handleHintText();
-    checkAnalyticsEnabled();
-  }, [handleHintText, updateNavBar, checkAnalyticsEnabled]);
+    setAnalyticsEnabled(isEnabled());
+    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
+  }, [
+    handleHintText,
+    updateNavBar,
+    setAnalyticsEnabled,
+    isEnabled,
+    trackEvent,
+  ]);
 
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {

@@ -87,6 +87,8 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
     setDataTrackedSinceLastDeletion,
   } = useDataDeletion();
 
+  const dataDeletionAvailable = isDataDeletionAvailable();
+
   const checkInitialStatus = useCallback(async () => {
     const {
       deletionRequestDate,
@@ -167,7 +169,7 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
       sectionTitle={strings('app_settings.delete_metrics_title')}
       sectionButtonText={strings('app_settings.delete_metrics_button')}
       descriptionText={
-        isDataDeletionAvailable() ? (
+        dataDeletionAvailable ? (
           <>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('app_settings.delete_metrics_description_part_one')}
@@ -208,7 +210,7 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
           </>
         )
       }
-      buttonDisabled={!isDataDeletionAvailable()}
+      buttonDisabled={!dataDeletionAvailable}
       modalTitleText={strings(
         'app_settings.delete_metrics_confirm_modal_title',
       )}
