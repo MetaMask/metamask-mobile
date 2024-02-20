@@ -330,7 +330,7 @@ function TransactionNotification(props) {
                 onConfirmPress={
                   transactionAction === ACTION_CANCEL
                     ? stopTransaction
-                    : speedUpTransaction
+                    : speedUpTx
                 }
                 confirmText={strings('transaction.lets_try')}
                 confirmButtonMode={'confirm'}
