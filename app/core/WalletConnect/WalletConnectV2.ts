@@ -33,6 +33,7 @@ import parseWalletConnectUri, {
   waitForNetworkModalOnboarding,
 } from './wc-utils';
 import { addTransaction } from '../../util/transaction-controller';
+import { getPermittedAccounts } from '../Permissions';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -588,18 +589,16 @@ export class WC2Manager {
     }
 
     try {
-      const preferencesController = (
-        Engine.context as { PreferencesController: PreferencesController }
-      ).PreferencesController;
+      // use Permission controller
+      const approvedAccounts = await getPermittedAccounts(proposal.id + '');
 
-      const selectedAddress = preferencesController.state.selectedAddress;
       // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
       const chainId = selectChainId(store.getState());
 
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,
         chainId: parseInt(chainId),
-        accounts: [selectedAddress],
+        accounts: approvedAccounts,
       });
 
       const deeplink =
