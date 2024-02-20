@@ -38,13 +38,13 @@ async function main(): Promise<void> {
       branch: process.env.GITHUB_HEAD_REF,
       pipeline_id: e2ePipeline,
       commit_message: `Triggered by (${workflowName}) workflow in ${pullRequestLink}`,
-      // environments: [
-      //   {
-      //     "is_expand": true,
-      //     "mapped_to": "GITHUB_PR_NUMBER",
-      //     "value": pullRequestNumber
-      //   }
-      // ],
+      environments: [
+        {
+          mapped_to: 'GITHUB_PR_NUMBER',
+          value: pullRequestNumber,
+          is_expand: true,
+        },
+      ],
     },
     triggered_by: workflowName,
   };
@@ -52,16 +52,12 @@ async function main(): Promise<void> {
   const bitriseProjectUrl = `https://api.bitrise.io/v0.1/apps/${process.env.BITRISE_APP_ID}/builds`;
 
   // Start Bitrise build.
-  const bitriseBuildResponse = await axios.post(
-    bitriseProjectUrl,
-    data,
-    {
-      headers: {
-        'Authorization': `Bearer ${process.env.BITRISE_BUILD_TRIGGER_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
+  const bitriseBuildResponse = await axios.post(bitriseProjectUrl, data, {
+    headers: {
+      Authorization: `Bearer ${process.env.BITRISE_BUILD_TRIGGER_TOKEN}`,
+      'Content-Type': 'application/json',
     },
-  );
+  });
 
   if (!bitriseBuildResponse.data.build_slug) {
     core.setFailed(`Bitrise build slug not found`);
