@@ -24,23 +24,33 @@ async function main(): Promise<void> {
   // Check if the "Run Smoke E2E" label is applied
   const { owner, repo, number: issue_number } = context.issue;
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
-  const { data: labels } = await octokit.rest.issues.listLabelsOnIssue({ owner, repo, issue_number });
-  const hasSmokeTestLabel = labels.some(label => label.name === e2eLabel);
+  const { data: labels } = await octokit.rest.issues.listLabelsOnIssue({
+    owner,
+    repo,
+    issue_number,
+  });
+  const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
 
   if (!hasSmokeTestLabel) {
-    console.log(`"${e2eLabel}" label not applied. Skipping Bitrise status check.`)
+    console.log(
+      `"${e2eLabel}" label not applied. Skipping Bitrise status check.`,
+    );
     return;
   }
 
   // Check if the "Bitrise build passed!" comment is posted
-  const { data: comments } = await octokit.rest.issues.listComments({ owner, repo, issue_number });
-  const isBitriseSuccessStatus = comments.some(comment => {
-    return (comment.body || '').trim() === "Bitrise build passed!"
+  const { data: comments } = await octokit.rest.issues.listComments({
+    owner,
+    repo,
+    issue_number,
+  });
+  const isBitriseSuccessStatus = comments.some((comment) => {
+    return comment.body?.includes('Bitrise E2E smoke tests passed!');
   });
 
   if (!isBitriseSuccessStatus) {
-    core.setFailed("Bitrise has not passed yet.");
+    core.setFailed('Bitrise has not passed yet.');
   }
 
-  console.log("Bitrise build has passed!")
+  console.log('Bitrise build has passed!');
 }
