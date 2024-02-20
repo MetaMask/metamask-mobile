@@ -31,37 +31,29 @@ async function main(): Promise<void> {
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
   const data = {
+    build_params: {
+      branch: process.env.GITHUB_HEAD_REF,
+      pipeline_id: e2ePipeline,
+      environments: [
+        {
+          mapped_to: 'GITHUB_PR_NUMBER',
+          value: pullRequestNumber,
+          is_expand: true,
+        },
+      ],
+      commit_message: `Triggered by (${workflowName}) workflow in ${pullRequestLink}`,
+    },
     hook_info: {
       type: 'bitrise',
       build_trigger_token: process.env.BITRISE_BUILD_TRIGGER_TOKEN,
     },
-    build_params: {
-      branch: process.env.GITHUB_HEAD_REF,
-      pipeline_id: e2ePipeline,
-      commit_message: `Triggered by (${workflowName}) workflow in ${pullRequestLink}`,
-      // environments: [
-      //   {
-      //     mapped_to: 'GITHUB_PR_NUMBER',
-      //     value: pullRequestNumber,
-      //     is_expand: true,
-      //   },
-      // ],
-    },
     triggered_by: workflowName,
   };
 
-  const bitriseProjectUrl = `https://app.bitrise.io/app/${process.env.BITRISE_APP_ID}`;
+  const bitriseProjectUrl = `https://app.bitrise.io/app/${process.env.BITRISE_APP_ID}/build/start.json`;
 
   // Start Bitrise build.
-  const bitriseBuildResponse = await axios.post(
-    `${bitriseProjectUrl}/build/start.json`,
-    data,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
+  const bitriseBuildResponse = await axios.post(bitriseProjectUrl, data);
 
   if (!bitriseBuildResponse.data.build_slug) {
     core.setFailed(`Bitrise build slug not found`);
