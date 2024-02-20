@@ -17,73 +17,90 @@ export const handleSendMessage = async ({
   msg: any;
   connection: Connection;
 }) => {
-  DevLogger.log(`[handleSendMessage] msg`, msg);
-  connection.setLoading(false);
+  try {
+    DevLogger.log(`[handleSendMessage] msg`, msg);
+    connection.setLoading(false);
 
-  const msgId = msg?.data?.id + '';
-  let method = connection.rpcQueueManager.getId(msgId);
-  // handle multichain rpc call responses separately
-  const chainRPCs = connection.batchRPCManager.getById(msgId);
-  DevLogger.log(`[handleSendMessage] chainRPCs`, chainRPCs);
-  if (chainRPCs) {
-    const isLastRpcOrError = await handleBatchRpcResponse({
-      chainRpcs: chainRPCs,
+    const msgId = msg?.data?.id + '';
+    let method = connection.rpcQueueManager.getId(msgId);
+    // handle multichain rpc call responses separately
+    const chainRPCs = connection.batchRPCManager.getById(msgId);
+    DevLogger.log(`[handleSendMessage] chainRPCs`, chainRPCs);
+    if (chainRPCs) {
+      const isLastRpcOrError = await handleBatchRpcResponse({
+        chainRpcs: chainRPCs,
+        msg,
+        batchRPCManager: connection.batchRPCManager,
+        backgroundBridge: connection.backgroundBridge,
+        sendMessage: ({ msg: newmsg }: { msg: any }) =>
+          handleSendMessage({ msg: newmsg, connection }),
+      });
+
+      // check if lastrpc or if an error occured during the chain
+      if (!isLastRpcOrError) {
+        // Only continue processing the message and goback if all rpcs in the batch have been handled
+        DevLogger.log(
+          `[handleSendMessage] chainRPCs=${chainRPCs} NOT COMPLETED!`,
+        );
+        return;
+      }
+
+      // Always set the method to metamask_batch otherwise it may not have been set correctly because of the batch rpc flow.
+      method = RPC_METHODS.METAMASK_BATCH;
+      DevLogger.log(`[handleSendMessage] chainRPCs=${chainRPCs} COMPLETED!`);
+    }
+
+    if (msgId && method) {
+      connection.rpcQueueManager.remove(msgId);
+    }
+
+    const canRedirect = connection.rpcQueueManager.canRedirect({ method });
+    DevLogger.log(
+      `[handleSendMessage] method=${method} trigger=${connection.trigger} id=${msgId} origin=${connection.origin} canRedirect=${canRedirect}`,
       msg,
-      batchRPCManager: connection.batchRPCManager,
-      backgroundBridge: connection.backgroundBridge,
-      sendMessage: ({ msg: newmsg }: { msg: any }) =>
-        handleSendMessage({ msg: newmsg, connection }),
+    );
+
+    connection.remote.sendMessage(msg).catch((err) => {
+      Logger.log(err, `Connection::sendMessage failed to send`);
     });
 
-    // check if lastrpc or if an error occured during the chain
-    if (!isLastRpcOrError) {
-      // Only continue processing the message and goback if all rpcs in the batch have been handled
+    if (connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
       DevLogger.log(
-        `[handleSendMessage] chainRPCs=${chainRPCs} NOT COMPLETED!`,
+        `[handleSendMessage] origin=${connection.origin} --- skip goBack()`,
       );
       return;
     }
 
-    // Always set the method to metamask_batch otherwise it may not have been set correctly because of the batch rpc flow.
-    method = RPC_METHODS.METAMASK_BATCH;
-    DevLogger.log(`[handleSendMessage] chainRPCs=${chainRPCs} COMPLETED!`);
-  }
+    if (!canRedirect) {
+      DevLogger.log(
+        `[handleSendMessage] canRedirect=false method=${method} --- skip goBack()`,
+        connection.rpcQueueManager,
+      );
+      connection.setLoading(false);
+      // FIXME:remove once sdk has migrated away from DefaultPreference storage and AccountConnect.tsx is using hooks to prevent re-rendering.
+      // This specific case is used to fix issue of AccountConnect not closing after connecting to dapp on ios due to modal not closing properly.
+      if (connection.navigation?.getCurrentRoute()?.name === 'AccountConnect') {
+        DevLogger.log(`[handleSendMessage] remove modal`);
+        if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
+          try {
+            connection.navigation?.goBack();
+            await wait(100); // delay to allow modal to close
+          } catch (_e) {
+            // Ignore temporarily until next stage of permissions system implementation
+          }
+          connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          });
+        }
+      }
+      return;
+    }
 
-  if (msgId && method) {
-    connection.rpcQueueManager.remove(msgId);
-  }
+    if (connection.trigger !== 'deeplink') {
+      DevLogger.log(`[handleSendMessage] NOT deeplink --- skip goBack()`);
+      return;
+    }
 
-  const canRedirect = connection.rpcQueueManager.canRedirect({ method });
-  DevLogger.log(
-    `[handleSendMessage] method=${method} trigger=${connection.trigger} id=${msgId} origin=${connection.origin} canRedirect=${canRedirect}`,
-    msg,
-  );
-
-  connection.remote.sendMessage(msg).catch((err) => {
-    Logger.log(err, `Connection::sendMessage failed to send`);
-  });
-
-  if (connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
-    DevLogger.log(
-      `[handleSendMessage] origin=${connection.origin} --- skip goBack()`,
-    );
-    return;
-  }
-
-  if (!canRedirect) {
-    DevLogger.log(
-      `[handleSendMessage] canRedirect=false method=${method} --- skip goBack()`,
-      connection.rpcQueueManager,
-    );
-    return;
-  }
-
-  if (connection.trigger !== 'deeplink') {
-    DevLogger.log(`[handleSendMessage] NOT deeplink --- skip goBack()`);
-    return;
-  }
-
-  try {
     if (METHODS_TO_DELAY[method]) {
       await wait(1200);
     }
