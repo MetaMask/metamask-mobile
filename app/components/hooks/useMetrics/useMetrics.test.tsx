@@ -111,13 +111,9 @@ describe('useMetrics', () => {
       isEnabledValue = isEnabled();
     });
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-      event.category,
-      {},
-      true,
-    );
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(event, {}, true);
     expect(mockMetrics.trackAnonymousEvent).toHaveBeenCalledWith(
-      event.category,
+      event,
       {},
       true,
     );
