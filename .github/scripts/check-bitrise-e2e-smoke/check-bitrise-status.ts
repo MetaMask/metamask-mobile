@@ -45,6 +45,7 @@ async function main(): Promise<void> {
     issue_number,
   });
   const isBitriseSuccessStatus = comments.some((comment) => {
+    console.log('COMMENT', comment.body);
     return comment.body?.includes('Bitrise E2E smoke tests passed!');
   });
 
