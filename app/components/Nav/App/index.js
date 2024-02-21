@@ -281,6 +281,7 @@ const App = ({ userLoggedIn }) => {
         trackEvent(
           { category: 'Error occurred' },
           {
+            error: true,
             type: 'App: Max Attempts Reached',
             errorMessage: error?.message,
             otherInfo: `Unlock attempts: 1`,
