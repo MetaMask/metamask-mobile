@@ -285,8 +285,8 @@ class Confirm extends PureComponent {
         request_source: this.originIsMMSDKRemoteConn
           ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
           : this.originIsWalletConnect
-            ? AppConstants.REQUEST_SOURCES.WC
-            : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       };
     } catch (error) {
       return {};
@@ -722,8 +722,8 @@ class Confirm extends PureComponent {
           weiBalance && weiBalance.gte(weiInput)
             ? undefined
             : strings('transaction.insufficient_tokens', {
-              token: selectedAsset.symbol,
-            });
+                token: selectedAsset.symbol,
+              });
       }
     } else {
       error = strings('transaction.invalid_amount');
@@ -1068,15 +1068,15 @@ class Confirm extends PureComponent {
       closeModal: true,
       ...(txnType
         ? {
-          legacyGasTransaction: gasTxn,
-          legacyGasObject: gasObj,
-          advancedGasInserted: !gasSelect,
-          stopUpdateGas: false,
-        }
+            legacyGasTransaction: gasTxn,
+            legacyGasObject: gasObj,
+            advancedGasInserted: !gasSelect,
+            stopUpdateGas: false,
+          }
         : {
-          EIP1559GasTransaction: gasTxn,
-          EIP1559GasObject: gasObj,
-        }),
+            EIP1559GasTransaction: gasTxn,
+            EIP1559GasObject: gasObj,
+          }),
     });
   };
 

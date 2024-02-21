@@ -4,7 +4,7 @@ import {
   selectGasFeeControllerEstimateType,
   selectGasFeeControllerEstimates,
 } from './gasFeeController';
-import { mergeGasFeeControllerAndTransactionGasFeeEstimates } from '@metamask/transaction-controller';
+import { mergeGasFeeEstimates } from '@metamask/transaction-controller';
 import { createSelector } from 'reselect';
 import { createDeepEqualSelector } from './util';
 
@@ -37,11 +37,11 @@ export const selectGasFeeEstimates = createSelector(
     transactionGasFeeEstimates,
   ) => {
     if (transactionGasFeeEstimates) {
-      return mergeGasFeeControllerAndTransactionGasFeeEstimates(
-        gasFeeControllerEstimateType,
-        gasFeeControllerEstimates,
+      return mergeGasFeeEstimates({
+        gasFeeControllerEstimateType: gasFeeControllerEstimateType as any,
+        gasFeeControllerEstimates: gasFeeControllerEstimates as any,
         transactionGasFeeEstimates,
-      );
+      });
     }
 
     return gasFeeControllerEstimates;
