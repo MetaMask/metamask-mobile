@@ -68,7 +68,6 @@ import GasEditModal from './components/GasEditModal';
 import InfoModal from './components/InfoModal';
 import useModalHandler from '../../Base/hooks/useModalHandler';
 import useBalance from './utils/useBalance';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { decodeApproveData, getTicker } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import { swapsTokensSelector } from '../../../reducers/swaps';
@@ -1259,7 +1258,14 @@ function SwapsQuotesView({
         const parameters = { ...data };
         trackAnonymousEvent(MetaMetricsEvents.NO_QUOTES_AVAILABLE, parameters);
       } else {
-        trackErrorAsAnalytics(`Swaps: ${error?.key}`, error?.description);
+        trackEvent(
+          { category: 'Error occurred' },
+          {
+            error: true,
+            type: `Swaps: ${error?.key}`,
+            errorMessage: error?.description,
+          },
+        );
       }
     },
     [
@@ -1270,6 +1276,7 @@ function SwapsQuotesView({
       hasEnoughTokenBalance,
       slippage,
       trackAnonymousEvent,
+      trackEvent,
     ],
   );
 
