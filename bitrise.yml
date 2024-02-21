@@ -402,7 +402,6 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
-
   e2e_setup:        
   android_e2e_build:
     before_run:
