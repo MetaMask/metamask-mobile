@@ -29,7 +29,10 @@ async function handleEthereumUrl({
 
   try {
     // If the deeplink has a goerli chainId, show deprecation modal and return
-    if (ethUrl.chain_id === getDecimalChainId(CHAIN_IDS.GOERLI)) {
+    if (
+      ethUrl.chain_id === getDecimalChainId(CHAIN_IDS.GOERLI) ||
+      ethUrl.chain_id === CHAIN_IDS.GOERLI
+    ) {
       deeplinkManager.navigation.navigate('DeprecatedNetworkDetails', {});
       return;
     }

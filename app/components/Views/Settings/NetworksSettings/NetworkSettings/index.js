@@ -68,6 +68,7 @@ import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settin
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -1100,7 +1101,7 @@ class NetworkSettings extends PureComponent {
 
     // if chainId is goerli, show deprecation modal
     if (chainId === CHAIN_IDS.GOERLI) {
-      navigation.navigate('DeprecatedNetworkDetails', {});
+      navigation.navigate(Routes.DEPRECATED_NETWORK_DETAILS);
       return;
     }
 

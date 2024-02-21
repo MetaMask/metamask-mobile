@@ -1,10 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useRef } from 'react';
 import { Linking, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
-import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './DeprecatedNetworkModal.styles';
 import Text, {
   TextColor,
@@ -16,12 +14,11 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { CONNECTING_TO_DEPRECATED_NETOWRK } from '../../../constants/urls';
 import AnalyticsV2 from '../../../util/analyticsV2';
+import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 
 const DeprecatedNetworkModal = () => {
   const { styles } = useStyles(styleSheet, {});
-  const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const modalRef = useRef<ReusableModalRef>(null);
 
   const dismissModal = (): void => {
     navigation.goBack();
@@ -36,48 +33,37 @@ const DeprecatedNetworkModal = () => {
     });
   };
 
-  return (
-    <ReusableModal ref={modalRef} style={styles.screen}>
-      <View style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
-        <View style={styles.notch} />
+  const sheetRef = useRef(null);
 
-        <View>
-          <View>
-            <Text variant={TextVariant.HeadingMD} style={styles.centeredTitle}>
-              {strings('networks.network_deprecated_title')}
-            </Text>
-          </View>
-          <View>
+  return (
+    <BottomSheet ref={sheetRef}>
+      <Text variant={TextVariant.HeadingMD} style={styles.centeredTitle}>
+        {strings('networks.network_deprecated_title')}
+      </Text>
+      <Text variant={TextVariant.BodyMD} style={styles.centeredDescription}>
+        {strings('networks.network_deprecated_description')}{' '}
+        <Text color={TextColor.Info} onPress={goToLearnMore}>
+          {strings('accounts.learn_more')}
+        </Text>
+      </Text>
+      <View style={{ ...styles.footer }}>
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          onPress={dismissModal}
+          style={styles.button}
+          label={
             <Text
               variant={TextVariant.BodyMD}
-              style={styles.centeredDescription}
+              color={TextColor.Default}
+              style={styles.buttonLabel}
             >
-              {strings('networks.network_deprecated_description')}{' '}
-              <Text color={TextColor.Info} onPress={goToLearnMore}>
-                {strings('accounts.learn_more')}
-              </Text>
+              {strings('network_information.got_it')}
             </Text>
-          </View>
-          <View style={{ ...styles.footer }}>
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              onPress={dismissModal}
-              style={styles.button}
-              label={
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Default}
-                  style={styles.buttonLabel}
-                >
-                  {strings('network_information.got_it')}
-                </Text>
-              }
-            />
-          </View>
-        </View>
+          }
+        />
       </View>
-    </ReusableModal>
+    </BottomSheet>
   );
 };
 

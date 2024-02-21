@@ -626,7 +626,7 @@ const MainNavigator = () => (
       }}
     />
     <Stack.Screen
-      name="DeprecatedNetworkDetails"
+      name={Routes.DEPRECATED_NETWORK_DETAILS}
       component={DeprecatedNetworkDetails}
       options={{
         //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
