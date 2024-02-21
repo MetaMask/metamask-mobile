@@ -32,7 +32,7 @@ exports[`NavbarTitle should render correctly 1`] = `
     }
   }
 >
-  <withNavigation(Connect(NavbarTitle))
+  <withNavigation(Connect(Component))
     title="Test"
   />
 </ContextProvider>
