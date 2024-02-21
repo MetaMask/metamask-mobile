@@ -44,8 +44,12 @@ class ComponentErrorBoundary extends React.Component {
 
     if (dontTrackAsError) {
       return this.props.metrics.trackEvent(
-        `Component Error Boundary: ${componentLabel}`,
-        { errorMessage: error?.message },
+        { category: 'Error occurred' },
+        {
+          error: true,
+          type: `Component Error Boundary: ${componentLabel}`,
+          errorMessage: error?.message,
+        },
       );
     }
     Logger.error(error, { View: this.props.componentLabel, ...errorInfo });
