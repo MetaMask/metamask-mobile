@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
+import Engine from '../../../../core/Engine';
 import { renderFromWei, fastSplit } from '../../../../util/number';
 import { validateTransactionActionBalance } from '../../../../util/transactions';
 import {
