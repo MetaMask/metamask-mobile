@@ -40,11 +40,11 @@ const ScreenshotDeterrentWithNavigation = ({
   const [alertPresent, setAlertPresent] = useState<boolean>(false);
   const navigation = useNavigation();
 
-  const openSRPGuide = () => {
+  const openSRPGuide = useCallback(() => {
     setAlertPresent(false);
     trackEvent(MetaMetricsEvents.SCREENSHOT_LEARN_MORE, {});
     Linking.openURL(SRP_GUIDE_URL);
-  };
+  }, [trackEvent]);
 
   const showScreenshotAlert = useCallback(() => {
     trackEvent(MetaMetricsEvents.SCREENSHOT_WARNING, {});
@@ -68,7 +68,7 @@ const ScreenshotDeterrentWithNavigation = ({
         cancelLabel: strings('reveal_credential.got_it'),
       },
     });
-  }, [isSRP, navigation, trackEvent]);
+  }, [isSRP, navigation, trackEvent, openSRPGuide]);
 
   const [enableScreenshotWarning] = useScreenshotDeterrent(showScreenshotAlert);
 
