@@ -23,7 +23,7 @@ exports[`RemoteImage should render static sources 1`] = `
 `;
 
 exports[`RemoteImage should render svg correctly 1`] = `
-<ComponentErrorBoundary
+<Component
   componentLabel="RemoteImage-SVG"
 >
   <View
@@ -44,5 +44,5 @@ exports[`RemoteImage should render svg correctly 1`] = `
       width="100%"
     />
   </View>
-</ComponentErrorBoundary>
+</Component>
 `;
