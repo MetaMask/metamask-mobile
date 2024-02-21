@@ -420,15 +420,16 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     )}`;
 
     const onOpenPortfolio = () => {
-      const existingPortfolioTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.match(regex.portfolioUrl),
+      const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
+        isPortfolioUrl(url),
       );
+
       let existingTabId;
       let newTabUrl;
       if (existingPortfolioTab) {
         existingTabId = existingPortfolioTab.id;
       } else {
-        newTabUrl = `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`;
+        newTabUrl = `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`;
       }
       const params = {
         ...(newTabUrl && { newTabUrl }),
@@ -440,7 +441,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         params,
       });
       Analytics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-        portfolioUrl: AppConstants.PORTFOLIO_URL,
+        portfolioUrl: AppConstants.PORTFOLIO.URL,
       });
     };
 
