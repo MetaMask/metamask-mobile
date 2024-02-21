@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
-  InteractionManager,
   Linking,
 } from 'react-native';
 import { connect } from 'react-redux';

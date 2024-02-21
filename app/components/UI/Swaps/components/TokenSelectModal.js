@@ -8,7 +8,6 @@ import {
   View,
   TouchableWithoutFeedback,
   ActivityIndicator,
-  InteractionManager,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
