@@ -6,7 +6,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import createStyles from '../SecuritySettings.styles';
 import { Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferencesController';
@@ -16,11 +15,12 @@ import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from '../constants';
+import createStyles from './BlockaidSettings.styles';
 
 const BlockaidSettings = () => {
   const theme = useTheme();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
   const navigation = useNavigation();
 
@@ -30,7 +30,7 @@ const BlockaidSettings = () => {
     if (securityAlertsEnabled) {
       PreferencesController?.setSecurityAlertsEnabled(false);
       AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
+        MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED,
         {
           security_alerts_enabled: false,
         },
@@ -57,19 +57,19 @@ const BlockaidSettings = () => {
       )}
       <View style={styles.setting}>
         <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-          {strings('experimental_settings.security_alerts')}
+          {strings('app_settings.security_alerts')}
         </Text>
         <Text
           color={TextColor.Alternative}
           variant={TextVariant.BodyMD}
           style={styles.desc}
         >
-          {strings('experimental_settings.security_alerts_desc')}
+          {strings('app_settings.security_alerts_desc')}
         </Text>
       </View>
-      <View style={styles.blockaidSwitchElement}>
+      <View style={styles.switchElement}>
         <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-          {strings('experimental_settings.blockaid')}
+          {strings('app_settings.blockaid')}
         </Text>
         <Switch
           value={securityAlertsEnabled}
@@ -90,7 +90,7 @@ const BlockaidSettings = () => {
         variant={TextVariant.BodyMD}
         style={styles.desc}
       >
-        {strings('experimental_settings.blockaid_desc')}
+        {strings('app_settings.blockaid_desc')}
       </Text>
     </>
   );

@@ -630,7 +630,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       <View
         style={
           Object {
-            "marginTop": 32,
+            "marginVertical": 16,
           }
         }
       >
@@ -705,7 +705,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               },
               Array [
                 Object {
-                  "alignSelf": "flex-start",
+                  "alignSelf": "flex-end",
                 },
                 Object {
                   "backgroundColor": "#D6D9DC",
