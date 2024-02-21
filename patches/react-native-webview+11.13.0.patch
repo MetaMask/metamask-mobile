@@ -1171,7 +1171,7 @@ index 0000000..b9581ac
 +}
 \ No newline at end of file
 diff --git a/node_modules/react-native-webview/apple/RNCWebView.m b/node_modules/react-native-webview/apple/RNCWebView.m
-index 28c078a..5f8a015 100644
+index 28c078a..9bb5368 100644
 --- a/node_modules/react-native-webview/apple/RNCWebView.m
 +++ b/node_modules/react-native-webview/apple/RNCWebView.m
 @@ -105,6 +105,7 @@ @implementation RNCWebView
@@ -1229,8 +1229,7 @@ index 28c078a..5f8a015 100644
  /**
   * confirm
   */
-#   This patch made to overridde the restrictions that webView is imposing to the native Alert, by restricting its size.
-+
++// This patch made to overridde the restrictions that webView is imposing to the native Alert, by restricting its size.
 +- (void)webView:(WKWebView *)webView requestMediaCapturePermissionForOrigin:(WKSecurityOrigin *)origin initiatedByFrame:(WKFrameInfo *)frame type:(WKMediaCaptureType)type decisionHandler:(void (^)(WKPermissionDecision decision))decisionHandler  API_AVAILABLE(ios(15.0)){
 +    
 +  NSString *deviceType;
