@@ -2339,7 +2339,7 @@ index 0000000..f95c0a5
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts
 new file mode 100644
-index 0000000..69f2e71
+index 0000000..ce728db
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts
 @@ -0,0 +1,12 @@
@@ -2347,7 +2347,7 @@ index 0000000..69f2e71
 +/**
 + * Implementation of a gas fee flow specific to Linea networks that obtains gas fee estimates using:
 + * - The `linea_estimateGas` RPC method to obtain the base fee and lowest priority fee.
-+ * - The GasFeeController to provide the priority fee deltas based on recent block analysis.
++ * - Static multipliers to increase the base and priority fees.
 + */
 +export declare class LineaGasFeeFlow implements GasFeeFlow {
 +    #private;
@@ -2358,18 +2358,18 @@ index 0000000..69f2e71
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts.map b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts.map
 new file mode 100644
-index 0000000..a9c35fe
+index 0000000..56042e1
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"LineaGasFeeFlow.d.ts","sourceRoot":"","sources":["../../src/gas-flows/LineaGasFeeFlow.ts"],"names":[],"mappings":"AAYA,OAAO,KAAK,EAEV,UAAU,EACV,iBAAiB,EACjB,kBAAkB,EAClB,eAAe,EAChB,MAAM,UAAU,CAAC;AA6BlB;;;;GAIG;AACH,qBAAa,eAAgB,YAAW,UAAU;;IAChD,kBAAkB,CAAC,eAAe,EAAE,eAAe,GAAG,OAAO;IAIvD,UAAU,CAAC,OAAO,EAAE,iBAAiB,GAAG,OAAO,CAAC,kBAAkB,CAAC;CAsK1E"}
++{"version":3,"file":"LineaGasFeeFlow.d.ts","sourceRoot":"","sources":["../../src/gas-flows/LineaGasFeeFlow.ts"],"names":[],"mappings":"AAKA,OAAO,KAAK,EAEV,UAAU,EACV,iBAAiB,EACjB,kBAAkB,EAClB,eAAe,EAChB,MAAM,UAAU,CAAC;AAgClB;;;;GAIG;AACH,qBAAa,eAAgB,YAAW,UAAU;;IAChD,kBAAkB,CAAC,eAAe,EAAE,eAAe,GAAG,OAAO;IAIvD,UAAU,CAAC,OAAO,EAAE,iBAAiB,GAAG,OAAO,CAAC,kBAAkB,CAAC;CAqG1E"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js
 new file mode 100644
-index 0000000..312812f
+index 0000000..da048be
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js
-@@ -0,0 +1,132 @@
+@@ -0,0 +1,111 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -2385,31 +2385,33 @@ index 0000000..312812f
 +    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
 +    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 +};
-+var _LineaGasFeeFlow_instances, _LineaGasFeeFlow_getLineaGasFees, _LineaGasFeeFlow_getLineaResponse, _LineaGasFeeFlow_getBaseFees, _LineaGasFeeFlow_getPriorityFees, _LineaGasFeeFlow_getPriorityLevelDifference, _LineaGasFeeFlow_getMaxFees, _LineaGasFeeFlow_logDifferencesToGasFeeController;
++var _LineaGasFeeFlow_instances, _LineaGasFeeFlow_getLineaGasFees, _LineaGasFeeFlow_getLineaResponse, _LineaGasFeeFlow_getValuesFromMultipliers, _LineaGasFeeFlow_getMaxFees, _LineaGasFeeFlow_feesToString;
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.LineaGasFeeFlow = void 0;
 +const controller_utils_1 = require("@metamask/controller-utils");
-+const gas_fee_controller_1 = require("@metamask/gas-fee-controller");
 +const utils_1 = require("@metamask/utils");
 +const logger_1 = require("../logger");
 +const types_1 = require("../types");
-+const constants_1 = require("../constants");
 +const DefaultGasFeeFlow_1 = require("./DefaultGasFeeFlow");
 +const log = (0, utils_1.createModuleLogger)(logger_1.projectLogger, 'linea-gas-fee-flow');
-+const ONE_GWEI_IN_WEI = 1e9;
 +const LINEA_CHAIN_IDS = [
-+    constants_1.CHAIN_IDS.LINEA_MAINNET,
-+    constants_1.CHAIN_IDS.LINEA_GOERLI,
++    controller_utils_1.ChainId['linea-mainnet'],
++    controller_utils_1.ChainId['linea-goerli'],
 +];
 +const BASE_FEE_MULTIPLIERS = {
 +    low: 1,
 +    medium: 1.35,
 +    high: 1.7,
 +};
++const PRIORITY_FEE_MULTIPLIERS = {
++    low: 1,
++    medium: 1.05,
++    high: 1.1,
++};
 +/**
 + * Implementation of a gas fee flow specific to Linea networks that obtains gas fee estimates using:
 + * - The `linea_estimateGas` RPC method to obtain the base fee and lowest priority fee.
-+ * - The GasFeeController to provide the priority fee deltas based on recent block analysis.
++ * - Static multipliers to increase the base and priority fees.
 + */
 +class LineaGasFeeFlow {
 +    constructor() {
@@ -2433,19 +2435,15 @@ index 0000000..312812f
 +exports.LineaGasFeeFlow = LineaGasFeeFlow;
 +_LineaGasFeeFlow_instances = new WeakSet(), _LineaGasFeeFlow_getLineaGasFees = function _LineaGasFeeFlow_getLineaGasFees(request) {
 +    return __awaiter(this, void 0, void 0, function* () {
-+        const { ethQuery, getGasFeeControllerEstimates, transactionMeta } = request;
++        const { ethQuery, transactionMeta } = request;
 +        const lineaResponse = yield __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getLineaResponse).call(this, transactionMeta, ethQuery);
 +        log('Received Linea response', lineaResponse);
-+        const gasFeeControllerEstimates = yield getGasFeeControllerEstimates();
-+        log('Received gas fee controller estimates', gasFeeControllerEstimates);
-+        if (gasFeeControllerEstimates.gasEstimateType !==
-+            gas_fee_controller_1.GAS_ESTIMATE_TYPES.FEE_MARKET) {
-+            throw new Error('No gas fee estimates available');
-+        }
-+        const baseFees = __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getBaseFees).call(this, lineaResponse);
-+        const priorityFees = __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getPriorityFees).call(this, lineaResponse, gasFeeControllerEstimates.gasFeeEstimates);
++        const baseFees = __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getValuesFromMultipliers).call(this, lineaResponse.baseFeePerGas, BASE_FEE_MULTIPLIERS);
++        log('Generated base fees', __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_feesToString).call(this, baseFees));
++        const priorityFees = __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getValuesFromMultipliers).call(this, lineaResponse.priorityFeePerGas, PRIORITY_FEE_MULTIPLIERS);
++        log('Generated priority fees', __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_feesToString).call(this, priorityFees));
 +        const maxFees = __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getMaxFees).call(this, baseFees, priorityFees);
-+        __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_logDifferencesToGasFeeController).call(this, maxFees, gasFeeControllerEstimates.gasFeeEstimates);
++        log('Generated max fees', __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_feesToString).call(this, maxFees));
 +        const estimates = Object.values(types_1.GasFeeEstimateLevel).reduce((result, level) => (Object.assign(Object.assign({}, result), { [level]: {
 +                maxFeePerGas: (0, controller_utils_1.toHex)(maxFees[level]),
 +                maxPriorityFeePerGas: (0, controller_utils_1.toHex)(priorityFees[level]),
@@ -2459,57 +2457,38 @@ index 0000000..312812f
 +            to: transactionMeta.transaction.to,
 +            value: transactionMeta.transaction.value,
 +            input: transactionMeta.transaction.data,
++            // Required in request but no impact on response.
 +            gasPrice: '0x100000000',
 +        },
 +    ]);
-+}, _LineaGasFeeFlow_getBaseFees = function _LineaGasFeeFlow_getBaseFees(lineaResponse) {
-+    const baseFeeLow = (0, controller_utils_1.hexToBN)(lineaResponse.baseFeePerGas);
-+    const baseFeeMedium = baseFeeLow.muln(BASE_FEE_MULTIPLIERS.medium);
-+    const baseFeeHigh = baseFeeLow.muln(BASE_FEE_MULTIPLIERS.high);
++}, _LineaGasFeeFlow_getValuesFromMultipliers = function _LineaGasFeeFlow_getValuesFromMultipliers(value, multipliers) {
++    const base = (0, controller_utils_1.hexToBN)(value);
++    const low = base.muln(multipliers.low);
++    const medium = base.muln(multipliers.medium);
++    const high = base.muln(multipliers.high);
 +    return {
-+        low: baseFeeLow,
-+        medium: baseFeeMedium,
-+        high: baseFeeHigh,
++        low,
++        medium,
++        high,
 +    };
-+}, _LineaGasFeeFlow_getPriorityFees = function _LineaGasFeeFlow_getPriorityFees(lineaResponse, gasFeeEstimates) {
-+    const mediumPriorityIncrease = __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getPriorityLevelDifference).call(this, gasFeeEstimates, types_1.GasFeeEstimateLevel.medium, types_1.GasFeeEstimateLevel.low);
-+    const highPriorityIncrease = __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getPriorityLevelDifference).call(this, gasFeeEstimates, types_1.GasFeeEstimateLevel.high, types_1.GasFeeEstimateLevel.medium);
-+    const priorityFeeLow = (0, controller_utils_1.hexToBN)(lineaResponse.priorityFeePerGas);
-+    const priorityFeeMedium = priorityFeeLow.add(mediumPriorityIncrease);
-+    const priorityFeeHigh = priorityFeeMedium.add(highPriorityIncrease);
-+    return {
-+        low: priorityFeeLow,
-+        medium: priorityFeeMedium,
-+        high: priorityFeeHigh,
-+    };
-+}, _LineaGasFeeFlow_getPriorityLevelDifference = function _LineaGasFeeFlow_getPriorityLevelDifference(gasFeeEstimates, firstLevel, secondLevel) {
-+    return (0, controller_utils_1.gweiDecToWEIBN)(gasFeeEstimates[firstLevel].suggestedMaxPriorityFeePerGas).sub((0, controller_utils_1.gweiDecToWEIBN)(gasFeeEstimates[secondLevel].suggestedMaxPriorityFeePerGas));
 +}, _LineaGasFeeFlow_getMaxFees = function _LineaGasFeeFlow_getMaxFees(baseFees, priorityFees) {
 +    return {
 +        low: baseFees.low.add(priorityFees.low),
 +        medium: baseFees.medium.add(priorityFees.medium),
 +        high: baseFees.high.add(priorityFees.high),
 +    };
-+}, _LineaGasFeeFlow_logDifferencesToGasFeeController = function _LineaGasFeeFlow_logDifferencesToGasFeeController(maxFees, gasFeeControllerEstimates) {
-+    const calculateDifference = (level) => {
-+        const newMaxFeeWeiDec = maxFees[level].toNumber();
-+        const newMaxFeeGweiDec = newMaxFeeWeiDec / ONE_GWEI_IN_WEI;
-+        const oldMaxFeeGweiDec = parseFloat(gasFeeControllerEstimates[level].suggestedMaxFeePerGas);
-+        const percentDifference = (newMaxFeeGweiDec / oldMaxFeeGweiDec - 1) * 100;
-+        /* istanbul ignore next */
-+        return `${percentDifference > 0 ? '+' : ''}${percentDifference.toFixed(2)}%`;
-+    };
-+    log('Difference to gas fee controller', calculateDifference(types_1.GasFeeEstimateLevel.low), calculateDifference(types_1.GasFeeEstimateLevel.medium), calculateDifference(types_1.GasFeeEstimateLevel.high));
++}, _LineaGasFeeFlow_feesToString = function _LineaGasFeeFlow_feesToString(fees) {
++    return Object.values(types_1.GasFeeEstimateLevel).map((level) => fees[level].toString(10));
 +};
 +//# sourceMappingURL=LineaGasFeeFlow.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js.map b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js.map
 new file mode 100644
-index 0000000..6f45bd7
+index 0000000..4742145
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js.map
 @@ -0,0 +1 @@
-+{"version":3,"file":"LineaGasFeeFlow.js","sourceRoot":"","sources":["../../src/gas-flows/LineaGasFeeFlow.ts"],"names":[],"mappings":"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","sourcesContent":["import {\n  gweiDecToWEIBN,\n  hexToBN,\n  query,\n  toHex,\n} from '@metamask/controller-utils';\nimport type { GasFeeEstimates as GasFeeControllerEstimates } from '@metamask/gas-fee-controller';\nimport { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';\nimport { createModuleLogger, type Hex } from '@metamask/utils';\nimport type { BN } from 'ethereumjs-util';\n\nimport { projectLogger } from '../logger';\nimport type {\n  GasFeeEstimates,\n  GasFeeFlow,\n  GasFeeFlowRequest,\n  GasFeeFlowResponse,\n  TransactionMeta,\n} from '../types';\nimport { GasFeeEstimateLevel } from '../types';\nimport { CHAIN_IDS } from '../constants';\nimport { DefaultGasFeeFlow } from './DefaultGasFeeFlow';\n\ntype LineaEstimateGasResponse = {\n  baseFeePerGas: Hex;\n  priorityFeePerGas: Hex;\n};\n\ntype FeesByLevel = {\n  [key in GasFeeEstimateLevel]: BN;\n};\n\nconst log = createModuleLogger(projectLogger, 'linea-gas-fee-flow');\n\nconst ONE_GWEI_IN_WEI = 1e9;\n\nconst LINEA_CHAIN_IDS: Hex[] = [\n  CHAIN_IDS.LINEA_MAINNET,\n  CHAIN_IDS.LINEA_GOERLI,\n];\n\nconst BASE_FEE_MULTIPLIERS = {\n  low: 1,\n  medium: 1.35,\n  high: 1.7,\n};\n\n/**\n * Implementation of a gas fee flow specific to Linea networks that obtains gas fee estimates using:\n * - The `linea_estimateGas` RPC method to obtain the base fee and lowest priority fee.\n * - The GasFeeController to provide the priority fee deltas based on recent block analysis.\n */\nexport class LineaGasFeeFlow implements GasFeeFlow {\n  matchesTransaction(transactionMeta: TransactionMeta): boolean {\n    return LINEA_CHAIN_IDS.includes(transactionMeta.chainId as Hex);\n  }\n\n  async getGasFees(request: GasFeeFlowRequest): Promise<GasFeeFlowResponse> {\n    try {\n      return await this.#getLineaGasFees(request);\n    } catch (error) {\n      log('Using default flow as fallback due to error', error);\n      return new DefaultGasFeeFlow().getGasFees(request);\n    }\n  }\n\n  async #getLineaGasFees(\n    request: GasFeeFlowRequest,\n  ): Promise<GasFeeFlowResponse> {\n    const { ethQuery, getGasFeeControllerEstimates, transactionMeta } = request;\n\n    const lineaResponse = await this.#getLineaResponse(\n      transactionMeta,\n      ethQuery,\n    );\n\n    log('Received Linea response', lineaResponse);\n\n    const gasFeeControllerEstimates = await getGasFeeControllerEstimates();\n\n    log('Received gas fee controller estimates', gasFeeControllerEstimates);\n\n    if (\n      gasFeeControllerEstimates.gasEstimateType !==\n      GAS_ESTIMATE_TYPES.FEE_MARKET\n    ) {\n      throw new Error('No gas fee estimates available');\n    }\n\n    const baseFees = this.#getBaseFees(lineaResponse);\n\n    const priorityFees = this.#getPriorityFees(\n      lineaResponse,\n      gasFeeControllerEstimates.gasFeeEstimates,\n    );\n\n    const maxFees = this.#getMaxFees(baseFees, priorityFees);\n\n    this.#logDifferencesToGasFeeController(\n      maxFees,\n      gasFeeControllerEstimates.gasFeeEstimates,\n    );\n\n    const estimates = Object.values(GasFeeEstimateLevel).reduce(\n      (result, level) => ({\n        ...result,\n        [level]: {\n          maxFeePerGas: toHex(maxFees[level]),\n          maxPriorityFeePerGas: toHex(priorityFees[level]),\n        },\n      }),\n      {} as GasFeeEstimates,\n    );\n\n    return { estimates };\n  }\n\n  #getLineaResponse(\n    transactionMeta: TransactionMeta,\n    ethQuery: any,\n  ): Promise<LineaEstimateGasResponse> {\n    return query(ethQuery, 'linea_estimateGas', [\n      {\n        from: transactionMeta.transaction.from,\n        to: transactionMeta.transaction.to,\n        value: transactionMeta.transaction.value,\n        input: transactionMeta.transaction.data,\n        gasPrice: '0x100000000',\n      },\n    ]);\n  }\n\n  #getBaseFees(lineaResponse: LineaEstimateGasResponse): FeesByLevel {\n    const baseFeeLow = hexToBN(lineaResponse.baseFeePerGas);\n    const baseFeeMedium = baseFeeLow.muln(BASE_FEE_MULTIPLIERS.medium);\n    const baseFeeHigh = baseFeeLow.muln(BASE_FEE_MULTIPLIERS.high);\n\n    return {\n      low: baseFeeLow,\n      medium: baseFeeMedium,\n      high: baseFeeHigh,\n    };\n  }\n\n  #getPriorityFees(\n    lineaResponse: LineaEstimateGasResponse,\n    gasFeeEstimates: GasFeeControllerEstimates,\n  ): FeesByLevel {\n    const mediumPriorityIncrease = this.#getPriorityLevelDifference(\n      gasFeeEstimates,\n      GasFeeEstimateLevel.medium,\n      GasFeeEstimateLevel.low,\n    );\n\n    const highPriorityIncrease = this.#getPriorityLevelDifference(\n      gasFeeEstimates,\n      GasFeeEstimateLevel.high,\n      GasFeeEstimateLevel.medium,\n    );\n\n    const priorityFeeLow = hexToBN(lineaResponse.priorityFeePerGas);\n    const priorityFeeMedium = priorityFeeLow.add(mediumPriorityIncrease);\n    const priorityFeeHigh = priorityFeeMedium.add(highPriorityIncrease);\n\n    return {\n      low: priorityFeeLow,\n      medium: priorityFeeMedium,\n      high: priorityFeeHigh,\n    };\n  }\n\n  #getPriorityLevelDifference(\n    gasFeeEstimates: GasFeeControllerEstimates,\n    firstLevel: GasFeeEstimateLevel,\n    secondLevel: GasFeeEstimateLevel,\n  ): BN {\n    return gweiDecToWEIBN(\n      gasFeeEstimates[firstLevel].suggestedMaxPriorityFeePerGas,\n    ).sub(\n      gweiDecToWEIBN(\n        gasFeeEstimates[secondLevel].suggestedMaxPriorityFeePerGas,\n      ),\n    );\n  }\n\n  #getMaxFees(\n    baseFees: Record<GasFeeEstimateLevel, BN>,\n    priorityFees: Record<GasFeeEstimateLevel, BN>,\n  ): FeesByLevel {\n    return {\n      low: baseFees.low.add(priorityFees.low),\n      medium: baseFees.medium.add(priorityFees.medium),\n      high: baseFees.high.add(priorityFees.high),\n    };\n  }\n\n  #logDifferencesToGasFeeController(\n    maxFees: FeesByLevel,\n    gasFeeControllerEstimates: GasFeeControllerEstimates,\n  ) {\n    const calculateDifference = (level: GasFeeEstimateLevel) => {\n      const newMaxFeeWeiDec = maxFees[level].toNumber();\n      const newMaxFeeGweiDec = newMaxFeeWeiDec / ONE_GWEI_IN_WEI;\n\n      const oldMaxFeeGweiDec = parseFloat(\n        gasFeeControllerEstimates[level].suggestedMaxFeePerGas,\n      );\n\n      const percentDifference = (newMaxFeeGweiDec / oldMaxFeeGweiDec - 1) * 100;\n\n      /* istanbul ignore next */\n      return `${percentDifference > 0 ? '+' : ''}${percentDifference.toFixed(\n        2,\n      )}%`;\n    };\n\n    log(\n      'Difference to gas fee controller',\n      calculateDifference(GasFeeEstimateLevel.low),\n      calculateDifference(GasFeeEstimateLevel.medium),\n      calculateDifference(GasFeeEstimateLevel.high),\n    );\n  }\n}\n"]}
++{"version":3,"file":"LineaGasFeeFlow.js","sourceRoot":"","sources":["../../src/gas-flows/LineaGasFeeFlow.ts"],"names":[],"mappings":"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","sourcesContent":["import { ChainId, hexToBN, query, toHex } from '@metamask/controller-utils';\nimport { createModuleLogger, type Hex } from '@metamask/utils';\nimport type { BN } from 'ethereumjs-util';\n\nimport { projectLogger } from '../logger';\nimport type {\n  GasFeeEstimates,\n  GasFeeFlow,\n  GasFeeFlowRequest,\n  GasFeeFlowResponse,\n  TransactionMeta,\n} from '../types';\nimport { GasFeeEstimateLevel } from '../types';\nimport { DefaultGasFeeFlow } from './DefaultGasFeeFlow';\n\ntype LineaEstimateGasResponse = {\n  baseFeePerGas: Hex;\n  priorityFeePerGas: Hex;\n};\n\ntype FeesByLevel = {\n  [key in GasFeeEstimateLevel]: BN;\n};\n\nconst log = createModuleLogger(projectLogger, 'linea-gas-fee-flow');\n\nconst LINEA_CHAIN_IDS: Hex[] = [\n  ChainId['linea-mainnet'],\n  ChainId['linea-goerli'],\n];\n\nconst BASE_FEE_MULTIPLIERS = {\n  low: 1,\n  medium: 1.35,\n  high: 1.7,\n};\n\nconst PRIORITY_FEE_MULTIPLIERS = {\n  low: 1,\n  medium: 1.05,\n  high: 1.1,\n};\n\n/**\n * Implementation of a gas fee flow specific to Linea networks that obtains gas fee estimates using:\n * - The `linea_estimateGas` RPC method to obtain the base fee and lowest priority fee.\n * - Static multipliers to increase the base and priority fees.\n */\nexport class LineaGasFeeFlow implements GasFeeFlow {\n  matchesTransaction(transactionMeta: TransactionMeta): boolean {\n    return LINEA_CHAIN_IDS.includes(transactionMeta.chainId as Hex);\n  }\n\n  async getGasFees(request: GasFeeFlowRequest): Promise<GasFeeFlowResponse> {\n    try {\n      return await this.#getLineaGasFees(request);\n    } catch (error) {\n      log('Using default flow as fallback due to error', error);\n      return new DefaultGasFeeFlow().getGasFees(request);\n    }\n  }\n\n  async #getLineaGasFees(\n    request: GasFeeFlowRequest,\n  ): Promise<GasFeeFlowResponse> {\n    const { ethQuery, transactionMeta } = request;\n\n    const lineaResponse = await this.#getLineaResponse(\n      transactionMeta,\n      ethQuery,\n    );\n\n    log('Received Linea response', lineaResponse);\n\n    const baseFees = this.#getValuesFromMultipliers(\n      lineaResponse.baseFeePerGas,\n      BASE_FEE_MULTIPLIERS,\n    );\n\n    log('Generated base fees', this.#feesToString(baseFees));\n\n    const priorityFees = this.#getValuesFromMultipliers(\n      lineaResponse.priorityFeePerGas,\n      PRIORITY_FEE_MULTIPLIERS,\n    );\n\n    log('Generated priority fees', this.#feesToString(priorityFees));\n\n    const maxFees = this.#getMaxFees(baseFees, priorityFees);\n\n    log('Generated max fees', this.#feesToString(maxFees));\n\n    const estimates = Object.values(GasFeeEstimateLevel).reduce(\n      (result, level) => ({\n        ...result,\n        [level]: {\n          maxFeePerGas: toHex(maxFees[level]),\n          maxPriorityFeePerGas: toHex(priorityFees[level]),\n        },\n      }),\n      {} as GasFeeEstimates,\n    );\n\n    return { estimates };\n  }\n\n  #getLineaResponse(\n    transactionMeta: TransactionMeta,\n    ethQuery: any,\n  ): Promise<LineaEstimateGasResponse> {\n    return query(ethQuery, 'linea_estimateGas', [\n      {\n        from: transactionMeta.transaction.from,\n        to: transactionMeta.transaction.to,\n        value: transactionMeta.transaction.value,\n        input: transactionMeta.transaction.data,\n        // Required in request but no impact on response.\n        gasPrice: '0x100000000',\n      },\n    ]);\n  }\n\n  #getValuesFromMultipliers(\n    value: Hex,\n    multipliers: { low: number; medium: number; high: number },\n  ): FeesByLevel {\n    const base = hexToBN(value);\n    const low = base.muln(multipliers.low);\n    const medium = base.muln(multipliers.medium);\n    const high = base.muln(multipliers.high);\n\n    return {\n      low,\n      medium,\n      high,\n    };\n  }\n\n  #getMaxFees(\n    baseFees: Record<GasFeeEstimateLevel, BN>,\n    priorityFees: Record<GasFeeEstimateLevel, BN>,\n  ): FeesByLevel {\n    return {\n      low: baseFees.low.add(priorityFees.low),\n      medium: baseFees.medium.add(priorityFees.medium),\n      high: baseFees.high.add(priorityFees.high),\n    };\n  }\n\n  #feesToString(fees: FeesByLevel) {\n    return Object.values(GasFeeEstimateLevel).map((level) =>\n      fees[level].toString(10),\n    );\n  }\n}\n"]}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.d.ts b/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.d.ts
 new file mode 100644
