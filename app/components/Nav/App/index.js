@@ -30,7 +30,6 @@ import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentry/utils';
 import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';
@@ -101,6 +100,7 @@ import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatew
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
 import { MetaMetrics } from '../../../core/Analytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -239,6 +239,7 @@ const App = ({ userLoggedIn }) => {
   const queueOfHandleDeeplinkFunctions = useRef([]);
   const [animationPlayed, setAnimationPlayed] = useState(false);
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef(false);
@@ -277,10 +278,13 @@ const App = ({ userLoggedIn }) => {
           );
         }
         await Authentication.lockApp(false);
-        trackErrorAsAnalytics(
-          'App: Max Attempts Reached',
-          error?.message,
-          `Unlock attempts: 1`,
+        trackEvent(
+          { category: 'Error occurred' },
+          {
+            type: 'App: Max Attempts Reached',
+            errorMessage: error?.message,
+            otherInfo: `Unlock attempts: 1`,
+          },
         );
       } finally {
         animationRef?.current?.play();
@@ -296,23 +300,31 @@ const App = ({ userLoggedIn }) => {
       .catch((error) => {
         Logger.error(error, 'App: Error in appTriggeredAuth');
       });
-  }, [navigator, queueOfHandleDeeplinkFunctions]);
+  }, [navigator, queueOfHandleDeeplinkFunctions, trackEvent]);
 
-  const handleDeeplink = useCallback(({ error, params, uri }) => {
-    if (error) {
-      trackErrorAsAnalytics(error, 'Branch:');
-    }
-    const deeplink = params?.['+non_branch_link'] || uri || null;
-    try {
-      if (deeplink) {
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-        });
+  const handleDeeplink = useCallback(
+    ({ error, params, uri }) => {
+      if (error) {
+        trackEvent(
+          { category: 'Error occurred' },
+          {
+            errorMessage: 'Branch:',
+          },
+        );
       }
-    } catch (e) {
-      Logger.error(e, `Deeplink: Error parsing deeplink`);
-    }
-  }, []);
+      const deeplink = params?.['+non_branch_link'] || uri || null;
+      try {
+        if (deeplink) {
+          SharedDeeplinkManager.parse(deeplink, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+          });
+        }
+      } catch (e) {
+        Logger.error(e, `Deeplink: Error parsing deeplink`);
+      }
+    },
+    [trackEvent],
+  );
 
   // on Android devices, this creates a listener
   // to deeplinks used to open the app
