@@ -418,7 +418,7 @@ workflows:
       - _notify_failure_on_slack
     steps:
       - script@1:
-          title: Check native folder diff for Android
+          title: Generating ccache key using native folder checksum
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -589,7 +589,7 @@ workflows:
       - _notify_failure_on_slack
     steps:
       - script@1:
-          title: Check native folder diff for iOS
+          title: Generating ccache key using native folder checksum
           inputs:
             - content: |-
                 #!/usr/bin/env bash

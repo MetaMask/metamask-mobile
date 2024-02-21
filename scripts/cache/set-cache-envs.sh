@@ -2,14 +2,13 @@
 # Check differences for a given folder and save the checksum as CCACHE_KEY
 set_cache_envs() {
   local folder="$1"
-  local current_branch=$(git rev-parse --abbrev-ref HEAD)
   local prefix_ccache_key="ccache-$folder"
 
-  echo "Current branch: $current_branch"
   # Generate a checksum for the native dependencies and set it as CCACHE_KEY
   local checksum=$(find "$folder" -type f -exec sha512sum {} \; | sha512sum | awk '{print $1}')
+  echo "Checksum: $checksum"
   envman add --key CCACHE_KEY --value "$prefix_ccache_key-$checksum"
-  echo "Checksum (CCACHE_KEY) set to $prefix_ccache_key-$checksum"
+  echo "CCACHE_KEY set to $prefix_ccache_key-$checksum"
 }
 
 # Check if both folder_to_check is provided
