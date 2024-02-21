@@ -23,10 +23,6 @@ import {
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
 import { selectChainId } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import Routes from '../../../constants/navigation/Routes';
@@ -39,6 +35,7 @@ import {
   MAIN_WALLET_ACCOUNT_ACTIONS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { getLabelTextByAddress } from '../../../util/address';
+import { useAccounts } from '../../hooks/useAccounts';
 
 const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -53,36 +50,35 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     yourAccountRef,
     accountActionsRef,
   }));
-  /**
-   * A string that represents the selected address
-   */
-  const selectedAddress = useSelector(selectSelectedAddress);
-
-  /**
-   * An object containing each identity in the format address => account
-   */
-  const identities = useSelector(selectIdentities);
 
   const chainId = useSelector(selectChainId);
+
+  const { accounts } = useAccounts();
+
+  /**
+   * An object representing the currently selected account.
+   * If we cannot find the selected account, we default to the first account in the list.
+   */
+  const selectedAccount =
+    accounts.find((account) => account.isSelected) ?? accounts[0];
 
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const account = {
-    ...identities[selectedAddress],
-    address: selectedAddress,
-  };
 
   const lookupEns = useCallback(async () => {
     try {
-      const accountEns = await doENSReverseLookup(account.address, chainId);
+      const accountEns = await doENSReverseLookup(
+        selectedAccount.address,
+        chainId,
+      );
 
       setEns(accountEns);
       // eslint-disable-next-line no-empty
     } catch {}
-  }, [account.address, chainId]);
+  }, [selectedAccount.address, chainId]);
 
   useEffect(() => {
     lookupEns();
@@ -98,15 +94,17 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     <View style={styles.base}>
       <PickerAccount
         ref={yourAccountRef}
-        accountAddress={account.address}
+        accountAddress={selectedAccount.address}
         accountName={
-          isDefaultAccountName(account.name) && ens ? ens : account.name
+          isDefaultAccountName(selectedAccount.name) && ens
+            ? ens
+            : selectedAccount.name
         }
         accountAvatarType={accountAvatarType}
         onPress={() => {
           navigate(...createAccountSelectorNavDetails({}));
         }}
-        accountTypeLabel={getLabelTextByAddress(account.address)}
+        accountTypeLabel={getLabelTextByAddress(selectedAccount.address)}
         showAddress={false}
         cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}

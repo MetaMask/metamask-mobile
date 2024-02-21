@@ -150,7 +150,7 @@ const useAccounts = ({
         const balanceError = checkBalanceError?.(balanceWeiHex);
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
-          name,
+          name: "this is the best name ever",
           address: checksummedAddress,
           type,
           yOffset,
