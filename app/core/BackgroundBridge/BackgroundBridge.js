@@ -223,6 +223,21 @@ export class BackgroundBridge extends EventEmitter {
 
   async notifySelectedAddressChanged(selectedAddress) {
     try {
+      // Remove following specific walletconnect block once WalletConnect has migrated away from DefaultPreferences
+      if (this.isWalletConnect) {
+        // Pass the remoteConnHost to getApprovedHosts as AndroidSDK requires it
+        if (
+          !this.getApprovedHosts?.(this.remoteConnHost)?.[this.remoteConnHost]
+        ) {
+          return;
+        }
+        this.sendNotification({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: [selectedAddress],
+        });
+        return;
+      }
+
       let approvedAccounts = await getPermittedAccounts(
         this.channelId ?? this.hostname,
       );

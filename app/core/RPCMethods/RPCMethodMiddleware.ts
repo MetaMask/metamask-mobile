@@ -122,21 +122,29 @@ export const checkActiveAccountAndChainId = async ({
       AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       '',
     );
-    const accounts = await getPermittedAccounts(channelId ?? validHostname);
-    const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
-    if (!normalizedAccounts.includes(formattedAddress)) {
-      isInvalidAccount = true;
+    if (checkSelectedAddress) {
+      const selectedAddress =
+        Engine.context.PreferencesController.state.selectedAddress;
+      if (formattedAddress !== safeToChecksumAddress(selectedAddress)) {
+        isInvalidAccount = true;
+      }
+    } else {
+      const accounts = await getPermittedAccounts(channelId ?? validHostname);
+      const normalizedAccounts = accounts.map(safeToChecksumAddress);
+
+      if (!normalizedAccounts.includes(formattedAddress)) {
+        isInvalidAccount = true;
+        if (accounts.length > 0) {
+          // Permissions issue --- requesting incorrect address
+          throw ethErrors.rpc.invalidParams({
+            message: `Invalid parameters: must provide a permitted Ethereum address.`,
+          });
+        }
+      }
     }
 
     if (isInvalidAccount) {
-      if (accounts.length > 0) {
-        // Permissions issue --- requesting incorrect address
-        throw ethErrors.rpc.invalidParams({
-          message: `Invalid parameters: must provide a permitted Ethereum address.`,
-        });
-      }
-
       throw ethErrors.rpc.invalidParams({
         message: `Invalid parameters: must provide an Ethereum address.`,
       });
@@ -186,7 +194,6 @@ const generateRawSignature = async ({
   title,
   icon,
   analytics,
-  isMMSDK,
   isWalletConnect,
   chainId,
   channelId,
@@ -213,7 +220,7 @@ const generateRawSignature = async ({
     channelId,
     address: req.params[0],
     chainId,
-    checkSelectedAddress: isMMSDK || isWalletConnect,
+    checkSelectedAddress: isWalletConnect,
   });
 
   const rawSig = await SignatureController.newUnsignedTypedMessage(
@@ -505,7 +512,7 @@ export const getRpcMethodMiddleware = ({
               address: from,
               channelId,
               chainId,
-              checkSelectedAddress: isMMSDK || isWalletConnect,
+              checkSelectedAddress: isWalletConnect,
             });
           },
         });
@@ -544,7 +551,7 @@ export const getRpcMethodMiddleware = ({
             hostname,
             channelId,
             address: req.params[0].from,
-            checkSelectedAddress: isMMSDK || isWalletConnect,
+            checkSelectedAddress: isWalletConnect,
           });
           PPOMUtil.validateRequest(req);
           const rawSig = await SignatureController.newUnsignedMessage({
@@ -592,7 +599,7 @@ export const getRpcMethodMiddleware = ({
           hostname,
           channelId,
           address: params.from,
-          checkSelectedAddress: isMMSDK || isWalletConnect,
+          checkSelectedAddress: isWalletConnect,
         });
 
         PPOMUtil.validateRequest(req);
@@ -640,7 +647,7 @@ export const getRpcMethodMiddleware = ({
           hostname,
           channelId,
           address: req.params[1],
-          checkSelectedAddress: isMMSDK || isWalletConnect,
+          checkSelectedAddress: isWalletConnect,
         });
 
         PPOMUtil.validateRequest(req);
