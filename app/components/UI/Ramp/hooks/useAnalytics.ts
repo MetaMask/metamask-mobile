@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { InteractionManager } from 'react-native';
 import { AnalyticsEvents } from '../types';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 
@@ -38,7 +39,12 @@ export function trackEvent<T extends keyof AnalyticsEvents>(
   const metrics = MetaMetrics.getInstance();
   const event = MetaMetricsEvents[eventType];
   const anonymous = AnonymousEvents.includes(eventType);
-  (anonymous ? metrics.trackAnonymousEvent : metrics.trackEvent)(event, params);
+  InteractionManager.runAfterInteractions(() => {
+    (anonymous ? metrics.trackAnonymousEvent : metrics.trackEvent)(
+      event,
+      params,
+    );
+  });
 }
 
 function useAnalytics() {
