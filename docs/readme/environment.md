@@ -16,7 +16,8 @@ xcode-select -p
 
 ### Package Manager
 
-Optional but recommended, install  a package manager, such as `brew`
+Install `brew` package manager. 
+_NOTE:_ To successfully run the iOS e2e tests, it is essential to install the brew package manager.  
 
 [How to install brew](https://brew.sh/#install)
 
