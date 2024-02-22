@@ -56,7 +56,7 @@ interface Props {
   ctaLabel?: string; // The CTA button label, default will be "Try again" (Optional)
   ctaOnPress?: () => any; // The optional callback to be invoked when pressing the CTA button (Optional)
   icon?: IconType;
-  asScreen?: boolean; // Wether this component should be rendered as a screen or not (Optional)
+  asScreen?: boolean; // Whether this component should be rendered as a screen or not (Optional)
   location: ScreenLocation;
 }
 
