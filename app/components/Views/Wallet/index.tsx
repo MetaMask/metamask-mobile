@@ -126,13 +126,12 @@ const Wallet = ({ navigation }: any) => {
   const providerConfig = useSelector(selectProviderConfig);
 
   /**
-   * A list of all the users accounts
+   * A list of all the users accounts and a mapping of ens names to account addresses if they exist
    */
-  const { accounts } = useAccounts();
+  const { accounts, ensByAccountAddress } = useAccounts();
 
   /**
    * An object representing the currently selected account.
-   * If we cannot find the selected account, we default to the first account in the list.
    */
   const selectedAccount = useMemo(() => {
     if (accounts.length > 0) {
@@ -140,6 +139,17 @@ const Wallet = ({ navigation }: any) => {
     }
     return undefined;
   }, [accounts]);
+
+  /**
+   * ENS name for the currently selected account.
+   * This value may be undefined if there is no corresponding ENS name for the account.
+   */
+  const ensForSelectedAccount = useMemo(() => {
+    if (ensByAccountAddress && selectedAccount) {
+      return ensByAccountAddress[selectedAccount.address];
+    }
+    return undefined;
+  }, [ensByAccountAddress, selectedAccount]);
 
   const networkName = useMemo(
     () => getNetworkNameFromProviderConfig(providerConfig),
@@ -294,6 +304,7 @@ const Wallet = ({ navigation }: any) => {
         {selectedAccount ? (
           <WalletAccount
             account={selectedAccount}
+            ens={ensForSelectedAccount}
             style={styles.walletAccount}
             ref={walletRef}
           />

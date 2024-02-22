@@ -4,6 +4,7 @@ import { Account } from '../../hooks/useAccounts';
 export interface WalletAccountProps {
   style?: ViewStyle;
   account: Account;
+  ens?: string;
 }
 
 /**
