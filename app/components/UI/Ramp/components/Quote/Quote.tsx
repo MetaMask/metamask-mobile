@@ -30,7 +30,7 @@ import { strings } from '../../../../../../locales/i18n';
 import ApplePayButton from '../../containers/ApplePayButton';
 import RemoteImage from '../../../../Base/RemoteImage';
 
-import Tag from './../../../../../component-library/components/Tags/Tag';
+import TagColored from '../../../../../component-library/components-temp/TagColored';
 import Row from '../Row';
 import styleSheet from './Quote.styles';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -122,7 +122,9 @@ const Quote: React.FC<Props> = ({
       >
         {previouslyUsedProvider ? (
           <ListItem.Date>
-            <Tag label="Previously used" />
+            <TagColored>
+              {strings('fiat_on_ramp_aggregator.previously_used')}
+            </TagColored>
           </ListItem.Date>
         ) : null}
         <ListItem.Content>
