@@ -92,7 +92,6 @@ import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
   PPOMControllerEvents,
-  PPOMInitialisationStatusType,
   PPOMState,
 } from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -176,7 +175,6 @@ import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
 import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
-import { UpdatePPOMInitializationStatus } from '../actions/experimental';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1058,14 +1056,6 @@ class Engine {
           nativeCrypto: Crypto as any,
         });
         controllers.push(ppomController as any);
-        this.controllerMessenger.subscribe(
-          AppConstants.PPOM_INITIALISATION_STATE_CHANGE_EVENT,
-          (ppomInitializationStatus: PPOMInitialisationStatusType) => {
-            store.dispatch(
-              UpdatePPOMInitializationStatus(ppomInitializationStatus),
-            );
-          },
-        );
       } catch (e) {
         Logger.log(`Error initializing PPOMController: ${e}`);
         return;

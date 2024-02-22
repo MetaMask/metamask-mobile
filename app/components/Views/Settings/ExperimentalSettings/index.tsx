@@ -10,13 +10,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { UpdatePPOMInitializationStatus } from '../../../../actions/experimental';
 import AnalyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
-import Routes from '../../../../constants/navigation/Routes';
 import { useSelector, useDispatch } from 'react-redux';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
@@ -36,8 +34,6 @@ const storage = new MMKV(); // id: mmkv.default
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
   const { PreferencesController } = Engine.context;
-
-  const dispatch = useDispatch();
 
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
@@ -65,18 +61,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
           security_alerts_enabled: false,
         },
       );
-    } else if (Device.isIos()) {
-      PreferencesController?.setSecurityAlertsEnabled(true);
     } else {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.BLOCKAID_INDICATOR,
-      });
+      PreferencesController?.setSecurityAlertsEnabled(true);
     }
   };
-
-  useEffect(() => {
-    dispatch(UpdatePPOMInitializationStatus());
-  }, [dispatch]);
 
   useEffect(
     () => {

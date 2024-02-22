@@ -4211,14 +4211,15 @@
     "@metamask/utils" "^5.0.0"
     readable-stream "3.6.2"
 
-"@metamask/ppom-validator@0.24.0":
-  version "0.24.0"
-  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.24.0.tgz#86ee0146a51984f6c39fe4830e37270d734d8b83"
-  integrity sha512-M//3ptaByku1FVTCtcCmJcYqU/6j/uehT2tHMoNtimwLKBfx3p3nPZMjR4avOsY5JtDNZAZmECMEMkONwySOZA==
+"@metamask/ppom-validator@0.25.0":
+  version "0.25.0"
+  resolved "https://registry.yarnpkg.com/@metamask/ppom-validator/-/ppom-validator-0.25.0.tgz#6a6536efeab38bbff2c6cbfb39b315b6e9e0467a"
+  integrity sha512-WFvI5SwDFhz3op1JQdSV2I2NRlSLNmFG6Ww8x5vafb8aBRg6igOhEOFkJwAQN3ZpB+Q+KYs3t71IlWeMh2N8dQ==
   dependencies:
     "@metamask/base-controller" "^3.0.0"
     "@metamask/controller-utils" "^8.0.1"
     "@metamask/network-controller" "^17.0.0"
+    "@metamask/utils" "^8.3.0"
     await-semaphore "^0.1.3"
     crypto-js "^4.2.0"
     elliptic "^6.5.4"
