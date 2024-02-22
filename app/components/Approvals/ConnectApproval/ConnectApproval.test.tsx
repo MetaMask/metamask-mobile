@@ -1,11 +1,11 @@
 import React from 'react';
-import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { shallow } from 'enzyme';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import ConnectApproval from './ConnectApproval';
 
-jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
+jest.mock('../../hooks/useApprovalRequest');
 
 const mockApprovalRequest = (approvalRequest?: ApprovalRequest<any>) => {
   (

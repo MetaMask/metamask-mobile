@@ -1,12 +1,10 @@
-import { toHex } from '@metamask/controller-utils';
-
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 const PopularList = [
   {
-    chainId: toHex('43114'),
+    chainId: '43114',
     nickname: 'Avalanche Mainnet C-Chain',
     rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
     ticker: 'AVAX',
@@ -18,7 +16,7 @@ const PopularList = [
     },
   },
   {
-    chainId: toHex('42161'),
+    chainId: '42161',
     nickname: 'Arbitrum One',
     rpcUrl: `https://arbitrum-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'ETH',
@@ -29,7 +27,7 @@ const PopularList = [
     },
   },
   {
-    chainId: toHex('56'),
+    chainId: '56',
     nickname: 'BNB Smart Chain',
     rpcUrl: 'https://bsc-dataseed1.binance.org',
     ticker: 'BNB',
@@ -41,7 +39,7 @@ const PopularList = [
     },
   },
   {
-    chainId: toHex('250'),
+    chainId: '250',
     nickname: 'Fantom Opera',
     rpcUrl: 'https://rpc.ftm.tools/',
     ticker: 'FTM',
@@ -53,7 +51,7 @@ const PopularList = [
     },
   },
   {
-    chainId: toHex('1666600000'),
+    chainId: '1666600000',
     nickname: 'Harmony Mainnet Shard 0',
     rpcUrl: 'https://api.harmony.one/',
     ticker: 'ONE',
@@ -65,7 +63,7 @@ const PopularList = [
     },
   },
   {
-    chainId: toHex('10'),
+    chainId: '10',
     nickname: 'Optimism',
     rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'ETH',
@@ -76,7 +74,7 @@ const PopularList = [
     },
   },
   {
-    chainId: toHex('137'),
+    chainId: '137',
     nickname: 'Polygon Mainnet',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'MATIC',
@@ -87,7 +85,7 @@ const PopularList = [
     },
   },
   {
-    chainId: toHex('11297108109'),
+    chainId: '11297108109',
     nickname: 'Palm',
     rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'PALM',

@@ -34,7 +34,7 @@ Array [
           }
         >
           <SvgMock
-            color="#BF5208"
+            color="#F66A0A"
             height={32}
             name="Danger"
             style={
@@ -177,7 +177,7 @@ Array [
             accessibilityRole="text"
             style={
               Object {
-                "color": "#FFFFFF",
+                "color": "#FCFCFC",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -230,7 +230,7 @@ Array [
           }
         >
           <SvgMock
-            color="#BF5208"
+            color="#F66A0A"
             height={32}
             name="Danger"
             style={
@@ -373,7 +373,7 @@ Array [
             accessibilityRole="text"
             style={
               Object {
-                "color": "#FFFFFF",
+                "color": "#FCFCFC",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -557,7 +557,7 @@ Array [
             accessibilityRole="text"
             style={
               Object {
-                "color": "#FFFFFF",
+                "color": "#FCFCFC",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",

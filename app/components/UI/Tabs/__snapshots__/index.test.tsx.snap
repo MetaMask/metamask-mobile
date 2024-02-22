@@ -124,7 +124,7 @@ exports[`Tabs should render correctly 1`] = `
           style={
             Object {
               "alignContent": "center",
-              "color": "#FFFFFF",
+              "color": "#FCFCFC",
               "fontSize": 24,
               "justifyContent": "center",
               "marginTop": 3,

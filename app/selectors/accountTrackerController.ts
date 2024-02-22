@@ -14,12 +14,6 @@ export const selectAccounts = createSelector(
     accountTrackerControllerState.accounts,
 );
 
-export const selectAccountsByChainId = createSelector(
-  selectAccountTrackerControllerState,
-  (accountTrackerControllerState: AccountTrackerState) =>
-    accountTrackerControllerState.accountsByChainId,
-);
-
 export const selectAccountsLength = createSelector(
   selectAccounts,
   (accounts: { [address: string]: AccountInformation }) =>

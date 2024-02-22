@@ -295,7 +295,7 @@ Array [
           testID="security-alerts-toggle"
           thumbTintColor="#FFFFFF"
           tintColor="#D6D9DC"
-          value={true}
+          value={false}
         />
       </View>
       <Text
@@ -615,7 +615,7 @@ Array [
           testID="security-alerts-toggle"
           thumbTintColor="#FFFFFF"
           tintColor="#D6D9DC"
-          value={true}
+          value={false}
         />
       </View>
       <Text

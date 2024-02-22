@@ -125,7 +125,7 @@ function render(Component: React.ReactElement, orders = testOrders) {
             providerConfig: {
               ticker: 'ETH',
               type: 'mainnet',
-              chainId: '0x1',
+              chainId: '1',
             },
           },
         },

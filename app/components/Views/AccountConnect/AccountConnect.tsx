@@ -54,7 +54,6 @@ import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
-import { trackDappVisitedEvent } from '../../../analytics';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
@@ -125,13 +124,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     [Engine.context.PermissionController, accountsLength],
   );
 
-  const triggerDappVisitedEvent = useCallback(
-    (numberOfConnectedAccounts: number) =>
-      // Track dapp visited event
-      trackDappVisitedEvent({ hostname, numberOfConnectedAccounts }),
-    [hostname],
-  );
-
   const handleConnect = useCallback(async () => {
     const selectedAccounts: SelectedAccount[] = selectedAddresses.map(
       (address, index) => ({ address, lastUsed: Date.now() - index }),
@@ -157,9 +149,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
-
-      triggerDappVisitedEvent(connectedAccountLength);
-
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
@@ -203,7 +192,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     Engine.context.PermissionController,
     toastRef,
     accountsLength,
-    triggerDappVisitedEvent,
   ]);
 
   const handleCreateAccount = useCallback(

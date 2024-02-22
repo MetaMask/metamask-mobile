@@ -7,7 +7,7 @@ import {
 } from '../../actions/experimental';
 
 const initialState = {
-  securityAlertsEnabled: true,
+  securityAlertsEnabled: false,
   ppomInitialisationStatus: undefined,
 };
 

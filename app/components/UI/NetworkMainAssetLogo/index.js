@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ChainId } from '@metamask/controller-utils';
+import { NetworksChainId } from '@metamask/controller-utils';
 import { connect } from 'react-redux';
 import TokenIcon from '../Swaps/components/TokenIcon';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../../../selectors/networkController';
 
 function NetworkMainAssetLogo({ chainId, ticker, style, big, biggest }) {
-  if (chainId === ChainId.mainnet) {
+  if (chainId === NetworksChainId.mainnet) {
     return (
       <TokenIcon big={big} biggest={biggest} symbol={'ETH'} style={style} />
     );

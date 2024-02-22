@@ -127,7 +127,7 @@ Array [
         }
       >
         <SvgMock
-          color="#FFFFFF"
+          color="#FCFCFC"
           height={20}
           name="SwapVertival"
           style={

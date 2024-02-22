@@ -69,14 +69,10 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
-import { DEPRECATED_NETWORKS } from '../../../constants/network';
+import { addHexPrefix, toHexadecimal } from '../../../util/number';
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
-import {
-  updateIncomingTransactions,
-  startIncomingTransactionPolling,
-  stopIncomingTransactionPolling,
-} from '../../../util/transaction-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsExecutionWebView } from '../../UI/SnapsExecutionWebView';
 ///: END:ONLY_INCLUDE_IF
@@ -115,20 +111,13 @@ const Main = (props) => {
   useMinimumVersions();
 
   useEffect(() => {
-    if (DEPRECATED_NETWORKS.includes(props.chainId)) {
-      setShowDeprecatedAlert(true);
-    } else {
-      setShowDeprecatedAlert(false);
-    }
-  }, [props.chainId]);
+    const { TransactionController } = Engine.context;
+    const currentHexChainId = addHexPrefix(toHexadecimal(props.chainId));
 
-  useEffect(() => {
-    const chainId = props.chainId;
-
-    if (props.showIncomingTransactionsNetworks[chainId]) {
-      startIncomingTransactionPolling();
+    if (props.showIncomingTransactionsNetworks[currentHexChainId]) {
+      TransactionController.startIncomingTransactionPolling();
     } else {
-      stopIncomingTransactionPolling();
+      TransactionController.stopIncomingTransactionPolling();
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
@@ -173,6 +162,7 @@ const Main = (props) => {
   const handleAppStateChange = useCallback(
     (appState) => {
       const newModeIsBackground = appState === 'background';
+      const { TransactionController } = Engine.context;
 
       // If it was in background and it's not anymore
       // we need to stop the Background timer
@@ -188,7 +178,7 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions();
+          await TransactionController.updateIncomingTransactions();
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
@@ -344,7 +334,7 @@ const Main = (props) => {
   };
 
   const renderDeprecatedNetworkAlert = (chainId, backUpSeedphraseVisible) => {
-    if (DEPRECATED_NETWORKS.includes(chainId) && showDeprecatedAlert) {
+    if (chainId === NETWORKS_CHAIN_ID.GOERLI && showDeprecatedAlert) {
       return (
         <WarningAlert
           text={strings('networks.deprecated_goerli')}

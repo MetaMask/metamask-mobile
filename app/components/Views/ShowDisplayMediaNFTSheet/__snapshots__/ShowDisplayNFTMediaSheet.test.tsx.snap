@@ -602,7 +602,7 @@ exports[`ShowNftSheet should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   Object {
-                                    "color": "#FFFFFF",
+                                    "color": "#FCFCFC",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 14,
                                     "fontWeight": "400",

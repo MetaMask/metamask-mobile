@@ -32,7 +32,6 @@ describe('getCachedENSName', () => {
 
   it('returns a cached ENS name', () => {
     const networkId = '1';
-    const chainId = '0x1';
     ENSCache.cache = {
       [`${networkId}${mockAddress}`]: {
         name: 'cachedname.metamask.eth',
@@ -40,7 +39,7 @@ describe('getCachedENSName', () => {
       },
     };
 
-    expect(getCachedENSName(mockAddress, chainId)).toBe(
+    expect(getCachedENSName(mockAddress, networkId)).toBe(
       'cachedname.metamask.eth',
     );
   });

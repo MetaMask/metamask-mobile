@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useEffect, useRef } from 'react';
-import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';

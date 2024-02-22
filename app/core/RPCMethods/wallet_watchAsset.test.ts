@@ -15,7 +15,7 @@ jest.mock('../Engine', () => ({
       state: {
         networkConfigurations: {},
         providerConfig: {
-          chainId: '0x1',
+          chainId: '1',
         },
       },
     },
@@ -56,7 +56,7 @@ jest.mock('../../store', () => ({
           NetworkController: {
             networkConfigurations: {},
             providerConfig: {
-              chainId: '0x1',
+              chainId: '1',
             },
           },
         },

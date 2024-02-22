@@ -232,23 +232,13 @@ jest.mock('../theme', () => ({
   useAppThemeFromContext: () => ({ ...mockTheme }),
 }));
 
-global.segmentMockClient = null;
-
-const initializeMockClient = () => {
-  global.segmentMockClient = {
-    screen: jest.fn(),
-    track: jest.fn(),
-    identify: jest.fn(),
-    flush: jest.fn(),
-    group: jest.fn(),
-    alias: jest.fn(),
-    reset: jest.fn(),
-  };
-  return global.segmentMockClient;
-};
-
 jest.mock('@segment/analytics-react-native', () => ({
-  createClient: jest.fn(() => initializeMockClient()),
+  ...jest.requireActual('@segment/analytics-react-native'),
+  createClient: () => ({
+    identify: jest.fn(),
+    track: jest.fn(),
+    group: jest.fn(),
+  }),
 }));
 
 jest.mock('react-native-push-notification', () => ({

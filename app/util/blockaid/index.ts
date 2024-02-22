@@ -1,7 +1,7 @@
 import {
   ResultType,
   SecurityAlertResponse,
-} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
 import { BLOCKAID_SUPPORTED_CHAIN_IDS, getDecimalChainId } from '../networks';
 import { store } from '../../store';
 import { selectChainId } from '../../selectors/networkController';

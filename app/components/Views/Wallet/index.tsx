@@ -6,7 +6,7 @@ import {
   View,
   TextStyle,
 } from 'react-native';
-import type { Theme } from '@metamask/design-tokens';
+import { Theme } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -14,12 +14,7 @@ import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import {
-  renderFromWei,
-  weiToFiat,
-  hexToBN,
-  toHexadecimal,
-} from '../../../util/number';
+import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import Analytics from '../../../core/Analytics/Analytics';
@@ -32,7 +27,6 @@ import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  getDecimalChainId,
   getNetworkImageSource,
   getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
@@ -48,7 +42,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
+import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const createStyles = ({ colors, typography }: Theme) =>
@@ -94,12 +88,10 @@ const Wallet = ({ navigation }: any) => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const { colors } = theme;
-
   /**
-   * Map of accountsByChainId to information objects including balances
+   * Map of accounts to information objects including balances
    */
-  const accountsByChainId = useSelector(selectAccountsByChainId);
-
+  const accounts = useSelector(selectAccounts);
   /**
    * ETH to current currency conversion rate
    */
@@ -153,7 +145,7 @@ const Wallet = ({ navigation }: any) => {
     Analytics.trackEventWithParameters(
       MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
       {
-        chain_id: getDecimalChainId(providerConfig.chainId),
+        chain_id: providerConfig.chainId,
       },
     );
   }, [navigate, providerConfig.chainId]);
@@ -196,7 +188,7 @@ const Wallet = ({ navigation }: any) => {
       });
     },
     /* eslint-disable-next-line */
-    [navigation, providerConfig.chainId],
+    [navigation],
   );
 
   useEffect(() => {
@@ -244,17 +236,8 @@ const Wallet = ({ navigation }: any) => {
   const renderContent = useCallback(() => {
     let balance: any = 0;
     let assets = tokens;
-
-    if (
-      accountsByChainId?.[toHexadecimal(providerConfig.chainId)]?.[
-        selectedAddress
-      ]
-    ) {
-      balance = renderFromWei(
-        accountsByChainId[toHexadecimal(providerConfig.chainId)][
-          selectedAddress
-        ].balance,
-      );
+    if (accounts[selectedAddress]) {
+      balance = renderFromWei(accounts[selectedAddress].balance);
 
       assets = [
         {
@@ -264,11 +247,7 @@ const Wallet = ({ navigation }: any) => {
           isETH: true,
           balance,
           balanceFiat: weiToFiat(
-            hexToBN(
-              accountsByChainId[toHexadecimal(providerConfig.chainId)][
-                selectedAddress
-              ].balance,
-            ) as any,
+            hexToBN(accounts[selectedAddress].balance) as any,
             conversionRate,
             currentCurrency,
           ),
@@ -312,6 +291,7 @@ const Wallet = ({ navigation }: any) => {
     );
   }, [
     renderTabBar,
+    accounts,
     conversionRate,
     currentCurrency,
     navigation,
@@ -320,8 +300,6 @@ const Wallet = ({ navigation }: any) => {
     ticker,
     tokens,
     styles,
-    providerConfig.chainId,
-    accountsByChainId,
   ]);
   const renderLoader = useCallback(
     () => (

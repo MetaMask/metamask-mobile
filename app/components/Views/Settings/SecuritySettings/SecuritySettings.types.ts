@@ -31,7 +31,8 @@ export interface NetworksI {
     imageSource?: ImageSourcePropType;
     shortName: string;
     networkId?: number;
-    chainId?: string;
+    chainId?: number;
+    hexChainId?: string;
     color: string;
     networkType: string;
   };
