@@ -61,7 +61,7 @@ exports[`Coachmark should render correctly 1`] = `
       }
     >
       <ButtonIcon
-        iconColorOverride="#FCFCFC"
+        iconColorOverride="#FFFFFF"
         iconName="Arrow2Left"
         onPress={[Function]}
         size="16"
@@ -71,7 +71,7 @@ exports[`Coachmark should render correctly 1`] = `
         style={
           Object {
             "alignSelf": "center",
-            "color": "#FCFCFC",
+            "color": "#FFFFFF",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "600",
@@ -81,7 +81,7 @@ exports[`Coachmark should render correctly 1`] = `
         title
       </Text>
       <ButtonIcon
-        iconColorOverride="#FCFCFC"
+        iconColorOverride="#FFFFFF"
         iconName="Close"
         size="16"
       />
@@ -106,7 +106,7 @@ exports[`Coachmark should render correctly 1`] = `
         <Text
           style={
             Object {
-              "color": "#FCFCFC",
+              "color": "#FFFFFF",
             }
           }
         >

@@ -198,8 +198,7 @@ buildAndroidRunFlask(){
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM"
+	react-native run-ios --port=$WATCHER_PORT
 }
 
 buildIosSimulatorQA(){
@@ -327,8 +326,7 @@ buildIosReleaseE2E(){
 buildIosQA(){
 	prebuild_ios
 
-  echo "Start QA build..."
-  echo "BITRISE_GIT_BRANCH: $BITRISE_GIT_BRANCH"
+  	echo "Start QA build..."
 
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
@@ -403,7 +401,7 @@ buildAndroidRelease(){
 buildAndroidFlaskRelease(){
 	# remap flask env variables to match what the app expects
 	remapFlaskEnvVariables
-	
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.flask || true
 	fi

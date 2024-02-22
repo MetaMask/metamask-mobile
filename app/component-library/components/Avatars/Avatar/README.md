@@ -1,4 +1,4 @@
-# Avatar
+# [Avatar](https://metamask-consensys.notion.site/Avatar-3c55358131914c589ed1e6d21d14a04f)
 
 ![Avatar](./Avatar.png)
 
