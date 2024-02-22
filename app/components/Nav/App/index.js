@@ -100,7 +100,7 @@ import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatew
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
 import { MetaMetrics } from '../../../core/Analytics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -239,7 +239,6 @@ const App = ({ userLoggedIn }) => {
   const queueOfHandleDeeplinkFunctions = useRef([]);
   const [animationPlayed, setAnimationPlayed] = useState(false);
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef(false);
@@ -278,14 +277,10 @@ const App = ({ userLoggedIn }) => {
           );
         }
         await Authentication.lockApp(false);
-        trackEvent(
-          { category: 'Error occurred' },
-          {
-            error: true,
-            type: 'App: Max Attempts Reached',
-            errorMessage: error?.message,
-            otherInfo: `Unlock attempts: 1`,
-          },
+        trackErrorAsAnalytics(
+          'App: Max Attempts Reached',
+          error?.message,
+          `Unlock attempts: 1`,
         );
       } finally {
         animationRef?.current?.play();
@@ -301,31 +296,23 @@ const App = ({ userLoggedIn }) => {
       .catch((error) => {
         Logger.error(error, 'App: Error in appTriggeredAuth');
       });
-  }, [navigator, queueOfHandleDeeplinkFunctions, trackEvent]);
+  }, [navigator, queueOfHandleDeeplinkFunctions]);
 
-  const handleDeeplink = useCallback(
-    ({ error, params, uri }) => {
-      if (error) {
-        trackEvent(
-          { category: 'Error occurred' },
-          {
-            errorMessage: 'Branch:',
-          },
-        );
+  const handleDeeplink = useCallback(({ error, params, uri }) => {
+    if (error) {
+      trackErrorAsAnalytics(error, 'Branch:');
+    }
+    const deeplink = params?.['+non_branch_link'] || uri || null;
+    try {
+      if (deeplink) {
+        SharedDeeplinkManager.parse(deeplink, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        });
       }
-      const deeplink = params?.['+non_branch_link'] || uri || null;
-      try {
-        if (deeplink) {
-          SharedDeeplinkManager.parse(deeplink, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-          });
-        }
-      } catch (e) {
-        Logger.error(e, `Deeplink: Error parsing deeplink`);
-      }
-    },
-    [trackEvent],
-  );
+    } catch (e) {
+      Logger.error(e, `Deeplink: Error parsing deeplink`);
+    }
+  }, []);
 
   // on Android devices, this creates a listener
   // to deeplinks used to open the app
