@@ -51,7 +51,6 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
-      - set_build_variables: {}
       # - build_smoke_e2e_ios_android_stage: {}
       # - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
@@ -267,19 +266,6 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: standard
 
-  set_build_url_env_var:
-    steps:
-      - script@1:
-          title: Add pipeline build url as env var
-          inputs:
-            - content: |-
-                envman add --key BITRISE_PIPELINE_BUILD_URL --value "${BITRISE_BUILD_URL}"
-      - share-pipeline-variable@1:
-          title: Persist pipeline build url env var
-          inputs:
-            - variables: |-
-                BITRISE_PIPELINE_BUILD_URL
-
   # Send a Slack message when workflow succeeds
   notify_success:
     before_run:
@@ -290,7 +276,7 @@ workflows:
           inputs:
             - personal_access_token: '$GITHUB_ACCESS_TOKEN'
             - body: |-
-                Bitrise E2E smoke tests passed ✅: ${BITRISE_PIPELINE_BUILD_URL}
+                Bitrise E2E smoke tests passed ✅: ${BITRISEIO_PIPELINE_BUILD_URL}
             - repository_url: '$GIT_REPOSITORY_URL'
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
