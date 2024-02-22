@@ -14,6 +14,8 @@ import { TagColoredProps } from './TagColored.types';
 import {
   DEFAULT_TAGCOLORED_COLOR,
   DEFAULT_TAGCOLORED_TEXTVARIANT,
+  TAGCOLORED_TESTID,
+  TAGCOLORED_TEXT_TESTID,
 } from './TagColored.constants';
 
 const TagColored: React.FC<TagColoredProps> = ({
@@ -23,9 +25,13 @@ const TagColored: React.FC<TagColoredProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, color });
   return (
-    <View style={styles.base}>
+    <View style={styles.base} testID={TAGCOLORED_TESTID}>
       {typeof children === 'string' ? (
-        <Text variant={DEFAULT_TAGCOLORED_TEXTVARIANT} style={styles.text}>
+        <Text
+          variant={DEFAULT_TAGCOLORED_TEXTVARIANT}
+          style={styles.text}
+          testID={TAGCOLORED_TEXT_TESTID}
+        >
           {children}
         </Text>
       ) : (
