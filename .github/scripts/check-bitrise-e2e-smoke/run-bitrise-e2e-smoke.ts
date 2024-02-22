@@ -40,6 +40,11 @@ async function main(): Promise<void> {
           value: `${pullRequestNumber}`,
           is_expand: true,
         },
+        {
+          mapped_to: 'TRIGGERED_BY_LABEL',
+          value: `true`,
+          is_expand: true,
+        },
       ],
       commit_message: `Triggered by (${workflowName}) workflow in ${pullRequestLink}`,
     },
