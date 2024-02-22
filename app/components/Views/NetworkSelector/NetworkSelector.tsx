@@ -52,6 +52,7 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { updateIncomingTransactions } from '../../../util/transaction-controller';
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
@@ -70,7 +71,6 @@ const NetworkSelector = () => {
     const {
       NetworkController,
       CurrencyRateController,
-      TransactionController,
       AccountTrackerController,
     } = Engine.context;
 
@@ -79,7 +79,7 @@ const NetworkSelector = () => {
     AccountTrackerController.refresh();
 
     setTimeout(async () => {
-      await TransactionController.updateIncomingTransactions();
+      await updateIncomingTransactions();
     }, 1000);
 
     sheetRef.current?.onCloseBottomSheet();

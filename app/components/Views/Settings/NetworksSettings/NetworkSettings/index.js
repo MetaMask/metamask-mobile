@@ -9,6 +9,8 @@ import {
   Linking,
 } from 'react-native';
 import { connect } from 'react-redux';
+import { isSafeChainId, toHex } from '@metamask/controller-utils';
+
 import {
   fontStyles,
   colors as staticColors,
@@ -64,7 +66,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { isSafeChainId, toHex } from '@metamask/controller-utils';
+import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -777,14 +779,13 @@ class NetworkSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController, CurrencyRateController, TransactionController } =
-      Engine.context;
+    const { NetworkController, CurrencyRateController } = Engine.context;
 
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
-      await TransactionController.updateIncomingTransactions();
+      await updateIncomingTransactions();
     }, 1000);
   };
 
