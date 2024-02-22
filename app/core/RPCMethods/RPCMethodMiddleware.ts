@@ -456,7 +456,6 @@ export const getRpcMethodMiddleware = ({
         } else {
           try {
             checkTabActive();
-            // await Engine.context.ApprovalController.clear();
             await Engine.context.PermissionController.requestPermissions(
               { origin: channelId ?? validHostname },
               { eth_accounts: {} },

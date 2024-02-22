@@ -28,7 +28,7 @@ export const setupBridge = ({
     isMMSDK: true,
     channelId: connection.channelId,
     url:
-      PROTOCOLS.METAMASK + '://' + originatorInfo.url ?? originatorInfo.title,
+      PROTOCOLS.METAMASK + '://' + originatorInfo.url || originatorInfo.title,
     isRemoteConn: true,
     sendMessage: (msg: any) => {
       DevLogger.log(`setupBride::sendMessage`, msg);

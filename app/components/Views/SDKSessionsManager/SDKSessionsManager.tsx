@@ -28,14 +28,6 @@ import SDKSessionItem from './SDKSessionItem';
 
 interface SDKSessionsManagerProps {
   navigation: StackNavigationProp<any>;
-  routes: {
-    SDKSessionsManager: {
-      screen: string;
-      params: {
-        trigger?: number;
-      };
-    };
-  };
 }
 
 const createStyles = (
