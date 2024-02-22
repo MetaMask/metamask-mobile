@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import Button from './';
 
 describe('Button', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<Button />);
+    const wrapper = render(<Button />);
     expect(wrapper).toMatchSnapshot();
   });
 });

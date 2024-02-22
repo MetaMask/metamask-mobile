@@ -1,6 +1,6 @@
 import React from 'react';
 import NavigationUnitTest from '.';
-import { render } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 describe('NavigationUnitTest', () => {
   it('should render correctly', () => {

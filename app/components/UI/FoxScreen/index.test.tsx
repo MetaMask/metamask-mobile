@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import FoxScreen from './';
 
 describe('FoxScreen', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<FoxScreen />);
+    const wrapper = render(<FoxScreen />);
     expect(wrapper).toMatchSnapshot();
   });
 });
