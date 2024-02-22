@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import ErrorMessage from '.';
 
 describe('ErrorMessage', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<ErrorMessage errorMessage={'error'} />);
+    const wrapper = render(<ErrorMessage errorMessage={'error'} />);
     expect(wrapper).toMatchSnapshot();
   });
 });

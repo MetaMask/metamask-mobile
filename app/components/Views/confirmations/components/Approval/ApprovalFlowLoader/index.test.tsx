@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import ApprovalFlowLoader from '.';
 
 describe('ApprovalFlowLoader', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<ApprovalFlowLoader />);
+    const wrapper = render(<ApprovalFlowLoader />);
     expect(wrapper).toMatchSnapshot();
   });
 });

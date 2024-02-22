@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import WalletConnectSessions from './';
 
 describe('WalletConnectSessions', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <WalletConnectSessions navigation={{ setOptions: () => null }} />,
     );
 
