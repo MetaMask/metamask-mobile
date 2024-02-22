@@ -1,43 +1,32 @@
+import TestHelpers from '../../helpers';
 import {
-  TransactionDetailsModalSelectorsText,
-  TransactionDetailsModalSelectorsIDs,
-} from '../../selectors/Modals/TransactionDetailsModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
-import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
+  DETAILS_MODAL_TITLE,
+  DETAILS_MODAL_STATUS_CONFIRMED,
+  DETAILS_MODAL_CLOSE_ICON,
+} from '../../../wdio/screen-objects/testIDs/Components/DetailsModal.js';
+import { TransactionDetailsModalSelectorsText } from '../../selectors/Modals/TransactionDetailsModal.selectors';
 
-class DetailsModal {
-  get title() {
-    return Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.TITLE);
-  }
-
-  get closeIcon() {
-    return Matchers.getElementByID(
-      TransactionDetailsModalSelectorsIDs.CLOSE_ICON,
-    );
-  }
-
-  get statusConfirmed() {
-    return Matchers.getElementIDWithAncestor(
-      CommonSelectorsIDs.STATUS_CONFIRMED,
-      TransactionDetailsModalSelectorsIDs.BODY,
-    );
-  }
-
-  generateExpectedTitle(sourceToken, destinationToken) {
+export default class DetailsModal {
+  static async isTitleVisible(sourceToken, destinationToken) {
     let title = TransactionDetailsModalSelectorsText.TITLE;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
-    return title;
+    await TestHelpers.checkIfElementHasString(DETAILS_MODAL_TITLE, title);
   }
 
-  async tapOnCloseIcon() {
+  static async isStatusCorrect(status) {
+    await TestHelpers.checkIfElementHasString(
+      DETAILS_MODAL_STATUS_CONFIRMED,
+      status,
+    );
+  }
+
+  static async tapOnCloseIcon() {
     try {
-      await Gestures.waitAndTap(this.closeIcon);
+      await TestHelpers.waitAndTap(DETAILS_MODAL_CLOSE_ICON);
+      await TestHelpers.delay(1000);
     } catch {
       //
     }
   }
 }
-
-export default new DetailsModal();

@@ -366,13 +366,6 @@ class Login extends PureComponent {
     );
 
     try {
-      // Log to provide insights into bug research.
-      // Check https://github.com/MetaMask/mobile-planning/issues/1507
-      const { selectedAddress } = this.props;
-      if (typeof selectedAddress !== 'string') {
-        Logger.error('Login error', 'selectedAddress is not a string');
-      }
-
       await Authentication.userEntryAuth(
         password,
         authType,
@@ -442,12 +435,6 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
-      // Log to provide insights into bug research.
-      // Check https://github.com/MetaMask/mobile-planning/issues/1507
-      const { selectedAddress } = this.props;
-      if (typeof selectedAddress !== 'string') {
-        Logger.error('unlockKeychain error', 'selectedAddress is not a string');
-      }
       await Authentication.appTriggeredAuth({
         selectedAddress: this.props.selectedAddress,
       });

@@ -782,7 +782,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     Object {
-                                      "color": "#FFFFFF",
+                                      "color": "#FCFCFC",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 16,
                                       "fontWeight": "500",
@@ -1509,7 +1509,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   accessibilityRole="text"
                                   style={
                                     Object {
-                                      "color": "#FFFFFF",
+                                      "color": "#FCFCFC",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 16,
                                       "fontWeight": "500",
@@ -2320,7 +2320,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     Object {
-                                      "color": "#FFFFFF",
+                                      "color": "#FCFCFC",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 16,
                                       "fontWeight": "500",

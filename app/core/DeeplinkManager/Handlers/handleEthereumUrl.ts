@@ -5,7 +5,6 @@ import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import DeeplinkManager from '../DeeplinkManager';
 import formattedDeeplinkParsedValue from '../../../util/formattedDeeplinkParsedValue';
-import { getDecimalChainId } from '../../../util/networks';
 
 async function handleEthereumUrl({
   deeplinkManager,
@@ -69,7 +68,7 @@ async function handleEthereumUrl({
         break;
       default:
         alertMessage = strings('send.network_not_found_description', {
-          chain_id: getDecimalChainId(ethUrl.chain_id),
+          chain_id: ethUrl.chain_id,
         });
     }
     Alert.alert(strings('send.network_not_found_title'), alertMessage);

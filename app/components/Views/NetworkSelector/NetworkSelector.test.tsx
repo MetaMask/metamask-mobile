@@ -55,18 +55,18 @@ const initialState = {
           type: 'mainnet',
           nickname: 'Ethereum mainnet',
           ticket: 'eth',
-          chainId: '0x1',
+          chainId: '1',
         },
         networkConfigurations: {
           networkId1: {
-            chainId: '0xa86a',
+            chainId: '43114',
             nickname: 'Avalanche Mainnet C-Chain',
             rpcPrefs: { blockExplorerUrl: 'https://snowtrace.io' },
             rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
             ticker: 'AVAX',
           },
           networkId2: {
-            chainId: '0x89',
+            chainId: '137',
             nickname: 'Polygon Mainnet',
             rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
             rpcUrl:
@@ -74,7 +74,7 @@ const initialState = {
             ticker: 'MATIC',
           },
           networkId3: {
-            chainId: '0xa',
+            chainId: '10',
             nickname: 'Optimism',
             rpcPrefs: { blockExplorerUrl: 'https://optimistic.etherscan.io' },
             rpcUrl:
@@ -82,7 +82,7 @@ const initialState = {
             ticker: 'ETH',
           },
           networkId4: {
-            chainId: '0x64',
+            chainId: '100',
             nickname: 'Gnosis Chain',
             rpcPrefs: {
               blockExplorerUrl: 'https://blockscout.com/xdai/mainnet/',
@@ -104,8 +104,8 @@ const initialState = {
         },
       },
       NftController: {
-        allNfts: { '0x': { '0x1': [] } },
-        allNftContracts: { '0x': { '0x1': [] } },
+        allNfts: { '0x': { '1': [] } },
+        allNftContracts: { '0x': { '1': [] } },
       },
     },
   },
@@ -160,7 +160,7 @@ describe('Network Selector', () => {
               type: 'mainnet',
               nickname: 'Goerli mainnet',
               ticket: 'eth',
-              chainId: '0x5',
+              chainId: '5',
             },
           },
         },

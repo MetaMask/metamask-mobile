@@ -1910,7 +1910,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],
@@ -2425,7 +2425,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           Array [
                                             Object {
-                                              "color": "#1C8234",
+                                              "color": "#28A745",
                                               "fontSize": 32,
                                             },
                                             undefined,
@@ -3864,7 +3864,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],
@@ -7685,7 +7685,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],
@@ -10686,7 +10686,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],
@@ -12678,7 +12678,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                               "textAlign": "center",
                                             },
                                             Object {
-                                              "color": "#FFFFFF",
+                                              "color": "#FCFCFC",
                                             },
                                             undefined,
                                           ],
@@ -13194,7 +13194,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           Array [
                                             Object {
-                                              "color": "#1C8234",
+                                              "color": "#28A745",
                                               "fontSize": 32,
                                             },
                                             undefined,
@@ -14741,7 +14741,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],

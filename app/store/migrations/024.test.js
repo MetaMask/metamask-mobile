@@ -67,12 +67,12 @@ describe('Migration #24', () => {
     expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
       networkConfigurations: {},
       networkDetails: {
-        EIPS: {},
+        isEIP1559Compatible: false,
       },
       networkId: null,
       networkStatus: 'unknown',
       providerConfig: {
-        chainId: '0x1',
+        chainId: '1',
         type: 'mainnet',
       },
     });
@@ -94,12 +94,12 @@ describe('Migration #24', () => {
     expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
       networkConfigurations: {},
       networkDetails: {
-        EIPS: {},
+        isEIP1559Compatible: false,
       },
       networkId: '1',
       networkStatus: 'available',
       providerConfig: {
-        chainId: '0x1',
+        chainId: '1',
         type: 'mainnet',
       },
     });

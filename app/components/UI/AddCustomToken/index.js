@@ -20,7 +20,7 @@ import AnalyticsV2 from '../../../util/analyticsV2';
 import AppConstants from '../../../core/AppConstants';
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import WarningMessage from '../../Views/confirmations/SendFlow/WarningMessage';
+import WarningMessage from '../../Views/SendFlow/WarningMessage';
 import NotificationManager from '../../../core/NotificationManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -35,7 +35,6 @@ import {
 import { NFT_IDENTIFIER_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { regex } from '../../../../app/util/regex';
 import { AddCustomTokenViewSelectorsIDs } from '../../../../e2e/selectors/AddCustomTokenView.selectors';
-import { getDecimalChainId } from '../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -113,7 +112,7 @@ export default class AddCustomToken extends PureComponent {
       return {
         token_address: address,
         token_symbol: symbol,
-        chain_id: getDecimalChainId(chainId),
+        chain_id: chainId,
         source: 'Custom token',
       };
     } catch (error) {

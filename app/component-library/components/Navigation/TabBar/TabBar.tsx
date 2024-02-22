@@ -15,7 +15,6 @@ import { useTheme } from '../../../../util/theme';
 import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectChainId } from '../../../../selectors/networkController';
-import { getDecimalChainId } from '../../../../util/networks';
 
 // Internal dependencies.
 import { TabBarProps } from './TabBar.types';
@@ -77,7 +76,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
               MetaMetricsEvents.ACTIONS_BUTTON_CLICKED,
               {
                 text: '',
-                chain_id: getDecimalChainId(chainId),
+                chain_id: chainId,
               },
             );
             break;

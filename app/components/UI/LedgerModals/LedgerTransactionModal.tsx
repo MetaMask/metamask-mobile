@@ -10,7 +10,6 @@ import {
 } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import { useAppThemeFromContext, mockTheme } from '../../../util/theme';
-import { speedUpTransaction } from '../../../util/transaction-controller';
 
 export const createLedgerTransactionModalNavDetails =
   createNavigationDetails<LedgerTransactionModalParams>(
@@ -50,7 +49,10 @@ const LedgerTransactionModal = () => {
 
   const executeOnLedger = useCallback(async () => {
     if (replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
-      await speedUpTransaction(transactionId, replacementParams.eip1559GasFee);
+      await TransactionController.speedUpTransaction(
+        transactionId,
+        replacementParams.eip1559GasFee,
+      );
     } else if (replacementParams?.type === LedgerReplacementTxTypes.CANCEL) {
       await TransactionController.stopTransaction(
         transactionId,

@@ -1,5 +1,5 @@
 import Engine from '../../core/Engine';
-import { SEPOLIA } from '../../constants/network';
+import { NETWORKS_CHAIN_ID, SEPOLIA } from '../../constants/network';
 import { store } from '../../store';
 import handleNetworkSwitch from './handleNetworkSwitch';
 
@@ -35,17 +35,17 @@ function setupGetStateMock() {
               networkConfigurations: {
                 networkId1: {
                   rpcUrl: 'custom-testnet-rpc-url',
-                  chainId: '0x53a',
+                  chainId: '1338',
                   ticker: 'TEST',
                   nickname: 'Testnet',
                 },
               },
               providerConfig: {
                 type: 'mainnet',
-                chainId: '0x1',
+                chainId: '1',
               },
               networkDetails: {
-                EIPS: { 1559: false },
+                isEIP1559Compatible: false,
               },
             },
           },
@@ -123,7 +123,7 @@ describe('useHandleNetworkSwitch', () => {
   it('switches to a built-in network', () => {
     setupGetStateMock();
 
-    const networkType = handleNetworkSwitch('11155111');
+    const networkType = handleNetworkSwitch(NETWORKS_CHAIN_ID.SEPOLIA);
 
     // TODO: This is a bug, it should be set to SepoliaETH
     expect(

@@ -13,7 +13,7 @@ import {
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import { permissionRpcMethods } from '@metamask/permission-controller';
 import Networks, {
   blockTagParamIndex,
@@ -39,7 +39,6 @@ import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import { addTransaction } from '../../util/transaction-controller';
 
 const Engine = ImportedEngine as any;
 
@@ -132,7 +131,7 @@ export const checkActiveAccountAndChainId = async ({
     let activeChainId;
 
     if (isInitialNetwork) {
-      activeChainId = ChainId[networkType as keyof typeof ChainId];
+      activeChainId = NetworksChainId[networkType];
     } else if (networkType === RPC) {
       activeChainId = providerConfig.chainId;
     }
@@ -393,16 +392,15 @@ export const getRpcMethodMiddleware = ({
         let chainId;
 
         if (isInitialNetwork) {
-          chainId = ChainId[networkType as keyof typeof ChainId];
+          chainId = NetworksChainId[networkType];
         } else if (networkType === RPC) {
           chainId = providerConfig.chainId;
         }
 
         if (chainId && !chainId.startsWith('0x')) {
-          chainId = toHex(chainId);
+          // Convert to hex
+          res.result = `0x${parseInt(chainId, 10).toString(16)}`;
         }
-
-        res.result = chainId;
       },
       eth_hashrate: () => {
         res.result = '0x00';
@@ -481,6 +479,7 @@ export const getRpcMethodMiddleware = ({
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
+        const { TransactionController } = Engine.context;
 
         if (isMMSDK) {
           // Append origin to the request so it can be parsed in UI TransactionHeader
@@ -496,7 +495,9 @@ export const getRpcMethodMiddleware = ({
           hostname,
           req,
           res,
-          sendTransaction: addTransaction,
+          sendTransaction: TransactionController.addTransaction.bind(
+            TransactionController,
+          ),
           validateAccountAndChainId: async ({
             from,
             chainId,

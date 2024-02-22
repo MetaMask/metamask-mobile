@@ -1,40 +1,38 @@
+import TestHelpers from '../../helpers';
 import {
   DeleteWalletModalSelectorsIDs,
   DeleteWalletModalSelectorsText,
 } from '../../selectors/Modals/DeleteWalletModal.selectors';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
+import { CommonSelectorsText } from '../../selectors/Common.selectors';
 
-class DeleteWalletModal {
-  get container() {
-    return Matchers.getElementByID(DeleteWalletModalSelectorsIDs.CONTAINER);
-  }
-
-  get understandButton() {
-    return Matchers.getElementByText(
+export default class DeleteWalletModal {
+  static async tapIUnderstandButton() {
+    await TestHelpers.delay(2000);
+    await TestHelpers.tapByText(
       DeleteWalletModalSelectorsText.UNDERSTAND_BUTTON,
     );
   }
 
-  get deleteWalletButton() {
-    return Matchers.getElementByText(DeleteWalletModalSelectorsText.DELETE_MY);
+  static async tapCancelButton() {
+    await TestHelpers.tapByText(CommonSelectorsText.CANCEL_BUTTON);
+  }
+  static async tapDeleteMyWalletButton() {
+    await TestHelpers.tapByText(DeleteWalletModalSelectorsText.DELETE_MY);
+  }
+  static async typeDeleteInInputBox() {
+    await TestHelpers.typeTextAndHideKeyboard(
+      DeleteWalletModalSelectorsIDs.INPUT,
+      'delete',
+    );
   }
 
-  get deleteInput() {
-    return Matchers.getElementByID(DeleteWalletModalSelectorsIDs.INPUT);
+  static async isVisible() {
+    await TestHelpers.checkIfVisible(DeleteWalletModalSelectorsIDs.CONTAINER);
   }
 
-  async tapIUnderstandButton() {
-    await Gestures.waitAndTap(this.understandButton);
-  }
-
-  async tapDeleteMyWalletButton() {
-    await Gestures.waitAndTap(this.deleteWalletButton);
-  }
-
-  async typeDeleteInInputBox() {
-    await Gestures.typeTextAndHideKeyboard(this.deleteInput, 'delete');
+  static async isNotVisible() {
+    await TestHelpers.checkIfNotVisible(
+      DeleteWalletModalSelectorsIDs.CONTAINER,
+    );
   }
 }
-
-export default new DeleteWalletModal();

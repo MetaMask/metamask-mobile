@@ -2030,7 +2030,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#FFFFFF",
+                                          "color": "#FCFCFC",
                                         },
                                         undefined,
                                       ],
@@ -4088,7 +4088,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#FFFFFF",
+                                          "color": "#FCFCFC",
                                         },
                                         undefined,
                                       ],
@@ -6221,7 +6221,7 @@ If you selected Chile by mistake, click the button below to reset your region.
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],
@@ -6926,7 +6926,7 @@ If you selected Chile by mistake, click the button below to reset your region.
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],
@@ -7629,7 +7629,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],
@@ -11175,7 +11175,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#FFFFFF",
+                                          "color": "#FCFCFC",
                                         },
                                         undefined,
                                       ],
@@ -11877,7 +11877,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],
@@ -13913,7 +13913,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#FFFFFF",
+                                          "color": "#FCFCFC",
                                         },
                                         undefined,
                                       ],

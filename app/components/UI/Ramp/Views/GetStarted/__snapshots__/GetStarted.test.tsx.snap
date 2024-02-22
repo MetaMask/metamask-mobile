@@ -642,7 +642,7 @@ exports[`GetStarted renders correctly 1`] = `
                                         "textAlign": "center",
                                       },
                                       Object {
-                                        "color": "#FFFFFF",
+                                        "color": "#FCFCFC",
                                       },
                                       undefined,
                                     ],
@@ -1311,7 +1311,7 @@ exports[`GetStarted renders correctly 2`] = `
                                         "textAlign": "center",
                                       },
                                       Object {
-                                        "color": "#FFFFFF",
+                                        "color": "#FCFCFC",
                                       },
                                       undefined,
                                     ],
@@ -2428,7 +2428,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],

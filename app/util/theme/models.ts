@@ -1,4 +1,4 @@
-import type { Theme as DesignTokenTheme } from '@metamask/design-tokens';
+import { Theme as DesignTokenTheme } from '@metamask/design-tokens';
 import { default as TempBrandColors } from './temp-tokens/brandColors.types';
 
 export enum AppThemeKey {

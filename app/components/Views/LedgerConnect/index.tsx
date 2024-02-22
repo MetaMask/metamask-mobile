@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
-import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { useDispatch } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -116,7 +115,7 @@ const LedgerConnect = () => {
   const theme = useAppThemeFromContext() ?? mockTheme;
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
+  const [selectedDevice, setSelectedDevice] = useState<any>(null);
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const [loading, setLoading] = useState(false);
   const [retryTimes, setRetryTimes] = useState(0);
@@ -141,7 +140,7 @@ const LedgerConnect = () => {
       device_type: 'Ledger',
     });
     ledgerLogicToRun(async () => {
-      const account = await unlockLedgerDefaultAccount(true);
+      const account = await unlockLedgerDefaultAccount();
       await AccountTrackerController.syncBalanceWithAddresses([account]);
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: 'Ledger',
@@ -165,7 +164,7 @@ const LedgerConnect = () => {
   };
 
   const openHowToInstallEthApp = () => {
-    navigation.navigate('Webview', {
+    navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: LEDGER_SUPPORT_LINK,
@@ -323,7 +322,7 @@ const LedgerConnect = () => {
                 type="confirm"
                 onPress={connectLedger}
                 testID={'add-network-button'}
-                disabled={loading || isSendingLedgerCommands}
+                disabled={isSendingLedgerCommands}
               >
                 {loading || isSendingLedgerCommands ? (
                   <ActivityIndicator color={styles.loader.color} />

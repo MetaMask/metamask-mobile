@@ -29,7 +29,6 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import { getDecimalChainId } from '../../../util/networks';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -103,7 +102,7 @@ const AddCustomCollectible = ({
   const getAnalyticsParams = () => {
     try {
       return {
-        chain_id: getDecimalChainId(chainId),
+        chain_id: chainId,
       };
     } catch (error) {
       return {};

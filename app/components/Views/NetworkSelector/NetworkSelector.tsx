@@ -25,7 +25,6 @@ import { selectShowTestNetworks } from '../../../selectors/preferencesController
 import Networks, {
   compareRpcUrls,
   getAllNetworks,
-  getDecimalChainId,
   getNetworkImageSource,
   isTestNet,
 } from '../../../util/networks';
@@ -52,7 +51,6 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
@@ -68,24 +66,20 @@ const NetworkSelector = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const onNetworkChange = (type: string) => {
-    const {
-      NetworkController,
-      CurrencyRateController,
-      AccountTrackerController,
-    } = Engine.context;
+    const { NetworkController, CurrencyRateController, TransactionController } =
+      Engine.context;
 
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(type);
-    AccountTrackerController.refresh();
 
     setTimeout(async () => {
-      await updateIncomingTransactions();
+      await TransactionController.updateIncomingTransactions();
     }, 1000);
 
     sheetRef.current?.onCloseBottomSheet();
 
     analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
+      chain_id: providerConfig.chainId,
       from_network:
         providerConfig.type === 'rpc'
           ? providerConfig.nickname
@@ -111,7 +105,7 @@ const NetworkSelector = () => {
 
       sheetRef.current?.onCloseBottomSheet();
       analyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-        chain_id: getDecimalChainId(providerConfig.chainId),
+        chain_id: providerConfig.chainId,
         from_network: providerConfig.type,
         to_network: nickname,
       });
@@ -130,7 +124,8 @@ const NetworkSelector = () => {
           imageSource: images.ETHEREUM,
         }}
         isSelected={
-          chainId === providerConfig.chainId && !providerConfig.rpcUrl
+          chainId.toString() === providerConfig.chainId &&
+          !providerConfig.rpcTarget
         }
         onPress={() => onNetworkChange(MAINNET)}
         style={styles.networkCell}
@@ -149,7 +144,7 @@ const NetworkSelector = () => {
           name: lineaMainnetName,
           imageSource: images['LINEA-MAINNET'],
         }}
-        isSelected={chainId === providerConfig.chainId}
+        isSelected={chainId.toString() === providerConfig.chainId}
         onPress={() => onNetworkChange(LINEA_MAINNET)}
       />
     );
@@ -174,7 +169,8 @@ const NetworkSelector = () => {
               imageSource: image,
             }}
             isSelected={Boolean(
-              chainId === providerConfig.chainId && providerConfig.rpcUrl,
+              chainId.toString() === providerConfig.chainId &&
+                providerConfig.rpcTarget,
             )}
             onPress={() => onSetRpcTarget(rpcUrl)}
             style={styles.networkCell}
@@ -199,7 +195,7 @@ const NetworkSelector = () => {
             name,
             imageSource,
           }}
-          isSelected={chainId === providerConfig.chainId}
+          isSelected={chainId.toString() === providerConfig.chainId}
           onPress={() => onNetworkChange(networkType)}
           style={styles.networkCell}
         />
