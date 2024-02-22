@@ -273,7 +273,10 @@ workflows:
           inputs:
             - personal_access_token: '$GITHUB_ACCESS_TOKEN'
             - body: |-
-                Bitrise E2E smoke tests passed ✅: ${BITRISEIO_PIPELINE_BUILD_URL}
+                Bitrise E2E smoke tests passed ✅
+
+                Commit hash: ${GITHUB_PR_HASH}
+                Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
             - repository_url: '$GIT_REPOSITORY_URL'
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'

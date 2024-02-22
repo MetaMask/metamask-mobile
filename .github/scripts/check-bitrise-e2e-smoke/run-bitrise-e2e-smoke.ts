@@ -77,7 +77,7 @@ async function main(): Promise<void> {
   }
 
   const buildLink = `${bitriseProjectUrl}/pipelines/${bitriseBuildResponse.data.build_slug}`;
-  const message = `E2E test started on Bitrise for commit hash ${commitHash}: ${buildLink}\nYou can also kick off another Bitrise E2E smoke test by removing and re-applying the (${e2eLabel}) label`;
+  const message = `E2E test started on Bitrise\n\nCommit hash: ${commitHash}\nBuild link: ${buildLink}\n\nYou can also kick off another Bitrise E2E smoke test by removing and re-applying the (${e2eLabel}) label`;
 
   if (bitriseBuildResponse.status === 201) {
     console.log(message);
