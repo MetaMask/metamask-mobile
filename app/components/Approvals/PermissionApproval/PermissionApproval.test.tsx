@@ -1,5 +1,5 @@
 import React from 'react';
-import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
+import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import PermissionApproval from './PermissionApproval';
@@ -10,7 +10,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { render } from '@testing-library/react-native';
 
-jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
+jest.mock('../../hooks/useApprovalRequest');
 jest.mock('../../../util/analyticsV2');
 
 jest.mock('../../Views/AccountConnect', () => ({

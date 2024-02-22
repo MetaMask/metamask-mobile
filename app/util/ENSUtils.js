@@ -1,7 +1,11 @@
 import Engine from '../core/Engine';
 import ENS from 'ethjs-ens';
 import { toLowerCaseEquals } from '../util/general';
-import { NetworkId, ChainId, NetworkType } from '@metamask/controller-utils';
+import {
+  NetworkId,
+  NetworksChainId,
+  NetworkType,
+} from '@metamask/controller-utils';
 const ENS_NAME_NOT_DEFINED_ERROR = 'ENS name not defined';
 const INVALID_ENS_NAME_ERROR = 'invalid ENS name';
 // One hour cache threshold.
@@ -25,14 +29,14 @@ export class ENSCache {
  *
  * Ropsten is excluded because we no longer support Ropsten.
  */
-const ENS_SUPPORTED_CHAIN_IDS = [ChainId[NetworkType.mainnet]];
+const ENS_SUPPORTED_CHAIN_IDS = [NetworksChainId[NetworkType.mainnet]];
 
 /**
  * A map of chain ID to network ID for networks supported by the current
  * legacy ENS library we are using.
  */
 const CHAIN_ID_TO_NETWORK_ID = {
-  [ChainId[NetworkType.mainnet]]: NetworkId[NetworkType.mainnet],
+  [NetworksChainId[NetworkType.mainnet]]: NetworkId[NetworkType.mainnet],
 };
 
 /**
@@ -45,13 +49,13 @@ const CHAIN_ID_TO_NETWORK_ID = {
  */
 export function getCachedENSName(address, chainId) {
   const networkHasEnsSupport = ENS_SUPPORTED_CHAIN_IDS.includes(chainId);
+
   if (!networkHasEnsSupport) {
     return undefined;
   }
 
   const networkId = CHAIN_ID_TO_NETWORK_ID[chainId];
   const cacheEntry = ENSCache.cache[networkId + address];
-
   return cacheEntry?.name;
 }
 

@@ -7,7 +7,6 @@ import axios from 'axios';
 import path from 'path';
 import createStaticServer from '../create-static-server';
 import { getFixturesServerPort, getLocalTestDappPort } from './utils';
-import Utilities from '../utils/Utilities';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
@@ -156,10 +155,7 @@ export async function withFixtures(options, testSuite) {
     if (restartDevice) {
       await device.launchApp({
         delete: true,
-        launchArgs: {
-          fixtureServerPort: `${getFixturesServerPort()}`,
-          detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-        },
+        launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
       });
     }
 

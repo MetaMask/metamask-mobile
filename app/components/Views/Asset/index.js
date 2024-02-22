@@ -32,7 +32,7 @@ import {
   selectChainId,
   selectNetworkId,
   selectNetworkConfigurations,
-  selectRpcUrl,
+  selectRpcTarget,
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
@@ -60,11 +60,11 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import Engine from '../../../core/Engine';
 import {
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import { updateIncomingTransactions } from '../../../util/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -170,7 +170,7 @@ class Asset extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    rpcUrl: PropTypes.string,
+    rpcTarget: PropTypes.string,
     networkConfigurations: PropTypes.object,
     /**
      * Boolean that indicates if native token is supported to buy
@@ -196,13 +196,13 @@ class Asset extends PureComponent {
   navAddress = undefined;
 
   updateNavBar = (contentOffset = 0) => {
-    const { navigation, route, chainId, rpcUrl, networkConfigurations } =
+    const { navigation, route, chainId, rpcTarget, networkConfigurations } =
       this.props;
     const colors = this.context.colors || mockTheme.colors;
     const isNativeToken = route.params.isETH;
     const isMainnet = isMainnetByChainId(chainId);
     const blockExplorer = findBlockExplorerForRpc(
-      rpcUrl,
+      rpcTarget,
       networkConfigurations,
     );
 
@@ -441,9 +441,11 @@ class Asset extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { TransactionController } = Engine.context;
+
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions();
+    await TransactionController.updateIncomingTransactions();
 
     this.setState({ refreshing: false });
   };
@@ -587,7 +589,7 @@ const mapStateToProps = (state) => ({
   tokens: selectTokens(state),
   networkId: selectNetworkId(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  rpcUrl: selectRpcUrl(state),
+  rpcTarget: selectRpcTarget(state),
   networkConfigurations: selectNetworkConfigurations(state),
   isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),

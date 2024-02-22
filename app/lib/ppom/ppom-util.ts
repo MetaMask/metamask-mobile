@@ -4,12 +4,11 @@ import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
 import {
   Reason,
   ResultType,
-} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import Logger from '../../util/Logger';
-import { updateSecurityAlertResponse } from '../../util/transaction-controller';
 
 const ConfirmationMethods = Object.freeze([
   'eth_sendRawTransaction',
@@ -96,10 +95,10 @@ const validateRequest = async (req: any, transactionId?: string) => {
           securityAlertResponse,
         ),
       );
-      updateSecurityAlertResponse(
-        transactionId as string,
+      const { TransactionController } = Engine.context;
+      TransactionController.updateSecurityAlertResponse(transactionId, {
         securityAlertResponse,
-      );
+      });
     } else {
       store.dispatch(
         setSignatureRequestSecurityAlertResponse(securityAlertResponse),

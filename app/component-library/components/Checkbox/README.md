@@ -1,4 +1,4 @@
-# [Checkbox](https://metamask-consensys.notion.site/Checkbox-359c236367eb4058876fc12189c06824)
+# Checkbox
 
 ![Checkbox](./Checkbox.png)
 

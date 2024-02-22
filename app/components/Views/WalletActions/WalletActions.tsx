@@ -31,7 +31,6 @@ import { useStyles } from '../../../component-library/hooks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
-import { getDecimalChainId } from '../../../util/networks';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
@@ -65,7 +64,7 @@ const WalletActions = () => {
         text: 'Receive',
         tokenSymbol: '',
         location: 'TabBar',
-        chain_id: getDecimalChainId(chainId),
+        chain_id: chainId,
       },
     );
   };
@@ -76,7 +75,7 @@ const WalletActions = () => {
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'TabBar',
-        chain_id_destination: getDecimalChainId(chainId),
+        chain_id_destination: chainId,
       });
     });
   };
@@ -89,7 +88,7 @@ const WalletActions = () => {
         {
           text: 'Sell',
           location: 'TabBar',
-          chain_id_source: getDecimalChainId(chainId),
+          chain_id_source: chainId,
         },
       );
     });
@@ -104,7 +103,7 @@ const WalletActions = () => {
           text: 'Send',
           tokenSymbol: '',
           location: 'TabBar',
-          chain_id: getDecimalChainId(chainId),
+          chain_id: chainId,
         },
       );
     });
@@ -124,7 +123,7 @@ const WalletActions = () => {
           text: 'Swap',
           tokenSymbol: '',
           location: 'TabBar',
-          chain_id: getDecimalChainId(chainId),
+          chain_id: chainId,
         },
       );
     });

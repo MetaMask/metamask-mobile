@@ -2,7 +2,6 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 import { syncPrefs, syncAccounts } from '../util/sync';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { getLedgerKeyring } from './Ledger/Ledger';
 
 /**
  * Restores the QR keyring if it exists.
@@ -20,25 +19,6 @@ export const restoreQRKeyring = async () => {
       Logger.error(
         e,
         'error while trying to get qr accounts on recreate vault',
-      );
-    }
-  }
-};
-
-/**
- * Restores the Ledger keyring if it exists.
- */
-export const restoreLedgerKeyring = async () => {
-  const { KeyringController } = Engine.context;
-  const keyring = await getLedgerKeyring();
-  if (keyring) {
-    try {
-      await KeyringController.persistAllKeyrings();
-      KeyringController.updateIdentities(await KeyringController.getAccounts());
-    } catch (e) {
-      Logger.error(
-        e,
-        'error while trying to restore Ledger accounts on recreate vault',
       );
     }
   }
@@ -102,7 +82,6 @@ export const recreateVaultWithNewPassword = async (
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
   await restoreQRKeyring();
-  await restoreLedgerKeyring();
 
   // Create previous accounts again
   for (let i = 0; i < existingAccountCount - 1; i++) {

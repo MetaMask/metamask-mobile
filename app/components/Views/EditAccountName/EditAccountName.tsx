@@ -37,7 +37,6 @@ import { useTheme } from '../../../util/theme';
 
 // Internal dependencies
 import styleSheet from './EditAccountName.styles';
-import { getDecimalChainId } from '../../../util/networks';
 
 const EditAccountName = () => {
   const { colors } = useTheme();
@@ -91,7 +90,7 @@ const EditAccountName = () => {
         const analyticsProperties = async () => {
           const accountType = getAddressAccountType(selectedAddress);
           const account_type = accountType === 'QR' ? 'hardware' : accountType;
-          return { account_type, chain_id: getDecimalChainId(chainId) };
+          return { account_type, chain_id: chainId };
         };
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.ACCOUNT_RENAMED,

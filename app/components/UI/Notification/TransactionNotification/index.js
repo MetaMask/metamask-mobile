@@ -35,7 +35,6 @@ import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
-import { speedUpTransaction } from '../../../../util/transaction-controller';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -203,8 +202,10 @@ function TransactionNotification(props) {
     [onActionFinish],
   );
 
-  const speedUpTx = useCallback(() => {
-    safelyExecute(() => speedUpTransaction(tx?.id));
+  const speedUpTransaction = useCallback(() => {
+    safelyExecute(() =>
+      Engine.context.TransactionController.speedUpTransaction(tx?.id),
+    );
   }, [safelyExecute, tx]);
 
   const stopTransaction = useCallback(() => {
@@ -329,7 +330,7 @@ function TransactionNotification(props) {
                 onConfirmPress={
                   transactionAction === ACTION_CANCEL
                     ? stopTransaction
-                    : speedUpTx
+                    : speedUpTransaction
                 }
                 confirmText={strings('transaction.lets_try')}
                 confirmButtonMode={'confirm'}

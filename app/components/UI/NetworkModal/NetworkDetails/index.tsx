@@ -4,7 +4,6 @@ import ConnectHeader from '../../../UI/ConnectHeader';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
-import { getDecimalChainId } from '../../../../util/networks';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -46,7 +45,7 @@ const NetworkDetails = (props: NetworkDetailsProps) => {
     },
     {
       title: strings('networks.network_chain_id'),
-      value: getDecimalChainId(chainId),
+      value: chainId,
     },
     {
       title: strings('networks.network_currency_symbol'),

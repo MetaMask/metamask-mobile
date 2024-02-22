@@ -52,7 +52,6 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../component-library/components/Banners/Banner';
-import { wipeTransactions } from '../../../../util/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -241,8 +240,9 @@ class AdvancedSettings extends PureComponent {
   };
 
   resetAccount = () => {
+    const { TransactionController } = Engine.context;
     const { navigation } = this.props;
-    wipeTransactions(true);
+    TransactionController.wipeTransactions(true);
     navigation.navigate('WalletView');
   };
 

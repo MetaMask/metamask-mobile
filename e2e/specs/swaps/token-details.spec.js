@@ -1,4 +1,5 @@
 'use strict';
+
 import { SmokeSwaps } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import TokenOverview from '../../pages/TokenOverview';

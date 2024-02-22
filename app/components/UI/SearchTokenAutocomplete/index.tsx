@@ -22,7 +22,6 @@ import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import { getDecimalChainId } from '../../../util/networks';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -78,7 +77,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       return {
         token_address: address,
         token_symbol: symbol,
-        chain_id: getDecimalChainId(chainId),
+        chain_id: chainId,
         source: 'Add token dropdown',
       };
     } catch (error) {

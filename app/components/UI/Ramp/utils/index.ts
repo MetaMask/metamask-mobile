@@ -19,7 +19,6 @@ import { getOrders, FiatOrder } from '../../../../reducers/fiatOrders';
 import { RootState } from '../../../../reducers';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { strings } from '../../../../../locales/i18n';
-import { getDecimalChainId } from '../../../../util/networks';
 
 const isOverAnHour = (minutes: number) => minutes > 59;
 
@@ -129,9 +128,8 @@ export function isNetworkRampSupported(
   networks: AggregatorNetwork[],
 ) {
   return (
-    networks.find(
-      (network) => String(network.chainId) === getDecimalChainId(chainId),
-    )?.active ?? false
+    networks.find((network) => String(network.chainId) === chainId)?.active ??
+    false
   );
 }
 
@@ -140,7 +138,7 @@ export function isNetworkRampNativeTokenSupported(
   networks: AggregatorNetwork[],
 ) {
   const network = networks.find(
-    (_network) => String(_network.chainId) === getDecimalChainId(chainId),
+    (_network) => String(_network.chainId) === chainId,
   );
   return (network?.active && network.nativeTokenSupported) ?? false;
 }
