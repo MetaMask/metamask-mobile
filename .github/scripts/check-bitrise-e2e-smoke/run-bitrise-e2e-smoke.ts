@@ -16,7 +16,7 @@ async function main(): Promise<void> {
   const pullRequestNumber = context.issue.number;
   const repoOwner = context.repo.owner;
   const repo = context.repo.repo;
-  const commitHash = context.sha.slice(0, 6);
+  const commitHash = context.sha;
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
 
   if (!githubToken) {
@@ -77,7 +77,7 @@ async function main(): Promise<void> {
   }
 
   const buildLink = `${bitriseProjectUrl}/pipelines/${bitriseBuildResponse.data.build_slug}`;
-  const message = `E2E test started on Bitrise...\n\nCommit hash: ${commitHash}\nBuild link: ${buildLink}\n\nYou can also kick off another Bitrise E2E smoke test by removing and re-applying the (${e2eLabel}) label\n\n<!-- ${commitHash} -->`;
+  const message = `## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](https://app.bitrise.io/app/be69d4368ee7e86d/pipelines/8351b42f-c87f-496e-a4a4-387e248037ea) **Bitrise**\n\n🔄🔄🔄 \`${e2ePipeline}\` pipeline started on Bitrise...\n\nCommit hash: ${commitHash}\nBuild link: ${buildLink}\n\n>[!NOTE]\n>- This comment will auto-update when build succeeds\n>- You can also kick off another Bitrise E2E smoke test by removing and re-applying the \`Run Smoke E2E\` label\n\n<!-- ${commitHash} -->`;
 
   if (bitriseBuildResponse.status === 201) {
     console.log(message);
