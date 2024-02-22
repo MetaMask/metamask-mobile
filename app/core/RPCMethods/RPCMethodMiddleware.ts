@@ -39,6 +39,7 @@ import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
+import { addTransaction } from '../../util/transaction-controller';
 
 const Engine = ImportedEngine as any;
 
@@ -480,7 +481,6 @@ export const getRpcMethodMiddleware = ({
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
-        const { TransactionController } = Engine.context;
 
         if (isMMSDK) {
           // Append origin to the request so it can be parsed in UI TransactionHeader
@@ -496,9 +496,7 @@ export const getRpcMethodMiddleware = ({
           hostname,
           req,
           res,
-          sendTransaction: TransactionController.addTransaction.bind(
-            TransactionController,
-          ),
+          sendTransaction: addTransaction,
           validateAccountAndChainId: async ({
             from,
             chainId,
