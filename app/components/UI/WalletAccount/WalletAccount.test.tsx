@@ -10,6 +10,8 @@ import { createAccountSelectorNavDetails } from '../../../components/Views/Accou
 // Internal dependencies
 import WalletAccount from './WalletAccount';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { Account } from '../../hooks/useAccounts';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -24,6 +26,14 @@ jest.mock('../../../core/Engine', () => ({
     },
   },
 }));
+
+const mockAccount: Account = {
+  name: 'Test account 1',
+  address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+  type: KeyringTypes.hd,
+  yOffset: 0,
+  isSelected: true,
+};
 
 const mockInitialState = {
   settings: {
@@ -69,32 +79,44 @@ jest.mock('react-redux', () => ({
 
 describe('WalletAccount', () => {
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
+    const { toJSON } = renderWithProvider(
+      <WalletAccount account={mockAccount} />,
+      {
+        state: mockInitialState,
+      },
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('shows the account address', () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
+    const { getByTestId } = renderWithProvider(
+      <WalletAccount account={mockAccount} />,
+      {
+        state: mockInitialState,
+      },
+    );
     expect(getByTestId('wallet-account-address')).toBeDefined();
   });
 
   it('copies the account address to the clipboard when the copy button is pressed', async () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
+    const { getByTestId } = renderWithProvider(
+      <WalletAccount account={mockAccount} />,
+      {
+        state: mockInitialState,
+      },
+    );
 
     fireEvent.press(getByTestId('wallet-account-copy-button'));
     expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
   });
 
   it('should navigate to the account selector screen on account press', () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
+    const { getByTestId } = renderWithProvider(
+      <WalletAccount account={mockAccount} />,
+      {
+        state: mockInitialState,
+      },
+    );
 
     fireEvent.press(getByTestId('account-picker'));
     expect(mockNavigate).toHaveBeenCalledWith(

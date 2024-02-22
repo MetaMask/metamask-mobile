@@ -177,7 +177,7 @@ exports[`WalletAccount renders correctly 1`] = `
           }
           testID="account-label"
         >
-          Account 1
+          Test account 1
         </Text>
       </View>
     </View>
