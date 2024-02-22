@@ -225,12 +225,9 @@ export class BackgroundBridge extends EventEmitter {
     try {
       // Remove following specific walletconnect block once WalletConnect has migrated away from DefaultPreferences
       if (this.isWalletConnect) {
-        // Pass the remoteConnHost to getApprovedHosts as AndroidSDK requires it
-        if (
-          !this.getApprovedHosts?.(this.remoteConnHost)?.[this.remoteConnHost]
-        ) {
-          return;
-        }
+        DevLogger.log(
+          `notifySelectedAddressChanged walletconnect hostname: ${this.hostname}: ${selectedAddress}`,
+        );
         this.sendNotification({
           method: NOTIFICATION_NAMES.accountsChanged,
           params: [selectedAddress],
