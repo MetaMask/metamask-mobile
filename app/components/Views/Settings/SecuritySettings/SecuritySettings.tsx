@@ -31,10 +31,7 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2, {
-  trackErrorAsAnalytics,
-} from '../../../../util/analyticsV2';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { Authentication } from '../../../../core';
 import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme } from '../../../../util/theme';
@@ -109,6 +106,9 @@ import Networks, {
 import images from 'images/image-icons';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import generateDeviceAnalyticsMetaData, {
+  UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
+} from '../../../../util/metrics';
 import Text, {
   TextVariant,
   TextColor,
@@ -118,6 +118,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+import { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -132,6 +133,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
+  const { trackEvent, isEnabled, enable, addTraitsToUser } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -232,10 +234,15 @@ const Settings: React.FC = () => {
   useEffect(() => {
     updateNavBar();
     handleHintText();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
-    const isAnalyticsEnabled = Analytics.checkEnabled();
-    setAnalyticsEnabled(isAnalyticsEnabled);
-  }, [handleHintText, updateNavBar]);
+    setAnalyticsEnabled(isEnabled());
+    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
+  }, [
+    handleHintText,
+    updateNavBar,
+    setAnalyticsEnabled,
+    isEnabled,
+    trackEvent,
+  ]);
 
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
@@ -439,27 +446,32 @@ const Settings: React.FC = () => {
     </View>
   );
 
-  /**
-   * Track the event of opt in or opt out.
-   * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
-   */
-  const trackOptInEvent = (AnalyticsOptionSelected: string) => {
-    InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        analytics_option_selected: AnalyticsOptionSelected,
-        updated_after_onboarding: true,
-      });
-    });
-  };
-
-  const toggleMetricsOptIn = (value: boolean) => {
-    if (value) {
+  const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
+    if (metricsEnabled) {
       Analytics.enable();
 
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      await enable();
       setAnalyticsEnabled(true);
-      trackOptInEvent('Metrics Opt In');
+
+      InteractionManager.runAfterInteractions(async () => {
+        // Segment metrics optin tracking
+        await addTraitsToUser(consolidatedTraits);
+        trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+          analytics_option_selected: 'Metrics Opt in',
+          updated_after_onboarding: true,
+        });
+        // Legacy metrics optin tracking
+        trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+          analytics_option_selected: 'Metrics Opt in',
+          updated_after_onboarding: true,
+        });
+      });
     } else {
-      trackOptInEvent('Metrics Opt Out');
+      await enable(false);
       Analytics.disable();
       setAnalyticsEnabled(false);
       Alert.alert(
@@ -1037,7 +1049,7 @@ const Settings: React.FC = () => {
           {strings('app_settings.analytics_subheading')}
         </Text>
         {renderMetaMetricsSection()}
-        <DeleteMetaMetricsData />
+        <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
         <DeleteWalletData />
         {renderHint()}
       </View>
