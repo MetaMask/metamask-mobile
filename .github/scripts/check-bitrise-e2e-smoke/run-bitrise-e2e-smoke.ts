@@ -16,6 +16,7 @@ async function main(): Promise<void> {
   const pullRequestNumber = context.issue.number;
   const repoOwner = context.repo.owner;
   const repo = context.repo.repo;
+  const commitHash = context.sha.slice(0, 6);
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
 
   if (!githubToken) {
@@ -45,6 +46,11 @@ async function main(): Promise<void> {
           value: `true`,
           is_expand: true,
         },
+        {
+          mapped_to: 'GITHUB_PR_HASH',
+          value: `${commitHash}`,
+          is_expand: true,
+        },
       ],
       commit_message: `Triggered by (${workflowName}) workflow in ${pullRequestLink}`,
     },
@@ -71,7 +77,7 @@ async function main(): Promise<void> {
   }
 
   const buildLink = `${bitriseProjectUrl}/pipelines/${bitriseBuildResponse.data.build_slug}`;
-  const message = `E2E test started on Bitrise: ${buildLink}\nYou can also kick off another Bitrise E2E smoke test by removing and re-applying the (${e2eLabel}) label`;
+  const message = `E2E test started on Bitrise for commit hash ${commitHash}: ${buildLink}\nYou can also kick off another Bitrise E2E smoke test by removing and re-applying the (${e2eLabel}) label`;
 
   if (bitriseBuildResponse.status === 201) {
     console.log(message);
