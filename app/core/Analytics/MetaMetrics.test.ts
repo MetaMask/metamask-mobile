@@ -275,6 +275,24 @@ describe('MetaMetrics', () => {
           ...properties,
         });
       });
+
+      it('does not break on JS legacy call', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        await metaMetrics.enable();
+
+        const event = undefined;
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore: Testing untyped legacy JS call with undefined event
+        metaMetrics.trackEvent(event);
+
+        const { segmentMockClient } = global as any;
+        expect(segmentMockClient.track).toHaveBeenCalledWith(undefined, {
+          anonymous: false,
+          undefined,
+        });
+      });
     });
   });
 
