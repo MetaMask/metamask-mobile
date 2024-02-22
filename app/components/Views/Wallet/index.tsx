@@ -1,11 +1,5 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import {
-  InteractionManager,
-  ActivityIndicator,
-  StyleSheet,
-  View,
-  TextStyle,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, View, TextStyle } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -154,7 +148,7 @@ const Wallet = ({ navigation }: any) => {
     trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
       chain_id: getDecimalChainId(providerConfig.chainId),
     });
-  }, [navigate, providerConfig.chainId]);
+  }, [navigate, providerConfig.chainId, trackEvent]);
   const { colors: themeColors } = useTheme();
 
   /**
@@ -229,15 +223,16 @@ const Wallet = ({ navigation }: any) => {
     [styles, colors],
   );
 
-  const onChangeTab = useCallback((obj) => {
-    InteractionManager.runAfterInteractions(() => {
+  const onChangeTab = useCallback(
+    (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(MetaMetricsEvents.WALLET_TOKENS);
       } else {
         trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
       }
-    });
-  }, []);
+    },
+    [trackEvent],
+  );
 
   const renderContent = useCallback(() => {
     let balance: any = 0;

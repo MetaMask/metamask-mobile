@@ -39,7 +39,7 @@ const WalletResetNeeded = () => {
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
       { ...deviceMetaData },
     );
-  }, [trackEvent]);
+  }, [trackEvent, deviceMetaData]);
 
   const handleCreateNewWallet = useCallback(async () => {
     trackEvent(
