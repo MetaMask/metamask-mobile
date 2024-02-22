@@ -1,3 +1,5 @@
+import { JsonMap } from '@segment/analytics-react-native';
+
 export type ScreenLocation =
   | 'Amount to Buy Screen'
   | 'Amount to Sell Screen'
@@ -11,7 +13,7 @@ export type ScreenLocation =
   | 'Order Details Screen'
   | 'Settings Screen';
 
-interface RampButtonClicked {
+interface RampButtonClicked extends JsonMap {
   text: 'Buy' | 'Buy Native Token' | 'Sell' | 'Get Started';
   location: string;
 }
@@ -24,7 +26,7 @@ interface SellButtonClicked extends RampButtonClicked {
   chain_id_source?: string;
 }
 
-interface RampRegionSelected {
+interface RampRegionSelected extends JsonMap {
   location?: ScreenLocation;
   country_id: string;
   state_id?: string;
@@ -32,25 +34,25 @@ interface RampRegionSelected {
   is_unsupported_offramp?: boolean;
 }
 
-interface RampRegionReset {
+interface RampRegionReset extends JsonMap {
   location?: ScreenLocation;
 }
 
-interface RampPaymentMethodSelected {
+interface RampPaymentMethodSelected extends JsonMap {
   payment_method_id: string;
   available_payment_method_ids: string[];
   region?: string;
   location?: ScreenLocation;
 }
 
-interface RampContinueToAmountClicked {
+interface RampContinueToAmountClicked extends JsonMap {
   payment_method_id: string;
   available_payment_method_ids: string[];
   region: string;
   location: ScreenLocation;
 }
 
-interface RampQuoteRequested {
+interface RampQuoteRequested extends JsonMap {
   currency_source: string;
   currency_destination: string;
   payment_method_id: string;
@@ -66,7 +68,7 @@ interface OffRampQuoteRequested extends RampQuoteRequested {
   chain_id_source: string;
 }
 
-interface RampCanceled {
+interface RampCanceled extends JsonMap {
   location: ScreenLocation;
   results_count?: number;
 }
@@ -81,7 +83,7 @@ interface OfframpCanceled extends RampCanceled {
   provider_offramp?: string;
 }
 
-interface RampQuotesReceived {
+interface RampQuotesReceived extends JsonMap {
   amount: number | string;
   currency_source: string;
   currency_destination: string;
@@ -109,7 +111,7 @@ interface OffRampQuotesReceived extends RampQuotesReceived {
   provider_offramp_last?: string;
 }
 
-interface RampProviderSelected {
+interface RampProviderSelected extends JsonMap {
   refresh_count: number;
   quote_position: number;
   results_count: number;
@@ -133,14 +135,14 @@ interface OffRampProviderSelected extends RampProviderSelected {
   chain_id_source: string;
 }
 
-interface OnRampProviderDetailsViewed {
+interface OnRampProviderDetailsViewed extends JsonMap {
   provider_onramp: string;
 }
-interface OffRampProviderDetailsViewed {
+interface OffRampProviderDetailsViewed extends JsonMap {
   provider_offramp: string;
 }
 
-interface RampDirectProviderClicked {
+interface RampDirectProviderClicked extends JsonMap {
   region: string;
   currency_source: string;
   currency_destination: string;
@@ -156,7 +158,7 @@ interface OffRampDirectProviderClicked extends RampDirectProviderClicked {
   chain_id_source: string;
 }
 
-interface RampPurchaseSubmitted {
+interface RampPurchaseSubmitted extends JsonMap {
   payment_method_id: string;
   currency_source: string;
   currency_destination: string;
@@ -175,7 +177,7 @@ interface OffRampPurchaseSubmitted extends RampPurchaseSubmitted {
   provider_offramp: string;
   chain_id_source: string;
 }
-interface RampPurchase {
+interface RampPurchase extends JsonMap {
   amount: number;
   currency_source: string;
   currency_destination: string;
@@ -215,7 +217,7 @@ interface OffRampPurchaseFailed extends RampPurchase {
 export type OnRampPurchaseCanceled = OnRampPurchaseFailed;
 export type OffRampPurchaseCanceled = OffRampPurchaseFailed;
 
-interface RampPurchaseDetailsViewed {
+interface RampPurchaseDetailsViewed extends JsonMap {
   status: string;
   payment_method_id: string;
   currency_destination: string;
@@ -232,7 +234,7 @@ interface OffRampPurchaseDetailsViewed extends RampPurchaseDetailsViewed {
   chain_id_source: string;
 }
 
-interface RampExternalLinkClicked {
+interface RampExternalLinkClicked extends JsonMap {
   location: ScreenLocation;
   text:
     | 'Etherscan Transaction'
@@ -244,7 +246,7 @@ interface RampExternalLinkClicked {
   url_domain: string;
 }
 
-interface RampQuoteError {
+interface RampQuoteError extends JsonMap {
   amount: number | string;
   currency_source: string;
   currency_destination: string;
@@ -261,7 +263,7 @@ interface OffRampQuoteError extends RampQuoteError {
   chain_id_source: string;
 }
 
-interface RampError {
+interface RampError extends JsonMap {
   location: ScreenLocation;
   message: string;
   payment_method_id?: string;
@@ -270,7 +272,7 @@ interface RampError {
   currency_destination?: string;
 }
 
-interface RampTransaction {
+interface RampTransaction extends JsonMap {
   crypto_amount: string;
   chain_id_source: number;
   fiat_out: number;
