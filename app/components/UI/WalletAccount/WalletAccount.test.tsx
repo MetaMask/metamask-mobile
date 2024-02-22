@@ -117,4 +117,37 @@ describe('WalletAccount', () => {
       ...createAccountSelectorNavDetails({}),
     );
   });
+  it('displays the correct account name', () => {
+    const { getByText } = renderWithProvider(
+      <WalletAccount account={mockAccount} />,
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(getByText(mockAccount.name)).toBeDefined();
+  });
+  it('displays custom account name when ens is defined but account name is not the default', () => {
+    const ensName = 'test.eth';
+    const { getByText } = renderWithProvider(
+      <WalletAccount account={mockAccount} ens={ensName} />,
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(getByText(mockAccount.name)).toBeDefined();
+  });
+  it('displays ens name when defined and account name is the default', () => {
+    const ensName = 'test.eth';
+    const mockAccountWithDefaultName: Account = {
+      ...mockAccount,
+      name: 'Account 1',
+    };
+    const { getByText } = renderWithProvider(
+      <WalletAccount account={mockAccountWithDefaultName} ens={ensName} />,
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(getByText(ensName)).toBeDefined();
+  });
 });
