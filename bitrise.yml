@@ -144,9 +144,6 @@ stages:
   run_e2e_android_stage:
     workflows:
       - android_e2e_test: {}
-  set_build_variables:
-    workflows:
-      - set_build_url_env_var: {}
   notify:
     workflows:
       - notify_success: {}
