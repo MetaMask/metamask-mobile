@@ -42,12 +42,6 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-        identities: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': { name: 'Account 1' },
-        },
-      },
     },
   },
 };
