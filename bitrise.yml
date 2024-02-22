@@ -280,6 +280,7 @@ workflows:
             - repository_url: '$GIT_REPOSITORY_URL'
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
+            - comment_tag: '$GITHUB_PR_HASH'
       - slack@3:
           inputs:
             - text: '${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification'
