@@ -102,7 +102,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
       SDKConnect.getInstance().removeAll();
     }
 
-    navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Math.random() });
+    navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Date.now() });
   };
 
   const onCancel = () => {
