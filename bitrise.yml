@@ -268,6 +268,7 @@ workflows:
     before_run:
       - _get_workflow_info
     steps:
+      # Update Bitrise comment in PR with success status
       - comment-on-github-pull-request@0:
           run_if: '{{getenv "TRIGGERED_BY_LABEL" | eq "true"}}'
           inputs:

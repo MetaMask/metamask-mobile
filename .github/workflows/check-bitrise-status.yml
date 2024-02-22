@@ -2,7 +2,7 @@ name: Check Bitrise Status
 
 on:
   issue_comment:
-    types: [created]
+    types: [edited]
   pull_request:
     types: [opened, reopened, labeled, unlabeled]
 
