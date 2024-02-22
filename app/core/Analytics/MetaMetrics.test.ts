@@ -284,7 +284,7 @@ describe('MetaMetrics', () => {
         const event = undefined;
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore: Testing untyped legacy JS call with undefined event
+        // @ts-expect-error: Testing untyped legacy JS call with undefined event
         metaMetrics.trackEvent(event);
 
         const { segmentMockClient } = global as any;
