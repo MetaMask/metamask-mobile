@@ -1,7 +1,9 @@
 /* eslint-disable import/prefer-default-export */
+// External dependencies
+import { TextVariant } from '../../components/Texts/Text';
+
 // Internal dependencies
 import { TagColor, TagColoredProps } from './TagColored.types';
-import { TextVariant } from '../../components/Texts/Text';
 
 // Defaults
 export const DEFAULT_TAGCOLORED_COLOR = TagColor.Default;
