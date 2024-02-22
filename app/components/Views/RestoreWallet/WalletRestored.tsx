@@ -22,11 +22,11 @@ import { useNavigation } from '@react-navigation/native';
 import { Authentication } from '../../../core';
 import { useAppThemeFromContext } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESTORED,
@@ -35,6 +35,7 @@ export const createWalletRestoredNavDetails = createNavigationDetails(
 const WalletRestored = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { colors } = useAppThemeFromContext();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation<StackNavigationProp<any>>();
   const selectedAddress = useSelector(selectSelectedAddress);
@@ -44,9 +45,9 @@ const WalletRestored = () => {
   useEffect(() => {
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED,
-      deviceMetaData,
+      { ...deviceMetaData },
     );
-  }, [deviceMetaData]);
+  }, [deviceMetaData, trackEvent]);
 
   const finishWalletRestore = useCallback(async (): Promise<void> => {
     try {
@@ -71,10 +72,10 @@ const WalletRestored = () => {
     setLoading(true);
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_CONTINUE_BUTTON_PRESSED,
-      deviceMetaData,
+      { ...deviceMetaData },
     );
     await finishWalletRestore();
-  }, [deviceMetaData, finishWalletRestore]);
+  }, [deviceMetaData, finishWalletRestore, trackEvent]);
 
   return (
     <SafeAreaView style={styles.screen}>

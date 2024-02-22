@@ -18,8 +18,8 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { createRestoreWalletNavDetails } from './RestoreWallet';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 export const createWalletResetNeededNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,
@@ -27,6 +27,7 @@ export const createWalletResetNeededNavDetails = createNavigationDetails(
 
 const WalletResetNeeded = () => {
   const { colors } = useAppThemeFromContext();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -36,31 +37,31 @@ const WalletResetNeeded = () => {
   useEffect(() => {
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
-      deviceMetaData,
+      { ...deviceMetaData },
     );
-  }, [deviceMetaData]);
+  }, [trackEvent]);
 
   const handleCreateNewWallet = useCallback(async () => {
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED,
-      deviceMetaData,
+      { ...deviceMetaData },
     );
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
     });
-  }, [deviceMetaData, navigation]);
+  }, [deviceMetaData, navigation, trackEvent]);
 
   const handleTryAgain = useCallback(async () => {
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED,
-      deviceMetaData,
+      { ...deviceMetaData },
     );
     navigation.replace(
       ...createRestoreWalletNavDetails({
         previousScreen: Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,
       }),
     );
-  }, [deviceMetaData, navigation]);
+  }, [deviceMetaData, navigation, trackEvent]);
 
   return (
     <SafeAreaView style={styles.screen}>

@@ -11,7 +11,6 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { UpdatePPOMInitializationStatus } from '../../../../actions/experimental';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
@@ -28,6 +27,7 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import Device from '../../../../../app/util/device';
 import { SES_URL } from '../../../../../app/constants/urls';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const storage = new MMKV(); // id: mmkv.default
 
@@ -53,13 +53,14 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const isFullScreenModal = route?.params?.isFullScreenModal;
 
   const theme = useTheme();
+  const { trackEvent } = useMetrics();
   const { colors } = theme;
   const styles = createStyles(colors);
 
   const toggleSecurityAlertsEnabled = () => {
     if (securityAlertsEnabled) {
       PreferencesController?.setSecurityAlertsEnabled(false);
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
         {
           security_alerts_enabled: false,

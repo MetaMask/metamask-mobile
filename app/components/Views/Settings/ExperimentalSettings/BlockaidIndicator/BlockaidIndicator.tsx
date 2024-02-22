@@ -20,7 +20,6 @@ import Icon, {
   IconName,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -33,6 +32,7 @@ import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferen
 
 // Internal dependencies
 import createStyles from './BlockaidIndicator.styles';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 enum Status {
   Idle = 'IDLE',
@@ -41,6 +41,7 @@ enum Status {
 
 const BlockaidIndicator = ({ navigation }: Props) => {
   const dispatch = useDispatch();
+  const { trackEvent } = useMetrics();
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
 
@@ -62,7 +63,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
         setFailureCount(failureCount + 1);
       }
       if (ppomInitialisationStatus === PPOMInitialisationStatus.SUCCESS) {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
           {
             security_alerts_enabled: true,
