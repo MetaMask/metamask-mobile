@@ -653,13 +653,9 @@ describe('getRpcMethodMiddleware', () => {
         const mockAddress = '0x0000000000000000000000000000000000000001';
         const differentMockAddress =
           '0x0000000000000000000000000000000000000002';
-        const mockTransactionParameters = {
-          from: differentMockAddress,
-          chainId: '0x1',
-        };
+        const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
-          permittedAccounts: { walletconnect_session_id: [mockAddress] },
           // Set minimal network controller state to support validation
           providerConfig: {
             chainId: '0x1',
@@ -670,7 +666,6 @@ describe('getRpcMethodMiddleware', () => {
         const middleware = getRpcMethodMiddleware({
           ...getMinimalWalletConnectOptions(),
           hostname: 'example.metamask.io',
-          channelId: 'walletconnect_session_id',
         });
         const request = {
           jsonrpc,
@@ -679,7 +674,7 @@ describe('getRpcMethodMiddleware', () => {
           params: [mockTransactionParameters],
         };
         const expectedError = ethErrors.rpc.invalidParams({
-          message: `Invalid parameters: must provide a permitted Ethereum address.`,
+          message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
         const response = await callMiddleware({ middleware, request });
