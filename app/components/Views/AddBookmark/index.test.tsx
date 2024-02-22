@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import AddBookmark from './';
 
 describe('AddBookmark', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <AddBookmark
         navigation={{ setOptions: () => null }}
         route={{ params: {} }}

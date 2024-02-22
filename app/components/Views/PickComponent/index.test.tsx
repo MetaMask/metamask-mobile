@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import PickComponent from './';
 
 describe('PickComponent', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <PickComponent
         textFirst={'Text First'}
         valueFirst={'valueFirst'}
