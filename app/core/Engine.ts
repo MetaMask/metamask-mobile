@@ -638,6 +638,11 @@ class Engine {
           ),
           getMnemonic: getPrimaryKeyringMnemonic.bind(this),
           getUnlockPromise: getAppState.bind(this),
+          addSubjectMetadata: (params: any) =>
+            this.controllerMessenger.call<'SubjectMetadataController:addSubjectMetadata'>(
+              'SubjectMetadataController:addSubjectMetadata',
+              params,
+            )?.result ?? undefined,
           getSnap: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:get',
@@ -712,7 +717,6 @@ class Engine {
           `SnapController:getPermitted`,
           `SnapController:install`,
           `SubjectMetadataController:getSubjectMetadata`,
-          `SubjectMetadataController:addSubjectMetadata`,
           ///: END:ONLY_INCLUDE_IF
         ],
       }),
