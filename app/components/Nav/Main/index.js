@@ -69,7 +69,7 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
-import { NETWORKS_CHAIN_ID } from '../../../constants/network';
+import { DEPRECATED_NETWORKS } from '../../../constants/network';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -108,6 +108,14 @@ const Main = (props) => {
 
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
+
+  useEffect(() => {
+    if (DEPRECATED_NETWORKS.includes(props.chainId)) {
+      setShowDeprecatedAlert(true);
+    } else {
+      setShowDeprecatedAlert(false);
+    }
+  }, [props.chainId]);
 
   useEffect(() => {
     const { TransactionController } = Engine.context;
@@ -333,7 +341,7 @@ const Main = (props) => {
   };
 
   const renderDeprecatedNetworkAlert = (chainId, backUpSeedphraseVisible) => {
-    if (chainId === NETWORKS_CHAIN_ID.GOERLI && showDeprecatedAlert) {
+    if (DEPRECATED_NETWORKS.includes(chainId) && showDeprecatedAlert) {
       return (
         <WarningAlert
           text={strings('networks.deprecated_goerli')}
