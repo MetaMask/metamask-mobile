@@ -40,10 +40,9 @@ export function trackEvent<T extends keyof AnalyticsEvents>(
   const event = MetaMetricsEvents[eventType];
   const anonymous = AnonymousEvents.includes(eventType);
   InteractionManager.runAfterInteractions(() => {
-    (anonymous ? metrics.trackAnonymousEvent : metrics.trackEvent)(
-      event,
-      params,
-    );
+    (anonymous ? metrics.trackAnonymousEvent : metrics.trackEvent)(event, {
+      ...params,
+    });
   });
 }
 
