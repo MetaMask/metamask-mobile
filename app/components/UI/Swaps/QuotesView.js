@@ -97,6 +97,7 @@ import {
   SWAP_GAS_FEE,
 } from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { addTransaction } from '../../../util/transaction-controller';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -902,18 +903,14 @@ function SwapsQuotesView({
   );
 
   const handleSwapTransaction = useCallback(
-    async (
-      TransactionController,
-      newSwapsTransactions,
-      approvalTransactionMetaId,
-    ) => {
+    async (newSwapsTransactions, approvalTransactionMetaId) => {
       if (!selectedQuote) {
         return;
       }
 
       try {
         resetTransaction();
-        const { transactionMeta } = await TransactionController.addTransaction(
+        const { transactionMeta } = await addTransaction(
           {
             ...selectedQuote.trade,
             ...getTransactionPropertiesFromGasEstimates(
@@ -962,7 +959,7 @@ function SwapsQuotesView({
     ) => {
       try {
         resetTransaction();
-        const { transactionMeta } = await TransactionController.addTransaction(
+        const { transactionMeta } = await addTransaction(
           {
             ...approvalTransaction,
             ...getTransactionPropertiesFromGasEstimates(
