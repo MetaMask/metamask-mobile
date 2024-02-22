@@ -601,7 +601,7 @@ class MetaMetrics implements IMetaMetrics {
     if (this.enabled) {
       this.#trackEvent(
         event.category,
-        { anonymous: false, ...properties },
+        { anonymous: false, ...event.properties, ...properties },
         saveDataRecording,
       );
     }
