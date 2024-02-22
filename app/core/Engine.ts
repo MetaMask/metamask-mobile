@@ -1043,10 +1043,11 @@ class Engine {
             allowedEvents: ['NetworkController:stateChange'],
           }),
           onPreferencesChange: (listener) =>
-            preferencesController.subscribe(listener),
-          provider: networkController.getProviderAndBlockTracker().provider,
+            preferencesController.subscribe(listener as any),
+          provider: networkController.getProviderAndBlockTracker()
+            .provider as any,
           ppomProvider: {
-            PPOM,
+            PPOM: PPOM as any,
             ppomInit,
           },
           storageBackend: new RNFSStorageBackend('PPOMDB'),
