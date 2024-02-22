@@ -275,7 +275,7 @@ workflows:
             - body: |-
                 ## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](https://app.bitrise.io/app/be69d4368ee7e86d/pipelines/8351b42f-c87f-496e-a4a4-387e248037ea) **Bitrise**
 
-                ✅✅✅ Pipeline `${BITRISEIO_PIPELINE_TITLE}` passed on Bitrise! ✅✅✅
+                ✅✅✅ `${BITRISEIO_PIPELINE_TITLE}` pipeline passed on Bitrise! ✅✅✅
 
                 Commit hash: ${GITHUB_PR_HASH}
                 Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
