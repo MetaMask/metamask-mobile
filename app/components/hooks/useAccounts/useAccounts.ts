@@ -36,7 +36,7 @@ import {
 /**
  * Hook that returns both wallet accounts and ens name information.
  *
- * @returns Object that contins both wallet accounts and ens name information.
+ * @returns Object that contains both wallet accounts and ens name information.
  */
 const useAccounts = ({
   checkBalanceError,
@@ -93,7 +93,7 @@ const useAccounts = ({
             };
           }
         } catch (e) {
-          // ENS either doesn't exists or failed to fetch.
+          // ENS either doesn't exist or failed to fetch.
         }
       };
 
@@ -150,7 +150,7 @@ const useAccounts = ({
         const balanceError = checkBalanceError?.(balanceWeiHex);
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
-          name: "this is the best name ever",
+          name: 'this is the best name ever',
           address: checksummedAddress,
           type,
           yOffset,

@@ -35,9 +35,11 @@ import {
   MAIN_WALLET_ACCOUNT_ACTIONS,
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { getLabelTextByAddress } from '../../../util/address';
-import { useAccounts } from '../../hooks/useAccounts';
 
-const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
+const WalletAccount = (
+  { style, account }: WalletAccountProps,
+  ref: React.Ref<any>,
+) => {
   const { styles } = useStyles(styleSheet, { style });
 
   const { navigate } = useNavigation();
@@ -53,15 +55,6 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
 
   const chainId = useSelector(selectChainId);
 
-  const { accounts } = useAccounts();
-
-  /**
-   * An object representing the currently selected account.
-   * If we cannot find the selected account, we default to the first account in the list.
-   */
-  const selectedAccount =
-    accounts.find((account) => account.isSelected) ?? accounts[0];
-
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -70,15 +63,12 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
 
   const lookupEns = useCallback(async () => {
     try {
-      const accountEns = await doENSReverseLookup(
-        selectedAccount.address,
-        chainId,
-      );
+      const accountEns = await doENSReverseLookup(account.address, chainId);
 
       setEns(accountEns);
       // eslint-disable-next-line no-empty
     } catch {}
-  }, [selectedAccount.address, chainId]);
+  }, [account.address, chainId]);
 
   useEffect(() => {
     lookupEns();
@@ -94,17 +84,15 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     <View style={styles.base}>
       <PickerAccount
         ref={yourAccountRef}
-        accountAddress={selectedAccount.address}
+        accountAddress={account.address}
         accountName={
-          isDefaultAccountName(selectedAccount.name) && ens
-            ? ens
-            : selectedAccount.name
+          isDefaultAccountName(account.name) && ens ? ens : account.name
         }
         accountAvatarType={accountAvatarType}
         onPress={() => {
           navigate(...createAccountSelectorNavDetails({}));
         }}
-        accountTypeLabel={getLabelTextByAddress(selectedAccount.address)}
+        accountTypeLabel={getLabelTextByAddress(account.address)}
         showAddress={false}
         cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}

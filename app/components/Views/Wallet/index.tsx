@@ -44,6 +44,7 @@ import {
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAccounts } from '../../hooks/useAccounts';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -123,6 +124,22 @@ const Wallet = ({ navigation }: any) => {
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
+
+  /**
+   * A list of all the users accounts
+   */
+  const { accounts } = useAccounts();
+
+  /**
+   * An object representing the currently selected account.
+   * If we cannot find the selected account, we default to the first account in the list.
+   */
+  const selectedAccount = useMemo(() => {
+    if (accounts.length > 0) {
+      return accounts.find((account) => account.isSelected);
+    }
+    return undefined;
+  }, [accounts]);
 
   const networkName = useMemo(
     () => getNetworkNameFromProviderConfig(providerConfig),
@@ -274,8 +291,13 @@ const Wallet = ({ navigation }: any) => {
     }
     return (
       <View style={styles.wrapper}>
-        <WalletAccount style={styles.walletAccount} ref={walletRef} />
-
+        {selectedAccount ? (
+          <WalletAccount
+            account={selectedAccount}
+            style={styles.walletAccount}
+            ref={walletRef}
+          />
+        ) : null}
         <ScrollableTabView
           renderTabBar={renderTabBar}
           // eslint-disable-next-line react/jsx-no-bind
@@ -315,6 +337,7 @@ const Wallet = ({ navigation }: any) => {
     styles,
     providerConfig.chainId,
     accountsByChainId,
+    selectedAccount,
   ]);
   const renderLoader = useCallback(
     () => (
