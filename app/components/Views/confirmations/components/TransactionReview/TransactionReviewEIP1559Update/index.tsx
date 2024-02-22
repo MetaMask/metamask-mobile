@@ -23,7 +23,7 @@ import SkeletonComponent from './skeletonComponent';
 import createStyles from './styles';
 import { TransactionEIP1559UpdateProps } from './types';
 import { useSelector } from 'react-redux';
-import { getIsSmartTransaction } from '../../../../selectors/preferencesController';
+import { getIsSmartTransaction } from '../../../../../../selectors/preferencesController';
 
 const TransactionReviewEIP1559Update = ({
   primaryCurrency,
