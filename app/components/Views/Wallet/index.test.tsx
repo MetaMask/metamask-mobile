@@ -23,8 +23,8 @@ jest.mock('../../../core/Engine', () => ({
       },
     },
     NftController: {
-      allNfts: { '0x': { '1': [] } },
-      allNftContracts: { '0x': { '1': [] } },
+      allNfts: { '0x': { '0x1': [] } },
+      allNftContracts: { '0x': { '0x1': [] } },
     },
     TokenRatesController: {
       poll: jest.fn(),
@@ -42,7 +42,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const mockInitialState = {
-  swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
+  swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   wizard: {
     step: 0,
   },

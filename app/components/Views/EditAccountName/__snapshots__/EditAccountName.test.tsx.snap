@@ -244,7 +244,7 @@ exports[`EditAccountName should render correctly 1`] = `
         accessibilityRole="text"
         style={
           Object {
-            "color": "#FCFCFC",
+            "color": "#FFFFFF",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",

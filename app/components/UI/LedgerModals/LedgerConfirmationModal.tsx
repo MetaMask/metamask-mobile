@@ -70,7 +70,7 @@ const LedgerConfirmationModal = ({
   const connectLedger = () => {
     try {
       ledgerLogicToRun(async () => {
-        await unlockLedgerDefaultAccount();
+        await unlockLedgerDefaultAccount(false);
         await onConfirmation();
       });
     } catch (_e) {

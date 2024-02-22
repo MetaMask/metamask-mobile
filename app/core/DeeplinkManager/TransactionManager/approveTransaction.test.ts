@@ -5,6 +5,7 @@ import * as TransactionsUtilsModule from '../../../util/transactions';
 import Engine from '../../Engine';
 import NotificationManager from '../../NotificationManager';
 import approveTransaction from './approveTransaction';
+import { addTransaction } from '../../../util/transaction-controller';
 
 jest.mock('../../../util/networks');
 jest.mock('../../../util/transactions');
@@ -13,6 +14,10 @@ jest.mock('../../Engine');
 jest.mock('../../NotificationManager');
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
+}));
+jest.mock('../../../util/transaction-controller', () => ({
+  __esModule: true,
+  addTransaction: jest.fn(),
 }));
 
 const mockEthUrl = {
@@ -50,10 +55,7 @@ describe('approveTransaction', () => {
     'setProviderType',
   );
 
-  const spyAddTransaction = jest.spyOn(
-    Engine.context.TransactionController,
-    'addTransaction',
-  );
+  const spyAddTransaction = addTransaction as jest.Mock;
 
   const spyGetAddress = jest.spyOn(AddressUtilsModule, 'getAddress');
 

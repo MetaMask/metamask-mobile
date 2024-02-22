@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import { Transaction, WalletDevice } from '@metamask/transaction-controller';
-import Engine from '../../../../../core/Engine';
 
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -48,11 +47,13 @@ import {
 } from '../../../../../util/number';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import { addTransaction } from '../../../../../util/transaction-controller';
 
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { generateTransferData } from '../../../../../util/transactions';
 import useAnalytics from '../../hooks/useAnalytics';
+import { toHex } from '@metamask/controller-utils';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -110,8 +111,6 @@ function SendTransaction() {
   }, [trackEvent, transactionAnalyticsPayload]);
 
   const handleSend = useCallback(async () => {
-    const { TransactionController: TxController } = Engine.context;
-
     let transactionParams: Transaction;
     const amount = addHexPrefix(
       new BN(
@@ -126,7 +125,7 @@ function SendTransaction() {
         from: safeToChecksumAddress(orderData.walletAddress) as string,
         to: safeToChecksumAddress(orderData.depositWallet),
         value: amount,
-        chainId: orderData.cryptoCurrency.network.chainId,
+        chainId: toHex(orderData.cryptoCurrency.network.chainId),
       };
     } else {
       transactionParams = {
@@ -145,7 +144,7 @@ function SendTransaction() {
         'OFFRAMP_SEND_TRANSACTION_INVOKED',
         transactionAnalyticsPayload,
       );
-      const response = await TxController.addTransaction(transactionParams, {
+      const response = await addTransaction(transactionParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
       });
       const hash = await response.result;

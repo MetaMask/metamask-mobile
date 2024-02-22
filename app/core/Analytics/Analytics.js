@@ -13,7 +13,6 @@ import {
   AGREED,
   DENIED,
   ANALYTICS_DATA_DELETION_TASK_ID,
-  ANALYTICS_DATA_DELETION_DATE,
   ANALYTICS_DATA_RECORDED,
   MIXPANEL_METAMETRICS_ID,
 } from '../../constants/storage';
@@ -54,16 +53,6 @@ class Analytics {
    * ID from the deletion task
    */
   dataDeletionTaskId;
-
-  /**
-   * Date the deletion task was created
-   */
-  dataDeletionDate;
-
-  /**
-   * Boolean that indicates if the trackEvent method was executed
-   */
-  isDataRecorded;
 
   /**
    * Persist current Metrics OptIn flag in user preferences datastore
@@ -232,23 +221,6 @@ class Analytics {
           this.dataDeletionTaskId,
         );
 
-        const currentDate = new Date();
-        const month = currentDate.getUTCMonth() + 1;
-        const day = currentDate.getUTCDate();
-        const year = currentDate.getUTCFullYear();
-
-        this.dataDeletionDate = `${day}/${month}/${year}`;
-        await DefaultPreference.set(
-          ANALYTICS_DATA_DELETION_DATE,
-          this.dataDeletionDate,
-        );
-
-        this.isDataRecorded = false;
-        await DefaultPreference.set(
-          ANALYTICS_DATA_RECORDED,
-          String(this.isDataRecorded),
-        );
-
         return {
           status: result.status,
           DataDeleteStatus: DataDeleteResponseStatus.pending,
@@ -263,73 +235,12 @@ class Analytics {
   }
 
   /**
-   * Creates a Deletion Task using MixPanel GDPR API
-   * Reference https://developer.mixpanel.com/docs/privacy-security#check-status-of-a-deletion-task
-   *
-   * @param {string} compliance - CCPA or GDPR compliance. Default is GDPR.
-   * @returns Object with the response of the request
-   *  {
-   *    status: ResponseStatus,
-   *    dataDeleteStatus?: DataDeleteStatus
-   *  }
-   */
-  async _checkStatusDataDeletionTask() {
-    if (__DEV__) {
-      // Mock response for DEV env
-      return {
-        status: DataDeleteResponseStatus.ok,
-        DataDeleteStatus: DataDeleteStatus.pending,
-      };
-    }
-
-    if (!this.dataDeletionTaskId) {
-      return {
-        status: DataDeleteResponseStatus.error,
-        dataDeleteStatus: DataDeleteStatus.unknown,
-      };
-    }
-
-    const action = 'data-deletions';
-    const token = process.env.MM_MIXPANEL_TOKEN;
-    const url = `${MIXPANEL_PROXY_ENDPOINT_BASE_URL}/${action}/v3.0/${this.dataDeletionTaskId}?token=${token}`;
-    const response = await axios({
-      url,
-      method: 'get',
-      headers: {
-        Accept: 'application/json',
-      },
-    });
-
-    const { status, results } = response.data;
-
-    if (results.status === DataDeleteResponseStatus.success) {
-      this.dataDeletionTaskId = undefined;
-      return {
-        status: DataDeleteResponseStatus.ok,
-        dataDeleteStatus: DataDeleteStatus.success,
-      };
-    }
-
-    return {
-      status,
-      DataDeleteStatus: results.status || DataDeleteStatus.unknown,
-    };
-  }
-
-  /**
    * Creates a Analytics instance
    */
-  constructor(
-    metricsOptIn,
-    dataDeletionTaskId,
-    dataDeletionDate,
-    isDataRecorded,
-  ) {
+  constructor(metricsOptIn, dataDeletionTaskId) {
     if (!Analytics.instance) {
       this.enabled = metricsOptIn === AGREED;
       this.dataDeletionTaskId = dataDeletionTaskId;
-      this.dataDeletionDate = dataDeletionDate;
-      this.isDataRecorded = isDataRecorded;
       this.listeners = [];
       Analytics.instance = this;
       if (!__DEV__) {
@@ -524,19 +435,6 @@ class Analytics {
       anonymously,
     });
   };
-
-  /**
-   * Creates a deletion task to delete all data, including events and user profile data, for the user specified by mixpanelUserId
-   *
-   * @param {string} compliance - CCPA or GDPR compliance
-   */
-  createDataDeletionTask(compliance = 'GDPR') {
-    return this._createDataDeletionTask(compliance);
-  }
-
-  checkStatusDataDeletionTask() {
-    return this._checkStatusDataDeletionTask();
-  }
 }
 
 let instance;
@@ -547,23 +445,13 @@ export default {
     const deleteTaskId = await DefaultPreference.get(
       ANALYTICS_DATA_DELETION_TASK_ID,
     );
-    const dataDeletionDate = await DefaultPreference.get(
-      ANALYTICS_DATA_DELETION_DATE,
-    );
     const metametricsId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
-    const isDataRecorded =
-      (await DefaultPreference.get(ANALYTICS_DATA_RECORDED)) === 'true';
-    instance = new Analytics(
-      metricsOptIn,
-      deleteTaskId,
-      dataDeletionDate,
-      isDataRecorded,
-    );
+    instance = new Analytics(metricsOptIn, deleteTaskId);
     // MixPanel distinctId stored for consistency purposes between
     // Segment and MixPanel
     if (!metametricsId) {
       const distinctId = await instance.getDistinctId();
-      DefaultPreference.set(MIXPANEL_METAMETRICS_ID, distinctId);
+      await DefaultPreference.set(MIXPANEL_METAMETRICS_ID, distinctId);
     }
     try {
       const vars = await RCTAnalytics.getRemoteVariables();
@@ -588,15 +476,6 @@ export default {
   getDistinctId() {
     return instance && instance.getDistinctId();
   },
-  getDeletionTaskId() {
-    return instance && instance.dataDeletionTaskId;
-  },
-  getDeletionTaskDate() {
-    return instance && instance.dataDeletionDate;
-  },
-  getIsDataRecorded() {
-    return instance && instance.isDataRecorded;
-  },
   trackEvent(event, anonymously) {
     return instance && instance.trackEvent(event, anonymously);
   },
@@ -619,11 +498,5 @@ export default {
     } catch (e) {
       // Do nothing
     }
-  },
-  createDataDeletionTask(compliance) {
-    return instance && instance.createDataDeletionTask(compliance);
-  },
-  checkStatusDataDeletionTask() {
-    return instance && instance.checkStatusDataDeletionTask();
   },
 };

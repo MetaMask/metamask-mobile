@@ -39,6 +39,7 @@ import createStyles from './styles';
 import ShowWarningBanner from './showWarningBanner';
 import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { getDecimalChainId } from '../../../util/networks';
 
 /**
  * Account access approval component
@@ -114,7 +115,7 @@ class AccountApproval extends PureComponent {
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: url?.host,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         number_of_accounts: accountsLength,
         number_of_accounts_connected: 1,
         source: 'SDK / WalletConnect',
