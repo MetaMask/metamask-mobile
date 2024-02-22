@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Logger from '../../../util/Logger';
-import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 class ComponentErrorBoundary extends React.Component {
   state = { error: null };
@@ -26,10 +26,6 @@ class ComponentErrorBoundary extends React.Component {
      * Will not track as an error, but still log to analytics
      */
     dontTrackAsError: PropTypes.bool,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
   };
 
   static getDerivedStateFromError(error) {
@@ -43,13 +39,9 @@ class ComponentErrorBoundary extends React.Component {
     const { componentLabel, dontTrackAsError } = this.props;
 
     if (dontTrackAsError) {
-      return this.props.metrics.trackEvent(
-        { category: 'Error occurred' },
-        {
-          error: true,
-          type: `Component Error Boundary: ${componentLabel}`,
-          errorMessage: error?.message,
-        },
+      return trackErrorAsAnalytics(
+        `Component Error Boundary: ${componentLabel}`,
+        error?.message,
       );
     }
     Logger.error(error, { View: this.props.componentLabel, ...errorInfo });
@@ -63,4 +55,4 @@ class ComponentErrorBoundary extends React.Component {
   }
 }
 
-export default withMetricsAwareness(ComponentErrorBoundary);
+export default ComponentErrorBoundary;
