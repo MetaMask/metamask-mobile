@@ -1,3 +1,5 @@
+import { Hex } from '@metamask/utils';
+import { getDecimalChainId } from '../../util/networks';
 import { useState, useEffect } from 'react';
 
 export interface TokenDescriptions {
@@ -42,7 +44,7 @@ const useTokenDescriptions = ({
   chainId,
 }: {
   address: string;
-  chainId: string;
+  chainId: Hex;
 }): {
   data: TokenDescriptions | Record<string, never>;
   isLoading: boolean;
@@ -58,7 +60,9 @@ const useTokenDescriptions = ({
       setIsLoading(true);
       try {
         const baseUri = `https://token-api.metaswap.codefi.network`;
-        const uri = new URL(`${baseUri}/token/${chainId}/description`);
+        const uri = new URL(
+          `${baseUri}/token/${getDecimalChainId(chainId)}/description`,
+        );
         uri.searchParams.set('address', address);
 
         const response = await fetch(uri.toString());

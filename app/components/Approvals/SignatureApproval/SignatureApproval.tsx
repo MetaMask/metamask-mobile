@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
-import useApprovalRequest from '../../hooks/useApprovalRequest';
+import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import SignatureRequestRoot from '../../UI/SignatureRequest/Root';
+import SignatureRequestRoot from '../../Views/confirmations/components/SignatureRequest/Root';
 
 const SignatureApproval = () => {
   const { approvalRequest, onReject, onConfirm } = useApprovalRequest();

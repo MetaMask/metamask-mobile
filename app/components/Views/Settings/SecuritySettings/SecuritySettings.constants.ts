@@ -18,3 +18,6 @@ export const NFT_DISPLAY_MEDIA_MODE_SECTION = 'nft-display-media-mode-section';
 export const NFT_AUTO_DETECT_MODE_SECTION =
   'nft-opensea-autodetect-mode-section';
 export const IPFS_GATEWAY_SECTION = 'ipfs-gateway-section';
+export const USE_SAFE_CHAINS_LIST_VALIDATION = 'use-chains-list-validation';
+export const DISPLAY_SAFE_CHAINS_LIST_VALIDATION =
+  'display-use-safe-list-validation';
