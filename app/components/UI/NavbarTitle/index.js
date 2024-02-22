@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { scale } from 'react-native-size-matters';
 import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
-import Networks from '../../../util/networks';
+import Networks, { getDecimalChainId } from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -94,7 +94,7 @@ class NavbarTitle extends PureComponent {
         Analytics.trackEventWithParameters(
           MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
           {
-            chain_id: this.props.providerConfig.chainId,
+            chain_id: getDecimalChainId(this.props.providerConfig.chainId),
           },
         );
         setTimeout(() => {

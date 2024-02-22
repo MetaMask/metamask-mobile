@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
-import React, { useCallback, useState } from 'react';
-import { Linking } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Linking } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import Text, {
@@ -13,26 +13,59 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../component-library/components/Banners/Banner';
-import { DEFAULT_BUTTONLINK_LABEL_COLOR } from '../../../component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.constants';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './NetworkVerificationInfo.styles';
 import { CustomNetworkInformation } from './NetworkVerificationInfo.types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { ADD_CUSTOM_NETWORK_ARTCILE } from '../../../constants/urls';
+import { useSelector } from 'react-redux';
+import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
+import BottomSheetFooter, {
+  ButtonsAlignment,
+} from '../../../component-library/components/BottomSheets/BottomSheetFooter';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { toggleUseSafeChainsListValidation } from '../../../util/networks';
+import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
+
+interface Alert {
+  alertError: string;
+  alertSeverity: BannerAlertSeverity;
+  alertOrigin: string;
+}
 
 /**
  * NetworkVerificationInfo component
  */
 const NetworkVerificationInfo = ({
   customNetworkInformation,
+  onReject,
+  onConfirm,
+  isCustomNetwork = false,
 }: {
   customNetworkInformation: CustomNetworkInformation;
+  onReject: () => void;
+  onConfirm: () => void;
+  isCustomNetwork?: boolean;
 }) => {
   const [networkInfoMaxHeight, setNetworkInfoMaxHeight] = useState<
     number | null
   >(null);
   const [networkDetailsExpanded, setNetworkDetailsExpanded] = useState(false);
   const { styles } = useStyles(styleSheet, {});
+  const safeChainsListValidationEnabled = useSelector(
+    selectUseSafeChainsListValidation,
+  );
+  const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
+  const { alerts: alertsFromProps } = customNetworkInformation;
+  const [alerts, setAlerts] = React.useState<Alert[]>([]);
+
+  const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
+
+  useEffect(() => setAlerts(alertsFromProps), [alertsFromProps]);
 
   const renderNetworkInfo = () => (
     <ScrollView
@@ -90,14 +123,41 @@ const NetworkVerificationInfo = ({
     Linking.openURL(ADD_CUSTOM_NETWORK_ARTCILE);
   };
 
+  const renderBanner = () => {
+    if (!safeChainsListValidationEnabled) {
+      return (
+        <View style={styles.alertBar}>
+          <Banner
+            variant={BannerVariant.Alert}
+            description={
+              strings('wallet.network_details_check') +
+              ' ' +
+              strings('wallet.network_check_validation_desc')
+            }
+            actionButtonProps={{
+              variant: ButtonVariants.Link,
+              label: strings('wallet.turn_on_network_check_cta'),
+              onPress: showCheckNetworkModal,
+            }}
+          />
+        </View>
+      );
+    }
+    return null;
+  };
+
   const renderAlerts = useCallback(() => {
-    if (!customNetworkInformation.alerts.length) return null;
-    return customNetworkInformation.alerts.map(
-      (networkAlert: {
-        alertError: string;
-        alertSeverity: BannerAlertSeverity;
-        alertOrigin: string;
-      }) => (
+    if (!safeChainsListValidationEnabled) return null;
+    if (!alerts.length) return null;
+    return alerts.map(
+      (
+        networkAlert: {
+          alertError: string;
+          alertSeverity: BannerAlertSeverity;
+          alertOrigin: string;
+        },
+        index,
+      ) => (
         <Banner
           variant={BannerVariant.Alert}
           severity={networkAlert.alertSeverity}
@@ -105,31 +165,105 @@ const NetworkVerificationInfo = ({
           testID={CommonSelectorsIDs.ERROR_MESSAGE}
           style={styles.textSection}
           key={networkAlert.alertOrigin}
+          onClose={() => {
+            const newAlerts = [...alerts];
+            newAlerts.splice(index, 1);
+            setAlerts(newAlerts);
+          }}
         />
       ),
     );
-  }, [customNetworkInformation.alerts, styles.textSection]);
+  }, [alerts, styles.textSection, safeChainsListValidationEnabled]);
 
-  return (
-    <ScrollView style={styles.root}>
-      <PickerNetwork
-        imageSource={customNetworkInformation.icon}
-        label={customNetworkInformation.chainName}
-        style={styles.networkSection}
-        disabled
-      />
-      {renderAlerts()}
-      <Text>
-        {strings('add_custom_network.warning_subtext_new.1')}{' '}
-        <Text
-          onPress={openHowToUseCustomNetworks}
-          color={DEFAULT_BUTTONLINK_LABEL_COLOR}
-        >
-          {strings('add_custom_network.warning_subtext_new.2')}
+  return showCheckNetwork ? (
+    <View>
+      <View style={styles.textContainer}>
+        <Text style={styles.title}>
+          {strings('wallet.network_details_check')}
         </Text>
-      </Text>
-      {renderNetworkInfo()}
-    </ScrollView>
+        <Text style={styles.bottomSpace}>
+          {strings('app_settings.use_safe_chains_list_validation_desc_1')}{' '}
+          chainid.network{' '}
+          {strings('app_settings.use_safe_chains_list_validation_desc_2')}
+        </Text>
+
+        <Text>
+          {strings('networks.network_select_confirm_use_safe_check')}{' '}
+          <Text style={styles.boldText}>
+            {strings('networks.network_settings_security_privacy')}
+          </Text>
+        </Text>
+      </View>
+
+      <BottomSheetFooter
+        buttonPropsArray={[
+          {
+            onPress: showCheckNetworkModal,
+            label: strings('confirmation_modal.cancel_cta'),
+            variant: ButtonVariants.Secondary,
+            size: ButtonSize.Lg,
+            testID: CommonSelectorsIDs.CANCEL_BUTTON,
+          },
+          {
+            onPress: () => {
+              toggleUseSafeChainsListValidation(true);
+              showCheckNetworkModal();
+            },
+            label: strings('confirmation_modal.confirm_cta'),
+            variant: ButtonVariants.Primary,
+            size: ButtonSize.Lg,
+            testID: CommonSelectorsIDs.CONNECT_BUTTON,
+          },
+        ]}
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+      />
+    </View>
+  ) : (
+    <View testID={NetworkApprovalModalSelectorsIDs.CONTAINER}>
+      <BottomSheetHeader>
+        <Text variant={TextVariant.HeadingMD}>
+          {isCustomNetwork
+            ? strings('networks.add_custom_network')
+            : strings('app_settings.network_add_network')}
+        </Text>
+      </BottomSheetHeader>
+      <ScrollView style={styles.root}>
+        <PickerNetwork
+          imageSource={customNetworkInformation.icon}
+          label={customNetworkInformation.chainName}
+          style={styles.networkSection}
+          disabled
+        />
+        {renderAlerts()}
+        {renderBanner()}
+        <Text style={styles.textCentred}>
+          {strings('add_custom_network.warning_subtext_new.1')}{' '}
+          <Text onPress={openHowToUseCustomNetworks}>
+            {strings('add_custom_network.warning_subtext_new.2')}
+          </Text>
+        </Text>
+        {renderNetworkInfo()}
+      </ScrollView>
+      <BottomSheetFooter
+        buttonPropsArray={[
+          {
+            onPress: onReject,
+            label: strings('confirmation_modal.cancel_cta'),
+            variant: ButtonVariants.Secondary,
+            size: ButtonSize.Lg,
+            testID: NetworkApprovalModalSelectorsIDs.CANCEL_BUTTON,
+          },
+          {
+            onPress: onConfirm,
+            label: strings('confirmation_modal.confirm_cta'),
+            variant: ButtonVariants.Primary,
+            size: ButtonSize.Lg,
+            testID: NetworkApprovalModalSelectorsIDs.APPROVE_BUTTON,
+          },
+        ]}
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+      />
+    </View>
   );
 };
 

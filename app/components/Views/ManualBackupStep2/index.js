@@ -18,9 +18,10 @@ import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { shuffle, compareMnemonics } from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
+import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
+import Logger from '../../../util/Logger';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
@@ -44,6 +45,12 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       dict[`${word},${i}`] = { currentPosition: undefined };
     });
     setWordsDict(dict);
+  };
+
+  const track = (event, properties) => {
+    trackAfterInteractions(event, properties).catch(() => {
+      Logger.log('ManualBackupStep2', `Failed to track ${event}`);
+    });
   };
 
   const updateNavBar = useCallback(() => {
@@ -123,15 +130,13 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();
-      InteractionManager.runAfterInteractions(() => {
+      InteractionManager.runAfterInteractions(async () => {
         const words = route.params?.words;
         navigation.navigate('ManualBackupStep3', {
           steps: route.params?.steps,
           words,
         });
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
-        );
+        track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED);
       });
     } else {
       Alert.alert(

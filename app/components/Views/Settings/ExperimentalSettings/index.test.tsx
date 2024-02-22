@@ -13,7 +13,7 @@ const mockStore = configureMockStore();
 
 const initialState = {
   experimentalSettings: {
-    securityAlertsEnabled: false,
+    securityAlertsEnabled: true,
   },
   engine: {
     backgroundState: initialBackgroundState,
@@ -36,14 +36,14 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PreferencesController: {
       state: {
-        securityAlertsEnabled: false,
+        securityAlertsEnabled: true,
       },
       setSecurityAlertsEnabled: () => undefined,
     },
     NetworkController: {
       state: {
         providerConfig: {
-          chainId: 1,
+          chainId: '0x1',
         },
       },
     },
@@ -92,6 +92,6 @@ describe('ExperimentalSettings', () => {
 
     const toggle = wrapper.getByTestId(SECURITY_ALERTS_TOGGLE_TEST_ID);
     expect(toggle).toBeDefined();
-    expect(toggle.props.value).toBe(false);
+    expect(toggle.props.value).toBe(true);
   });
 });
