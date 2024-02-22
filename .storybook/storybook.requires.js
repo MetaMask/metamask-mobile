@@ -16,6 +16,13 @@ global.STORIES = [
     importPathMatcher:
       "^\\.[\\\\/](?:app\\/component-library\\/components(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components-temp/TagColored",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components-temp\\/TagColored(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
 ];
 
 import "@storybook/addon-ondevice-controls/register";
@@ -87,8 +94,8 @@ const getStories = () => {
     "./app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx": require("../app/component-library/components/Pickers/PickerAccount/PickerAccount.stories.tsx"),
     "./app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx": require("../app/component-library/components/Pickers/PickerNetwork/PickerNetwork.stories.tsx"),
     "./app/component-library/components/RadioButton/RadioButton.stories.tsx": require("../app/component-library/components/RadioButton/RadioButton.stories.tsx"),
-    "./app/component-library/components/Select/SelectOption/SelectOption.stories.tsx": require("../app/component-library/components/Select/SelectOption/SelectOption.stories.tsx"),
     "./app/component-library/components/Select/SelectButton/SelectButton.stories.tsx": require("../app/component-library/components/Select/SelectButton/SelectButton.stories.tsx"),
+    "./app/component-library/components/Select/SelectOption/SelectOption.stories.tsx": require("../app/component-library/components/Select/SelectOption/SelectOption.stories.tsx"),
     "./app/component-library/components/Select/SelectValue/SelectValue.stories.tsx": require("../app/component-library/components/Select/SelectValue/SelectValue.stories.tsx"),
     "./app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx": require("../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx"),
     "./app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx": require("../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx"),
@@ -97,6 +104,7 @@ const getStories = () => {
     "./app/component-library/components/Texts/Text/Text.stories.tsx": require("../app/component-library/components/Texts/Text/Text.stories.tsx"),
     "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
     "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
+    "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
   };
 };
 
