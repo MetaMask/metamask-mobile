@@ -32,9 +32,9 @@ export const selectNickname = createSelector(
   selectProviderConfig,
   (providerConfig: ProviderConfig) => providerConfig?.nickname,
 );
-export const selectRpcUrl = createSelector(
+export const selectRpcTarget = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig.rpcUrl,
+  (providerConfig: ProviderConfig) => providerConfig.rpcTarget,
 );
 export const selectNetworkId = createSelector(
   selectNetworkControllerState,

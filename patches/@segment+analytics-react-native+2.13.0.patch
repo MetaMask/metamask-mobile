@@ -1,0 +1,95 @@
+diff --git a/node_modules/@segment/analytics-react-native/src/analytics.ts b/node_modules/@segment/analytics-react-native/src/analytics.ts
+index 4229c6a..83882e2 100644
+--- a/node_modules/@segment/analytics-react-native/src/analytics.ts
++++ b/node_modules/@segment/analytics-react-native/src/analytics.ts
+@@ -383,8 +383,8 @@ export class SegmentClient {
+     this.timeline.remove(plugin);
+   }
+ 
+-  async process(incomingEvent: SegmentEvent) {
+-    const event = applyRawEventData(incomingEvent);
++  async process(incomingEvent: SegmentEvent, timestamp?: string) {
++    const event = applyRawEventData(incomingEvent, timestamp);
+     if (this.store.isReady.get() === true) {
+       this.flushPolicyExecuter.notify(event);
+       return this.timeline.process(event);
+@@ -476,10 +476,12 @@ export class SegmentClient {
+     this.logger.info('SCREEN event saved', event);
+   }
+ 
+-  async track(eventName: string, options?: JsonMap) {
++  async track(eventName: string, options?: JsonMap, userId?: string, anonymousId?: string) {
+     const event = createTrackEvent({
+       event: eventName,
+       properties: options,
++      userId: userId,
++      anonymousId: anonymousId,
+     });
+ 
+     await this.process(event);
+@@ -517,8 +519,11 @@ export class SegmentClient {
+       newUserId,
+     });
+ 
+-    await this.process(event);
+-    this.logger.info('ALIAS event saved', event);
++    const newTimestamp = new Date();  
++    newTimestamp.setSeconds(newTimestamp.getSeconds() - 1);
++
++    await this.process(event, newTimestamp.toISOString());
++    this.logger.info('ALIAS event saved', event, 'with timestamp', newTimestamp);
+   }
+ 
+   /**
+@@ -629,12 +634,7 @@ export class SegmentClient {
+     this.appState = nextAppState;
+   }
+ 
+-  reset(resetAnonymousId: boolean = true) {
+-    const anonymousId =
+-      resetAnonymousId === true
+-        ? getUUID()
+-        : this.store.userInfo.get().anonymousId;
+-
++  reset(anonymousId: string) {
+     this.store.userInfo.set({
+       anonymousId,
+       userId: undefined,
+diff --git a/node_modules/@segment/analytics-react-native/src/events.ts b/node_modules/@segment/analytics-react-native/src/events.ts
+index fe1a369..dc058ee 100644
+--- a/node_modules/@segment/analytics-react-native/src/events.ts
++++ b/node_modules/@segment/analytics-react-native/src/events.ts
+@@ -16,13 +16,19 @@ import {
+ export const createTrackEvent = ({
+   event,
+   properties = {},
++  userId,
++  anonymousId,
+ }: {
+   event: string;
+   properties?: JsonMap;
++  userId?: string;
++  anonymousId?: string;
+ }): TrackEventType => ({
+   type: EventType.TrackEvent,
+   event,
+   properties,
++  userId,
++  anonymousId,
+ });
+ 
+ export const createScreenEvent = ({
+@@ -77,11 +83,11 @@ export const createAliasEvent = ({
+   previousId: userId || anonymousId,
+ });
+ 
+-export const applyRawEventData = (event: SegmentEvent): SegmentEvent => {
++export const applyRawEventData = (event: SegmentEvent, timestamp: string = new Date().toISOString()): SegmentEvent => {
+   return {
+     ...event,
+     messageId: getUUID(),
+-    timestamp: new Date().toISOString(),
++    timestamp,
+     integrations: event.integrations ?? {},
+   };
+ };

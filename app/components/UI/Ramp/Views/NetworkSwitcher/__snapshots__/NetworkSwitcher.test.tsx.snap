@@ -852,6 +852,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       "landscape",
                                     ]
                                   }
+                                  swipeDirection="down"
                                   swipeThreshold={100}
                                   transparent={true}
                                   visible={true}
@@ -901,6 +902,18 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                     onModalHide={[Function]}
                                     onModalWillHide={[Function]}
                                     onModalWillShow={[Function]}
+                                    onMoveShouldSetResponder={[Function]}
+                                    onMoveShouldSetResponderCapture={[Function]}
+                                    onResponderEnd={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderReject={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderStart={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    onStartShouldSetResponderCapture={[Function]}
                                     panResponderThreshold={4}
                                     pointerEvents="box-none"
                                     scrollHorizontal={false}
@@ -912,7 +925,9 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       Object {
                                         "flex": 1,
                                         "justifyContent": "flex-end",
+                                        "left": 0,
                                         "margin": 0,
+                                        "top": 0,
                                         "transform": Array [
                                           Object {
                                             "translateY": 1334,
@@ -926,6 +941,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         "landscape",
                                       ]
                                     }
+                                    swipeDirection="down"
                                     swipeThreshold={100}
                                   >
                                     <View
@@ -933,9 +949,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         Object {
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 10,
-                                          "maxHeight": "80%",
-                                          "padding": 4,
-                                          "paddingTop": 4,
+                                          "padding": 20,
                                         }
                                       }
                                     >
@@ -944,468 +958,828 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           style={
                                             Object {
                                               "alignItems": "center",
-                                              "alignSelf": "stretch",
-                                              "padding": 4,
+                                              "backgroundColor": "#F2F4F6",
+                                              "borderRadius": 40,
+                                              "flexDirection": "row",
+                                              "justifyContent": "center",
+                                              "marginLeft": "15%",
+                                              "marginRight": "15%",
+                                              "paddingVertical": 5,
                                             }
                                           }
+                                          testID="approve-network-modal"
                                         >
+                                          <Text
+                                            style={
+                                              Array [
+                                                Object {
+                                                  "color": "#24272A",
+                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontSize": 30,
+                                                  "fontWeight": "400",
+                                                  "marginVertical": 2,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                Object {
+                                                  "color": "#24272A",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                Object {
+                                                  "color": "#24272A",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            Cronos Mainnet
+                                          </Text>
+                                        </View>
+                                        <Text
+                                          style={
+                                            Array [
+                                              false,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              Object {
+                                                "color": "#24272A",
+                                                "fontFamily": "EuclidCircularB-Bold",
+                                                "fontSize": 18,
+                                                "fontWeight": "600",
+                                                "lineHeight": 34,
+                                                "marginVertical": 10,
+                                                "paddingHorizontal": 16,
+                                                "textAlign": "center",
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          Want to add this network?
+                                        </Text>
+                                        <Text
+                                          style={
+                                            Array [
+                                              Object {
+                                                "color": "#24272A",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
+                                              },
+                                              Object {
+                                                "textAlign": "center",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              Object {
+                                                "marginBottom": 10,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          This allows this network to be used within MetaMask
+                                        </Text>
+                                        <Text
+                                          style={
+                                            Array [
+                                              Object {
+                                                "color": "#24272A",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
+                                              },
+                                              Object {
+                                                "textAlign": "center",
+                                              },
+                                              undefined,
+                                              Object {
+                                                "fontFamily": "EuclidCircularB-Bold",
+                                                "fontWeight": "600",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          MetaMask does not endorse custom networks or their security.
                                           <View
                                             style={
                                               Object {
-                                                "backgroundColor": "#D6D9DC",
-                                                "borderRadius": 2,
-                                                "height": 4,
-                                                "width": 40,
+                                                "paddingHorizontal": 3,
                                               }
                                             }
-                                          />
-                                        </View>
+                                          >
+                                            <Text
+                                              allowFontScaling={false}
+                                              onPress={[Function]}
+                                              style={
+                                                Array [
+                                                  Object {
+                                                    "color": undefined,
+                                                    "fontSize": 12,
+                                                  },
+                                                  Object {
+                                                    "color": "#24272A",
+                                                    "fontSize": 12,
+                                                  },
+                                                  Object {
+                                                    "fontFamily": "FontAwesome",
+                                                    "fontStyle": "normal",
+                                                    "fontWeight": "normal",
+                                                  },
+                                                  Object {},
+                                                ]
+                                              }
+                                            >
+                                              
+                                            </Text>
+                                          </View>
+                                        </Text>
+                                        <Text
+                                          style={
+                                            Array [
+                                              Object {
+                                                "color": "#24272A",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
+                                              },
+                                              Object {
+                                                "textAlign": "center",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              Object {
+                                                "marginBottom": 10,
+                                              },
+                                            ]
+                                          }
+                                        >
+                                          <Text
+                                            style={
+                                              Array [
+                                                Object {
+                                                  "color": "#24272A",
+                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontSize": 30,
+                                                  "fontWeight": "400",
+                                                  "marginVertical": 2,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            Learn about
+                                             
+                                          </Text>
+                                          <Text
+                                            onPress={[Function]}
+                                            style={
+                                              Array [
+                                                Object {
+                                                  "color": "#24272A",
+                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontSize": 30,
+                                                  "fontWeight": "400",
+                                                  "marginVertical": 2,
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                Object {
+                                                  "color": "#0376C9",
+                                                },
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            scams and network security risks
+                                          </Text>
+                                        </Text>
                                         <View
                                           style={
                                             Object {
-                                              "backgroundColor": "#FFFFFF",
-                                              "maxHeight": "85%",
-                                              "paddingBottom": 20,
-                                              "paddingHorizontal": 0,
+                                              "borderColor": "#BBC0C5",
+                                              "borderRadius": 10,
+                                              "borderWidth": 1,
+                                              "flexDirection": "row",
+                                              "justifyContent": "flex-start",
+                                              "marginBottom": 10,
+                                              "padding": 16,
                                             }
                                           }
                                         >
-                                          <View
-                                            testID="approve-network-modal"
-                                          >
-                                            <View
+                                          <View>
+                                            <Text
                                               style={
-                                                Object {
-                                                  "alignItems": "center",
-                                                  "backgroundColor": "#FFFFFF",
-                                                  "flexDirection": "row",
-                                                  "padding": 16,
-                                                }
-                                              }
-                                              testID="header"
-                                            >
-                                              <View
-                                                style={
+                                                Array [
                                                   Object {
-                                                    "width": undefined,
-                                                  }
-                                                }
-                                              >
-                                                <View
-                                                  onLayout={[Function]}
-                                                />
-                                              </View>
-                                              <View
-                                                style={
+                                                    "color": "#24272A",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 30,
+                                                    "fontWeight": "400",
+                                                    "marginVertical": 2,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
                                                   Object {
-                                                    "alignItems": "center",
-                                                    "flex": 1,
-                                                    "marginHorizontal": 16,
-                                                  }
-                                                }
-                                              >
-                                                <Text
-                                                  accessibilityRole="text"
-                                                  style={
-                                                    Object {
-                                                      "color": "#24272A",
-                                                      "fontFamily": "Euclid Circular B",
-                                                      "fontSize": 18,
-                                                      "fontWeight": "700",
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 24,
-                                                    }
-                                                  }
-                                                >
-                                                  Add custom network
-                                                </Text>
-                                              </View>
-                                              <View
-                                                style={
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
                                                   Object {
-                                                    "width": undefined,
-                                                  }
-                                                }
-                                              >
-                                                <View
-                                                  onLayout={[Function]}
-                                                />
-                                              </View>
-                                            </View>
-                                            <RCTScrollView
-                                              collapsable={false}
-                                              onGestureHandlerEvent={[Function]}
-                                              onGestureHandlerStateChange={[Function]}
-                                              style={
-                                                Object {
-                                                  "backgroundColor": "#FFFFFF",
-                                                  "paddingHorizontal": 16,
-                                                }
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
                                               }
                                             >
-                                              <View>
-                                                <TouchableOpacity
-                                                  disabled={true}
-                                                  style={
-                                                    Object {
-                                                      "alignItems": "center",
-                                                      "alignSelf": "center",
-                                                      "backgroundColor": "#F2F4F6",
-                                                      "borderRadius": 16,
-                                                      "flexDirection": "row",
-                                                      "height": 32,
-                                                      "marginBottom": 16,
-                                                      "paddingHorizontal": 8,
-                                                    }
-                                                  }
-                                                >
-                                                  <View
-                                                    style={
-                                                      Object {
-                                                        "backgroundColor": "#FFFFFF",
-                                                        "borderRadius": 8,
-                                                        "height": 16,
-                                                        "overflow": "hidden",
-                                                        "width": 16,
-                                                      }
-                                                    }
-                                                  >
-                                                    <Image
-                                                      onError={[Function]}
-                                                      resizeMode="contain"
-                                                      source="https://static.metafi.codefi.network/api/v1/tokenIcons/42220/0x471ece3750da237f93b8e339c536989b8978a438.png"
-                                                      style={
-                                                        Object {
-                                                          "flex": 1,
-                                                          "height": undefined,
-                                                          "width": undefined,
-                                                        }
-                                                      }
-                                                      testID="network-avatar-image"
-                                                    />
-                                                  </View>
-                                                  <Text
-                                                    accessibilityRole="text"
-                                                    numberOfLines={1}
-                                                    style={
-                                                      Object {
-                                                        "color": "#24272A",
-                                                        "flexShrink": 1,
-                                                        "fontFamily": "Euclid Circular B",
-                                                        "fontSize": 14,
-                                                        "fontWeight": "400",
-                                                        "letterSpacing": 0,
-                                                        "lineHeight": 22,
-                                                        "marginHorizontal": 8,
-                                                      }
-                                                    }
-                                                    testID="open-networks-text"
-                                                  >
-                                                    Cronos Mainnet
-                                                  </Text>
-                                                </TouchableOpacity>
-                                                <Text
-                                                  accessibilityRole="text"
-                                                  style={
-                                                    Object {
-                                                      "color": "#24272A",
-                                                      "fontFamily": "Euclid Circular B",
-                                                      "fontSize": 14,
-                                                      "fontWeight": "400",
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 22,
-                                                      "textAlign": "center",
-                                                    }
-                                                  }
-                                                >
-                                                  MetaMask doesn’t verify custom networks, so only approve networks you trust.
-                                                   
-                                                  <Text
-                                                    accessibilityRole="text"
-                                                    onPress={[Function]}
-                                                    style={
-                                                      Object {
-                                                        "color": "#24272A",
-                                                        "fontFamily": "Euclid Circular B",
-                                                        "fontSize": 14,
-                                                        "fontWeight": "400",
-                                                        "letterSpacing": 0,
-                                                        "lineHeight": 22,
-                                                      }
-                                                    }
-                                                  >
-                                                    Learn more about network security risks and scams.
-                                                  </Text>
-                                                </Text>
-                                                <RCTScrollView
-                                                  collapsable={false}
-                                                  nestedScrollEnabled={true}
-                                                  onGestureHandlerEvent={[Function]}
-                                                  onGestureHandlerStateChange={[Function]}
-                                                  onLayout={[Function]}
-                                                  style={
-                                                    Array [
-                                                      Object {
-                                                        "borderColor": "#BBC0C5",
-                                                        "borderRadius": 10,
-                                                        "borderWidth": 1,
-                                                        "marginVertical": 16,
-                                                        "padding": 16,
-                                                      },
-                                                      undefined,
-                                                    ]
-                                                  }
-                                                >
-                                                  <View>
-                                                    <Text
-                                                      accessibilityRole="text"
-                                                      style={
-                                                        Object {
-                                                          "color": "#24272A",
-                                                          "fontFamily": "Euclid Circular B",
-                                                          "fontSize": 14,
-                                                          "fontWeight": "700",
-                                                          "letterSpacing": 0,
-                                                          "lineHeight": 22,
-                                                        }
-                                                      }
-                                                    >
-                                                      Display name
-                                                    </Text>
-                                                    <Text
-                                                      accessibilityRole="text"
-                                                      style={
-                                                        Object {
-                                                          "color": "#24272A",
-                                                          "fontFamily": "Euclid Circular B",
-                                                          "fontSize": 14,
-                                                          "fontWeight": "400",
-                                                          "letterSpacing": 0,
-                                                          "lineHeight": 22,
-                                                          "marginBottom": 8,
-                                                        }
-                                                      }
-                                                    >
-                                                      Cronos Mainnet
-                                                    </Text>
-                                                    <Text
-                                                      accessibilityRole="text"
-                                                      style={
-                                                        Object {
-                                                          "color": "#24272A",
-                                                          "fontFamily": "Euclid Circular B",
-                                                          "fontSize": 14,
-                                                          "fontWeight": "700",
-                                                          "letterSpacing": 0,
-                                                          "lineHeight": 22,
-                                                        }
-                                                      }
-                                                    >
-                                                      Chain ID
-                                                    </Text>
-                                                    <Text
-                                                      accessibilityRole="text"
-                                                      style={
-                                                        Object {
-                                                          "color": "#24272A",
-                                                          "fontFamily": "Euclid Circular B",
-                                                          "fontSize": 14,
-                                                          "fontWeight": "400",
-                                                          "letterSpacing": 0,
-                                                          "lineHeight": 22,
-                                                          "marginBottom": 8,
-                                                        }
-                                                      }
-                                                    >
-                                                      25
-                                                    </Text>
-                                                    <Text
-                                                      accessibilityRole="text"
-                                                      style={
-                                                        Object {
-                                                          "color": "#24272A",
-                                                          "fontFamily": "Euclid Circular B",
-                                                          "fontSize": 14,
-                                                          "fontWeight": "700",
-                                                          "letterSpacing": 0,
-                                                          "lineHeight": 22,
-                                                        }
-                                                      }
-                                                    >
-                                                      Network URL
-                                                    </Text>
-                                                    <Text
-                                                      accessibilityRole="text"
-                                                      style={
-                                                        Object {
-                                                          "color": "#24272A",
-                                                          "fontFamily": "Euclid Circular B",
-                                                          "fontSize": 14,
-                                                          "fontWeight": "400",
-                                                          "letterSpacing": 0,
-                                                          "lineHeight": 22,
-                                                          "marginBottom": 8,
-                                                        }
-                                                      }
-                                                    >
-                                                      https://evm.cronos.org
-                                                    </Text>
-                                                    <TouchableOpacity
-                                                      activeOpacity={0.5}
-                                                      onPress={[Function]}
-                                                      style={
-                                                        Object {
-                                                          "alignItems": "center",
-                                                          "flexDirection": "row",
-                                                          "height": 24,
-                                                          "justifyContent": "center",
-                                                        }
-                                                      }
-                                                      testID="accordionheader"
-                                                    >
-                                                      <Text
-                                                        accessibilityRole="text"
-                                                        style={
-                                                          Object {
-                                                            "color": "#0376C9",
-                                                            "fontFamily": "Euclid Circular B",
-                                                            "fontSize": 14,
-                                                            "fontWeight": "400",
-                                                            "letterSpacing": 0,
-                                                            "lineHeight": 22,
-                                                          }
-                                                        }
-                                                        testID="accordionheader-title"
-                                                      >
-                                                        View details
-                                                      </Text>
-                                                      <View
-                                                        style={
-                                                          Array [
-                                                            Object {
-                                                              "marginLeft": 4,
-                                                            },
-                                                            Object {
-                                                              "transform": Array [
-                                                                Object {
-                                                                  "rotate": "0deg",
-                                                                },
-                                                              ],
-                                                            },
-                                                          ]
-                                                        }
-                                                        testID="accordionheader-arrow-icon-animation"
-                                                      >
-                                                        <SvgMock
-                                                          color="#0376C9"
-                                                          height={16}
-                                                          name="ArrowDown"
-                                                          style={
-                                                            Object {
-                                                              "height": 16,
-                                                              "width": 16,
-                                                            }
-                                                          }
-                                                          testID="accordionheader-arrow-icon"
-                                                          width={16}
-                                                        />
-                                                      </View>
-                                                    </TouchableOpacity>
-                                                  </View>
-                                                </RCTScrollView>
-                                              </View>
-                                            </RCTScrollView>
-                                            <View
+                                              Display name
+                                            </Text>
+                                            <Text
                                               style={
-                                                Object {
-                                                  "backgroundColor": "#FFFFFF",
-                                                  "flexDirection": "row",
-                                                  "paddingHorizontal": 8,
-                                                  "paddingVertical": 4,
-                                                }
+                                                Array [
+                                                  Object {
+                                                    "color": "#24272A",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 30,
+                                                    "fontWeight": "400",
+                                                    "marginVertical": 2,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "fontFamily": "EuclidCircularB-Bold",
+                                                    "fontWeight": "600",
+                                                  },
+                                                  undefined,
+                                                  Object {
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "marginBottom": 10,
+                                                  },
+                                                ]
                                               }
-                                              testID="bottomsheetfooter"
+                                              testID="approve-network-display-name-id"
                                             >
-                                              <TouchableOpacity
-                                                activeOpacity={1}
-                                                onPress={[Function]}
-                                                onPressIn={[Function]}
-                                                onPressOut={[Function]}
-                                                style={
+                                              Cronos Mainnet
+                                            </Text>
+                                            <Text
+                                              style={
+                                                Array [
                                                   Object {
-                                                    "alignItems": "center",
-                                                    "alignSelf": "flex-start",
-                                                    "backgroundColor": "transparent",
-                                                    "borderColor": "#0376C9",
-                                                    "borderRadius": 24,
-                                                    "borderWidth": 1,
-                                                    "flex": 1,
-                                                    "flexDirection": "row",
-                                                    "height": 48,
-                                                    "justifyContent": "center",
-                                                    "paddingHorizontal": 16,
-                                                  }
-                                                }
-                                                testID="approve-network-cancel-button"
-                                                variant="Secondary"
-                                              >
-                                                <Text
-                                                  accessibilityRole="text"
-                                                  style={
-                                                    Object {
-                                                      "color": "#0376C9",
-                                                      "fontFamily": "Euclid Circular B",
-                                                      "fontSize": 14,
-                                                      "fontWeight": "400",
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 22,
-                                                    }
-                                                  }
-                                                >
-                                                  Cancel
-                                                </Text>
-                                              </TouchableOpacity>
-                                              <TouchableOpacity
-                                                activeOpacity={1}
-                                                onPress={[Function]}
-                                                onPressIn={[Function]}
-                                                onPressOut={[Function]}
-                                                style={
+                                                    "color": "#24272A",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 30,
+                                                    "fontWeight": "400",
+                                                    "marginVertical": 2,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
                                                   Object {
-                                                    "alignItems": "center",
-                                                    "alignSelf": "flex-start",
-                                                    "backgroundColor": "#0376C9",
-                                                    "borderRadius": 24,
-                                                    "flex": 1,
-                                                    "flexDirection": "row",
-                                                    "height": 48,
-                                                    "justifyContent": "center",
-                                                    "marginLeft": 16,
-                                                    "marginTop": 0,
-                                                    "paddingHorizontal": 16,
-                                                  }
-                                                }
-                                                testID="approve-network-approve-button"
-                                                variant="Primary"
-                                              >
-                                                <Text
-                                                  accessibilityRole="text"
-                                                  style={
-                                                    Object {
-                                                      "color": "#FFFFFF",
-                                                      "fontFamily": "Euclid Circular B",
-                                                      "fontSize": 14,
-                                                      "fontWeight": "400",
-                                                      "letterSpacing": 0,
-                                                      "lineHeight": 22,
-                                                    }
-                                                  }
-                                                >
-                                                  Confirm
-                                                </Text>
-                                              </TouchableOpacity>
-                                            </View>
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              Chain ID
+                                            </Text>
+                                            <Text
+                                              style={
+                                                Array [
+                                                  Object {
+                                                    "color": "#24272A",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 30,
+                                                    "fontWeight": "400",
+                                                    "marginVertical": 2,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "fontFamily": "EuclidCircularB-Bold",
+                                                    "fontWeight": "600",
+                                                  },
+                                                  undefined,
+                                                  Object {
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "marginBottom": 10,
+                                                  },
+                                                ]
+                                              }
+                                            >
+                                              25
+                                            </Text>
+                                            <Text
+                                              style={
+                                                Array [
+                                                  Object {
+                                                    "color": "#24272A",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 30,
+                                                    "fontWeight": "400",
+                                                    "marginVertical": 2,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              Network URL
+                                            </Text>
+                                            <Text
+                                              style={
+                                                Array [
+                                                  Object {
+                                                    "color": "#24272A",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 30,
+                                                    "fontWeight": "400",
+                                                    "marginVertical": 2,
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "fontFamily": "EuclidCircularB-Bold",
+                                                    "fontWeight": "600",
+                                                  },
+                                                  undefined,
+                                                  Object {
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "color": "#24272A",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  Object {
+                                                    "marginBottom": 10,
+                                                  },
+                                                ]
+                                              }
+                                            >
+                                              https://evm.cronos.org
+                                            </Text>
                                           </View>
+                                        </View>
+                                        <Text
+                                          onPress={[Function]}
+                                          style={
+                                            Array [
+                                              Object {
+                                                "color": "#24272A",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 30,
+                                                "fontWeight": "400",
+                                                "marginVertical": 2,
+                                              },
+                                              Object {
+                                                "textAlign": "center",
+                                              },
+                                              undefined,
+                                              Object {
+                                                "fontFamily": "EuclidCircularB-Bold",
+                                                "fontWeight": "600",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              Object {
+                                                "color": "#0376C9",
+                                              },
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                              undefined,
+                                            ]
+                                          }
+                                        >
+                                          View details
+                                        </Text>
+                                        <View
+                                          style={
+                                            Object {
+                                              "flexDirection": "row",
+                                              "paddingVertical": 16,
+                                            }
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            activeOpacity={0.2}
+                                            onPress={[Function]}
+                                            style={
+                                              Array [
+                                                Array [
+                                                  Object {
+                                                    "borderRadius": 100,
+                                                    "justifyContent": "center",
+                                                    "padding": 15,
+                                                  },
+                                                  Object {
+                                                    "backgroundColor": "#FFFFFF",
+                                                    "borderColor": "#535A61",
+                                                    "borderWidth": 1,
+                                                  },
+                                                  Array [
+                                                    Object {
+                                                      "flex": 1,
+                                                    },
+                                                    Object {
+                                                      "borderColor": "#BBC0C5",
+                                                      "borderWidth": 1,
+                                                      "marginRight": 8,
+                                                    },
+                                                  ],
+                                                ],
+                                                null,
+                                              ]
+                                            }
+                                            testID="approve-network-cancel-button"
+                                          >
+                                            <Text
+                                              style={
+                                                Array [
+                                                  Object {
+                                                    "color": "#24272A",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 30,
+                                                    "fontWeight": "400",
+                                                    "marginVertical": 2,
+                                                  },
+                                                  Object {
+                                                    "textAlign": "center",
+                                                  },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
+                                                ]
+                                              }
+                                            >
+                                              Cancel
+                                            </Text>
+                                          </TouchableOpacity>
+                                          <TouchableOpacity
+                                            accessibilityRole="button"
+                                            accessible={true}
+                                            activeOpacity={0.2}
+                                            disabled={false}
+                                            onPress={[Function]}
+                                            style={
+                                              Array [
+                                                Array [
+                                                  Object {
+                                                    "borderRadius": 100,
+                                                    "justifyContent": "center",
+                                                    "padding": 15,
+                                                  },
+                                                  Object {
+                                                    "backgroundColor": "#0376C9",
+                                                    "minHeight": 50,
+                                                  },
+                                                  Array [
+                                                    Object {
+                                                      "flex": 1,
+                                                    },
+                                                    Object {
+                                                      "marginLeft": 8,
+                                                    },
+                                                  ],
+                                                ],
+                                                null,
+                                              ]
+                                            }
+                                            testID="approve-network-approve-button"
+                                          >
+                                            <Text
+                                              style={
+                                                Array [
+                                                  Object {
+                                                    "color": "#007aff",
+                                                    "fontSize": 17,
+                                                    "fontWeight": "500",
+                                                    "textAlign": "center",
+                                                  },
+                                                  null,
+                                                  Array [
+                                                    Object {
+                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontSize": 14,
+                                                      "fontWeight": "600",
+                                                      "textAlign": "center",
+                                                    },
+                                                    Object {
+                                                      "color": "#FCFCFC",
+                                                    },
+                                                    undefined,
+                                                  ],
+                                                  null,
+                                                ]
+                                              }
+                                            >
+                                              Approve
+                                            </Text>
+                                          </TouchableOpacity>
                                         </View>
                                       </View>
                                     </View>
@@ -8369,7 +8743,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],
@@ -9051,7 +9425,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],
@@ -9733,7 +10107,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FFFFFF",
+                                            "color": "#FCFCFC",
                                           },
                                           undefined,
                                         ],

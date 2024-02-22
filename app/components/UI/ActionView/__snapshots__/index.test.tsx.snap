@@ -86,8 +86,6 @@ exports[`ActionView should render correctly 1`] = `
             Object {
               "marginLeft": 8,
             },
-            Object {},
-            Object {},
           ]
         }
         disabled={false}

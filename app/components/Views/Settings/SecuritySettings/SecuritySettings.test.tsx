@@ -18,7 +18,6 @@ import {
   SDK_SECTION,
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
   TURN_ON_REMEMBER_ME,
-  USE_SAFE_CHAINS_LIST_VALIDATION,
 } from './SecuritySettings.constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
@@ -107,6 +106,5 @@ describe('SecuritySettings', () => {
     expect(getByTestId(NFT_AUTO_DETECT_MODE_SECTION)).toBeTruthy();
     expect(getByTestId(IPFS_GATEWAY_SECTION)).toBeTruthy();
     expect(getByText('Automatic security checks')).toBeTruthy();
-    expect(getByTestId(USE_SAFE_CHAINS_LIST_VALIDATION)).toBeTruthy();
   });
 });

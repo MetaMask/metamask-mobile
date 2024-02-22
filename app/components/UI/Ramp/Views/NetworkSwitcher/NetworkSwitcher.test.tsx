@@ -80,13 +80,13 @@ function render(Component: React.ComponentType, chainId?: string) {
             NetworkController: {
               ...initialBackgroundState.NetworkController,
               providerConfig: {
-                chainId: chainId ?? '0x38',
+                chainId: chainId ?? '56',
                 ticker: 'BNB',
                 nickname: 'BNB Smart Chain',
               },
               networkConfigurations: {
                 networkId1: {
-                  chainId: '0x89',
+                  chainId: '137',
                   nickname: 'Polygon Mainnet',
                   rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
                   rpcUrl:

@@ -4,8 +4,12 @@ import {
   ADD_NETWORK_BUTTON,
   BLOCK_EXPLORER_FIELD,
   INPUT_CHAIN_ID_FIELD,
+  INPUT_NETWORK_NAME,
   INPUT_RPC_URL_FIELD,
   NAV_ANDROID_BACK_BUTTON,
+  NETWORK_BACK_ARROW_BUTTON_ID,
+  NETWORK_SCREEN_CLOSE_ICON,
+  NETWORK_SCREEN_ID,
   NETWORKS_SYMBOL_INPUT_FIELD,
   REMOVE_NETWORK_BUTTON,
 } from './testIDs/Screens/NetworksScreen.testids';
@@ -13,7 +17,7 @@ import { NetworksViewSelectorsIDs } from '../../e2e/selectors/Settings/NetworksV
 
 class NetworksScreen {
   get container() {
-    return Selectors.getElementByPlatform(NetworksViewSelectorsIDs.NETWORK_CONTAINER);
+    return Selectors.getElementByPlatform(NETWORK_SCREEN_ID);
   }
 
   get getPopularNetworksTab() {
@@ -33,7 +37,7 @@ class NetworksScreen {
   }
 
   get networkNameInputField() {
-    return Selectors.getElementByPlatform(NetworksViewSelectorsIDs.NETWORK_NAME_INPUT);
+    return Selectors.getElementByPlatform(INPUT_NETWORK_NAME);
   }
 
   get rpcURLInputField() {
@@ -57,7 +61,7 @@ class NetworksScreen {
   }
 
   get networkScreenBackButton() {
-    return Selectors.getElementByPlatform(NetworksViewSelectorsIDs.BACK_ARROW_BUTTON);
+    return Selectors.getElementByPlatform(NETWORK_BACK_ARROW_BUTTON_ID);
   }
 
   get settingsPageAndroidBackButton() {
@@ -69,7 +73,7 @@ class NetworksScreen {
   }
 
   get closeNetworkScreen() {
-    return Selectors.getElementByPlatform(NetworksViewSelectorsIDs.CLOSE_ICON);
+    return Selectors.getElementByPlatform(NETWORK_SCREEN_CLOSE_ICON);
   }
 
   async waitForDisplayed() {

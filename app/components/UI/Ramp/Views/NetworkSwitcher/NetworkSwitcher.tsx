@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { RefreshControl, TouchableOpacity, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 
 import LoadingNetworksSkeleton from './LoadingNetworksSkeleton';
@@ -63,10 +63,10 @@ function NetworkSwitcher() {
   const rampNetworks = useMemo(() => {
     const activeNetworkDetails: Network[] = [];
     supportedNetworks.forEach(({ chainId: supportedChainId, active }) => {
-      const currentChainId = toHex(supportedChainId);
+      const currentChainId = `${supportedChainId}`;
       if (
-        currentChainId === ChainId['linea-mainnet'] ||
-        currentChainId === ChainId.mainnet ||
+        currentChainId === NetworksChainId['linea-mainnet'] ||
+        currentChainId === NetworksChainId.mainnet ||
         !active
       ) {
         return;
@@ -82,7 +82,7 @@ function NetworkSwitcher() {
       }
 
       const networkDetail = networksDetails.find(
-        ({ chainId }) => toHex(chainId) === currentChainId,
+        ({ chainId }) => chainId === currentChainId,
       );
       if (networkDetail) {
         activeNetworkDetails.push(networkDetail);
@@ -227,7 +227,10 @@ function NetworkSwitcher() {
               <LoadingNetworksSkeleton />
             ) : (
               <>
-                {isNetworkRampSupported(ChainId.mainnet, supportedNetworks) ? (
+                {isNetworkRampSupported(
+                  NetworksChainId.mainnet,
+                  supportedNetworks,
+                ) ? (
                   <TouchableOpacity
                     style={customNetworkStyle.popularNetwork}
                     onPress={() => switchToMainnet('mainnet')}
@@ -250,7 +253,7 @@ function NetworkSwitcher() {
                   </TouchableOpacity>
                 ) : null}
                 {isNetworkRampSupported(
-                  ChainId['linea-mainnet'],
+                  NetworksChainId['linea-mainnet'],
                   supportedNetworks,
                 ) ? (
                   <TouchableOpacity

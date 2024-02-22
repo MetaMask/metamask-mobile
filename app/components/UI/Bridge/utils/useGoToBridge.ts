@@ -8,7 +8,6 @@ import { selectChainId } from '../../../../selectors/networkController';
 
 import type { BrowserTab } from '../../Tokens/types';
 import type { BrowserParams } from '../../../../components/Views/Browser/Browser.types';
-import { getDecimalChainId } from '../../../../util/networks';
 
 const BRIDGE_URL = `${AppConstants.PORTFOLIO_URL}/bridge`;
 
@@ -35,9 +34,9 @@ export default function useGoToBridge(location: string) {
       params.newTabUrl = undefined;
       params.existingTabId = existingBridgeTab.id;
     } else {
-      params.newTabUrl = `${BRIDGE_URL}/?metamaskEntry=mobile&srcChain=${getDecimalChainId(
-        chainId,
-      )}${address ? `&token=${address}` : ''}`;
+      params.newTabUrl = `${BRIDGE_URL}/?metamaskEntry=mobile&srcChain=${chainId}${
+        address ? `&token=${address}` : ''
+      }`;
     }
 
     navigate(Routes.BROWSER.HOME, {
@@ -47,7 +46,7 @@ export default function useGoToBridge(location: string) {
     Analytics.trackEventWithParameters(MetaMetricsEvents.BRIDGE_LINK_CLICKED, {
       bridgeUrl: BRIDGE_URL,
       location,
-      chain_id_source: getDecimalChainId(chainId),
+      chain_id_source: chainId,
       token_address_source: address,
     });
   };

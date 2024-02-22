@@ -20,7 +20,6 @@ import {
   hasBlockExplorer,
   findBlockExplorerForRpc,
   getBlockExplorerName,
-  getDecimalChainId,
 } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
@@ -634,7 +633,7 @@ class DrawerView extends PureComponent {
     const { providerConfig } = this.props;
     AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
       source: 'In-app Navigation',
-      chain_id: getDecimalChainId(providerConfig.chainId),
+      chain_id: providerConfig.chainId,
     });
   };
 
@@ -703,7 +702,7 @@ class DrawerView extends PureComponent {
       this.props;
     if (providerConfig.type === RPC) {
       const blockExplorer = findBlockExplorerForRpc(
-        providerConfig.rpcUrl,
+        providerConfig.rpcTarget,
         networkConfigurations,
       );
       const url = `${blockExplorer}/address/${selectedAddress}`;
@@ -759,10 +758,10 @@ class DrawerView extends PureComponent {
     const { networkConfigurations } = this.props;
     if (providerType === RPC) {
       const {
-        providerConfig: { rpcUrl },
+        providerConfig: { rpcTarget },
       } = this.props;
       const blockExplorer = findBlockExplorerForRpc(
-        rpcUrl,
+        rpcTarget,
         networkConfigurations,
       );
       if (blockExplorer) {
@@ -847,12 +846,12 @@ class DrawerView extends PureComponent {
 
   getSections = () => {
     const {
-      providerConfig: { type, rpcUrl },
+      providerConfig: { type, rpcTarget },
       networkConfigurations,
     } = this.props;
     let blockExplorer, blockExplorerName;
     if (type === RPC) {
-      blockExplorer = findBlockExplorerForRpc(rpcUrl, networkConfigurations);
+      blockExplorer = findBlockExplorerForRpc(rpcTarget, networkConfigurations);
       blockExplorerName = getBlockExplorerName(blockExplorer);
     }
     return [

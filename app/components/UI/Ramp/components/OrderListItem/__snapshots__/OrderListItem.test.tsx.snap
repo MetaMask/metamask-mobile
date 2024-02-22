@@ -161,7 +161,7 @@ exports[`OrderListItem should render correctly 1`] = `
         accessibilityRole="text"
         style={
           Object {
-            "color": "#1C8234",
+            "color": "#28A745",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
             "fontWeight": "700",

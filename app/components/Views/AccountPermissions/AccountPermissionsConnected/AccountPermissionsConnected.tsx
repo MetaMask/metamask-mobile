@@ -14,7 +14,6 @@ import PickerNetwork from '../../../../component-library/components/Pickers/Pick
 import {
   getNetworkNameFromProviderConfig,
   getNetworkImageSource,
-  getDecimalChainId,
 } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
@@ -113,7 +112,7 @@ const AccountPermissionsConnected = ({
     });
 
     AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
+      chain_id: providerConfig.chainId,
     });
   }, [providerConfig.chainId, navigate]);
 
@@ -140,7 +139,10 @@ const AccountPermissionsConnected = ({
   return (
     <>
       <SheetHeader title={strings('accounts.connected_accounts_title')} />
-      <View style={styles.body}>
+      <View
+        style={styles.body}
+        testID={ConnectedAccountsSelectorsIDs.CONTAINER}
+      >
         <TagUrl
           imageSource={favicon}
           label={urlWithProtocol}

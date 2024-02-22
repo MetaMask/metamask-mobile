@@ -99,7 +99,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
   const actionSheet = useRef<ActionSheet>();
@@ -230,8 +229,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     // render balances according to primary currency
     let mainBalance, secondaryBalance;
-    mainBalance = TOKEN_BALANCE_LOADING;
-
     if (primaryCurrency === 'ETH') {
       mainBalance = balanceValueFormatted;
       secondaryBalance = balanceFiat;
@@ -322,7 +319,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy Native Token',
         location: 'Home Screen',
-        chain_id_destination: getDecimalChainId(chainId),
+        chain_id_destination: chainId,
       });
     });
   };

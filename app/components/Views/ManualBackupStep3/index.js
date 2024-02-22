@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Keyboard,
   TouchableOpacity,
+  InteractionManager,
 } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -28,10 +29,9 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
-import Logger from '../../../util/Logger';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 const createStyles = (colors) =>
@@ -118,12 +118,6 @@ class ManualBackupStep3 extends PureComponent {
     setOnboardingWizardStep: PropTypes.func,
   };
 
-  track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('ManualBackupStep3', `Failed to track ${event}`);
-    });
-  };
-
   updateNavBar = () => {
     const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -145,7 +139,9 @@ class ManualBackupStep3 extends PureComponent {
     this.setState({
       hintText: manualBackup,
     });
-    this.track(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
+    InteractionManager.runAfterInteractions(() => {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
+    });
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
 
@@ -191,7 +187,11 @@ class ManualBackupStep3 extends PureComponent {
       SEED_PHRASE_HINTS,
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
-    this.track(MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED);
+    InteractionManager.runAfterInteractions(() => {
+      AnalyticsV2.trackEvent(
+        MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
+      );
+    });
   };
 
   done = async () => {

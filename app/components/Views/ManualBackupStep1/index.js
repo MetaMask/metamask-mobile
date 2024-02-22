@@ -4,6 +4,7 @@ import {
   View,
   SafeAreaView,
   ActivityIndicator,
+  InteractionManager,
   TextInput,
   KeyboardAvoidingView,
   Appearance,
@@ -14,7 +15,6 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import { BlurView } from '@react-native-community/blur';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -34,8 +34,8 @@ import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 
 /**
@@ -70,12 +70,6 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
-  const track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('ManualBackupStep1', `Failed to track ${event}`);
-    });
-  };
-
   useEffect(() => {
     const getSeedphrase = async () => {
       if (!words.length) {
@@ -87,7 +81,6 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
             setView(CONFIRM_PASSWORD);
           }
         } catch (e) {
-          Logger.error('Error trying to recover SRP from keyring-controller');
           setView(CONFIRM_PASSWORD);
         }
       }
@@ -116,7 +109,9 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
-    track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
+    InteractionManager.runAfterInteractions(() => {
+      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
+    });
   };
 
   const tryUnlockWithPassword = async (password) => {

@@ -41,12 +41,6 @@ export const selectDisplayNftMedia = createSelector(
     preferencesControllerState.displayNftMedia,
 );
 
-export const selectUseSafeChainsListValidation = createSelector(
-  selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.useSafeChainsListValidation,
-);
-
 export const selectDisabledRpcMethodPreferences = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>

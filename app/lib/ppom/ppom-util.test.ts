@@ -3,12 +3,6 @@ import * as TransactionActions from '../../actions/transaction'; // eslint-disab
 import Engine from '../../core/Engine';
 import PPOMUtil from './ppom-util';
 
-jest.mock('../../util/transaction-controller', () => ({
-  __esModule: true,
-  updateSecurityAlertResponse: jest.fn(),
-  updateTransaction: jest.fn(),
-}));
-
 jest.mock('../../core/Engine', () => ({
   context: {
     PreferencesController: {
@@ -19,9 +13,13 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
+    TransactionController: {
+      updateTransaction: jest.fn(),
+      updateSecurityAlertResponse: jest.fn(),
+    },
     NetworkController: {
       state: {
-        providerConfig: { chainId: '0x1' },
+        providerConfig: { chainId: '1' },
       },
     },
   },
@@ -61,7 +59,7 @@ const mockSignatureRequest = {
 describe('validateResponse', () => {
   beforeEach(() => {
     Engine.context.PreferencesController.state.securityAlertsEnabled = true;
-    Engine.context.NetworkController.state.providerConfig.chainId = '0x1';
+    Engine.context.NetworkController.state.providerConfig.chainId = '1';
   });
 
   afterEach(() => {
@@ -84,7 +82,7 @@ describe('validateResponse', () => {
       TransactionActions,
       'setTransactionSecurityAlertResponse',
     );
-    Engine.context.NetworkController.state.providerConfig.chainId = '0xfa';
+    Engine.context.NetworkController.state.providerConfig.chainId = '250';
     await PPOMUtil.validateRequest(mockRequest, '123');
     expect(Engine.context.PPOMController.usePPOM).toBeCalledTimes(0);
     expect(spyTransactionAction).toBeCalledTimes(0);

@@ -1,4 +1,4 @@
-import { ChainId, NetworkType } from '@metamask/controller-utils';
+import { NetworksChainId, NetworkType } from '@metamask/controller-utils';
 import {
   isMainNet,
   isTestNet,
@@ -19,7 +19,7 @@ import {
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { getNonceLock } from '../../util/transaction-controller';
+import Engine from '../../core/Engine';
 
 jest.mock('./../../core/Engine', () => ({
   context: {
@@ -32,19 +32,17 @@ jest.mock('./../../core/Engine', () => ({
       setProviderType: () => jest.fn(),
       state: {
         providerConfig: {
-          chainId: '0x3',
+          chainId: '3',
         },
       },
     },
     PreferencesController: {
       state: {},
     },
+    TransactionController: {
+      getNonceLock: jest.fn(),
+    },
   },
-}));
-
-jest.mock('../../util/transaction-controller', () => ({
-  __esModule: true,
-  getNonceLock: jest.fn(),
 }));
 
 describe('network-utils', () => {
@@ -64,7 +62,7 @@ describe('network-utils', () => {
 
   describe('isMainNet', () => {
     it(`should return true if the given chain ID is Ethereum Mainnet`, () => {
-      expect(isMainNet('0x1')).toEqual(true);
+      expect(isMainNet('1')).toEqual(true);
     });
     it(`should return false if the selected network is not Ethereum Mainnet`, () => {
       expect(isMainNet('42')).toEqual(false);
@@ -80,7 +78,7 @@ describe('network-utils', () => {
 
     for (const networkType of testnets) {
       it(`should return true if the given chain ID is for '${networkType}'`, () => {
-        expect(isTestNet(ChainId[networkType])).toEqual(true);
+        expect(isTestNet(NetworksChainId[networkType])).toEqual(true);
       });
     }
 
@@ -288,20 +286,22 @@ describe('network-utils', () => {
     const fromMock = '0x123';
 
     it('returns value from TransactionController', async () => {
-      getNonceLock.mockReturnValueOnce({
+      Engine.context.TransactionController.getNonceLock.mockReturnValueOnce({
         nextNonce: nonceMock,
         releaseLock: jest.fn(),
       });
 
       expect(await getNetworkNonce({ from: fromMock })).toBe(nonceMock);
 
-      expect(getNonceLock).toHaveBeenCalledWith(fromMock);
+      expect(
+        Engine.context.TransactionController.getNonceLock,
+      ).toHaveBeenCalledWith(fromMock);
     });
 
     it('releases nonce lock', async () => {
       const releaseLockMock = jest.fn();
 
-      getNonceLock.mockReturnValueOnce({
+      Engine.context.TransactionController.getNonceLock.mockReturnValueOnce({
         releaseLock: releaseLockMock,
       });
 

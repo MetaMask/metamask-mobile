@@ -151,7 +151,6 @@ enum EVENT_NAME {
   BROWSER_RELOAD = 'Reload Browser',
   BROWSER_ADD_FAVORITES = 'Added Site To Favorites',
   BROWSER_SWITCH_TAB = 'Switched tab within Browser',
-  DAPP_VISITED = 'Dapp Visited',
 
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
@@ -532,7 +531,6 @@ const events = {
   BROWSER_SHARE_SITE: generateOpt(EVENT_NAME.BROWSER_SHARE_SITE),
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
-  DAPP_VISITED: generateOpt(EVENT_NAME.DAPP_VISITED),
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
   // Reveal SRP

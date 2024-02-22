@@ -18,6 +18,7 @@ class CommonView {
   get errorMessage() {
     return Matchers.getElementByID(CommonSelectorsIDs.ERROR_MESSAGE);
   }
+
   async tapBackButton() {
     await Gestures.waitAndTap(this.backButton);
   }

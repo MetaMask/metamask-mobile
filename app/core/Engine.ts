@@ -119,7 +119,6 @@ import {
   LoggingControllerState,
   LoggingControllerActions,
 } from '@metamask/logging-controller';
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import Encryptor from './Encryptor';
 import {
   isMainnetByChainId,
@@ -133,6 +132,7 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
+  addHexPrefix,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -365,7 +365,6 @@ class Engine {
         // TODO: Use previous value when preferences UI is available
         useNftDetection: false,
         displayNftMedia: true,
-        securityAlertsEnabled: true,
       },
     );
 
@@ -374,7 +373,7 @@ class Engine {
       state: initialState.NetworkController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'NetworkController',
-        allowedEvents: ['NetworkController:networkDidChange'],
+        allowedEvents: [],
         allowedActions: [],
       }),
       // Metrics event tracking is handled in this repository instead
@@ -383,8 +382,8 @@ class Engine {
         // noop
       },
     };
+    // @ts-expect-error Error might be caused by base controller version mismatch
     const networkController = new NetworkController(networkControllerOpts);
-
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
@@ -395,7 +394,6 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
-      chainId: networkController.state.providerConfig.chainId,
     });
 
     const nftController = new NftController(
@@ -407,12 +405,6 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'NftController',
-          allowedActions: [`${approvalController.name}:addRequest`],
-        }),
-        chainId: networkController.state.providerConfig.chainId,
-
         getERC721AssetName: assetsContractController.getERC721AssetName.bind(
           assetsContractController,
         ),
@@ -447,15 +439,16 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
-      chainId: networkController.state.providerConfig.chainId,
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
       },
+      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
       }),
+      // @ts-expect-error This is added in a patch, but types weren't updated
       getERC20TokenName: assetsContractController.getERC20TokenName.bind(
         assetsContractController,
       ),
@@ -468,12 +461,14 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
+      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'TokenListController',
-        allowedEvents: ['NetworkController:stateChange'],
+        allowedEvents: ['NetworkController:providerConfigChange'],
       }),
     });
     const currencyRateController = new CurrencyRateController({
+      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'CurrencyRateController',
       }),
@@ -482,12 +477,11 @@ class Engine {
     currencyRateController.start();
 
     const gasFeeController = new GasFeeController({
+      // @ts-expect-error Error might be caused by base controller version mismatch
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
-        allowedEvents: ['NetworkController:stateChange'],
       }),
       getProvider: () =>
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         networkController.getProviderAndBlockTracker().provider,
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
@@ -496,6 +490,7 @@ class Engine {
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
         await networkController.getEIP1559Compatibility(),
+      // @ts-expect-error Incompatible string types, fixed in upcoming version
       getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
@@ -527,9 +522,6 @@ class Engine {
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    const ledgerKeyringBuilder = () => new LedgerKeyring();
-    ledgerKeyringBuilder.type = LedgerKeyring.type;
-
     const keyringController = new KeyringController({
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
@@ -559,7 +551,7 @@ class Engine {
       }),
       state: initialKeyringState || initialState.KeyringController,
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
-      keyringBuilders: [qrKeyringBuilder, ledgerKeyringBuilder],
+      keyringBuilders: [qrKeyringBuilder],
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -839,11 +831,10 @@ class Engine {
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         getIdentities: () => preferencesController.state.identities,
+        // @ts-expect-error This is added in a patch, but types weren't updated
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         getMultiAccountBalancesEnabled: () =>
           preferencesController.state.isMultiAccountBalancesEnabled,
-        getCurrentChainId: () =>
-          toHexadecimal(networkController.state.providerConfig.chainId),
       }),
       new AddressBookController(),
       assetsContractController,
@@ -874,7 +865,9 @@ class Engine {
           });
           tokensController.addDetectedTokens(tokens);
         },
+        // @ts-expect-error This is added in a patch, but types weren't updated
         updateTokensName: (tokenList) =>
+          // @ts-expect-error This is added in a patch, but types weren't updated
           tokensController.updateTokensName(tokenList),
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
@@ -894,7 +887,6 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        chainId: networkController.state.providerConfig.chainId,
         getOpenSeaApiKey: () => nftController.openSeaApiKey,
         addNft: nftController.addNft.bind(nftController),
         getNftApi: nftController.getNftApi.bind(nftController),
@@ -931,7 +923,6 @@ class Engine {
         interval: 30 * 60 * 1000,
       }),
       new TransactionController({
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getNetworkState: () => networkController.state,
@@ -939,8 +930,10 @@ class Engine {
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () => {
-            const currentHexChainId =
-              networkController.state.providerConfig.chainId;
+            const currentHexChainId = addHexPrefix(
+              toHexadecimal(networkController.state.providerConfig.chainId),
+            );
+
             return Boolean(
               preferencesController?.state?.showIncomingTransactions?.[
                 currentHexChainId
@@ -949,6 +942,7 @@ class Engine {
           },
           updateTransactions: true,
         },
+        // @ts-expect-error Error might be caused by base controller version mismatch
         messenger: this.controllerMessenger.getRestricted({
           name: 'TransactionController',
           allowedActions: [`${approvalController.name}:addRequest`],
@@ -958,7 +952,6 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         provider: networkController.getProviderAndBlockTracker().provider,
       }),
       new SwapsController(
@@ -1001,7 +994,8 @@ class Engine {
             preferencesController.state?.disabledRpcMethodPreferences?.eth_sign,
           ),
         getAllState: () => store.getState(),
-        getCurrentChainId: () => networkController.state.providerConfig.chainId,
+        getCurrentChainId: () =>
+          toHexadecimal(networkController.state.providerConfig.chainId),
         keyringController: {
           signMessage: keyringController.signMessage.bind(keyringController),
           signPersonalMessage:
@@ -1172,7 +1166,6 @@ class Engine {
     TokenListController.start();
     NftDetectionController.start();
     TokenDetectionController.start();
-    // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
     TokenRatesController.start();
   }
@@ -1212,30 +1205,21 @@ class Engine {
       TokenBalancesController,
       TokenRatesController,
       TokensController,
-      NetworkController,
     } = this.context;
     const { selectedAddress } = PreferencesController.state;
     const { currentCurrency } = CurrencyRateController.state;
-    const networkProvider = NetworkController.state.providerConfig;
     const conversionRate =
       CurrencyRateController.state.conversionRate === null
         ? 0
         : CurrencyRateController.state.conversionRate;
-    const { accountsByChainId } = AccountTrackerController.state;
-
+    const { accounts } = AccountTrackerController.state;
     const { tokens } = TokensController.state;
     let ethFiat = 0;
     let tokenFiat = 0;
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-    if (
-      accountsByChainId?.[toHexadecimal(networkProvider.chainId)]?.[
-        selectedAddress
-      ]
-    ) {
+    if (accounts[selectedAddress]) {
       ethFiat = weiToFiatNumber(
-        accountsByChainId[toHexadecimal(networkProvider.chainId)][
-          selectedAddress
-        ].balance,
+        accounts[selectedAddress].balance,
         conversionRate,
         decimalsToShow,
       );
@@ -1361,11 +1345,6 @@ class Engine {
   }
 
   async destroyEngineInstance() {
-    Object.values(this.context).forEach((controller: any) => {
-      if (controller.destroy) {
-        controller.destroy();
-      }
-    });
     this.removeAllListeners();
     await this.resetState();
     Engine.instance = null;

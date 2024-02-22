@@ -12,10 +12,7 @@
     "logs": {}
   },
   "AccountTrackerController": {
-    "accounts": {},
-    "accountsByChainId": {
-      "0x1": {}
-    }
+    "accounts": {}
   },
   "AddressBookController": {
     "addressBook": {}
@@ -29,6 +26,7 @@
   "TokensController": {
     "tokens": [],
     "ignoredTokens": [],
+    "suggestedAssets": [],
     "detectedTokens": [],
     "allTokens": {},
     "allIgnoredTokens": {},
@@ -66,10 +64,10 @@
     "networkConfigurations": {},
     "providerConfig": {
       "type": "mainnet",
-      "chainId": "0x1"
+      "chainId": "1"
     },
     "networkDetails": {
-      "EIPS": {}
+      "isEIP1559Compatible": false
     },
     "networkId": null,
     "networkStatus": "unknown"
@@ -98,9 +96,8 @@
     "selectedAddress": "",
     "useTokenDetection": true,
     "useNftDetection": false,
-    "useSafeChainsListValidation": true,
     "displayNftMedia": true,
-    "securityAlertsEnabled": true,
+    "securityAlertsEnabled": false,
     "isMultiAccountBalancesEnabled": true,
     "disabledRpcMethodPreferences": {
       "eth_sign": false
@@ -191,7 +188,7 @@
     "usedGasEstimate": null,
     "usedCustomGas": null,
     "chainCache": {
-      "0x1": {
+      "1": {
         "aggregatorMetadata": null,
         "tokens": null,
         "topAssets": null,

@@ -15,9 +15,7 @@ import {
   FiatOrdersState,
 } from './types';
 import type { RootState } from '../';
-import { getDecimalChainId, isTestNet } from '../../util/networks';
-import { toHex } from '@metamask/controller-utils';
-
+import { isTestNet } from '../../util/networks';
 export type { FiatOrder } from './types';
 
 /** Action Creators */
@@ -145,7 +143,8 @@ const ordersSelector = (state: RootState) =>
   (state.fiatOrders.orders as FiatOrdersState['orders']) || [];
 export const chainIdSelector: (state: RootState) => string = (
   state: RootState,
-) => getDecimalChainId(selectChainId(state));
+) => selectChainId(state);
+
 export const selectedAddressSelector: (state: RootState) => string = (
   state: RootState,
 ) => selectSelectedAddress(state);
@@ -175,8 +174,7 @@ export const getOrders = createSelector(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        (isTestNet(toHex(chainId)) ||
-          Number(order.network) === Number(chainId)),
+        (isTestNet(chainId) || Number(order.network) === Number(chainId)),
     ),
 );
 
@@ -246,7 +244,6 @@ export const networkShortNameSelector = createSelector(
       (aggregatorNetwork) =>
         Number(aggregatorNetwork.chainId) === Number(chainId),
     );
-
     return network?.shortName;
   },
 );

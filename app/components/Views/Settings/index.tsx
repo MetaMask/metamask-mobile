@@ -16,7 +16,19 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { Authentication } from '../../../core/';
 import { Colors } from '../../../util/theme/models';
-import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
+import {
+  ABOUT_METAMASK_SETTINGS,
+  ADVANCED_SETTINGS,
+  CONTACT_SETTINGS,
+  CONTACTS_SETTINGS,
+  EXPERIMENTAL_SETTINGS,
+  GENERAL_SETTINGS,
+  LOCK_SETTINGS,
+  NETWORKS_SETTINGS,
+  ON_RAMP_SETTINGS,
+  REQUEST_SETTINGS,
+  SECURITY_SETTINGS,
+} from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 ///: END:ONLY_INCLUDE_IF
@@ -171,40 +183,37 @@ const Settings = () => {
   ///: END:ONLY_INCLUDE_IF
 
   return (
-    <ScrollView
-      style={styles.wrapper}
-      testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
-    >
+    <ScrollView style={styles.wrapper}>
       <SettingsDrawer
         description={strings('app_settings.general_desc')}
         onPress={onPressGeneral}
         title={strings('app_settings.general_title')}
-        testID={SettingsViewSelectorsIDs.GENERAL}
+        testID={GENERAL_SETTINGS}
       />
       <SettingsDrawer
         description={strings('app_settings.security_desc')}
         onPress={onPressSecurity}
         title={strings('app_settings.security_title')}
         warning={!seedphraseBackedUp ? strings('drawer.settings_warning') : ''}
-        testID={SettingsViewSelectorsIDs.SECURITY}
+        testID={SECURITY_SETTINGS}
       />
       <SettingsDrawer
         description={strings('app_settings.advanced_desc')}
         onPress={onPressAdvanced}
         title={strings('app_settings.advanced_title')}
-        testID={SettingsViewSelectorsIDs.ADVANCED}
+        testID={ADVANCED_SETTINGS}
       />
       <SettingsDrawer
         description={strings('app_settings.contacts_desc')}
         onPress={onPressContacts}
         title={strings('app_settings.contacts_title')}
-        testID={SettingsViewSelectorsIDs.CONTACTS}
+        testID={CONTACTS_SETTINGS}
       />
       <SettingsDrawer
         title={strings('app_settings.networks_title')}
         description={strings('app_settings.networks_desc')}
         onPress={onPressNetworks}
-        testID={SettingsViewSelectorsIDs.NETWORKS}
+        testID={NETWORKS_SETTINGS}
       />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -221,36 +230,36 @@ const Settings = () => {
         title={strings('app_settings.fiat_on_ramp.title')}
         description={strings('app_settings.fiat_on_ramp.description')}
         onPress={onPressOnRamp}
-        testID={SettingsViewSelectorsIDs.ON_RAMP}
+        testID={ON_RAMP_SETTINGS}
       />
       <SettingsDrawer
         title={strings('app_settings.experimental_title')}
         description={strings('app_settings.experimental_desc')}
         onPress={onPressExperimental}
-        testID={SettingsViewSelectorsIDs.EXPERIMENTAL}
+        testID={EXPERIMENTAL_SETTINGS}
       />
       <SettingsDrawer
         title={aboutMetaMaskTitle}
         onPress={onPressInfo}
-        testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
+        testID={ABOUT_METAMASK_SETTINGS}
       />
       <SettingsDrawer
         title={strings('app_settings.request_feature')}
         onPress={submitFeedback}
         renderArrowRight={false}
-        testID={SettingsViewSelectorsIDs.REQUEST}
+        testID={REQUEST_SETTINGS}
       />
       <SettingsDrawer
         title={strings('app_settings.contact_support')}
         onPress={showHelp}
         renderArrowRight={false}
-        testID={SettingsViewSelectorsIDs.CONTACT}
+        testID={CONTACT_SETTINGS}
       />
       <SettingsDrawer
         title={strings('drawer.lock')}
         onPress={lock}
         renderArrowRight={false}
-        testID={SettingsViewSelectorsIDs.LOCK}
+        testID={LOCK_SETTINGS}
         titleColor={TextColor.Primary}
       />
     </ScrollView>
