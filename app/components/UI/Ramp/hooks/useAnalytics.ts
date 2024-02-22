@@ -53,7 +53,7 @@ export function trackEvent<T extends keyof AnalyticsEvents>(
 }
 
 function useAnalytics() {
-  const trackEventHook = useCallback(
+  return useCallback(
     <T extends keyof AnalyticsEvents>(
       eventType: T,
       params: AnalyticsEvents[T],
@@ -62,8 +62,6 @@ function useAnalytics() {
     },
     [],
   );
-
-  return trackEventHook;
 }
 
 export default useAnalytics;
