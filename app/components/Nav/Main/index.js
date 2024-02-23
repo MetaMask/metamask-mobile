@@ -69,9 +69,14 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
-import { NETWORKS_CHAIN_ID } from '../../../constants/network';
+import { DEPRECATED_NETWORKS } from '../../../constants/network';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
+import {
+  updateIncomingTransactions,
+  startIncomingTransactionPolling,
+  stopIncomingTransactionPolling,
+} from '../../../util/transaction-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsExecutionWebView } from '../../UI/SnapsExecutionWebView';
 ///: END:ONLY_INCLUDE_IF
@@ -110,13 +115,20 @@ const Main = (props) => {
   useMinimumVersions();
 
   useEffect(() => {
-    const { TransactionController } = Engine.context;
+    if (DEPRECATED_NETWORKS.includes(props.chainId)) {
+      setShowDeprecatedAlert(true);
+    } else {
+      setShowDeprecatedAlert(false);
+    }
+  }, [props.chainId]);
+
+  useEffect(() => {
     const chainId = props.chainId;
 
     if (props.showIncomingTransactionsNetworks[chainId]) {
-      TransactionController.startIncomingTransactionPolling();
+      startIncomingTransactionPolling();
     } else {
-      TransactionController.stopIncomingTransactionPolling();
+      stopIncomingTransactionPolling();
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
@@ -161,7 +173,6 @@ const Main = (props) => {
   const handleAppStateChange = useCallback(
     (appState) => {
       const newModeIsBackground = appState === 'background';
-      const { TransactionController } = Engine.context;
 
       // If it was in background and it's not anymore
       // we need to stop the Background timer
@@ -177,7 +188,7 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await TransactionController.updateIncomingTransactions();
+          await updateIncomingTransactions();
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
@@ -336,7 +347,7 @@ const Main = (props) => {
   };
 
   const renderDeprecatedNetworkAlert = (chainId, backUpSeedphraseVisible) => {
-    if (chainId === NETWORKS_CHAIN_ID.GOERLI && showDeprecatedAlert) {
+    if (DEPRECATED_NETWORKS.includes(chainId) && showDeprecatedAlert) {
       return (
         <WarningAlert
           text={strings('networks.deprecated_goerli')}

@@ -1,11 +1,5 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import {
-  InteractionManager,
-  ActivityIndicator,
-  StyleSheet,
-  View,
-  TextStyle,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, View, TextStyle } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -22,7 +16,6 @@ import {
 } from '../../../util/number';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -50,6 +43,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -92,6 +86,7 @@ const Wallet = ({ navigation }: any) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
 
@@ -150,13 +145,10 @@ const Wallet = ({ navigation }: any) => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
-    Analytics.trackEventWithParameters(
-      MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
-      {
-        chain_id: getDecimalChainId(providerConfig.chainId),
-      },
-    );
-  }, [navigate, providerConfig.chainId]);
+    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
+      chain_id: getDecimalChainId(providerConfig.chainId),
+    });
+  }, [navigate, providerConfig.chainId, trackEvent]);
   const { colors: themeColors } = useTheme();
 
   /**
@@ -231,15 +223,16 @@ const Wallet = ({ navigation }: any) => {
     [styles, colors],
   );
 
-  const onChangeTab = useCallback((obj) => {
-    InteractionManager.runAfterInteractions(() => {
+  const onChangeTab = useCallback(
+    (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
-        Analytics.trackEvent(MetaMetricsEvents.WALLET_TOKENS);
+        trackEvent(MetaMetricsEvents.WALLET_TOKENS);
       } else {
-        Analytics.trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
+        trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
       }
-    });
-  }, []);
+    },
+    [trackEvent],
+  );
 
   const renderContent = useCallback(() => {
     let balance: any = 0;
