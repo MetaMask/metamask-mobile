@@ -154,15 +154,14 @@ const DetectedTokens = () => {
       onConfirm: () => dismissModalAndTriggerAction(true),
       isHidingAll: true,
     });
-    InteractionManager.runAfterInteractions(() =>
-      trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-        location: 'token_detection',
-        token_standard: 'ERC20',
-        asset_type: 'token',
-        tokens: detectedTokensForAnalytics,
-        chain_id: getDecimalChainId(chainId),
-      }),
-    );
+
+    trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+      location: 'token_detection',
+      token_standard: 'ERC20',
+      asset_type: 'token',
+      tokens: detectedTokensForAnalytics,
+      chain_id: getDecimalChainId(chainId),
+    });
   };
 
   const triggerImportTokens = async () => {
