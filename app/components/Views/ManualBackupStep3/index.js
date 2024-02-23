@@ -30,9 +30,8 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
-import Logger from '../../../util/Logger';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -119,9 +118,7 @@ class ManualBackupStep3 extends PureComponent {
   };
 
   track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('ManualBackupStep3', `Failed to track ${event}`);
-    });
+    trackOnboarding(event, properties);
   };
 
   updateNavBar = () => {
