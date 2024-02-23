@@ -42,7 +42,7 @@ async function main(): Promise<void> {
           is_expand: true,
         },
         {
-          mapped_to: 'TRIGGERED_BY_LABEL',
+          mapped_to: 'TRIGGERED_BY_PR_LABEL',
           value: `true`,
           is_expand: true,
         },
