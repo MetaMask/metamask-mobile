@@ -6,7 +6,6 @@ import AccountRightButton from '../AccountRightButton';
 import {
   Alert,
   Image,
-  InteractionManager,
   Platform,
   StyleSheet,
   Text,
@@ -21,19 +20,14 @@ import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NAVBAR_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import {
-  NAV_ANDROID_BACK_BUTTON,
-  NETWORK_BACK_ARROW_BUTTON_ID,
-  NETWORK_SCREEN_CLOSE_ICON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
@@ -42,7 +36,7 @@ import ButtonIcon, {
   ButtonIconSizes,
   ButtonIconVariants,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import Icon, {
+import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
@@ -54,17 +48,10 @@ import {
 } from '../../../component-library/components/Texts/Text';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
+import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 
-const trackEvent = (event) => {
-  InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEvent(event);
-  });
-};
-
-const trackEventWithParameters = (event, params) => {
-  InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEventWithParameters(event, params);
-  });
+const trackEvent = (event, params = {}) => {
+  MetaMetrics.getInstance().trackEvent(event, params);
 };
 
 const styles = StyleSheet.create({
@@ -120,8 +107,9 @@ const styles = StyleSheet.create({
     marginLeft: Device.isAndroid() ? 20 : 0,
   },
   fox: {
+    width: 24,
+    height: 24,
     marginLeft: 16,
-    marginTop: 8,
   },
 });
 
@@ -215,7 +203,7 @@ export function getNavigationOptionsTitle(
           iconName={IconName.Close}
           onPress={navigationPop}
           style={innerStyles.accessories}
-          {...generateTestId(Platform, NETWORK_SCREEN_CLOSE_ICON)}
+          testID={NetworksViewSelectorsIDs.CLOSE_ICON}
         />
       ) : null,
     headerLeft: () =>
@@ -225,7 +213,7 @@ export function getNavigationOptionsTitle(
           iconName={IconName.ArrowLeft}
           onPress={navigationPop}
           style={innerStyles.accessories}
-          {...generateTestId(Platform, NETWORK_BACK_ARROW_BUTTON_ID)}
+          testID={NetworksViewSelectorsIDs.BACK_ARROW_BUTTON}
         />
       ),
     headerTintColor: themeColors.primary.default,
@@ -535,7 +523,7 @@ export function getSendFlowTitle(
   });
   const rightAction = () => {
     const providerType = route?.params?.providerType ?? '';
-    trackEventWithParameters(MetaMetricsEvents.SEND_FLOW_CANCEL, {
+    trackEvent(MetaMetricsEvents.SEND_FLOW_CANCEL, {
       view: title.split('.')[1],
       network: providerType,
     });
@@ -975,10 +963,10 @@ export function getWalletNavbarOptions(
       </View>
     ),
     headerLeft: () => (
-      <Icon
-        name={IconName.Fox}
-        IconSize={IconSize.Xl}
+      <Image
+        source={metamask_fox}
         style={styles.fox}
+        resizeMethod={'auto'}
         testID={CommonSelectorsIDs.FOX_ICON}
       />
     ),
@@ -1388,14 +1376,9 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+      trackEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+        ...trade,
+        responseTime: new Date().getTime() - quoteBegin,
       });
     }
     navigation.pop();
@@ -1406,14 +1389,9 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+      trackEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+        ...trade,
+        responseTime: new Date().getTime() - quoteBegin,
       });
     }
     navigation.dangerouslyGetParent()?.pop();
@@ -1573,15 +1551,10 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
-    headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      ...fontStyles.normal,
-    },
   });
   return {
     headerLeft: null,
-    headerTitle: <Text>{title}</Text>,
+    headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
     ...innerStyles,
   };
 };

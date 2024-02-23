@@ -23,7 +23,7 @@ function handleUniversalLink({
   handled: () => void;
   urlObj: ReturnType<typeof extractURLParams>['urlObj'];
   params: ReturnType<typeof extractURLParams>['params'];
-  browserCallBack: (url: string) => void;
+  browserCallBack?: (url: string) => void;
   origin: string;
   wcURL: string;
   url: string;

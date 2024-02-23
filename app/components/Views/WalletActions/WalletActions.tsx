@@ -2,13 +2,14 @@
 import React, { useRef } from 'react';
 import { View, Platform } from 'react-native';
 import { swapsUtils } from '@metamask/swaps-controller';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import AppConstants from '../../../core/AppConstants';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   selectChainId,
   selectTicker,
@@ -17,11 +18,9 @@ import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
-import { useNavigation } from '@react-navigation/native';
 import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { strings } from '../../../../locales/i18n';
@@ -30,6 +29,8 @@ import WalletAction from '../../../components/UI/WalletAction';
 import { useStyles } from '../../../component-library/hooks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
+import { getDecimalChainId } from '../../../util/networks';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
@@ -41,11 +42,11 @@ import {
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
-import useRampNetwork from '../../UI/Ramp/common/hooks/useRampNetwork';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const goToBridge = useGoToBridge('TabBar');
 
@@ -55,82 +56,71 @@ const WalletActions = () => {
   const dispatch = useDispatch();
 
   const [isNetworkRampSupported] = useRampNetwork();
+  const { trackEvent } = useMetrics();
 
   const onReceive = () => {
-    sheetRef.current?.hide(() => dispatch(toggleReceiveModal()));
-    Analytics.trackEventWithParameters(
-      MetaMetricsEvents.RECEIVE_BUTTON_CLICKED,
-      {
-        text: 'Receive',
-        tokenSymbol: '',
-        location: 'TabBar',
-        chain_id: chainId,
-      },
-    );
+    sheetRef.current?.onCloseBottomSheet(() => dispatch(toggleReceiveModal()));
+    trackEvent(MetaMetricsEvents.RECEIVE_BUTTON_CLICKED, {
+      text: 'Receive',
+      tokenSymbol: '',
+      location: 'TabBar',
+      chain_id: getDecimalChainId(chainId),
+    });
   };
 
   const onBuy = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.RAMP.BUY);
-      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'TabBar',
-        chain_id_destination: chainId,
+        chain_id_destination: getDecimalChainId(chainId),
       });
     });
   };
 
   const onSell = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.RAMP.SELL);
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.SELL_BUTTON_CLICKED,
-        {
-          text: 'Sell',
-          location: 'TabBar',
-          chain_id_source: chainId,
-        },
-      );
+      trackEvent(MetaMetricsEvents.SELL_BUTTON_CLICKED, {
+        text: 'Sell',
+        location: 'TabBar',
+        chain_id_source: getDecimalChainId(chainId),
+      });
     });
   };
   const onSend = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigate('SendFlowView');
       ticker && dispatch(newAssetTransaction(getEther(ticker)));
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.SEND_BUTTON_CLICKED,
-        {
-          text: 'Send',
-          tokenSymbol: '',
-          location: 'TabBar',
-          chain_id: chainId,
-        },
-      );
+      trackEvent(MetaMetricsEvents.SEND_BUTTON_CLICKED, {
+        text: 'Send',
+        tokenSymbol: '',
+        location: 'TabBar',
+        chain_id: getDecimalChainId(chainId),
+      });
     });
   };
 
   const goToSwaps = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       navigate('Swaps', {
         screen: 'SwapsAmountView',
         params: {
           sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
         },
       });
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.SWAP_BUTTON_CLICKED,
-        {
-          text: 'Swap',
-          tokenSymbol: '',
-          location: 'TabBar',
-          chain_id: chainId,
-        },
-      );
+      trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
+        text: 'Swap',
+        tokenSymbol: '',
+        location: 'TabBar',
+        chain_id: getDecimalChainId(chainId),
+      });
     });
   };
 
   return (
-    <SheetBottom reservedMinOverlayHeight={150} ref={sheetRef}>
+    <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
         {isNetworkRampSupported && (
           <WalletAction
@@ -203,7 +193,7 @@ const WalletActions = () => {
           {...generateTestId(Platform, WALLET_RECEIVE)}
         />
       </View>
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 

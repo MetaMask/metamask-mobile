@@ -80,8 +80,8 @@ const TransactionsView = ({
           tx,
           tokens,
           selectedAddress,
-          chainId,
           networkId,
+          chainId,
         );
 
         if (!filter) return false;

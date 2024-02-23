@@ -19,6 +19,10 @@ export const CONNECTING_TO_A_DECEPTIVE_SITE =
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
+// SES
+export const SES_URL =
+  'https://github.com/endojs/endo/blob/master/packages/ses/README.md';
+
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';
 export const KEYSTONE_LEARN_MORE =
@@ -27,7 +31,7 @@ export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 
 // MixPanel
 export const MIXPANEL_PROXY_ENDPOINT_BASE_URL =
-  'https://proxy.metafi-dev.codefi.network/mixpanel/v1/api/app';
+  'https://proxy.metafi.codefi.network/mixpanel/v1/api/app';
 
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';
@@ -61,7 +65,9 @@ export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS
 export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
 
 export const BLOCKAID_ATTRIBUTION_LINK = 'https://blockaid.io';
-export const BLOCKAID_SUPPORT_LINK = 'https://support.metamask.io/hc/en-us';
+export const FALSE_POSITIVE_REPORT_BASE_URL =
+  'https://blockaid-false-positive-portal.metamask.io';
+export const UTM_SOURCE = 'metamask-ppom';
 
 export const SEPOLIA_FAUCET = 'https://www.infura.io/faucet/sepolia';
 export const LINEA_FAUCET = 'https://www.infura.io/faucet/linea';

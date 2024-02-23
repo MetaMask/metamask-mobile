@@ -7,17 +7,32 @@
     "deceptive_request_title": "Ini adalah permintaan tipuan",
     "failed_title": "Permintaan mungkin tidak aman",
     "failed_description": "Karena terjadi kesalahan, permintaan ini tidak diverifikasi oleh penyedia keamanan. Lanjutkan dengan hati-hati.",
-    "loading_title": "Permintaan ini masih disimulasikan. Sebaiknya tunggu sampai selesai.",
-    "loading_complete_title": "Simulasi selesai. Tinjau permintaan ini sebelum melanjutkan.",
+    "loading_title": "Memeriksa peringatan keamanan...",
+    "loading_complete_title": "Tidak menerima peringatan apa pun",
     "malicious_domain_description": "Anda berinteraksi dengan domain berbahaya. Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "other_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "raw_signature_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "seaport_farming_description": "Jika Anda menyetujui permintaan ini, seseorang dapat mencuri aset Anda yang terdaftar di OpenSea.",
     "see_details": "Lihat detailnya",
     "does_not_look_right": "Ada yang tidak beres?",
+    "report_an_issue": "Laporkan masalah",
     "suspicious_request_title": "Ini adalah permintaan yang mencurigakan",
     "trade_order_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
-    "transfer_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan akan mengambil semua aset Anda."
+    "transfer_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan akan mengambil semua aset Anda.",
+    "before_you_proceed": "Sebelum melanjutkan",
+    "enable_blockaid_alerts": "Untuk mengaktifkan fitur ini, kami perlu mengatur peringatan keamanan. Halaman ini harus tetap terbuka selagi diatur. Diperlukan waktu kurang dari satu menit untuk menyelesaikannya.",
+    "enable_blockaid_alerts_description": "Halaman ini harus tetap terbuka selagi mengatur peringatan keamanan. Butuh waktu kurang dari satu menit untuk menyelesaikan proses ini.",
+    "setting_up_alerts": "Mengatur peringatan keamanan",
+    "setting_up_alerts_description": "Kami akan mengatur peringatan keamanan secepat mungkin. Tunggulah sebentar, kami hampir selesai.",
+    "setup_complete": "Pengaturan selesai",
+    "setup_failed": "Kami tidak dapat menyelesaikan pengaturan peringatan keamanan. Periksa koneksi internet dan coba lagi.",
+    "setup_multiple_failures": "Koneksi internet saat ini tidak stabil, jadi kami tidak dapat mengatur peringatan keamanan. Coba lagi saat koneksi sudah pulih.",
+    "setup_complete_description": "Peringatan keamanan siap digunakan. Anda dapat menutup halaman ini dan mulai menjelajahi dompet",
+    "continue": "Lanjutkan",
+    "cancel": "Batal",
+    "got_it": "Mengerti",
+    "try_again": "Coba Lagi",
+    "failed": "Terjadi kesalahan"
   },
   "date": {
     "months": {
@@ -266,7 +281,7 @@
     "successfully_changed": "Kata sandi Anda berhasil diubah"
   },
   "import_from_seed": {
-    "title": "Impor dari seed",
+    "title": "Impor dari Frasa Pemulihan Rahasia",
     "seed_phrase_placeholder": "Masukkan Frasa Pemulihan Rahasia",
     "new_password": "Kata Sandi Baru",
     "confirm_password": "Konfirmasikan kata sandi",
@@ -361,6 +376,12 @@
     "no_nfts_yet": "Belum ada NFT",
     "nfts_autodetection_title": "Deteksi NFT",
     "nfts_autodetection_desc": "Izinkan MetaMask untuk mendeteksi NFT dari OpenSea secara otomatis dan ditampilkan di dompet MetaMask Anda.",
+    "network_details_check": "Pemeriksaan detail jaringan",
+    "network_with_chain_id": "The network with chain ID",
+    "use_the_currency_symbol": "uses the currency symbol",
+    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
+    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_check_validation_desc": "mengurangi peluang Anda untuk terhubung ke jaringan berbahaya atau salah.",
     "nfts_autodetection_cta": "Aktifkan deteksi NFT di Pengaturan",
     "learn_more": "Pelajari selengkapnya",
     "add_collectibles": "Impor NFT",
@@ -385,11 +406,13 @@
     "logout_to_import_seed": "Anda harus keluar terlebih dulu untuk mengimpor Frasa Pemulihan Rahasia.",
     "ready_to_explore": "Sudah siap menjelajahi aplikasi blockchain?",
     "unable_to_load": "Tidak dapat memuat saldo",
+    "unable_to_find_conversion_rate": "tidak dapat menemukan tarif konversi",
     "display_nft_media_desc": "Untuk mengimpor NFT, aktifkan Tampilkan media NFT di Pengaturan > Keamanan dan privasi.",
     "display_nft_media_cta": "Aktifkan Tampilkan media NFT",
     "display_media_nft_warning": "Menampilkan media dan data NFT dapat mengekspos alamat IP ke server terpusat. Impor NFT hanya jika Anda memahami risiko yang terlibat.",
     "nfts_autodetect_title": "Autodeteksi NFT",
     "nfts_autodetect_cta": "Aktifkan Autodeteksi NFT di Pengaturan",
+    "turn_on_network_check_cta": "Aktifkan pemeriksaan detail jaringan",
     "display_nft_media_cta_new_1": "Untuk melihat NFT, aktifkan Tampilkan media NFT di",
     "display_nft_media_cta_new_2": "Pengaturan > Keamanan dan Privasi."
   },
@@ -521,7 +544,6 @@
     "import_account": "Impor akun",
     "connect_hardware": "Hubungkan dompet perangkat keras",
     "imported": "Diimpor",
-    "qr_hardware": "Perangkat keras QR",
     "remove_account_title": "Penghapusan akun",
     "remove_account_message": "Yakin ingin menghapus akun ini?",
     "no": "Tidak",
@@ -575,17 +597,19 @@
     "tutorial": "Tutorial",
     "description4": "Keystone (tutorial)",
     "description5": "1. Buka Keystone Anda",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. Ketuk Menu ···, lalu buka Sinkronisasi",
     "button_continue": "Lanjutkan",
     "hint_text": "Pindai dompet Keystone Anda ke ",
     "purpose_connect": "hubungkan",
     "purpose_sign": "konfirmasikan transaksi",
     "select_accounts": "Pilih Akun",
+    "please_wait": "Harap tunggu"
+  },
+  "account_selector": {
     "prev": "SEBELUMNYA",
     "next": "SELANJUTNYA",
     "unlock": "Buka",
-    "forget": "Lupakan perangkat ini",
-    "please_wait": "Harap tunggu"
+    "forget": "Lupakan perangkat ini"
   },
   "app_settings": {
     "title": "Pengaturan",
@@ -608,9 +632,9 @@
     "autolock_after_minutes": "Setelah {{time}} menit",
     "reveal_seed_words": "Ungkap Frasa Seed",
     "reset_account": "Reset Akun",
-    "state_logs_button": "UNDUH LOG STATUS",
+    "state_logs_button": "Unduh Log State",
     "reveal_seed_words_button": "UNGKAP FRASA SEED",
-    "reset_account_button": "RESET AKUN",
+    "reset_account_button": "Reset Akun",
     "reset_account_confirm_button": "Ya, reset",
     "reset_account_cancel_button": "Batal",
     "reset_account_modal_title": "Reset Akun?",
@@ -664,8 +688,8 @@
     "toggleEthSignModalTitle": "Gunakan dengan risiko Anda sendiri",
     "toggleEthSignModalEnable": "Aktifkan",
     "toggleEthSignModalLearnMore": "Selengkapnya.",
-    "toggleEthSignOff": "NONAKTIF (Disarankan)",
-    "toggleEthSignOn": "AKTIF (Tidak disarankan)",
+    "toggleEthSignOff": "(Direkomendasikan)",
+    "toggleEthSignOn": "(Tidak direkomendasikan)",
     "toggleEthSignContinueButton": "Lanjutkan",
     "toggleEthSignEnableButton": "Aktifkan",
     "show_custom_nonce": "Sesuaikan nonce transaksi",
@@ -694,7 +718,6 @@
     "network_chain_id_label": "ID Chain",
     "network_chain_id_placeholder": "ID Chain",
     "network_symbol_label": "Simbol",
-    "network_symbol_placeholder": "Simbol (opsional)",
     "network_block_explorer_label": "URL Block Explorer",
     "network_block_explorer_placeholder": "URL Block Explorer (opsional)",
     "network_chain_id_warning": "ID Chain Tidak Valid",
@@ -738,6 +761,9 @@
     "invalid_password": "Kata sandi tidak valid",
     "invalid_password_message": "Kata sandi salah. Silakan coba lagi.",
     "security_heading": "Keamanan",
+    "ses_heading": "Penguncian Kode",
+    "ses_description": "Ini merupakan fitur pengujian yang memblokir perubahan apa pun pada kode JavaScript aplikasi tanpa izin.",
+    "ses_link": "Selengkapnya",
     "privacy_heading": "Privasi",
     "failed_to_fetch_chain_id": "Tidak dapat mengambil ID chain. Apakah URL RPC Anda sudah benar?",
     "endpoint_returned_different_chain_id": "Titik akhir mengembalikan ID chain yang berbeda: %{chainIdReturned}",
@@ -788,7 +814,7 @@
     "manage_sdk_connections_title": "Kelola koneksi",
     "manage_sdk_connections_text": "Hapus koneksi ke situs dan/atau MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Beli Kripto",
+      "title": "Beli & Jual Kripto",
       "description": "Wilayah dan lainnya...",
       "current_region": "Wilayah Saat Ini",
       "reset_region": "Reset Wilayah",
@@ -808,6 +834,8 @@
     "incoming_transactions_title": "Tampilkan transaksi masuk",
     "incoming_transactions_content": "Ini bergantung pada jaringan yang Anda pilih yang akan mengekspos alamat Ethereum dan alamat IP Anda.",
     "display_nft_media_desc_new": "Alamat IP dapat diketahui oleh OpenSea atau pihak ketiga lainnya saat Anda menampilkan media dan data NFT. Autodeteksi NFT mengandalkan fitur ini, dan tidak akan tersedia saat dinonaktifkan. Jika media NFT sepenuhnya disimpan di IPFS, maka masih dapat ditampilkan bahkan pada saat fitur ini dinonaktifkan.",
+    "use_safe_chains_list_validation_desc_1": "MetaMask menggunakan layanan pihak ketiga yang disebut ",
+    "use_safe_chains_list_validation_desc_2": "untuk menampilkan detail jaringan yang akurat dan terstandardisasi. Hal ini dapat mengurangi kemungkinan Anda untuk terhubung ke jaringan berbahaya atau salah. Saat menggunakan fitur ini, alamat IP akan diketahui oleh  ",
     "snaps": {
       "title": "Snap",
       "description": "Tinjau dan kelola Snap",
@@ -853,7 +881,18 @@
           "snap_dialog": "Tampilkan dialog khusus"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Hapus data privasi atau browser",
+    "analytics_subheading": "Analitis",
+    "transactions_subheading": "Transaksi",
+    "network_provider": "Penyedia jaringan",
+    "token_nft_ens_subheading": "Autodeteksi Token, NFT, dan ENS",
+    "security_check_subheading": "Pemeriksaan keamanan",
+    "security_alerts": "Peringatan keamanan",
+    "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan apa pun. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia.",    
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Menjaga privasi - tidak ada data yang dibagikan kepada pihak ketiga. Tersedia di Arbitrum, Avalanche, BNB chain, Mainnet Ethereum, Optimism, dan Polygon.",
+    "symbol_required": "Symbol is required."
   },
   "sdk": {
     "disconnect_title": "Putuskan koneksi semua situs?",
@@ -1184,7 +1223,8 @@
     "fiat_conversion_not_available": "Konversi fiat tidak tersedia untuk saat ini",
     "hex_data_copied": "Data hex disalin ke papan klip",
     "invalid_recipient": "Penerima tidak valid",
-    "invalid_recipient_description": "Periksa alamatnya dan pastikan sudah valid"
+    "invalid_recipient_description": "Periksa alamatnya dan pastikan sudah valid",
+    "swap_tokens": "Tukar token"
   },
   "custom_gas": {
     "total": "Total",
@@ -1409,6 +1449,7 @@
     "status_ok": "Operasional Seluruh Sistem",
     "status_not_ok": "Jaringan mengalami masalah",
     "want_to_add_network": "Ingin menambahkan jaringan ini?",
+    "add_custom_network": "Tambahkan jaringan khusus",
     "network_infomation": "Hal ini memungkinkan jaringan ini untuk digunakan dalam MetaMask",
     "network_endorsement": "MetaMask tidak mendukung jaringan khusus atau keamanannya.",
     "learn_about": "Pelajari tentang",
@@ -1418,12 +1459,15 @@
     "network_rpc_url": "URL Jaringan",
     "view_details": "Lihat detail",
     "network_details": "Detail jaringan",
+    "network_select_confirm_use_safe_check": "Memilih Konfirmasikan akan mengaktifkan pemeriksaan detail Jaringan. Anda dapat menonaktifkan pemeriksaan detail Jaringan di ",
+    "network_settings_security_privacy": "Pengaturan > Keamanan dan privasi",
     "network_currency_symbol": "Simbol Mata Uang",
     "network_block_explorer_url": "URL Block Explorer",
     "search": "Cari jaringan yang ditambahkan sebelumnya",
     "add": "Tambahkan",
     "cancel": "Batal",
     "approve": "Setujui",
+    "edit_network_details": "Edit network details",
     "malicious_network_warning": "Penyedia jaringan jahat dapat berbohong tentang status blockchain dan merekam aktivitas jaringan Anda. Hanya tambahkan jaringan kustom yang Anda percayai.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Informasi Jaringan",
@@ -1799,13 +1843,9 @@
   "experimental_settings": {
     "wallet_connect_dapps": "Sesi WalletConnect",
     "wallet_connect_dapps_desc": "Lihat daftar sesi WalletConnect aktif",
-    "wallet_connect_dapps_cta": "LIHAT SESI",
+    "wallet_connect_dapps_cta": "Lihat sesi",
     "network_not_supported": "Tidak mendukung jaringan saat ini",
-    "security_alerts": "Peringatan keamanan",
-    "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan apa pun. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia.",
     "select_provider": "Pilih penyedia favorit Anda",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Menjaga privasi - tidak ada data yang dibagikan kepada pihak ketiga. Tersedia di Mainnet Ethereum.",
     "switch_network": "Harap beralih ke mainnet atau sepolia"
   },
   "walletconnect_sessions": {
@@ -1998,6 +2038,7 @@
     "get_new_quotes": "Dapatkan kuotasi baru",
     "quotes_timeout": "Waktu kuotasi habis",
     "request_new_quotes": "Minta kuotasi baru untuk mendapatkan tarif terbaik saat ini.",
+    "terms_of_service": "Terms of Service",
     "amount_to_buy": "Jumlah yang akan dibeli",
     "amount_to_sell": "Jumlah yang akan dijual",
     "want_to_buy": "Anda ingin membeli",
@@ -2027,6 +2068,8 @@
     "insufficient_balance": "Jumlah ini lebih tinggi dari saldo Anda",
     "enter_larger_amount": "Masukkan jumlah yang lebih besar untuk melanjutkan",
     "enter_smaller_amount": "Masukkan jumlah yang lebih kecil untuk melanjutkan",
+    "enter_lower_gas_fees": "Masukkan jumlah yang lebih rendah untuk membayar biaya gas",
+    "max": "MAKS",
     "try_again": "Coba lagi",
     "error": "Galat",
     "something_went_wrong": "Ups! Terjadi kesalahan",
@@ -2110,14 +2153,22 @@
       "sent": "Terkirim!"
     },
     "notifications": {
-      "purchase_failed_title": "Pembelian {{currency}} gagal! Silakan coba lagi. Mohon maaf atas ketidaknyamanan yang timbul!",
+      "purchase_failed_title": "Pembelian {{currency}} gagal! Harap coba lagi. Mohon maaf atas ketidaknyamanan yang timbul!",
       "purchase_failed_description": "Verifikasikan metode pembayaran dan dukungan kartu",
-      "purchase_cancelled_title": "Pembelian Anda dibatalkan",
+      "purchase_cancelled_title": "Pembelian dibatalkan",
       "purchase_cancelled_description": "Verifikasikan metode pembayaran dan dukungan kartu",
-      "purchase_completed_title": "Pembelian {{amount}} {{currency}} berhasil!",
-      "purchase_completed_description": "{{currency}} Anda kini telah tersedia",
-      "purchase_pending_title": "Memproses pembelian {{currency}} Anda",
-      "purchase_pending_description": "Hanya perlu beberapa menit..."
+      "purchase_completed_title": "Pembelian senilai {{amount}} {{currency}} berhasil!",
+      "purchase_completed_description": "{{currency}} kini telah tersedia",
+      "purchase_pending_title": "Memproses pembelian {{currency}}",
+      "purchase_pending_description": "Hanya perlu beberapa menit...",
+      "sale_failed_title": "Pesanan gagal",
+      "sale_failed_description": "Pesanan tidak dapat diselesaikan.",
+      "sale_cancelled_title": "Pesanan dibatalkan",
+      "sale_cancelled_description": "Pesanan tidak dapat diselesaikan.",
+      "sale_completed_title": "Pesanan selesai",
+      "sale_completed_description": "Pesanan berhasil!.",
+      "sale_pending_title": "Pemrosesan penjualan {{currency}}",
+      "sale_pending_description": "Pesanan sedang diproses."
     }
   },
   "swaps": {
@@ -2281,7 +2332,7 @@
       "approve_pending": "Menyetujui {{sourceToken}} untuk ditukar",
       "approve_confirmed": "{{sourceToken}} disetujui untuk ditukar"
     },
-    "medium_selected_warning": "Pertukaran sensitif terhadap waktu. “Sedang” tidak disarankan.",
+    "medium_selected_warning": "Penukaran sensitif terhadap waktu. “Sedang” tidak disarankan.",
     "high_recommendation": "Pertukaran biasanya sensitif terhadap waktu. “Tinggi” akan membantu menghindari potensi kerugian akibat perubahan kondisi pasar.",
     "recommended": "Direkomendasikan",
     "recommended_gas": "Biaya gas yang direkomendasikan",
@@ -2330,9 +2381,10 @@
     "title": "Yang baru",
     "blockaid": {
       "title": "Tetap aman bersama peringatan keamanan",
-      "description_1": "Hindari penipuan yang diketahui sekaligus tetap menjaga privasi dengan peringatan keamanan yang didukung oleh Blockaid di Mainnet Ethereum.",
+      "description_1": "Hindari penipuan yang diketahui sambil tetap melindungi privasi Anda bersama peringatan keamanan yang didukung oleh Blockaid. Saat ini fitur ini diaktifkan secara default untuk semua pengguna MetaMask.",
       "description_2": "Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
-      "action_text": "Aktifkan peringatan keamanan"
+      "description_3": "Tersedia di Arbitrum, Avalanche, BNB Chain, Mainnet Ethereum, Linea, Optimism, dan Polygon.",
+      "got_it": "Mengerti"
     },
     "sell": {
       "title": "Pencairan uang tunai semakin mudah",
@@ -2394,7 +2446,7 @@
     "max_fee": "Biaya maks",
     "estimate": "Estimasi",
     "recommended_gas_fee": "Biaya gas yang direkomendasikan",
-    "swaps_warning": "Pertukaran sangat sensitif terhadap waktu. “Tinggi” akan membantu menghindari potensi kerugian karena perubahan kondisi pasar.",
+    "swaps_warning": "Penukaran sangat sensitif terhadap waktu. “Tinggi” akan membantu menghindari potensi kerugian akibat perubahan kondisi pasar.",
     "priority_fee_at_least_0_error": "Biaya prioritas minimal 1 GWEI",
     "learn_more": {
       "title": "Bagaimana saya harus memilih?",
@@ -2698,10 +2750,7 @@
     "error_during_connection_message": "Ada sedikit masalah saat menghubungkan Ledger Nano X, ketuk 'Coba lagi' di bawah ini untuk mencobanya kembali. Terkadang hal ini terjadi karena aplikasi ETH di Ledger Nano X terbuka pada awal proses pemasangan dengan MetaMask Mobile.",
     "how_to_install_eth_webview_title": "Cara menginstal Aplikasi Ethereum",
     "nonce_too_low": "Nonce terlalu rendah",
-    "nonce_too_low_error": "Nonce yang ditetapkan terlalu rendah",
-    "ledger_beta_alert": "Mengaktifkan integrasi Ledger",
-    "ledger_beta_alert_description": "Anda telah menemukan fitur eksperimental! Dengan melanjutkan, Anda menyetujui bahwa penggunaan fitur eksperimental ini memiliki risiko yang ditanggung sendiri.",
-    "ledger_beta_cta": "Lanjutkan"
+    "nonce_too_low_error": "Nonce yang ditetapkan terlalu rendah"
   },
   "account_actions": {
     "edit_name": "Edit nama akun",
@@ -2741,5 +2790,17 @@
     "ipfs_gateway_content2": "Anda dapat menonaktifkan resolusi IPFS di",
     "ipfs_gateway_content3": "Pengaturan > Keamanan dan privasi",
     "ipfs_gateway_content4": "kapan saja"
+  },
+  "install_snap": {
+    "title": "Permintaan koneksi",
+    "description": "{{origin}} ingin mengunduh dan terhubung dengan {{snap}}. Pastikan Anda memercayai pembuatnya sebelum melanjutkan.",
+    "permissions_request_title": "Permintaan izin",
+    "permissions_request_description": "{{origin}} ingin menginstal {{snap}}, yang meminta izin berikut.",
+    "approve_permissions": "Setujui",
+    "installed": "Diinstal",
+    "install_successful": "{{snap}} berhasil diinstal.",
+    "okay_action": "Oke",
+    "error_title": "Gagal diinstal",
+    "error_description": "Instalasi {{snap}} gagal."
   }
 }

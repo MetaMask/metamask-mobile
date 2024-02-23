@@ -7,17 +7,32 @@
     "deceptive_request_title": "Đây là một yêu cầu lừa đảo",
     "failed_title": "Yêu cầu có thể không an toàn",
     "failed_description": "Do có lỗi, yêu cầu này đã không được nhà cung cấp dịch vụ bảo mật xác minh. Hãy thực hiện cẩn thận.",
-    "loading_title": "Yêu cầu này vẫn đang được mô phỏng. Chúng tôi khuyên bạn nên đợi quá trình mô phỏng hoàn tất.",
-    "loading_complete_title": "Mô phỏng đã hoàn tất. Vui lòng xem lại yêu cầu này trước khi tiếp tục.",
+    "loading_title": "Đang kiểm tra cảnh báo bảo mật...",
+    "loading_complete_title": "Không nhận được cảnh báo nào",
     "malicious_domain_description": "Bạn đang tương tác với một tên miền độc hại. Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "other_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "raw_signature_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "seaport_farming_description": "Nếu bạn chấp thuận yêu cầu này, người khác có thể đánh cắp tài sản của bạn được niêm yết trên OpenSea.",
     "see_details": "Xem chi tiết",
     "does_not_look_right": "Có gì đó không ổn?",
+    "report_an_issue": "Báo cáo sự cố",
     "suspicious_request_title": "Đây là một yêu cầu đáng ngờ",
     "trade_order_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
-    "transfer_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo sẽ lấy hết tài sản của bạn."
+    "transfer_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo sẽ lấy hết tài sản của bạn.",
+    "before_you_proceed": "Trước khi bạn tiếp tục",
+    "enable_blockaid_alerts": "Để kích hoạt tính năng này, chúng tôi cần thiết lập một số cảnh báo bảo mật. Phải luôn mở trang này trong suốt quá trình thiết lập. Quá trình này sẽ mất chưa đến một phút để hoàn thành.",
+    "enable_blockaid_alerts_description": "Trang này phải luôn mở khi đang thiết lập cảnh báo bảo mật. Quá trình này sẽ hoàn tất trong vòng chưa đến một phút.",
+    "setting_up_alerts": "Đang thiết lập cảnh báo bảo mật",
+    "setting_up_alerts_description": "Chúng tôi sẽ thiết lập cảnh báo bảo mật trong thời gian nhanh nhất có thể. Vui lòng chờ đợi, chúng tôi gần xong rồi.",
+    "setup_complete": "Đã thiết lập xong",
+    "setup_failed": "Chúng tôi không thể hoàn tất việc thiết lập cảnh báo bảo mật. Vui lòng kiểm tra kết nối Internet của bạn và thử lại.",
+    "setup_multiple_failures": "Kết nối Internet của bạn hiện không ổn định, nên chúng tôi không thể thiết lập cảnh báo bảo mật. Vui lòng thử lại khi kết nối của bạn được khôi phục.",
+    "setup_complete_description": "Cảnh báo bảo mật đã sẵn sàng hoạt động. Bạn có thể đóng trang này và bắt đầu khám phá ví của mình",
+    "continue": "Tiếp tục",
+    "cancel": "Hủy",
+    "got_it": "Đã hiểu",
+    "try_again": "Thử lại",
+    "failed": "Đã xảy ra sự cố"
   },
   "date": {
     "months": {
@@ -266,7 +281,7 @@
     "successfully_changed": "Mật khẩu của bạn đã được đổi thành công"
   },
   "import_from_seed": {
-    "title": "Nhập từ cụm từ khôi phục",
+    "title": "Nhập từ Cụm từ khôi phục bí mật",
     "seed_phrase_placeholder": "Nhập Cụm từ khôi phục bí mật của bạn",
     "new_password": "Mật khẩu mới",
     "confirm_password": "Xác nhận mật khẩu",
@@ -361,6 +376,12 @@
     "no_nfts_yet": "Chưa có NFT",
     "nfts_autodetection_title": "Phát hiện NFT",
     "nfts_autodetection_desc": "Cho phép MetaMask tự động phát hiện NFT từ OpenSea và hiển thị trên ví MetaMask của bạn.",
+    "network_details_check": "Kiểm tra thông tin mạng",
+    "network_with_chain_id": "The network with chain ID",
+    "use_the_currency_symbol": "uses the currency symbol",
+    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
+    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_check_validation_desc": "giảm khả năng bạn kết nối với mạng độc hại hoặc mạng không chính xác.",
     "nfts_autodetection_cta": "Bật tính năng phát hiện NFT trong phần Cài đặt",
     "learn_more": "Tìm hiểu thêm",
     "add_collectibles": "Nhập NFT",
@@ -385,11 +406,13 @@
     "logout_to_import_seed": "Bạn cần đăng xuất trước để có thể nhập Cụm từ khôi phục bí mật.",
     "ready_to_explore": "Bạn sẵn sàng bắt đầu khám phá các ứng dụng chuỗi khối chưa?",
     "unable_to_load": "Không thể tải số dư",
+    "unable_to_find_conversion_rate": "không tìm được tỷ lệ chuyển đổi",
     "display_nft_media_desc": "Để nhập NFT, hãy bật Hiển thị phương tiện NFT trong Cài đặt > Bảo mật và quyền riêng tư.",
     "display_nft_media_cta": "Bật Hiển thị phương tiện NFT",
     "display_media_nft_warning": "Việc hiển thị dữ liệu và phương tiện NFT có thể làm lộ địa chỉ IP của bạn với các máy chủ tập trung. Chỉ nhập NFT nếu bạn hiểu rõ những rủi ro đi kèm.",
     "nfts_autodetect_title": "Tự động phát hiện NFT",
     "nfts_autodetect_cta": "Bật Tự động phát hiện NFT trong phần Cài đặt",
+    "turn_on_network_check_cta": "Bật kiểm tra thông tin mạng",
     "display_nft_media_cta_new_1": "Để xem một NFT, hãy bật Hiển thị phương tiện NFT trong",
     "display_nft_media_cta_new_2": "Cài đặt > Bảo mật và quyền riêng tư."
   },
@@ -521,7 +544,6 @@
     "import_account": "Nhập tài khoản",
     "connect_hardware": "Kết nối với ví cứng",
     "imported": "Đã nhập",
-    "qr_hardware": "Ví cứng QR",
     "remove_account_title": "Đã gỡ bỏ tài khoản",
     "remove_account_message": "Bạn có thật sự muốn gỡ bỏ tài khoản này?",
     "no": "Không",
@@ -575,17 +597,19 @@
     "tutorial": "Hướng dẫn",
     "description4": "Keystone (hướng dẫn)",
     "description5": "1. Mở khóa Keystone",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. Nhấn vào Trình đơn ···, sau đó chuyển đến Đồng bộ",
     "button_continue": "Tiếp tục",
     "hint_text": "Quét ví Keystone của bạn để ",
     "purpose_connect": "kết nối",
     "purpose_sign": "xác nhận giao dịch",
     "select_accounts": "Chọn một tài khoản",
-    "prev": "TRƯỚC",
-    "next": "TIẾP",
-    "unlock": "Mở khóa",
-    "forget": "Quên thiết bị này",
     "please_wait": "Vui lòng chờ"
+  },
+  "account_selector": {
+    "prev": "TRƯỚC",
+    "next": "TIẾP THEO",
+    "unlock": "Mở khóa",
+    "forget": "Quên thiết bị này"
   },
   "app_settings": {
     "title": "Cài đặt",
@@ -608,9 +632,9 @@
     "autolock_after_minutes": "Sau {{time}} phút",
     "reveal_seed_words": "Tiết lộ Cụm từ khôi phục bí mật",
     "reset_account": "Đặt lại tài khoản",
-    "state_logs_button": "TẢI NHẬT KÝ TRẠNG THÁI XUỐNG",
+    "state_logs_button": "Tải xuống nhật ký trạng thái",
     "reveal_seed_words_button": "HIỂN THỊ CỤM TỪ KHÔI PHỤC BÍ MẬT",
-    "reset_account_button": "ĐẶT LẠI TÀI KHOẢN",
+    "reset_account_button": "Đặt lại tài khoản",
     "reset_account_confirm_button": "Có, đặt lại",
     "reset_account_cancel_button": "Hủy",
     "reset_account_modal_title": "Đặt lại tài khoản?",
@@ -664,8 +688,8 @@
     "toggleEthSignModalTitle": "Bạn tự chịu rủi ro khi sử dụng",
     "toggleEthSignModalEnable": "Bật",
     "toggleEthSignModalLearnMore": "Tìm hiểu thêm.",
-    "toggleEthSignOff": "TẮT (Khuyến khích)",
-    "toggleEthSignOn": "BẬT (Không khuyến khích)",
+    "toggleEthSignOff": "(Khuyến khích)",
+    "toggleEthSignOn": "(Không khuyến khích)",
     "toggleEthSignContinueButton": "Tiếp tục",
     "toggleEthSignEnableButton": "Bật",
     "show_custom_nonce": "Tùy chỉnh số nonce của giao dịch",
@@ -694,7 +718,6 @@
     "network_chain_id_label": "ID chuỗi",
     "network_chain_id_placeholder": "ID chuỗi",
     "network_symbol_label": "Biểu tượng",
-    "network_symbol_placeholder": "Biểu tượng (không bắt buộc)",
     "network_block_explorer_label": "URL của Trình khám phá khối",
     "network_block_explorer_placeholder": "URL của Trình khám phá khối (không bắt buộc)",
     "network_chain_id_warning": "ID chuỗi không hợp lệ",
@@ -738,6 +761,9 @@
     "invalid_password": "Mật khẩu không hợp lệ",
     "invalid_password_message": "Mật khẩu không chính xác. Vui lòng thử lại.",
     "security_heading": "Bảo mật",
+    "ses_heading": "Khóa mã",
+    "ses_description": "Đây là một tính năng thử nghiệm giúp ngăn chặn mọi thay đổi đối với mã JavaScript của ứng dụng mà không được phép.",
+    "ses_link": "Tìm hiểu thêm",
     "privacy_heading": "Quyền riêng tư",
     "failed_to_fetch_chain_id": "Không thể tìm nạp ID chuỗi. URL của RPC của bạn có chính xác không?",
     "endpoint_returned_different_chain_id": "Điểm cuối trả về một ID chuỗi khác: %{chainIdReturned}",
@@ -788,7 +814,7 @@
     "manage_sdk_connections_title": "Quản lý kết nối",
     "manage_sdk_connections_text": "Xóa kết nối với các trang web và/hoặc MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Mua Tiền mã hóa",
+      "title": "Mua và Bán Tiền mã hóa",
       "description": "Khu vực & khác...",
       "current_region": "Khu vực hiện tại",
       "reset_region": "Đặt lại Khu vực",
@@ -808,6 +834,8 @@
     "incoming_transactions_title": "Hiển thị các giao dịch đến",
     "incoming_transactions_content": "Điều này phụ thuộc vào mạng bạn chọn, mạng đó sẽ có quyền tiết lộ địa chỉ Ethereum và địa chỉ IP của bạn.",
     "display_nft_media_desc_new": "Việc hiển thị dữ liệu và phương tiện NFT sẽ làm lộ địa chỉ IP của bạn với OpenSea hoặc các bên thứ ba khác. Tính năng Tự động phát hiện NFT hoạt động dựa trên tính năng này và sẽ không khả dụng khi bị tắt. Nếu phương tiện NFT được đặt hoàn toàn trên IPFS, nó vẫn có thể được hiển thị ngay cả khi tính năng này bị tắt.",
+    "use_safe_chains_list_validation_desc_1": "MetaMask sử dụng dịch vụ của bên thứ ba có tên ",
+    "use_safe_chains_list_validation_desc_2": "để hiển thị thông tin mạng chính xác và được tiêu chuẩn hóa. Điều này giúp giảm khả năng bạn kết nối với mạng độc hại hoặc mạng không chính xác. Khi sử dụng tính năng này, bạn sẽ làm lộ địa chỉ IP của mình với  ",
     "snaps": {
       "title": "Snap",
       "description": "Tổng quan và quản lý Snap của bạn",
@@ -853,7 +881,18 @@
           "snap_dialog": "Hiển thị hộp thoại tùy chỉnh"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "Xóa dữ liệu về quyền riêng tư hoặc dữ liệu trình duyệt",
+    "analytics_subheading": "Phân tích",
+    "transactions_subheading": "Giao dịch",
+    "network_provider": "Nhà cung cấp mạng",
+    "token_nft_ens_subheading": "Tự động phát hiện Token, NFT và ENS",
+    "security_check_subheading": "Kiểm tra bảo mật",
+    "security_alerts": "Cảnh báo bảo mật",
+    "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp.",    
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Bảo vệ quyền riêng tư - không có dữ liệu nào được chia sẻ với các bên thứ ba. Có sẵn trên Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism và Polygon.",    
+    "symbol_required": "Symbol is required."
   },
   "sdk": {
     "disconnect_title": "Ngắt kết nối tất cả các trang web?",
@@ -1184,7 +1223,8 @@
     "fiat_conversion_not_available": "Quy đổi pháp định hiện không khả dụng",
     "hex_data_copied": "Đã sao chép dữ liệu thập lục phân vào bộ nhớ đệm",
     "invalid_recipient": "Người nhận không hợp lệ",
-    "invalid_recipient_description": "Kiểm tra địa chỉ và đảm bảo địa chỉ hợp lệ"
+    "invalid_recipient_description": "Kiểm tra địa chỉ và đảm bảo địa chỉ hợp lệ",
+    "swap_tokens": "Hoán đổi token"
   },
   "custom_gas": {
     "total": "Tổng",
@@ -1409,6 +1449,7 @@
     "status_ok": "Vận hành toàn bộ hệ thống",
     "status_not_ok": "Mạng đang gặp một số sự cố",
     "want_to_add_network": "Bạn muốn thêm mạng này?",
+    "add_custom_network": "Thêm mạng tùy chỉnh",
     "network_infomation": "Thao tác này cho phép sử dụng mạng này trong MetaMask",
     "network_endorsement": "MetaMask không xác nhận các mạng tùy chỉnh hoặc tính bảo mật của chúng.",
     "learn_about": "Tìm hiểu về",
@@ -1418,12 +1459,15 @@
     "network_rpc_url": "URL mạng",
     "view_details": "Xem chi tiết",
     "network_details": "Chi tiết về mạng",
+    "network_select_confirm_use_safe_check": "Chọn Xác nhận để bật Kiểm tra thông tin mạng. Bạn có thể tắt Kiểm tra thông tin mạng trong phần ",
+    "network_settings_security_privacy": "Cài đặt > Bảo mật và quyền riêng tư",
     "network_currency_symbol": "Ký hiệu tiền tệ",
     "network_block_explorer_url": "URL của Trình khám phá khối",
     "search": "Tìm kiếm mạng đã thêm trước đây",
     "add": "Thêm",
     "cancel": "Hủy",
     "approve": "Chấp thuận",
+    "edit_network_details": "Edit network details",
     "malicious_network_warning": "Một nhà cung cấp mạng độc hại có thể nói dối về trạng thái của chuỗi khối và ghi lại hoạt động của bạn trên mạng. Chỉ thêm các mạng tùy chỉnh mà bạn tin tưởng.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Thông tin mạng",
@@ -1799,13 +1843,9 @@
   "experimental_settings": {
     "wallet_connect_dapps": "Phiên WalletConnect",
     "wallet_connect_dapps_desc": "Xem danh sách các phiên WalletConnect đang hoạt động",
-    "wallet_connect_dapps_cta": "XEM PHIÊN",
+    "wallet_connect_dapps_cta": "Xem phiên",
     "network_not_supported": "Không hỗ trợ mạng hiện tại",
-    "security_alerts": "Cảnh báo bảo mật",
-    "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp.",
     "select_provider": "Chọn nhà cung cấp ưu tiên của bạn",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Bảo vệ quyền riêng tư - không chia sẻ dữ liệu với bên thứ ba. Có sẵn trên Ethereum Mainnet.",
     "switch_network": "Vui lòng chuyển qua mạng chính hoặc sepolia"
   },
   "walletconnect_sessions": {
@@ -1998,6 +2038,7 @@
     "get_new_quotes": "Nhận báo giá mới",
     "quotes_timeout": "Hết thời gian chờ báo giá",
     "request_new_quotes": "Vui lòng yêu cầu báo giá mới để nhận tỷ giá tốt nhất và mới nhất.",
+    "terms_of_service": "Terms of Service",
     "amount_to_buy": "Số tiền cần mua",
     "amount_to_sell": "Số tiền cần bán",
     "want_to_buy": "Bạn muốn mua",
@@ -2027,6 +2068,8 @@
     "insufficient_balance": "Số tiền này cao hơn số dư của bạn",
     "enter_larger_amount": "Nhập số tiền lớn hơn để tiếp tục",
     "enter_smaller_amount": "Nhập số tiền nhỏ hơn để tiếp tục",
+    "enter_lower_gas_fees": "Nhập số tiền thấp hơn để thanh toán phí gas",
+    "max": "TỐI ĐA",
     "try_again": "Thử lại",
     "error": "Lỗi",
     "something_went_wrong": "Rất tiếc, đã xảy ra lỗi",
@@ -2110,14 +2153,22 @@
       "sent": "Đã gửi!"
     },
     "notifications": {
-      "purchase_failed_title": "Giao dịch mua {{currency}} đã thất bại! Vui lòng thử lại, rất tiếc vì sự bất tiện này!",
+      "purchase_failed_title": "Mua {{currency}} không thành công! Vui lòng thử lại, chúng tôi chân thành xin lỗi vì sự bất tiện này!",
       "purchase_failed_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
       "purchase_cancelled_title": "Giao dịch mua của bạn đã bị hủy",
       "purchase_cancelled_description": "Xác minh phương thức thanh toán và hỗ trợ thẻ của bạn",
-      "purchase_completed_title": "Giao dịch mua {{amount}} {{currency}} của bạn đã thành công!",
-      "purchase_completed_description": "{{currency}} của bạn giờ đã sẵn sàng",
+      "purchase_completed_title": "Bạn đã mua {{amount}} {{currency}} thành công!",
+      "purchase_completed_description": "{{currency}} của bạn hiện đã có sẵn",
       "purchase_pending_title": "Đang xử lý giao dịch mua {{currency}} của bạn",
-      "purchase_pending_description": "Quá trình này chỉ mất vài phút..."
+      "purchase_pending_description": "Quá trình này chỉ mất vài phút...",
+      "sale_failed_title": "Đặt lệnh không thành công",
+      "sale_failed_description": "Không thể hoàn tất lệnh của bạn.",
+      "sale_cancelled_title": "Lệnh đã bị hủy",
+      "sale_cancelled_description": "Không thể hoàn tất lệnh của bạn.",
+      "sale_completed_title": "Lệnh đã hoàn tất",
+      "sale_completed_description": "Lệnh của bạn đã thành công!.",
+      "sale_pending_title": "Đang xử lý lệnh bán {{currency}}",
+      "sale_pending_description": "Lệnh của bạn hiện đang được xử lý."
     }
   },
   "swaps": {
@@ -2330,9 +2381,10 @@
     "title": "Xem tính năng mới",
     "blockaid": {
       "title": "Đảm bảo an toàn với cảnh báo bảo mật",
-      "description_1": "Tránh xa các hành vi gian lận đã biết trong khi vẫn bảo vệ quyền riêng tư của bạn với các cảnh báo bảo mật do Blockaid cung cấp trên Ethereum Mainnet.",
+      "description_1": "Đảm bảo an toàn trước các hành vi lừa đảo đã biết, đồng thời vẫn bảo vệ quyền riêng tư của bạn với các cảnh báo bảo mật do Blockaid cung cấp. Tính năng này hiện được bật theo mặc định dành cho tất cả người dùng MetaMask.",
       "description_2": "Luôn tự thẩm định trước khi chấp thuận các yêu cầu.",
-      "action_text": "Bật cảnh báo bảo mật"
+      "description_3": "Có sẵn trên Arbitrum, Avalanche, BNB Chain, Ethereum Mainnet, Linea, Optimism và Polygon.",
+      "got_it": "Đã hiểu"
     },
     "sell": {
       "title": "Rút tiền dễ dàng",
@@ -2350,7 +2402,7 @@
   "switch_custom_network": {
     "title_existing_network": "Trang web này muốn chuyển mạng",
     "title_new_network": "Đã thêm mạng mới",
-    "switch_warning": "Thao tác này sẽ chuyển mạng đã chọn trong MetaMask sang mạng đã thêm trước đó:",
+    "switch_warning": "Thao tác này sẽ chuyển mạng được chọn trong MetaMask sang một mạng đã thêm trước đó:",
     "available": "hiện có sẵn trong trình chọn mạng.",
     "cancel": "Hủy",
     "switch": "Chuyển mạng"
@@ -2399,7 +2451,7 @@
     "learn_more": {
       "title": "Tôi nên chọn thế nào?",
       "intro": "Việc lựa chọn phí gas phù hợp tùy thuộc vào loại giao dịch và mức độ quan trọng của giao dịch đó với bạn.",
-      "aggressive_label": "Linh hoạt",
+      "aggressive_label": "Cao",
       "aggressive_text": "Khả năng thành công cao, ngay cả khi thị trường biến động. Sử dụng phí Linh hoạt để bù đắp khi lưu lượng mạng tăng vọt trong những trường hợp như phát hành NFT nổi tiếng.",
       "market_label": "Thị trường",
       "market_text": "Sử dụng phí Thị trường để xử lý nhanh theo giá thị trường hiện tại.",
@@ -2411,8 +2463,8 @@
     "submit": "Gửi",
     "max_priority_fee_low": "Phí ưu tiên tối đa đang thấp đối với điều kiện mạng hiện tại",
     "max_priority_fee_high": "Phí ưu tiên tối đa đang cao hơn cần thiết",
-    "max_priority_fee_speed_up_low": "Phí ưu tiên tối đa phải ít nhất là{{speed_up_floor_value}} GWEI (cao hơn 10% so với giao dịch ban đầu)",
-    "max_priority_fee_cancel_low": "Phí ưu tiên tối đa phải ít nhất là{{cancel_value}} GWEI (cao hơn 50% so với giao dịch ban đầu)",
+    "max_priority_fee_speed_up_low": "Phí ưu tiên tối đa phải ít nhất là {{speed_up_floor_value}} GWEI (cao hơn 10% so với giao dịch ban đầu)",
+    "max_priority_fee_cancel_low": "Phí ưu tiên tối đa phải ít nhất là {{cancel_value}} GWEI (cao hơn 50% so với giao dịch ban đầu)",
     "max_fee_low": "Phí tối đa đang thấp đối với điều kiện mạng hiện tại",
     "max_fee_high": "Phí tối đa đang cao hơn cần thiết",
     "max_fee_speed_up_low": "Phí tối đa phải ít nhất là {{speed_up_floor_value}} GWEI (cao hơn 10% so với giao dịch ban đầu)",
@@ -2698,10 +2750,7 @@
     "error_during_connection_message": "Đã xảy ra một sự cố nhỏ khi kết nối với Ledger Nano X của bạn, nhấn 'Thử lại' bên dưới để tiếp tục. Đôi khi sự cố này xảy ra do bạn đang mở ứng dụng ETH trên Ledger Nano X khi bắt đầu quá trình ghép nối với MetaMask Di động.",
     "how_to_install_eth_webview_title": "Cách cài đặt Ứng dụng Ethereum",
     "nonce_too_low": "Số nonce quá thấp",
-    "nonce_too_low_error": "Số nonce đã đặt quá thấp",
-    "ledger_beta_alert": "Đang bật tích hợp Ledger",
-    "ledger_beta_alert_description": "Bạn đã tìm thấy một tính năng thử nghiệm! Nếu tiếp tục, bạn chấp nhận rằng bạn sẽ tự chịu rủi ro khi sử dụng tính năng thử nghiệm này.",
-    "ledger_beta_cta": "Tiếp tục"
+    "nonce_too_low_error": "Số nonce đã đặt quá thấp"
   },
   "account_actions": {
     "edit_name": "Chỉnh sửa tên tài khoản",
@@ -2741,5 +2790,17 @@
     "ipfs_gateway_content2": "Bạn có thể tắt độ phân giải IPFS trong",
     "ipfs_gateway_content3": "Cài đặt > Bảo mật và quyền riêng tư",
     "ipfs_gateway_content4": "bất cứ lúc nào"
+  },
+  "install_snap": {
+    "title": "Yêu cầu kết nối",
+    "description": "{{origin}} muốn tải xuống và kết nối với {{snap}}. Đảm bảo bạn tin tưởng các tác giả trước khi tiếp tục.",
+    "permissions_request_title": "Yêu cầu cấp quyền",
+    "permissions_request_description": "{{origin}} muốn cài đặt {{snap}}, điều này sẽ yêu cầu các quyền sau.",
+    "approve_permissions": "Chấp thuận",
+    "installed": "Đã cài đặt",
+    "install_successful": "{{snap}} đã được cài đặt thành công.",
+    "okay_action": "OK",
+    "error_title": "Cài đặt thất bại",
+    "error_description": "Cài đặt {{snap}} thất bại."
   }
 }

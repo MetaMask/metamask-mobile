@@ -10,10 +10,11 @@ import React, {
 import { useSelector } from 'react-redux';
 import { isEqual } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
+
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import UntypedEngine from '../../../core/Engine';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
@@ -53,6 +54,7 @@ import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
+import { trackDappVisitedEvent } from '../../../analytics';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
@@ -63,7 +65,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
     selectedWalletAddress,
   ]);
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
   );
@@ -123,6 +125,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     [Engine.context.PermissionController, accountsLength],
   );
 
+  const triggerDappVisitedEvent = useCallback(
+    (numberOfConnectedAccounts: number) =>
+      // Track dapp visited event
+      trackDappVisitedEvent({ hostname, numberOfConnectedAccounts }),
+    [hostname],
+  );
+
   const handleConnect = useCallback(async () => {
     const selectedAccounts: SelectedAccount[] = selectedAddresses.map(
       (address, index) => ({ address, lastUsed: Date.now() - index }),
@@ -148,6 +157,9 @@ const AccountConnect = (props: AccountConnectProps) => {
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
+
+      triggerDappVisitedEvent(connectedAccountLength);
+
       AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
@@ -191,6 +203,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     Engine.context.PermissionController,
     toastRef,
     accountsLength,
+    triggerDappVisitedEvent,
   ]);
 
   const handleCreateAccount = useCallback(
@@ -217,7 +230,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const hideSheet = (callback?: () => void) =>
-    sheetRef?.current?.hide?.(callback);
+    sheetRef?.current?.onCloseBottomSheet?.(callback);
 
   /**
    * User intent is set on AccountConnectSingle,
@@ -398,13 +411,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   return (
-    <SheetBottom
-      onDismissed={handleSheetDismiss}
-      reservedMinOverlayHeight={0}
-      ref={sheetRef}
-    >
+    <BottomSheet onClose={handleSheetDismiss} ref={sheetRef}>
       {renderConnectScreens()}
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 

@@ -17,11 +17,12 @@ import Networks from '../../resources/networks.json';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { Smoke } from '../../tags';
+import { SmokeSwaps } from '../../tags';
+import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
-describe(Smoke('Swap from Actions'), () => {
+describe(SmokeSwaps('Swap from Actions'), () => {
   let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -87,8 +88,11 @@ describe(Smoke('Swap from Actions'), () => {
         sourceTokenSymbol,
         destTokenSymbol,
       );
-      await DetailsModal.isTitleVisible(sourceTokenSymbol, destTokenSymbol);
-      await DetailsModal.isStatusCorrect('Confirmed');
+      await Assertions.checkIfElementToHaveText(
+        DetailsModal.title,
+        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+      );
+      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
       await DetailsModal.tapOnCloseIcon();
     },
   );

@@ -2,38 +2,18 @@
 
 exports[`AddChainApproval renders 1`] = `
 <ForwardRef
-  isFlexible={true}
   shouldNavigateBack={false}
 >
-  <BottomSheetHeader>
-    <Text
-      variant="sHeadingMD"
-    >
-      Allow this site to add a network?
-    </Text>
-  </BottomSheetHeader>
-  <NetworkVerificationInfo />
-  <BottomSheetFooter
-    buttonPropsArray={
-      Array [
-        Object {
-          "label": "Cancel",
-          "onPress": undefined,
-          "size": "48",
-          "testID": "cancel-button",
-          "variant": "Secondary",
-        },
-        Object {
-          "label": "Confirm",
-          "onPress": undefined,
-          "size": "48",
-          "testID": "connect-button",
-          "variant": "Primary",
-        },
-      ]
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "justifyContent": "center",
+      }
     }
-    buttonsAlignment="Horizontal"
-  />
+  >
+    <NetworkVerificationInfo />
+  </View>
 </ForwardRef>
 `;
 

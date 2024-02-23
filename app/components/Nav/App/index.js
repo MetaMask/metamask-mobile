@@ -30,7 +30,6 @@ import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentry/utils';
 import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';
@@ -88,7 +87,7 @@ import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
-import BlockaidIndicator from '../../Views/Settings/ExperimentalSettings/BlockaidIndicator';
+import BlockaidIndicator from '../../Views/Settings/SecuritySettings/BlockaidIndicator';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
@@ -100,6 +99,8 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
+import { MetaMetrics } from '../../../core/Analytics';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -117,7 +118,7 @@ const clearStackNavigatorOptions = {
 const Stack = createStackNavigator();
 /**
  * Stack navigator responsible for the onboarding process
- * Create Wallet, Import from Seed and Sync
+ * Create Wallet and Import from Secret Recovery Phrase
  */
 const OnboardingNav = () => (
   <Stack.Navigator initialRouteName="OnboardingCarousel">
@@ -235,6 +236,7 @@ const App = ({ userLoggedIn }) => {
   const [navigator, setNavigator] = useState(undefined);
   const prevNavigator = useRef(navigator);
   const [route, setRoute] = useState();
+  const queueOfHandleDeeplinkFunctions = useRef([]);
   const [animationPlayed, setAnimationPlayed] = useState(false);
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -285,10 +287,16 @@ const App = ({ userLoggedIn }) => {
         animationNameRef?.current?.play();
       }
     };
-    appTriggeredAuth().catch((error) => {
-      Logger.error(error, 'App: Error in appTriggeredAuth');
-    });
-  }, [navigator]);
+    appTriggeredAuth()
+      .then(() => {
+        queueOfHandleDeeplinkFunctions.current.forEach((func) => func());
+
+        queueOfHandleDeeplinkFunctions.current = [];
+      })
+      .catch((error) => {
+        Logger.error(error, 'App: Error in appTriggeredAuth');
+      });
+  }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
@@ -345,15 +353,23 @@ const App = ({ userLoggedIn }) => {
             Logger.error('Error from Branch: ' + error);
           }
 
-          handleDeeplink(opts);
+          if (sdkPostInit.current === true) {
+            handleDeeplink(opts);
+          } else {
+            queueOfHandleDeeplinkFunctions.current =
+              queueOfHandleDeeplinkFunctions.current.concat(() => {
+                handleDeeplink(opts);
+              });
+          }
         });
       }
       prevNavigator.current = navigator;
     }
-  }, [dispatch, handleDeeplink, navigator]);
+  }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
     const initAnalytics = async () => {
+      await MetaMetrics.getInstance().configure();
       await Analytics.init();
     };
 
@@ -401,7 +417,7 @@ const App = ({ userLoggedIn }) => {
     handlePostInit().catch((err) => {
       Logger.error(err, 'Error postInit SDKConnect');
     });
-  }, [userLoggedIn, postInitReady]);
+  }, [userLoggedIn, postInitReady, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
     if (isWC2Enabled) {

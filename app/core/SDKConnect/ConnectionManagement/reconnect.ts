@@ -89,7 +89,7 @@ async function reconnect({
 
     // instance condition should not happen keeping it for debug purpose.
     console.warn(`Priotity to deeplink - overwrite previous connection`);
-    instance.removeChannel(channelId, true);
+    instance.removeChannel({ channelId, sendTerminate: true });
   }
 
   if (!instance.state.connections[channelId]) {
@@ -145,7 +145,7 @@ async function reconnect({
     updateOriginatorInfos: instance.updateOriginatorInfos.bind(instance),
     // eslint-disable-next-line @typescript-eslint/no-shadow
     onTerminate: ({ channelId }) => {
-      instance.removeChannel(channelId);
+      instance.removeChannel({ channelId });
     },
   });
   instance.state.connected[channelId].connect({

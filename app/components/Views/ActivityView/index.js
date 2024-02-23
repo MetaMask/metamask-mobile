@@ -8,13 +8,13 @@ import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
-import RampOrdersList from '../../UI/Ramp/common/Views/OrdersList/';
+import RampOrdersList from '../../UI/Ramp/Views/OrdersList';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const styles = StyleSheet.create({
@@ -28,7 +28,7 @@ const ActivityView = () => {
   const navigation = useNavigation();
   const selectedAddress = useSelector(selectSelectedAddress);
   const hasOrders = useSelector((state) => getHasOrders(state) || false);
-  const accounts = useSelector(selectAccounts);
+  const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -36,9 +36,10 @@ const ActivityView = () => {
     });
     // Track Event: "Opened Acount Switcher"
     AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
-      number_of_accounts: Object.keys(accounts ?? {}).length,
+      number_of_accounts: Object.keys(accountsByChainId[selectedAddress] ?? {})
+        .length,
     });
-  }, [navigation, accounts]);
+  }, [navigation, accountsByChainId, selectedAddress]);
 
   useEffect(
     () => {

@@ -7,17 +7,32 @@
     "deceptive_request_title": "これは虚偽のリクエストです",
     "failed_title": "リクエストが安全でない可能性があります",
     "failed_description": "エラーが発生したため、このリクエストはセキュリティプロバイダーにより確認されませんでした。慎重に進めてください。",
-    "loading_title": "この要求は現在シミュレーション中です。完了を待つことをお勧めします。",
-    "loading_complete_title": "シミュレーションが完了しました。進める前にこの要求を確認してください。",
+    "loading_title": "セキュリティアラートを確認中...",
+    "loading_complete_title": "アラートは受信していません",
     "malicious_domain_description": "悪質なドメインとやり取りしています。このリクエストを承認すると、資産を失う可能性があります。",
     "other_description": "このリクエストを承認すると、資産を失う可能性があります。",
     "raw_signature_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
     "seaport_farming_description": "このリクエストを承認すると、OpenSeaに登録されている資産を誰かに盗まれる可能性があります。",
     "see_details": "詳細を表示",
     "does_not_look_right": "おかしな点がありますか？",
+    "report_an_issue": "問題を報告する",
     "suspicious_request_title": "これは不審なリクエストです",
     "trade_order_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
-    "transfer_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。"
+    "transfer_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。",
+    "before_you_proceed": "続ける前に",
+    "enable_blockaid_alerts": "この機能を有効にするには、セキュリティアラートの設定が必要です。設定の間、このページは開いたままにしておく必要があります。この作業は1分未満で完了します。",
+    "enable_blockaid_alerts_description": "セキュリティアラートの設定中、このページを開いたままにする必要があります。このプロセスには1分もかかりません。",
+    "setting_up_alerts": "セキュリティアラートを設定中",
+    "setting_up_alerts_description": "セキュリティアラートの設定を早急に行っています。あと少しだけお待ちください。",
+    "setup_complete": "設定完了",
+    "setup_failed": "セキュリティアラートの設定を完了できませんでした。インターネット接続を確認してもう一度お試しください。",
+    "setup_multiple_failures": "現在インターネット接続が安定していないため、セキュリティアラートを設定できませんでした。接続が回復してからもう一度お試しください。",
+    "setup_complete_description": "セキュリティアラートの準備ができました。このページを閉じてウォレットの使用を開始できます",
+    "continue": "続行",
+    "cancel": "キャンセル",
+    "got_it": "了解",
+    "try_again": "再試行",
+    "failed": "問題が発生しました"
   },
   "date": {
     "months": {
@@ -266,7 +281,7 @@
     "successfully_changed": "パスワードが変更されました"
   },
   "import_from_seed": {
-    "title": "シードからインポート",
+    "title": "シークレットリカバリーフレーズからインポート",
     "seed_phrase_placeholder": "シークレットリカバリーフレーズを入力してください",
     "new_password": "新しいパスワード",
     "confirm_password": "パスワードの確認",
@@ -361,6 +376,12 @@
     "no_nfts_yet": "まだNFTがありません",
     "nfts_autodetection_title": "NFTの検出",
     "nfts_autodetection_desc": "MetaMaskがOpenSeaからNFTを自動検出し、MetaMaskウォレットに表示できるように許可してください。",
+    "network_details_check": "ネットワーク情報の確認",
+    "network_with_chain_id": "The network with chain ID",
+    "use_the_currency_symbol": "uses the currency symbol",
+    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
+    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_check_validation_desc": "悪質なネットワークや正しくないネットワークに接続してしまう可能性が減ります。",
     "nfts_autodetection_cta": "設定でNFTの検出をオンにしてください",
     "learn_more": "詳細",
     "add_collectibles": "NFTをインポート",
@@ -385,11 +406,13 @@
     "logout_to_import_seed": "シークレットリカバリーフレーズをインポートするには、まずログアウトが必要です。",
     "ready_to_explore": "ブロックチェーンアプリケーションを使い始める準備は整いましたか？",
     "unable_to_load": "残高を読み込めません",
+    "unable_to_find_conversion_rate": "換算レートが見つかりません",
     "display_nft_media_desc": "NFTをインポートするには、「設定」>「セキュリティとプライバシー」で「NFTメディアの表示」 をオンにします。",
     "display_nft_media_cta": "NFTメディアの表示をオンにする",
     "display_media_nft_warning": "NFTのメディアとデータを表示した場合、IPアドレスが集中型のサーバーに公開される可能性があります。関連するリスクを理解できている場合のみ、NFTをインポートしてください。",
     "nfts_autodetect_title": "NFTの自動検出",
     "nfts_autodetect_cta": "設定でNFTの検出をオンにする",
+    "turn_on_network_check_cta": "ネットワーク情報の確認をオンにする",
     "display_nft_media_cta_new_1": "NFTを表示するには、次の場所で「NFTメディアを表示」を有効にしてください",
     "display_nft_media_cta_new_2": "「設定」>「セキュリティとプライバシー」。"
   },
@@ -521,7 +544,6 @@
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
-    "qr_hardware": "QRハードウェア",
     "remove_account_title": "アカウントの削除",
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
@@ -575,17 +597,19 @@
     "tutorial": "チュートリアル",
     "description4": "Keystone (チュートリアル)",
     "description5": "1. Keystoneのロックを解除します",
-    "description6": "2. Tap the ··· Menu, then go to Sync",
+    "description6": "2. 「···」メニューをタップして、「同期」に移動します",
     "button_continue": "続行",
     "hint_text": "Keystoneウォレットをスキャンして ",
     "purpose_connect": "接続",
     "purpose_sign": "トランザクションを確定",
     "select_accounts": "アカウントを選択してください",
+    "please_wait": "お待ちください"
+  },
+  "account_selector": {
     "prev": "前へ",
     "next": "次へ",
     "unlock": "ロックを解除",
-    "forget": "このデバイスの登録を解除",
-    "please_wait": "お待ちください"
+    "forget": "このデバイスの登録を解除"
   },
   "app_settings": {
     "title": "設定",
@@ -608,7 +632,7 @@
     "autolock_after_minutes": "{{time}}分後",
     "reveal_seed_words": "シードワードを確認",
     "reset_account": "アカウントをリセット",
-    "state_logs_button": "ステートログをダウンロード",
+    "state_logs_button": "ダウンロードステートログ",
     "reveal_seed_words_button": "シードワードを確認",
     "reset_account_button": "アカウントをリセット",
     "reset_account_confirm_button": "はい、リセットします",
@@ -664,8 +688,8 @@
     "toggleEthSignModalTitle": "自己責任でご利用ください",
     "toggleEthSignModalEnable": "有効にする",
     "toggleEthSignModalLearnMore": "詳細。",
-    "toggleEthSignOff": "オフ (推奨)",
-    "toggleEthSignOn": "オン (非推奨)",
+    "toggleEthSignOff": "(推奨)",
+    "toggleEthSignOn": "(非推奨)",
     "toggleEthSignContinueButton": "続行",
     "toggleEthSignEnableButton": "有効にする",
     "show_custom_nonce": "トランザクションナンスをカスタマイズ",
@@ -694,7 +718,6 @@
     "network_chain_id_label": "チェーンID",
     "network_chain_id_placeholder": "チェーンID",
     "network_symbol_label": "シンボル",
-    "network_symbol_placeholder": "シンボル (オプション)",
     "network_block_explorer_label": "ブロックエクスプローラーURL",
     "network_block_explorer_placeholder": "ブロックエクスプローラーURL (オプション)",
     "network_chain_id_warning": "無効なチェーンID",
@@ -738,6 +761,9 @@
     "invalid_password": "無効なパスワード",
     "invalid_password_message": "パスワードが正しくありませんでした。もう一度お試しください。",
     "security_heading": "セキュリティ",
+    "ses_heading": "コードロックダウン",
+    "ses_description": "これは、アプリのJavaScriptコードを許可なく変更できないようにするテスト機能です。",
+    "ses_link": "詳細",
     "privacy_heading": "プライバシー",
     "failed_to_fetch_chain_id": "チェーンIDを取得できませんでした。正しいRPC URLか確認してください。",
     "endpoint_returned_different_chain_id": "エンドポイントが異なるIDを返しました: %{chainIdReturned}",
@@ -788,7 +814,7 @@
     "manage_sdk_connections_title": "接続の管理",
     "manage_sdk_connections_text": "サイトやMetaMask SDKへの接続を削除します。",
     "fiat_on_ramp": {
-      "title": "仮想通貨を購入",
+      "title": "仮想通貨の売買",
       "description": "地域、その他...",
       "current_region": "現在の地域",
       "reset_region": "地域をリセット",
@@ -808,6 +834,8 @@
     "incoming_transactions_title": "受信トランザクションを表示",
     "incoming_transactions_content": "これは、ユーザーの選択するネットワークに依存し、イーサリアムアドレスおよびIPアドレスが公開されます。",
     "display_nft_media_desc_new": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、無効にすると利用できなくなります。NFTメディアがIPFSに完全に保管されている場合は、この機能が無効になっていても表示されます。",
+    "use_safe_chains_list_validation_desc_1": "MetaMaskは",
+    "use_safe_chains_list_validation_desc_2": "というサードパーティサービスを利用して、正確かつ標準化されたネットワーク情報を表示しています。これにより、悪質なネットワークや正しくないネットワークに接続してしまう可能性が減ります。この機能を使用すると、ユーザーのIPアドレスが次の相手に公開されます:  ",
     "snaps": {
       "title": "Snap",
       "description": "Snapの概要と管理",
@@ -853,7 +881,18 @@
           "snap_dialog": "カスタムダイアログの表示"
         }
       }
-    }
+    },
+    "privacy_browser_subheading": "プライバシーまたはブラウザデータを消去してください",
+    "analytics_subheading": "分析",
+    "transactions_subheading": "トランザクション",
+    "network_provider": "ネットワークプロバイダー",
+    "token_nft_ens_subheading": "トークン、NFT、ENSの自動検出",
+    "security_check_subheading": "セキュリティチェック",
+    "security_alerts": "セキュリティアラート",
+    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",    
+    "blockaid": "Blockaid",
+    "blockaid_desc": "プライバシーの保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygonで利用可能。",    
+    "symbol_required": "Symbol is required."
   },
   "sdk": {
     "disconnect_title": "すべてのサイトとの接続を解除しますか？",
@@ -1184,7 +1223,8 @@
     "fiat_conversion_not_available": "法定通貨への換算は現在利用できません",
     "hex_data_copied": "16進データがクリップボードにコピーされました",
     "invalid_recipient": "無効な受取人",
-    "invalid_recipient_description": "アドレスが有効であることを確認してください"
+    "invalid_recipient_description": "アドレスが有効であることを確認してください",
+    "swap_tokens": "トークンをスワップ"
   },
   "custom_gas": {
     "total": "合計",
@@ -1409,6 +1449,7 @@
     "status_ok": "全システムが稼働しています",
     "status_not_ok": "ネットワークに問題があります",
     "want_to_add_network": "このネットワークを追加しますか？",
+    "add_custom_network": "カスタムネットワークを追加",
     "network_infomation": "これにより、このネットワークがMetaMaskで使用可能になります。",
     "network_endorsement": "MetaMaskはカスタムネットワークやそのセキュリティを保証しません。",
     "learn_about": "こちらをご覧ください:",
@@ -1418,12 +1459,15 @@
     "network_rpc_url": "ネットワークURL",
     "view_details": "詳細を表示",
     "network_details": "ネットワークの詳細",
+    "network_select_confirm_use_safe_check": "「確定」を選択すると、ネットワーク情報の確認がオンになります。ネットワーク情報の確認は、",
+    "network_settings_security_privacy": "「設定」>「セキュリティとプライバシー」でオフにできます。",
     "network_currency_symbol": "通貨記号",
     "network_block_explorer_url": "ブロックエクスプローラーのURL",
     "search": "以前追加されたネットワークを検索",
     "add": "追加",
     "cancel": "キャンセル",
     "approve": "承認",
+    "edit_network_details": "Edit network details",
     "malicious_network_warning": "悪意のあるネットワーク プロバイダーは、ブロックチェーンのステータスを偽り、ユーザーのネットワークアクティビティを記録することがあります。信頼するカスタムネットワークのみを追加してください。",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "ネットワーク情報",
@@ -1801,11 +1845,7 @@
     "wallet_connect_dapps_desc": "アクティブなWalletConnectセッションのリストを表示",
     "wallet_connect_dapps_cta": "セッションを表示",
     "network_not_supported": "現在のネットワークはサポートされていません",
-    "security_alerts": "セキュリティアラート",
-    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
     "select_provider": "希望のプロバイダーを選択してください",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "プライバシー保護 - サードパーティとデータは一切共有されません。イーサリアムメインネットで利用可能。",
     "switch_network": "メインネットまたはSepoliaに切り替えてください"
   },
   "walletconnect_sessions": {
@@ -1998,6 +2038,7 @@
     "get_new_quotes": "新しいクォートを入手",
     "quotes_timeout": "クォートのタイムアウト",
     "request_new_quotes": "最も有利な最新のレートを入手できるよう、新しいクォートをリクエストしてください",
+    "terms_of_service": "Terms of Service",
     "amount_to_buy": "購入額",
     "amount_to_sell": "売却額",
     "want_to_buy": "購入希望",
@@ -2027,6 +2068,8 @@
     "insufficient_balance": "この金額は残高を超えています",
     "enter_larger_amount": "続行するにはより大きな金額を入力してください",
     "enter_smaller_amount": "続行するにはより小さな金額を入力してください",
+    "enter_lower_gas_fees": "ガス代の金額をより少なめに入力してください",
+    "max": "最大",
     "try_again": "もう一度やり直してください",
     "error": "エラー",
     "something_went_wrong": "何か問題が発生しました",
@@ -2111,13 +2154,21 @@
     },
     "notifications": {
       "purchase_failed_title": "{{currency}}の購入に失敗しました。もう一度お試しください。ご不便をおかけし申し訳ございません。",
-      "purchase_failed_description": "支払方法とカード対応を確認",
+      "purchase_failed_description": "支払方法とカードの対応状況を確認してください",
       "purchase_cancelled_title": "購入がキャンセルされました",
-      "purchase_cancelled_description": "支払方法とカード対応を確認",
-      "purchase_completed_title": "{{amount}}{{currency}}の購入が完了しました。",
+      "purchase_cancelled_description": "支払方法とカードの対応状況を確認してください",
+      "purchase_completed_title": "{{amount}}{{currency}}の購入が完了しました",
       "purchase_completed_description": "{{currency}}が利用可能になりました",
       "purchase_pending_title": "{{currency}}の購入を処理中です",
-      "purchase_pending_description": "数分で完了します..."
+      "purchase_pending_description": "数分で完了します...",
+      "sale_failed_title": "注文に失敗しました",
+      "sale_failed_description": "注文を完了できませんでした。",
+      "sale_cancelled_title": "注文がキャンセルされました",
+      "sale_cancelled_description": "注文を完了できませんでした。",
+      "sale_completed_title": "注文が完了しました",
+      "sale_completed_description": "注文に成功しました。",
+      "sale_pending_title": "{{currency}}の売却を処理しています",
+      "sale_pending_description": "ただ今注文を処理しています。"
     }
   },
   "swaps": {
@@ -2330,9 +2381,10 @@
     "title": "新機能",
     "blockaid": {
       "title": "セキュリティアラートで安全を確保",
-      "description_1": "イーサリアムメインネットで、Blockaidによるセキュリティアラートを使用して、プライバシーを守りつつ既知の詐欺を回避しましょう。",
+      "description_1": "Blockaidのセキュリティアラートで、プライバシーを確保しつつ既知の詐欺から身を守ります。この機能は、MetaMaskユーザー全員を対象にデフォルトでオンになります。",
       "description_2": "要求を承認する前に、必ず独自のデューデリジェンスを行ってください。",
-      "action_text": "セキュリティアラートを有効にする"
+      "description_3": "Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Linea、Optimism、Polygonで利用できます。",
+      "got_it": "了解"
     },
     "sell": {
       "title": "キャッシュアウトが簡単になりました",
@@ -2350,7 +2402,7 @@
   "switch_custom_network": {
     "title_existing_network": "このサイトがネットワークの変更を求めています",
     "title_new_network": "新しいネットワークが追加されました",
-    "switch_warning": "これにより、MetaMask内で選択されたネットワークから以前追加されたネットワークに切り替わります:",
+    "switch_warning": "これによりMetaMask内で選択されたネットワークが、以前に追加されたものに切り替わります:",
     "available": "がネットワークセレクターで利用可能になりました。",
     "cancel": "キャンセル",
     "switch": "ネットワークを切り替える"
@@ -2394,7 +2446,7 @@
     "max_fee": "最大手数料",
     "estimate": "見積もり",
     "recommended_gas_fee": "推奨ガス代",
-    "swaps_warning": "スワップは非常に時間が重要です。「高」にすると、市場状況の変化による問題を回避しやすくなります。",
+    "swaps_warning": "スワップは非常に時間が重要です。「高」にすると、市場状況の変化による損失を回避しやすくなります。",
     "priority_fee_at_least_0_error": "優先手数料は1gwei以上である必要があります",
     "learn_more": {
       "title": "選び方",
@@ -2698,10 +2750,7 @@
     "error_during_connection_message": "Ledger Nano Xへの接続中に若干の問題が発生しました。下の「再試行」をタップして、もう一度お試しください。この問題は、Ledger Nano XのETHアプリが、MetaMask Mobileとのペアリングプロセスの開始時に開いているのが原因で起こることがあります。",
     "how_to_install_eth_webview_title": "イーサリアムアプリのインストール方法",
     "nonce_too_low": "ナンスが低すぎます",
-    "nonce_too_low_error": "設定されたナンスが低すぎます",
-    "ledger_beta_alert": "Ledgerの統合を有効にしています",
-    "ledger_beta_alert_description": "試験運用の機能を発見しました！続行することで、この試験運用の機能を自己リスクで使用することに同意したものとみなされます。",
-    "ledger_beta_cta": "続行"
+    "nonce_too_low_error": "設定されたナンスが低すぎます"
   },
   "account_actions": {
     "edit_name": "アカウント名を編集",
@@ -2726,7 +2775,7 @@
     "show_display_nft_media_content_2": "NFTメディアを表示。",
     "show_display_nft_media_content_3": "NFTのメディアとデータを表示した場合、IPアドレスがOpenSeaをはじめとするサードパーティに公開されます。NFTの自動検出はこの機能に依存しており、この設定を無効にすると利用できなくなります。",
     "show_display_nft_media_content_4": "NFTメディアの表示は次の場所でオフにできます:",
-    "show_display_nft_media_content_5": "「設定」>「セキュリティとプライバシー」。"
+    "show_display_nft_media_content_5": "「設定」>「セキュリティとプライバシー」"
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFSゲートウェイ",
@@ -2741,5 +2790,17 @@
     "ipfs_gateway_content2": "IPFSの解決は、",
     "ipfs_gateway_content3": "「設定」>「セキュリティとプライバシー」で",
     "ipfs_gateway_content4": "いつでもオフにできます。"
+  },
+  "install_snap": {
+    "title": "接続の要求",
+    "description": "{{origin}}が{{snap}}のダウンロードと接続を要求しています。進める前に、作成者が信頼できることを確認してください。",
+    "permissions_request_title": "アクセス許可の要求",
+    "permissions_request_description": "{{origin}}が{{snap}}のインストールを要求していて、このSnapは次のアクセス許可を要求しています。",
+    "approve_permissions": "承認",
+    "installed": "インストール完了",
+    "install_successful": "{{snap}}がインストールされました。",
+    "okay_action": "OK",
+    "error_title": "インストールに失敗しました",
+    "error_description": "{{snap}}のインストールに失敗しました。"
   }
 }

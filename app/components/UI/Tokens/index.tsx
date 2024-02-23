@@ -3,7 +3,6 @@ import React, { useRef, useState, LegacyRef } from 'react';
 import {
   TouchableOpacity,
   View,
-  InteractionManager,
   Platform,
   FlatList,
   RefreshControl,
@@ -21,9 +20,7 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import AssetElement from '../AssetElement';
 import { safeToChecksumAddress } from '../../../util/address';
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import NetworkMainAssetLogo from '../NetworkMainAssetLogo';
 import { isZero } from '../../../util/lodash';
 import { useTheme } from '../../../util/theme';
@@ -68,7 +65,7 @@ import { useNavigation } from '@react-navigation/native';
 import { EngineState } from '../../../selectors/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import createStyles from './styles';
-import SkeletonText from '../Ramp/common/components/SkeletonText';
+import SkeletonText from '../Ramp/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
@@ -80,7 +77,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
 import { BrowserTab, TokenI, TokensI } from './types';
-import useRampNetwork from '../Ramp/common/hooks/useRampNetwork';
+import useRampNetwork from '../Ramp/hooks/useRampNetwork';
 import Badge from '../../../component-library/components/Badges/Badge/Badge';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
 import {
@@ -91,14 +88,17 @@ import { selectDetectedTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { regex } from '../../../../app/util/regex';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation<StackNavigationProp<any>>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
   const actionSheet = useRef<ActionSheet>();
@@ -138,13 +138,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const goToAddToken = () => {
     setIsAddTokenEnabled(false);
     navigation.push('AddAsset', { assetType: 'token' });
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-        source: 'manual',
-        chain_id: getDecimalChainId(chainId),
-      });
-      setIsAddTokenEnabled(true);
+
+    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      source: 'manual',
+      chain_id: getDecimalChainId(chainId),
     });
+    setIsAddTokenEnabled(true);
   };
 
   const renderFooter = () => (
@@ -229,6 +228,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     // render balances according to primary currency
     let mainBalance, secondaryBalance;
+    mainBalance = TOKEN_BALANCE_LOADING;
+
     if (primaryCurrency === 'ETH') {
       mainBalance = balanceValueFormatted;
       secondaryBalance = balanceFiat;
@@ -244,7 +245,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     if (balanceFiat === TOKEN_RATE_UNDEFINED) {
       mainBalance = balanceValueFormatted;
-      secondaryBalance = strings('wallet.unable_to_load');
+      secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
     }
 
     asset = { ...asset, balanceFiat };
@@ -315,28 +316,24 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const goToBuy = () => {
     navigation.navigate(Routes.RAMP.BUY);
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-        text: 'Buy Native Token',
-        location: 'Home Screen',
-        chain_id_destination: chainId,
-      });
+    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      text: 'Buy Native Token',
+      location: 'Home Screen',
+      chain_id_destination: getDecimalChainId(chainId),
     });
   };
 
   const showDetectedTokens = () => {
     navigation.navigate(...createDetectedTokensNavDetails());
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-        source: 'detected',
-        chain_id: getDecimalChainId(chainId),
-        tokens: detectedTokens.map(
-          (token) => `${token.symbol} - ${token.address}`,
-        ),
-      });
-
-      setIsAddTokenEnabled(true);
+    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      source: 'detected',
+      chain_id: getDecimalChainId(chainId),
+      tokens: detectedTokens.map(
+        (token) => `${token.symbol} - ${token.address}`,
+      ),
     });
+
+    setIsAddTokenEnabled(true);
   };
 
   const renderTokensDetectedSection = () => {
@@ -403,7 +400,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         CurrencyRateController.start(),
         TokenRatesController.updateExchangeRates(),
       ];
-      await Promise.all(actions);
+      await Promise.all(actions).catch((error) => {
+        Logger.error(error, 'Error while refreshing tokens');
+      });
       setRefreshing(false);
     });
   };
@@ -434,7 +433,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         screen: Routes.BROWSER.VIEW,
         params,
       });
-      Analytics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+      trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
         portfolioUrl: AppConstants.PORTFOLIO_URL,
       });
     };
@@ -508,15 +507,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           tokenSymbol: symbol,
         }),
       });
-      InteractionManager.runAfterInteractions(() =>
-        AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-          location: 'assets_list',
-          token_standard: 'ERC20',
-          asset_type: 'token',
-          tokens: [`${symbol} - ${tokenAddress}`],
-          chain_id: getDecimalChainId(chainId),
-        }),
-      );
+      trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+        location: 'assets_list',
+        token_standard: 'ERC20',
+        asset_type: 'token',
+        tokens: [`${symbol} - ${tokenAddress}`],
+        chain_id: getDecimalChainId(chainId),
+      });
     } catch (err) {
       Logger.log(err, 'Wallet: Failed to hide token!');
     }

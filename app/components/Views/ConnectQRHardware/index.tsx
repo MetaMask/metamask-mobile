@@ -8,16 +8,14 @@ import React, {
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
-import SelectQRAccounts from './SelectQRAccounts';
+import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
 import ConnectQRInstruction from './Instruction';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { strings } from '../../../../locales/i18n';
-import { IAccount } from './types';
 import { UR } from '@ngraveio/bc-ur';
 import Alert, { AlertType } from '../../Base/Alert';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Device from '../../../util/device';
@@ -27,6 +25,7 @@ import { fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { safeToChecksumAddress } from '../../../util/address';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 interface IConnectQRHardwareProps {
   navigation: any;
@@ -75,17 +74,13 @@ const createStyles = (colors: any) =>
 
 const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
   const KeyringController = useMemo(() => {
     const { KeyringController: keyring } = Engine.context as any;
     return keyring;
   }, []);
-
-  const AccountTrackerController = useMemo(
-    () => (Engine.context as any).AccountTrackerController,
-    [],
-  );
 
   const [QRState, setQRState] = useState({
     sync: {
@@ -97,10 +92,6 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const [accounts, setAccounts] = useState<
     { address: string; index: number; balance: string }[]
   >([]);
-  const [trackedAccounts, setTrackedAccounts] = useState<{
-    [p: string]: { balance: string };
-  }>({});
-  const [checkedAccounts, setCheckedAccounts] = useState<number[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
   const resetError = useCallback(() => {
     setErrorMsg('');
@@ -140,24 +131,6 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, [KeyringController, subscribeKeyringState]);
 
   useEffect(() => {
-    const unTrackedAccounts: string[] = [];
-    accounts.forEach((account) => {
-      if (!trackedAccounts[account.address]) {
-        unTrackedAccounts.push(account.address);
-      }
-    });
-    if (unTrackedAccounts.length > 0) {
-      AccountTrackerController.syncBalanceWithAddresses(unTrackedAccounts).then(
-        (_trackedAccounts: any) => {
-          setTrackedAccounts(
-            Object.assign({}, trackedAccounts, _trackedAccounts),
-          );
-        },
-      );
-    }
-  }, [AccountTrackerController, accounts, trackedAccounts]);
-
-  useEffect(() => {
     if (QRState.sync.reading) {
       showScanner();
     } else {
@@ -166,23 +139,20 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   }, [QRState.sync, hideScanner, showScanner]);
 
   const onConnectHardware = useCallback(async () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
+    trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
       device_type: 'QR Hardware',
     });
     resetError();
     const _accounts = await KeyringController.connectQRHardware(0);
     setAccounts(_accounts);
-  }, [KeyringController, resetError]);
+  }, [KeyringController, resetError, trackEvent]);
 
   const onScanSuccess = useCallback(
     (ur: UR) => {
       hideScanner();
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS,
-        {
-          device_type: 'QR Hardware',
-        },
-      );
+      trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS, {
+        device_type: 'QR Hardware',
+      });
       if (ur.type === SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
         KeyringController.submitQRCryptoHDKey(ur.cbor.toString('hex'));
       } else {
@@ -190,7 +160,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       }
       resetError();
     },
-    [KeyringController, hideScanner, resetError],
+    [KeyringController, hideScanner, resetError, trackEvent],
   );
 
   const onScanError = useCallback(
@@ -215,55 +185,26 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     setAccounts(_accounts);
   }, [KeyringController, resetError]);
 
-  const onToggle = useCallback(
-    (index: number) => {
-      resetError();
-      if (!checkedAccounts.includes(index)) {
-        setCheckedAccounts([...checkedAccounts, index]);
-      } else {
-        setCheckedAccounts(checkedAccounts.filter((i) => i !== index));
-      }
-    },
-    [checkedAccounts, resetError],
-  );
-
-  const enhancedAccounts: IAccount[] = useMemo(
-    () =>
-      accounts.map((account) => {
-        let checked = false;
-        let exist = false;
-        if (checkedAccounts.includes(account.index)) checked = true;
-        if (
-          existingAccounts.find(
-            (item) => item.toLowerCase() === account.address.toLowerCase(),
-          )
-        ) {
-          exist = true;
-          checked = true;
-        }
-        return {
-          ...account,
-          checked,
-          exist,
-          balance: trackedAccounts[account.address]?.balance || '0x0',
-        };
-      }),
-    [accounts, checkedAccounts, existingAccounts, trackedAccounts],
-  );
-
-  const onUnlock = useCallback(async () => {
+  const onToggle = useCallback(() => {
     resetError();
-    setBlockingModalVisible(true);
-    try {
-      for (const account of checkedAccounts) {
-        await KeyringController.unlockQRHardwareWalletAccount(account);
+  }, [resetError]);
+
+  const onUnlock = useCallback(
+    async (accountIndexs: number[]) => {
+      resetError();
+      setBlockingModalVisible(true);
+      try {
+        for (const index of accountIndexs) {
+          await KeyringController.unlockQRHardwareWalletAccount(index);
+        }
+      } catch (err) {
+        Logger.log('Error: Connecting QR hardware wallet', err);
       }
-    } catch (err) {
-      Logger.log('Error: Connecting QR hardware wallet', err);
-    }
-    setBlockingModalVisible(false);
-    navigation.pop(2);
-  }, [KeyringController, checkedAccounts, navigation, resetError]);
+      setBlockingModalVisible(false);
+      navigation.pop(2);
+    },
+    [KeyringController, navigation, resetError],
+  );
 
   const onForget = useCallback(async () => {
     const { PreferencesController } = Engine.context as any;
@@ -312,14 +253,15 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
             navigation={navigation}
           />
         ) : (
-          <SelectQRAccounts
-            canUnlock={checkedAccounts.length > 0}
-            accounts={enhancedAccounts}
+          <AccountSelector
+            accounts={accounts}
+            selectedAccounts={existingAccounts}
             nextPage={nextPage}
             prevPage={prevPage}
             toggleAccount={onToggle}
             onUnlock={onUnlock}
             onForget={onForget}
+            title={strings('connect_qr_hardware.select_accounts')}
           />
         )}
       </View>
