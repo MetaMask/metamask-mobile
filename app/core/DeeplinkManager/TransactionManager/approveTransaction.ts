@@ -3,6 +3,7 @@ import { generateApproveData } from '../../../util/transactions';
 import { ParseOutput } from 'eth-url-parser';
 import { strings } from '../../../../locales/i18n';
 import { getAddress } from '../../../util/address';
+import { addTransaction } from '../../../util/transaction-controller';
 import DeeplinkManager from '../DeeplinkManager';
 import Engine from '../../Engine';
 import NotificationManager from '../../NotificationManager';
@@ -18,8 +19,7 @@ async function approveTransaction({
   origin: string;
 }) {
   const { parameters, target_address, chain_id } = ethUrl;
-  const { TransactionController, PreferencesController, NetworkController } =
-    Engine.context;
+  const { PreferencesController, NetworkController } = Engine.context;
 
   if (chain_id) {
     const newNetworkType = getNetworkTypeById(chain_id);
@@ -56,7 +56,7 @@ async function approveTransaction({
     data: generateApproveData({ spender: spenderAddress, value }),
   };
 
-  TransactionController.addTransaction(txParams, {
+  addTransaction(txParams, {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
     origin,
   });
