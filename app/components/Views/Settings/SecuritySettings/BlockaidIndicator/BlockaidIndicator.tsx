@@ -27,7 +27,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
-import { Props } from './../ExperimentalSettings.types';
+import { Props } from '../../ExperimentalSettings/ExperimentalSettings.types';
 import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferencesController';
 
 // Internal dependencies
@@ -63,12 +63,9 @@ const BlockaidIndicator = ({ navigation }: Props) => {
         setFailureCount(failureCount + 1);
       }
       if (ppomInitialisationStatus === PPOMInitialisationStatus.SUCCESS) {
-        trackEvent(
-          MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
-          {
-            security_alerts_enabled: true,
-          },
-        );
+        trackEvent(MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED, {
+          security_alerts_enabled: true,
+        });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
