@@ -642,7 +642,7 @@ class Engine {
             this.controllerMessenger.call<'SubjectMetadataController:addSubjectMetadata'>(
               'SubjectMetadataController:addSubjectMetadata',
               params,
-            )?.result ?? undefined,
+            ),
           getSnap: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:get',
@@ -705,7 +705,6 @@ class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     const permissionController = new PermissionController({
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
@@ -737,7 +736,6 @@ class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const subjectMetadataController = new SubjectMetadataController({
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'SubjectMetadataController',
         'PermissionController:hasPermissions',
