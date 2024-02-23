@@ -270,6 +270,7 @@ workflows:
     steps:
       # Update Bitrise comment in PR with success status
       - comment-on-github-pull-request@0:
+          is_always_run: true
           run_if: '{{getenv "TRIGGERED_BY_PR_LABEL" | eq "true"}}'
           inputs:
             - personal_access_token: '$GITHUB_ACCESS_TOKEN'
@@ -312,6 +313,7 @@ workflows:
       - _get_workflow_info
     steps:
       - script@1:
+          is_always_run: true
           title: Check if PR comment should be updated
           inputs:
             - content: |-
@@ -323,6 +325,7 @@ workflows:
                 fi
       # Update Bitrise comment in PR with failure status
       - comment-on-github-pull-request@0:
+          is_always_run: true
           run_if: '{{getenv "SHOULD_UPDATE_PR_COMMENT" | eq "true"}}'
           inputs:
             - personal_access_token: '$GITHUB_ACCESS_TOKEN'
