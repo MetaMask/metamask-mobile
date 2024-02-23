@@ -181,7 +181,7 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { getIsSmartTransaction } from '../selectors/preferencesController';
-import { publishHook as smartPublishHook } from '../util/transactions/smart-tx';
+import { publishHook as smartPublishHook } from '../util/smart-transactions/smart-tx';
 
 const NON_EMPTY = 'NON_EMPTY';
 
