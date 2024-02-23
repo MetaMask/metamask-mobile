@@ -1,7 +1,7 @@
 import { ORIGIN_METAMASK } from '@metamask/approval-controller';
-import Logger from '../../../../util/Logger';
-import { decimalToHex } from '../../../../util/conversions';
-import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import Logger from '../Logger';
+import { decimalToHex } from '../conversions';
+import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 
 export const createSignedTransactions = async (
   unsignedTransaction,
