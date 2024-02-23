@@ -217,7 +217,7 @@ export async function publishHook(request: Request) {
         // }
 
         if (status?.isSettled) {
-          if (status?.minedHash !== '') {
+          if (status?.minedTx === 'success' && status?.minedHash !== '') {
             // STX has landed on chain, tx is successful
             Logger.log('STX - Received tx hash: ', status?.minedHash);
             transactionHash = status.minedHash;
