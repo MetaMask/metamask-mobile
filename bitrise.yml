@@ -318,7 +318,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [[ "$(getenv "TRIGGERED_BY_PR_LABEL")" == "true" && $BITRISE_BUILD_STATUS == 1 ]]; then
+                if [[ "$TRIGGERED_BY_PR_LABEL" == "true" && $BITRISE_BUILD_STATUS == 1 ]]; then
                   envman add --key SHOULD_UPDATE_PR_COMMENT --value "true"
                 else
                   envman add --key SHOULD_UPDATE_PR_COMMENT --value "false"
