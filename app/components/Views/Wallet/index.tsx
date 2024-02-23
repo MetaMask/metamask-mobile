@@ -337,18 +337,20 @@ const Wallet = ({ navigation }: any) => {
       </View>
     );
   }, [
+    tokens,
+    accountsByChainId,
+    providerConfig.chainId,
+    selectedAddress,
+    styles.wrapper,
+    styles.walletAccount,
+    selectedAccount,
+    ensForSelectedAccount,
     renderTabBar,
+    onChangeTab,
+    navigation,
+    ticker,
     conversionRate,
     currentCurrency,
-    navigation,
-    onChangeTab,
-    selectedAddress,
-    ticker,
-    tokens,
-    styles,
-    providerConfig.chainId,
-    accountsByChainId,
-    selectedAccount,
   ]);
   const renderLoader = useCallback(
     () => (
