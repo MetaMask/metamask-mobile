@@ -299,7 +299,7 @@ export async function publishHook(request) {
     // return { transactionHash: undefined };
 
     // TODO throw error for now
-    throw error;
+    // throw error;
   } finally {
     if (isDapp) {
       // This removes the loading spinner

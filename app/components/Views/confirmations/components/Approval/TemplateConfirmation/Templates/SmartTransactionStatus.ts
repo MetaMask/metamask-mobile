@@ -97,7 +97,7 @@ function getValues(
             ),
           },
           {
-            key: 'message',
+            key: 'message2',
             element: 'Text',
             props: {
               style: styles.description,
