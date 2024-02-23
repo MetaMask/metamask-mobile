@@ -20,7 +20,7 @@ import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
 } from '../../../util/etherscan';
-import { Analytics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { RPC } from '../../../constants/network';
 import {
   selectNetworkConfigurations,
@@ -33,7 +33,6 @@ import { strings } from '../../../../locales/i18n';
 import styleSheet from './AccountActions.styles';
 import Logger from '../../../util/Logger';
 import { protectWalletModalVisible } from '../../../actions/user';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
@@ -42,12 +41,14 @@ import {
   SHOW_PRIVATE_KEY,
   VIEW_ETHERSCAN,
 } from './AccountActions.constants';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const AccountActions = () => {
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
+  const { trackEvent } = useMetrics();
 
   const providerConfig = useSelector(selectProviderConfig);
 
@@ -94,7 +95,7 @@ const AccountActions = () => {
         goToBrowserUrl(url, etherscan_url);
       }
 
-      Analytics.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
+      trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
     });
   };
 
@@ -110,18 +111,13 @@ const AccountActions = () => {
           Logger.log('Error while trying to share address', err);
         });
 
-      Analytics.trackEvent(
-        MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS,
-      );
+      trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
     });
   };
 
   const goToExportPrivateKey = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED,
-        {},
-      );
+      trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED, {});
 
       navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         credentialName: 'private_key',
