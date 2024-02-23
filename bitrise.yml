@@ -402,18 +402,9 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
-
-  e2e_setup:
-    steps:
-      - yarn@:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: global add detox-cli
-          title: Detox - Install CLI
   android_e2e_build:
     before_run:
       - code_setup
-      - e2e_setup
     after_run:
       - _notify_failure_on_slack
     steps:
@@ -494,7 +485,6 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      - e2e_setup
     after_run:
       - _notify_failure_on_slack
     steps:
@@ -578,7 +568,6 @@ workflows:
   ios_e2e_build:
     before_run:
       - code_setup
-      - e2e_setup
     after_run:
       - _notify_failure_on_slack
     steps:
@@ -663,7 +652,6 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      - e2e_setup
     after_run:
       - _notify_failure_on_slack
     steps:

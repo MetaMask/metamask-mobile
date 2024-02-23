@@ -888,6 +888,10 @@
     "network_provider": "Proveedor de red",
     "token_nft_ens_subheading": "Detección automática de tokens, NFT y ENS",
     "security_check_subheading": "Verificaciones de seguridad",
+    "security_alerts": "Alertas de seguridad",
+    "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al activar esta función, acepta los términos de uso del proveedor.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Preservación de la privacidad: no se comparten datos con terceros. Disponible en Arbitrum, Avalanche, BNB Chain, la red pricipal de Ethereum, Optimism y Polygon.",    
     "symbol_required": "Symbol is required."
   },
   "sdk": {
@@ -1841,11 +1845,7 @@
     "wallet_connect_dapps_desc": "Ver la lista de sesiones activas de WalletConnect",
     "wallet_connect_dapps_cta": "Ver sesiones",
     "network_not_supported": "No se admite la red actual",
-    "security_alerts": "Alertas de seguridad",
-    "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al activar esta función, acepta los términos de uso del proveedor.",
     "select_provider": "Seleccione su proveedor preferido",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Preservación de la privacidad: no se comparten datos con terceros. Disponible en Arbitrum, Avalanche, BNB Chain, la red pricipal de Ethereum, Optimism y Polygon.",
     "switch_network": "Cambie a la red principal o a Sepolia"
   },
   "walletconnect_sessions": {

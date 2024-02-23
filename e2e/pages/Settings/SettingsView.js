@@ -1,39 +1,82 @@
-import TestHelpers from '../../helpers';
-import {
-  CONTACTS_SETTINGS,
-  GENERAL_SETTINGS,
-  LOCK_SETTINGS,
-  NETWORKS_SETTINGS,
-  SECURITY_SETTINGS,
-} from '../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
-import { SettingsViewSelectorsText } from '../../selectors/Settings/SettingsView.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+import { SettingsViewSelectorsIDs } from '../../selectors/Settings/SettingsView.selectors';
+import { CommonSelectorsText } from '../../selectors/Common.selectors';
 
-export default class SettingsView {
-  static async tapGeneral() {
-    await TestHelpers.waitAndTap(GENERAL_SETTINGS);
-  }
-  static async tapAdvanced() {
-    await TestHelpers.tapByText(SettingsViewSelectorsText.ADVANCE_TITLE_TEXT);
+class SettingsView {
+  get generalSettingsButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.GENERAL);
   }
 
-  static async tapContacts() {
-    await TestHelpers.waitAndTap(CONTACTS_SETTINGS);
+  get advancedButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.ADVANCED);
   }
 
-  static async tapSecurityAndPrivacy() {
-    await TestHelpers.waitAndTap(SECURITY_SETTINGS);
+  get contactsSettingsButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACTS);
   }
 
-  static async tapNetworks() {
-    await TestHelpers.waitAndTap(NETWORKS_SETTINGS);
+  get securityAndPrivacyButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
   }
 
-  static async tapLock() {
-    await TestHelpers.swipe(CONTACTS_SETTINGS, 'up', 'fast');
-    await TestHelpers.waitAndTap(LOCK_SETTINGS);
+  get networksButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.NETWORKS);
   }
 
-  static async tapYesAlertButton() {
-    await TestHelpers.tapAlertWithButton('YES'); // Do you really want to log out modal
+  get lockSettingsButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.LOCK);
+  }
+
+  get alertButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
+      : Matchers.getElementByLabel(CommonSelectorsText.YES_ALERT_BUTTON);
+  }
+
+  get scrollViewIdentifier() {
+    return Matchers.getIdentifier(SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID);
+  }
+
+  async scrollToLockButton() {
+    await Gestures.scrollToElement(
+      this.lockSettingsButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async tapGeneralSettings() {
+    await Gestures.waitAndTap(this.generalSettingsButton);
+  }
+
+  async tapAdvancedTitle() {
+    await Gestures.waitAndTap(this.advancedButton);
+  }
+
+  async tapContactsSettings() {
+    await Gestures.waitAndTap(this.contactsSettingsButton);
+  }
+
+  async tapSecurityAndPrivacy() {
+    await Gestures.waitAndTap(this.securityAndPrivacyButton);
+  }
+
+  async tapNetworks() {
+    await Gestures.waitAndTap(this.networksButton);
+  }
+
+  async tapContacts() {
+    await Gestures.waitAndTap(this.contactsSettingsButton);
+  }
+
+  async tapLock() {
+    await this.scrollToLockButton();
+    await Gestures.waitAndTap(this.lockSettingsButton);
+  }
+
+  async tapYesAlertButton() {
+    await Gestures.tap(this.alertButton);
   }
 }
+
+export default new SettingsView();

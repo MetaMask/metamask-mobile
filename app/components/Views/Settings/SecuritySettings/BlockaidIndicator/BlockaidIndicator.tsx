@@ -28,7 +28,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
-import { Props } from './../ExperimentalSettings.types';
+import { Props } from '../../ExperimentalSettings/ExperimentalSettings.types';
 import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferencesController';
 
 // Internal dependencies
@@ -63,7 +63,7 @@ const BlockaidIndicator = ({ navigation }: Props) => {
       }
       if (ppomInitialisationStatus === PPOMInitialisationStatus.SUCCESS) {
         AnalyticsV2.trackEvent(
-          MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
+          MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED,
           {
             security_alerts_enabled: true,
           },
