@@ -122,6 +122,8 @@ export async function publishHook(request) {
     Logger.log('STX - Started approval flow', smartTransactionStatusApprovalId);
   }
 
+  let creationTime;
+
   try {
     Logger.log('STX - Fetching fees', txParams, chainId);
     const feesResponse = await smartTransactionsController.getFees(
@@ -170,6 +172,8 @@ export async function publishHook(request) {
 
     Logger.log('STX - Received UUID', uuid);
 
+    creationTime = Date.now();
+
     if (isDapp) {
       approvalController.addAndShowApprovalRequest({
         id: smartTransactionStatusApprovalId,
@@ -179,102 +183,117 @@ export async function publishHook(request) {
         requestState: {
           smartTransaction: {
             status: 'pending',
-            creationTime: Date.now(),
+            creationTime,
           },
         },
       });
       Logger.log('STX - Added approval', smartTransactionStatusApprovalId);
     }
 
-    smartTransactionsController.eventEmitter.on(`${uuid}:status`, (status) => {
-      Logger.log('STX - Status update', status);
-    });
+    // status type
+    // { cancellationFeeWei: 0,
+    //   cancellationReason: 'not_cancelled',
+    //   deadlineRatio: 0,
+    //   isSettled: false,
+    //   minedTx: 'not_mined',
+    //   wouldRevertMessage: null,
+    //   minedHash: '',
+    //   type: 'sentinel' }
 
-    const transactionHash = await new Promise((resolve) => {
-      smartTransactionsController.eventEmitter.once(
-        `${uuid}:transaction-hash`,
-        (hash) => {
-          resolve(hash);
-        },
+    // undefined for init state
+    // null for error
+    // string for success
+    let transactionHash;
+
+    smartTransactionsController.eventEmitter.on(
+      // TODO this is from Ext but don't see the event uuid:smartTransaction in stx controller repo yet
+      // `${uuid}:smartTransaction`,
+      // TODO use uuid:status for now
+      `${uuid}:status`,
+      // TODO needs uuid:smartTransaction event
+      // async (smartTransaction) => {
+      async (status) => {
+        Logger.log('STX - Status update', status);
+
+        // TODO needs uuid:smartTransaction event
+        // if (!status || status === 'pending') {
+        //   return;
+        // }
+
+        if (status?.isSettled) {
+          if (status?.minedHash !== '') {
+            // STX has landed on chain, tx is successful
+            Logger.log('STX - Received tx hash: ', status?.minedHash);
+            transactionHash = status.minedHash;
+
+            if (isDapp) {
+              await approvalController.updateRequestState({
+                id: smartTransactionStatusApprovalId,
+                requestState: {
+                  // TODO needs uuid:smartTransaction event
+                  // smartTransaction,
+                  smartTransaction: {
+                    status: 'success',
+                    creationTime,
+                    transactionHash,
+                  },
+                },
+              });
+            }
+          } else if (
+            status.minedTx === 'cancelled' ||
+            status.minedTx === 'unknown'
+          ) {
+            // minedTx types: not_mined, cancelled, unknown
+            // cancelled: STX has exceeded deadline, tx is cancelled, never processed on chain
+            // unknown: tx reverted on chain
+            transactionHash = null;
+          }
+        }
+      },
+    );
+
+    const waitForTransactionHashChange = () =>
+      new Promise((resolve) => {
+        const checkVariable = () => {
+          if (transactionHash === undefined) {
+            setTimeout(checkVariable, 100); // Check again after 100ms
+          } else {
+            resolve(`transactionHash has changed to: ${transactionHash}`);
+          }
+        };
+
+        checkVariable();
+      });
+
+    await waitForTransactionHashChange();
+
+    if (transactionHash === null) {
+      throw new Error(
+        'Transaction does not have a transaction hash, there was a problem',
       );
-    });
-
-    // TODO this is from Ext but don't see the event in stx controller repo
-    // (smartTransactionsController as any).eventEmitter.on(
-    //   `${uuid}:smartTransaction`,
-    //   async (smartTransaction: any) => {
-    //     log.info('Smart Transaction: ', smartTransaction);
-    //     const { status, statusMetadata } = smartTransaction;
-    //     if (!status || status === 'pending') {
-    //       return;
-    //     }
-
-    //     if (isDapp) {
-    //       await controllerMessenger.call(
-    //         'ApprovalController:updateRequestState',
-    //         {
-    //           id: smartTransactionStatusApprovalId,
-    //           requestState: {
-    //             smartTransaction,
-    //           },
-    //         },
-    //       );
-    //     }
-
-    //     if (statusMetadata?.minedHash) {
-    //       log.info(
-    //         'Smart Transaction - Received tx hash: ',
-    //         statusMetadata?.minedHash,
-    //       );
-    //       transactionHash = statusMetadata.minedHash;
-    //     } else {
-    //       transactionHash = null;
-    //     }
-    //   },
-    // );
-
-    // const waitForTransactionHashChange = () => {
-    //   return new Promise((resolve) => {
-    //     const checkVariable = () => {
-    //       if (transactionHash === undefined) {
-    //         setTimeout(checkVariable, 100); // Check again after 100ms
-    //       } else {
-    //         resolve(`transactionHash has changed to: ${transactionHash}`);
-    //       }
-    //     };
-
-    //     checkVariable();
-    //   });
-    // };
-    // await waitForTransactionHashChange();
-    // if (transactionHash === null) {
-    //   throw new Error(
-    //     'Transaction does not have a transaction hash, there was a problem',
-    //   );
-    // }
-    // return { transactionHash };
+    }
 
     Logger.log('STX - Received hash', transactionHash);
-
-    // TODO STX remove this, just testing the status page
-    if (isDapp) {
-      approvalController.updateRequestState({
-        id: smartTransactionStatusApprovalId,
-        requestState: {
-          smartTransaction: {
-            status: 'success',
-            creationTime: Date.now(),
-            transactionHash,
-          },
-        },
-      });
-      Logger.log('STX - Updated approval', smartTransactionStatusApprovalId);
-    }
 
     return { transactionHash };
   } catch (error) {
     Logger.log('STX - publish hook Error', error);
     Logger.error(error);
+
+    if (isDapp) {
+      await approvalController.updateRequestState({
+        id: smartTransactionStatusApprovalId,
+        requestState: {
+          // TODO needs uuid:smartTransaction event
+          // smartTransaction,
+          smartTransaction: {
+            status: 'error',
+            creationTime,
+          },
+        },
+      });
+    }
 
     // Will cause TransactionController to publish to the RPC provider as normal.
     // return { transactionHash: undefined };

@@ -92,9 +92,17 @@ function getValues(
               style: styles.description,
             },
             children: processString(
-              pendingApproval.requestData?.message,
-              strings('approval_result.resultPageSuccessDefaultMessage'),
+              pendingApproval.requestState?.smartTransaction?.transactionHash,
+              'Waiting for hash...',
             ),
+          },
+          {
+            key: 'message',
+            element: 'Text',
+            props: {
+              style: styles.description,
+            },
+            children: pendingApproval.requestState?.smartTransaction?.status,
           },
         ],
       },
