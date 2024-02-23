@@ -298,7 +298,6 @@ class AdvancedSettings extends PureComponent {
       PreferencesController.setDisabledRpcMethodPreference('eth_sign', false);
       this.props.metrics.trackEvent(
         MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_DISABLED,
-        {},
       );
     }
   };

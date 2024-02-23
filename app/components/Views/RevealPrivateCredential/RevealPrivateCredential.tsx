@@ -154,7 +154,7 @@ const RevealPrivateCredential = ({
     updateNavBar();
     // Track SRP Reveal screen rendered
     if (!isPrivateKey) {
-      trackEvent(MetaMetricsEvents.REVEAL_SRP_SCREEN, {});
+      trackEvent(MetaMetricsEvents.REVEAL_SRP_SCREEN);
     }
 
     const unlockWithBiometrics = async () => {
@@ -194,7 +194,7 @@ const RevealPrivateCredential = ({
         { view: 'Enter password' },
       );
 
-    if (!isPrivateKey) trackEvent(MetaMetricsEvents.CANCEL_REVEAL_SRP_CTA, {});
+    if (!isPrivateKey) trackEvent(MetaMetricsEvents.CANCEL_REVEAL_SRP_CTA);
     if (cancel) return cancel();
     navigateBack();
   };
@@ -212,7 +212,7 @@ const RevealPrivateCredential = ({
     if (!isPrivateKey) {
       const currentDate = new Date();
       dispatch(recordSRPRevealTimestamp(currentDate.toString()));
-      trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA, {});
+      trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA);
     }
     setIsModalVisible(true);
     setWarningIncorrectPassword('');
@@ -223,7 +223,7 @@ const RevealPrivateCredential = ({
   };
 
   const done = () => {
-    if (!isPrivateKey) trackEvent(MetaMetricsEvents.SRP_DONE_CTA, {});
+    if (!isPrivateKey) trackEvent(MetaMetricsEvents.SRP_DONE_CTA);
     navigateBack();
   };
 
@@ -237,7 +237,7 @@ const RevealPrivateCredential = ({
       { action: 'copied to clipboard' },
     );
 
-    if (!isPrivateKey) trackEvent(MetaMetricsEvents.COPY_SRP, {});
+    if (!isPrivateKey) trackEvent(MetaMetricsEvents.COPY_SRP);
 
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
@@ -289,7 +289,7 @@ const RevealPrivateCredential = ({
         { action: 'viewed SRP' },
       );
 
-      if (!isPrivateKey) trackEvent(MetaMetricsEvents.VIEW_SRP, {});
+      if (!isPrivateKey) trackEvent(MetaMetricsEvents.VIEW_SRP);
     } else if (event.i === 1) {
       trackEvent(
         isPrivateKey
@@ -298,7 +298,7 @@ const RevealPrivateCredential = ({
         { action: 'viewed QR code' },
       );
 
-      if (!isPrivateKey) trackEvent(MetaMetricsEvents.VIEW_SRP_QR, {});
+      if (!isPrivateKey) trackEvent(MetaMetricsEvents.VIEW_SRP_QR);
     }
   };
 
@@ -400,7 +400,7 @@ const RevealPrivateCredential = ({
       { view: 'Hold to reveal' },
     );
 
-    trackEvent(MetaMetricsEvents.SRP_DISMISS_HOLD_TO_REVEAL_DIALOG, {});
+    trackEvent(MetaMetricsEvents.SRP_DISMISS_HOLD_TO_REVEAL_DIALOG);
 
     setIsModalVisible(false);
   };
