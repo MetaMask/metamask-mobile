@@ -881,15 +881,12 @@ class Engine {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       (snap: Snap, svgIcon: any = null) => {
-        const {
-          manifest: { proposedName },
-          version,
-        } = snap;
+        const parts = snap.id.split(/[:/]/);
         subjectMetadataController.addSubjectMetadata({
           subjectType: SubjectType.Snap,
-          name: proposedName,
+          name: parts[parts.length - 1] || snap.id,
           origin: snap.id,
-          version,
+          version: snap.version,
           svgIcon,
         });
       },
