@@ -202,9 +202,11 @@ export async function publishHook(request: Request) {
         cancellationReason: string;
         deadlineRatio: number;
         isSettled: boolean;
-        minedTx: 'not_mined' | 'cancelled' | 'unknown';
+        // cancelled: STX has exceeded deadline, tx is cancelled, never processed on chain
+        // unknown: tx reverted on chain
+        minedTx: 'not_mined' | 'success' | 'cancelled' | 'unknown';
         wouldRevertMessage: string | null;
-        minedHash: string;
+        minedHash: string; // init value is ''
         type: string;
       }) => {
         Logger.log('STX - Status update', status);
@@ -238,9 +240,6 @@ export async function publishHook(request: Request) {
             status.minedTx === 'cancelled' ||
             status.minedTx === 'unknown'
           ) {
-            // minedTx types: not_mined, cancelled, unknown
-            // cancelled: STX has exceeded deadline, tx is cancelled, never processed on chain
-            // unknown: tx reverted on chain
             transactionHash = null;
           }
         }
