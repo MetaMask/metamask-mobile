@@ -32,13 +32,13 @@ import LedgerConnectionError, {
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
 
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (theme: any) =>
   StyleSheet.create({
@@ -114,6 +114,7 @@ const createStyles = (theme: any) =>
 const LedgerConnect = () => {
   const { AccountTrackerController } = Engine.context as any;
   const theme = useAppThemeFromContext() ?? mockTheme;
+  const { trackEvent } = useMetrics();
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
@@ -137,13 +138,13 @@ const LedgerConnect = () => {
 
   const connectLedger = () => {
     setLoading(true);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
+    trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
       device_type: 'Ledger',
     });
     ledgerLogicToRun(async () => {
       const account = await unlockLedgerDefaultAccount(true);
       await AccountTrackerController.syncBalanceWithAddresses([account]);
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
+      trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: 'Ledger',
       });
       navigation.dispatch(StackActions.pop(2));

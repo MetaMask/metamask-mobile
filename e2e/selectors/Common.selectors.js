@@ -22,4 +22,5 @@ export const CommonSelectorsText = {
   CANCEL_BUTTON: messages.template_confirmation.cancel,
   TOAST_REVOKE_ACCOUNTS: messages.toast.revoked_all,
   TOAST_CONNECTED_ACCOUNTS: messages.toast.connected_and_active,
+  YES_ALERT_BUTTON: messages.drawer.lock_ok,
 };
