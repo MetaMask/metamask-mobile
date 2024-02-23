@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Alert, InteractionManager, AppState, View } from 'react-native';
+import { Alert, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -14,7 +14,7 @@ import AddNickname from '../../components/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../../locales/i18n';
 import { getNetworkNonce } from '../../../../../util/networks';
-import Analytics from '../../../../../core/Analytics/Analytics';
+
 import {
   setTransactionObject,
   setNonce,
@@ -39,7 +39,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
 import EditGasFee1559 from '../../components/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../components/EditGasFeeLegacyUpdate';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import AppConstants from '../../../../../core/AppConstants';
 import { shallowEqual } from '../../../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
@@ -74,6 +73,7 @@ import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { updateTransaction } from '../../../../../util/transaction-controller';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -166,6 +166,10 @@ class Approve extends PureComponent {
      * Object that represents the navigator
      */
     navigation: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -359,13 +363,12 @@ class Approve extends PureComponent {
   trackApproveEvent = (event) => {
     const { transaction, tokensLength, accountsLength, providerType } =
       this.props;
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(event, {
-        view: transaction.origin,
-        numberOfTokens: tokensLength,
-        numberOfAccounts: accountsLength,
-        network: providerType,
-      });
+
+    this.props.metrics.trackEvent(event, {
+      view: transaction.origin,
+      numberOfTokens: tokensLength,
+      numberOfAccounts: accountsLength,
+      network: providerType,
     });
   };
 
@@ -478,7 +481,10 @@ class Approve extends PureComponent {
 
         TransactionController.cancelTransaction(transactionId);
 
-        AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, gaParams);
+        this.props.metrics.trackEvent(
+          MetaMetricsEvents.APPROVAL_CANCELLED,
+          gaParams,
+        );
 
         NotificationManager.showSimpleNotification({
           status: `simple_notification_rejected`,
@@ -488,7 +494,10 @@ class Approve extends PureComponent {
         });
       }
     } finally {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_COMPLETED, gaParams);
+      this.props.metrics.trackEvent(
+        MetaMetricsEvents.APPROVAL_COMPLETED,
+        gaParams,
+      );
     }
   };
 
@@ -564,7 +573,7 @@ class Approve extends PureComponent {
         waitForResult: true,
       });
 
-      AnalyticsV2.trackEvent(
+      this.props.metrics.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),
       );
@@ -577,7 +586,7 @@ class Approve extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Approve)');
       } else {
-        AnalyticsV2.trackEvent(
+        this.props.metrics.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
@@ -595,7 +604,7 @@ class Approve extends PureComponent {
         logErrors: false,
       },
     );
-    AnalyticsV2.trackEvent(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.APPROVAL_CANCELLED,
       this.getAnalyticsParams(),
     );
@@ -616,11 +625,9 @@ class Approve extends PureComponent {
   onModeChange = (mode) => {
     this.setState({ mode });
     if (mode === EDIT) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEvent(
-          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
-        );
-      });
+      this.props.metrics.trackEvent(
+        MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+      );
     }
   };
 
@@ -916,4 +923,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 Approve.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(Approve);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Approve));

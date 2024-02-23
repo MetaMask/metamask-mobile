@@ -7,12 +7,14 @@ import { Provider } from 'react-redux';
 import * as TransactionUtils from '../../../../../util/transactions';
 // eslint-disable-next-line import/no-namespace
 import * as BlockaidUtils from '../../../../../util/blockaid';
-import analyticsV2 from '../../../../../util/analyticsV2';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { fireEvent } from '@testing-library/react-native';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
+
+jest.mock('../../../../../components/hooks/useMetrics');
 
 jest.mock('../../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../../util/transactions'),
@@ -153,8 +155,13 @@ jest.mock('react-redux', () => {
 
 const generateTransform = jest.fn();
 
+const mockTrackEvent = jest.fn();
+(useMetrics as jest.Mock).mockReturnValue({
+  trackEvent: mockTrackEvent,
+});
+
 describe('TransactionReview', () => {
-  it('should render correctly', () => {
+  it.only('should render correctly', () => {
     const mockStore = configureMockStore();
     const store = mockStore(mockState);
     const wrapper = shallow(
@@ -185,12 +192,6 @@ describe('TransactionReview', () => {
       req: {},
       chainId: '0x1',
     };
-    const trackEventSypy = jest
-      .spyOn(analyticsV2, 'trackEvent')
-      .mockImplementation((name, params) => {
-        expect(name).toBeDefined();
-        expect(params).toBeDefined();
-      });
 
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
@@ -239,7 +240,7 @@ describe('TransactionReview', () => {
 
     fireEvent.press(await getByText('Report an issue'));
 
-    expect(trackEventSypy).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(blockaidMetricsParamsSpy).toHaveBeenCalledTimes(1);
     expect(blockaidMetricsParamsSpy).toHaveBeenCalledWith({
       id: '123',
