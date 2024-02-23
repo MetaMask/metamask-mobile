@@ -1,22 +1,43 @@
 import { ORIGIN_METAMASK } from '@metamask/approval-controller';
+import { Fee } from '@metamask/smart-transactions-controller/dist/types';
+import { TransactionController } from '@metamask/transaction-controller';
 import Logger from '../Logger';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 
+// TODO import these from tx controller
+export declare type Hex = `0x${string}`;
+export interface TransactionParams {
+  chainId?: Hex;
+  data?: string;
+  from: string;
+  gas?: string;
+  gasPrice?: string;
+  gasUsed?: string;
+  nonce?: string;
+  to?: string;
+  value?: string;
+  maxFeePerGas?: string;
+  maxPriorityFeePerGas?: string;
+  estimatedBaseFee?: string;
+  estimateGasError?: string;
+  type?: string;
+}
+
 export const createSignedTransactions = async (
-  unsignedTransaction,
-  fees,
-  areCancelTransactions,
-  TransactionController,
+  unsignedTransaction: TransactionParams,
+  fees: Fee[],
+  areCancelTransactions: boolean,
+  transactionController: TransactionController,
 ) => {
   const unsignedTransactionsWithFees = fees.map((fee) => {
     const unsignedTransactionWithFees = {
       ...unsignedTransaction,
-      maxFeePerGas: decimalToHex(fee.maxFeePerGas),
-      maxPriorityFeePerGas: decimalToHex(fee.maxPriorityFeePerGas),
+      maxFeePerGas: decimalToHex(fee.maxFeePerGas).toString(),
+      maxPriorityFeePerGas: decimalToHex(fee.maxPriorityFeePerGas).toString(),
       gas: areCancelTransactions
-        ? decimalToHex(21000) // It has to be 21000 for cancel transactions, otherwise the API would reject it.
-        : unsignedTransaction.gas,
+        ? decimalToHex(21000).toString() // It has to be 21000 for cancel transactions, otherwise the API would reject it.
+        : unsignedTransaction.gas?.toString(),
       value: unsignedTransaction.value,
     };
     if (areCancelTransactions) {
@@ -33,7 +54,7 @@ export const createSignedTransactions = async (
   );
 
   const signedTransactions =
-    await TransactionController.approveTransactionsWithSameNonce(
+    await transactionController.approveTransactionsWithSameNonce(
       unsignedTransactionsWithFees,
       { hasNonce: true },
     );
@@ -46,55 +67,19 @@ export const createSignedTransactions = async (
   return signedTransactions;
 };
 
-export const signAndSendSmartTransaction = async (
-  SmartTransactionsController,
-  unsignedTransaction,
-  smartTransactionFees,
-  TransactionController,
-) => {
-  Logger.log('STX signAndSendSmartTransaction signedTransactions start');
-  const signedTransactions = await createSignedTransactions(
-    unsignedTransaction,
-    smartTransactionFees.fees,
-    false,
-    TransactionController,
-  );
-  Logger.log(
-    'STX signAndSendSmartTransaction signedTransactions end',
-    signedTransactions,
-  );
+interface Request {
+  transactionMeta: {
+    chainId: string;
+    transaction: TransactionParams;
+    origin: string;
+  };
+  smartTransactionsController: any;
+  transactionController: TransactionController;
+  isSmartTransaction: boolean;
+  approvalController: any;
+}
 
-  Logger.log(
-    'STX signAndSendSmartTransaction signedCanceledTransactions start',
-  );
-  const signedCanceledTransactions = await createSignedTransactions(
-    unsignedTransaction,
-    smartTransactionFees.cancelFees,
-    true,
-    TransactionController,
-  );
-  Logger.log(
-    'STX signAndSendSmartTransaction signedCanceledTransactions end',
-    signedCanceledTransactions,
-  );
-
-  Logger.log(
-    'STX signAndSendSmartTransaction SmartTransactionsController.submitSignedTransactions start',
-  );
-  const res = await SmartTransactionsController.submitSignedTransactions({
-    signedTransactions,
-    signedCanceledTransactions,
-    txParams: unsignedTransaction,
-  });
-  Logger.log(
-    'STX signAndSendSmartTransaction SmartTransactionsController.submitSignedTransactions end',
-    res.uuid,
-  );
-
-  return res.uuid;
-};
-
-export async function publishHook(request) {
+export async function publishHook(request: Request) {
   const {
     transactionMeta,
     smartTransactionsController,
@@ -115,14 +100,14 @@ export async function publishHook(request) {
     return { transactionHash: undefined };
   }
 
-  let smartTransactionStatusApprovalId;
+  let smartTransactionStatusApprovalId: string | undefined;
   if (isDapp) {
     const { id } = approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
     smartTransactionStatusApprovalId = id;
     Logger.log('STX - Started approval flow', smartTransactionStatusApprovalId);
   }
 
-  let creationTime;
+  let creationTime: number | undefined;
 
   try {
     Logger.log('STX - Fetching fees', txParams, chainId);
@@ -203,7 +188,7 @@ export async function publishHook(request) {
     // undefined for init state
     // null for error
     // string for success
-    let transactionHash;
+    let transactionHash: string | null | undefined;
 
     smartTransactionsController.eventEmitter.on(
       // TODO this is from Ext but don't see the event uuid:smartTransaction in stx controller repo yet
@@ -212,7 +197,16 @@ export async function publishHook(request) {
       `${uuid}:status`,
       // TODO needs uuid:smartTransaction event
       // async (smartTransaction) => {
-      async (status) => {
+      async (status: {
+        cancellationFeeWei: number;
+        cancellationReason: string;
+        deadlineRatio: number;
+        isSettled: boolean;
+        minedTx: 'not_mined' | 'cancelled' | 'unknown';
+        wouldRevertMessage: string | null;
+        minedHash: string;
+        type: string;
+      }) => {
         Logger.log('STX - Status update', status);
 
         // TODO needs uuid:smartTransaction event
@@ -279,7 +273,7 @@ export async function publishHook(request) {
     return { transactionHash };
   } catch (error) {
     Logger.log('STX - publish hook Error', error);
-    Logger.error(error);
+    Logger.error(error, '');
 
     if (isDapp) {
       await approvalController.updateRequestState({
