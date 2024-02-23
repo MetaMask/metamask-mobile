@@ -37,14 +37,14 @@ const WalletResetNeeded = () => {
   useEffect(() => {
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
-      { ...deviceMetaData },
+      deviceMetaData,
     );
   }, [trackEvent, deviceMetaData]);
 
   const handleCreateNewWallet = useCallback(async () => {
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED,
-      { ...deviceMetaData },
+      deviceMetaData,
     );
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
@@ -54,7 +54,7 @@ const WalletResetNeeded = () => {
   const handleTryAgain = useCallback(async () => {
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED,
-      { ...deviceMetaData },
+      deviceMetaData,
     );
     navigation.replace(
       ...createRestoreWalletNavDetails({

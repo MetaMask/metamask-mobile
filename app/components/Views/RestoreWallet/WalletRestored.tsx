@@ -45,7 +45,7 @@ const WalletRestored = () => {
   useEffect(() => {
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED,
-      { ...deviceMetaData },
+      deviceMetaData,
     );
   }, [deviceMetaData, trackEvent]);
 
@@ -72,7 +72,7 @@ const WalletRestored = () => {
     setLoading(true);
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_CONTINUE_BUTTON_PRESSED,
-      { ...deviceMetaData },
+      deviceMetaData,
     );
     await finishWalletRestore();
   }, [deviceMetaData, finishWalletRestore, trackEvent]);

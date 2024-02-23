@@ -64,9 +64,10 @@ const RestoreWallet = () => {
 
   const handleOnNext = useCallback(async (): Promise<void> => {
     setLoading(true);
+
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_RESTORE_WALLET_BUTTON_PRESSED,
-      { ...deviceMetaData },
+      deviceMetaData,
     );
     const restoreResult = await EngineService.initializeVaultFromBackup();
     if (restoreResult.success) {
