@@ -98,6 +98,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -1255,14 +1256,7 @@ function SwapsQuotesView({
         const parameters = { ...data };
         trackAnonymousEvent(MetaMetricsEvents.NO_QUOTES_AVAILABLE, parameters);
       } else {
-        trackEvent(
-          { category: 'Error occurred' },
-          {
-            error: true,
-            type: `Swaps: ${error?.key}`,
-            errorMessage: error?.description,
-          },
-        );
+        trackErrorAsAnalytics(`Swaps: ${error?.key}`, error?.description);
       }
     },
     [
@@ -1273,7 +1267,6 @@ function SwapsQuotesView({
       hasEnoughTokenBalance,
       slippage,
       trackAnonymousEvent,
-      trackEvent,
     ],
   );
 
