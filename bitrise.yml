@@ -270,7 +270,7 @@ workflows:
     steps:
       # Update Bitrise comment in PR with success status
       - comment-on-github-pull-request@0:
-          run_if: '{{getenv "TRIGGERED_BY_LABEL" | eq "true"}}'
+          run_if: '{{getenv "TRIGGERED_BY_PR_LABEL" | eq "true"}}'
           inputs:
             - personal_access_token: '$GITHUB_ACCESS_TOKEN'
             - body: |-

@@ -16,7 +16,6 @@ async function main(): Promise<void> {
   const pullRequestNumber = context.issue.number;
   const repoOwner = context.repo.owner;
   const repo = context.repo.repo;
-  const commitHash = context.sha;
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
 
   if (!githubToken) {
@@ -30,6 +29,14 @@ async function main(): Promise<void> {
   }
 
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
+
+  const pullRequestResponse = await octokit.rest.pulls.get({
+    owner: repoOwner,
+    repo,
+    pull_number: pullRequestNumber,
+  });
+  
+  const latestCommitHash = pullRequestResponse.data.head.sha;
 
   const data = {
     build_params: {
@@ -48,7 +55,7 @@ async function main(): Promise<void> {
         },
         {
           mapped_to: 'GITHUB_PR_HASH',
-          value: `${commitHash}`,
+          value: `${latestCommitHash}`,
           is_expand: true,
         },
       ],
@@ -77,7 +84,7 @@ async function main(): Promise<void> {
   }
 
   const buildLink = `${bitriseProjectUrl}/pipelines/${bitriseBuildResponse.data.build_slug}`;
-  const message = `## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${buildLink}) **Bitrise**\n\n🔄🔄🔄 \`${e2ePipeline}\` pipeline started on Bitrise...🔄🔄🔄\n\nCommit hash: ${commitHash}\nBuild link: ${buildLink}\n\n>[!NOTE]\n>- This comment will auto-update when build succeeds\n>- You can kick off another \`${e2ePipeline}\` build on Bitrise by removing and re-applying the \`${e2eLabel}\` label on the pull request\n\n<!-- ${commitHash} -->`;
+  const message = `## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${buildLink}) **Bitrise**\n\n🔄🔄🔄 \`${e2ePipeline}\` pipeline started on Bitrise...🔄🔄🔄\n\nCommit hash: ${latestCommitHash}\nBuild link: ${buildLink}\n\n>[!NOTE]\n>- This comment will auto-update when build succeeds\n>- You can kick off another \`${e2ePipeline}\` build on Bitrise by removing and re-applying the \`${e2eLabel}\` label on the pull request\n\n<!-- ${latestCommitHash} -->`;
 
   if (bitriseBuildResponse.status === 201) {
     console.log(message);
