@@ -96,6 +96,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
+
 import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
