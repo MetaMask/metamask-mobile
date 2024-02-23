@@ -51,8 +51,8 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
-      # - build_smoke_e2e_ios_android_stage: {}
-      # - run_smoke_e2e_ios_android_stage: {}
+      - build_smoke_e2e_ios_android_stage: {}
+      - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
@@ -307,10 +307,29 @@ workflows:
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # Send a Slack message when workflow fails
-  _notify_failure_on_slack:
+  notify_failure:
     before_run:
       - _get_workflow_info
     steps:
+      # Update Bitrise comment in PR with success status
+      - comment-on-github-pull-request@0:
+          run_if: '{{getenv "TRIGGERED_BY_LABEL" | eq "true"}}'
+          inputs:
+            - personal_access_token: '$GITHUB_ACCESS_TOKEN'
+            - body: |-
+                ## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${BITRISEIO_PIPELINE_BUILD_URL}) **Bitrise**
+
+                ❌❌❌ `${BITRISEIO_PIPELINE_TITLE}` pipeline failed on Bitrise! ❌❌❌
+
+                Commit hash: ${GITHUB_PR_HASH}
+                Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
+
+                >[!NOTE]
+                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` build on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
+            - repository_url: '$GIT_REPOSITORY_URL'
+            - issue_number: '$GITHUB_PR_NUMBER'
+            - api_base_url: 'https://api.github.com'
+            - update_comment_tag: '$GITHUB_PR_HASH'
       - slack@3:
           is_always_run: true
           run_if: .IsBuildFailed
@@ -443,7 +462,7 @@ workflows:
       - code_setup
       - e2e_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
@@ -519,7 +538,7 @@ workflows:
       - prep_environment
       - e2e_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - restore-gradle-cache@2: {}
       - restore-cache@2:
@@ -599,7 +618,7 @@ workflows:
       - code_setup
       - e2e_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -679,7 +698,7 @@ workflows:
       - prep_environment
       - e2e_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - restore-cache@2:
           title: Restore cache build
@@ -767,7 +786,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -843,7 +862,7 @@ workflows:
       - code_setup
     after_run:
       - _upload_apk_to_browserstack
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -951,7 +970,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - script@1:
           title: Run Android E2E tests on Browserstack
@@ -1004,7 +1023,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -1044,7 +1063,7 @@ workflows:
       - code_setup
     after_run:
       - _upload_ipa_to_browserstack
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -1108,7 +1127,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -1148,7 +1167,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
