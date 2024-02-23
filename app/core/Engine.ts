@@ -136,6 +136,7 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
+  addHexPrefix,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -532,8 +533,8 @@ class Engine {
         const chainId = networkController.state.providerConfig.chainId;
         return (
           isMainnetByChainId(chainId) ||
-          chainId === `0x${swapsUtils.BSC_CHAIN_ID}` ||
-          chainId === `0x${swapsUtils.POLYGON_CHAIN_ID}`
+          chainId === addHexPrefix(swapsUtils.BSC_CHAIN_ID) ||
+          chainId === addHexPrefix(swapsUtils.POLYGON_CHAIN_ID)
         );
       },
       clientId: AppConstants.SWAPS.CLIENT_ID,
@@ -699,8 +700,6 @@ class Engine {
       }),
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({ getIdentities }),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       permissionSpecifications: {
         ...getPermissionSpecifications({
           getAllAccounts: () => keyringController.getAccounts(),
