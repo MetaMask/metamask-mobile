@@ -26,7 +26,6 @@ import { strings } from '../../../../locales/i18n';
 import Button from '@metamask/react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
   getTransparentBackOnboardingNavbarOptions,
   getTransparentOnboardingNavbarOptions,
@@ -48,6 +47,7 @@ import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onbo
 
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -137,10 +137,6 @@ class Onboarding extends PureComponent {
      * redux flag that indicates if the user set a password
      */
     passwordSet: PropTypes.bool,
-    /**
-     * Save onboarding event to state
-     */
-    saveOnboardingEvent: PropTypes.func,
     /**
      * loading status
      */
@@ -320,14 +316,7 @@ class Onboarding extends PureComponent {
   };
 
   track = (event) => {
-    InteractionManager.runAfterInteractions(async () => {
-      const { metrics } = this.props;
-      if (metrics.isEnabled()) {
-        metrics.trackEvent(event);
-      } else {
-        this.props.saveOnboardingEvent(event.category);
-      }
-    });
+    trackOnboarding(event);
   };
 
   alertExistingUser = (callback) => {
@@ -496,7 +485,6 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   setLoading: (msg) => dispatch(loadingSet(msg)),
   unsetLoading: () => dispatch(loadingUnset()),
-  saveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
 export default connect(
