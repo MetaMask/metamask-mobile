@@ -1,63 +1,77 @@
-import { withNavigation } from '@react-navigation/compat';
-import { isEqual } from 'lodash';
-import PropTypes from 'prop-types';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  Alert,
-  BackHandler,
-  InteractionManager,
-  Linking,
-  Platform,
-  StyleSheet,
   Text,
-  TouchableWithoutFeedback,
+  StyleSheet,
   View,
+  TouchableWithoutFeedback,
+  Alert,
+  Linking,
+  BackHandler,
+  Platform,
 } from 'react-native';
-import Modal from 'react-native-modal';
-import SearchApi from 'react-native-search-api';
-import Share from 'react-native-share';
+import { isEqual } from 'lodash';
+import { withNavigation } from '@react-navigation/compat';
+import { WebView } from 'react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { WebView } from 'react-native-webview';
+import BrowserBottomBar from '../../UI/BrowserBottomBar';
+import PropTypes from 'prop-types';
+import Share from 'react-native-share';
 import { connect, useSelector } from 'react-redux';
-import URL from 'url-parse';
-import { strings } from '../../../../locales/i18n';
-import { addBookmark } from '../../../actions/bookmarks';
-import { addToHistory, addToWhitelist } from '../../../actions/browser';
-import setOnboardingWizardStep from '../../../actions/wizard';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AppConstants from '../../../core/AppConstants';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
-import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import Engine from '../../../core/Engine';
-import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
-import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
+import PhishingModal from '../../UI/PhishingModal';
+import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, {
-  allowLinkOpen,
-  getAlertMessage,
-  getUrlObj,
-  isTLD,
   prefixUrlWithProtocol,
+  isTLD,
   protocolAllowList,
   trustedProtocolToDeeplink,
+  getAlertMessage,
+  allowLinkOpen,
+  getUrlObj,
 } from '../../../util/browser';
 import {
-  JS_DESELECT_TEXT,
   SPA_urlChangeListener,
+  JS_DESELECT_TEXT,
 } from '../../../util/browserScripts';
-import Device from '../../../util/device';
-import BrowserBottomBar from '../../UI/BrowserBottomBar';
+import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
-import OnboardingWizard from '../../UI/OnboardingWizard';
-import PhishingModal from '../../UI/PhishingModal';
+import { strings } from '../../../../locales/i18n';
+import URL from 'url-parse';
+import Modal from 'react-native-modal';
 import WebviewError from '../../UI/WebviewError';
-import WebviewProgressBar from '../../UI/WebviewProgressBar';
+import { addBookmark } from '../../../actions/bookmarks';
+import { addToHistory, addToWhitelist } from '../../../actions/browser';
+import Device from '../../../util/device';
+import AppConstants from '../../../core/AppConstants';
+import SearchApi from 'react-native-search-api';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import setOnboardingWizardStep from '../../../actions/wizard';
+import OnboardingWizard from '../../UI/OnboardingWizard';
+import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
+import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
 
-import { regex } from '../../../../app/util/regex';
-import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
+import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
+import { useTheme } from '../../../util/theme';
+import downloadFile from '../../../util/browser/downloadFile';
+import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
+import {
+  MM_PHISH_DETECT_URL,
+  MM_BLOCKLIST_ISSUE_URL,
+  PHISHFORT_BLOCKLIST_ISSUE_URL,
+  MM_ETHERSCAN_URL,
+} from '../../../constants/urls';
+import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
+import {
+  getPermittedAccounts,
+  getPermittedAccountsByHostname,
+} from '../../../core/Permissions';
+import Routes from '../../../constants/navigation/Routes';
+import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   ADD_FAVORITES_OPTION,
   MENU_ID,
@@ -66,41 +80,26 @@ import {
   RELOAD_OPTION,
   SHARE_OPTION,
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { trackDappVisitedEvent } from '../../../analytics';
-import {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../component-library/components/Banners/Banner';
-import Banner from '../../../component-library/components/Banners/Banner/Banner';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
-import CLText from '../../../component-library/components/Texts/Text/Text';
-import Routes from '../../../constants/navigation/Routes';
-import {
-  MM_BLOCKLIST_ISSUE_URL,
-  MM_ETHERSCAN_URL,
-  MM_PHISH_DETECT_URL,
-  PHISHFORT_BLOCKLIST_ISSUE_URL,
-} from '../../../constants/urls';
-import {
-  getPermittedAccounts,
-  getPermittedAccountsByHostname,
-} from '../../../core/Permissions';
-import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { selectChainId } from '../../../selectors/networkController';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
-import downloadFile from '../../../util/browser/downloadFile';
-import { useTheme } from '../../../util/theme';
-import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
-import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
+import Banner from '../../../component-library/components/Banners/Banner/Banner';
+import {
+  BannerAlertSeverity,
+  BannerVariant,
+} from '../../../component-library/components/Banners/Banner';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import CLText from '../../../component-library/components/Texts/Text/Text';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
+import { regex } from '../../../../app/util/regex';
+import { selectChainId } from '../../../selectors/networkController';
+import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import trackDappVisitedEvent from '../../../util/metrics/trackDappVisited';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
@@ -288,10 +287,9 @@ export const BrowserTab = (props) => {
   }, isEqual);
 
   const { colors, shadows } = useTheme();
-  const { trackEvent, isEnabled, getMetaMetricsId } = useMetrics();
   const styles = createStyles(colors, shadows);
   const favicon = useFavicon(url.current);
-
+  const { trackEvent, isEnabled, getMetaMetricsId } = useMetrics();
   /**
    * Is the current tab the active tab
    */
@@ -387,9 +385,8 @@ export const BrowserTab = (props) => {
   const toggleOptions = useCallback(() => {
     dismissTextSelectionIfNeeded();
     setShowOptions(!showOptions);
-    InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.DAPP_BROWSER_OPTIONS);
-    });
+
+    trackEvent(MetaMetricsEvents.DAPP_BROWSER_OPTIONS);
   }, [dismissTextSelectionIfNeeded, showOptions, trackEvent]);
 
   /**
