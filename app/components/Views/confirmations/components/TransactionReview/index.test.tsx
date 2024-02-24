@@ -161,7 +161,7 @@ const mockTrackEvent = jest.fn();
 });
 
 describe('TransactionReview', () => {
-  it.only('should render correctly', () => {
+  it('should render correctly', () => {
     const mockStore = configureMockStore();
     const store = mockStore(mockState);
     const wrapper = shallow(
