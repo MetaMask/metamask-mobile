@@ -8,18 +8,24 @@ import { mergeGasFeeEstimates } from '@metamask/transaction-controller';
 import { createSelector } from 'reselect';
 import { createDeepEqualSelector } from './util';
 
-export const selectCurrentTransaction = (state: RootState) => state.transaction;
+export const selectCurrentTransactionId = (state: RootState) =>
+  state.transaction?.id;
 
 export const selectCurrentTransactionMetadata = createSelector(
   selectTransactions,
-  selectCurrentTransaction,
-  (transactions, currentTransaction) =>
-    transactions.find((tx) => tx.id === currentTransaction?.id),
+  selectCurrentTransactionId,
+  (transactions, currentTransactionId) =>
+    transactions.find((tx) => tx.id === currentTransactionId),
 );
 
 const selectCurrentTransactionGasFeeEstimatesStrict = createSelector(
   selectCurrentTransactionMetadata,
   (transactionMetadata) => transactionMetadata?.gasFeeEstimates,
+);
+
+const selectCurrentTransactionGasFeeEstimatesLoaded = createSelector(
+  selectCurrentTransactionMetadata,
+  (transactionMetadata) => transactionMetadata?.gasFeeEstimatesLoaded,
 );
 
 export const selectCurrentTransactionGasFeeEstimates = createDeepEqualSelector(
@@ -46,4 +52,11 @@ export const selectGasFeeEstimates = createSelector(
 
     return gasFeeControllerEstimates;
   },
+);
+
+export const selectTransactionGasFeeEstimates = createSelector(
+  selectCurrentTransactionGasFeeEstimatesLoaded,
+  selectGasFeeEstimates,
+  (transactionGasFeeEstimatesLoaded, gasFeeEstimates) =>
+    transactionGasFeeEstimatesLoaded ? gasFeeEstimates : undefined,
 );
