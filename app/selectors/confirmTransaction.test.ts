@@ -1,7 +1,6 @@
-import { mergeGasFeeControllerAndTransactionGasFeeEstimates } from '@metamask/transaction-controller';
+import { mergeGasFeeEstimates } from '@metamask/transaction-controller';
 import { RootState } from '../reducers';
 import {
-  selectCurrentTransaction,
   selectCurrentTransactionGasFeeEstimates,
   selectCurrentTransactionMetadata,
   selectGasFeeEstimates,
@@ -28,23 +27,7 @@ const TRANSACTION_GAS_FEE_ESTIMATES_MOCK = {
 };
 
 describe('Confirm Transaction Selectors', () => {
-  const mergeGasFeeControllerAndTransactionGasFeeEstimatesMock = jest.mocked(
-    mergeGasFeeControllerAndTransactionGasFeeEstimates,
-  );
-
-  describe('selectCurrentTransaction', () => {
-    it('returns the current transaction', () => {
-      const transaction = { id: 1 };
-
-      const state = {
-        transaction,
-      };
-
-      expect(selectCurrentTransaction(state as RootState)).toStrictEqual(
-        transaction,
-      );
-    });
-  });
+  const mergeGasFeeEstimatesMock = jest.mocked(mergeGasFeeEstimates);
 
   describe('selectCurrentTransactionMetadata', () => {
     it('returns the current transaction metadata', () => {
@@ -132,7 +115,7 @@ describe('Confirm Transaction Selectors', () => {
         },
       };
 
-      mergeGasFeeControllerAndTransactionGasFeeEstimatesMock.mockReturnValue(
+      mergeGasFeeEstimatesMock.mockReturnValue(
         TRANSACTION_GAS_FEE_ESTIMATES_MOCK as GasFeeEstimates,
       );
 
@@ -140,12 +123,8 @@ describe('Confirm Transaction Selectors', () => {
         selectGasFeeEstimates(state as unknown as RootState),
       ).toStrictEqual(TRANSACTION_GAS_FEE_ESTIMATES_MOCK);
 
-      expect(
-        mergeGasFeeControllerAndTransactionGasFeeEstimatesMock,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        mergeGasFeeControllerAndTransactionGasFeeEstimatesMock,
-      ).toHaveBeenCalledWith(
+      expect(mergeGasFeeEstimatesMock).toHaveBeenCalledTimes(1);
+      expect(mergeGasFeeEstimatesMock).toHaveBeenCalledWith(
         GAS_ESTIMATE_TYPES.FEE_MARKET,
         GAS_FEE_ESTIMATES_MOCK,
         TRANSACTION_GAS_FEE_ESTIMATES_MOCK,

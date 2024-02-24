@@ -8,8 +8,7 @@ import { mergeGasFeeEstimates } from '@metamask/transaction-controller';
 import { createSelector } from 'reselect';
 import { createDeepEqualSelector } from './util';
 
-export const selectCurrentTransactionId = (state: RootState) =>
-  state.transaction?.id;
+const selectCurrentTransactionId = (state: RootState) => state.transaction?.id;
 
 export const selectCurrentTransactionMetadata = createSelector(
   selectTransactions,
