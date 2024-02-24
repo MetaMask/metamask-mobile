@@ -1,51 +1,28 @@
 // Third party dependencies.
-import { swapsUtils } from '@metamask/swaps-controller';
-import { useNavigation } from '@react-navigation/native';
 import React, { useRef } from 'react';
-import { Platform, View } from 'react-native';
+import { View, Platform } from 'react-native';
+import { swapsUtils } from '@metamask/swaps-controller';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import { strings } from '../../../../locales/i18n';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { toggleReceiveModal } from '../../../actions/modals';
-import { newAssetTransaction } from '../../../actions/transaction';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { useStyles } from '../../../component-library/hooks';
-import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
-import WalletAction from '../../../components/UI/WalletAction';
-import Routes from '../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
 import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { getEther } from '../../../util/transactions';
+import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { toggleReceiveModal } from '../../../actions/modals';
+import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
-import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
-import Routes from '../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
-import { getEther } from '../../../util/transactions';
-import { newAssetTransaction } from '../../../actions/transaction';
-import { strings } from '../../../../locales/i18n';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import WalletAction from '../../../components/UI/WalletAction';
-import { useStyles } from '../../../component-library/hooks';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
 import { getDecimalChainId } from '../../../util/networks';
 
 // Internal dependencies
+import styleSheet from './WalletActions.styles';
 import {
   WALLET_BRIDGE,
   WALLET_BUY,
@@ -54,10 +31,7 @@ import {
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
-import { getPermittedAccounts } from '../../../core/Permissions';
-import SDKConnect from '../../../core/SDKConnect/SDKConnect';
-import { PermissionController } from '@metamask/permission-controller';
+import styleSheet from './WalletActions.styles';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
