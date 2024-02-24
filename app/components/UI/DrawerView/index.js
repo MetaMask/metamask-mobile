@@ -1026,7 +1026,7 @@ class DrawerView extends PureComponent {
       0;
     const fiatBalance = Engine.getTotalFiatAccountBalance();
     const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.tokenFiat;
-    if (totalFiatBalance !== this.previousBalance) {
+    if (totalFiatBalance !== Number(this.previousBalance)) {
       this.previousBalance = this.currentBalance;
     }
     this.currentBalance = totalFiatBalance;

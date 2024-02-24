@@ -308,6 +308,7 @@ class NetworkSettings extends PureComponent {
     isNameFieldFocused: false,
     isSymbolFieldFocused: false,
     isEdit: false,
+    networkList: [],
   };
 
   inputRpcURL = React.createRef();
@@ -412,16 +413,29 @@ class NetworkSettings extends PureComponent {
   };
 
   componentDidUpdate = (prevProps) => {
-    const { isEdit } = this.state;
+    const { isEdit, chainId } = this.state;
+
     this.updateNavBar();
     if (this.props.matchedChainNetwork !== prevProps.matchedChainNetwork) {
       if (isEdit) {
-        this.validateName();
-        this.validateSymbol();
+        const chainToMatch =
+          this.props.matchedChainNetwork?.safeChainsList?.find(
+            (network) => network.chainId === parseInt(chainId),
+          );
+
+        this.updateNetworkList(chainToMatch);
+
+        this.validateName(chainToMatch);
+        this.validateSymbol(chainToMatch);
       }
     }
   };
 
+  updateNetworkList = (networkList) => {
+    this.setState({
+      networkList,
+    });
+  };
   /**
    * Attempts to convert the given chainId to a decimal string, for display
    * purposes.
@@ -720,18 +734,18 @@ class NetworkSettings extends PureComponent {
   /**
    * Validates that symbol match with the chainId, setting a warningSymbol if is invalid
    */
-  validateSymbol = () => {
-    const { isEdit, ticker } = this.state;
+  validateSymbol = (chainToMatch = null) => {
+    const { isEdit, ticker, networkList } = this.state;
     if (isEdit) {
-      const { useSafeChainsListValidation, matchedChainNetwork } = this.props;
+      const { useSafeChainsListValidation } = this.props;
 
       if (!useSafeChainsListValidation) {
         return;
       }
 
-      const symbol =
-        matchedChainNetwork?.matchedChainNetwork?.nativeCurrency?.symbol ??
-        null;
+      const symbol = chainToMatch
+        ? chainToMatch?.nativeCurrency?.symbol ?? null
+        : networkList?.nativeCurrency?.symbol ?? null;
 
       const symbolToUse = symbol === ticker ? undefined : symbol;
 
@@ -752,15 +766,17 @@ class NetworkSettings extends PureComponent {
   /**
    * Validates that name match with the chainId, setting a warningName if is invalid
    */
-  validateName = () => {
-    const { nickname } = this.state;
-    const { useSafeChainsListValidation, matchedChainNetwork } = this.props;
+  validateName = (chainToMatch = null) => {
+    const { nickname, networkList } = this.state;
+    const { useSafeChainsListValidation } = this.props;
 
     if (!useSafeChainsListValidation) {
       return;
     }
 
-    const name = matchedChainNetwork?.matchedChainNetwork?.chain ?? null;
+    const name = chainToMatch
+      ? chainToMatch?.name ?? null
+      : networkList?.name ?? null;
 
     const nameToUse = name === nickname ? undefined : name;
 
@@ -1000,7 +1016,7 @@ class NetworkSettings extends PureComponent {
       warningName && isEdit
         ? isNameFieldFocused
           ? styles.inputWithFocus
-          : styles.inputWithError
+          : styles.input
         : styles.input,
       inputWidth,
       isCustomMainnet ? styles.onboardingInput : undefined,
