@@ -556,14 +556,14 @@ PODS:
     - React
   - RNVectorIcons (6.4.2):
     - React
-  - segment-analytics-react-native (2.13.0):
+  - segment-analytics-react-native (2.17.0):
     - React-Core
     - sovran-react-native
   - Sentry/HybridSDK (8.13.0):
     - SentryPrivate (= 8.13.0)
   - SentryPrivate (8.13.0)
   - SocketRocket (0.6.1)
-  - sovran-react-native (0.4.5):
+  - sovran-react-native (1.0.4):
     - React-Core
   - TcpSockets (4.0.0):
     - CocoaAsyncSocket
@@ -901,7 +901,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Base64: cecfb41a004124895a7bcee567a89bae5a89d49b
-  boost: 7dcd2de282d72e344012f7d6564d024930a6a440
+  boost: 57d2868c099736d80fcd648bf211b4431e51a558
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
@@ -926,7 +926,7 @@ SPEC CHECKSUMS:
   lottie-react-native: 3e722c63015fdb9c27638b0a77969fc412067c18
   MMKV: f902fb6719da13c2ab0965233d8963a59416f911
   MMKVCore: d26e4d3edd5cb8588c2569222cbd8be4231374e9
-  MultiplatformBleAdapter: ea8bac405ec200d0ca9de0f89afef6f06fb2abbc
+  MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Permission-BluetoothPeripheral: 247e379c9ecb4b1af2b87f73e4a15a00a5bc0c1f
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
@@ -1006,11 +1006,11 @@ SPEC CHECKSUMS:
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
-  segment-analytics-react-native: bd1f13ea95bad2313a9c7130da032af0e9a6da60
+  segment-analytics-react-native: dbdd08d96fec78132e96bda092562e41c2ce0ce0
   Sentry: a067ca1db308066097314d8478e9682f3b575dee
   SentryPrivate: 917c91aeb0f199cd079404fab2b50c83e4bad25c
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
-  sovran-react-native: fd3dc8f1a4b14acdc4ad25fc6b4ac4f52a2a2a15
+  sovran-react-native: 791f2f726b4d57ece59676eda58d6da9dc95ad4e
   TcpSockets: a8eb6b5867fe643e6cfed5db2e4de62f4d1e8fd0
   Yoga: 68c9c592c3e80ec37ff28db20eedb13d84aae5df
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a

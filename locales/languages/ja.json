@@ -888,6 +888,10 @@
     "network_provider": "ネットワークプロバイダー",
     "token_nft_ens_subheading": "トークン、NFT、ENSの自動検出",
     "security_check_subheading": "セキュリティチェック",
+    "security_alerts": "セキュリティアラート",
+    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",    
+    "blockaid": "Blockaid",
+    "blockaid_desc": "プライバシーの保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygonで利用可能。",    
     "symbol_required": "Symbol is required."
   },
   "sdk": {
@@ -1841,11 +1845,7 @@
     "wallet_connect_dapps_desc": "アクティブなWalletConnectセッションのリストを表示",
     "wallet_connect_dapps_cta": "セッションを表示",
     "network_not_supported": "現在のネットワークはサポートされていません",
-    "security_alerts": "セキュリティアラート",
-    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
     "select_provider": "希望のプロバイダーを選択してください",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "プライバシーの保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygonで利用可能。",
     "switch_network": "メインネットまたはSepoliaに切り替えてください"
   },
   "walletconnect_sessions": {

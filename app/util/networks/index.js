@@ -40,6 +40,7 @@ import {
   getEtherscanTransactionUrl,
 } from '../etherscan';
 import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
+import { getNonceLock } from '../../util/transaction-controller';
 
 /**
  * List of the supported networks
@@ -336,11 +337,7 @@ export function isPrefixedFormattedHexString(value) {
 }
 
 export const getNetworkNonce = async ({ from }) => {
-  const { TransactionController } = Engine.context;
-
-  const { nextNonce, releaseLock } = await TransactionController.getNonceLock(
-    from,
-  );
+  const { nextNonce, releaseLock } = await getNonceLock(from);
 
   releaseLock();
 

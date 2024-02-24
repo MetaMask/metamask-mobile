@@ -97,6 +97,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
+
 import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
@@ -118,6 +119,7 @@ import CustomGasModal from './components/CustomGasModal';
 import { ResultType } from '../../components/BlockaidBanner/BlockaidBanner.types';
 import { selectTransactionGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { updateTransaction } from '../../../../../util/transaction-controller';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1138,7 +1140,7 @@ class Confirm extends PureComponent {
 
     controllerTransactionMeta.transaction = transactionParams;
 
-    await TransactionController.updateTransaction(controllerTransactionMeta);
+    await updateTransaction(controllerTransactionMeta);
   }
 
   render = () => {

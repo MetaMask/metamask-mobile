@@ -18,13 +18,13 @@ import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import { fontStyles } from '../../../../styles/common';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 import {
   mockTheme,
   useAppThemeFromContext,
   useAssetFromTheme,
 } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
@@ -85,6 +85,7 @@ const qrHardwareLogoDark = require(qrHardwareLogoDarkImgPath);
 
 const SelectHardwareWallet = () => {
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
 
@@ -107,7 +108,7 @@ const SelectHardwareWallet = () => {
     const ledgerKeyring = await getLedgerKeyring();
     const accounts = await ledgerKeyring.getAccounts();
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER, {
+    trackEvent(MetaMetricsEvents.CONNECT_LEDGER, {
       device_type: 'Ledger',
     });
 
