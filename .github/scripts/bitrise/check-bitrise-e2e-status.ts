@@ -44,14 +44,33 @@ async function main(): Promise<void> {
     repo,
     issue_number,
   });
-  const isBitriseSuccessStatus = comments.some((comment) => {
-    const includesPass = comment.body?.includes('pipeline passed on Bitrise');
-    return includesPass;
-  });
 
-  if (!isBitriseSuccessStatus) {
-    core.setFailed('Bitrise has not passed yet.');
+  const bitriseTag = '<!-- BITRISE_TAG -->';
+  const bitrisePendingTag = '<!-- BITRISE_PENDING_TAG -->';
+  const bitriseSuccessTag = '<!-- BITRISE_SUCCESS_TAG -->';
+  const bitriseFailTag = '<!-- BITRISE_FAIL_TAG -->';
+
+  const bitriseComments = comments.filter((comment) =>
+    comment.body?.includes(bitriseTag),
+  );
+
+  if (bitriseComments.length === 0) {
+    core.setFailed('Bitrise build comment does not exist.');
   }
 
-  console.log('Bitrise build has passed!');
+  const bitriseComment =
+    bitriseComments[bitriseComments.length - 1]?.body || '';
+
+  if (bitriseComment.includes(bitrisePendingTag)) {
+    core.setFailed('Bitrise build is pending.');
+    return;
+  } else if (bitriseComment.includes(bitriseFailTag)) {
+    core.setFailed('Bitrise build has failed.');
+    return;
+  } else if (bitriseComment.includes(bitriseSuccessTag)) {
+    console.log('Bitrise build has passed.');
+  } else {
+    core.setFailed('Could not detect Bitrise build status.');
+    return;
+  }
 }

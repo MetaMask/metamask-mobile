@@ -277,13 +277,16 @@ workflows:
             - body: |-
                 ## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${BITRISEIO_PIPELINE_BUILD_URL}) **Bitrise**
 
-                ✅✅✅ `${BITRISEIO_PIPELINE_TITLE}` pipeline passed on Bitrise! ✅✅✅
+                ✅✅✅ `${BITRISEIO_PIPELINE_TITLE}` passed on Bitrise! ✅✅✅
 
                 Commit hash: ${GITHUB_PR_HASH}
                 Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
 
                 >[!NOTE]
-                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` build on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
+                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
+
+                <!-- BITRISE_TAG -->
+                <!-- BITRISE_SUCCESS_TAG -->
             - repository_url: '$GIT_REPOSITORY_URL'
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
@@ -332,13 +335,16 @@ workflows:
             - body: |-
                 ## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${BITRISEIO_PIPELINE_BUILD_URL}) **Bitrise**
 
-                ❌❌❌ `${BITRISEIO_PIPELINE_TITLE}` pipeline failed on Bitrise! ❌❌❌
+                ❌❌❌ `${BITRISEIO_PIPELINE_TITLE}` failed on Bitrise! ❌❌❌
 
                 Commit hash: ${GITHUB_PR_HASH}
                 Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
 
                 >[!NOTE]
-                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` build on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
+                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
+
+                <!-- BITRISE_TAG -->
+                <!-- BITRISE_FAIL_TAG -->
             - repository_url: '$GIT_REPOSITORY_URL'
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
