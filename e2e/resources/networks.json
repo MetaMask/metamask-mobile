@@ -62,5 +62,14 @@
       "nickname": "Tenderly",
       "ticker": "ETH"
     }
+  },
+  "Gnosis": {
+    "providerConfig": {
+      "type": "rpc",
+      "chainId": "100",
+      "rpcUrl": "https://rpc.gnosischain.com",
+      "nickname": "Gnosis",
+      "ticker": "xDAI"
+    }
   }
 }
