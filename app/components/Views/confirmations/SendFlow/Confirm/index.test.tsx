@@ -97,6 +97,7 @@ jest.mock('../../../../../lib/ppom/ppom-util', () => ({
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
+  rejectPendingApproval: jest.fn(),
   context: {
     TokensController: {
       addToken: jest.fn(),
