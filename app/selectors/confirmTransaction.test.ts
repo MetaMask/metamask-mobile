@@ -12,7 +12,7 @@ import {
 
 jest.mock('@metamask/transaction-controller', () => ({
   ...jest.requireActual('@metamask/transaction-controller'),
-  mergeGasFeeControllerAndTransactionGasFeeEstimates: jest.fn(),
+  mergeGasFeeEstimates: jest.fn(),
 }));
 
 const GAS_FEE_ESTIMATES_MOCK = { low: '1', medium: '2', high: '3' };
@@ -124,11 +124,11 @@ describe('Confirm Transaction Selectors', () => {
       ).toStrictEqual(TRANSACTION_GAS_FEE_ESTIMATES_MOCK);
 
       expect(mergeGasFeeEstimatesMock).toHaveBeenCalledTimes(1);
-      expect(mergeGasFeeEstimatesMock).toHaveBeenCalledWith(
-        GAS_ESTIMATE_TYPES.FEE_MARKET,
-        GAS_FEE_ESTIMATES_MOCK,
-        TRANSACTION_GAS_FEE_ESTIMATES_MOCK,
-      );
+      expect(mergeGasFeeEstimatesMock).toHaveBeenCalledWith({
+        gasFeeControllerEstimateType: GAS_ESTIMATE_TYPES.FEE_MARKET,
+        gasFeeControllerEstimates: GAS_FEE_ESTIMATES_MOCK,
+        transactionGasFeeEstimates: TRANSACTION_GAS_FEE_ESTIMATES_MOCK,
+      });
     });
   });
 });
