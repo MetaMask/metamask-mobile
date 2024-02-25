@@ -17,6 +17,10 @@ export interface BadgeNetworkProps extends Omit<BadgeBaseProps, 'children'> {
    * from either a local or remote source.
    */
   imageSource?: ImageSourcePropType;
+  /**
+   * Optional prop for chainId of the network.
+   */
+  chainId?: string;
 }
 
 /**

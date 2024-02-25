@@ -9,6 +9,7 @@ import {
   BadgeVariant,
   BadgeProps,
 } from '../../../components/Badges/Badge/Badge.types';
+import { NetworkId } from '@metamask/controller-utils';
 
 const imageSource =
   'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880';
@@ -37,4 +38,5 @@ export const BADGE_PROPS: BadgeProps = {
   variant: BadgeVariant.Network,
   name: 'Ethereum',
   imageSource: TEST_REMOTE_IMAGE_SOURCE,
+  chainId: NetworkId.mainnet,
 };

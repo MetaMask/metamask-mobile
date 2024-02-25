@@ -215,6 +215,7 @@ Array [
                   testID="badge-network"
                 >
                   <View
+                    chainId="1"
                     style={
                       Object {
                         "backgroundColor": "#FFFFFF",
@@ -230,14 +231,9 @@ Array [
                       }
                     }
                   >
-                    <Image
-                      onError={[Function]}
-                      resizeMode="contain"
-                      source={
-                        Object {
-                          "uri": "MockImage",
-                        }
-                      }
+                    <SvgMock
+                      height="100%"
+                      name="Sepolia"
                       style={
                         Object {
                           "flex": 1,
@@ -246,6 +242,7 @@ Array [
                         }
                       }
                       testID="network-avatar-image"
+                      width="100%"
                     />
                   </View>
                 </View>

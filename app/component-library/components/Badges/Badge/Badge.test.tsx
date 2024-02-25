@@ -13,11 +13,16 @@ import {
   BADGE_BADGENETWORK_TEST_ID,
   BADGE_BADGESTATUS_TEST_ID,
 } from './Badge.constants';
+import { NetworkId } from '@metamask/controller-utils';
 
 describe('Badge', () => {
   it('should render badge network given the badge network variant', () => {
     const wrapper = shallow(
-      <Badge {...SAMPLE_BADGENETWORK_PROPS} variant={BadgeVariant.Network} />,
+      <Badge
+        {...SAMPLE_BADGENETWORK_PROPS}
+        variant={BadgeVariant.Network}
+        chainId={NetworkId.mainnet}
+      />,
     );
     expect(wrapper).toMatchSnapshot();
     const contentElement = wrapper.findWhere(
@@ -28,7 +33,11 @@ describe('Badge', () => {
 
   it('should render badge status given the badge status variant', () => {
     const wrapper = shallow(
-      <Badge {...SAMPLE_BADGESTATUS_PROPS} variant={BadgeVariant.Status} />,
+      <Badge
+        {...SAMPLE_BADGESTATUS_PROPS}
+        variant={BadgeVariant.Status}
+        chainId={NetworkId.mainnet}
+      />,
     );
     expect(wrapper).toMatchSnapshot();
     const contentElement = wrapper.findWhere(

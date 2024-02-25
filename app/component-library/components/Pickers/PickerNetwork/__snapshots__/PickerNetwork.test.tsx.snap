@@ -16,6 +16,7 @@ exports[`PickerNetwork renders correctly 1`] = `
   }
 >
   <View
+    chainId="0"
     style={
       Object {
         "backgroundColor": "#FFFFFF",

@@ -177,6 +177,7 @@ const AccountRightButton = ({
                 variant={BadgeVariant.Network}
                 name={networkName}
                 imageSource={networkImageSource}
+                chainId={convertHexToDecimal(chainId).toString()}
               />
             }
           >

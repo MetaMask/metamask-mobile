@@ -16,6 +16,7 @@ exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `
   testID="badge-network"
 >
   <Avatar
+    chainId="0"
     size="32"
     style={
       Object {

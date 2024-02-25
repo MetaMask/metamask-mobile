@@ -2,12 +2,14 @@
 
 exports[`Badge should render badge network given the badge network variant 1`] = `
 <BadgeNetwork
+  chainId="1"
   testID="badge-badgenetwork"
 />
 `;
 
 exports[`Badge should render badge status given the badge status variant 1`] = `
 <BadgeStatus
+  chainId="1"
   state="Inactive"
   testID="badge-badgestatus"
 />

@@ -244,7 +244,9 @@ function NetworkSwitcher() {
                           size={AvatarSize.Sm}
                           name={'Ethereum Mainnet'}
                           imageSource={imageIcons.ETHEREUM}
-                          chainId={convertHexToDecimal(chainId).toString()}
+                          chainId={convertHexToDecimal(
+                            selectedChainId,
+                          ).toString()}
                         />
                       </View>
 

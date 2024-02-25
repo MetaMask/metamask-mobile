@@ -20,6 +20,7 @@ import {
 
 // Internal dependencies.
 import AccountBalance from './AccountBalance';
+import { NetworkId } from '@metamask/controller-utils';
 
 const accountNetwork = text('accountNetwork', ACCOUNT_NETWORK);
 const unknownAccountNetwork = text(
@@ -38,10 +39,12 @@ const badgeProps: BadgeProps = {
   variant: BadgeVariant.Network,
   name: TEST_NETWORK_NAME,
   imageSource: TEST_REMOTE_IMAGE_SOURCE,
+  chainId: NetworkId.mainnet,
 };
 
 const unknownBadgeProps: BadgeProps = {
   variant: BadgeVariant.Network,
+  chainId: NetworkId.mainnet,
 };
 
 storiesOf('Components Temp / AccountBalance', module)

@@ -1,6 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 
 // External dependencies.
+import { NetworkId } from '@metamask/controller-utils';
 import { AvatarSize } from '../../../../Avatars/Avatar';
 import {
   TEST_REMOTE_IMAGE_SOURCE,
@@ -22,4 +23,5 @@ const SAMPLE_BADGENETWORK_IMAGESOURCE = TEST_REMOTE_IMAGE_SOURCE;
 export const SAMPLE_BADGENETWORK_PROPS: BadgeNetworkProps = {
   name: SAMPLE_BADGENETWORK_NAME,
   imageSource: SAMPLE_BADGENETWORK_IMAGESOURCE,
+  chainId: NetworkId.mainnet,
 };

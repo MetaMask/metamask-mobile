@@ -31,6 +31,7 @@ export const BadgeNetwork = {
       <BadgeNetworkComponent
         {...args}
         imageSource={SAMPLE_BADGENETWORK_PROPS.imageSource}
+        chainId={SAMPLE_BADGENETWORK_PROPS.chainId}
       />
     </View>
   ),

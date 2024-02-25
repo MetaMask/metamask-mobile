@@ -271,6 +271,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               testID="badge-network"
             >
               <View
+                chainId="11155111"
                 style={
                   Object {
                     "backgroundColor": "#FFFFFF",
@@ -598,6 +599,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
               testID="badge-network"
             >
               <View
+                chainId="11155111"
                 style={
                   Object {
                     "backgroundColor": "#FFFFFF",

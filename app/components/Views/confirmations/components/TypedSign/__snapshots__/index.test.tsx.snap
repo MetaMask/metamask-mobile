@@ -302,6 +302,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                             testID="badge-network"
                           >
                             <View
+                              chainId="1"
                               style={
                                 Object {
                                   "backgroundColor": "#FFFFFF",
@@ -317,16 +318,9 @@ exports[`TypedSign onConfirm signs message 1`] = `
                                 }
                               }
                             >
-                              <Image
-                                onError={[Function]}
-                                resizeMode="contain"
-                                source={
-                                  Object {
-                                    "default": Object {
-                                      "uri": "MockImage",
-                                    },
-                                  }
-                                }
+                              <SvgMock
+                                height="100%"
+                                name="Ethereum Main Network"
                                 style={
                                   Object {
                                     "flex": 1,
@@ -335,6 +329,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                                   }
                                 }
                                 testID="network-avatar-image"
+                                width="100%"
                               />
                             </View>
                           </View>
@@ -958,6 +953,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                             testID="badge-network"
                           >
                             <View
+                              chainId="1"
                               style={
                                 Object {
                                   "backgroundColor": "#FFFFFF",
@@ -973,16 +969,9 @@ exports[`TypedSign onReject rejects message 1`] = `
                                 }
                               }
                             >
-                              <Image
-                                onError={[Function]}
-                                resizeMode="contain"
-                                source={
-                                  Object {
-                                    "default": Object {
-                                      "uri": "MockImage",
-                                    },
-                                  }
-                                }
+                              <SvgMock
+                                height="100%"
+                                name="Ethereum Main Network"
                                 style={
                                   Object {
                                     "flex": 1,
@@ -991,6 +980,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                                   }
                                 }
                                 testID="network-avatar-image"
+                                width="100%"
                               />
                             </View>
                           </View>

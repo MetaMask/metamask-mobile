@@ -18,4 +18,8 @@ export type BadgeProps = (BadgeNetworkProps | BadgeStatusProps) & {
    * Optional prop to control the variant of Badge.
    */
   variant: BadgeVariant;
+  /**
+   * chainId of the network.
+   */
+  chainId?: string;
 };

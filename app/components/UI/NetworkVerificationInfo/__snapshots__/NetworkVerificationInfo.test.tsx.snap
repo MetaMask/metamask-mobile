@@ -91,6 +91,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         }
       >
         <View
+          chainId="1"
           style={
             Object {
               "backgroundColor": "#FFFFFF",
@@ -101,10 +102,9 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             }
           }
         >
-          <Image
-            onError={[Function]}
-            resizeMode="contain"
-            source="test-icon"
+          <SvgMock
+            height="100%"
+            name="Test Chain"
             style={
               Object {
                 "flex": 1,
@@ -113,6 +113,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               }
             }
             testID="network-avatar-image"
+            width="100%"
           />
         </View>
         <Text

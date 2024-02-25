@@ -14,6 +14,7 @@ import {
   BadgePosition,
   BadgeWrapperProps,
 } from './BadgeWrapper.types';
+import { NetworkId } from '@metamask/controller-utils';
 
 // Test IDs
 export const BADGE_WRAPPER_BADGE_TEST_ID = 'badge-wrapper-badge';
@@ -28,7 +29,11 @@ export const SAMPLE_BADGEWRAPPER_PROPS: BadgeWrapperProps = {
   anchorElementShape: DEFAULT_BADGEWRAPPER_BADGEANCHORELEMENTSHAPE,
   badgePosition: DEFAULT_BADGEWRAPPER_BADGEPOSITION,
   badgeElement: (
-    <Badge variant={BadgeVariant.Network} {...SAMPLE_BADGENETWORK_PROPS} />
+    <Badge
+      variant={BadgeVariant.Network}
+      {...SAMPLE_BADGENETWORK_PROPS}
+      chainId={NetworkId.mainnet}
+    />
   ),
   children: (
     <View

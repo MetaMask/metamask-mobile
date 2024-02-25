@@ -15,6 +15,7 @@ import { default as BadgeWrapperComponent } from './BadgeWrapper';
 import { SAMPLE_BADGEWRAPPER_PROPS } from './BadgeWrapper.constants';
 import { BadgeAnchorElementShape, BadgePosition } from './BadgeWrapper.types';
 import { View } from 'react-native';
+import { NetworkId } from '@metamask/controller-utils';
 
 enum BadgeSelectorOptions {
   NetworkImage = 'network-image',
@@ -79,6 +80,7 @@ export const BadgeWrapper = {
         badgeProps = {
           variant: BadgeVariant.Network,
           ...SAMPLE_BADGENETWORK_PROPS,
+          chainId: NetworkId.mainnet,
         };
         break;
     }

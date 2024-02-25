@@ -53,6 +53,7 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
     }
   >
     <Badge
+      chainId="1"
       variant="network"
     />
   </View>

@@ -9,7 +9,10 @@ import AccountBalance from '../../../../../component-library/components-temp/Acc
 import { BadgeVariant } from '../../../../../component-library/components/Badges/Badge';
 import TagUrl from '../../../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectProviderConfig } from '../../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../../../selectors/networkController';
 import { selectIdentities } from '../../../../../selectors/preferencesController';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {
@@ -31,6 +34,7 @@ import {
 } from './ApproveTransactionHeader.constants';
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
+import { convertHexToDecimal } from '@metamask/controller-utils';
 
 const ApproveTransactionHeader = ({
   from,
@@ -52,6 +56,8 @@ const ApproveTransactionHeader = ({
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const identities = useSelector(selectIdentities);
+  const chainId = useSelector(selectChainId);
+
   const activeAddress = toChecksumAddress(from);
 
   const providerConfig = useSelector(selectProviderConfig);
@@ -148,6 +154,7 @@ const ApproveTransactionHeader = ({
           variant: BadgeVariant.Network,
           name: networkName,
           imageSource: networkImage,
+          chainId: convertHexToDecimal(chainId).toString(),
         }}
         useBlockieIcon={useBlockieIcon}
       />
