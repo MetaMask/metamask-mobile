@@ -1,10 +1,11 @@
-import React from 'react';
-import { render } from '@testing-library/react-native';
 import ImportPrivateKeySuccess from './';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 
 describe('ImportPrivateKeySuccess', () => {
   it('should render correctly', () => {
-    const wrapper = render(<ImportPrivateKeySuccess route={{ params: {} }} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderScreen(ImportPrivateKeySuccess, {
+      name: 'ImportPrivateKeySuccess',
+    });
+    expect(toJSON()).toMatchSnapshot();
   });
 });

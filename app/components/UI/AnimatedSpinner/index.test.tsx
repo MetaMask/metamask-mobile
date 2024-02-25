@@ -1,10 +1,10 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import AnimatedSpinner from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('AnimatedSpinner', () => {
   it('should render correctly', () => {
-    const wrapper = render(<AnimatedSpinner />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<AnimatedSpinner />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

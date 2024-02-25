@@ -1,10 +1,10 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import PhishingModal from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('PhishingModal', () => {
   it('should render correctly', () => {
-    const wrapper = render(<PhishingModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<PhishingModal />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

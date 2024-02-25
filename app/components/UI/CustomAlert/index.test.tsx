@@ -1,10 +1,10 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import CustomAlert from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('CustomAlert', () => {
   it('should render correctly', () => {
-    const wrapper = render(<CustomAlert />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<CustomAlert isVisible />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

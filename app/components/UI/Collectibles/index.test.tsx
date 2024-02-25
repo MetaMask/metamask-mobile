@@ -1,10 +1,10 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import Collectibles from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('Collectibles', () => {
   it('should render correctly', () => {
-    const wrapper = render(<Collectibles />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<Collectibles />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

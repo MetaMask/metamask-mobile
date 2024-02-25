@@ -4,7 +4,7 @@ import SeedphraseModal from './';
 
 describe('SeedphraseModal', () => {
   it('should render correctly', () => {
-    const wrapper = render(<SeedphraseModal showWhatIsSeedphraseModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<SeedphraseModal showWhatIsSeedphraseModal />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -1,10 +1,10 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import FoxScreen from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('FoxScreen', () => {
   it('should render correctly', () => {
-    const wrapper = render(<FoxScreen />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<FoxScreen />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -1,10 +1,10 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import WebviewProgressBar from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('WebviewProgressBar', () => {
   it('should render correctly', () => {
-    const wrapper = render(<WebviewProgressBar />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<WebviewProgressBar />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });
