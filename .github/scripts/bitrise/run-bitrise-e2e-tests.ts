@@ -85,8 +85,9 @@ async function main(): Promise<void> {
 
   const bitriseTag = '<!-- BITRISE_TAG -->';
   const bitrisePendingTag = '<!-- BITRISE_PENDING_TAG -->';
+  const latestCommitTag = `<!-- ${latestCommitHash} -->`;
   const buildLink = `${bitriseProjectUrl}/pipelines/${bitriseBuildResponse.data.build_slug}`;
-  const message = `## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${buildLink}) **Bitrise**\n\n🔄🔄🔄 \`${e2ePipeline}\` started on Bitrise...🔄🔄🔄\n\nCommit hash: ${latestCommitHash}\nBuild link: ${buildLink}\n\n>[!NOTE]\n>- This comment will auto-update when build completes\n>- You can kick off another \`${e2ePipeline}\` on Bitrise by removing and re-applying the \`${e2eLabel}\` label on the pull request\n${bitriseTag}\n${bitrisePendingTag}\n\n<!-- ${latestCommitHash} -->`;
+  const message = `## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${buildLink}) **Bitrise**\n\n🔄🔄🔄 \`${e2ePipeline}\` started on Bitrise...🔄🔄🔄\n\nCommit hash: ${latestCommitHash}\nBuild link: ${buildLink}\n\n>[!NOTE]\n>- This comment will auto-update when build completes\n>- You can kick off another \`${e2ePipeline}\` on Bitrise by removing and re-applying the \`${e2eLabel}\` label on the pull request\n${bitriseTag}\n${bitrisePendingTag}\n\n${latestCommitTag}`;
 
   if (bitriseBuildResponse.status === 201) {
     console.log(message);
@@ -113,20 +114,51 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Post build link in PR comments.
-  const postCommentResponse = await octokit.rest.issues.createComment({
+  // Look for existing Bitrise comment.
+  const { data: comments } = await octokit.rest.issues.listComments({
     owner: repoOwner,
     repo,
     issue_number: pullRequestNumber,
-    body: message,
   });
 
-  if (postCommentResponse.status === 201) {
-    console.log(`Posting comment in pull request ${pullRequestLink}`);
+  const bitriseComment = comments.find(({ body }) =>
+    body?.includes(latestCommitTag),
+  );
+
+  // Existing comment exists for commit hash. Update comment with pending status.
+  if (bitriseComment) {
+    const updateCommentResponse = await octokit.rest.issues.updateComment({
+      owner: repoOwner,
+      repo,
+      issue_number: pullRequestNumber,
+      body: message,
+      comment_id: bitriseComment.id,
+    });
+
+    if (updateCommentResponse.status === 200) {
+      console.log(`Updating comment in pull request ${pullRequestLink}`);
+    } else {
+      core.setFailed(
+        `Update comment request returned with status code ${updateCommentResponse.status}`,
+      );
+      process.exit(1);
+    }
   } else {
-    core.setFailed(
-      `Post comment request returned with status code ${postCommentResponse.status}`,
-    );
-    process.exit(1);
+    // Post new Bitrise comment in PR.
+    const postCommentResponse = await octokit.rest.issues.createComment({
+      owner: repoOwner,
+      repo,
+      issue_number: pullRequestNumber,
+      body: message,
+    });
+
+    if (postCommentResponse.status === 201) {
+      console.log(`Posting comment in pull request ${pullRequestLink}`);
+    } else {
+      core.setFailed(
+        `Post comment request returned with status code ${postCommentResponse.status}`,
+      );
+      process.exit(1);
+    }
   }
 }

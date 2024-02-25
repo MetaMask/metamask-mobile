@@ -38,7 +38,6 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Check if the "Bitrise build passed!" comment is posted
   const { data: comments } = await octokit.rest.issues.listComments({
     owner,
     repo,
@@ -58,16 +57,17 @@ async function main(): Promise<void> {
     core.setFailed('Bitrise build comment does not exist.');
   }
 
-  const bitriseComment =
+  const lastBitriseComment =
     bitriseComments[bitriseComments.length - 1]?.body || '';
 
-  if (bitriseComment.includes(bitrisePendingTag)) {
+  // Check Bitrise comment status
+  if (lastBitriseComment.includes(bitrisePendingTag)) {
     core.setFailed('Bitrise build is pending.');
     return;
-  } else if (bitriseComment.includes(bitriseFailTag)) {
+  } else if (lastBitriseComment.includes(bitriseFailTag)) {
     core.setFailed('Bitrise build has failed.');
     return;
-  } else if (bitriseComment.includes(bitriseSuccessTag)) {
+  } else if (lastBitriseComment.includes(bitriseSuccessTag)) {
     console.log('Bitrise build has passed.');
   } else {
     core.setFailed('Could not detect Bitrise build status.');
