@@ -4,7 +4,7 @@ on:
   issue_comment:
     types: [edited, deleted]
   pull_request:
-    types: [opened, reopened, labeled, unlabeled]
+    types: [opened, reopened, labeled, unlabeled, synchronized]
 
 env:
   E2E_LABEL: 'Run Smoke E2E'
