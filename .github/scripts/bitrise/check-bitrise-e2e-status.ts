@@ -55,22 +55,24 @@ async function main(): Promise<void> {
 
   if (bitriseComments.length === 0) {
     core.setFailed('Bitrise build comment does not exist.');
+    process.exit(1);
   }
 
   const lastBitriseComment =
     bitriseComments[bitriseComments.length - 1]?.body || '';
 
   // Check Bitrise comment status
-  if (lastBitriseComment.includes(bitrisePendingTag)) {
-    core.setFailed('Bitrise build is pending.');
-    return;
-  } else if (lastBitriseComment.includes(bitriseFailTag)) {
-    core.setFailed('Bitrise build has failed.');
-    return;
+  if (
+    lastBitriseComment.includes(bitrisePendingTag) ||
+    lastBitriseComment.includes(bitriseFailTag)
+  ) {
+    core.setFailed('Did not detect pass status in last Bitrise comment.');
+    process.exit(1);
   } else if (lastBitriseComment.includes(bitriseSuccessTag)) {
     console.log('Bitrise build has passed.');
+    return;
   } else {
     core.setFailed('Could not detect Bitrise build status.');
-    return;
+    process.exit(1);
   }
 }
