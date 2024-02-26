@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { InteractionManager, Platform, SafeAreaView } from 'react-native';
+import { Platform, SafeAreaView } from 'react-native';
 
 // External dependencies
 import Text from '../../../component-library/components/Texts/Text/Text';
@@ -22,7 +22,6 @@ import { useStyles } from '../../../component-library/hooks';
 import { getEditAccountNameNavBarOptions } from '../../../components/UI/Navbar';
 import Engine from '../../../core/Engine';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
 import {
@@ -37,9 +36,12 @@ import { useTheme } from '../../../util/theme';
 
 // Internal dependencies
 import styleSheet from './EditAccountName.styles';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const EditAccountName = () => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
   const { setOptions, goBack, navigate } = useNavigation();
   const [accountName, setAccountName] = useState<string>();
@@ -80,26 +82,22 @@ const EditAccountName = () => {
     setAccountName(name);
   };
 
-  const saveAccountName = () => {
+  const saveAccountName = async () => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setAccountLabel(selectedAddress, accountName);
     navigate('WalletView');
 
-    InteractionManager.runAfterInteractions(() => {
-      try {
-        const analyticsProperties = async () => {
-          const accountType = getAddressAccountType(selectedAddress);
-          const account_type = accountType === 'QR' ? 'hardware' : accountType;
-          return { account_type, chain_id: chainId };
-        };
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.ACCOUNT_RENAMED,
-          analyticsProperties(),
-        );
-      } catch {
-        return {};
-      }
-    });
+    try {
+      const analyticsProperties = async () => {
+        const accountType = getAddressAccountType(selectedAddress);
+        const account_type = accountType === 'QR' ? 'hardware' : accountType;
+        return { account_type, chain_id: getDecimalChainId(chainId) };
+      };
+      const analyticsProps = await analyticsProperties();
+      trackEvent(MetaMetricsEvents.ACCOUNT_RENAMED, analyticsProps);
+    } catch {
+      return {};
+    }
   };
 
   return (

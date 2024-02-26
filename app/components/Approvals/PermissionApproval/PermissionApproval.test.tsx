@@ -1,17 +1,17 @@
 import React from 'react';
-import useApprovalRequest from '../../hooks/useApprovalRequest';
+import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import PermissionApproval from './PermissionApproval';
 import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { render } from '@testing-library/react-native';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
-jest.mock('../../hooks/useApprovalRequest');
-jest.mock('../../../util/analyticsV2');
+jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
+jest.mock('../../../components/hooks/useMetrics');
 
 jest.mock('../../Views/AccountConnect', () => ({
   createAccountConnectNavDetails: jest.fn(),
@@ -58,9 +58,24 @@ const mockSelectorState = (state: any) => {
   );
 };
 
+const mockTrackEvent = jest.fn();
+
 describe('PermissionApproval', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      trackAnonymousEvent: jest.fn(),
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      isEnabled: jest.fn(),
+      getMetaMetricsId: jest.fn(),
+    });
   });
 
   it('navigates', async () => {
@@ -116,8 +131,8 @@ describe('PermissionApproval', () => {
 
     render(<PermissionApproval navigation={navigationMock} />);
 
-    expect(AnalyticsV2.trackEvent).toHaveBeenCalledTimes(1);
-    expect(AnalyticsV2.trackEvent).toHaveBeenCalledWith(
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith(
       MetaMetricsEvents.CONNECT_REQUEST_STARTED,
       {
         number_of_accounts: 3,

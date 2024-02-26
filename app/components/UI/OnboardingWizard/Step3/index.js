@@ -10,7 +10,6 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
@@ -20,6 +19,7 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../../selectors/preferencesController';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {
@@ -32,6 +32,8 @@ const styles = StyleSheet.create({
 
 const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
+
   const [coachmarkTop, setCoachmarkTop] = useState(0);
   const [coachmarkLeft, setCoachmarkLeft] = useState(0);
   const [coachmarkRight, setCoachmarkRight] = useState(0);
@@ -65,7 +67,7 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
 
   const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(4);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
       tutorial_step_count: 3,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
     });
@@ -73,7 +75,7 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
 
   const onBack = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(2);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 3,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
     });

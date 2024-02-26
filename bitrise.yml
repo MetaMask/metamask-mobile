@@ -184,14 +184,6 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
-      # Manual cache path needed here because the `yarn` step only caches for the `install` command
-      - save-cache@1:
-          title: Save cache dependencies
-          inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
-            - paths: |-
-                node_modules
-                $YARN_CACHE_DIR
   prep_environment:
     steps:
       - script@1:
@@ -207,10 +199,6 @@ workflows:
                 asdf install yarn "$YARN_VERSION"
                 asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
-      - restore-cache@2:
-          title: Restore cache dependencies
-          inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -456,6 +444,7 @@ workflows:
       - android_e2e_test
   run_tag_smoke_core_ios:
     envs:
+      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - ios_e2e_test
@@ -465,21 +454,13 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
+      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
-
-  e2e_setup:
-    steps:
-      - yarn@:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: global add detox-cli
-          title: Detox - Install CLI
   android_e2e_build:
     before_run:
       - code_setup
-      - e2e_setup
     after_run:
       - notify_failure
     steps:
@@ -547,6 +528,11 @@ workflows:
           inputs:
             - key: apk-cache-{{ .CommitHash }}
             - paths: android/app/build/outputs
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - paths: node_modules
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -555,7 +541,6 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      - e2e_setup
     after_run:
       - notify_failure
     steps:
@@ -564,6 +549,10 @@ workflows:
           title: Restore cache build
           inputs:
             - key: apk-cache-{{ .CommitHash }}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
       - script@1:
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
@@ -635,7 +624,6 @@ workflows:
   ios_e2e_build:
     before_run:
       - code_setup
-      - e2e_setup
     after_run:
       - notify_failure
     steps:
@@ -711,11 +699,15 @@ workflows:
             - paths: |-
                 ios/build/Build
                 ../Library/Detox/ios
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - paths: node_modules
   ios_e2e_test:
     before_run:
       - setup
       - prep_environment
-      - e2e_setup
     after_run:
       - notify_failure
     steps:
@@ -724,6 +716,10 @@ workflows:
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
       - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
