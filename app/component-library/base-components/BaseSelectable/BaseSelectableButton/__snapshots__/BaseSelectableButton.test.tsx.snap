@@ -1,0 +1,53 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BaseSelectableButton should render BaseSelectableButton 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  disabled={false}
+  isDanger={false}
+  style={
+    Object {
+      "alignItems": "center",
+      "flexDirection": "row",
+    }
+  }
+  testID="baseselectablebutton"
+>
+  <View
+    style={
+      Object {
+        "flex": 1,
+        "marginRight": 8,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Select an item
+    </Text>
+  </View>
+  <SvgMock
+    color="#24272A"
+    height={20}
+    name="Arrow2Down"
+    style={
+      Object {
+        "height": 20,
+        "width": 20,
+      }
+    }
+    width={20}
+  />
+</TouchableOpacity>
+`;

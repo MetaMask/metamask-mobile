@@ -11,7 +11,11 @@ import Text from '../../../components/Texts/Text';
 // Internal dependencies.
 import styleSheet from './BaseSelectableButton.styles';
 import { BaseSelectableButtonProps } from './BaseSelectableButton.types';
-import { DEFAULT_BASESELECTABLEBUTTON_PLACEHOLDER_STRING } from './BaseSelectableButton.constants';
+import {
+  DEFAULT_BASESELECTABLEBUTTON_PLACEHOLDER_STRING,
+  BASESELECTABLEBUTTON_TESTID,
+  BASESELECTABLEBUTTON_PLACEHOLDER_TESTID,
+} from './BaseSelectableButton.constants';
 
 const BaseSelectableButton: React.FC<BaseSelectableButtonProps> = ({
   style,
@@ -25,12 +29,19 @@ const BaseSelectableButton: React.FC<BaseSelectableButtonProps> = ({
   return (
     <TouchableOpacity
       style={styles.base}
+      testID={BASESELECTABLEBUTTON_TESTID}
       {...touchableOpacityProps}
       disabled={isDisabled}
       accessibilityRole="button"
     >
-      <View style={styles.value}>{children || <Text>{placeholder}</Text>}</View>
-      <View>{caretIconEl}</View>
+      <View style={styles.value}>
+        {children || (
+          <Text testID={BASESELECTABLEBUTTON_PLACEHOLDER_TESTID}>
+            {placeholder}
+          </Text>
+        )}
+      </View>
+      {caretIconEl && caretIconEl}
     </TouchableOpacity>
   );
 };
