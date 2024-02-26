@@ -140,8 +140,8 @@ import Logger from '../util/Logger';
 import { EndowmentPermissions } from '../constants/permissions';
 ///: END:ONLY_INCLUDE_IF
 import { isZero } from '../util/lodash';
-import { MetaMetricsEvents } from './Analytics';
-import AnalyticsV2 from '../util/analyticsV2';
+import { MetaMetricsEvents, MetaMetrics } from './Analytics';
+
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   SnapBridge,
@@ -865,13 +865,16 @@ class Engine {
           ),
         addDetectedTokens: async (tokens) => {
           // Track detected tokens event
-          AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_DETECTED, {
-            token_standard: 'ERC20',
-            asset_type: 'token',
-            chain_id: getDecimalChainId(
-              networkController.state.providerConfig.chainId,
-            ),
-          });
+          MetaMetrics.getInstance().trackEvent(
+            MetaMetricsEvents.TOKEN_DETECTED,
+            {
+              token_standard: 'ERC20',
+              asset_type: 'token',
+              chain_id: getDecimalChainId(
+                networkController.state.providerConfig.chainId,
+              ),
+            },
+          );
           tokensController.addDetectedTokens(tokens);
         },
         updateTokensName: (tokenList) =>
