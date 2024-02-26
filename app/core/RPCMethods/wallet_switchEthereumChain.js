@@ -116,7 +116,7 @@ const wallet_switchEthereumChain = async ({
       NetworkController.setProviderType(existingNetworkDefault.networkType);
     }
 
-    MetaMetrics.getInstace().trackEvent(
+    MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.NETWORK_SWITCHED,
       analyticsParams,
     );

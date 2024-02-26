@@ -149,7 +149,7 @@ const wallet_addEthereumChain = async ({
         },
       });
     } catch (e) {
-      MetaMetrics.getInstace().trackEvent(
+      MetaMetrics.getInstance().trackEvent(
         MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
         analyticsParams,
       );
@@ -159,7 +159,7 @@ const wallet_addEthereumChain = async ({
     CurrencyRateController.setNativeCurrency(networkConfiguration.ticker);
     NetworkController.setActiveNetwork(networkConfigurationId);
 
-    MetaMetrics.getInstace().trackEvent(
+    MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.NETWORK_SWITCHED,
       analyticsParams,
     );
@@ -244,7 +244,7 @@ const wallet_addEthereumChain = async ({
     ...analytics,
   };
 
-  MetaMetrics.getInstace().trackEvent(
+  MetaMetrics.getInstance().trackEvent(
     MetaMetricsEvents.NETWORK_REQUESTED,
     analyticsParamsAdd,
   );
@@ -265,7 +265,7 @@ const wallet_addEthereumChain = async ({
         requestData,
       });
     } catch (e) {
-      MetaMetrics.getInstace().trackEvent(
+      MetaMetrics.getInstance().trackEvent(
         MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
         analyticsParamsAdd,
       );
@@ -290,7 +290,7 @@ const wallet_addEthereumChain = async ({
         },
       );
 
-    MetaMetrics.getInstace().trackEvent(
+    MetaMetrics.getInstance().trackEvent(
       MetaMetricsEvents.NETWORK_ADDED,
       analyticsParamsAdd,
     );
