@@ -10,8 +10,6 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { isSafeChainId, toHex } from '@metamask/controller-utils';
-
 import {
   fontStyles,
   colors as staticColors,
