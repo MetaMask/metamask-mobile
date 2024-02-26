@@ -16,7 +16,7 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
     await device.launchApp();
   });
 
-  it('should navigate to edit custome default ETH Mainnet from Opt-In screen', async () => {
+  it('should navigate to edit custom default ETH Mainnet from Opt-In screen', async () => {
     await OnboardingCarouselView.tapOnGetStartedButton();
     await OnboardingView.tapCreateWallet();
     await Assertions.checkIfVisible(MetaMetricsOptIn.container);
