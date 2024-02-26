@@ -888,6 +888,10 @@
     "network_provider": "Ağ sağlayıcısı",
     "token_nft_ens_subheading": "Token, NFT ve ENS otomatik algılama",
     "security_check_subheading": "Güvenlik kontrolleri",
+    "security_alerts": "Güvenlik uyarıları",
+    "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel bir şekilde incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı faaliyetlere karşı sizi uyarır. Verileriniz, bu hizmeti sunan üçüncü taraf ile paylaşılmaz. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Gizlilik koruması - hiçbir veri üçüncü taraflarla paylaşılmaz. Arbitrum, Avalanche, BNB chain, Ethereum Ana Ağı, Optimism ve Polygon üzerinde mevcuttur.",    
     "symbol_required": "Symbol is required."
   },
   "sdk": {
@@ -1841,11 +1845,7 @@
     "wallet_connect_dapps_desc": "Aktif WalletConnect oturumlarının listesini görüntüle",
     "wallet_connect_dapps_cta": "Oturumları görüntüle",
     "network_not_supported": "Geçerli ağ desteklenmiyor",
-    "security_alerts": "Güvenlik uyarıları",
-    "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel bir şekilde incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı faaliyetlere karşı sizi uyarır. Verileriniz, bu hizmeti sunan üçüncü taraf ile paylaşılmaz. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır.",
     "select_provider": "Tercih ettiğiniz sağlayıcıyı seçin",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Gizlilik koruması - hiçbir veri üçüncü taraflarla paylaşılmaz. Arbitrum, Avalanche, BNB chain, Ethereum Ana Ağı, Optimism ve Polygon üzerinde mevcuttur.",
     "switch_network": "Lütfen ana ağa veya sepolia ağına geçin"
   },
   "walletconnect_sessions": {
