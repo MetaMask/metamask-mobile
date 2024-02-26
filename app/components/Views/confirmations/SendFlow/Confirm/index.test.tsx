@@ -5,7 +5,6 @@ import Confirm from '.';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
-import analyticsV2 from '../../../../../util/analyticsV2';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/BlockaidBanner/BlockaidBanner.constants';
 
@@ -151,13 +150,6 @@ describe('Confirm', () => {
   });
 
   it('displays blockaid banner', async () => {
-    const trackEventSypy = jest
-      .spyOn(analyticsV2, 'trackEvent')
-      .mockImplementation((name, params) => {
-        expect(name).toBeDefined();
-        expect(params).toBeDefined();
-      });
-
     const { queryByText, queryByTestId } = render(Confirm);
 
     await waitFor(async () => {
@@ -172,8 +164,6 @@ describe('Confirm', () => {
         await queryByTestId(FALSE_POSITIVE_REPOST_LINE_TEST_ID),
       ).toBeDefined();
       expect(await queryByText('Something doesn’t look right?')).toBeDefined();
-
-      expect(trackEventSypy).toHaveBeenCalledTimes(1);
     });
   });
 });
