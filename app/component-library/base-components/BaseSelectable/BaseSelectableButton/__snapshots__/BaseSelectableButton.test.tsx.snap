@@ -1,10 +1,38 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`BaseSelectableButton should render BaseSelectableButton 1`] = `
-<TouchableOpacity
+<View
   accessibilityRole="button"
-  disabled={false}
+  accessibilityState={
+    Object {
+      "busy": undefined,
+      "checked": undefined,
+      "disabled": false,
+      "expanded": undefined,
+      "selected": undefined,
+    }
+  }
+  accessibilityValue={
+    Object {
+      "max": undefined,
+      "min": undefined,
+      "now": undefined,
+      "text": undefined,
+    }
+  }
+  accessible={true}
+  collapsable={false}
+  focusable={true}
   isDanger={false}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onResponderGrant={[Function]}
+  onResponderMove={[Function]}
+  onResponderRelease={[Function]}
+  onResponderTerminate={[Function]}
+  onResponderTerminationRequest={[Function]}
+  onStartShouldSetResponder={[Function]}
   style={
     Object {
       "alignItems": "center",
@@ -49,5 +77,5 @@ exports[`BaseSelectableButton should render BaseSelectableButton 1`] = `
     }
     width={20}
   />
-</TouchableOpacity>
+</View>
 `;

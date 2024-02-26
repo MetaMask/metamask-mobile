@@ -49,16 +49,19 @@ describe('BaseSelectableButton', () => {
 
   it('should render with disabled state when isDisabled prop is true', () => {
     const { getByTestId } = render(<BaseSelectableButton isDisabled />);
-
     expect(
-      getByTestId(BASESELECTABLEBUTTON_TESTID).props.disabled,
-    ).toBeTruthy();
+      getByTestId(BASESELECTABLEBUTTON_TESTID).props.accessibilityState
+        .disabled,
+    ).toBe(true);
   });
 
   it('should render without disabled state when isDisabled prop is false', () => {
     const { getByTestId } = render(<BaseSelectableButton isDisabled={false} />);
 
-    expect(getByTestId(BASESELECTABLEBUTTON_TESTID).props.disabled).toBeFalsy();
+    expect(
+      getByTestId(BASESELECTABLEBUTTON_TESTID).props.accessibilityState
+        .disabled,
+    ).toBe(false);
   });
 
   it('should render with a default placeholder if no children is given', () => {

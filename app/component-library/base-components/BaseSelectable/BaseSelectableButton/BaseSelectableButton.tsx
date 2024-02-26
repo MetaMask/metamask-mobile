@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, Pressable } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -23,14 +23,14 @@ const BaseSelectableButton: React.FC<BaseSelectableButtonProps> = ({
   caretIconEl,
   isDisabled,
   placeholder = DEFAULT_BASESELECTABLEBUTTON_PLACEHOLDER_STRING,
-  ...touchableOpacityProps
+  ...pressableProps
 }) => {
   const { styles } = useStyles(styleSheet, { style });
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.base}
       testID={BASESELECTABLEBUTTON_TESTID}
-      {...touchableOpacityProps}
+      {...pressableProps}
       disabled={isDisabled}
       accessibilityRole="button"
     >
@@ -42,7 +42,7 @@ const BaseSelectableButton: React.FC<BaseSelectableButtonProps> = ({
         )}
       </View>
       {caretIconEl && caretIconEl}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
