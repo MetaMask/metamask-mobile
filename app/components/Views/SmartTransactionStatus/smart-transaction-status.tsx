@@ -23,6 +23,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  header: {
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
   desc: {
     textAlign: 'center',
   },
@@ -36,47 +41,40 @@ const SmartTransactionStatus = ({
   // TODO
   const timeLeft = '0:59';
   const savings = '$123.45';
+
+  let icon;
+  let header;
+  let description;
+
+  if (status === 'pending') {
+    icon = IconName.Clock;
+    header = strings('smart_transactions.status_submitting');
+    description = strings('smart_transactions.estimated_completion', {
+      timeLeft,
+    });
+  } else if (status === 'success') {
+    icon = IconName.Check;
+    header = strings('smart_transactions.status_success');
+  } else if (status === 'cancelled') {
+    icon = IconName.Warning;
+    header = strings('smart_transactions.status_timeout');
+    description = strings('smart_transactions.timeout_description');
+  } else {
+    icon = IconName.Danger;
+    header = strings('smart_transactions.status_reverted');
+    description = strings('smart_transactions.reverted_description', {
+      savings,
+    });
+  }
+
   return (
     <View>
-      {/* Submitting */}
-      {status === 'pending' && (
-        <View style={styles.centered}>
-          <Icon name={IconName.Clock} size={IconSize.Md} />
-          <Text>{strings('smart_transactions.status_submitting')}</Text>
-          <Text>
-            {strings('smart_transactions.estimated_completion', { timeLeft })}
-          </Text>
-          <Text style={styles.desc}>
-            {strings('smart_transactions.view_transaction')}
-          </Text>
-        </View>
-      )}
-
-      {/* Success */}
-      {status === 'success' && (
-        <View style={styles.centered}>
-          <Icon name={IconName.Check} size={IconSize.Md} />
-          <Text style={styles.desc}>
-            {strings('smart_transactions.status_success')}
-          </Text>
-        </View>
-      )}
-
-      {/* Reverted */}
       <View style={styles.centered}>
-        <Icon name={IconName.Info} size={IconSize.Md} />
-        <Text>{strings('smart_transactions.status_reverted')}</Text>
+        <Icon name={icon} size={IconSize.Xl} />
+        <Text style={styles.header}>{header}</Text>
+        <Text>{description}</Text>
         <Text style={styles.desc}>
-          {strings('smart_transactions.reverted_description', { savings })}
-        </Text>
-      </View>
-
-      {/* Timeout */}
-      <View style={styles.centered}>
-        <Icon name={IconName.Warning} size={IconSize.Md} />
-        <Text>{strings('smart_transactions.status_timeout')}</Text>
-        <Text style={styles.desc}>
-          {strings('smart_transactions.timeout_description')}
+          {strings('smart_transactions.view_transaction')}
         </Text>
       </View>
     </View>
