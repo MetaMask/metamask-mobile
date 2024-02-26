@@ -21,7 +21,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Check if the "Run Smoke E2E" label is applied
+  // Check if the e2e smoke label is applied
   const { owner, repo, number: issue_number } = context.issue;
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
   const { data: labels } = await octokit.rest.issues.listLabelsOnIssue({
@@ -31,6 +31,7 @@ async function main(): Promise<void> {
   });
   const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
 
+  // Pass check since e2e smoke label is not applied
   if (!hasSmokeTestLabel) {
     console.log(
       `"${e2eLabel}" label not applied. Skipping Bitrise status check.`,
@@ -38,37 +39,50 @@ async function main(): Promise<void> {
     return;
   }
 
+  // Get comments from PR
   const { data: comments } = await octokit.rest.issues.listComments({
     owner,
     repo,
     issue_number,
   });
 
+  // Get latest commit hash
+  const pullRequestResponse = await octokit.rest.pulls.get({
+    owner,
+    repo,
+    pull_number: issue_number,
+  });
+  const latestCommitHash = pullRequestResponse.data.head.sha;
+
+  // Define Bitrise comment tags
   const bitriseTag = '<!-- BITRISE_TAG -->';
   const bitrisePendingTag = '<!-- BITRISE_PENDING_TAG -->';
   const bitriseSuccessTag = '<!-- BITRISE_SUCCESS_TAG -->';
   const bitriseFailTag = '<!-- BITRISE_FAIL_TAG -->';
+  const latestCommitTag = `<!-- ${latestCommitHash} -->`;
 
-  const bitriseComments = comments.filter((comment) =>
-    comment.body?.includes(bitriseTag),
+  // Find Bitrise comment
+  const bitriseComment = comments.find(
+    ({ body }) => body?.includes(bitriseTag) && body?.includes(latestCommitTag),
   );
 
-  if (bitriseComments.length === 0) {
-    core.setFailed('Bitrise build comment does not exist.');
+  // Bitrise comment doesn't exist
+  if (!bitriseComment) {
+    core.setFailed(
+      `Bitrise build status comment for commit ${latestCommitHash} does not exist.`,
+    );
     process.exit(1);
   }
 
-  const lastBitriseComment =
-    bitriseComments[bitriseComments.length - 1]?.body || '';
-
-  // Check Bitrise comment status
+  // Check Bitrise build status from comment
+  const bitriseCommentBody = bitriseComment.body || '';
   if (
-    lastBitriseComment.includes(bitrisePendingTag) ||
-    lastBitriseComment.includes(bitriseFailTag)
+    bitriseCommentBody.includes(bitrisePendingTag) ||
+    bitriseCommentBody.includes(bitriseFailTag)
   ) {
     core.setFailed('Did not detect pass status in last Bitrise comment.');
     process.exit(1);
-  } else if (lastBitriseComment.includes(bitriseSuccessTag)) {
+  } else if (bitriseCommentBody.includes(bitriseSuccessTag)) {
     console.log('Bitrise build has passed.');
     return;
   } else {
