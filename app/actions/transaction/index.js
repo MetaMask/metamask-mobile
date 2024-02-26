@@ -109,6 +109,18 @@ export function setTransactionObject(transaction) {
 }
 
 /**
+ * Sets the current transaction ID only.
+ *
+ * @param {object} transactionId - Id of the current transaction.
+ */
+export function setTransactionId(transactionId) {
+  return {
+    type: 'SET_TRANSACTION_ID',
+    transactionId,
+  };
+}
+
+/**
  * Enable selectable tokens (ERC20 and Ether) to send in a transaction
  *
  * @param {object} asset - Asset to start the transaction with
