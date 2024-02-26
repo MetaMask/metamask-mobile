@@ -43,6 +43,10 @@ import { MAINNET } from '../../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
 import AnalyticsV2 from '../../../../util/analyticsV2';
+import {
+  addTransaction,
+  estimateGas,
+} from '../../../../util/transaction-controller';
 
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
@@ -165,8 +169,7 @@ class Send extends PureComponent {
    */
   async reset() {
     const { transaction } = this.props;
-    const { gas, gasPrice } =
-      await Engine.context.TransactionController.estimateGas(transaction);
+    const { gas, gasPrice } = await estimateGas(transaction);
     this.props.setTransactionObject({
       gas: hexToBN(gas),
       gasPrice: hexToBN(gasPrice),
@@ -389,10 +392,7 @@ class Send extends PureComponent {
 
       // if gas and gasPrice is not defined in the deeplink, we should define them
       if (!gas && !gasPrice) {
-        const { gas, gasPrice } =
-          await Engine.context.TransactionController.estimateGas(
-            this.props.transaction,
-          );
+        const { gas, gasPrice } = await estimateGas(this.props.transaction);
         newTxMeta = {
           ...newTxMeta,
           gas,
@@ -531,12 +531,8 @@ class Send extends PureComponent {
    * and returns to edit transaction
    */
   onConfirm = async () => {
-    const {
-      TransactionController,
-      AddressBookController,
-      KeyringController,
-      ApprovalController,
-    } = Engine.context;
+    const { AddressBookController, KeyringController, ApprovalController } =
+      Engine.context;
     this.setState({ transactionConfirmed: true });
     const {
       transaction: { selectedAsset, assetType },
@@ -550,11 +546,10 @@ class Send extends PureComponent {
       } else {
         transaction = this.prepareAssetTransaction(transaction, selectedAsset);
       }
-      const { result, transactionMeta } =
-        await TransactionController.addTransaction(transaction, {
-          deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          origin: TransactionTypes.MMM,
-        });
+      const { result, transactionMeta } = await addTransaction(transaction, {
+        deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        origin: TransactionTypes.MMM,
+      });
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,

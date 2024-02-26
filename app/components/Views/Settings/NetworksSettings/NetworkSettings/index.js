@@ -10,6 +10,8 @@ import {
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
+import { isSafeChainId, toHex } from '@metamask/controller-utils';
+
 import {
   fontStyles,
   colors as staticColors,
@@ -68,6 +70,7 @@ import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settin
 import { isSafeChainId, toHex } from '@metamask/controller-utils';
 import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
+import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -780,14 +783,13 @@ class NetworkSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController, CurrencyRateController, TransactionController } =
-      Engine.context;
+    const { NetworkController, CurrencyRateController } = Engine.context;
 
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
-      await TransactionController.updateIncomingTransactions();
+      await updateIncomingTransactions();
     }, 1000);
   };
 
