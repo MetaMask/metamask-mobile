@@ -62,7 +62,6 @@ import collectiblesTransferInformation from '../../../../../util/collectibles-tr
 import { strings } from '../../../../../../locales/i18n';
 import Device from '../../../../../util/device';
 import { BN } from 'ethereumjs-util';
-import Analytics from '../../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import NetworkMainAssetLogo from '../../../../UI/NetworkMainAssetLogo';
@@ -106,6 +105,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 
@@ -479,6 +479,10 @@ class Amount extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
+    /**
      * Gas fee estimates for the transaction.
      */
     gasFeeEstimates: PropTypes.object,
@@ -682,11 +686,9 @@ class Amount extends PureComponent {
     } else {
       await this.prepareTransaction(value);
     }
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT,
-        { network: providerType },
-      );
+
+    this.props.metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT, {
+      network: providerType,
     });
 
     setSelectedAsset(selectedAsset);
@@ -1264,13 +1266,13 @@ class Amount extends PureComponent {
 
     const navigateToBuyOrSwaps = () => {
       if (isSwappable) {
-        Analytics.trackEventWithParameters(MetaMetricsEvents.LINK_CLICKED, {
+        this.props.metrics.trackEvent(MetaMetricsEvents.LINK_CLICKED, {
           location: 'insufficient_funds_warning',
           text: 'swap_tokens',
         });
         navigateToSwap();
       } else if (isNetworkBuyNativeTokenSupported && selectedAsset.isETH) {
-        Analytics.trackEventWithParameters(MetaMetricsEvents.LINK_CLICKED, {
+        this.props.metrics.trackEvent(MetaMetricsEvents.LINK_CLICKED, {
           location: 'insufficient_funds_warning',
           text: 'buy_more',
         });
@@ -1544,4 +1546,7 @@ const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Amount);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Amount));
