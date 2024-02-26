@@ -478,12 +478,11 @@ class Asset extends PureComponent {
 
     const onBuy = () => {
       navigation.navigate(Routes.RAMP.BUY);
-      InteractionManager.runAfterInteractions(() => {
-        this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-          text: 'Buy',
-          location: 'Token Screen',
-          chain_id_destination: chainId,
-        });
+
+      this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+        text: 'Buy',
+        location: 'Token Screen',
+        chain_id_destination: chainId,
       });
     };
 

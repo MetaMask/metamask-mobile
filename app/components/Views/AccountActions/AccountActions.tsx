@@ -117,7 +117,7 @@ const AccountActions = () => {
 
   const goToExportPrivateKey = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED, {});
+      trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
 
       navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         credentialName: 'private_key',
