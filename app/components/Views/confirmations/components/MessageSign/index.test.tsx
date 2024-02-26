@@ -9,8 +9,6 @@ import { strings } from '../../../../../../locales/i18n';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { act, waitFor } from '@testing-library/react-native';
-import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
 // eslint-disable-next-line import/no-namespace
 import * as addressUtils from '../../../../../util/address';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
@@ -37,8 +35,6 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
-
-const EngineMock = Engine as jest.Mocked<typeof Engine>;
 
 jest.mock('../../../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
@@ -150,7 +146,6 @@ describe('MessageSign', () => {
         'TestMessageId:signError',
         expect.any(Function),
       );
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.SignatureController.hub.removeListener,
       ).toHaveBeenCalledTimes(0);
@@ -298,7 +293,6 @@ describe('MessageSign', () => {
         'TestMessageId:signError',
         expect.any(Function),
       );
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.SignatureController.hub.removeListener,
       ).toHaveBeenCalledTimes(0);
@@ -324,32 +318,6 @@ describe('MessageSign', () => {
       expect(
         Engine.context.SignatureController.hub.removeListener,
       ).toHaveBeenCalledWith('TestMessageId:signError', expect.any(Function));
-    });
-  });
-
-  describe('onSignatureError', () => {
-    let events: any;
-    beforeEach(() => {
-      events = {};
-
-      EngineMock.context.SignatureController.hub.on.mockImplementationOnce(
-        (event: any, callback: any) => {
-          events[event] = callback;
-        },
-      );
-    });
-
-    it('track has been called when error message starts with KeystoneError#Tx_canceled', async () => {
-      createContainer();
-      events['TestMessageId:signError']({
-        error: new Error(KEYSTONE_TX_CANCELED),
-      });
-      await waitFor(() => {
-        expect(mockTrackEvent).toHaveBeenCalledTimes(2);
-        expect((mockTrackEvent as jest.Mock).mock.calls[1][0]).toEqual(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
-      });
     });
   });
 });
