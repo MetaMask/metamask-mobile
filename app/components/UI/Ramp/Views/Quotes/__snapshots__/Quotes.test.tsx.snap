@@ -2843,7 +2843,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
 </View>
 `;
 
-exports[`Quotes renders correctly after animation with quotes and expanded 1`] = `
+exports[`Quotes renders correctly after animation with quotes and expanded 2`] = `
 <View
   style={
     Object {

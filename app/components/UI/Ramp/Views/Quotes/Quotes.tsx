@@ -235,6 +235,37 @@ function Quotes() {
     trackEvent,
   ]);
 
+  const handleExpandQuotes = useCallback(() => {
+    setIsExpanded(true);
+    const payload = {
+      payment_method_id: selectedPaymentMethodId as string,
+      amount: params.amount,
+    };
+    if (isBuy) {
+      trackEvent('ONRAMP_QUOTES_EXPANDED', {
+        ...payload,
+        chain_id_destination: selectedChainId,
+        currency_source: params.fiatCurrency?.symbol,
+        currency_destination: params.asset?.symbol,
+      });
+    } else {
+      trackEvent('OFFRAMP_QUOTES_EXPANDED', {
+        ...payload,
+        chain_id_source: selectedChainId,
+        currency_source: params.asset?.symbol,
+        currency_destination: params.fiatCurrency?.symbol,
+      });
+    }
+  }, [
+    isBuy,
+    params.amount,
+    params.asset?.symbol,
+    params.fiatCurrency?.symbol,
+    selectedChainId,
+    selectedPaymentMethodId,
+    trackEvent,
+  ]);
+
   const handleOnQuotePress = useCallback(
     (quote: QuoteResponse | SellQuoteResponse) => {
       setProviderId(quote.provider.id);
@@ -747,7 +778,7 @@ function Quotes() {
                     label: strings(
                       'fiat_on_ramp_aggregator.explore_more_options',
                     ),
-                    onPress: () => setIsExpanded(true),
+                    onPress: handleExpandQuotes,
                   },
                 ]
               : []
