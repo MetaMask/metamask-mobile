@@ -888,6 +888,10 @@
     "network_provider": "네트워크 공급업체",
     "token_nft_ens_subheading": "토큰, NFT 및 ENS 자동 감지",
     "security_check_subheading": "보안 점검",
+    "security_alerts": "보안 경고",
+    "security_alerts_desc": "이 기능은 거래 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동 탐지를 보장하지는 않습니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",    
+    "blockaid": "Blockaid",
+    "blockaid_desc": "개인정보 보호 - 제3자와 데이터를 공유하지 않습니다. Arbitrum, Avalanche, BNB Chain, 이더리움 메인넷, Optimism, Polygon에서 사용할 수 있습니다.",    
     "symbol_required": "Symbol is required."
   },
   "sdk": {
@@ -1841,11 +1845,7 @@
     "wallet_connect_dapps_desc": "활성화된 지갑 연결 세션 목록을 확인하세요",
     "wallet_connect_dapps_cta": "세션 보기",
     "network_not_supported": "현재 네트워크는 지원하지 않음",
-    "security_alerts": "보안 경고",
-    "security_alerts_desc": "이 기능은 거래 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동 탐지를 보장하지는 않습니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",
     "select_provider": "선호하는 공급업체 선택",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "개인정보 보호 - 제3자와 데이터를 공유하지 않습니다. Arbitrum, Avalanche, BNB Chain, 이더리움 메인넷, Optimism, Polygon에서 사용할 수 있습니다.",
     "switch_network": "메인넷이나 세폴리아로 전환하세요"
   },
   "walletconnect_sessions": {

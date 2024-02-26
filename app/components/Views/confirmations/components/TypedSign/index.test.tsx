@@ -12,7 +12,15 @@ import AppConstants from '../../../../../core/AppConstants';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import analyticsV2 from '../../../../../util/analyticsV2';
+import { MetaMetrics } from '../../../../../core/Analytics';
+
+jest.mock('../../../../../core/Analytics/MetaMetrics');
+
+const mockMetrics = {
+  trackEvent: jest.fn(),
+};
+
+(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 jest.mock('../../../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
@@ -42,8 +50,6 @@ jest.mock('../../../../../util/address', () => ({
   ...jest.requireActual('../../../../../util/address'),
   getAddressAccountType: jest.fn().mockReturnValue('Metamask'),
 }));
-
-jest.mock('../../../../../util/analyticsV2');
 
 const messageParamsMock = {
   data: { type: 'string', name: 'Message', value: 'Hi, Alice!' },
@@ -324,9 +330,9 @@ describe('TypedSign', () => {
 
       expect(mockReject).toHaveBeenCalledTimes(1);
 
-      const rejectedMocks = (
-        analyticsV2.trackEvent as jest.Mock
-      ).mock.calls.filter((call) => call[0].category === 'Signature Rejected');
+      const rejectedMocks = mockMetrics.trackEvent.mock.calls.filter(
+        (call) => call[0].category === 'Signature Rejected',
+      );
 
       const mockCallsLength = rejectedMocks.length;
 
@@ -364,9 +370,9 @@ describe('TypedSign', () => {
       );
       fireEvent.press(signButton);
 
-      const signedMocks = (
-        analyticsV2.trackEvent as jest.Mock
-      ).mock.calls.filter((call) => call[0].category === 'Signature Approved');
+      const signedMocks = mockMetrics.trackEvent.mock.calls.filter(
+        (call) => call[0].category === 'Signature Approved',
+      );
 
       const mockCallsLength = signedMocks.length;
 
