@@ -262,7 +262,6 @@ class Confirm extends PureComponent {
     multiLayerL1FeeTotal: '0x0',
     result: {},
     transactionMeta: {},
-    preparedTransaction: {},
   };
 
   originIsWalletConnect = this.props.transaction.origin?.startsWith(
@@ -952,7 +951,6 @@ class Confirm extends PureComponent {
 
   updateTransactionStateWithUpdatedNonce = (nonceValue) => {
     this.props.setNonce(nonceValue);
-    this.setState({ preparedTransaction: {} });
   };
 
   renderCustomNonceModal = () => {
