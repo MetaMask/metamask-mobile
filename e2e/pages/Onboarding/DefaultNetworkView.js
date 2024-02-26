@@ -5,7 +5,7 @@ import NetworksView from '../Settings/NetworksView';
 import TestHelpers from '../../helpers';
 import {
   CustomDefaultNetworkIDs,
-  CustomeDefaultNetworkTexts,
+  CustomDefaultNetworkTexts,
 } from '../../selectors/Onboarding/CustomDefaultNetwork.selectors';
 
 class DefaultNetworkView {
@@ -25,10 +25,10 @@ class DefaultNetworkView {
       await Gestures.waitAndTap(this.useThisNetworkButton);
     } else {
       await TestHelpers.waitAndTapByLabel(
-        CustomeDefaultNetworkTexts.USE_THIS_NETWORK_BUTTON_TEXT,
+        CustomDefaultNetworkTexts.USE_THIS_NETWORK_BUTTON_TEXT,
       );
       await TestHelpers.waitAndTapByLabel(
-        CustomeDefaultNetworkTexts.USE_THIS_NETWORK_BUTTON_TEXT,
+        CustomDefaultNetworkTexts.USE_THIS_NETWORK_BUTTON_TEXT,
       );
     }
   }
