@@ -7,6 +7,7 @@ import Device from '../../util/device';
 export enum BluetoothPermissionErrors {
   BluetoothAccessBlocked = 'BluetoothAccessBlocked',
   LocationAccessBlocked = 'LocationAccessBlocked',
+  NearbyDevicesAccessBlocked = 'NearbyDevicesAccessBlocked',
 }
 
 const useBluetoothPermissions = () => {
@@ -64,7 +65,7 @@ const useBluetoothPermissions = () => {
         setBluetoothPermissionError(undefined);
       } else {
         setBluetoothPermissionError(
-          BluetoothPermissionErrors.LocationAccessBlocked,
+          BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
         );
       }
     }

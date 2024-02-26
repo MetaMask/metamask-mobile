@@ -107,10 +107,12 @@ const Scan = ({
             },
           });
           break;
-        case BluetoothPermissionErrors.LocationAccessBlocked:
+        case BluetoothPermissionErrors.NearbyDevicesAccessBlocked:
           onScanningErrorStateChanged({
-            errorTitle: strings('ledger.location_access_blocked'),
-            errorSubtitle: strings('ledger.location_access_blocked_message'),
+            errorTitle: strings('ledger.nearbyDevices_access_blocked'),
+            errorSubtitle: strings(
+              'ledger.nearbyDevices_access_blocked_message',
+            ),
             primaryButtonConfig: {
               title: strings('ledger.view_settings'),
               onPress: async () => {
