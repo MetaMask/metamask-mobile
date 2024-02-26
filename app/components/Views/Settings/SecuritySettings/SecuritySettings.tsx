@@ -47,6 +47,7 @@ import {
   ChangePassword,
   AutoLock,
   ClearPrivacy,
+  BlockaidSettings,
 } from './Sections';
 import {
   selectProviderType,
@@ -119,6 +120,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
+import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -990,6 +992,7 @@ const Settings: React.FC = () => {
           <RememberMeOptionSection />
         </View>
         <RevealPrivateKey />
+        {isBlockaidFeatureEnabled() && <BlockaidSettings />}
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <Text
           variant={TextVariant.BodyLGMedium}
