@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TagColored should render TagColored 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 4,
+      "height": 20,
+      "justifyContent": "center",
+      "paddingHorizontal": 8,
+    }
+  }
+  testID="tagcolored"
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      Object {
+        "color": "#535A61",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 10,
+        "fontWeight": "bold",
+        "letterSpacing": 0.25,
+        "lineHeight": 16,
+        "textTransform": "uppercase",
+      }
+    }
+    testID="tagcolored-text"
+  >
+    Sample TagColored text
+  </Text>
+</View>
+`;

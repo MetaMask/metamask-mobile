@@ -221,7 +221,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               Object {
-                "color": "#FCFCFC",
+                "color": "#FFFFFF",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -614,7 +614,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               Object {
-                "color": "#FCFCFC",
+                "color": "#FFFFFF",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -627,6 +627,115 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
         </TouchableOpacity>
       </View>
+      <View
+        style={
+          Object {
+            "marginVertical": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Security alerts
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#535A61",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.
+        </Text>
+      </View>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Blockaid
+        </Text>
+        <RCTSwitch
+          accessibilityRole="switch"
+          onChange={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          onTintColor="#0376C9"
+          style={
+            Array [
+              Object {
+                "height": 31,
+                "width": 51,
+              },
+              Array [
+                Object {
+                  "alignSelf": "flex-end",
+                },
+                Object {
+                  "backgroundColor": "#D6D9DC",
+                  "borderRadius": 16,
+                },
+              ],
+            ]
+          }
+          testID="security-alerts-toggle"
+          thumbTintColor="#FFFFFF"
+          tintColor="#D6D9DC"
+          value={true}
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
+        }
+      >
+        Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.
+      </Text>
       <View
         style={
           Array [
@@ -1074,6 +1183,126 @@ exports[`SecuritySettings should render correctly 1`] = `
         transparent={true}
         visible={false}
       />
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 32,
+          }
+        }
+      >
+        Network provider
+      </Text>
+      <View
+        style={
+          Object {
+            "marginTop": 16,
+          }
+        }
+        testID="use-chains-list-validation"
+      >
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Network details check
+          </Text>
+          <View
+            style={
+              Object {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#0376C9"
+              style={
+                Array [
+                  Object {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  Array [
+                    Object {
+                      "alignSelf": "flex-start",
+                    },
+                    Object {
+                      "backgroundColor": "#D6D9DC",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              testID="display-use-safe-list-validation"
+              thumbTintColor="#FFFFFF"
+              tintColor="#D6D9DC"
+              value={true}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#535A61",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          MetaMask uses a third-party service called 
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            chainid.network 
+          </Text>
+          to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  
+           
+          chainid.network
+        </Text>
+      </View>
       <Text
         accessibilityRole="text"
         style={

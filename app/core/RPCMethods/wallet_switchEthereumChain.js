@@ -1,9 +1,9 @@
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import {
+  getDecimalChainId,
   getDefaultNetworkByChainId,
   isPrefixedFormattedHexString,
-  isSafeChainId,
 } from '../../util/networks';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import AnalyticsV2 from '../../util/analyticsV2';
@@ -12,6 +12,7 @@ import {
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
+import { isSafeChainId } from '@metamask/controller-utils';
 
 const wallet_switchEthereumChain = async ({
   req,
@@ -51,23 +52,20 @@ const wallet_switchEthereumChain = async ({
     );
   }
 
-  if (!isSafeChainId(parseInt(_chainId, 16))) {
+  if (!isSafeChainId(_chainId)) {
     throw ethErrors.rpc.invalidParams(
       `Invalid chain ID "${_chainId}": numerical value greater than max safe value. Received:\n${chainId}`,
     );
   }
 
-  const chainIdDecimal = parseInt(_chainId, 16).toString(10);
-
   const networkConfigurations = selectNetworkConfigurations(store.getState());
-  const existingNetworkDefault = getDefaultNetworkByChainId(chainIdDecimal);
+  const existingNetworkDefault = getDefaultNetworkByChainId(_chainId);
   const existingEntry = Object.entries(networkConfigurations).find(
-    ([, networkConfiguration]) =>
-      networkConfiguration.chainId === chainIdDecimal,
+    ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
   );
   if (existingEntry || existingNetworkDefault) {
     const currentChainId = selectChainId(store.getState());
-    if (currentChainId === chainIdDecimal) {
+    if (currentChainId === _chainId) {
       res.result = null;
       return;
     }
@@ -79,7 +77,7 @@ const wallet_switchEthereumChain = async ({
 
     let requestData;
     let analyticsParams = {
-      chain_id: _chainId,
+      chain_id: getDecimalChainId(_chainId),
       source: 'Switch Network API',
       ...analytics,
     };

@@ -44,6 +44,7 @@ import {
 } from '../confirm-tx';
 
 import Logger from '../../util/Logger';
+import { handleMethodData } from '../../util/transaction-controller';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -267,12 +268,9 @@ export async function getMethodData(data) {
   } else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
     return { name: CONTRACT_METHOD_DEPLOY };
   }
-  const { TransactionController } = Engine.context;
   // If it's a new method, use on-chain method registry
   try {
-    const registryObject = await TransactionController.handleMethodData(
-      fourByteSignature,
-    );
+    const registryObject = await handleMethodData(fourByteSignature);
     if (registryObject) {
       return registryObject.parsedRegistryMethod;
     }

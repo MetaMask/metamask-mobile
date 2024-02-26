@@ -76,7 +76,7 @@ const propTypes = {
   /**
    * Title color
    */
-  titleColor: TextColor,
+  titleColor: PropTypes.string,
 };
 
 const defaultProps = {

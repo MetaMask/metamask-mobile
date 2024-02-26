@@ -18,12 +18,12 @@ const mockInitialState = {
       },
       NetworkController: {
         providerConfig: {
-          chainId: '1',
+          chainId: '0x1',
         },
       },
       AddressBookController: {
         addressBook: {
-          1: {
+          '0x1': {
             '0x1': {
               address: '0x1',
               name: 'Account 2',

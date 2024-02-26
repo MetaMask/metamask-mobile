@@ -19,9 +19,10 @@ import { useAppThemeFromContext } from '../../../util/theme';
 import { createWalletResetNeededNavDetails } from './WalletResetNeeded';
 import { createWalletRestoredNavDetails } from './WalletRestored';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
+
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
@@ -43,6 +44,7 @@ export const createRestoreWalletNavDetailsNested =
   );
 
 const RestoreWallet = () => {
+  const { trackEvent } = useMetrics();
   const { colors } = useAppThemeFromContext();
   const styles = createStyles(colors);
 
@@ -58,10 +60,11 @@ const RestoreWallet = () => {
       MetaMetricsEvents.VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED,
       { ...deviceMetaData, previousScreen },
     );
-  }, [deviceMetaData, previousScreen]);
+  }, [deviceMetaData, previousScreen, trackEvent]);
 
   const handleOnNext = useCallback(async (): Promise<void> => {
     setLoading(true);
+
     trackEvent(
       MetaMetricsEvents.VAULT_CORRUPTION_RESTORE_WALLET_BUTTON_PRESSED,
       deviceMetaData,
@@ -74,7 +77,7 @@ const RestoreWallet = () => {
       replace(...createWalletResetNeededNavDetails());
       setLoading(false);
     }
-  }, [deviceMetaData, replace]);
+  }, [deviceMetaData, replace, trackEvent]);
 
   return (
     <SafeAreaView style={styles.screen}>

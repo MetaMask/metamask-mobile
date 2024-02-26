@@ -12,7 +12,6 @@ import AssetSearch from '../AssetSearch';
 import AssetList from '../AssetList';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -22,6 +21,8 @@ import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -53,6 +54,7 @@ interface Props {
  * Component that provides ability to add searched assets with metadata.
  */
 const SearchTokenAutocomplete = ({ navigation }: Props) => {
+  const { trackEvent } = useMetrics();
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAsset, setSelectedAsset] = useState({});
@@ -77,7 +79,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       return {
         token_address: address,
         token_symbol: symbol,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         source: 'Add token dropdown',
       };
     } catch (error) {
@@ -111,7 +113,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       name,
     });
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
+    trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
 
     // Clear state before closing
     setSearchResults([]);
@@ -140,6 +142,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     navigation,
     getAnalyticsParams,
     name,
+    trackEvent,
   ]);
 
   const renderTokenDetectionBanner = useCallback(() => {
