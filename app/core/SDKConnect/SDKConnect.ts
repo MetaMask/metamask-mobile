@@ -32,6 +32,7 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import DevLogger from './utils/DevLogger';
+import Engine from '../../core/Engine';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -261,6 +262,7 @@ export class SDKConnect extends EventEmitter2 {
   }) {
     return removeChannel({
       channelId,
+      engine: Engine,
       sendTerminate,
       instance: this,
       emitRefresh,
