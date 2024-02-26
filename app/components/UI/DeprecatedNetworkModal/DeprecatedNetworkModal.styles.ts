@@ -1,8 +1,12 @@
 import Device from '../../../util/device';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
+import { Theme } from '../../../util/theme/models';
 
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { typography } = theme;
+
+  return StyleSheet.create({
     centeredTitle: {
       marginTop: 16,
       marginBottom: 8,
@@ -28,8 +32,9 @@ const styleSheet = () =>
       marginBottom: Device.isAndroid() ? 21 : 0,
     },
     buttonLabel: {
-      fontSize: 14,
-    },
+      ...typography.lBodySMMedium,
+    } as TextStyle,
   });
+};
 
 export default styleSheet;

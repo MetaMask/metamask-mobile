@@ -12,7 +12,7 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import { CONNECTING_TO_DEPRECATED_NETOWRK } from '../../../constants/urls';
+import { CONNECTING_TO_DEPRECATED_NETWORK } from '../../../constants/urls';
 import AnalyticsV2 from '../../../util/analyticsV2';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 
@@ -25,11 +25,11 @@ const DeprecatedNetworkModal = () => {
   };
 
   const goToLearnMore = () => {
-    Linking.openURL(CONNECTING_TO_DEPRECATED_NETOWRK);
+    Linking.openURL(CONNECTING_TO_DEPRECATED_NETWORK);
     AnalyticsV2.trackEvent('EXTERNAL_LINK_CLICKED', {
       location: 'dapp_connection_request',
       text: 'Learn More',
-      url_domain: CONNECTING_TO_DEPRECATED_NETOWRK,
+      url_domain: CONNECTING_TO_DEPRECATED_NETWORK,
     });
   };
 

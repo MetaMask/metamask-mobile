@@ -16,7 +16,7 @@ export const TOKEN_APPROVAL_SPENDING_CAP = `https://support.metamask.io/hc/en-us
 export const CONNECTING_TO_A_DECEPTIVE_SITE =
   'https://support.metamask.io/hc/en-us/articles/4428045875483--Deceptive-site-ahead-when-trying-to-connect-to-a-site';
 
-export const CONNECTING_TO_DEPRECATED_NETOWRK =
+export const CONNECTING_TO_DEPRECATED_NETWORK =
   'https://support.metamask.io/hc/en-us/articles/360059213492-ETH-on-Sepolia-and-Goerli-networks-testnets';
 
 // Policies
