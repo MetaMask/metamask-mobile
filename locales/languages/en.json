@@ -1407,6 +1407,21 @@
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature"
   },
+  "smart_transactions": {
+    "status_submitting": "Submitting your transaction",
+    "status_success": "Transaction successful",
+    
+    "status_reverted": "Transaction reverted",
+    "reverted_description": "Due unfavorable market conditions, MetaMask reverted your transaction, saving you {{savings}} in transaction fees. Try resubmitting at a later time.",
+
+    "status_timeout": "Transaction timed out",
+    "timeout_description": "Your transaction was not completed and you were not charged. Try resubmitting again through the dApp.",
+    
+    "estimated_completion": "Estimated completion {{timeLeft}}",
+    "view_transaction": "View transaction",
+    "view_activity": "View activity",
+    "return_to_dapp": "Return to dApp"
+  },
   "address_book": {
     "recents": "Recents",
     "save": "Save",
