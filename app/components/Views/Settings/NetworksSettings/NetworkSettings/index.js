@@ -7,6 +7,7 @@ import {
   TextInput,
   SafeAreaView,
   Linking,
+  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import {
@@ -65,6 +66,8 @@ import {
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { isSafeChainId, toHex } from '@metamask/controller-utils';
+import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -1029,6 +1032,10 @@ class NetworkSettings extends PureComponent {
               size={ButtonSize.Lg}
               disabled={isActionDisabled}
               width={ButtonWidthTypes.Full}
+              {...generateTestId(
+                Platform,
+                CustomDefaultNetworkIDs.USE_THIS_NETWORK_BUTTON_ID,
+              )}
             />
           ) : (
             (addMode || editable) && (
