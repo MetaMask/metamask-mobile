@@ -37,9 +37,6 @@ const useBluetoothPermissions = () => {
 
     if (Device.isAndroid()) {
       let bluetoothAllowed: boolean;
-      const bluetoothPermissionStatus = await request(
-        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-      );
 
       if (deviceOSVersion >= 12) {
         const connectPermissionStatus = await request(
@@ -50,9 +47,13 @@ const useBluetoothPermissions = () => {
         );
 
         bluetoothAllowed =
-          connectPermissionStatus === RESULTS.GRANTED &&
+          // connectPermissionStatus === RESULTS.GRANTED &&
           scanPermissionStatus === RESULTS.GRANTED;
       } else {
+        const bluetoothPermissionStatus = await request(
+          PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+        );
+
         bluetoothAllowed = bluetoothPermissionStatus === RESULTS.GRANTED;
       }
 
