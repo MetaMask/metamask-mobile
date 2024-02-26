@@ -55,7 +55,7 @@ describe('decodeIncomingTransfer', () => {
     });
   });
 
-  it('should decode an incoming transfer with big number with 6 digits', () => {
+  it('should decode an incoming transfer with big number with 10 digits', () => {
     // Arrange
     const args = {
       tx: {
