@@ -69,7 +69,7 @@ async function main(): Promise<void> {
   // Bitrise comment doesn't exist
   if (!bitriseComment) {
     core.setFailed(
-      `Bitrise build status comment for commit ${latestCommitHash} does not exist.`,
+      `Bitrise build status comment for commit ${latestCommitHash} does not exist. Remove and re-apply the "${e2eLabel} label to trigger an E2E smoke test on Bitrise for the latest commit."`,
     );
     process.exit(1);
   }
