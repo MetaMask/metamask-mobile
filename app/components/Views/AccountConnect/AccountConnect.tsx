@@ -53,7 +53,7 @@ import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
-import trackDappVisitedEvent from '../../../util/metrics/trackDappVisited';
+import { trackDappVisitedEvent } from '../../../analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const AccountConnect = (props: AccountConnectProps) => {
