@@ -101,7 +101,7 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
 import { selectChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
-import { trackDappVisitedEvent } from '../../../analytics';
+import { trackDappVisitedEvent } from '../../../util/metrics';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
