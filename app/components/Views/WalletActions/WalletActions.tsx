@@ -18,6 +18,17 @@ import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { toggleReceiveModal } from '../../../actions/modals';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
+import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { getEther } from '../../../util/transactions';
+import { newAssetTransaction } from '../../../actions/transaction';
+import { strings } from '../../../../locales/i18n';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import WalletAction from '../../../components/UI/WalletAction';
+import { useStyles } from '../../../component-library/hooks';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
 import { getDecimalChainId } from '../../../util/networks';
 
@@ -31,7 +42,7 @@ import {
   WALLET_SEND,
   WALLET_SWAP,
 } from './WalletActions.constants';
-import styleSheet from './WalletActions.styles';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
