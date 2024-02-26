@@ -32,6 +32,8 @@ import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Scre
 import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
+import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+
 import ButtonIcon, {
   ButtonIconSizes,
   ButtonIconVariants,
@@ -40,8 +42,6 @@ import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
-import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 import {
   default as MorphText,
   TextVariant,
@@ -49,6 +49,7 @@ import {
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -213,7 +214,7 @@ export function getNavigationOptionsTitle(
           iconName={IconName.ArrowLeft}
           onPress={navigationPop}
           style={innerStyles.accessories}
-          testID={NetworksViewSelectorsIDs.BACK_ARROW_BUTTON}
+          testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
         />
       ),
     headerTintColor: themeColors.primary.default,
