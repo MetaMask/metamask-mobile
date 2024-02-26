@@ -20,9 +20,9 @@ function getValues(
         },
       },
     ],
-    confirmText: strings('approval_result.ok'),
+    confirmText: strings('smart_transactions.view_activity'),
     onConfirm: actions.onConfirm,
-    onlyConfirmButton: true,
+    cancelText: strings('smart_transactions.return_to_dapp'),
     onCancel: () => {
       // TODO if I pass this in, then this component will stay on screen. This is b/c I'm getting "user rejected" for some reason
       // this is called every time it renders, but the actual useApprovalRequest.onReject is only called on swipe down
