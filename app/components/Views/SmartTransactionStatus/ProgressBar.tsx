@@ -12,7 +12,7 @@ const borderRadius = 5;
 const ProgressBar = ({ percentComplete }: Props) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
-    container: {
+    wrapper: {
       height: 5,
       width: '80%',
       borderRadius,
@@ -27,7 +27,7 @@ const ProgressBar = ({ percentComplete }: Props) => {
   });
 
   return (
-    <View style={styles.container}>
+    <View style={styles.wrapper}>
       <View style={styles.progressBar} />
     </View>
   );

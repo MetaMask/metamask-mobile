@@ -40,7 +40,7 @@ const SmartTransactionStatus = ({
 }: Props) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
-    centered: {
+    wrapper: {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
@@ -122,18 +122,16 @@ const SmartTransactionStatus = ({
     (1 - timeLeftForPendingStxInSec / STX_STATUS_DEADLINE_SEC) * 100;
 
   return (
-    <View>
-      <View style={styles.centered}>
-        <Icon name={icon} color={iconColor} size={IconSize.Xl} />
-        <Text style={styles.header}>{header}</Text>
-        {status === 'pending' && (
-          <ProgressBar percentComplete={percentComplete} />
-        )}
-        {description && <Text style={styles.desc}>{description}</Text>}
-        <Text style={styles.desc}>
-          {strings('smart_transactions.view_transaction')}
-        </Text>
-      </View>
+    <View style={styles.wrapper}>
+      <Icon name={icon} color={iconColor} size={IconSize.Xl} />
+      <Text style={styles.header}>{header}</Text>
+      {status === 'pending' && (
+        <ProgressBar percentComplete={percentComplete} />
+      )}
+      {description && <Text style={styles.desc}>{description}</Text>}
+      <Text style={styles.desc}>
+        {strings('smart_transactions.view_transaction')}
+      </Text>
     </View>
   );
 };
