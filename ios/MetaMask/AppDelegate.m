@@ -25,14 +25,14 @@
   NSString *mixPanelTokenFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"mixpanel_token"];
 
   NSString *foxCode;
-  
+
   if(foxCodeFromBundle != nil){
     foxCode = foxCodeFromBundle;
     [Mixpanel sharedInstanceWithToken:mixPanelTokenFromBundle];
   } else {
     foxCode = @"debug";
   }
-  
+
   // Uncomment this line to use the test key instead of the live one.
   // [RNBranch useTestInstance];
   [RNBranch initSessionWithLaunchOptions:launchOptions isReferrable:YES];
@@ -58,12 +58,12 @@
   UIView* launchScreenView = [[[NSBundle mainBundle] loadNibNamed:@"LaunchScreen" owner:self options:nil] objectAtIndex:0];
   launchScreenView.frame = self.window.bounds;
   rootView.loadingView = launchScreenView;
-  
+
   [self initializeFlipper:application];
 
   //Uncomment the following line to enable the splashscreen on ios
   //[RNSplashScreen show];
-  
+
   return YES;
 }
 
