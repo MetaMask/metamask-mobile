@@ -1,25 +1,16 @@
 import React, { Fragment, PureComponent } from 'react';
-import {
-  View,
-  InteractionManager,
-  ScrollView,
-  Alert,
-  Platform,
-  BackHandler,
-} from 'react-native';
+import { View, ScrollView, Alert, Platform, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Analytics from '../../../../../core/Analytics/Analytics';
 import AddressList from '../AddressList';
 import Text from '../../../../Base/Text';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import {
   getDecimalChainId,
   handleNetworkSwitch,
@@ -72,6 +63,7 @@ import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
 import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 
 const dummy = () => true;
 
@@ -149,6 +141,10 @@ class SendFlow extends PureComponent {
      * Object of addresses associated with multiple chains {'id': [address: string]}
      */
     ambiguousAddressEntries: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   addressToInputRef = React.createRef();
@@ -300,14 +296,10 @@ class SendFlow extends PureComponent {
       toEnsName,
       toSelectedAddressName,
     );
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT,
-        {
-          network: providerType,
-        },
-      );
+    this.props.metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT, {
+      network: providerType,
     });
+
     navigation.navigate('Amount');
   };
 
@@ -318,12 +310,11 @@ class SendFlow extends PureComponent {
 
   goToBuy = () => {
     this.props.navigation.navigate(Routes.RAMP.BUY);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-        button_location: 'Send Flow warning',
-        button_copy: 'Buy Native Token',
-        chain_id_destination: this.props.chainId,
-      });
+
+    this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+      button_location: 'Send Flow warning',
+      button_copy: 'Buy Native Token',
+      chain_id_destination: this.props.chainId,
     });
   };
 
@@ -423,7 +414,7 @@ class SendFlow extends PureComponent {
     const isAmbiguousAddress = includes(currentChain, toAccount);
     if (isAmbiguousAddress) {
       this.setState({ showAmbiguousAcountWarning: isAmbiguousAddress });
-      AnalyticsV2.trackEvent(
+      this.props.metrics.trackEvent(
         MetaMetricsEvents.SEND_FLOW_SELECT_DUPLICATE_ADDRESS,
         {
           chain_id: getDecimalChainId(this.props.chainId),
@@ -712,4 +703,7 @@ const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(SendFlow);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(SendFlow));

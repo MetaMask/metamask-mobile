@@ -73,6 +73,7 @@ import {
   speedUpTransaction,
   updateIncomingTransactions,
 } from '../../../util/transaction-controller';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -867,8 +868,7 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  gasFeeEstimates: selectGasFeeEstimates(state),
   primaryCurrency: state.settings.primaryCurrency,
   tokens: selectTokensByAddress(state),
   gasEstimateType:
