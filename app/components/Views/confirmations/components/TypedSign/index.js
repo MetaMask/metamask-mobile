@@ -101,9 +101,10 @@ class TypedSign extends PureComponent {
     const {
       messageParams: { metamaskId },
       messageParams,
+      metrics,
     } = this.props;
 
-    this.props.metrics.trackEvent(
+    metrics.trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(messageParams, 'typed_sign'),
     );
@@ -118,8 +119,9 @@ class TypedSign extends PureComponent {
   };
 
   onSignatureError = ({ error }) => {
+    const { metrics } = this.props;
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-      this.props.metrics.trackEvent(
+      metrics.trackEvent(
         MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         getAnalyticsParams(),
       );

@@ -291,6 +291,7 @@ class TransactionReview extends PureComponent {
       tokens,
       chainId,
       tokenList,
+      metrics,
     } = this.props;
     let { showHexData } = this.props;
     let assetAmount, conversionRate, fiatValue;
@@ -322,9 +323,7 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
 
-    this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-    );
+    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED);
 
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
@@ -336,14 +335,14 @@ class TransactionReview extends PureComponent {
   };
 
   onContactUsClicked = () => {
-    const { transaction } = this.props;
+    const { transaction, metrics } = this.props;
     const additionalParams = {
       ...getBlockaidMetricsParams(
         transaction?.currentTransactionSecurityAlertResponse,
       ),
       external_link_clicked: 'security_alert_support_link',
     };
-    this.props.metrics.trackEvent(
+    metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       additionalParams,
     );
@@ -393,10 +392,8 @@ class TransactionReview extends PureComponent {
   };
 
   edit = () => {
-    const { onModeChange } = this.props;
-    this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
-    );
+    const { onModeChange, metrics } = this.props;
+    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
     onModeChange && onModeChange('edit');
   };
 
