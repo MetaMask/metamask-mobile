@@ -8,6 +8,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import ProgressBar from './ProgressBar';
+import { useTheme } from '../../../util/theme';
 
 interface Props {
   requestState: {
@@ -18,23 +19,6 @@ interface Props {
     };
   };
 }
-
-const styles = StyleSheet.create({
-  centered: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
-  },
-  header: {
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  desc: {
-    textAlign: 'center',
-  },
-});
 
 const STX_STATUS_DEADLINE_SEC = 160; // TODO: Use a value from backend instead.
 
@@ -54,6 +38,25 @@ const SmartTransactionStatus = ({
     smartTransaction: { status, creationTime },
   },
 }: Props) => {
+  const { colors } = useTheme();
+  const styles = StyleSheet.create({
+    centered: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 10,
+    },
+    header: {
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontSize: 18,
+    },
+    desc: {
+      textAlign: 'center',
+      color: colors.text.alternative,
+    },
+  });
+
   const [timeLeftForPendingStxInSec, setTimeLeftForPendingStxInSec] = useState(
     STX_STATUS_DEADLINE_SEC,
   );
@@ -97,7 +100,7 @@ const SmartTransactionStatus = ({
       timeLeft: showRemainingTimeInMinAndSec(timeLeftForPendingStxInSec),
     });
   } else if (status === 'success') {
-    icon = IconName.Check;
+    icon = IconName.CheckCircle;
     iconColor = IconColor.Success;
     header = strings('smart_transactions.status_success');
     description = undefined;
@@ -126,7 +129,7 @@ const SmartTransactionStatus = ({
         {status === 'pending' && (
           <ProgressBar percentComplete={percentComplete} />
         )}
-        {description && <Text>{description}</Text>}
+        {description && <Text style={styles.desc}>{description}</Text>}
         <Text style={styles.desc}>
           {strings('smart_transactions.view_transaction')}
         </Text>
