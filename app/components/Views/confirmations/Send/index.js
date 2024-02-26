@@ -28,7 +28,6 @@ import {
 import { toggleDappTransactionModal } from '../../../../actions/modals';
 import NotificationManager from '../../../../core/NotificationManager';
 import { showAlert } from '../../../../actions/alert';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   getTransactionReviewActionKey,
@@ -42,7 +41,6 @@ import TransactionTypes from '../../../../core/TransactionTypes';
 import { MAINNET } from '../../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 import {
   addTransaction,
   estimateGas,
@@ -63,6 +61,7 @@ import {
   selectSelectedAddress,
 } from '../../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
+import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -151,6 +150,10 @@ class Send extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -618,7 +621,7 @@ class Send extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Send)');
       } else {
-        AnalyticsV2.trackEvent(
+        this.props.metrics.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
@@ -634,7 +637,7 @@ class Send extends PureComponent {
    * Call Analytics to track confirm started event for send screen
    */
   trackConfirmScreen = () => {
-    Analytics.trackEventWithParameters(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
       this.getTrackingParams(),
     );
@@ -646,7 +649,7 @@ class Send extends PureComponent {
   trackEditScreen = async () => {
     const { transaction } = this.props;
     const actionKey = await getTransactionReviewActionKey(transaction);
-    Analytics.trackEventWithParameters(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
       {
         ...this.getTrackingParams(),
@@ -659,7 +662,7 @@ class Send extends PureComponent {
    * Call Analytics to track cancel pressed
    */
   trackOnCancel = () => {
-    Analytics.trackEventWithParameters(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
       this.getTrackingParams(),
     );
@@ -669,7 +672,7 @@ class Send extends PureComponent {
    * Call Analytics to track confirm pressed
    */
   trackOnConfirm = () => {
-    Analytics.trackEventWithParameters(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
       this.getTrackingParams(),
     );
@@ -782,4 +785,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 Send.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(Send);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Send));
