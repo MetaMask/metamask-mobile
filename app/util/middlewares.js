@@ -1,5 +1,5 @@
 import Logger from './Logger';
-import { trackErrorAsAnalytics } from './analyticsV2';
+import trackErrorAsAnalytics from './metrics/TrackError/trackErrorAsAnalytics';
 
 /**
  * List of rpc errors caused by the user rejecting a certain action.
