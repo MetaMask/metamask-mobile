@@ -4,7 +4,6 @@ import AntDesignIcon from 'react-native-vector-icons/AntDesign';
 import EthereumAddress from '../../../../../UI/EthereumAddress';
 import Engine from '../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../../util/analyticsV2';
 
 import { toChecksumAddress } from 'ethereumjs-util';
 import { connect } from 'react-redux';
@@ -39,6 +38,7 @@ import {
 } from '../../../../../../selectors/networkController';
 import { selectIdentities } from '../../../../../../selectors/preferencesController';
 import { ContractNickNameViewSelectorsIDs } from '../../../../../../../e2e/selectors/ContractNickNameView.selectors';
+import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 
 const getAnalyticsParams = () => ({});
 
@@ -64,6 +64,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [shouldDisableButton, setShouldDisableButton] = useState(true);
   const { colors, themeAppearance } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
   const chooseToContinue = () => {
@@ -109,10 +110,7 @@ const AddNickname = (props: AddNicknameProps) => {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
 
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
   };
 
   const saveTokenNickname = () => {
@@ -124,7 +122,7 @@ const AddNickname = (props: AddNicknameProps) => {
       providerChainId,
     );
     closeModal();
-    AnalyticsV2.trackEvent(
+    trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
       getAnalyticsParams(),
     );
