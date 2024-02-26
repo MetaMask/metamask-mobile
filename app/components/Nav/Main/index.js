@@ -283,24 +283,6 @@ const Main = (props) => {
       'change',
       handleAppStateChange,
     );
-    notifee.onForegroundEvent(({ type, detail: notification }) => {
-      if (type === EventType.DELIVERED) {
-        let data = null;
-        if (Device.isAndroid()) {
-          if (notification.data) {
-            data = JSON.parse(notification.data);
-          }
-        } else if (notification.data) {
-          data = notification.data;
-        }
-        if (data && data.action === 'tx') {
-          if (data.id) {
-            NotificationManager.setTransactionToView(data.id);
-          }
-          props.navigation.navigate('TransactionsHome');
-        }
-      }
-    });
 
     setTimeout(() => {
       NotificationManager.init({
@@ -314,6 +296,25 @@ const Main = (props) => {
       removeConnectionStatusListener.current = NetInfo.addEventListener(
         connectionChangeHandler,
       );
+
+      notifee.onForegroundEvent(({ type, detail }) => {
+        if (type === EventType.DELIVERED) {
+          let data = null;
+          if (Device.isAndroid()) {
+            if (detail.data) {
+              data = JSON.parse(detail.data);
+            }
+          } else if (detail.data) {
+            data = detail.data;
+          }
+          if (data && data.action === 'tx') {
+            if (data.id) {
+              NotificationManager.setTransactionToView(data.id);
+            }
+            props.navigation.navigate('TransactionsHome');
+          }
+        }
+      });
       /**
        * Creates a channel (required for Android)
        */

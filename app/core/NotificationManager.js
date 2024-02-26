@@ -117,6 +117,8 @@ class NotificationManager {
 
   // TODO: Refactor this method to use notifee's channels in combination with MM auth
   _showNotification(data, channelId = 'default') {
+    // eslint-disable-next-line no-console
+    console.log('NotificationManager _showNotification', data);
     if (this._backgroundMode) {
       const { title, message } = constructTitleAndMessage(data);
 
