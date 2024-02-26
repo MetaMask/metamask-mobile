@@ -40,6 +40,7 @@ import {
   GAS_PRICE_MIN,
 } from '../../../../../util/gasUtils';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 
 const EditGasFeeLegacy = ({
   onCancel,
@@ -74,11 +75,7 @@ const EditGasFeeLegacy = ({
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
-  const gasFeeEstimate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-  );
+  const gasFeeEstimate = useSelector(selectGasFeeEstimates);
 
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,

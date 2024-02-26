@@ -106,6 +106,8 @@ import { regex } from '../../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -480,6 +482,14 @@ class Amount extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Gas fee estimates for the transaction.
+     */
+    gasFeeEstimates: PropTypes.object,
+    /**
+     * Type of gas fee estimate provided by the gas fee controller.
+     */
+    gasEstimateType: PropTypes.string,
   };
 
   state = {
@@ -520,6 +530,8 @@ class Amount extends PureComponent {
       providerType,
       selectedAsset,
       isPaymentRequest,
+      gasEstimateType,
+      gasFeeEstimates,
     } = this.props;
     // For analytics
     this.updateNavBar();
@@ -534,23 +546,19 @@ class Amount extends PureComponent {
     this.onInputChange(readableValue);
     !selectedAsset.tokenId && this.handleSelectedAssetBalance(selectedAsset);
 
-    const { GasFeeController } = Engine.context;
-    const [gasEstimates, gas] = await Promise.all([
-      GasFeeController.fetchGasFeeEstimates({ shouldUpdateState: false }),
-      this.estimateGasLimit(),
-    ]);
+    const [gas] = await Promise.all([this.estimateGasLimit()]);
 
-    if (gasEstimates.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-      const gasFeeEstimates =
-        gasEstimates.gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM];
+    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
+      const mediumGasFeeEstimates =
+        gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM];
       const estimatedBaseFeeHex = decGWEIToHexWEI(
-        gasEstimates.gasFeeEstimates.estimatedBaseFee,
+        gasFeeEstimates.estimatedBaseFee,
       );
       const suggestedMaxPriorityFeePerGasHex = decGWEIToHexWEI(
-        gasFeeEstimates.suggestedMaxPriorityFeePerGas,
+        mediumGasFeeEstimates.suggestedMaxPriorityFeePerGas,
       );
       const suggestedMaxFeePerGasHex = decGWEIToHexWEI(
-        gasFeeEstimates.suggestedMaxFeePerGas,
+        mediumGasFeeEstimates.suggestedMaxFeePerGas,
       );
       const gasLimitHex = BNToHex(gas);
       const gasHexes = calculateEIP1559GasFeeHexes({
@@ -562,17 +570,13 @@ class Amount extends PureComponent {
       this.setState({
         estimatedTotalGas: hexToBN(gasHexes.gasFeeMaxHex),
       });
-    } else if (gasEstimates.gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
+    } else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {
       const gasPrice = hexToBN(
-        decGWEIToHexWEI(
-          gasEstimates.gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM],
-        ),
+        decGWEIToHexWEI(gasFeeEstimates[AppConstants.GAS_OPTIONS.MEDIUM]),
       );
       this.setState({ estimatedTotalGas: gas.mul(gasPrice) });
     } else {
-      const gasPrice = hexToBN(
-        decGWEIToHexWEI(gasEstimates.gasFeeEstimates.gasPrice),
-      );
+      const gasPrice = hexToBN(decGWEIToHexWEI(gasFeeEstimates.gasPrice));
       this.setState({ estimatedTotalGas: gas.mul(gasPrice) });
     }
 
@@ -1514,6 +1518,8 @@ const mapStateToProps = (state, ownProps) => ({
   collectibleContracts: collectibleContractsSelector(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
+  gasEstimateType: selectGasFeeControllerEstimateType(state),
+  gasFeeEstimates: selectGasFeeEstimates(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
   selectedAddress: selectSelectedAddress(state),
