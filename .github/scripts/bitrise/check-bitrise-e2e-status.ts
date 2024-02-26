@@ -66,10 +66,12 @@ async function main(): Promise<void> {
     ({ body }) => body?.includes(bitriseTag) && body?.includes(latestCommitTag),
   );
 
+  const bitriseCommentPrefix = `Bitrise build status comment for commit ${latestCommitHash}`;
+
   // Bitrise comment doesn't exist
   if (!bitriseComment) {
     core.setFailed(
-      `Bitrise build status comment for commit ${latestCommitHash} does not exist. Remove and re-apply the "${e2eLabel} label to trigger a E2E smoke test on Bitrise for the latest commit."`,
+      `${bitriseCommentPrefix} does not exist. Remove and re-apply the "${e2eLabel}" label to trigger a E2E smoke test on Bitrise.`,
     );
     process.exit(1);
   }
@@ -80,15 +82,15 @@ async function main(): Promise<void> {
     bitriseCommentBody.includes(bitrisePendingTag) ||
     bitriseCommentBody.includes(bitriseFailTag)
   ) {
-    core.setFailed('Did not detect pass status in last Bitrise comment.');
+    core.setFailed(`${bitriseCommentPrefix} is not yet passed.`);
     process.exit(1);
   } else if (bitriseCommentBody.includes(bitriseSuccessTag)) {
-    console.log(
-      `Bitrise build status comment for commit ${latestCommitHash} has passed.`,
-    );
+    console.log(`${bitriseCommentPrefix} has passed.`);
     return;
   } else {
-    core.setFailed('Could not detect Bitrise build status.');
+    core.setFailed(
+      `${bitriseCommentPrefix} does not contain any build status. Please verify that the build status tag exists in the comment body.`,
+    );
     process.exit(1);
   }
 }
