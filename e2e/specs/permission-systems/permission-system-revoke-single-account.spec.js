@@ -37,7 +37,7 @@ describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
 
         await TestHelpers.delay(5500);
         await Browser.tapNetworkAvatarButtonOnBrowser();
-        await Assertions.checkIfNotVisible(ConnectedAccountsModal.container);
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await NetworkListModal.isVisible();
       },
     );

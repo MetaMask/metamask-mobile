@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  InteractionManager,
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
@@ -15,7 +14,6 @@ import QRCode from 'react-native-qrcode-svg';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { connect } from 'react-redux';
 
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
@@ -45,6 +43,8 @@ import { isNetworkRampSupported } from '../Ramp/utils';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
+import { getDecimalChainId } from '../../../util/networks';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 const createStyles = (theme) =>
   StyleSheet.create({
@@ -152,6 +152,10 @@ class ReceiveRequest extends PureComponent {
      * Boolean that indicates if the network supports buy
      */
     isNetworkBuySupported: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -174,9 +178,10 @@ class ReceiveRequest extends PureComponent {
       .catch((err) => {
         Logger.log('Error while trying to share address', err);
       });
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS);
-    });
+
+    this.props.metrics.trackEvent(
+      MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS,
+    );
   };
 
   /**
@@ -193,15 +198,11 @@ class ReceiveRequest extends PureComponent {
     } else {
       toggleReceiveModal();
       navigation.navigate(Routes.RAMP.BUY);
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.BUY_BUTTON_CLICKED,
-          {
-            text: 'Buy Native Token',
-            location: 'Receive Modal',
-            chain_id_destination: this.props.chainId,
-          },
-        );
+
+      this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+        text: 'Buy Native Token',
+        location: 'Receive Modal',
+        chain_id_destination: getDecimalChainId(this.props.chainId),
       });
     }
   };
@@ -234,9 +235,8 @@ class ReceiveRequest extends PureComponent {
    */
   openQrModal = () => {
     this.setState({ qrModalVisible: true });
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE);
-    });
+
+    this.props.metrics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE);
   };
 
   onReceive = () => {
@@ -245,9 +245,10 @@ class ReceiveRequest extends PureComponent {
       screen: 'PaymentRequest',
       params: { receiveAsset: this.props.receiveAsset },
     });
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
-    });
+
+    this.props.metrics.trackEvent(
+      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+    );
   };
 
   render() {
@@ -275,11 +276,10 @@ class ReceiveRequest extends PureComponent {
                   // eslint-disable-next-line react/jsx-no-bind
                   onPress={() => {
                     toggleModal();
-                    InteractionManager.runAfterInteractions(() => {
-                      Analytics.trackEvent(
-                        MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE,
-                      );
-                    });
+
+                    this.props.metrics.trackEvent(
+                      MetaMetricsEvents.RECEIVE_OPTIONS_QR_CODE,
+                    );
                   }}
                 >
                   <QRCode
@@ -379,4 +379,7 @@ const mapDispatchToProps = (dispatch) => ({
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ReceiveRequest);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(ReceiveRequest));

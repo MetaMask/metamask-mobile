@@ -4,19 +4,7 @@ import Settings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import {
-  ABOUT_METAMASK_SETTINGS,
-  ADVANCED_SETTINGS,
-  CONTACT_SETTINGS,
-  CONTACTS_SETTINGS,
-  EXPERIMENTAL_SETTINGS,
-  GENERAL_SETTINGS,
-  LOCK_SETTINGS,
-  NETWORKS_SETTINGS,
-  ON_RAMP_SETTINGS,
-  REQUEST_SETTINGS,
-  SECURITY_SETTINGS,
-} from '../../../../wdio/screen-objects/testIDs/Screens/Settings.testIds';
+import { SettingsViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SettingsView.selectors';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
@@ -60,57 +48,59 @@ describe('Settings', () => {
   });
   it('should render general settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const generalSettings = getByTestId(GENERAL_SETTINGS);
+    const generalSettings = getByTestId(SettingsViewSelectorsIDs.GENERAL);
     expect(generalSettings).toBeDefined();
   });
   it('should render security settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const securitySettings = getByTestId(SECURITY_SETTINGS);
+    const securitySettings = getByTestId(SettingsViewSelectorsIDs.SECURITY);
     expect(securitySettings).toBeDefined();
   });
   it('should render advanced settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const advancedSettings = getByTestId(ADVANCED_SETTINGS);
+    const advancedSettings = getByTestId(SettingsViewSelectorsIDs.ADVANCED);
     expect(advancedSettings).toBeDefined();
   });
   it('should render contacts settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const contactsSettings = getByTestId(CONTACTS_SETTINGS);
+    const contactsSettings = getByTestId(SettingsViewSelectorsIDs.CONTACTS);
     expect(contactsSettings).toBeDefined();
   });
   it('should render network settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const networksSettings = getByTestId(NETWORKS_SETTINGS);
+    const networksSettings = getByTestId(SettingsViewSelectorsIDs.NETWORKS);
     expect(networksSettings).toBeDefined();
   });
   it('should render feature request button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const onRampSettings = getByTestId(ON_RAMP_SETTINGS);
+    const onRampSettings = getByTestId(SettingsViewSelectorsIDs.ON_RAMP);
     expect(onRampSettings).toBeDefined();
   });
   it('should render experimental settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const experimentalSettings = getByTestId(EXPERIMENTAL_SETTINGS);
+    const experimentalSettings = getByTestId(
+      SettingsViewSelectorsIDs.EXPERIMENTAL,
+    );
     expect(experimentalSettings).toBeDefined();
   });
   it('should render about metamask button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const aboutMetamask = getByTestId(ABOUT_METAMASK_SETTINGS);
+    const aboutMetamask = getByTestId(SettingsViewSelectorsIDs.ABOUT_METAMASK);
     expect(aboutMetamask).toBeDefined();
   });
   it('should render request feature button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const requestFeature = getByTestId(REQUEST_SETTINGS);
+    const requestFeature = getByTestId(SettingsViewSelectorsIDs.REQUEST);
     expect(requestFeature).toBeDefined();
   });
   it('should render contact support button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const contactSupport = getByTestId(CONTACT_SETTINGS);
+    const contactSupport = getByTestId(SettingsViewSelectorsIDs.CONTACT);
     expect(contactSupport).toBeDefined();
   });
   it('should render lock button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
-    const lock = getByTestId(LOCK_SETTINGS);
+    const lock = getByTestId(SettingsViewSelectorsIDs.LOCK);
     expect(lock).toBeDefined();
   });
 });

@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  InteractionManager,
   Platform,
 } from 'react-native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -21,13 +20,12 @@ import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/device';
 import { saveOnboardingEvent } from '../../../actions/onboarding';
 import { connect } from 'react-redux';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import DefaultPreference from 'react-native-default-preference';
-import { METRICS_OPT_IN } from '../../../constants/storage';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+
 const IMAGE_3_RATIO = 215 / 315;
 const IMAGE_2_RATIO = 222 / 239;
 const IMAGE_1_RATIO = 285 / 203;
@@ -143,27 +141,20 @@ class OnboardingCarousel extends PureComponent {
     currentTab: 1,
   };
 
-  trackEvent = (eventArgs) => {
-    InteractionManager.runAfterInteractions(async () => {
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (metricsOptIn) {
-        AnalyticsV2.trackEvent(eventArgs);
-      } else {
-        this.props.saveOnboardingEvent(eventArgs);
-      }
-    });
+  track = (event, properties) => {
+    trackOnboarding(event, properties, this.props.saveOnboardingEvent);
   };
 
   onPressGetStarted = () => {
     this.props.navigation.navigate('Onboarding');
-    this.trackEvent(MetaMetricsEvents.ONBOARDING_STARTED);
+    this.track(MetaMetricsEvents.ONBOARDING_STARTED);
   };
 
   renderTabBar = () => <View />;
 
   onChangeTab = (obj) => {
     this.setState({ currentTab: obj.i + 1 });
-    this.trackEvent(MetaMetricsEvents.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
+    this.track(MetaMetricsEvents.ONBOARDING_WELCOME_SCREEN_ENGAGEMENT, {
       message_title: strings(`onboarding_carousel.title${[obj.i + 1]}`, {
         locale: 'en',
       }),
@@ -179,7 +170,7 @@ class OnboardingCarousel extends PureComponent {
 
   componentDidMount = () => {
     this.updateNavBar();
-    this.trackEvent(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
+    this.track(MetaMetricsEvents.ONBOARDING_WELCOME_MESSAGE_VIEWED);
   };
 
   componentDidUpdate = () => {

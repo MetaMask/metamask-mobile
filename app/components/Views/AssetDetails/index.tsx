@@ -27,7 +27,7 @@ import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
-import WarningMessage from '../SendFlow/WarningMessage';
+import WarningMessage from '../confirmations/SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AnalyticsV2 from '../../../util/analyticsV2';

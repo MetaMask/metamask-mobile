@@ -15,7 +15,6 @@ import Text from '../../../component-library/components/Texts/Text';
 import NotificationManager from '../../../core/NotificationManager';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import URL from 'url-parse';
 import { getAddressAccountType } from '../../../util/address';
@@ -39,6 +38,8 @@ import createStyles from './styles';
 import ShowWarningBanner from './showWarningBanner';
 import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { getDecimalChainId } from '../../../util/networks';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 /**
  * Account access approval component
@@ -86,6 +87,10 @@ class AccountApproval extends PureComponent {
      * A string representing the network chainId
      */
     chainId: PropTypes.string,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -114,7 +119,7 @@ class AccountApproval extends PureComponent {
       return {
         account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: url?.host,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         number_of_accounts: accountsLength,
         number_of_accounts_connected: 1,
         source: 'SDK / WalletConnect',
@@ -132,12 +137,10 @@ class AccountApproval extends PureComponent {
     const { hostname } = new URL(prefixedUrl);
     this.checkUrlFlaggedAsPhishing(hostname);
 
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.CONNECT_REQUEST_STARTED,
-        this.getAnalyticsParams(),
-      );
-    });
+    this.props.metrics.trackEvent(
+      MetaMetricsEvents.CONNECT_REQUEST_STARTED,
+      this.getAnalyticsParams(),
+    );
   };
 
   showWalletConnectNotification = (confirmation = false) => {
@@ -171,7 +174,7 @@ class AccountApproval extends PureComponent {
       // onConfirm will close current window by rejecting current approvalRequest.
       this.props.onCancel();
 
-      AnalyticsV2.trackEvent(
+      this.props.metrics.trackEvent(
         MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
         this.getAnalyticsParams(),
       );
@@ -192,7 +195,7 @@ class AccountApproval extends PureComponent {
     }
 
     this.props.onConfirm();
-    AnalyticsV2.trackEvent(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
       this.getAnalyticsParams(),
     );
@@ -203,7 +206,7 @@ class AccountApproval extends PureComponent {
    * Calls onConfirm callback and analytics to track connect canceled event
    */
   onCancel = () => {
-    AnalyticsV2.trackEvent(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
       this.getAnalyticsParams(),
     );
@@ -380,4 +383,4 @@ const mapStateToProps = (state) => ({
 
 AccountApproval.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(AccountApproval);
+export default connect(mapStateToProps)(withMetricsAwareness(AccountApproval));

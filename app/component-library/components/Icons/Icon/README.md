@@ -1,4 +1,4 @@
-# Icon
+# [Icon](https://metamask-consensys.notion.site/Icon-140cbe6ea9044c189e75b795fef99dd6)
 
 ![Icon](./Icon.png)
 
