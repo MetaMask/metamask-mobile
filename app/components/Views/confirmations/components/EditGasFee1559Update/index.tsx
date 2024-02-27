@@ -22,7 +22,6 @@ import {
 import BigNumber from 'bignumber.js';
 import FadeAnimationView from '../../../../UI/FadeAnimationView';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 
 import TimeEstimateInfoModal from '../../../../UI/TimeEstimateInfoModal';
 import useModalHandler from '../../../../Base/hooks/useModalHandler';
@@ -42,6 +41,7 @@ import {
   GAS_LIMIT_MIN,
   GAS_PRICE_MIN as GAS_MIN,
 } from '../../../../../util/gasUtils';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 const EditGasFee1559Update = ({
   selectedGasValue,
@@ -91,6 +91,7 @@ const EditGasFee1559Update = ({
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
   const gasTransaction = useGasTransaction({
@@ -133,13 +134,13 @@ const EditGasFee1559Update = ({
 
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
         getAnalyticsParams(),
       );
     }
     setShowAdvancedOptions(!showAdvancedOptions);
-  }, [getAnalyticsParams, showAdvancedOptions]);
+  }, [getAnalyticsParams, showAdvancedOptions, trackEvent]);
 
   const toggleLearnMoreModal = useCallback(() => {
     setShowLearnMoreModal(!showLearnMoreModal);
@@ -153,10 +154,7 @@ const EditGasFee1559Update = ({
   );
 
   const save = useCallback(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.GAS_FEE_CHANGED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
 
     const newGasPriceObject = {
       suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
@@ -165,7 +163,7 @@ const EditGasFee1559Update = ({
     };
 
     onSave(gasTransaction, newGasPriceObject);
-  }, [getAnalyticsParams, onSave, gasTransaction, gasObject]);
+  }, [getAnalyticsParams, onSave, gasTransaction, gasObject, trackEvent]);
 
   const changeGas = useCallback(
     (gas, option) => {
