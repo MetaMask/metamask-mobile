@@ -10,7 +10,6 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { useDispatch } from 'react-redux';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
 import Button, {
@@ -27,8 +26,6 @@ const storage = new MMKV(); // id: mmkv.default
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
-  const dispatch = useDispatch();
-
   const [sesEnabled, setSesEnabled] = useState(
     storage.getBoolean('is-ses-enabled'),
   );
