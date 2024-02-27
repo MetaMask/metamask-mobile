@@ -9,6 +9,8 @@ import {
   Linking,
 } from 'react-native';
 import { connect } from 'react-redux';
+import { isSafeChainId, toHex } from '@metamask/controller-utils';
+
 import {
   fontStyles,
   colors as staticColors,
@@ -31,7 +33,6 @@ import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import PopularList from '../../../../../util/networks/customNetworks';
@@ -64,7 +65,10 @@ import {
 } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { isSafeChainId, toHex } from '@metamask/controller-utils';
+import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -231,6 +235,10 @@ class NetworkSettings extends PureComponent {
      * Current network provider configuration
      */
     providerConfig: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -461,7 +469,7 @@ class NetworkSettings extends PureComponent {
       enableAction,
     } = this.state;
     const ticker = this.state.ticker && this.state.ticker.toUpperCase();
-    const { navigation, networkOnboardedState, route } = this.props;
+    const { navigation, networkOnboardedState, route, metrics } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
     // This must be defined before NetworkController.upsertNetworkConfiguration.
     const prevRPCURL = isCustomMainnet
@@ -553,10 +561,7 @@ class NetworkSettings extends PureComponent {
         source: 'Custom network form',
         symbol: ticker,
       };
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.NETWORK_ADDED,
-        analyticsParamsAdd,
-      );
+      metrics.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
       this.props.showNetworkOnboardingAction({
         networkUrl,
         networkType,
@@ -777,14 +782,13 @@ class NetworkSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController, CurrencyRateController, TransactionController } =
-      Engine.context;
+    const { NetworkController, CurrencyRateController } = Engine.context;
 
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
-      await TransactionController.updateIncomingTransactions();
+      await updateIncomingTransactions();
     }, 1000);
   };
 
@@ -1086,12 +1090,19 @@ class NetworkSettings extends PureComponent {
 
   toggleNetworkDetailsModal = async () => {
     const { rpcUrl, chainId: stateChainId } = this.state;
+    const { navigation } = this.props;
     const formChainId = stateChainId.trim().toLowerCase();
 
     // Ensure chainId is a 0x-prefixed, lowercase hex string
     let chainId = formChainId;
     if (!chainId.startsWith('0x')) {
       chainId = `0x${parseInt(chainId, 10).toString(16)}`;
+    }
+
+    // if chainId is goerli, show deprecation modal
+    if (chainId === CHAIN_IDS.GOERLI) {
+      navigation.navigate(Routes.DEPRECATED_NETWORK_DETAILS);
+      return;
     }
 
     if (!(await this.validateChainIdOnSubmit(formChainId, chainId, rpcUrl))) {
@@ -1221,4 +1232,7 @@ const mapStateToProps = (state) => ({
   networkOnboardedState: state.networkOnboarded.networkOnboardedState,
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(NetworkSettings);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(NetworkSettings));

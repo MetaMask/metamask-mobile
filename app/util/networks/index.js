@@ -5,7 +5,6 @@ import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
 import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
 import networksWithImages from 'images/image-icons';
 import {
-  GOERLI,
   MAINNET,
   NETWORKS_CHAIN_ID,
   SEPOLIA,
@@ -27,7 +26,6 @@ export { handleNetworkSwitch };
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
-const goerliLogo = require('../../images/goerli-logo-dark.png');
 const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
 const lineaGoerliLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
@@ -41,6 +39,7 @@ import {
   getEtherscanTransactionUrl,
 } from '../etherscan';
 import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
+import { getNonceLock } from '../../util/transaction-controller';
 
 /**
  * List of the supported networks
@@ -67,15 +66,6 @@ const NetworkList = {
     color: '#121212',
     networkType: 'linea-mainnet',
     imageSource: lineaMainnetLogo,
-  },
-  [GOERLI]: {
-    name: 'Goerli Test Network',
-    shortName: 'Goerli',
-    networkId: 5,
-    chainId: toHex('5'),
-    color: '#3099f2',
-    networkType: 'goerli',
-    imageSource: goerliLogo,
   },
   [SEPOLIA]: {
     name: 'Sepolia Test Network',
@@ -170,19 +160,12 @@ export const isMultiLayerFeeNetwork = (chainId) =>
  * @returns - Image of test network or undefined.
  */
 export const getTestNetImage = (networkType) => {
-  if (
-    networkType === GOERLI ||
-    networkType === SEPOLIA ||
-    networkType === LINEA_GOERLI
-  ) {
+  if (networkType === SEPOLIA || networkType === LINEA_GOERLI) {
     return networksWithImages?.[networkType.toUpperCase()];
   }
 };
 
 export const getTestNetImageByChainId = (chainId) => {
-  if (NETWORKS_CHAIN_ID.GOERLI === chainId) {
-    return networksWithImages?.GOERLI;
-  }
   if (NETWORKS_CHAIN_ID.SEPOLIA === chainId) {
     return networksWithImages?.SEPOLIA;
   }
@@ -195,7 +178,6 @@ export const getTestNetImageByChainId = (chainId) => {
  * A list of chain IDs for known testnets
  */
 const TESTNET_CHAIN_IDS = [
-  ChainId[NetworkType.goerli],
   ChainId[NetworkType.sepolia],
   ChainId[NetworkType['linea-goerli']],
 ];
@@ -337,11 +319,7 @@ export function isPrefixedFormattedHexString(value) {
 }
 
 export const getNetworkNonce = async ({ from }) => {
-  const { TransactionController } = Engine.context;
-
-  const { nextNonce, releaseLock } = await TransactionController.getNonceLock(
-    from,
-  );
+  const { nextNonce, releaseLock } = await getNonceLock(from);
 
   releaseLock();
 
