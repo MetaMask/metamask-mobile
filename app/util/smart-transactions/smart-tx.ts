@@ -168,8 +168,8 @@ export async function publishHook(request: Request) {
         requestState: {
           smartTransaction: {
             status: 'pending',
-            creationTime: Date.now(),
           },
+          creationTime: Date.now(),
         },
       });
       Logger.log('STX - Added approval', smartTransactionStatusApprovalId);

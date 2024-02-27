@@ -9,14 +9,12 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import ProgressBar from './ProgressBar';
 import { useTheme } from '../../../util/theme';
+import { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
 
 interface Props {
   requestState: {
-    smartTransaction: {
-      status: string;
-      creationTime: number;
-      transactionHash?: string;
-    };
+    smartTransaction: SmartTransaction;
+    creationTime: number;
   };
 }
 
@@ -35,12 +33,14 @@ export const showRemainingTimeInMinAndSec = (
 
 const SmartTransactionStatus = ({
   requestState: {
-    smartTransaction: { status, creationTime },
+    smartTransaction: { status },
+    creationTime,
   },
 }: Props) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
     wrapper: {
+      height: '82%',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
