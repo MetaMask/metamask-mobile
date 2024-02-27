@@ -166,6 +166,7 @@ import User from './assets/user.svg';
 import WalletCard from './assets/wallet-card.svg';
 import WalletMoney from './assets/wallet-money.svg';
 import Wallet from './assets/wallet.svg';
+import WarningTriangle from './assets/warning-triangle.svg';
 import Warning from './assets/warning.svg';
 import Wifi from './assets/wifi.svg';
 
@@ -335,6 +336,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.WalletCard]: WalletCard,
   [IconName.WalletMoney]: WalletMoney,
   [IconName.Wallet]: Wallet,
+  [IconName.WarningTriangle]: WarningTriangle,
   [IconName.Warning]: Warning,
   [IconName.Wifi]: Wifi,
 };

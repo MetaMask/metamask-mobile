@@ -105,7 +105,7 @@ const SmartTransactionStatus = ({
     header = strings('smart_transactions.status_success');
     description = undefined;
   } else if (status === 'cancelled') {
-    icon = IconName.Warning;
+    icon = IconName.WarningTriangle;
     iconColor = IconColor.Warning;
     header = strings('smart_transactions.status_timeout');
     description = strings('smart_transactions.timeout_description');
