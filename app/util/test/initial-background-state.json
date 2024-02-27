@@ -144,7 +144,8 @@
   },
   "SnapController": {
     "snapStates": {},
-    "snaps": {}
+    "snaps": {},
+    "unencryptedSnapStates": {}
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
