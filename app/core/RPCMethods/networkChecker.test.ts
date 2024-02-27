@@ -62,6 +62,32 @@ describe('checkSafeNetwork', () => {
     ]);
   });
 
+  it('should not return an error if the rpcUrl is not matched but its infura', async () => {
+    mockedAxios.get.mockImplementation(() =>
+      Promise.resolve({
+        data: [
+          {
+            chainId: '137',
+            rpc: ['http://localhost:8545'],
+            name: 'Test',
+            nativeCurrency: {
+              symbol: 'MATIC',
+              decimals: 18,
+            },
+          },
+        ],
+      }),
+    );
+
+    const alerts = await checkSafeNetwork(
+      '137',
+      'https://polygon-mainnet.infura.io/v3/test',
+      'Test',
+      'MATIC',
+    );
+    expect(alerts).toEqual([]);
+  });
+
   it('should return a warning if the decimals is not matched', async () => {
     mockedAxios.get.mockImplementation(() =>
       Promise.resolve({
