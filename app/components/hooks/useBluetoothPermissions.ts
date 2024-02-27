@@ -1,7 +1,12 @@
 import { useState, useRef, useLayoutEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { getSystemVersion } from 'react-native-device-info';
-import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
+import {
+  PERMISSIONS,
+  RESULTS,
+  request,
+  requestMultiple,
+} from 'react-native-permissions';
 import Device from '../../util/device';
 
 export enum BluetoothPermissionErrors {
@@ -40,26 +45,19 @@ const useBluetoothPermissions = () => {
       let hasError = false;
 
       if (deviceOSVersion >= 12) {
-        const connectPermissionStatus = await request(
+        const result = await requestMultiple([
           PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
-        );
+          PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
+        ]);
 
-        if (connectPermissionStatus !== RESULTS.GRANTED) {
+        if (
+          result[PERMISSIONS.ANDROID.BLUETOOTH_CONNECT] !== RESULTS.GRANTED ||
+          result[PERMISSIONS.ANDROID.BLUETOOTH_SCAN] !== RESULTS.GRANTED
+        ) {
           setBluetoothPermissionError(
             BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
           );
           hasError = true;
-        } else {
-          const scanPermissionStatus = await request(
-            PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
-          );
-
-          if (scanPermissionStatus !== RESULTS.GRANTED) {
-            setBluetoothPermissionError(
-              BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
-            );
-            hasError = true;
-          }
         }
       } else {
         const bluetoothPermissionStatus = await request(
