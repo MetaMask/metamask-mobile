@@ -1,6 +1,13 @@
 import axios from 'axios';
 import { BannerAlertSeverity } from '../../component-library/components/Banners/Banner';
 import { strings } from '../../../locales/i18n';
+import PopularList from '../../util/networks/customNetworks';
+
+const handlePopularNetwork = (rpcUrl: string) =>
+  PopularList.some((network) => {
+    const { origin } = new URL(network.rpcUrl);
+    return origin === rpcUrl;
+  });
 
 const checkSafeNetwork = async (
   chainIdDecimal: string,
@@ -23,7 +30,8 @@ const checkSafeNetwork = async (
     if (
       !matchedChain.rpc
         ?.map((rpc: string) => new URL(rpc).origin)
-        .includes(origin)
+        .includes(origin) &&
+      !handlePopularNetwork(origin)
     ) {
       alerts.push({
         alertError: strings('add_custom_network.invalid_rpc_url'),
