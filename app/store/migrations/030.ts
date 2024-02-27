@@ -5,11 +5,6 @@ import { isObject } from '@metamask/utils';
 import { NetworkState } from '@metamask/network-controller';
 import NetworkList from '../../../app/util/networks';
 
-/**
- * Enable security alerts by default.
- * @param {any} state - Redux state.
- * @returns Migrated Redux state.
- */
 export default function migrate(state: unknown) {
   if (!isObject(state)) {
     captureException(
