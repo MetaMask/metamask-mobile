@@ -9,6 +9,7 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 
 // Internal dependencies
 import NetworkSelector from './NetworkSelector';
+import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 
 const mockEngine = Engine;
 
@@ -158,9 +159,9 @@ describe('Network Selector', () => {
             ...initialState.engine.backgroundState.NetworkController,
             providerConfig: {
               type: 'mainnet',
-              nickname: 'Goerli mainnet',
+              nickname: 'Sepolia mainnet',
               ticket: 'eth',
-              chainId: '0x5',
+              chainId: CHAIN_IDS.SEPOLIA,
             },
           },
         },
