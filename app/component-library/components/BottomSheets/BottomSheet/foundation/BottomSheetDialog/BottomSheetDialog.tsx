@@ -60,6 +60,7 @@ const BottomSheetDialog = forwardRef<
       isInteractable = true,
       onClose,
       onOpen,
+      customMarginTop,
       ...props
     },
     ref,
@@ -68,9 +69,10 @@ const BottomSheetDialog = forwardRef<
       useSafeAreaInsets();
     const { y: frameY } = useSafeAreaFrame();
     const { height: screenHeight } = useWindowDimensions();
+    const marginTop = customMarginTop ?? DEFAULT_BOTTOMSHEETDIALOG_MARGINTOP;
     const maxSheetHeight = isFullscreen
       ? screenHeight - screenTopPadding
-      : screenHeight - screenTopPadding - DEFAULT_BOTTOMSHEETDIALOG_MARGINTOP;
+      : screenHeight - screenTopPadding - marginTop;
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,
       screenBottomPadding,
