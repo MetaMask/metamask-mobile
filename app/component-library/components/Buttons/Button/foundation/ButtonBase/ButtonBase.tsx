@@ -45,6 +45,8 @@ const ButtonBase = ({
       activeOpacity={1}
       onPress={onPress}
       style={styles.base}
+      accessibilityRole="button"
+      accessible
       {...props}
     >
       {startIconName && (
