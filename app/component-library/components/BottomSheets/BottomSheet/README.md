@@ -22,6 +22,14 @@ Boolean that indicates if sheet is swippable. This affects whether or not tappin
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                      | true                                                   |
 
+
+### `customMarginTop`
+
+Configure height of the modal by setting the distance between top of modal and top of screen.
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| number                                             | No                                                      | 250
+
 ### `children`
 
 Content to wrap in sheet.
