@@ -85,7 +85,6 @@ import {
   SubjectMetadataControllerActions,
   SubjectMetadataControllerEvents,
   SubjectMetadataControllerState,
-  SubjectType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
@@ -107,7 +106,6 @@ import {
   PersistedSnapControllerState,
   WebViewExecutionService,
 } from '@metamask/snaps-controllers';
-import { Snap } from '@metamask/snaps-utils';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
