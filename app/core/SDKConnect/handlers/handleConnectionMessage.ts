@@ -129,6 +129,9 @@ export const handleConnectionMessage = async ({
     data: processedRpc,
     origin: 'sdk',
   });
+
+  // Update initial connection state
+  connection.initialConnection = false;
 };
 
 export default handleConnectionMessage;

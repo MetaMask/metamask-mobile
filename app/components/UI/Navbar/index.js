@@ -6,7 +6,6 @@ import AccountRightButton from '../AccountRightButton';
 import {
   Alert,
   Image,
-  InteractionManager,
   Platform,
   StyleSheet,
   Text,
@@ -21,8 +20,7 @@ import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
@@ -34,6 +32,8 @@ import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Scre
 import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
+import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+
 import ButtonIcon, {
   ButtonIconSizes,
   ButtonIconVariants,
@@ -42,8 +42,6 @@ import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
-import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 import {
   default as MorphText,
   TextVariant,
@@ -51,17 +49,10 @@ import {
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 
-const trackEvent = (event) => {
-  InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEvent(event);
-  });
-};
-
-const trackEventWithParameters = (event, params) => {
-  InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEventWithParameters(event, params);
-  });
+const trackEvent = (event, params = {}) => {
+  MetaMetrics.getInstance().trackEvent(event, params);
 };
 
 const styles = StyleSheet.create({
@@ -223,7 +214,7 @@ export function getNavigationOptionsTitle(
           iconName={IconName.ArrowLeft}
           onPress={navigationPop}
           style={innerStyles.accessories}
-          testID={NetworksViewSelectorsIDs.BACK_ARROW_BUTTON}
+          testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
         />
       ),
     headerTintColor: themeColors.primary.default,
@@ -533,7 +524,7 @@ export function getSendFlowTitle(
   });
   const rightAction = () => {
     const providerType = route?.params?.providerType ?? '';
-    trackEventWithParameters(MetaMetricsEvents.SEND_FLOW_CANCEL, {
+    trackEvent(MetaMetricsEvents.SEND_FLOW_CANCEL, {
       view: title.split('.')[1],
       network: providerType,
     });
@@ -1386,14 +1377,9 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+      trackEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+        ...trade,
+        responseTime: new Date().getTime() - quoteBegin,
       });
     }
     navigation.pop();
@@ -1404,14 +1390,9 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+      trackEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+        ...trade,
+        responseTime: new Date().getTime() - quoteBegin,
       });
     }
     navigation.dangerouslyGetParent()?.pop();

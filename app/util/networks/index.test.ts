@@ -12,7 +12,6 @@ import {
 } from '.';
 import {
   MAINNET,
-  GOERLI,
   RPC,
   SEPOLIA,
   LINEA_GOERLI,
@@ -53,7 +52,6 @@ describe('network-utils', () => {
     it('should get all networks', () => {
       expect(allNetworks.includes(MAINNET)).toEqual(true);
       expect(allNetworks.includes(SEPOLIA)).toEqual(true);
-      expect(allNetworks.includes(GOERLI)).toEqual(true);
       expect(allNetworks.includes(LINEA_GOERLI)).toEqual(true);
       expect(allNetworks.includes(LINEA_MAINNET)).toEqual(true);
     });
@@ -72,11 +70,7 @@ describe('network-utils', () => {
   });
 
   describe('isTestNet', () => {
-    const testnets = [
-      NetworkType.goerli,
-      NetworkType.sepolia,
-      NetworkType['linea-goerli'],
-    ];
+    const testnets = [NetworkType.sepolia, NetworkType['linea-goerli']];
 
     for (const networkType of testnets) {
       it(`should return true if the given chain ID is for '${networkType}'`, () => {
@@ -196,14 +190,14 @@ describe('network-utils', () => {
 
     it('should return etherscan block explorer address url when network type !== "rpc"', () => {
       const { url, title } = getBlockExplorerAddressUrl(
-        GOERLI,
+        SEPOLIA,
         mockEthereumAddress,
       );
 
       expect(url).toBe(
-        `https://goerli.etherscan.io/address/${mockEthereumAddress}`,
+        `https://sepolia.etherscan.io/address/${mockEthereumAddress}`,
       );
-      expect(title).toBe(`goerli.etherscan.io`);
+      expect(title).toBe(`sepolia.etherscan.io`);
     });
 
     it('should return custom block explorer address url when network type === "linea-goerli"', () => {
@@ -254,10 +248,15 @@ describe('network-utils', () => {
     });
 
     it('should return etherscan block explorer tx url when network type !== "rpc"', () => {
-      const { url, title } = getBlockExplorerTxUrl(GOERLI, mockTransactionHash);
+      const { url, title } = getBlockExplorerTxUrl(
+        SEPOLIA,
+        mockTransactionHash,
+      );
 
-      expect(url).toBe(`https://goerli.etherscan.io/tx/${mockTransactionHash}`);
-      expect(title).toBe(`goerli.etherscan.io`);
+      expect(url).toBe(
+        `https://sepolia.etherscan.io/tx/${mockTransactionHash}`,
+      );
+      expect(title).toBe(`sepolia.etherscan.io`);
     });
 
     it('should return custom block explorer tx url when network type === "linea-goerli"', () => {

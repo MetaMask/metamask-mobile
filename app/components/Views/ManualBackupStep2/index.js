@@ -20,9 +20,8 @@ import { shuffle, compareMnemonics } from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
-import Logger from '../../../util/Logger';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();
@@ -48,9 +47,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   };
 
   const track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('ManualBackupStep2', `Failed to track ${event}`);
-    });
+    trackOnboarding(event, properties);
   };
 
   const updateNavBar = useCallback(() => {
