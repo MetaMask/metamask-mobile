@@ -33,7 +33,7 @@ describe('Adding Contract Nickname', () => {
   const APPROVAL_DEEPLINK_URL =
     'https://metamask.app.link/send/0x326C977E6efc84E512bB9C30f76E30c160eD06FB@5/approve?address=0x178e3e6c9f547A00E33150F7104427ea02cfc747&uint256=5e8';
   const CONTRACT_NICK_NAME_TEXT = 'Ace RoMaIn';
-  const GOERLI = 'Goerli Test Network';
+  const SEPOLIA = 'Sepolia Test Network';
 
   //FIXME Deep linking to a contract address does not work on a sim.
 
@@ -97,11 +97,11 @@ describe('Adding Contract Nickname', () => {
     }
   });
 
-  it('should switch to GOERLI', async () => {
+  it('should switch to SEPOLIA', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.changeNetwork(GOERLI);
+    await NetworkListModal.changeNetwork(SEPOLIA);
 
-    await WalletView.isNetworkNameVisible(GOERLI);
+    await WalletView.isNetworkNameVisible(SEPOLIA);
     await TestHelpers.delay(1500);
   });
 
