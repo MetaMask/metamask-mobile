@@ -30,6 +30,7 @@ async function main(): Promise<void> {
 
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
+  // Get the latest commit hash
   const pullRequestResponse = await octokit.rest.pulls.get({
     owner: repoOwner,
     repo,
@@ -38,6 +39,7 @@ async function main(): Promise<void> {
 
   const latestCommitHash = pullRequestResponse.data.head.sha;
 
+  // Configure Bitrise configuration for API call
   const data = {
     build_params: {
       branch: process.env.GITHUB_HEAD_REF,
