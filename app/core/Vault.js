@@ -28,11 +28,15 @@ export const restoreQRKeyring = async () => {
 /**
  * Restores the Ledger keyring if it exists.
  */
-export const restoreLedgerKeyring = async () => {
+export const restoreLedgerKeyring = async (keyring) => {
   const { KeyringController } = Engine.context;
-  const keyring = await getLedgerKeyring();
+
   if (keyring) {
     try {
+      const serializedLedgerKeyring = await keyring.serialize();
+      //This will regenerate a new ledger keyring after `createNewVaultAndRestore` is called
+      (await getLedgerKeyring()).deserialize(serializedLedgerKeyring);
+
       await KeyringController.persistAllKeyrings();
       KeyringController.updateIdentities(await KeyringController.getAccounts());
     } catch (e) {
@@ -98,11 +102,13 @@ export const recreateVaultWithNewPassword = async (
   const hdKeyring = KeyringController.state.keyrings[0];
   const existingAccountCount = hdKeyring.accounts.length;
 
+  const oldLedgerKeyring = await getLedgerKeyring();
+
   // Recreate keyring with password given to this method
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
   await restoreQRKeyring();
-  await restoreLedgerKeyring();
+  await restoreLedgerKeyring(oldLedgerKeyring);
 
   // Create previous accounts again
   for (let i = 0; i < existingAccountCount - 1; i++) {
