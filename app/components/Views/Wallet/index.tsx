@@ -126,7 +126,7 @@ const Wallet = ({ navigation }: any) => {
   const providerConfig = useSelector(selectProviderConfig);
 
   /**
-   * A list of all the users accounts and a mapping of ens names to account addresses if they exist
+   * A list of all the user accounts and a mapping of ENS name to account address if they exist
    */
   const { accounts, ensByAccountAddress } = useAccounts();
 
