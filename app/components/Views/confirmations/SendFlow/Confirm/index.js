@@ -444,7 +444,7 @@ class Confirm extends PureComponent {
         id,
         jsonrpc: '2.0',
         method: 'eth_sendTransaction',
-        origin: TransactionTypes.MMM,
+        origin: TransactionTypes.MM,
         params: [
           {
             from,
