@@ -2720,12 +2720,13 @@ index 0000000..08b3514
 +{"version":3,"file":"GasFeePoller.js","sourceRoot":"","sources":["../../src/helpers/GasFeePoller.ts"],"names":[],"mappings":"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","sourcesContent":["import EventEmitter from 'events';\nimport type { GasFeeState } from '@metamask/gas-fee-controller';\nimport { createModuleLogger } from '@metamask/utils';\n\nimport { projectLogger } from '../logger';\nimport type { GasFeeFlow, GasFeeFlowRequest } from '../types';\nimport { TransactionStatus, type TransactionMeta } from '../types';\nimport { getGasFeeFlow } from '../utils/gas-flow';\n\nconst log = createModuleLogger(projectLogger, 'gas-fee-poller');\n\nconst INTERVAL_MILLISECONDS = 10000;\n\n/**\n * Automatically polls and updates suggested gas fees on unapproved transactions.\n */\nexport class GasFeePoller {\n  hub: EventEmitter = new EventEmitter();\n\n  #gasFeeFlows: GasFeeFlow[];\n\n  #getChainIds: () => string[];\n\n  #getEthQuery: () => any;\n\n  #getGasFeeControllerEstimates: () => Promise<GasFeeState>;\n\n  #getTransactions: () => TransactionMeta[];\n\n  #timeout: any;\n\n  #running = false;\n\n  /**\n   * Constructs a new instance of the GasFeePoller.\n   *\n   * @param options - The options for this instance.\n   * @param options.gasFeeFlows - The gas fee flows to use to obtain suitable gas fees.\n   * @param options.getChainIds - Callback to specify the chain IDs to monitor.\n   * @param options.getEthQuery - Callback to obtain an EthQuery instance.\n   * @param options.getGasFeeControllerEstimates - Callback to obtain the default fee estimates.\n   * @param options.getTransactions - Callback to obtain the transaction data.\n   * @param options.onStateChange - Callback to register a listener for controller state changes.\n   */\n  constructor({\n    gasFeeFlows,\n    getChainIds,\n    getEthQuery,\n    getGasFeeControllerEstimates,\n    getTransactions,\n    onStateChange,\n  }: {\n    gasFeeFlows: GasFeeFlow[];\n    getChainIds: () => string[];\n    getEthQuery: () => any;\n    getGasFeeControllerEstimates: () => Promise<GasFeeState>;\n    getTransactions: () => TransactionMeta[];\n    onStateChange: (listener: () => void) => void;\n  }) {\n    this.#gasFeeFlows = gasFeeFlows;\n    this.#getChainIds = getChainIds;\n    this.#getEthQuery = getEthQuery;\n    this.#getGasFeeControllerEstimates = getGasFeeControllerEstimates;\n    this.#getTransactions = getTransactions;\n\n    onStateChange(() => {\n      const unapprovedTransactions = this.#getUnapprovedTransactions();\n\n      if (unapprovedTransactions.length) {\n        this.#start();\n      } else {\n        this.#stop();\n      }\n    });\n  }\n\n  #start() {\n    if (this.#running) {\n      return;\n    }\n\n    // Intentionally not awaiting since this starts the timeout chain.\n    // eslint-disable-next-line @typescript-eslint/no-floating-promises\n    this.#onTimeout();\n\n    this.#running = true;\n\n    log('Started polling');\n  }\n\n  #stop() {\n    if (!this.#running) {\n      return;\n    }\n\n    clearTimeout(this.#timeout);\n\n    this.#timeout = undefined;\n    this.#running = false;\n\n    log('Stopped polling');\n  }\n\n  async #onTimeout() {\n    await this.#updateUnapprovedTransactions();\n\n    // eslint-disable-next-line @typescript-eslint/no-misused-promises\n    this.#timeout = setTimeout(() => this.#onTimeout(), INTERVAL_MILLISECONDS);\n  }\n\n  async #updateUnapprovedTransactions() {\n    const unapprovedTransactions = this.#getUnapprovedTransactions();\n\n    log('Found unapproved transactions', {\n      count: unapprovedTransactions.length,\n    });\n\n    const ethQuery = this.#getEthQuery();\n\n    await Promise.all(\n      unapprovedTransactions.map((tx) =>\n        this.#updateTransactionSuggestedFees(tx, ethQuery),\n      ),\n    );\n  }\n\n  async #updateTransactionSuggestedFees(\n    transactionMeta: TransactionMeta,\n    ethQuery: any,\n  ) {\n    const gasFeeFlow = getGasFeeFlow(transactionMeta, this.#gasFeeFlows);\n\n    if (!gasFeeFlow) {\n      log('No gas fee flow found', transactionMeta.id);\n    } else {\n      log(\n        'Found gas fee flow',\n        gasFeeFlow.constructor.name,\n        transactionMeta.id,\n      );\n    }\n\n    const request: GasFeeFlowRequest = {\n      ethQuery,\n      getGasFeeControllerEstimates: this.#getGasFeeControllerEstimates,\n      transactionMeta,\n    };\n\n    if (gasFeeFlow) {\n      try {\n        const response = await gasFeeFlow.getGasFees(request);\n\n        transactionMeta.gasFeeEstimates = response.estimates;\n      } catch (error) {\n        log('Failed to get suggested gas fees', transactionMeta.id, error);\n      }\n    }\n\n    if (!gasFeeFlow && transactionMeta.gasFeeEstimatesLoaded) {\n      return;\n    }\n\n    transactionMeta.gasFeeEstimatesLoaded = true;\n\n    this.hub.emit(\n      'transaction-updated',\n      transactionMeta,\n      'GasFeePoller - Suggested gas fees updated',\n    );\n\n    log('Updated suggested gas fees', {\n      gasFeeEstimates: transactionMeta.gasFeeEstimates,\n      transaction: transactionMeta.id,\n    });\n  }\n\n  #getUnapprovedTransactions() {\n    const chainIds = this.#getChainIds();\n\n    return this.#getTransactions().filter(\n      (tx) =>\n        chainIds.includes(tx.chainId as string) &&\n        tx.status === TransactionStatus.unapproved,\n    );\n  }\n}\n"]}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/index.d.ts b/node_modules/@metamask/transaction-controller/dist/index.d.ts
-index fc7f49b..52e424e 100644
+index fc7f49b..e80f306 100644
 --- a/node_modules/@metamask/transaction-controller/dist/index.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/index.d.ts
 @@ -1,3 +1,5 @@
  export * from './TransactionController';
- export { isEIP1559Transaction } from './utils';
+-export { isEIP1559Transaction } from './utils';
++export { isEIP1559Transaction, normalizeTransaction as normalizeTransactionParams, } from './utils';
 +export * from './types';
 +export { mergeGasFeeEstimates, getGasFeeFlow } from './utils/gas-flow';
  //# sourceMappingURL=index.d.ts.map
@@ -2739,18 +2740,19 @@ index 2175387..0000000
 -{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,cAAc,yBAAyB,CAAC;AACxC,OAAO,EAAE,oBAAoB,EAAE,MAAM,SAAS,CAAC"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/index.js b/node_modules/@metamask/transaction-controller/dist/index.js
-index a1c07c8..99cea84 100644
+index a1c07c8..7bc2df1 100644
 --- a/node_modules/@metamask/transaction-controller/dist/index.js
 +++ b/node_modules/@metamask/transaction-controller/dist/index.js
-@@ -14,8 +14,12 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
+@@ -14,8 +14,13 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
  };
  Object.defineProperty(exports, "__esModule", { value: true });
 -exports.isEIP1559Transaction = void 0;
-+exports.getGasFeeFlow = exports.mergeGasFeeEstimates = exports.isEIP1559Transaction = void 0;
++exports.getGasFeeFlow = exports.mergeGasFeeEstimates = exports.normalizeTransactionParams = exports.isEIP1559Transaction = void 0;
  __exportStar(require("./TransactionController"), exports);
  var utils_1 = require("./utils");
  Object.defineProperty(exports, "isEIP1559Transaction", { enumerable: true, get: function () { return utils_1.isEIP1559Transaction; } });
++Object.defineProperty(exports, "normalizeTransactionParams", { enumerable: true, get: function () { return utils_1.normalizeTransaction; } });
 +__exportStar(require("./types"), exports);
 +var gas_flow_1 = require("./utils/gas-flow");
 +Object.defineProperty(exports, "mergeGasFeeEstimates", { enumerable: true, get: function () { return gas_flow_1.mergeGasFeeEstimates; } });
@@ -3687,7 +3689,7 @@ index 0000000..2cc85ee
 +//# sourceMappingURL=types.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.d.ts b/node_modules/@metamask/transaction-controller/dist/utils.d.ts
-index ccf3362..301b1b5 100644
+index ccf3362..6fa3839 100644
 --- a/node_modules/@metamask/transaction-controller/dist/utils.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/utils.d.ts
 @@ -1,6 +1,6 @@
@@ -3720,7 +3722,7 @@ index ccf3362..301b1b5 100644
  export declare const validateGasValues: (gasValues: GasPriceValue | FeeMarketEIP1559Values) => void;
  export declare const isFeeMarketEIP1559Values: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is FeeMarketEIP1559Values;
  export declare const isGasPriceValue: (gasValues?: GasPriceValue | FeeMarketEIP1559Values | undefined) => gasValues is GasPriceValue;
-@@ -63,10 +49,11 @@ export declare function validateMinimumIncrease(proposed: string, min: string):
+@@ -63,10 +49,19 @@ export declare function validateMinimumIncrease(proposed: string, min: string):
  /**
   * Helper function to filter and format transactions for the nonce tracker.
   *
@@ -3732,6 +3734,14 @@ index ccf3362..301b1b5 100644
   */
 -export declare function getAndFormatTransactionsForNonceTracker(fromAddress: string, transactionStatus: TransactionStatus, transactions: TransactionMeta[]): NonceTrackerTransaction[];
 +export declare function getAndFormatTransactionsForNonceTracker(currentChainId: string, fromAddress: string, transactionStatus: TransactionStatus, transactions: TransactionMeta[]): NonceTrackerTransaction[];
++/**
++ * Ensure a hex string is of even length by adding a leading 0 if necessary.
++ * Any existing `0x` prefix is preserved but is not added if missing.
++ *
++ * @param hex - The hex string to ensure is even.
++ * @returns The hex string with an even length.
++ */
++export declare function padHexToEvenLength(hex: string): string;
  //# sourceMappingURL=utils.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.d.ts.map b/node_modules/@metamask/transaction-controller/dist/utils.d.ts.map
@@ -3743,10 +3753,10 @@ index 9d4045c..0000000
 -{"version":3,"file":"utils.d.ts","sourceRoot":"","sources":["../src/utils.ts"],"names":[],"mappings":"AAOA,OAAO,KAAK,EAAE,WAAW,IAAI,uBAAuB,EAAE,MAAM,iCAAiC,CAAC;AAC9F,OAAO,EACL,WAAW,EACX,eAAe,EACf,aAAa,EACb,sBAAsB,EACtB,iBAAiB,EAClB,MAAM,yBAAyB,CAAC;AACjC,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,yBAAyB,CAAC;AAE/D,eAAO,MAAM,kBAAkB,qCAAqC,CAAC;AAiBrE;;;;;;GAMG;AACH,wBAAgB,kBAAkB,CAChC,WAAW,EAAE,MAAM,EACnB,SAAS,EAAE,GAAG,GACb,MAAM,CAeR;AAED;;;;;GAKG;AACH,wBAAgB,oBAAoB,CAAC,WAAW,EAAE,WAAW,eAS5D;AAED;;;;;GAKG;AACH,wBAAgB,mBAAmB,CAAC,WAAW,EAAE,WAAW,QAmD3D;AAED;;;;;;GAMG;AACH,eAAO,MAAM,oBAAoB,gBAAiB,WAAW,KAAG,OAO/D,CAAC;AAEF;;;;;;;;GAQG;AACH,wBAAsB,sBAAsB,CAC1C,WAAW,EAAE,MAAM,EACnB,OAAO,EAAE,MAAM,EACf,cAAc,EAAE,MAAM,EACtB,GAAG,CAAC,EAAE,eAAe,GACpB,OAAO,CAAC,CAAC;IAAE,CAAC,MAAM,EAAE,MAAM,GAAG,EAAE,CAAA;CAAE,EAAE;IAAE,CAAC,MAAM,EAAE,MAAM,GAAG,EAAE,CAAA;CAAE,CAAC,CAAC,CA8C/D;AAED,eAAO,MAAM,iBAAiB,cACjB,aAAa,GAAG,sBAAsB,SAUlD,CAAC;AAEF,eAAO,MAAM,wBAAwB,yGAIsC,CAAC;AAE5E,eAAO,MAAM,eAAe,gGAG0B,CAAC;AAEvD,eAAO,MAAM,oBAAoB,UAAW,MAAM,QAAQ,MAAM,KAAG,MACF,CAAC;AAElE,eAAO,MAAM,6BAA6B,UACjC,MAAM,GAAG,SAAS,QACnB,MAAM,KACX,MAEF,CAAC;AAEF;;;;;;;GAOG;AACH,wBAAgB,uBAAuB,CAAC,QAAQ,EAAE,MAAM,EAAE,GAAG,EAAE,MAAM,UAQpE;AAED;;;;;;;GAOG;AACH,wBAAgB,uCAAuC,CACrD,WAAW,EAAE,MAAM,EACnB,iBAAiB,EAAE,iBAAiB,EACpC,YAAY,EAAE,eAAe,EAAE,GAC9B,uBAAuB,EAAE,CAsB3B"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.js b/node_modules/@metamask/transaction-controller/dist/utils.js
-index 179a564..e15322d 100644
+index 179a564..64b5f3f 100644
 --- a/node_modules/@metamask/transaction-controller/dist/utils.js
 +++ b/node_modules/@metamask/transaction-controller/dist/utils.js
-@@ -1,15 +1,6 @@
+@@ -1,20 +1,11 @@
  "use strict";
 -var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 -    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -3759,10 +3769,16 @@ index 179a564..e15322d 100644
 -};
  Object.defineProperty(exports, "__esModule", { value: true });
 -exports.getAndFormatTransactionsForNonceTracker = exports.validateMinimumIncrease = exports.getIncreasedPriceFromExisting = exports.getIncreasedPriceHex = exports.isGasPriceValue = exports.isFeeMarketEIP1559Values = exports.validateGasValues = exports.handleTransactionFetch = exports.isEIP1559Transaction = exports.validateTransaction = exports.normalizeTransaction = exports.getEtherscanApiUrl = exports.ESTIMATE_GAS_ERROR = void 0;
-+exports.getAndFormatTransactionsForNonceTracker = exports.validateMinimumIncrease = exports.getIncreasedPriceFromExisting = exports.getIncreasedPriceHex = exports.isGasPriceValue = exports.isFeeMarketEIP1559Values = exports.validateGasValues = exports.isEIP1559Transaction = exports.validateTransaction = exports.normalizeTransaction = exports.getEtherscanApiUrl = exports.ESTIMATE_GAS_ERROR = void 0;
++exports.padHexToEvenLength = exports.getAndFormatTransactionsForNonceTracker = exports.validateMinimumIncrease = exports.getIncreasedPriceFromExisting = exports.getIncreasedPriceHex = exports.isGasPriceValue = exports.isFeeMarketEIP1559Values = exports.validateGasValues = exports.isEIP1559Transaction = exports.validateTransaction = exports.normalizeTransaction = exports.getEtherscanApiUrl = exports.ESTIMATE_GAS_ERROR = void 0;
  const ethereumjs_util_1 = require("ethereumjs-util");
  const controller_utils_1 = require("@metamask/controller-utils");
  exports.ESTIMATE_GAS_ERROR = 'eth_estimateGas rpc method error';
+ const NORMALIZERS = {
+-    data: (data) => (0, ethereumjs_util_1.addHexPrefix)(data),
++    data: (data) => (0, ethereumjs_util_1.addHexPrefix)(padHexToEvenLength(data)),
+     from: (from) => (0, ethereumjs_util_1.addHexPrefix)(from).toLowerCase(),
+     gas: (gas) => (0, ethereumjs_util_1.addHexPrefix)(gas),
+     gasPrice: (gasPrice) => (0, ethereumjs_util_1.addHexPrefix)(gasPrice),
 @@ -24,6 +15,7 @@ const NORMALIZERS = {
      maxFeePerGas: (maxFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxFeePerGas),
      maxPriorityFeePerGas: (maxPriorityFeePerGas) => (0, ethereumjs_util_1.addHexPrefix)(maxPriorityFeePerGas),
@@ -3842,6 +3858,26 @@ index 179a564..e15322d 100644
          from.toLowerCase() === fromAddress.toLowerCase())
          .map(({ status, transaction: { from, gas, value, nonce } }) => {
          // the only value we care about is the nonce
+@@ -232,4 +183,18 @@ function getAndFormatTransactionsForNonceTracker(fromAddress, transactionStatus,
+     });
+ }
+ exports.getAndFormatTransactionsForNonceTracker = getAndFormatTransactionsForNonceTracker;
++/**
++ * Ensure a hex string is of even length by adding a leading 0 if necessary.
++ * Any existing `0x` prefix is preserved but is not added if missing.
++ *
++ * @param hex - The hex string to ensure is even.
++ * @returns The hex string with an even length.
++ */
++function padHexToEvenLength(hex) {
++    const prefix = hex.toLowerCase().startsWith('0x') ? hex.slice(0, 2) : '';
++    const data = prefix ? hex.slice(2) : hex;
++    const evenData = data.length % 2 === 0 ? data : `0${data}`;
++    return prefix + evenData;
++}
++exports.padHexToEvenLength = padHexToEvenLength;
+ //# sourceMappingURL=utils.js.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.js.map b/node_modules/@metamask/transaction-controller/dist/utils.js.map
 deleted file mode 100644
 index 8f2f6e3..0000000
