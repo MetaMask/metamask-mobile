@@ -136,7 +136,7 @@ describe('WalletAccount', () => {
     );
     expect(getByText(mockAccount.name)).toBeDefined();
   });
-  it('displays ens name when defined and account name is the default', () => {
+  it('displays ENS name when defined and account name is the default', () => {
     const ensName = 'test.eth';
     const mockAccountWithDefaultName: Account = {
       ...mockAccount,
