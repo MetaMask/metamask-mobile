@@ -27,6 +27,10 @@ export interface BottomSheetDialogProps extends ViewProps {
    * Optional callback that gets triggered when sheet is opened.
    */
   onOpen?: (hasPendingAction?: boolean) => void;
+  /**
+   * Customize the top margin of the sheet.
+   */
+  customMarginTop?: number;
 }
 
 export interface BottomSheetDialogRef {
