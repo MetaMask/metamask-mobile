@@ -31,6 +31,8 @@ import {
   updateOriginatorInfos,
   updateSDKLoadingState,
 } from './StateManagement';
+import DevLogger from './utils/DevLogger';
+import Engine from '../../core/Engine';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -121,6 +123,7 @@ export class SDKConnect extends EventEmitter2 {
     trigger,
     otherPublicKey,
     origin,
+    initialConnection,
     validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
   }: ConnectionProps) {
     return connectToChannel({
@@ -129,6 +132,7 @@ export class SDKConnect extends EventEmitter2 {
       otherPublicKey,
       origin,
       validUntil,
+      initialConnection,
       instance: this,
     });
   }
@@ -225,6 +229,17 @@ export class SDKConnect extends EventEmitter2 {
     return addAndroidConnection(connection, this);
   }
 
+  public async refreshChannel({ channelId }: { channelId: string }) {
+    const session = this.state.connected[channelId];
+    if (!session) {
+      DevLogger.log(`SDKConnect::refreshChannel - session not found`);
+      return;
+    }
+    DevLogger.log(`SDKConnect::refreshChannel channelId=${channelId}`);
+    // Force enitting updated accounts
+    session.backgroundBridge?.notifySelectedAddressChanged();
+  }
+
   /**
    * Invalidate a channel/session by preventing future connection to be established.
    * Instead of removing the channel, it sets the session to timeout on next
@@ -247,6 +262,7 @@ export class SDKConnect extends EventEmitter2 {
   }) {
     return removeChannel({
       channelId,
+      engine: Engine,
       sendTerminate,
       instance: this,
       emitRefresh,
@@ -254,7 +270,10 @@ export class SDKConnect extends EventEmitter2 {
   }
 
   public async removeAll() {
-    return removeAll(this);
+    const removeAllPromise = removeAll(this);
+    // Force close loading status
+    removeAllPromise.finally(() => this.hideLoadingState());
+    return removeAllPromise;
   }
 
   public getConnected() {
@@ -263,6 +282,13 @@ export class SDKConnect extends EventEmitter2 {
 
   public getConnections() {
     return this.state.connections;
+  }
+
+  public getConnection({ channelId }: { channelId: string }) {
+    return (
+      this.state.connections[channelId] ??
+      this.state.androidConnections[channelId]
+    );
   }
 
   public getApprovedHosts(_context?: string) {
