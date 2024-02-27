@@ -169,6 +169,9 @@ export function getTransactionsNavbarOptions(
  *
  * @param {string} title - Title in string format
  * @param {Object} navigation - Navigation object required to push new views
+ * @param isFullScreenModal
+ * @param themeColors
+ * @param {IMetaMetricsEvent} navigationPopEvent
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
 export function getNavigationOptionsTitle(
@@ -176,7 +179,7 @@ export function getNavigationOptionsTitle(
   navigation,
   isFullScreenModal,
   themeColors,
-  navigationPopEvent = undefined,
+  navigationPopEvent = null,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {

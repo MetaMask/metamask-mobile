@@ -1,4 +1,3 @@
-import Analytics from './Analytics';
 import MetaMetrics from './MetaMetrics';
 import {
   MetaMetricsEvents,
@@ -12,7 +11,6 @@ import {
 } from './MetaMetrics.types';
 
 export {
-  Analytics,
   MetaMetrics,
   MetaMetricsEvents,
   DataDeleteStatus,
@@ -22,3 +20,6 @@ export {
 };
 
 export type { IMetaMetricsEvent };
+
+import { store } from '../../store';
+export { store };
