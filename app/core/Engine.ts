@@ -105,9 +105,11 @@ import {
   SnapControllerEvents,
   SnapControllerActions,
   PersistedSnapControllerState,
+  WebViewExecutionService,
 } from '@metamask/snaps-controllers';
 import { Snap } from '@metamask/snaps-utils';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
+import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
@@ -149,7 +151,6 @@ import AnalyticsV2 from '../util/analyticsV2';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   SnapBridge,
-  WebviewExecutionService,
   ExcludedSnapEndowments,
   ExcludedSnapPermissions,
   detectSnapLocation,
@@ -332,7 +333,7 @@ class Engine {
   /**
    * Object that runs and manages the execution of Snaps
    */
-  snapExecutionService: WebviewExecutionService;
+  snapExecutionService: WebViewExecutionService;
   ///: END:ONLY_INCLUDE_IF
 
   /**
@@ -353,6 +354,8 @@ class Engine {
         never
       >({
         name: 'ApprovalController',
+        allowedEvents: [],
+        allowedActions: [],
       }),
       showApprovalRequest: () => undefined,
       typesExcludedFromRateLimiting: [
@@ -384,7 +387,8 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted<
         'NetworkController',
         never,
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore // TODO: fix this type mismatch after the base-controller version is updated
         'NetworkController:networkDidChange'
       >({
         name: 'NetworkController',
@@ -397,7 +401,8 @@ class Engine {
         // noop
       },
     };
-    // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const networkController = new NetworkController(networkControllerOpts);
 
     networkController.initializeProvider();
@@ -634,6 +639,11 @@ class Engine {
           ),
           getMnemonic: getPrimaryKeyringMnemonic.bind(this),
           getUnlockPromise: getAppState.bind(this),
+          addSubjectMetadata: (params: any) =>
+            this.controllerMessenger.call<'SubjectMetadataController:addSubjectMetadata'>(
+              'SubjectMetadataController:addSubjectMetadata',
+              params,
+            ),
           getSnap: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:get',
@@ -801,11 +811,12 @@ class Engine {
         '0x025b65308f0f0fb8bc7f7ff87bfc296e0330eee5d3c1d1ee4a048b2fd6a86fa0a6',
     });
 
-    this.snapExecutionService = new WebviewExecutionService({
+    this.snapExecutionService = new WebViewExecutionService({
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
       }),
       setupSnapProvider: setupSnapProvider.bind(this),
+      getWebView: () => getSnapsWebViewPromise,
     });
 
     const snapControllerMessenger = this.controllerMessenger.getRestricted({
@@ -831,6 +842,7 @@ class Engine {
         `${approvalController.name}:updateRequestState`,
         `${permissionController.name}:grantPermissions`,
         `${subjectMetadataController.name}:getSubjectMetadata`,
+        `${subjectMetadataController.name}:addSubjectMetadata`,
         `${phishingController.name}:maybeUpdateState`,
         `${phishingController.name}:testOrigin`,
         `${snapsRegistry.name}:get`,
@@ -872,15 +884,12 @@ class Engine {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       (snap: Snap, svgIcon: any = null) => {
-        const {
-          manifest: { proposedName },
-          version,
-        } = snap;
+        const parts = snap.id.split(/[:/]/);
         subjectMetadataController.addSubjectMetadata({
           subjectType: SubjectType.Snap,
-          name: proposedName,
+          name: parts[parts.length - 1] || snap.id,
           origin: snap.id,
-          version,
+          version: snap.version,
           svgIcon,
         });
       },
