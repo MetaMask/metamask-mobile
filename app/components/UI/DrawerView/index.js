@@ -417,7 +417,6 @@ class DrawerView extends PureComponent {
         origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
       });
     }
-    await this.updateAccountInfo();
   }
   toggleReceiveModal = () => {
     this.props.toggleReceiveModal();
