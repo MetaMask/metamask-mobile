@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -6,15 +7,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Text from '../../../Base/Text';
+import { getSystemVersion } from 'react-native-device-info';
 import { strings } from '../../../../../locales/i18n';
-import { useAssetFromTheme } from '../../../../util/theme';
-import { useNavigation } from '@react-navigation/native';
-import Device from '../../../../util/device';
 import { LEDGER_SUPPORT_LINK } from '../../../../constants/urls';
+import Device from '../../../../util/device';
+import { useAssetFromTheme } from '../../../../util/theme';
+import Text from '../../../Base/Text';
 
-import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
+import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -60,6 +61,8 @@ const SearchingForDeviceStep = () => {
   const styles = useMemo(() => createStyles(), []);
   const navigation = useNavigation();
 
+  const deviceOSVersion = Number(getSystemVersion()) ?? '';
+
   const ledgerImage = useAssetFromTheme(
     ledgerConnectLightImage,
     ledgerConnectDarkImage,
@@ -74,6 +77,15 @@ const SearchingForDeviceStep = () => {
       },
     });
   };
+
+  const permissionText = useMemo(() => {
+
+    if (deviceOSVersion >= 12) {
+      return strings('ledger.ledger_reminder_message_step_five');
+    } else {
+      return strings('ledger.ledger_reminder_message_step_four');
+    }
+  }, [deviceOSVersion]);
 
   return (
     <View style={styles.lookingForDeviceContainer}>
@@ -103,7 +115,7 @@ const SearchingForDeviceStep = () => {
         </Text>
         {Device.isAndroid() && (
           <Text style={styles.ledgerInstructionText}>
-            {strings('ledger.ledger_reminder_message_step_four')}
+              {permissionText}
           </Text>
         )}
       </View>

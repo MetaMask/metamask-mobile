@@ -39,6 +39,7 @@ import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { getSystemVersion } from 'react-native-device-info';
 
 const createStyles = (theme: any) =>
   StyleSheet.create({
@@ -123,6 +124,8 @@ const LedgerConnect = () => {
   const [retryTimes, setRetryTimes] = useState(0);
   const dispatch = useDispatch();
 
+  const deviceOSVersion = Number(getSystemVersion()) ?? '';
+
   useEffect(() => {
     navigation.setOptions(
       getNavigationOptionsTitle('', navigation, true, theme.colors),
@@ -164,6 +167,15 @@ const LedgerConnect = () => {
       },
     });
   };
+
+  const permsionText = useMemo(() => {
+
+    if (deviceOSVersion >= 12) {
+      return strings('ledger.ledger_reminder_message_step_five');
+    } else {
+      return strings('ledger.ledger_reminder_message_step_four');
+    }
+  }, [deviceOSVersion]);
 
   const openHowToInstallEthApp = () => {
     navigation.navigate('Webview', {
@@ -288,7 +300,7 @@ const LedgerConnect = () => {
               </Text>
               {Device.isAndroid() && (
                 <Text style={styles.ledgerInstructionText}>
-                  {strings('ledger.ledger_reminder_message_step_four')}
+                  {permsionText}
                 </Text>
               )}
               <Text
