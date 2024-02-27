@@ -90,6 +90,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
     </View>
     <Text
       accessibilityRole="link"
+      accessible={true}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -221,6 +222,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
        
       <Text
         accessibilityRole="link"
+        accessible={true}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}

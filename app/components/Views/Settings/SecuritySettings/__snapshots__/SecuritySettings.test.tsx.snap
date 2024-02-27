@@ -110,6 +110,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         </Text>
         <Text
           accessibilityRole="link"
+          accessible={true}
           onPress={[Function]}
           onPressIn={[Function]}
           onPressOut={[Function]}
@@ -2380,6 +2381,7 @@ exports[`SecuritySettings should render correctly 1`] = `
            
           <Text
             accessibilityRole="link"
+            accessible={true}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}

@@ -177,6 +177,7 @@ Array [
            
           <Text
             accessibilityRole="link"
+            accessible={true}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
