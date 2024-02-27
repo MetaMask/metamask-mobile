@@ -21,7 +21,6 @@ import Text, {
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
 import { selectChainId } from '../../../../../selectors/networkController';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import {
   getDecimalChainId,
   isMainnetByChainId,
@@ -40,6 +39,8 @@ import {
   GAS_LIMIT_MIN,
   GAS_PRICE_MIN,
 } from '../../../../../util/gasUtils';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 
 const EditGasFeeLegacy = ({
   onCancel,
@@ -56,6 +57,7 @@ const EditGasFeeLegacy = ({
   selectedGasObject,
   hasDappSuggestedGas,
 }: EditGasFeeLegacyUpdateProps) => {
+  const { trackEvent } = useMetrics();
   const [showRangeInfoModal, setShowRangeInfoModal] = useState<boolean>(false);
   const [infoText, setInfoText] = useState<string>('');
   const [gasPriceError, setGasPriceError] = useState<string>('');
@@ -73,11 +75,7 @@ const EditGasFeeLegacy = ({
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
-  const gasFeeEstimate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-  );
+  const gasFeeEstimate = useSelector(selectGasFeeEstimates);
 
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
@@ -97,7 +95,7 @@ const EditGasFeeLegacy = ({
   });
 
   const save = useCallback(() => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, {
+    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, {
       ...analyticsParams,
       chain_id: getDecimalChainId(chainId),
       function_type: view,
@@ -109,7 +107,15 @@ const EditGasFeeLegacy = ({
       legacyGasLimit: gasObjectLegacy?.legacyGasLimit,
     };
     onSave(gasTransaction, newGasPriceObject);
-  }, [onSave, gasTransaction, gasObjectLegacy, analyticsParams, chainId, view]);
+  }, [
+    onSave,
+    gasTransaction,
+    gasObjectLegacy,
+    analyticsParams,
+    chainId,
+    view,
+    trackEvent,
+  ]);
 
   const changeGas = useCallback((gas) => {
     updateGasObjectLegacy({

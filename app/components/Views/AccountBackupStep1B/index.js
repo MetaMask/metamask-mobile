@@ -24,9 +24,8 @@ import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
-import Logger from '../../../util/Logger';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -207,9 +206,7 @@ const AccountBackupStep1B = (props) => {
   const styles = createStyles(colors);
 
   const track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('AccountBackupStep1B', `Failed to track ${event}`);
-    });
+    trackOnboarding(event, properties);
   };
 
   useEffect(() => {

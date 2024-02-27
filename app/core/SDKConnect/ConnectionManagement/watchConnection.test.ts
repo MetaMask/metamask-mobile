@@ -37,6 +37,9 @@ describe('watchConnection', () => {
     mockInstance = {
       state: {
         disabledHosts: {},
+        connections: {
+          [mockConnection.channelId]: {},
+        },
       },
       removeChannel: mockRemoveChannel,
       emit: jest.fn(),
