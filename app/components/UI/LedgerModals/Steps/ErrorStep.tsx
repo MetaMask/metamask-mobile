@@ -29,10 +29,11 @@ const createStyles = () =>
     },
     titleText: {
       fontSize: 22,
+      marginHorizontal: 10,
     },
     subtitleText: {
       marginTop: 20,
-      marginHorizontal: 20,
+      marginHorizontal: 10,
     },
   });
 

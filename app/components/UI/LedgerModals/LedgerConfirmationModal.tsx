@@ -24,7 +24,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      height: 400,
+      height: 450,
     },
     contentWrapper: {
       flex: 1,
