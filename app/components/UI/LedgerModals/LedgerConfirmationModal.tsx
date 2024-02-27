@@ -187,6 +187,12 @@ const LedgerConfirmationModal = ({
 
     if (bluetoothPermissionError && !permissionErrorShown) {
       switch (bluetoothPermissionError) {
+        case BluetoothPermissionErrors.LocationAccessBlocked:
+          setErrorDetails({
+            title: strings('ledger.location_access_blocked'),
+            subtitle: strings('ledger.location_access_blocked_error'),
+          });
+          break;
         case BluetoothPermissionErrors.NearbyDevicesAccessBlocked:
           setErrorDetails({
             title: strings('ledger.nearbyDevices_access_blocked'),

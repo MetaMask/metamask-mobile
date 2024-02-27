@@ -95,6 +95,19 @@ const Scan = ({
   useEffect(() => {
     if (bluetoothPermissionError && !permissionErrorShown) {
       switch (bluetoothPermissionError) {
+        case BluetoothPermissionErrors.LocationAccessBlocked:
+          onScanningErrorStateChanged({
+            errorTitle: strings('ledger.location_access_blocked'),
+            errorSubtitle: strings('ledger.location_access_blocked_message'),
+
+            primaryButtonConfig: {
+              title: strings('ledger.view_settings'),
+              onPress: async () => {
+                await openSettings();
+              },
+            },
+          });
+          break;
         case BluetoothPermissionErrors.BluetoothAccessBlocked:
           onScanningErrorStateChanged({
             errorTitle: strings('ledger.bluetooth_access_blocked'),
