@@ -1,9 +1,8 @@
-import Engine from './Engine';
 import Logger from '../util/Logger';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import Engine from './Engine';
 
-import { restoreQRKeyring, restoreLedgerKeyring } from './Vault';
 import { getLedgerKeyring } from './Ledger/Ledger';
+import { restoreLedgerKeyring, restoreQRKeyring } from './Vault';
 
 jest.mock('./Engine', () => ({
   context: {
