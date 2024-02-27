@@ -30,7 +30,7 @@ exports[`BottomSheetDialog should render correctly 1`] = `
           "borderTopLeftRadius": 8,
           "borderTopRightRadius": 8,
           "borderWidth": 1,
-          "maxHeight": NaN,
+          "maxHeight": 1333,
           "overflow": "hidden",
           "paddingBottom": 3,
           "shadowColor": "#0000001A",
