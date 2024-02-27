@@ -3,7 +3,7 @@ import { BannerAlertSeverity } from '../../component-library/components/Banners/
 import { strings } from '../../../locales/i18n';
 import PopularList from '../../util/networks/customNetworks';
 
-const handlePopularNetwork = (rpcUrl: string) =>
+const findPopularNetwork = (rpcUrl: string) =>
   PopularList.some((network) => {
     const { origin } = new URL(network.rpcUrl);
     return origin === rpcUrl;
@@ -31,7 +31,7 @@ const checkSafeNetwork = async (
       !matchedChain.rpc
         ?.map((rpc: string) => new URL(rpc).origin)
         .includes(origin) &&
-      !handlePopularNetwork(origin)
+      !findPopularNetwork(origin)
     ) {
       alerts.push({
         alertError: strings('add_custom_network.invalid_rpc_url'),
