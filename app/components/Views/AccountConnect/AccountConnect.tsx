@@ -53,7 +53,6 @@ import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import AppConstants from '../../../../app/core/AppConstants';
 import { trackDappVisitedEvent } from '../../../util/metrics';
@@ -424,8 +423,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const renderConnectScreens = useCallback(() => {
-    DevLogger.log(`renderConnectScreens`, screen);
-
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
         return renderSingleConnectScreen();
