@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { colors } from '../../../../../../styles/common';
