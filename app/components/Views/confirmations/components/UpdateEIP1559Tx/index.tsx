@@ -22,6 +22,8 @@ import {
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../../util/networks';
+import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 
 const UpdateEIP1559Tx = ({
   gas,
@@ -255,10 +257,8 @@ const mapStateToProps = (state: any) => ({
   accounts: selectAccounts(state),
   selectedAddress: selectSelectedAddress(state),
   ticker: selectTicker(state),
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-  gasEstimateType:
-    state.engine.backgroundState.GasFeeController.gasEstimateType,
+  gasFeeEstimates: selectGasFeeEstimates(state),
+  gasEstimateType: selectGasFeeControllerEstimateType(state),
   primaryCurrency: state.settings.primaryCurrency,
   chainId: selectChainId(state),
 });
