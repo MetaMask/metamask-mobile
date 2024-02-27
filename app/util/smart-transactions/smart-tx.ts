@@ -1,5 +1,9 @@
 import { ORIGIN_METAMASK } from '@metamask/approval-controller';
-import { Fee } from '@metamask/smart-transactions-controller/dist/types';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import {
+  Fee,
+  SmartTransaction,
+} from '@metamask/smart-transactions-controller/dist/types';
 import { TransactionController } from '@metamask/transaction-controller';
 import Logger from '../Logger';
 import { decimalToHex } from '../conversions';
@@ -73,7 +77,7 @@ interface Request {
     transaction: TransactionParams;
     origin: string;
   };
-  smartTransactionsController: any;
+  smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   isSmartTransaction: boolean;
   approvalController: any;
@@ -107,8 +111,6 @@ export async function publishHook(request: Request) {
     Logger.log('STX - Started approval flow', smartTransactionStatusApprovalId);
   }
 
-  let creationTime: number | undefined;
-
   try {
     Logger.log('STX - Fetching fees', txParams, chainId);
     const feesResponse = await smartTransactionsController.getFees(
@@ -118,19 +120,19 @@ export async function publishHook(request: Request) {
 
     Logger.log('STX - Retrieved fees', feesResponse);
 
-    const signedTransactions = await createSignedTransactions(
+    const signedTransactions = (await createSignedTransactions(
       txParams,
       feesResponse.tradeTxFees?.fees ?? [],
       false,
       transactionController,
-    );
+    )) as string[];
 
-    const signedCanceledTransactions = await createSignedTransactions(
+    const signedCanceledTransactions = (await createSignedTransactions(
       txParams,
       feesResponse.tradeTxFees?.cancelFees || [],
       true,
       transactionController,
-    );
+    )) as string[];
 
     Logger.log('STX - Generated signed transactions', {
       signedTransactions,
@@ -157,8 +159,6 @@ export async function publishHook(request: Request) {
 
     Logger.log('STX - Received UUID', uuid);
 
-    creationTime = Date.now();
-
     if (isDapp) {
       approvalController.addAndShowApprovalRequest({
         id: smartTransactionStatusApprovalId,
@@ -168,80 +168,43 @@ export async function publishHook(request: Request) {
         requestState: {
           smartTransaction: {
             status: 'pending',
-            creationTime,
+            creationTime: Date.now(),
           },
         },
       });
       Logger.log('STX - Added approval', smartTransactionStatusApprovalId);
     }
 
-    // status type
-    // { cancellationFeeWei: 0,
-    //   cancellationReason: 'not_cancelled',
-    //   deadlineRatio: 0,
-    //   isSettled: false,
-    //   minedTx: 'not_mined',
-    //   wouldRevertMessage: null,
-    //   minedHash: '',
-    //   type: 'sentinel' }
-
     // undefined for init state
     // null for error
     // string for success
     let transactionHash: string | null | undefined;
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore-next-line
     smartTransactionsController.eventEmitter.on(
-      // TODO this is from Ext but don't see the event uuid:smartTransaction in stx controller repo yet
-      // `${uuid}:smartTransaction`,
-      // TODO use uuid:status for now
-      `${uuid}:status`,
-      // TODO needs uuid:smartTransaction event
-      // async (smartTransaction) => {
-      async (status: {
-        cancellationFeeWei: number;
-        cancellationReason: string;
-        deadlineRatio: number;
-        isSettled: boolean;
-        // cancelled: STX has exceeded deadline, tx is cancelled, never processed on chain
-        // unknown: tx reverted on chain
-        minedTx: 'not_mined' | 'success' | 'cancelled' | 'unknown';
-        wouldRevertMessage: string | null;
-        minedHash: string; // init value is ''
-        type: string;
-      }) => {
-        Logger.log('STX - Status update', status);
+      `${uuid}:smartTransaction`,
+      async (smartTransaction: SmartTransaction) => {
+        Logger.log('STX - smartTransaction event', smartTransaction);
 
-        // TODO needs uuid:smartTransaction event
-        // if (!status || status === 'pending') {
-        //   return;
-        // }
+        const { status, statusMetadata } = smartTransaction;
+        if (!status || status === 'pending') {
+          return;
+        }
 
-        if (status?.isSettled) {
-          if (status?.minedTx === 'success' && status?.minedHash !== '') {
-            // STX has landed on chain, tx is successful
-            Logger.log('STX - Received tx hash: ', status?.minedHash);
-            transactionHash = status.minedHash;
-
-            if (isDapp) {
-              await approvalController.updateRequestState({
-                id: smartTransactionStatusApprovalId,
-                requestState: {
-                  // TODO needs uuid:smartTransaction event
-                  // smartTransaction,
-                  smartTransaction: {
-                    status: 'success',
-                    creationTime,
-                    transactionHash,
-                  },
-                },
-              });
-            }
-          } else if (
-            status.minedTx === 'cancelled' ||
-            status.minedTx === 'unknown'
-          ) {
-            transactionHash = null;
-          }
+        if (isDapp) {
+          await approvalController.updateRequestState({
+            id: smartTransactionStatusApprovalId,
+            requestState: {
+              smartTransaction,
+            },
+          });
+        }
+        if (statusMetadata?.minedHash) {
+          Logger.log('STX - Received tx hash: ', statusMetadata?.minedHash);
+          transactionHash = statusMetadata.minedHash;
+        } else {
+          transactionHash = null;
         }
       },
     );
@@ -273,26 +236,7 @@ export async function publishHook(request: Request) {
   } catch (error) {
     Logger.log('STX - publish hook Error', error);
     Logger.error(error, '');
-
-    if (isDapp) {
-      await approvalController.updateRequestState({
-        id: smartTransactionStatusApprovalId,
-        requestState: {
-          // TODO needs uuid:smartTransaction event
-          // smartTransaction,
-          smartTransaction: {
-            status: 'error',
-            creationTime,
-          },
-        },
-      });
-    }
-
-    // Will cause TransactionController to publish to the RPC provider as normal.
-    // return { transactionHash: undefined };
-
-    // TODO throw error for now
-    // throw error;
+    throw error;
   } finally {
     if (isDapp) {
       // This removes the loading spinner
