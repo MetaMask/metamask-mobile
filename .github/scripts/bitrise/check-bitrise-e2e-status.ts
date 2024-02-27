@@ -10,6 +10,7 @@ main().catch((error: Error): void => {
 async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
   const e2eLabel = process.env.E2E_LABEL;
+  const removeAndApplyInstructions = `Remove and re-apply the "${e2eLabel}" label to trigger a E2E smoke test on Bitrise.`;
 
   if (!githubToken) {
     core.setFailed('GITHUB_TOKEN not found');
@@ -21,14 +22,18 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Check if the e2e smoke label is applied
   const { owner, repo, number: issue_number } = context.issue;
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
-  const { data: labels } = await octokit.rest.issues.listLabelsOnIssue({
+
+  // Get PR information
+  const { data: prData } = await octokit.rest.pulls.get({
     owner,
     repo,
-    issue_number,
+    pull_number: issue_number,
   });
+
+  // Check if the e2e smoke label is applied
+  const labels = prData.labels;
   const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
 
   // Pass check since e2e smoke label is not applied
@@ -39,39 +44,64 @@ async function main(): Promise<void> {
     return;
   }
 
+  // Get last 10 commits
+  const numberOfCommitsToCheck = 10; // Consider commits older than 10 commits ago invalidated
+  const numberOfCommits = prData.commits;
+  const commitPage = Math.ceil(numberOfCommits / numberOfCommitsToCheck);
+
+  // Get last 30 comments
+  const numberOfCommentsToCheck = 30; // Consider comments older than 30 comments ago invalidated
+  const numberOfComments = prData.comments;
+  const commentPage = Math.ceil(numberOfComments / numberOfCommentsToCheck);
+
   // Get comments from PR
   const { data: comments } = await octokit.rest.issues.listComments({
     owner,
     repo,
     issue_number,
+    page: commentPage,
+    per_page: numberOfCommentsToCheck,
   });
 
-  // Get latest commit hash
-  const pullRequestResponse = await octokit.rest.pulls.get({
+  // Get latest commit hash that excludes merges from main
+  const { data: commits } = await octokit.rest.pulls.listCommits({
     owner,
     repo,
     pull_number: issue_number,
+    page: commitPage,
+    per_page: numberOfCommitsToCheck,
   });
-  const latestCommitHash = pullRequestResponse.data.head.sha;
+  const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
+  const nonMergeFromMainCommits = commits.filter(
+    (commit) =>
+      !commit.commit.message.includes(mergeFromMainCommitMessagePrefix),
+  );
+  const commitHashToCheck =
+    nonMergeFromMainCommits[nonMergeFromMainCommits.length - 1]?.sha;
+
+  if (!commitHashToCheck) {
+    core.setFailed(`Commits are invalidated. ${removeAndApplyInstructions}`);
+    process.exit(1);
+  }
 
   // Define Bitrise comment tags
   const bitriseTag = '<!-- BITRISE_TAG -->';
   const bitrisePendingTag = '<!-- BITRISE_PENDING_TAG -->';
   const bitriseSuccessTag = '<!-- BITRISE_SUCCESS_TAG -->';
   const bitriseFailTag = '<!-- BITRISE_FAIL_TAG -->';
-  const latestCommitTag = `<!-- ${latestCommitHash} -->`;
+  const latestCommitTag = `<!-- ${commitHashToCheck} -->`;
 
   // Find Bitrise comment
   const bitriseComment = comments.find(
     ({ body }) => body?.includes(bitriseTag) && body?.includes(latestCommitTag),
   );
 
-  const bitriseCommentPrefix = `Bitrise build status comment for commit ${latestCommitHash}`;
+  const bitriseCommentPrefix = `Bitrise build status comment for commit ${commitHashToCheck}`;
 
   // Bitrise comment doesn't exist
   if (!bitriseComment) {
     core.setFailed(
-      `${bitriseCommentPrefix} does not exist. Remove and re-apply the "${e2eLabel}" label to trigger a E2E smoke test on Bitrise.`,
+      `${bitriseCommentPrefix} does not exist. ${removeAndApplyInstructions}`,
     );
     process.exit(1);
   }
