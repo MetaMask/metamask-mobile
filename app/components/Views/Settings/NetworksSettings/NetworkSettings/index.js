@@ -67,6 +67,8 @@ import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -1088,12 +1090,19 @@ class NetworkSettings extends PureComponent {
 
   toggleNetworkDetailsModal = async () => {
     const { rpcUrl, chainId: stateChainId } = this.state;
+    const { navigation } = this.props;
     const formChainId = stateChainId.trim().toLowerCase();
 
     // Ensure chainId is a 0x-prefixed, lowercase hex string
     let chainId = formChainId;
     if (!chainId.startsWith('0x')) {
       chainId = `0x${parseInt(chainId, 10).toString(16)}`;
+    }
+
+    // if chainId is goerli, show deprecation modal
+    if (chainId === CHAIN_IDS.GOERLI) {
+      navigation.navigate(Routes.DEPRECATED_NETWORK_DETAILS);
+      return;
     }
 
     if (!(await this.validateChainIdOnSubmit(formChainId, chainId, rpcUrl))) {
