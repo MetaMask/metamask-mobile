@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -79,12 +79,10 @@ const SearchingForDeviceStep = () => {
   };
 
   const permissionText = useMemo(() => {
-
     if (deviceOSVersion >= 12) {
       return strings('ledger.ledger_reminder_message_step_five');
-    } else {
-      return strings('ledger.ledger_reminder_message_step_four');
     }
+    return strings('ledger.ledger_reminder_message_step_four');
   }, [deviceOSVersion]);
 
   return (
@@ -114,9 +112,7 @@ const SearchingForDeviceStep = () => {
           {strings('ledger.ledger_reminder_message_step_three')}
         </Text>
         {Device.isAndroid() && (
-          <Text style={styles.ledgerInstructionText}>
-              {permissionText}
-          </Text>
+          <Text style={styles.ledgerInstructionText}>{permissionText}</Text>
         )}
       </View>
       <TouchableOpacity onPress={handleOpenInstallEthAppInstructions}>

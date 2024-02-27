@@ -169,12 +169,10 @@ const LedgerConnect = () => {
   };
 
   const permsionText = useMemo(() => {
-
     if (deviceOSVersion >= 12) {
       return strings('ledger.ledger_reminder_message_step_five');
-    } else {
-      return strings('ledger.ledger_reminder_message_step_four');
     }
+    return strings('ledger.ledger_reminder_message_step_four');
   }, [deviceOSVersion]);
 
   const openHowToInstallEthApp = () => {
@@ -299,9 +297,7 @@ const LedgerConnect = () => {
                 {strings('ledger.ledger_reminder_message_step_three')}
               </Text>
               {Device.isAndroid() && (
-                <Text style={styles.ledgerInstructionText}>
-                  {permsionText}
-                </Text>
+                <Text style={styles.ledgerInstructionText}>{permsionText}</Text>
               )}
               <Text
                 style={styles.howToInstallEthAppText}
