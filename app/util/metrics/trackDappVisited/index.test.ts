@@ -1,15 +1,17 @@
-import { trackDappVisitedEvent } from './index';
-import { MetaMetricsEvents } from '../core/Analytics';
-import AnalyticsV2 from '../util/analyticsV2';
+import trackDappVisitedEvent from './index';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 
-// Mock AnalyticsV2
-jest.mock('../util/analyticsV2', () => ({
+jest.mock('../../../core/Analytics/MetaMetrics');
+
+const mockMetrics = {
   trackEvent: jest.fn(),
-}));
+};
+
+(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 // Mock store.getState
 let mockGetState: jest.Mock;
-jest.mock('../store', () => {
+jest.mock('../../../store', () => {
   mockGetState = jest.fn();
   mockGetState.mockImplementation(() => ({
     browser: {
@@ -34,7 +36,7 @@ jest.mock('../store', () => {
 
 describe('trackDappVisitedEvent', () => {
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should track with isFirstVisit = true', () => {
@@ -63,7 +65,7 @@ describe('trackDappVisitedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    expect(AnalyticsV2.trackEvent).toBeCalledWith(
+    expect(mockMetrics.trackEvent).toBeCalledWith(
       MetaMetricsEvents.DAPP_VISITED,
       expectedMetrics,
     );
@@ -95,7 +97,7 @@ describe('trackDappVisitedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    expect(AnalyticsV2.trackEvent).toBeCalledWith(
+    expect(mockMetrics.trackEvent).toBeCalledWith(
       MetaMetricsEvents.DAPP_VISITED,
       expectedMetrics,
     );
@@ -127,7 +129,7 @@ describe('trackDappVisitedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    expect(AnalyticsV2.trackEvent).toBeCalledWith(
+    expect(mockMetrics.trackEvent).toBeCalledWith(
       MetaMetricsEvents.DAPP_VISITED,
       expectedMetrics,
     );
@@ -159,7 +161,7 @@ describe('trackDappVisitedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    expect(AnalyticsV2.trackEvent).toBeCalledWith(
+    expect(mockMetrics.trackEvent).toBeCalledWith(
       MetaMetricsEvents.DAPP_VISITED,
       expectedMetrics,
     );
