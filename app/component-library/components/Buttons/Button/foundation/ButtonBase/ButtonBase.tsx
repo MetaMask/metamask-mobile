@@ -59,6 +59,7 @@ const ButtonBase = ({
         <Text
           variant={DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT}
           style={styles.label}
+          accessibilityRole="none"
         >
           {label}
         </Text>
