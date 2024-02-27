@@ -53,6 +53,8 @@ import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import AppConstants from '../../../../app/core/AppConstants';
 import { trackDappVisitedEvent } from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
@@ -84,11 +86,23 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  const { id: channelId, origin: metadataOrigin } = hostInfo.metadata as {
+    id: string;
+    origin: string;
+  };
+
+  // Extract connection info from sdk
+  // FIXME should be replaced by passing dynamic parameters to the PermissionController
+  // TODO: Retrive wallet connect connection info from channelId
+  const sdkConnection = SDKConnect.getInstance().getConnection({ channelId });
+  const hostname = (
+    sdkConnection?.originatorInfo?.url ?? metadataOrigin
+  ).replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+
   const origin: string = useSelector(getActiveTabUrl, isEqual);
 
   const faviconSource = useFavicon(origin);
-
-  const hostname = hostInfo.metadata.origin;
   const urlWithProtocol = prefixUrlWithProtocol(hostname);
 
   const secureIcon = useMemo(
@@ -117,13 +131,25 @@ const AccountConnect = (props: AccountConnectProps) => {
   const cancelPermissionRequest = useCallback(
     (requestId) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
+      if (channelId && accountsLength === 0) {
+        // Remove Potential SDK connection
+        SDKConnect.getInstance().removeChannel({
+          channelId,
+          sendTerminate: true,
+        });
+      }
 
       trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
         number_of_accounts: accountsLength,
         source: 'permission system',
       });
     },
-    [Engine.context.PermissionController, accountsLength, trackEvent],
+    [
+      Engine.context.PermissionController,
+      accountsLength,
+      channelId,
+      trackEvent,
+    ],
   );
 
   const triggerDappVisitedEvent = useCallback(
@@ -141,10 +167,11 @@ const AccountConnect = (props: AccountConnectProps) => {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
-        origin: hostname,
+        origin: metadataOrigin,
       },
       approvedAccounts: selectedAccounts,
     };
+
     const connectedAccountLength = selectedAccounts.length;
     const activeAddress = selectedAccounts[0].address;
     const activeAccountName = getAccountNameWithENS({
@@ -199,11 +226,11 @@ const AccountConnect = (props: AccountConnectProps) => {
     hostInfo,
     accounts,
     ensByAccountAddress,
-    hostname,
     accountAvatarType,
     Engine.context.PermissionController,
     toastRef,
     accountsLength,
+    metadataOrigin,
     triggerDappVisitedEvent,
     trackEvent,
   ]);
@@ -318,6 +345,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     return (
       <AccountConnectSingle
         onSetSelectedAddresses={setSelectedAddresses}
+        connection={sdkConnection}
         onSetScreen={setScreen}
         onUserAction={setUserIntent}
         defaultSelectedAccount={defaultSelectedAccount}
@@ -338,6 +366,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     secureIcon,
     urlWithProtocol,
     setUserIntent,
+    sdkConnection,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
@@ -376,6 +405,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+        connection={sdkConnection}
       />
     ),
     [
@@ -388,6 +418,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       faviconSource,
       urlWithProtocol,
       secureIcon,
+      sdkConnection,
     ],
   );
 
@@ -408,7 +439,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   return (
-    <BottomSheet onClose={handleSheetDismiss} ref={sheetRef}>
+    <BottomSheet
+      onClose={handleSheetDismiss}
+      customMarginTop={150}
+      ref={sheetRef}
+    >
       {renderConnectScreens()}
     </BottomSheet>
   );

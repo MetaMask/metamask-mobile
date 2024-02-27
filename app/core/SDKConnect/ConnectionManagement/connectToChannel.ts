@@ -58,6 +58,7 @@ async function connectToChannel({
     id,
     otherPublicKey,
     origin,
+    initialConnection,
     validUntil,
     lastAuthorized: initialConnection ? 0 : instance.state.approvedHosts[id],
   };

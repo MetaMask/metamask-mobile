@@ -3,7 +3,7 @@ import Encryptor from './Encryptor';
 import { strings } from '../../locales/i18n';
 import AsyncStorage from '../store/async-storage-wrapper';
 import { Platform } from 'react-native';
-import { MetaMetricsEvents } from '../core/Analytics';
+import { MetaMetricsEvents, MetaMetrics } from '../core/Analytics';
 import {
   BIOMETRY_CHOICE,
   BIOMETRY_CHOICE_DISABLED,
@@ -12,7 +12,6 @@ import {
   TRUE,
 } from '../constants/storage';
 import Device from '../util/device';
-import AnalyticsV2 from '../util/analyticsV2';
 
 const privates = new WeakMap();
 const encryptor = new Encryptor();
@@ -60,7 +59,9 @@ export default {
     instance = new SecureKeychain(salt);
 
     if (Device.isAndroid && Keychain.SECURITY_LEVEL?.SECURE_HARDWARE)
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE);
+      MetaMetrics.getInstance().trackEvent(
+        MetaMetricsEvents.ANDROID_HARDWARE_KEYSTORE,
+      );
 
     Object.freeze(instance);
     return instance;

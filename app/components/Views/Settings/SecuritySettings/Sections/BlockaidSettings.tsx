@@ -11,15 +11,16 @@ import { useSelector } from 'react-redux';
 import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferencesController';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from '../constants';
 import createStyles from './BlockaidSettings.styles';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 const BlockaidSettings = () => {
   const theme = useTheme();
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles();
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
   const navigation = useNavigation();
@@ -29,12 +30,9 @@ const BlockaidSettings = () => {
 
     if (securityAlertsEnabled) {
       PreferencesController?.setSecurityAlertsEnabled(false);
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED,
-        {
-          security_alerts_enabled: false,
-        },
-      );
+      trackEvent(MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED, {
+        security_alerts_enabled: false,
+      });
     } else if (Device.isIos()) {
       PreferencesController?.setSecurityAlertsEnabled(true);
     } else {
