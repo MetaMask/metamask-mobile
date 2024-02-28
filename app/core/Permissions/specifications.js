@@ -51,10 +51,10 @@ const CaveatFactories = Object.freeze({
  * PermissionController.
  *
  * @param {{
- *   getIdentities: () => Record<string, Identity>,
+ * getInternalAccounts: () => Record<string, import('@metamask/keyring-api').InternalAccount>,
  * }} options - Options bag.
  */
-export const getCaveatSpecifications = ({ getIdentities }) => ({
+export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
   [CaveatTypes.restrictReturnedAccounts]: {
     type: CaveatTypes.restrictReturnedAccounts,
 
@@ -69,7 +69,7 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
     },
 
     validator: (caveat, _origin, _target) =>
-      validateCaveatAccounts(caveat.value, getIdentities),
+      validateCaveatAccounts(caveat.value, getInternalAccounts),
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   ...snapsCaveatsSpecifications,
@@ -83,17 +83,21 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
  *
  * @param {{
  *   getAllAccounts: () => Promise<string[]>,
+ *   getInternalAccounts: () => Record<string, import('@metamask/keyring-api').InternalAccount>,
  * }} options - Options bag.
  * @param options.getAllAccounts - A function that returns all Ethereum accounts
  * in the current MetaMask instance.
- * @param options.getIdentities - A function that returns the
- * `PreferencesController` identity objects for all Ethereum accounts in the
+ * @param options.getInternalAccounts - A function that returns the
+ * `AccountsController` internalAccount objects for all accounts in the
  * @param options.captureKeyringTypesWithMissingIdentities - A function that
  * captures extra error information about the "Missing identity for address"
  * error.
  * current MetaMask instance.
  */
-export const getPermissionSpecifications = ({ getAllAccounts }) => ({
+export const getPermissionSpecifications = ({
+  getAllAccounts,
+  getInternalAccounts,
+}) => ({
   [PermissionKeys.eth_accounts]: {
     permissionType: PermissionType.RestrictedMethod,
     targetName: PermissionKeys.eth_accounts,
@@ -126,7 +130,43 @@ export const getPermissionSpecifications = ({ getAllAccounts }) => ({
 
     methodImplementation: async (_args) => {
       const accounts = await getAllAccounts();
-      return accounts;
+      const internalAccounts = getInternalAccounts();
+
+      return accounts.sort((firstAddress, secondAddress) => {
+        const firstAccount = internalAccounts.find(
+          (internalAccount) =>
+            internalAccount.address.toLowerCase() ===
+            firstAddress.toLowerCase(),
+        );
+
+        const secondAccount = internalAccounts.find(
+          (internalAccount) =>
+            internalAccount.address.toLowerCase() ===
+            secondAddress.toLowerCase(),
+        );
+
+        if (!firstAccount) {
+          captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+          throw new Error(`Missing identity for address: "${firstAddress}".`);
+        } else if (!secondAccount) {
+          captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+          throw new Error(`Missing identity for address: "${secondAddress}".`);
+        } else if (
+          firstAccount.metadata.lastSelected ===
+          secondAccount.metadata.lastSelected
+        ) {
+          return 0;
+        } else if (firstAccount.metadata.lastSelected === undefined) {
+          return 1;
+        } else if (secondAccount.metadata.lastSelected === undefined) {
+          return -1;
+        }
+
+        return (
+          secondAccount.metadata.lastSelected -
+          firstAccount.metadata.lastSelected
+        );
+      });
     },
 
     validator: (permission, _origin, _target) => {
@@ -150,17 +190,17 @@ export const getPermissionSpecifications = ({ getAllAccounts }) => ({
  * corresponds to a PreferencesController identity.
  *
  * @param {string[]} accounts - The accounts associated with the caveat.
- * @param {() => Record<string, Identity>} getIdentities - Gets all
- * PreferencesController identities.
+ * @param {() => Record<string, import('@metamask/keyring-api').InternalAccount>} getInternalAccounts -
+ * Gets all AccountsController InternalAccounts.
  */
-function validateCaveatAccounts(accounts, getIdentities) {
+function validateCaveatAccounts(accounts, getInternalAccounts) {
   if (!Array.isArray(accounts) || accounts.length === 0) {
     throw new Error(
       `${PermissionKeys.eth_accounts} error: Expected non-empty array of Ethereum addresses.`,
     );
   }
 
-  const identities = getIdentities();
+  const internalAccounts = getInternalAccounts();
   accounts.forEach((account) => {
     const address = account?.address;
     if (!address || typeof address !== 'string') {
@@ -169,7 +209,12 @@ function validateCaveatAccounts(accounts, getIdentities) {
       );
     }
 
-    if (!identities[address.toLowerCase()]) {
+    if (
+      !internalAccounts.some(
+        (internalAccount) =>
+          internalAccount.address.toLowerCase() === address.toLowerCase(),
+      )
+    ) {
       throw new Error(
         `${PermissionKeys.eth_accounts} error: Received unrecognized address: "${address}".`,
       );

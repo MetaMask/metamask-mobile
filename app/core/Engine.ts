@@ -789,12 +789,17 @@ class Engine {
         ],
       }),
       state: initialState.PermissionController,
-      caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+      caveatSpecifications: getCaveatSpecifications({
+        getInternalAccounts:
+          accountsController.listAccounts.bind(accountsController),
+      }),
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       permissionSpecifications: {
         ...getPermissionSpecifications({
           getAllAccounts: () => keyringController.getAccounts(),
+          getInternalAccounts:
+            accountsController.listAccounts.bind(accountsController),
         }),
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         ...getSnapPermissionSpecifications(),
