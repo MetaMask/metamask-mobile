@@ -96,8 +96,8 @@ async function main(): Promise<void> {
   }
 
   // This regex matches a 40-character hexadecimal string enclosed within <!-- and -->
+  let bitriseCommentBody = bitriseComment.body || '';
   const commitTagRegex = /<!--\s*([0-9a-f]{40})\s*-->/i;
-  const bitriseCommentBody = bitriseComment.body || '';
   const hashMatch = bitriseCommentBody.match(commitTagRegex);
   let bitriseCommentCommitHash = hashMatch && hashMatch[1] ? hashMatch[1] : '';
 
@@ -145,6 +145,7 @@ async function main(): Promise<void> {
   if (triggerAction === PullRequestTriggerType.Labeled) {
     // A Bitrise build was triggered for the last commit
     bitriseCommentCommitHash = relevantCommitHashes[0];
+    bitriseCommentBody = bitrisePendingTag;
   }
 
   console.log('bitriseCommentCommitHash', bitriseCommentCommitHash);
@@ -153,11 +154,11 @@ async function main(): Promise<void> {
   if (relevantCommitHashes.includes(bitriseCommentCommitHash)) {
     // Check Bitrise build status from comment
     const bitriseCommentPrefix = `Bitrise build status comment for commit ${bitriseCommentCommitHash}`;
-    if (
-      bitriseCommentBody.includes(bitrisePendingTag) ||
-      bitriseCommentBody.includes(bitriseFailTag)
-    ) {
-      core.setFailed(`${bitriseCommentPrefix} is not yet passed.`);
+    if (bitriseCommentBody.includes(bitrisePendingTag)) {
+      core.setFailed(`${bitriseCommentPrefix} is pending.`);
+      process.exit(1);
+    } else if (bitriseCommentBody.includes(bitriseFailTag)) {
+      core.setFailed(`${bitriseCommentPrefix} has failed.`);
       process.exit(1);
     } else if (bitriseCommentBody.includes(bitriseSuccessTag)) {
       console.log(`${bitriseCommentPrefix} has passed.`);
