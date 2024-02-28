@@ -9,7 +9,7 @@ import {
   InteractionManager,
   Linking,
 } from 'react-native';
-import { connect, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BigNumber from 'bignumber.js';
@@ -92,10 +92,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import {
-  getIsSmartTransaction,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -415,8 +412,6 @@ function SwapsQuotesView({
   );
 
   /* State */
-  const isSmartTransaction = useSelector(getIsSmartTransaction);
-
   const isMainnet = isMainnetByChainId(chainId);
   const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
   const [firstLoadTime, setFirstLoadTime] = useState(Date.now());
@@ -2046,7 +2041,7 @@ function SwapsQuotesView({
                           } `}
                         </Text>
                         <TouchableOpacity
-                          disabled={unableToSwap || isSmartTransaction}
+                          disabled={unableToSwap}
                           onPress={
                             unableToSwap
                               ? undefined
@@ -2056,8 +2051,8 @@ function SwapsQuotesView({
                           <Text
                             bold
                             upper
-                            link={!unableToSwap && !isSmartTransaction}
-                            underline={!unableToSwap && !isSmartTransaction}
+                            link={!unableToSwap}
+                            underline={!unableToSwap}
                           >
                             {renderFromWei(toWei(selectedQuoteValue?.ethFee))}{' '}
                             {getTicker(ticker)}
