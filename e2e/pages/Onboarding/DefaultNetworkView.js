@@ -1,7 +1,6 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import NetworksView from '../Settings/NetworksView';
-import TestHelpers from '../../helpers';
 import {
   CustomDefaultNetworkIDs,
   CustomDefaultNetworkTexts,
@@ -19,10 +18,10 @@ class DefaultNetworkView {
       await Gestures.waitAndTap(this.useThisNetworkButton);
       await Gestures.waitAndTap(this.useThisNetworkButton);
     } else {
-      await TestHelpers.waitAndTapByLabel(
+      await Gestures.waitAndTapByLabel(
         CustomDefaultNetworkTexts.USE_THIS_NETWORK_BUTTON_TEXT,
       );
-      await TestHelpers.waitAndTapByLabel(
+      await Gestures.waitAndTapByLabel(
         CustomDefaultNetworkTexts.USE_THIS_NETWORK_BUTTON_TEXT,
       );
     }
