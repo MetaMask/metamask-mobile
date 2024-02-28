@@ -539,6 +539,8 @@ exports[`ShowNftSheet should render correctly 1`] = `
                             }
                           >
                             <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
@@ -578,6 +580,8 @@ exports[`ShowNftSheet should render correctly 1`] = `
                               </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
