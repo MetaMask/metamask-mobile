@@ -16,7 +16,6 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { getDecimalChainId } from '../../../util/networks';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
@@ -25,6 +24,7 @@ import { selectChainId } from '../../../selectors/networkController';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -68,6 +68,7 @@ interface IgnoredTokensByAddress {
 
 const DetectedTokens = () => {
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const detectedTokens = useSelector(selectDetectedTokens);
   const chainId = useSelector(selectChainId);
@@ -125,7 +126,7 @@ const DetectedTokens = () => {
             await TokensController.addTokens(tokensToImport);
             InteractionManager.runAfterInteractions(() =>
               tokensToImport.forEach(({ address, symbol }) =>
-                AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
+                trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
                   token_address: address,
                   token_symbol: symbol,
                   chain_id: getDecimalChainId(chainId),
@@ -145,7 +146,7 @@ const DetectedTokens = () => {
         }
       });
     },
-    [chainId, detectedTokens, ignoredTokens],
+    [chainId, detectedTokens, ignoredTokens, trackEvent],
   );
 
   const triggerIgnoreAllTokens = () => {
@@ -153,15 +154,14 @@ const DetectedTokens = () => {
       onConfirm: () => dismissModalAndTriggerAction(true),
       isHidingAll: true,
     });
-    InteractionManager.runAfterInteractions(() =>
-      AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-        location: 'token_detection',
-        token_standard: 'ERC20',
-        asset_type: 'token',
-        tokens: detectedTokensForAnalytics,
-        chain_id: getDecimalChainId(chainId),
-      }),
-    );
+
+    trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+      location: 'token_detection',
+      token_standard: 'ERC20',
+      asset_type: 'token',
+      tokens: detectedTokensForAnalytics,
+      chain_id: getDecimalChainId(chainId),
+    });
   };
 
   const triggerImportTokens = async () => {
@@ -251,7 +251,7 @@ const DetectedTokens = () => {
     if (hasPendingAction) {
       return;
     }
-    AnalyticsV2.trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
+    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
       source: 'detected',
       tokens: detectedTokensForAnalytics,
       chain_id: getDecimalChainId(chainId),

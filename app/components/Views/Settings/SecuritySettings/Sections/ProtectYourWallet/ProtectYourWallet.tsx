@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Linking, InteractionManager } from 'react-native';
+import { View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Button, {
   ButtonSize,
@@ -12,7 +12,6 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import SeedPhraseVideo from '../../../../../UI/SeedPhraseVideo';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../../util/analyticsV2';
 import { useTheme } from '../../../../../../util/theme';
 import { strings } from '../../../../../../../locales/i18n';
 import { LEARN_MORE_URL } from '../../../../../../constants/urls';
@@ -23,6 +22,7 @@ import Banner, {
   BannerVariant,
   BannerAlertSeverity,
 } from '../../../../../../component-library/components/Banners/Banner';
+import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 
 interface IProtectYourWalletProps {
   srpBackedup: boolean;
@@ -36,6 +36,7 @@ const ProtectYourWallet = ({
   toggleHint,
 }: IProtectYourWalletProps) => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
@@ -47,10 +48,9 @@ const ProtectYourWallet = ({
 
   const goToBackup = (): void => {
     navigation.navigate(Routes.ACCOUNT_BACKUP.STEP_1_B);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
-        source: 'Settings',
-      });
+
+    trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
+      source: 'Settings',
     });
   };
 

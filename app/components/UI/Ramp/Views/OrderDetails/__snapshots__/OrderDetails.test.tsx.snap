@@ -10484,7 +10484,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }

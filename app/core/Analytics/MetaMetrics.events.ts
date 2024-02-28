@@ -32,7 +32,7 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
 };
 
 /**
- * V2 Analytics Tracking Events
+ * Analytics Tracking Events
  */
 enum EVENT_NAME {
   // Error
@@ -195,6 +195,7 @@ enum EVENT_NAME {
   TOKEN_IMPORT_CLICKED = 'Token Import Clicked',
   TOKEN_IMPORT_CANCELED = 'Token Import Canceled',
   TOKENS_HIDDEN = 'Tokens Hidden',
+  EXTERNAL_LINK_CLICKED = 'External Link Clicked',
 
   // On Ramp
   BUY_BUTTON_CLICKED = 'Buy Button Clicked',
@@ -256,7 +257,6 @@ enum EVENT_NAME {
   RECEIVE_OPTIONS = 'Receive Options',
   SEND_FLOW = 'Send Flow',
   DAPP_INTERACTIONS = 'Dapp Interactions',
-  WALLET = 'Wallet',
   PAYMENTS = 'Payments',
 
   // Swaps
@@ -355,7 +355,6 @@ enum ACTIONS {
   IMPORT_OR_CREATE = 'Import or Create',
   IMPORT_OR_SYNC = 'Import or Sync',
   ONBOARDING_NEXT = 'Onboarding Next',
-  ONBOARDING_SKIP = 'Onboarding Skip',
   // Navigation Drawer
   NAVIGATION_DRAWER = 'Navigation Drawer',
   // Common Navigation
@@ -438,6 +437,7 @@ const events = {
   SEND_TRANSACTION_COMPLETED: generateOpt(
     EVENT_NAME.SEND_TRANSACTION_COMPLETED,
   ),
+  EXTERNAL_LINK_CLICKED: generateOpt(EVENT_NAME.EXTERNAL_LINK_CLICKED),
   ONRAMP_OPENED: generateOpt(EVENT_NAME.ONRAMP_OPENED),
   ONRAMP_CLOSED: generateOpt(EVENT_NAME.ONRAMP_CLOSED),
   ONRAMP_PURCHASE_EXITED: generateOpt(EVENT_NAME.ONRAMP_PURCHASE_EXITED),
@@ -800,9 +800,7 @@ const events = {
   ),
 
   // Experimental Settings
-  SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED: generateOpt(
-    EVENT_NAME.SETTINGS_UPDATED,
-  ),
+  SETTINGS_SECURITY_ALERTS_ENABLED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
 
   // Ledger
   CONNECT_LEDGER: generateOpt(EVENT_NAME.CONNECT_LEDGER),
@@ -836,7 +834,6 @@ enum DESCRIPTION {
   ONBOARDING_SELECTED_WITH_SEEDPHRASE = 'Selected Import with Seedphrase',
   ONBOARDING_SELECTED_TAKE_THE_TOUR = `Onboarding wizard 'Take the tour'`,
   ONBOARDING_SELECTED_NO_THANKS = `Onboarding wizard 'No thanks'`,
-  ONBOARDING_SELECTED_SKIP = 'Onboarding wizard Skip',
   ONBOARDING_SELECTED_SKIP_TUTORIAL = 'Onboarding wizard Skip',
   // Navigation Drawer
   NAVIGATION_TAPS_ACCOUNT_NAME = 'Tapped Account Name / Profile',

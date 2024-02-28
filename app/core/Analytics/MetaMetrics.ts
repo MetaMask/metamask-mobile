@@ -600,8 +600,9 @@ class MetaMetrics implements IMetaMetrics {
   ): void => {
     if (this.enabled) {
       this.#trackEvent(
-        event.category,
-        { anonymous: false, ...properties },
+        // NOTE: we use optional event to avoid undefined error in case of legacy untyped call form JS
+        event?.category,
+        { anonymous: false, ...event?.properties, ...properties },
         saveDataRecording,
       );
     }
