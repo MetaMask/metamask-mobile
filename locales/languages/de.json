@@ -7,6 +7,8 @@
     "deceptive_request_title": "Dies ist eine betrügerische Anfrage.",
     "failed_title": "Anfrage ist möglicherweise nicht sicher",
     "failed_description": "Aufgrund eines Fehlers wurde diese Anfrage vom Sicherheitsanbieter nicht überprüft. Gehen Sie mit Bedacht vor.",
+    "loading_title": "Suche nach Sicherheitsbenachrichtigungen ...",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "Sie haben es mit einer bösartigen Domain zu tun. Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "other_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "raw_signature_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
@@ -375,6 +377,13 @@
     "nfts_autodetection_title": "NFT-Erkennung",
     "nfts_autodetection_desc": "Erlauben Sie MetaMask, NFTs automatisch in OpenSea zu erkennen und in Ihrer MetaMask-Wallet anzuzeigen.",
     "network_details_check": "Überprüfung der Netzwerkangaben",
+    "network_with_chain_id": "Das Netzwerk mit Chain-ID",
+    "potential_scam": "Dies ist ein möglicher Betrug",
+    "network_not_matching": "Dieses Netzwerk passt nicht zu seiner zugehörigen Chain-ID oder seinem Namen. Viele beliebte Tokens verwenden diesen Namen,",
+    "target_scam_network": "was sie zu einem Ziel für Betrüger macht. Betrüger könnten Sie dazu verleiten, ihnen im Gegenzug wertvollere Währung zu senden. Überprüfen Sie alles, bevor Sie fortfahren.",
+    "use_the_currency_symbol": "verwendet das Währungssymbol",
+    "use_correct_symbol": "Vergewissern Sie sich, dass Sie das richtige Symbol verwenden, bevor Sie fortfahren.",
+    "chain_id_currently_used": "Diese Chain-ID wird derzeit verwendet von der",
     "network_check_validation_desc": "verringert die Wahrscheinlichkeit, dass Sie sich mit einem böswilligen oder falschen Netz verbinden.",
     "nfts_autodetection_cta": "Aktivieren Sie die NFT-Erkennung in den Einstellungen.",
     "learn_more": "Mehr erfahren",
@@ -879,17 +888,39 @@
     "transactions_subheading": "Transaktionen",
     "network_provider": "Netzwerkanbieter",
     "token_nft_ens_subheading": "Automatische Token-, NFT- und ENS-Erkennung",
-    "security_check_subheading": "Sicherheitsprüfungen"
+    "security_check_subheading": "Sicherheitsprüfungen",
+    "symbol_required": "Symbol ist erforderlich.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Wahrung der Privatsphäre – keine Daten werden an Dritte weitergegeben. Verfügbar auf Arbitrum, Avalanche, BNB Chain, Ethereum Mainnet, Optimism und Polygon.",
+    "security_alerts": "Sicherheitsbenachrichtigungen",
+    "security_alerts_desc": "Diese Funktion warnt Sie vor bösartigen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie Anfragen genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden."
   },
   "sdk": {
     "disconnect_title": "Verbindung mit allen Seiten trennen?",
     "disconnect_all_info": "Wenn Sie Ihre Verbindungen mit allen Seiten trennen, müssen Sie die Genehmigung dazu erteilen, sich erneut zu verbinden.",
     "disconnect": "Trennen",
     "disconnect_all": "Alle trennen",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
+    "manage": "Manage",
     "cancel": "Stornieren",
     "loading": "Verbindung mit MetaMask wird hergestellt ...",
     "unkown_dapp": "DAPP-Name nicht verfügbar",
-    "no_connections": "Keine Verbindungen gefunden"
+    "no_connections": "No connections",
+    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} account(s) connected."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Disconnect from all sites?",
+    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
+    "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_confirm": "Disconnect",
+    "cancel": "Cancel"
   },
   "sdk_return_to_app_modal": {
     "title": "Zur App zurückkehren",
@@ -1454,6 +1485,7 @@
     "add": "Hinzufügen",
     "cancel": "Stornieren",
     "approve": "Genehmigen",
+    "edit_network_details": "Netzwerkdetails bearbeiten",
     "malicious_network_warning": "Ein betrügerischer Netzwerkanbieter kann bezüglich des Status der Blockchain täuschen und Ihre Netzwerkaktivitäten aufzeichnen. Fügen Sie nur vertrauenswürdige benutzerdefinierte Netzwerke hinzu.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Netzwerkinformationen",
@@ -1473,7 +1505,9 @@
     "add_network": "weitere Netzwerke manuell hinzufügen.",
     "select_network": "Netzwerk wählen",
     "show_test_networks": "Testnetzwerke anzeigen",
-    "deprecated_goerli": "Aufgrund der Protokolländerungen von Ethereum: Das Goerli-Testnetzwerk funktioniert möglicherweise nicht mehr so zuverlässig und wird demnächst abgeschaltet."
+    "deprecated_goerli": "Aufgrund der Protokolländerungen von Ethereum: Das Goerli-Testnetzwerk funktioniert möglicherweise nicht mehr so zuverlässig und wird demnächst abgeschaltet.",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
   },
   "select": {
     "cancel": "Stornieren",
@@ -2028,6 +2062,7 @@
     "get_new_quotes": "Neue Angebote einholen",
     "quotes_timeout": "Angebote-Timeout",
     "request_new_quotes": "Bitte fragen Sie neue Angebote an, um den besten Kurs zu bekommen.",
+    "terms_of_service": "Nutzungsbedingungen",
     "amount_to_buy": "Betrag zum Kauf",
     "amount_to_sell": "Betrag zum Verkauf",
     "want_to_buy": "Sie möchten kaufen",

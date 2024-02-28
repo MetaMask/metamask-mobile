@@ -7,6 +7,8 @@
     "deceptive_request_title": "Ini adalah permintaan tipuan",
     "failed_title": "Permintaan mungkin tidak aman",
     "failed_description": "Karena terjadi kesalahan, permintaan ini tidak diverifikasi oleh penyedia keamanan. Lanjutkan dengan hati-hati.",
+    "loading_title": "Memeriksa peringatan keamanan...",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "Anda berinteraksi dengan domain berbahaya. Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "other_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "raw_signature_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
@@ -374,8 +376,15 @@
     "no_nfts_yet": "Belum ada NFT",
     "nfts_autodetection_title": "Deteksi NFT",
     "nfts_autodetection_desc": "Izinkan MetaMask untuk mendeteksi NFT dari OpenSea secara otomatis dan ditampilkan di dompet MetaMask Anda.",
-    "network_details_check": "Network details check",
-    "network_check_validation_desc": "reduces your chances of connecting to a malicious or incorrect network.",
+    "network_details_check": "Pemeriksaan detail jaringan",
+    "network_with_chain_id": "Jaringan dengan ID chain",
+    "potential_scam": "Ini merupakan potensi penipuan",
+    "network_not_matching": "Jaringan ini tidak cocok dengan ID chain atau nama yang terkait. Banyak token populer yang menggunakan nama tersebut",
+    "target_scam_network": "menjadikannya sebagai target penipuan. Penipu dapat mengelabui Anda agar mengirimkan mata uang yang lebih berharga sebagai gantinya. Pastikan untuk memverifikasi semuanya sebelum melanjutkan.",
+    "use_the_currency_symbol": "menggunakan simbol mata uang",
+    "use_correct_symbol": "Pastikan Anda menggunakan simbol yang benar sebelum melanjutkan",
+    "chain_id_currently_used": "ID chain ini saat ini digunakan oleh",
+    "network_check_validation_desc": "mengurangi peluang Anda untuk terhubung ke jaringan berbahaya atau salah.",
     "nfts_autodetection_cta": "Aktifkan deteksi NFT di Pengaturan",
     "learn_more": "Pelajari selengkapnya",
     "add_collectibles": "Impor NFT",
@@ -879,17 +888,39 @@
     "transactions_subheading": "Transaksi",
     "network_provider": "Network provider",
     "token_nft_ens_subheading": "Autodeteksi Token, NFT, dan ENS",
-    "security_check_subheading": "Pemeriksaan keamanan"
+    "security_check_subheading": "Pemeriksaan keamanan",
+    "symbol_required": "Simbol wajib diisi.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Menjaga privasi - tidak ada data yang dibagikan kepada pihak ketiga. Tersedia di Arbitrum, Avalanche, BNB Chain, Mainnet Ethereum, Optimism, dan Polygon.",
+    "security_alerts": "Peringatan keamanan",
+    "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia."
   },
   "sdk": {
     "disconnect_title": "Putuskan koneksi semua situs?",
     "disconnect_all_info": "Jika koneksi ke semua situs dihapus, Anda harus memberikan izin untuk menghubungkannya kembali.",
     "disconnect": "Putuskan koneksi",
     "disconnect_all": "Putuskan semua koneksi",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
+    "manage": "Manage",
     "cancel": "Batal",
     "loading": "Menghubungkan ke MetaMask...",
     "unkown_dapp": "Nama Aplikasi Terdesentralisasi (DAPP) tidak tersedia",
-    "no_connections": "Koneksi tidak ditemukan"
+    "no_connections": "No connections",
+    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} account(s) connected."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Disconnect from all sites?",
+    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
+    "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_confirm": "Disconnect",
+    "cancel": "Cancel"
   },
   "sdk_return_to_app_modal": {
     "title": "Kembali ke aplikasi",
@@ -1454,6 +1485,7 @@
     "add": "Tambahkan",
     "cancel": "Batal",
     "approve": "Setujui",
+    "edit_network_details": "Edit detail jaringan",
     "malicious_network_warning": "Penyedia jaringan jahat dapat berbohong tentang status blockchain dan merekam aktivitas jaringan Anda. Hanya tambahkan jaringan kustom yang Anda percayai.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Informasi Jaringan",
@@ -1473,7 +1505,9 @@
     "add_network": "menambahkan lebih banyak jaringan secara manual.",
     "select_network": "Pilih jaringan",
     "show_test_networks": "Tampilkan jaringan pengujian",
-    "deprecated_goerli": "Sehubungan dengan perubahan protokol Ethereum: Jaringan uji Goerli mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan."
+    "deprecated_goerli": "Sehubungan dengan perubahan protokol Ethereum: Jaringan uji Goerli mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan.",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
   },
   "select": {
     "cancel": "Batal",
@@ -2028,6 +2062,7 @@
     "get_new_quotes": "Dapatkan kuotasi baru",
     "quotes_timeout": "Waktu kuotasi habis",
     "request_new_quotes": "Minta kuotasi baru untuk mendapatkan tarif terbaik saat ini.",
+    "terms_of_service": "Ketentuan Layanan",
     "amount_to_buy": "Jumlah yang akan dibeli",
     "amount_to_sell": "Jumlah yang akan dijual",
     "want_to_buy": "Anda ingin membeli",
