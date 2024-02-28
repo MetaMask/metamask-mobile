@@ -1,4 +1,6 @@
 import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
+import { resetConnections } from '../../../../app/actions/sdk';
+import { store } from '../../../../app/store';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
 import { Connection } from '../Connection';
@@ -13,7 +15,6 @@ function watchConnection(connection: Connection, instance: SDKConnect) {
       if (connectionStatus === ConnectionStatus.TERMINATED) {
         instance.removeChannel({
           channelId: connection.channelId,
-          emitRefresh: true,
           sendTerminate: false,
         });
       } else if (connectionStatus === ConnectionStatus.DISCONNECTED) {
@@ -22,11 +23,10 @@ function watchConnection(connection: Connection, instance: SDKConnect) {
           loading: false,
         });
       }
+      store.dispatch(resetConnections(instance.state.connections));
       DevLogger.log(
         `SDKConnect::watchConnection CONNECTION_STATUS ${connection.channelId} ${connectionStatus}`,
       );
-      // Inform ui about connection status change
-      instance.emit('refresh');
     },
   );
 
@@ -37,8 +37,12 @@ function watchConnection(connection: Connection, instance: SDKConnect) {
     DevLogger.log(
       `SDKConnect::watchConnection CLIENTS_DISCONNECTED channel=${connection.channelId} origin=${connection.origin} isDisabled=${isDisabled}`,
     );
-    // Always update initialConnection state
-    instance.state.connections[connection.channelId].initialConnection = false;
+
+    // update initialConnection state
+    if (instance.state.connections[connection.channelId]) {
+      instance.state.connections[connection.channelId].initialConnection =
+        false;
+    }
 
     if (isDisabled !== undefined) {
       instance

@@ -158,7 +158,6 @@ async function reconnect({
   const afterConnected =
     instance.state.connected[channelId].remote.isConnected() ?? false;
   instance.state.connecting[channelId] = !afterConnected; // If not connected, it means it's connecting.
-  instance.emit('refresh');
 }
 
 export default reconnect;

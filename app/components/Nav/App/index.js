@@ -301,6 +301,7 @@ const App = ({ userLoggedIn }) => {
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
+      Logger.error('Error from Branch: ' + error);
       trackErrorAsAnalytics(error, 'Branch:');
     }
     const deeplink = params?.['+non_branch_link'] || uri || null;
@@ -347,13 +348,6 @@ const App = ({ userLoggedIn }) => {
         // Subscribe to incoming deeplinks
         // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
         branch.subscribe((opts) => {
-          const { error } = opts;
-
-          if (error) {
-            // Log error for analytics and continue handling deeplink
-            Logger.error('Error from Branch: ' + error);
-          }
-
           if (sdkPostInit.current === true) {
             handleDeeplink(opts);
           } else {
