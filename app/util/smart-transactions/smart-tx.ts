@@ -1,4 +1,4 @@
-import { ORIGIN_METAMASK } from '@metamask/approval-controller';
+import { ApprovalController } from '@metamask/approval-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import {
   Fee,
@@ -80,7 +80,7 @@ interface Request {
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   isSmartTransaction: boolean;
-  approvalController: any;
+  approvalController: ApprovalController;
 }
 
 export async function publishHook(request: Request) {
@@ -95,8 +95,6 @@ export async function publishHook(request: Request) {
 
   const { chainId, transaction: txParams, origin } = transactionMeta;
 
-  const isDapp = origin !== ORIGIN_METAMASK;
-
   if (!isSmartTransaction) {
     Logger.log('STX - Skipping hook as not enabled for chain', chainId);
 
@@ -104,12 +102,9 @@ export async function publishHook(request: Request) {
     return { transactionHash: undefined };
   }
 
-  let smartTransactionStatusApprovalId: string | undefined;
-  if (isDapp) {
-    const { id } = approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
-    smartTransactionStatusApprovalId = id;
-    Logger.log('STX - Started approval flow', smartTransactionStatusApprovalId);
-  }
+  const { id } = approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
+  const smartTransactionStatusApprovalId = id;
+  Logger.log('STX - Started approval flow', smartTransactionStatusApprovalId);
 
   try {
     Logger.log('STX - Fetching fees', txParams, chainId);
@@ -159,21 +154,19 @@ export async function publishHook(request: Request) {
 
     Logger.log('STX - Received UUID', uuid);
 
-    if (isDapp) {
-      approvalController.addAndShowApprovalRequest({
-        id: smartTransactionStatusApprovalId,
-        origin,
-        type: ApprovalTypes.SMART_TRANSACTION_STATUS,
-        // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
-        requestState: {
-          smartTransaction: {
-            status: 'pending',
-          },
-          creationTime: Date.now(),
+    approvalController.addAndShowApprovalRequest({
+      id: smartTransactionStatusApprovalId,
+      origin,
+      type: ApprovalTypes.SMART_TRANSACTION_STATUS,
+      // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
+      requestState: {
+        smartTransaction: {
+          status: 'pending',
         },
-      });
-      Logger.log('STX - Added approval', smartTransactionStatusApprovalId);
-    }
+        creationTime: Date.now(),
+      },
+    });
+    Logger.log('STX - Added approval', smartTransactionStatusApprovalId);
 
     // undefined for init state
     // null for error
@@ -192,14 +185,13 @@ export async function publishHook(request: Request) {
           return;
         }
 
-        if (isDapp) {
-          await approvalController.updateRequestState({
-            id: smartTransactionStatusApprovalId,
-            requestState: {
-              smartTransaction,
-            },
-          });
-        }
+        await approvalController.updateRequestState({
+          id: smartTransactionStatusApprovalId,
+          requestState: {
+            smartTransaction: smartTransaction as any,
+          },
+        });
+
         if (statusMetadata?.minedHash) {
           Logger.log('STX - Received tx hash: ', statusMetadata?.minedHash);
           transactionHash = statusMetadata.minedHash;
@@ -238,12 +230,10 @@ export async function publishHook(request: Request) {
     Logger.error(error, '');
     throw error;
   } finally {
-    if (isDapp) {
-      // This removes the loading spinner
-      approvalController.endFlow({
-        id: smartTransactionStatusApprovalId,
-      });
-      Logger.log('STX - Ended approval flow', smartTransactionStatusApprovalId);
-    }
+    // This removes the loading spinner
+    approvalController.endFlow({
+      id: smartTransactionStatusApprovalId,
+    });
+    Logger.log('STX - Ended approval flow', smartTransactionStatusApprovalId);
   }
 }
