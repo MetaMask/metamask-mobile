@@ -42,7 +42,10 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import {
+  getIsSmartTransaction,
+  selectSelectedAddress,
+} from '../../../../selectors/preferencesController';
 import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
@@ -109,6 +112,11 @@ class Approval extends PureComponent {
      * A string representing the network chainId
      */
     chainId: PropTypes.string,
+
+    /**
+     * Indicates if a transaction is going to be routed through smart tx
+     */
+    isSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -385,12 +393,15 @@ class Approval extends PureComponent {
    * Callback on confirm transaction
    */
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
+    Logger.log('STX Approval::onConfirm');
+
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
     const {
       transactions,
       transaction: { assetType, selectedAsset },
       showCustomNonce,
+      isSmartTransaction,
     } = this.props;
     let { transaction } = this.props;
     const { nonce } = transaction;
@@ -410,6 +421,8 @@ class Approval extends PureComponent {
 
     this.setState({ transactionConfirmed: true });
 
+    Logger.log('STX Approval::onConfirm transactionConfirmed');
+
     try {
       if (assetType === 'ETH') {
         transaction = this.prepareTransaction({
@@ -426,9 +439,15 @@ class Approval extends PureComponent {
         });
       }
 
+      Logger.log('STX Approval::onConfirm::transaction', transaction);
+
       TransactionController.hub.once(
         `${transaction.id}:finished`,
         (transactionMeta) => {
+          Logger.log(
+            'STX Approval::onConfirm::transactionMeta',
+            transactionMeta,
+          );
           if (transactionMeta.status === 'submitted') {
             if (!isLedgerAccount) {
               this.setState({ transactionHandled: true });
@@ -448,6 +467,8 @@ class Approval extends PureComponent {
       const updatedTx = { ...fullTx, transaction };
       await TransactionController.updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
+
+      Logger.log('STX Approval::onConfirm 2');
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
@@ -471,11 +492,26 @@ class Approval extends PureComponent {
         this.props.hideModal();
         return;
       }
-      await ApprovalController.accept(transaction.id, undefined, {
-        waitForResult: true,
-      });
+
+      // The STX Status page will be shown instead
+      if (isSmartTransaction) {
+        await ApprovalController.accept(transaction.id, undefined, {
+          // Need this so we can hide the modal right away
+          waitForResult: false,
+        });
+        this.props.hideModal();
+        Logger.log('STX Approval::onConfirm hideModal 1');
+      } else {
+        await ApprovalController.accept(transaction.id, undefined, {
+          waitForResult: true,
+        });
+        Logger.log('STX Approval::onConfirm hideModal 2');
+      }
       this.showWalletConnectNotification(true);
+
+      Logger.log('STX Approval::onConfirm 3');
     } catch (error) {
+      Logger.error('STX Approval::onConfirm::error', error);
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         Alert.alert(
           strings('transactions.transaction_error'),
@@ -630,6 +666,7 @@ const mapStateToProps = (state) => ({
   showCustomNonce: state.settings.showCustomNonce,
   chainId: selectChainId(state),
   activeTabUrl: getActiveTabUrl(state),
+  isSmartTransaction: getIsSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
