@@ -82,7 +82,7 @@ async function main(): Promise<void> {
   }
 
   const bitriseComment = comments
-    .toReversed()
+    .reverse()
     .find(({ body }) => body?.includes(bitriseTag));
 
   // Bitrise comment doesn't exist
@@ -131,7 +131,7 @@ async function main(): Promise<void> {
 
   // Relevant hashes include both merge from main commits and the last non-merge from main commit
   const relevantCommitHashes: string[] = [];
-  for (const commit of commits.toReversed()) {
+  for (const commit of commits.reverse()) {
     const commitMessage = commit.commit.message;
     relevantCommitHashes.push(commit.sha);
     if (!commitMessage.includes(mergeFromMainCommitMessagePrefix)) {
