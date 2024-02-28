@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import Icon, {
   IconColor,
@@ -144,7 +143,6 @@ const SmartTransactionStatus = ({
 
   const onViewTransaction = () => {
     if (txUrl && txTitle) {
-      Logger.log('STX onViewTransaction', txUrl, txTitle);
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: {
