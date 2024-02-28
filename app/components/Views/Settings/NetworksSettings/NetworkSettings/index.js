@@ -67,7 +67,6 @@ import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { isSafeChainId, toHex } from '@metamask/controller-utils';
 import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 
 const createStyles = (colors) =>
@@ -1032,10 +1031,7 @@ class NetworkSettings extends PureComponent {
               size={ButtonSize.Lg}
               disabled={isActionDisabled}
               width={ButtonWidthTypes.Full}
-              {...generateTestId(
-                Platform,
-                CustomDefaultNetworkIDs.USE_THIS_NETWORK_BUTTON_ID,
-              )}
+              testID={CustomDefaultNetworkIDs.USE_THIS_NETWORK_BUTTON_ID}
             />
           ) : (
             (addMode || editable) && (
