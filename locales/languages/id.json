@@ -7,6 +7,7 @@
     "deceptive_request_title": "Ini adalah permintaan tipuan",
     "failed_title": "Permintaan mungkin tidak aman",
     "failed_description": "Karena terjadi kesalahan, permintaan ini tidak diverifikasi oleh penyedia keamanan. Lanjutkan dengan hati-hati.",
+    "loading_title": "Memeriksa peringatan keamanan...",
     "malicious_domain_description": "Anda berinteraksi dengan domain berbahaya. Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "other_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "raw_signature_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
