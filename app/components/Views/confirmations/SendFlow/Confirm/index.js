@@ -890,7 +890,12 @@ class Confirm extends PureComponent {
         });
         stopGasPolling();
         resetTransaction();
-        navigation && navigation.dangerouslyGetParent()?.pop();
+
+        if (!isSmartTransaction) {
+          // We popped it already earlier
+          navigation && navigation.dangerouslyGetParent()?.pop();
+        }
+        Logger.log('STX Send Confirm 3');
       });
     } catch (error) {
       if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
