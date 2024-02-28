@@ -92,8 +92,6 @@ const SmartTransactionStatus = ({
 
   const isStxPending = status === 'pending';
 
-  Logger.log('STX SmartTransactionStatus', status);
-
   // Calc time left for progress bar and timer display
   const stxDeadlineSec = isStxPastEstimatedDeadline
     ? STX_MAX_DEADLINE_SEC
@@ -188,7 +186,6 @@ const SmartTransactionStatus = ({
     iconColor = IconColor.Success;
     header = strings('smart_transactions.status_success_header');
     description = undefined;
-    Logger.log('STX HELLO');
   } else if (status === 'cancelled') {
     icon = IconName.WarningTriangle;
     iconColor = IconColor.Warning;
