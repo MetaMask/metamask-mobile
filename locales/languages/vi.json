@@ -8,6 +8,7 @@
     "failed_title": "Yêu cầu có thể không an toàn",
     "failed_description": "Do có lỗi, yêu cầu này đã không được nhà cung cấp dịch vụ bảo mật xác minh. Hãy thực hiện cẩn thận.",
     "loading_title": "Đang kiểm tra cảnh báo bảo mật...",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "Bạn đang tương tác với một tên miền độc hại. Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "other_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "raw_signature_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
@@ -376,10 +377,13 @@
     "nfts_autodetection_title": "Phát hiện NFT",
     "nfts_autodetection_desc": "Cho phép MetaMask tự động phát hiện NFT từ OpenSea và hiển thị trên ví MetaMask của bạn.",
     "network_details_check": "Kiểm tra thông tin mạng",
-    "network_with_chain_id": "The network with chain ID",
-    "use_the_currency_symbol": "uses the currency symbol",
-    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
-    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_with_chain_id": "Mạng có ID chuỗi",
+    "potential_scam": "Đây có khả năng là một hành vi lừa đảo",
+    "network_not_matching": "Mạng này không trùng khớp với tên hoặc ID chuỗi đã liên kết của nó. Nhiều token phổ biến sử dụng tên",
+    "target_scam_network": "khiến nó trở thành mục tiêu để lừa đảo. Những kẻ lừa đảo có thể lừa bạn gửi lại cho họ những loại tiền tệ có giá trị hơn. Nhớ xác minh mọi thông tin trước khi tiếp tục.",
+    "use_the_currency_symbol": "sử dụng ký hiệu tiền tệ",
+    "use_correct_symbol": "Đảm bảo bạn đang sử dụng đúng ký hiệu trước khi tiếp tục",
+    "chain_id_currently_used": "ID chuỗi này hiện được sử dụng bởi",
     "network_check_validation_desc": "giảm khả năng bạn kết nối với mạng độc hại hoặc mạng không chính xác.",
     "nfts_autodetection_cta": "Bật tính năng phát hiện NFT trong phần Cài đặt",
     "learn_more": "Tìm hiểu thêm",
@@ -887,21 +891,38 @@
     "network_provider": "Nhà cung cấp mạng",
     "token_nft_ens_subheading": "Tự động phát hiện Token, NFT và ENS",
     "security_check_subheading": "Kiểm tra bảo mật",
-    "security_alerts": "Cảnh báo bảo mật",
-    "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp.",    
+    "symbol_required": "Ký hiệu là bắt buộc.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Bảo vệ quyền riêng tư - không có dữ liệu nào được chia sẻ với các bên thứ ba. Có sẵn trên Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism và Polygon.",    
-    "symbol_required": "Symbol is required."
+    "blockaid_desc": "Bảo vệ quyền riêng tư – không chia sẻ dữ liệu với các bên thứ ba. Có sẵn trên Arbitrum, Avalanche, BNB Chain, Ethereum Mainnet, Optimism và Polygon.",
+    "security_alerts": "Cảnh báo bảo mật",
+    "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp."
   },
   "sdk": {
     "disconnect_title": "Ngắt kết nối tất cả các trang web?",
     "disconnect_all_info": "Nếu bạn xóa kết nối với tất cả các trang web, bạn sẽ cần cấp quyền để kết nối lại.",
     "disconnect": "Ngắt kết nối",
     "disconnect_all": "Ngắt kết nối tất cả",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
+    "manage": "Manage",
     "cancel": "Hủy",
     "loading": "Đang kết nối với MetaMask...",
     "unkown_dapp": "Tên DAPP không khả dụng",
-    "no_connections": "Không tìm thấy kết nối nào"
+    "no_connections": "No connections",
+    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} account(s) connected."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Disconnect from all sites?",
+    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
+    "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_confirm": "Disconnect",
+    "cancel": "Cancel"
   },
   "sdk_return_to_app_modal": {
     "title": "Quay lại ứng dụng",
@@ -1466,7 +1487,7 @@
     "add": "Thêm",
     "cancel": "Hủy",
     "approve": "Chấp thuận",
-    "edit_network_details": "Edit network details",
+    "edit_network_details": "Chỉnh sửa thông tin mạng",
     "malicious_network_warning": "Một nhà cung cấp mạng độc hại có thể nói dối về trạng thái của chuỗi khối và ghi lại hoạt động của bạn trên mạng. Chỉ thêm các mạng tùy chỉnh mà bạn tin tưởng.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Thông tin mạng",
@@ -1486,7 +1507,9 @@
     "add_network": "thêm thủ công các mạng khác.",
     "select_network": "Chọn mạng",
     "show_test_networks": "Hiển thị các mạng thử nghiệm",
-    "deprecated_goerli": "Do những thay đổi trong giao thức của Ethereum: Mạng thử nghiệm Goerli có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng."
+    "deprecated_goerli": "Do những thay đổi trong giao thức của Ethereum: Mạng thử nghiệm Goerli có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng.",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
   },
   "select": {
     "cancel": "Hủy",
@@ -2037,7 +2060,7 @@
     "get_new_quotes": "Nhận báo giá mới",
     "quotes_timeout": "Hết thời gian chờ báo giá",
     "request_new_quotes": "Vui lòng yêu cầu báo giá mới để nhận tỷ giá tốt nhất và mới nhất.",
-    "terms_of_service": "Terms of Service",
+    "terms_of_service": "Điều khoản dịch vụ",
     "amount_to_buy": "Số tiền cần mua",
     "amount_to_sell": "Số tiền cần bán",
     "want_to_buy": "Bạn muốn mua",
