@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../app/constants/network';
 import { selectUseSafeChainsListValidation } from '../../../../../app/selectors/preferencesController';
 import axios from 'axios';
-import { toHexadecimal } from '../../../../../app/util/number';
 
 const CHAIN_ID_NETWORK_URL = 'https://chainid.network/chains.json';
 
@@ -34,8 +33,7 @@ function useIsOriginalNativeTokenSymbol(
         }
 
         // check first on the CURRENCY_SYMBOL_BY_CHAIN_ID
-        const mappedCurrencySymbol =
-          CURRENCY_SYMBOL_BY_CHAIN_ID[toHexadecimal(networkId)];
+        const mappedCurrencySymbol = CURRENCY_SYMBOL_BY_CHAIN_ID[networkId];
 
         if (mappedCurrencySymbol) {
           setIsOriginalNativeSymbol(mappedCurrencySymbol === ticker);

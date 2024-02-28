@@ -257,4 +257,46 @@ describe('useNativeTokenFiatAmount', () => {
     expect(result.result.current).toBe(true);
     expect(spyFetch).not.toHaveBeenCalled();
   });
+
+  it('should return the correct value for LineaGoerli testnet', async () => {
+    mockSelectorState({
+      engine: {
+        backgroundState: {
+          ...initialBackgroundState,
+          PreferencesController: {
+            useSafeChainsListValidation: true,
+          },
+        },
+      },
+    });
+
+    // Mock the safeChainsList response with a different native symbol
+    const safeChainsList = [
+      {
+        chainId: 1,
+        nativeCurrency: {
+          symbol: 'BTC',
+        },
+      },
+    ];
+
+    // Mock the fetchWithCache function to return the safeChainsList
+    const spyFetch = jest.spyOn(axios, 'get').mockImplementation(() =>
+      Promise.resolve({
+        data: safeChainsList,
+      }),
+    );
+
+    let result: any;
+
+    await act(async () => {
+      result = renderHook(() =>
+        useIsOriginalNativeTokenSymbol('0xe704', 'LineaETH', 'linea'),
+      );
+    });
+    // expect this to pass because the chainId is in the CURRENCY_SYMBOL_BY_CHAIN_ID
+    expect(result.result.current).toBe(true);
+    // expect that the chainlist API was not called
+    expect(spyFetch).not.toHaveBeenCalled();
+  });
 });
