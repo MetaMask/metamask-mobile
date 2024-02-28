@@ -119,6 +119,7 @@ export const selectSmartTransactionsOptInStatus = createSelector(
 export const ALLOWED_SMART_TRANSACTIONS_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.MAINNET,
   NETWORKS_CHAIN_ID.GOERLI,
+  NETWORKS_CHAIN_ID.SEPOLIA,
 ];
 
 // TODO optimize using createSelector
