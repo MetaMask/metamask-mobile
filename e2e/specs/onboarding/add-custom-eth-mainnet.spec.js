@@ -10,6 +10,7 @@ import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecuri
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import WalletView from '../../pages/WalletView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
+import NetworksView from '../../pages/Settings/NetworksView';
 
 describe(Regression('Add custom default ETH Mainnet'), () => {
   beforeAll(async () => {
@@ -25,7 +26,7 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
   it('should not edit default network with invalid RPC', async () => {
     await MetaMetricsOptIn.tapEditDefaultNetworkHere();
     await DefaultNetworkView.typeRpcURL('not a valid URL');
-    await Assertions.checkIfVisible(DefaultNetworkView.invalidRPCLabel);
+    await Assertions.checkIfVisible(NetworksView.rpcWarningBanner);
   });
 
   it('should edit default ETH Mainnet with valid RPC', async () => {

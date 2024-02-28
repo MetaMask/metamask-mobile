@@ -15,10 +15,6 @@ class DefaultNetworkView {
     );
   }
 
-  get invalidRPCLabel() {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_WARNING_BANNER);
-  }
-
   async tapUseThisNetworkButton() {
     if (device.getPlatform() === 'ios') {
       await Gestures.waitAndTap(this.useThisNetworkButton);
