@@ -32,7 +32,7 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
 };
 
 /**
- * V2 Analytics Tracking Events
+ * Analytics Tracking Events
  */
 enum EVENT_NAME {
   // Error
@@ -257,7 +257,6 @@ enum EVENT_NAME {
   RECEIVE_OPTIONS = 'Receive Options',
   SEND_FLOW = 'Send Flow',
   DAPP_INTERACTIONS = 'Dapp Interactions',
-  WALLET = 'Wallet',
   PAYMENTS = 'Payments',
 
   // Swaps
@@ -356,7 +355,6 @@ enum ACTIONS {
   IMPORT_OR_CREATE = 'Import or Create',
   IMPORT_OR_SYNC = 'Import or Sync',
   ONBOARDING_NEXT = 'Onboarding Next',
-  ONBOARDING_SKIP = 'Onboarding Skip',
   // Navigation Drawer
   NAVIGATION_DRAWER = 'Navigation Drawer',
   // Common Navigation
@@ -836,7 +834,6 @@ enum DESCRIPTION {
   ONBOARDING_SELECTED_WITH_SEEDPHRASE = 'Selected Import with Seedphrase',
   ONBOARDING_SELECTED_TAKE_THE_TOUR = `Onboarding wizard 'Take the tour'`,
   ONBOARDING_SELECTED_NO_THANKS = `Onboarding wizard 'No thanks'`,
-  ONBOARDING_SELECTED_SKIP = 'Onboarding wizard Skip',
   ONBOARDING_SELECTED_SKIP_TUTORIAL = 'Onboarding wizard Skip',
   // Navigation Drawer
   NAVIGATION_TAPS_ACCOUNT_NAME = 'Tapped Account Name / Profile',

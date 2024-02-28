@@ -8,6 +8,7 @@
     "failed_title": "A solicitação pode não ser segura",
     "failed_description": "Em razão de um erro, essa solicitação não foi confirmada pelo provedor de segurança. Prossiga com cautela.",
     "loading_title": "Verificando se há alertas de segurança...",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "Você está interagindo com um domínio mal-intencionado. Se você aprovar essa solicitação, poderá perder seus ativos.",
     "other_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
     "raw_signature_farming_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
@@ -376,10 +377,13 @@
     "nfts_autodetection_title": "Detecção de NFTs",
     "nfts_autodetection_desc": "Permita que a MetaMask detecte NFTs automaticamente da OpenSea e os exiba na sua carteira MetaMask.",
     "network_details_check": "A verificação dos dados da rede",
-    "network_with_chain_id": "The network with chain ID",
-    "use_the_currency_symbol": "uses the currency symbol",
-    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
-    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_with_chain_id": "A rede com a ID de cadeia",
+    "potential_scam": "Isto é um possível golpe",
+    "network_not_matching": "Esta rede não corresponde ao nome ou ID de cadeia associados a ela. Muitos tokens populares usam o nome",
+    "target_scam_network": "o que o torna alvo de golpes. Os golpistas podem tentar enganar você para que envie a eles moedas mais valiosas em troca. Verifique tudo antes de continuar.",
+    "use_the_currency_symbol": "usa o símbolo de moeda",
+    "use_correct_symbol": "Certifique-se de usar o símbolo correto antes de continuar",
+    "chain_id_currently_used": "Esta ID de cadeia está sendo usada pela",
     "network_check_validation_desc": "reduz suas chances de se conectar a uma rede mal-intencionada ou incorreta.",
     "nfts_autodetection_cta": "Ative a detecção de NFTs nas Configurações",
     "learn_more": "Saiba mais",
@@ -887,21 +891,38 @@
     "network_provider": "Provedor de rede",
     "token_nft_ens_subheading": "Detecção automática de tokens, NFTs e ENS",
     "security_check_subheading": "Verificações de segurança",
-    "security_alerts": "Alertas de segurança",
-    "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",    
+    "symbol_required": "O símbolo é obrigatório.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Privacidade resguardada: nenhum dado é compartilhado com terceiros. Disponível na Arbitrum, Avalanche, BNB Chain, Mainnet da Ethereum, Optimism e Polygon.",    
-    "symbol_required": "Symbol is required."
+    "blockaid_desc": "Privacidade resguardada: nenhum dado é compartilhado com terceiros. Disponível na Arbitrum, Avalanche, BNB Chain, Mainnet da Ethereum, Optimism e Polygon.",
+    "security_alerts": "Alertas de segurança",
+    "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor."
   },
   "sdk": {
     "disconnect_title": "Desconectar todos os sites?",
     "disconnect_all_info": "Se você remover suas conexões com todos os sites, precisará dar permissão para se reconectar.",
     "disconnect": "Desconectar",
     "disconnect_all": "Desconectar todos",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
+    "manage": "Manage",
     "cancel": "Cancelar",
     "loading": "Conectando à MetaMask...",
     "unkown_dapp": "Nome do dapp indisponível",
-    "no_connections": "Nenhuma conexão encontrada"
+    "no_connections": "No connections",
+    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} account(s) connected."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Disconnect from all sites?",
+    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
+    "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_confirm": "Disconnect",
+    "cancel": "Cancel"
   },
   "sdk_return_to_app_modal": {
     "title": "Voltar ao app",
@@ -1466,7 +1487,7 @@
     "add": "Adicionar",
     "cancel": "Cancelar",
     "approve": "Aprovar",
-    "edit_network_details": "Edit network details",
+    "edit_network_details": "Editar os dados da rede",
     "malicious_network_warning": "Um provedor de rede mal-intencionado pode mentir sobre o estado da blockchain e registrar sua atividade na rede. Adicione apenas redes personalizadas em que você confia.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Informações da rede",
@@ -1486,7 +1507,9 @@
     "add_network": "adicionar mais redes manualmente.",
     "select_network": "Selecione uma rede",
     "show_test_networks": "Exibir redes de teste",
-    "deprecated_goerli": "Devido às alterações no protocolo Ethereum, a rede de teste Goerli pode não funcionar com a mesma confiabilidade e será descontinuada."
+    "deprecated_goerli": "Devido às alterações no protocolo Ethereum, a rede de teste Goerli pode não funcionar com a mesma confiabilidade e será descontinuada.",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
   },
   "select": {
     "cancel": "Cancelar",
@@ -2037,7 +2060,7 @@
     "get_new_quotes": "Obter novas cotações",
     "quotes_timeout": "Cotações expiradas",
     "request_new_quotes": "Solicite novas cotações para obter a melhor taxa mais recente.",
-    "terms_of_service": "Terms of Service",
+    "terms_of_service": "Termos de Serviço",
     "amount_to_buy": "Valor a comprar",
     "amount_to_sell": "Valor a vender",
     "want_to_buy": "Você deseja comprar",
