@@ -45,6 +45,8 @@ Array [
         View the list of active WalletConnect sessions
       </Text>
       <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
         activeOpacity={1}
         onPress={[Function]}
         onPressIn={[Function]}
@@ -174,7 +176,8 @@ Array [
           This is a test feature that blocks any changes to the app's JavaScript code without permission.
            
           <Text
-            accessibilityRole="text"
+            accessibilityRole="link"
+            accessible={true}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
