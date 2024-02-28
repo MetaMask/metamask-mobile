@@ -83,6 +83,7 @@ class WalletConnect2Session {
 
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
+      channelId: session.pairingTopic,
       url,
       isWalletConnect: true,
       wcRequestActions: {

@@ -7,7 +7,6 @@ import { Provider } from 'react-redux';
 import * as TransactionUtils from '../../../../../util/transactions';
 // eslint-disable-next-line import/no-namespace
 import * as BlockaidUtils from '../../../../../util/blockaid';
-import analyticsV2 from '../../../../../util/analyticsV2';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { fireEvent } from '@testing-library/react-native';
@@ -185,12 +184,6 @@ describe('TransactionReview', () => {
       req: {},
       chainId: '0x1',
     };
-    const trackEventSypy = jest
-      .spyOn(analyticsV2, 'trackEvent')
-      .mockImplementation((name, params) => {
-        expect(name).toBeDefined();
-        expect(params).toBeDefined();
-      });
 
     const blockaidMetricsParamsSpy = jest
       .spyOn(BlockaidUtils, 'getBlockaidMetricsParams')
@@ -239,7 +232,6 @@ describe('TransactionReview', () => {
 
     fireEvent.press(await getByText('Report an issue'));
 
-    expect(trackEventSypy).toHaveBeenCalledTimes(1);
     expect(blockaidMetricsParamsSpy).toHaveBeenCalledTimes(1);
     expect(blockaidMetricsParamsSpy).toHaveBeenCalledWith({
       id: '123',

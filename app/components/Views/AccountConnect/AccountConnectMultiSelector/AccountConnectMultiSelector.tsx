@@ -1,32 +1,34 @@
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { View, Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 
 // External dependencies.
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../locales/i18n';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import Text from '../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../component-library/hooks';
+import { ACCOUNT_APPROVAL_SELECT_ALL_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/AccountApprovalModal.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import AccountSelectorList from '../../../UI/AccountSelectorList';
+import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
+import TagUrl from '../../../../component-library/components/Tags/TagUrl';
+import Text, {
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../component-library/hooks';
 import { USER_INTENT } from '../../../../constants/permissions';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ACCOUNT_APPROVAL_SELECT_ALL_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/AccountApprovalModal.testIds';
+import AccountSelectorList from '../../../UI/AccountSelectorList';
 
 // Internal dependencies.
+import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
+import { ACCOUNT_LIST_ADD_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
+import AddAccountActions from '../../AddAccountActions';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {
   AccountConnectMultiSelectorProps,
   AccountConnectMultiSelectorScreens,
 } from './AccountConnectMultiSelector.types';
-import AddAccountActions from '../../AddAccountActions';
-import { ACCOUNT_LIST_ADD_BUTTON_ID } from '../../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
-import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -39,6 +41,7 @@ const AccountConnectMultiSelector = ({
   secureIcon,
   isAutoScrollEnabled = true,
   urlWithProtocol,
+  connection,
   onBack,
 }: AccountConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -147,7 +150,7 @@ const AccountConnectMultiSelector = ({
 
   const renderAccountConnectMultiSelector = useCallback(
     () => (
-      <>
+      <View style={styles.container}>
         <SheetHeader
           title={strings('accounts.connect_accounts_title')}
           onBack={onBack}
@@ -175,6 +178,15 @@ const AccountConnectMultiSelector = ({
           isRemoveAccountEnabled
           isAutoScrollEnabled={isAutoScrollEnabled}
         />
+        {connection?.originatorInfo?.apiVersion && (
+          <View style={styles.sdkInfoContainer}>
+            <View style={styles.sdkInfoDivier} />
+            <Text color={TextColor.Muted}>
+              SDK {connection?.originatorInfo?.platform} v
+              {connection?.originatorInfo?.apiVersion}
+            </Text>
+          </View>
+        )}
         <View style={styles.addAccountButtonContainer}>
           <Button
             variant={ButtonVariants.Link}
@@ -188,7 +200,7 @@ const AccountConnectMultiSelector = ({
           />
         </View>
         <View style={styles.body}>{renderCtaButtons()}</View>
-      </>
+      </View>
     ),
     [
       accounts,
@@ -207,6 +219,10 @@ const AccountConnectMultiSelector = ({
       styles.body,
       styles.description,
       urlWithProtocol,
+      connection,
+      styles.sdkInfoContainer,
+      styles.container,
+      styles.sdkInfoDivier,
       onBack,
     ],
   );
