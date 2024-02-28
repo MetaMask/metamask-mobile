@@ -150,6 +150,7 @@ const SmartTransactionStatus = ({
           title: txTitle,
         },
       });
+      // Close SmartTransactionStatus
       onConfirm();
     }
   };
