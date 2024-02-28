@@ -285,6 +285,9 @@ interface RampQuotesExpanded {
   currency_source: string;
   currency_destination: string;
   amount: number | string;
+  refresh_count: number;
+  results_count: number;
+  previously_used_count: number;
 }
 
 interface OnRampQuotesExpanded extends RampQuotesExpanded {

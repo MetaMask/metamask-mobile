@@ -240,6 +240,13 @@ function Quotes() {
     const payload = {
       payment_method_id: selectedPaymentMethodId as string,
       amount: params.amount,
+      refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
+      results_count: filteredQuotes.length,
+      provider_onramp_first: filteredQuotes[0]?.provider?.name,
+      provider_onramp_list: filteredQuotes.map(({ provider }) => provider.name),
+      previously_used_count: filteredQuotes.filter(({ provider }) =>
+        ordersProviders.includes(provider.id),
+      ).length,
     };
     if (isBuy) {
       trackEvent('ONRAMP_QUOTES_EXPANDED', {
@@ -257,10 +264,14 @@ function Quotes() {
       });
     }
   }, [
+    appConfig.POLLING_CYCLES,
+    filteredQuotes,
     isBuy,
+    ordersProviders,
     params.amount,
     params.asset?.symbol,
     params.fiatCurrency?.symbol,
+    pollingCyclesLeft,
     selectedChainId,
     selectedPaymentMethodId,
     trackEvent,

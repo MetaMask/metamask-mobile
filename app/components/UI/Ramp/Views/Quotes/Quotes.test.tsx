@@ -260,6 +260,15 @@ describe('Quotes', () => {
           "currency_destination": "ETH",
           "currency_source": "USD",
           "payment_method_id": "/payment-methods/test-payment-method",
+          "previously_used_count": 0,
+          "provider_onramp_first": "Banxa (Staging)",
+          "provider_onramp_list": Array [
+            "Banxa (Staging)",
+            "MoonPay (Staging)",
+            "Transak (Staging)",
+          ],
+          "refresh_count": 1,
+          "results_count": 3,
         },
       ]
     `);
