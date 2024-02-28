@@ -408,6 +408,12 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh android
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
@@ -421,12 +427,6 @@ workflows:
                 #!/usr/bin/env bash
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - script@1:
-          title: Check native folder diff for Android
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh android
-      - script@1:
           title: Install CCache & symlink
           inputs:
             - content: |-
@@ -435,16 +435,22 @@ workflows:
                 sudo apt install ccache
       - restore-cache@2:
           title: Restore CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - restore-cache@2:
           title: Restore build from cache
           inputs:
             - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
             - content: |-
@@ -571,6 +577,12 @@ workflows:
     after_run:
       - _notify_failure_on_slack
     steps:
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh ios
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -585,12 +597,6 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
-          title: Check native folder diff for iOS
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh ios
-      - script@1:
           title: Install CCache & symlink
           inputs:
             - content: |-
@@ -604,16 +610,22 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/clang++
       - restore-cache@2:
           title: Restore CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - restore-cache@2:
           title: Restore build from cache
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
             - content: |-
