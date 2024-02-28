@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
+import { PullRequestTriggerType } from '../scripts.types';
 
 main().catch((error: Error): void => {
   console.error(error);
@@ -10,6 +11,7 @@ main().catch((error: Error): void => {
 async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
   const e2eLabel = process.env.E2E_LABEL;
+  const triggerAction = context.payload.action as PullRequestTriggerType;
   const removeAndApplyInstructions = `Remove and re-apply the "${e2eLabel}" label to trigger a E2E smoke test on Bitrise.`;
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
 
@@ -97,8 +99,7 @@ async function main(): Promise<void> {
   const commitTagRegex = /<!--\s*([0-9a-f]{40})\s*-->/i;
   const bitriseCommentBody = bitriseComment.body || '';
   const hashMatch = bitriseCommentBody.match(commitTagRegex);
-  const bitriseCommentCommitHash =
-    hashMatch && hashMatch[1] ? hashMatch[1] : '';
+  let bitriseCommentCommitHash = hashMatch && hashMatch[1] ? hashMatch[1] : '';
 
   // Get at least the last 10 commits
   const numberOfTotalCommits = prData.commits;
@@ -138,6 +139,15 @@ async function main(): Promise<void> {
       break;
     }
   }
+
+  console.log('relevantCommitHashes', relevantCommitHashes);
+
+  if (triggerAction === PullRequestTriggerType.Labeled) {
+    // A Bitrise build was triggered for the last commit
+    bitriseCommentCommitHash = relevantCommitHashes[0];
+  }
+
+  console.log('bitriseCommentCommitHash', bitriseCommentCommitHash);
 
   // Check if Bitrise comment hash matches any of the relevant commit hashes
   if (relevantCommitHashes.includes(bitriseCommentCommitHash)) {
