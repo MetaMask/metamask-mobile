@@ -114,18 +114,20 @@ index 9d8a521..601fd18 100644
      [exports.ETH_CHAIN_ID]: 'ethereum',
      [exports.BSC_CHAIN_ID]: 'bsc',
 diff --git a/node_modules/@metamask/swaps-controller/dist/swapsUtil.d.ts b/node_modules/@metamask/swaps-controller/dist/swapsUtil.d.ts
-index 0204cab..b2f7c19 100644
+index 0204cab..63cfa90 100644
 --- a/node_modules/@metamask/swaps-controller/dist/swapsUtil.d.ts
 +++ b/node_modules/@metamask/swaps-controller/dist/swapsUtil.d.ts
-@@ -1,6 +1,7 @@
+@@ -1,7 +1,8 @@
  import { Transaction } from '@metamask/controllers';
  import { AbortSignal } from 'abort-controller';
  import { BigNumber } from 'bignumber.js';
+-import { APIAggregatorMetadata, SwapsAsset, SwapsToken, APIType, Quote, APIFetchQuotesParams, QuoteValues, TransactionReceipt, NetworkFeatureFlags } from './swapsInterfaces';
 +import { Hex } from '@metamask/utils';
- import { APIAggregatorMetadata, SwapsAsset, SwapsToken, APIType, Quote, APIFetchQuotesParams, QuoteValues, TransactionReceipt, NetworkFeatureFlags } from './swapsInterfaces';
++import { APIAggregatorMetadata, SwapsAsset, SwapsToken, APIType, Quote, APIFetchQuotesParams, QuoteValues, TransactionReceipt, NetworkFeatureFlags, FeatureFlags } from './swapsInterfaces';
  export * from './constants';
  export declare enum SwapsError {
-@@ -14,27 +15,27 @@ export declare enum SwapsError {
+     QUOTES_EXPIRED_ERROR = "quotes-expired",
+@@ -14,27 +15,28 @@ export declare enum SwapsError {
      SWAPS_ALLOWANCE_TIMEOUT = "swaps-allowance-timeout",
      SWAPS_ALLOWANCE_ERROR = "swaps-allowance-error"
  }
@@ -154,7 +156,8 @@ index 0204cab..b2f7c19 100644
 -export declare function fetchTopAssets(chainId: string, clientId?: string): Promise<SwapsAsset[]>;
 -export declare function fetchSwapsFeatureLiveness(chainId: string, clientId?: string): Promise<NetworkFeatureFlags | undefined>;
 +export declare function fetchTopAssets(chainId: Hex, clientId?: string): Promise<SwapsAsset[]>;
-+export declare function fetchSwapsFeatureLiveness(chainId: Hex, clientId?: string): Promise<NetworkFeatureFlags | undefined>;
++export declare function fetchSwapsFeatureFlags(clientId?: string): Promise<FeatureFlags | undefined>;
++export declare function getSwapsFeatureFlagsByChainId(featureFlags: FeatureFlags | undefined, chainId: Hex): NetworkFeatureFlags | undefined;
  /**
   * Fetches gas prices from API URL
   * @param chainId Current chainId
@@ -166,10 +169,15 @@ index 0204cab..b2f7c19 100644
      proposedGasPrice: string;
      fastGasPrice: string;
 diff --git a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
-index 54a32d5..3fa4343 100644
+index 54a32d5..ac46776 100644
 --- a/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
 +++ b/node_modules/@metamask/swaps-controller/dist/swapsUtil.js
-@@ -14,6 +14,7 @@ exports.constructTxParams = exports.estimateGas = exports.calcTokenAmount = expo
+@@ -10,10 +10,11 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
+     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.constructTxParams = exports.estimateGas = exports.calcTokenAmount = exports.calculateGasLimits = exports.getMedianEthValueQuote = exports.getMedian = exports.getSwapsTokensReceived = exports.calculateGasEstimateWithRefund = exports.fetchGasPrices = exports.fetchSwapsFeatureLiveness = exports.fetchTopAssets = exports.fetchAggregatorMetadata = exports.fetchTokens = exports.fetchTradesInfo = exports.getTokenMetadataURL = exports.getBaseApiURL = exports.shouldEnableDirectWrapping = exports.isValidContractAddress = exports.getSwapsContractAddress = exports.getNativeSwapsToken = exports.SwapsError = void 0;
++exports.constructTxParams = exports.estimateGas = exports.calcTokenAmount = exports.calculateGasLimits = exports.getMedianEthValueQuote = exports.getMedian = exports.getSwapsTokensReceived = exports.calculateGasEstimateWithRefund = exports.fetchGasPrices = exports.getSwapsFeatureFlagsByChainId = exports.fetchSwapsFeatureFlags = exports.fetchTopAssets = exports.fetchAggregatorMetadata = exports.fetchTokens = exports.fetchTradesInfo = exports.getTokenMetadataURL = exports.getBaseApiURL = exports.shouldEnableDirectWrapping = exports.isValidContractAddress = exports.getSwapsContractAddress = exports.getNativeSwapsToken = exports.SwapsError = void 0;
  const controllers_1 = require("@metamask/controllers");
  const bignumber_js_1 = require("bignumber.js");
  const ethereumjs_util_1 = require("ethereumjs-util");
@@ -206,3 +214,25 @@ index 54a32d5..3fa4343 100644
          default:
              throw new Error('getBaseApiURL requires an api call type');
      }
+@@ -166,12 +168,17 @@ async function fetchTopAssets(chainId, clientId) {
+     return response;
+ }
+ exports.fetchTopAssets = fetchTopAssets;
+-async function fetchSwapsFeatureLiveness(chainId, clientId) {
+-    const status = await handleFetch(exports.getBaseApiURL(swapsInterfaces_1.APIType.FEATURE_FLAG, chainId), { method: 'GET', headers: getClientIdHeader(clientId) });
++async function fetchSwapsFeatureFlags(clientId) {
++    const featureFlags = await handleFetch(exports.getBaseApiURL(swapsInterfaces_1.APIType.FEATURE_FLAG, '0x1'), // chainId doesn't matter for feature flags
++    { method: 'GET', headers: getClientIdHeader(clientId) });
++    return featureFlags;
++}
++exports.fetchSwapsFeatureFlags = fetchSwapsFeatureFlags;
++function getSwapsFeatureFlagsByChainId(featureFlags, chainId) {
+     const networkName = constants_1.CHAIN_ID_TO_NAME_MAP[chainId];
+-    return status[networkName];
++    return featureFlags === null || featureFlags === void 0 ? void 0 : featureFlags[networkName];
+ }
+-exports.fetchSwapsFeatureLiveness = fetchSwapsFeatureLiveness;
++exports.getSwapsFeatureFlagsByChainId = getSwapsFeatureFlagsByChainId;
+ /**
+  * Fetches gas prices from API URL
+  * @param chainId Current chainId
