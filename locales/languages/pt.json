@@ -8,7 +8,6 @@
     "failed_title": "A solicitação pode não ser segura",
     "failed_description": "Em razão de um erro, essa solicitação não foi confirmada pelo provedor de segurança. Prossiga com cautela.",
     "loading_title": "Verificando se há alertas de segurança...",
-    "loading_complete_title": "Nenhum alerta recebido",
     "malicious_domain_description": "Você está interagindo com um domínio mal-intencionado. Se você aprovar essa solicitação, poderá perder seus ativos.",
     "other_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
     "raw_signature_farming_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
@@ -888,6 +887,10 @@
     "network_provider": "Provedor de rede",
     "token_nft_ens_subheading": "Detecção automática de tokens, NFTs e ENS",
     "security_check_subheading": "Verificações de segurança",
+    "security_alerts": "Alertas de segurança",
+    "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",    
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Privacidade resguardada: nenhum dado é compartilhado com terceiros. Disponível na Arbitrum, Avalanche, BNB Chain, Mainnet da Ethereum, Optimism e Polygon.",    
     "symbol_required": "Symbol is required."
   },
   "sdk": {
@@ -1841,11 +1844,7 @@
     "wallet_connect_dapps_desc": "Veja a lista de sessões WalletConnect ativas",
     "wallet_connect_dapps_cta": "Ver sessões",
     "network_not_supported": "Rede atual não compatível",
-    "security_alerts": "Alertas de segurança",
-    "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",
     "select_provider": "Selecione seu provedor de preferência",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Privacidade resguardada: nenhum dado é compartilhado com terceiros. Disponível na Arbitrum, Avalanche, BNB Chain, Mainnet da Ethereum, Optimism e Polygon.",
     "switch_network": "Alterne para a Mainnet ou Sepolia"
   },
   "walletconnect_sessions": {

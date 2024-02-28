@@ -8,7 +8,6 @@
     "failed_title": "リクエストが安全でない可能性があります",
     "failed_description": "エラーが発生したため、このリクエストはセキュリティプロバイダーにより確認されませんでした。慎重に進めてください。",
     "loading_title": "セキュリティアラートを確認中...",
-    "loading_complete_title": "アラートは受信していません",
     "malicious_domain_description": "悪質なドメインとやり取りしています。このリクエストを承認すると、資産を失う可能性があります。",
     "other_description": "このリクエストを承認すると、資産を失う可能性があります。",
     "raw_signature_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
@@ -888,6 +887,10 @@
     "network_provider": "ネットワークプロバイダー",
     "token_nft_ens_subheading": "トークン、NFT、ENSの自動検出",
     "security_check_subheading": "セキュリティチェック",
+    "security_alerts": "セキュリティアラート",
+    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",    
+    "blockaid": "Blockaid",
+    "blockaid_desc": "プライバシーの保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygonで利用可能。",    
     "symbol_required": "Symbol is required."
   },
   "sdk": {
@@ -1841,11 +1844,7 @@
     "wallet_connect_dapps_desc": "アクティブなWalletConnectセッションのリストを表示",
     "wallet_connect_dapps_cta": "セッションを表示",
     "network_not_supported": "現在のネットワークはサポートされていません",
-    "security_alerts": "セキュリティアラート",
-    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
     "select_provider": "希望のプロバイダーを選択してください",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "プライバシーの保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygonで利用可能。",
     "switch_network": "メインネットまたはSepoliaに切り替えてください"
   },
   "walletconnect_sessions": {

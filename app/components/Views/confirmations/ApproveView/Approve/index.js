@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Alert, InteractionManager, AppState, View } from 'react-native';
+import { Alert, AppState, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../../UI/Navbar';
 import { connect } from 'react-redux';
@@ -14,7 +14,7 @@ import AddNickname from '../../components/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../../locales/i18n';
 import { getNetworkNonce } from '../../../../../util/networks';
-import Analytics from '../../../../../core/Analytics/Analytics';
+
 import {
   setTransactionObject,
   setNonce,
@@ -39,7 +39,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
 import EditGasFee1559 from '../../components/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../components/EditGasFeeLegacyUpdate';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import AppConstants from '../../../../../core/AppConstants';
 import { shallowEqual } from '../../../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
@@ -74,6 +73,9 @@ import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { updateTransaction } from '../../../../../util/transaction-controller';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -166,6 +168,10 @@ class Approve extends PureComponent {
      * Object that represents the navigator
      */
     navigation: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -357,15 +363,14 @@ class Approve extends PureComponent {
   };
 
   trackApproveEvent = (event) => {
-    const { transaction, tokensLength, accountsLength, providerType } =
+    const { transaction, tokensLength, accountsLength, providerType, metrics } =
       this.props;
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(event, {
-        view: transaction.origin,
-        numberOfTokens: tokensLength,
-        numberOfAccounts: accountsLength,
-        network: providerType,
-      });
+
+    metrics.trackEvent(event, {
+      view: transaction.origin,
+      numberOfTokens: tokensLength,
+      numberOfAccounts: accountsLength,
+      network: providerType,
     });
   };
 
@@ -466,6 +471,7 @@ class Approve extends PureComponent {
   };
 
   onLedgerConfirmation = (approve, transactionId, gaParams) => {
+    const { metrics } = this.props;
     const { TransactionController } = Engine.context;
     try {
       //manual cancel from UI when transaction is awaiting from ledger confirmation
@@ -478,7 +484,7 @@ class Approve extends PureComponent {
 
         TransactionController.cancelTransaction(transactionId);
 
-        AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, gaParams);
+        metrics.trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, gaParams);
 
         NotificationManager.showSimpleNotification({
           status: `simple_notification_rejected`,
@@ -488,14 +494,14 @@ class Approve extends PureComponent {
         });
       }
     } finally {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.APPROVAL_COMPLETED, gaParams);
+      metrics.trackEvent(MetaMetricsEvents.APPROVAL_COMPLETED, gaParams);
     }
   };
 
   onConfirm = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
-    const { transactions, gasEstimateType } = this.props;
+    const { transactions, gasEstimateType, metrics } = this.props;
     const {
       legacyGasTransaction,
       transactionConfirmed,
@@ -564,7 +570,7 @@ class Approve extends PureComponent {
         waitForResult: true,
       });
 
-      AnalyticsV2.trackEvent(
+      metrics.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),
       );
@@ -577,9 +583,7 @@ class Approve extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Approve)');
       } else {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        );
+        metrics.trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
       }
       this.setState({ transactionHandled: false });
     }
@@ -587,6 +591,7 @@ class Approve extends PureComponent {
   };
 
   onCancel = () => {
+    const { metrics, hideModal } = this.props;
     Engine.rejectPendingApproval(
       this.props.transaction.id,
       ethErrors.provider.userRejectedRequest(),
@@ -595,11 +600,11 @@ class Approve extends PureComponent {
         logErrors: false,
       },
     );
-    AnalyticsV2.trackEvent(
+    metrics.trackEvent(
       MetaMetricsEvents.APPROVAL_CANCELLED,
       this.getAnalyticsParams(),
     );
-    this.props.hideModal();
+    hideModal();
 
     NotificationManager.showSimpleNotification({
       status: `simple_notification_rejected`,
@@ -614,13 +619,10 @@ class Approve extends PureComponent {
   };
 
   onModeChange = (mode) => {
+    const { metrics } = this.props;
     this.setState({ mode });
     if (mode === EDIT) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEvent(
-          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
-        );
-      });
+      metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
     }
   };
 
@@ -893,10 +895,8 @@ const mapStateToProps = (state) => ({
   accountsLength: selectAccountsLength(state),
   primaryCurrency: state.settings.primaryCurrency,
   chainId: selectChainId(state),
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-  gasEstimateType:
-    state.engine.backgroundState.GasFeeController.gasEstimateType,
+  gasFeeEstimates: selectGasFeeEstimates(state),
+  gasEstimateType: selectGasFeeControllerEstimateType(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   nativeCurrency: selectNativeCurrency(state),
@@ -916,4 +916,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 Approve.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(Approve);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Approve));

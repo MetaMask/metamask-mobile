@@ -8,7 +8,6 @@
     "failed_title": "Cette demande peut présenter des risques",
     "failed_description": "À cause d’une erreur, cette demande n’a pas été vérifiée par le fournisseur de services de sécurité. Veuillez agir avec prudence.",
     "loading_title": "En train de vérifier s’il y a des alertes de sécurité…",
-    "loading_complete_title": "Aucune alerte reçue",
     "malicious_domain_description": "Vous interagissez avec un domaine malveillant. Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "other_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "raw_signature_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
@@ -888,6 +887,10 @@
     "network_provider": "Fournisseur de réseau",
     "token_nft_ens_subheading": "Détection automatique des jetons, NFT et ENS",
     "security_check_subheading": "Contrôles de sécurité",
+    "security_alerts": "Alertes de sécurité",
+    "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos demandes de transaction et de signature. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité. En l’activant, vous acceptez les conditions d’utilisation du fournisseur.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Protection de la vie privée : aucune donnée n’est partagée avec des tiers. Disponible sur Arbitrum, Avalanche, BNB chain, Optimism, Polygon et le réseau principal Ethereum.",
     "symbol_required": "Symbol is required."
   },
   "sdk": {
@@ -1841,11 +1844,7 @@
     "wallet_connect_dapps_desc": "Afficher la liste des sessions WalletConnect actives",
     "wallet_connect_dapps_cta": "Afficher les sessions",
     "network_not_supported": "Le réseau actuel n’est pas pris en charge",
-    "security_alerts": "Alertes de sécurité",
-    "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos demandes de transaction et de signature. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité. En l’activant, vous acceptez les conditions d’utilisation du fournisseur.",
     "select_provider": "Sélectionnez votre fournisseur préféré",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Protection de la vie privée : aucune donnée n’est partagée avec des tiers. Disponible sur Arbitrum, Avalanche, BNB chain, Optimism, Polygon et le réseau principal Ethereum.",
     "switch_network": "Veuillez passer à Mainnet ou à Sepolia"
   },
   "walletconnect_sessions": {

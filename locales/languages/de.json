@@ -8,7 +8,6 @@
     "failed_title": "Anfrage ist möglicherweise nicht sicher",
     "failed_description": "Aufgrund eines Fehlers wurde diese Anfrage vom Sicherheitsanbieter nicht überprüft. Gehen Sie mit Bedacht vor.",
     "loading_title": "Suche nach Sicherheitsbenachrichtigungen ...",
-    "loading_complete_title": "Keine Benachrichtigungen nempfangen",
     "malicious_domain_description": "Sie haben es mit einer bösartigen Domain zu tun. Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "other_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "raw_signature_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
@@ -888,7 +887,11 @@
     "network_provider": "Netzwerkanbieter",
     "token_nft_ens_subheading": "Automatische Token-, NFT- und ENS-Erkennung",
     "security_check_subheading": "Sicherheitsprüfungen",
-    "symbol_required": "Symbol is required."
+    "symbol_required": "Symbol is required.",
+    "security_alerts": "Sicherheitsbenachrichtigungen",
+    "security_alerts_desc": "Diese Funktion warnt Sie vor böswilligen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie eine Anfrage genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",    
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Wahrung der Privatsphäre – keine Daten werden an Dritte weitergegeben. Verfügbar auf Arbiträr, Avalanche, BNB Chain, Ethereum Mainnet, Linea, Optimism und Polygon."    
   },
   "sdk": {
     "disconnect_title": "Verbindung mit allen Seiten trennen?",
@@ -1841,11 +1844,7 @@
     "wallet_connect_dapps_desc": "Liste aktiver WalletConnect-Sitzungen anzeigen",
     "wallet_connect_dapps_cta": "Sitzungen anzeigen",
     "network_not_supported": "Aktuelles Netzwerk nicht unterstützt",
-    "security_alerts": "Sicherheitsbenachrichtigungen",
-    "security_alerts_desc": "Diese Funktion warnt Sie vor böswilligen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie eine Anfrage genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",
     "select_provider": "Wählen Sie Ihren bevorzugten Anbieter",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Wahrung der Privatsphäre – keine Daten werden an Dritte weitergegeben. Verfügbar auf Arbiträr, Avalanche, BNB Chain, Ethereum Mainnet, Linea, Optimism und Polygon.",
     "switch_network": "Bitte wechseln Sie auf Mainnet oder Sepolia."
   },
   "walletconnect_sessions": {

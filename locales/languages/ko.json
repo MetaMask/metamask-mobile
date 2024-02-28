@@ -8,7 +8,6 @@
     "failed_title": "안전하지 않은 요청일 수 있습니다",
     "failed_description": "오류로 인해 보안업체에서 이 요청을 확인하지 못했습니다. 주의하여 진행하세요.",
     "loading_title": "보안 경고 확인하는 중...",
-    "loading_complete_title": "수신한 경고가 없습니다",
     "malicious_domain_description": "악성 도메인과 인터렉션하고 있습니다. 이 요청을 승인하면 본인의 자산을 잃을 수도 있습니다.",
     "other_description": "이 요청을 승인하면, 자산을 잃을 수 있습니다.",
     "raw_signature_farming_description": "이 요청을 승인하면, 자산을 잃을 수 있습니다.",
@@ -888,6 +887,10 @@
     "network_provider": "네트워크 공급업체",
     "token_nft_ens_subheading": "토큰, NFT 및 ENS 자동 감지",
     "security_check_subheading": "보안 점검",
+    "security_alerts": "보안 경고",
+    "security_alerts_desc": "이 기능은 거래 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동 탐지를 보장하지는 않습니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",    
+    "blockaid": "Blockaid",
+    "blockaid_desc": "개인정보 보호 - 제3자와 데이터를 공유하지 않습니다. Arbitrum, Avalanche, BNB Chain, 이더리움 메인넷, Optimism, Polygon에서 사용할 수 있습니다.",    
     "symbol_required": "Symbol is required."
   },
   "sdk": {
@@ -1841,11 +1844,7 @@
     "wallet_connect_dapps_desc": "활성화된 지갑 연결 세션 목록을 확인하세요",
     "wallet_connect_dapps_cta": "세션 보기",
     "network_not_supported": "현재 네트워크는 지원하지 않음",
-    "security_alerts": "보안 경고",
-    "security_alerts_desc": "이 기능은 거래 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동 탐지를 보장하지는 않습니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다.",
     "select_provider": "선호하는 공급업체 선택",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "개인정보 보호 - 제3자와 데이터를 공유하지 않습니다. Arbitrum, Avalanche, BNB Chain, 이더리움 메인넷, Optimism, Polygon에서 사용할 수 있습니다.",
     "switch_network": "메인넷이나 세폴리아로 전환하세요"
   },
   "walletconnect_sessions": {

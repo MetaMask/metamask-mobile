@@ -8,7 +8,6 @@
     "failed_title": "Baka hindi ligtas ang kahilingan",
     "failed_description": "Dahil sa pagkakamali, ang kahilingang ito ay hindi na-verify ng tagapaglaan ng seguridad. Magpatuloy nang may pag-iingat.",
     "loading_title": "Sinusuri ang mga alertong pangseguridad...",
-    "loading_complete_title": "Walang alertong natanggap",
     "malicious_domain_description": "Nakikipag-ugnayan ka sa isang mapaminsalang domain. Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "other_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "raw_signature_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
@@ -888,6 +887,10 @@
     "network_provider": "Network provider",
     "token_nft_ens_subheading": "Awtomatikong pagtuklas ng token, NFT at ENS",
     "security_check_subheading": "Pagsusuring panseguridad",
+    "security_alerts": "Mga alerto sa seguridad",
+    "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Pagpapanatili ng pagkapribado - walang datos na ibinhagi sa mga third party. Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism at Polygon.",    
     "symbol_required": "Symbol is required."
   },
   "sdk": {
@@ -1841,11 +1844,7 @@
     "wallet_connect_dapps_desc": "Tingnan ang listahan ng mga aktibong session ng WalletConnect",
     "wallet_connect_dapps_cta": "Tingnan ang mga sesyon",
     "network_not_supported": "Hindi sinusuportahan ang kasalukuyang network",
-    "security_alerts": "Mga alerto sa seguridad",
-    "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
     "select_provider": "Piliin ang iyong mas gustong provider",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Pagpapanatili ng pagkapribado - walang datos na ibinhagi sa mga third party. Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism at Polygon.",
     "switch_network": "Mangyaring lumipat sa mainnet o sepolia"
   },
   "walletconnect_sessions": {

@@ -62,7 +62,8 @@ import AnimatedFox from 'react-native-animated-fox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -260,9 +261,7 @@ class ChoosePassword extends PureComponent {
   keyringControllerPasswordSet = false;
 
   track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('ChoosePassword', `Failed to track ${event}`);
-    });
+    trackOnboarding(event, properties);
   };
 
   updateNavBar = () => {
@@ -791,8 +790,7 @@ class ChoosePassword extends PureComponent {
 ChoosePassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController?.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
