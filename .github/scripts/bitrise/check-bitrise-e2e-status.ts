@@ -140,15 +140,11 @@ async function main(): Promise<void> {
     }
   }
 
-  console.log('relevantCommitHashes', relevantCommitHashes);
-
   if (triggerAction === PullRequestTriggerType.Labeled) {
     // A Bitrise build was triggered for the last commit
     bitriseCommentCommitHash = relevantCommitHashes[0];
     bitriseCommentBody = bitrisePendingTag;
   }
-
-  console.log('bitriseCommentCommitHash', bitriseCommentCommitHash);
 
   // Check if Bitrise comment hash matches any of the relevant commit hashes
   if (relevantCommitHashes.includes(bitriseCommentCommitHash)) {
