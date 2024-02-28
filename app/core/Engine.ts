@@ -590,6 +590,31 @@ class Engine {
     const phishingController = new PhishingController();
     phishingController.maybeUpdateState();
 
+    const accountsControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'AccountsController',
+      allowedEvents: [
+        'SnapController:stateChange',
+        'KeyringController:accountRemoved',
+        'KeyringController:stateChange',
+        'AccountsController:selectedAccountChange',
+      ],
+      allowedActions: [
+        'AccountsController:setCurrentAccount',
+        'AccountsController:setAccountName',
+        'AccountsController:listAccounts',
+        'AccountsController:getSelectedAccount',
+        'AccountsController:getAccountByAddress',
+        'AccountsController:updateAccounts',
+        'KeyringController:getAccounts',
+        'KeyringController:getKeyringsByType',
+        'KeyringController:getKeyringForAccount',
+      ],
+    });
+
+    const accountsController = new AccountsController({
+      messenger: accountsControllerMessenger,
+      state: initialState.AccountsController,
+    });
     const getIdentities = () => {
       const identities = preferencesController.state.identities;
       const lowerCasedIdentities: PreferencesState['identities'] = {};
@@ -609,18 +634,28 @@ class Engine {
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
       ),
-      syncIdentities: preferencesController.syncIdentities.bind(
-        preferencesController,
-      ),
+      syncIdentities: (identities) =>
+        preferencesController.syncIdentities(identities),
       updateIdentities: preferencesController.updateIdentities.bind(
         preferencesController,
       ),
-      setSelectedAddress: preferencesController.setSelectedAddress.bind(
-        preferencesController,
-      ),
-      setAccountLabel: preferencesController.setAccountLabel.bind(
-        preferencesController,
-      ),
+      setSelectedAddress: (address) => {
+        const accountToBeSet = accountsController.getAccountByAddress(address);
+        if (accountToBeSet === undefined) {
+          throw new Error(`No account found for address: ${address}`);
+        }
+        accountsController.setSelectedAccount(accountToBeSet.id);
+        preferencesController.setSelectedAddress(address);
+      },
+      setAccountLabel: (address, label) => {
+        const accountToBeNamed =
+          accountsController.getAccountByAddress(address);
+        if (accountToBeNamed === undefined) {
+          throw new Error(`No account found for address: ${address}`);
+        }
+        accountsController.setAccountName(accountToBeNamed.id, label);
+        preferencesController.setAccountLabel(address, label);
+      },
       encryptor,
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
@@ -928,31 +963,6 @@ class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
-    const accountsControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'AccountsController',
-      allowedEvents: [
-        'SnapController:stateChange',
-        'KeyringController:accountRemoved',
-        'KeyringController:stateChange',
-        'AccountsController:selectedAccountChange',
-      ],
-      allowedActions: [
-        'AccountsController:setCurrentAccount',
-        'AccountsController:setAccountName',
-        'AccountsController:listAccounts',
-        'AccountsController:getSelectedAccount',
-        'AccountsController:getAccountByAddress',
-        'AccountsController:updateAccounts',
-        'KeyringController:getAccounts',
-        'KeyringController:getKeyringsByType',
-        'KeyringController:getKeyringForAccount',
-      ],
-    });
-
-    const accountsController = new AccountsController({
-      messenger: accountsControllerMessenger,
-      state: initialState.AccountsController,
-    });
 
     const controllers = [
       keyringController,
@@ -1045,10 +1055,17 @@ class Engine {
             listener,
           ),
         onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            `AccountsController:selectedAccountChange`,
+            (newlySelectedInternalAccount) => {
+              listener({
+                selectedAddress: newlySelectedInternalAccount.address,
+              });
+            },
+          ),
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
-        selectedAddress: preferencesController.state.selectedAddress,
+        selectedAddress: accountsController.getSelectedAccount().address,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
       }),
