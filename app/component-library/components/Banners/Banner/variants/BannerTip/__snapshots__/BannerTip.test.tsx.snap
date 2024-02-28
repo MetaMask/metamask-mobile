@@ -83,7 +83,8 @@ exports[`BannerTip should render default settings correctly 1`] = `
       Sample Banner Tip Description
     </Text>
     <Text
-      accessibilityRole="text"
+      accessibilityRole="link"
+      accessible={true}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}

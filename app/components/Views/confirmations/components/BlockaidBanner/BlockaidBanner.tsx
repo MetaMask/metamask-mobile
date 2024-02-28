@@ -166,7 +166,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       return (
         <View style={styles.bannerSectionSmallSpaced}>
           <View style={styles.flexRowSection}>
-            <Icon name={IconName.Confirmation} size={IconSize.Lg} />
+            <Icon name={IconName.Info} size={IconSize.Lg} />
             <Text style={styles.infoText}>
               {strings('blockaid_banner.loading_complete_title')}
             </Text>
