@@ -8,6 +8,7 @@
     "failed_title": "Es posible que la solicitud no sea segura",
     "failed_description": "Debido a un error, el proveedor de seguridad no verificó esta solicitud. Proceda con precaución.",
     "loading_title": "Comprobando alertas de seguridad...",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "Está interactuando con un dominio malicioso. Si aprueba esta solicitud, podría perder sus activos.",
     "other_description": "Si aprueba esta solicitud, podría perder sus activos.",
     "raw_signature_farming_description": "Si aprueba esta solicitud, podría perder sus activos.",
@@ -375,8 +376,15 @@
     "no_nfts_yet": "No hay ningún NFT aún",
     "nfts_autodetection_title": "Detección de NFT",
     "nfts_autodetection_desc": "Permita que MetaMask detecte automáticamente los NFT de OpenSea y los muestre en su monedero MetaMask.",
-    "network_details_check": "Network details check",
-    "network_check_validation_desc": "reduces your chances of connecting to a malicious or incorrect network.",
+    "network_details_check": "Verificación de detalles de la red",
+    "network_with_chain_id": "La red con ID de cadena",
+    "potential_scam": "Esto es una estafa potencial",
+    "network_not_matching": "Esta red no coincide con su ID o nombre de cadena asociada. Muchos tokens populares usan el nombre",
+    "target_scam_network": "lo que los convierte en blanco de estafas. Los estafadores pueden engañarlo para que les envíe dinero más valioso a cambio. Verifique todo antes de continuar.",
+    "use_the_currency_symbol": "utiliza el símbolo de moneda",
+    "use_correct_symbol": "Asegúrese de estar utilizando el símbolo correcto antes de continuar",
+    "chain_id_currently_used": "Esta ID de cadena es utilizada actualmente por el",
+    "network_check_validation_desc": "reduce las posibilidades de conectarse a una red maliciosa o incorrecta.",
     "nfts_autodetection_cta": "Active la detección de NFT en Configuraciones",
     "learn_more": "Más información",
     "add_collectibles": "AGREGAR NFT",
@@ -880,17 +888,39 @@
     "transactions_subheading": "Transacciones",
     "network_provider": "Network provider",
     "token_nft_ens_subheading": "Detección automática de tokens, NFT y ENS",
-    "security_check_subheading": "Verificaciones de seguridad"
+    "security_check_subheading": "Verificaciones de seguridad",
+    "symbol_required": "Se requiere símbolo.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Preservación de la privacidad: no se comparten datos con terceros. Disponible en Arbitrum, Avalanche, cadena BNB, Ethereum Mainnet, Optimism y Polygon.",
+    "security_alerts": "Alertas de seguridad",
+    "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al habilitar esta función, acepta los términos de uso del proveedor."
   },
   "sdk": {
     "disconnect_title": "¿Desconectar de todos los sitios?",
     "disconnect_all_info": "Si elimina sus conexiones a todos los sitios, tendrá que dar permiso para volver a conectarse.",
     "disconnect": "Desconectar",
     "disconnect_all": "Desconectar todo",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
+    "manage": "Manage",
     "cancel": "Cancelar",
     "loading": "Conectándose a MetaMask...",
     "unkown_dapp": "Nombre de DAPP no disponible",
-    "no_connections": "No se encontraron conexiones"
+    "no_connections": "No connections",
+    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} account(s) connected."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Disconnect from all sites?",
+    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
+    "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_confirm": "Disconnect",
+    "cancel": "Cancel"
   },
   "sdk_return_to_app_modal": {
     "title": "Volver a la aplicación",
@@ -1455,6 +1485,7 @@
     "add": "Agregar",
     "cancel": "Cancelar",
     "approve": "Aprobar",
+    "edit_network_details": "Editar detalles de la red",
     "malicious_network_warning": "Un proveedor de red malintencionado puede mentir sobre el estado de la cadena de bloques y registrar su actividad de red. Agregue solo redes personalizadas de confianza.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Información de red",
@@ -1474,7 +1505,9 @@
     "add_network": "agregar más redes manualmente.",
     "select_network": "Seleccionar una red",
     "show_test_networks": "Mostrar redes de prueba",
-    "deprecated_goerli": "Debido a los cambios de protocolo de Ethereum: es posible que la red de prueba de Goerli no funcione de manera tan confiable y pronto quedará obsoleta."
+    "deprecated_goerli": "Debido a los cambios de protocolo de Ethereum: es posible que la red de prueba de Goerli no funcione de manera tan confiable y pronto quedará obsoleta.",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
   },
   "select": {
     "cancel": "Cancelar",
@@ -2029,6 +2062,7 @@
     "get_new_quotes": "Obtener cotizaciones nuevas",
     "quotes_timeout": "Cotizaciones vencidas",
     "request_new_quotes": "Por favor, solicite cotizaciones nuevas para tener los costos más recientes.",
+    "terms_of_service": "Términos de servicio",
     "amount_to_buy": "Monto para comprar",
     "amount_to_sell": "Monto para vender",
     "want_to_buy": "Quiere comprar",
