@@ -475,8 +475,14 @@ class Engine {
       },
     );
     const tokensController = new TokensController({
+      // TODO: The tokens controller currently does not support internalAccounts. This is done to match the behavior of the previous tokens controller subscription.
       onPreferencesStateChange: (listener) =>
-        preferencesController.subscribe(listener),
+        this.controllerMessenger.subscribe(
+          `AccountsController:selectedAccountChange`,
+          (newlySelectedInternalAccount) => {
+            listener({ selectedAddress: newlySelectedInternalAccount.address });
+          },
+        ),
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -492,6 +498,10 @@ class Engine {
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
+        selectedAddress:
+          initialState.AccountsController?.internalAccounts?.accounts[
+            initialState.AccountsController?.internalAccounts?.selectedAccount
+          ]?.address ?? '',
       },
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
@@ -500,7 +510,10 @@ class Engine {
         never
       >({
         name: 'TokensController',
-        allowedActions: [`${approvalController.name}:addRequest`],
+        allowedActions: [
+          `${approvalController.name}:addRequest`,
+          'AccountsController:selectedAccountChange',
+        ],
       }),
       getERC20TokenName: assetsContractController.getERC20TokenName.bind(
         assetsContractController,
