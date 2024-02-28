@@ -115,6 +115,7 @@ import TransactionBlockaidBanner from '../../components/TransactionBlockaidBanne
 import { createLedgerTransactionModalNavDetails } from '../../../../../components/UI/LedgerModals/LedgerTransactionModal';
 import CustomGasModal from './components/CustomGasModal';
 import { ResultType } from '../../components/BlockaidBanner/BlockaidBanner.types';
+import { getIsSmartTransaction } from '../../../../../selectors/preferencesController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -228,6 +229,10 @@ class Confirm extends PureComponent {
      * Boolean that indicates if the network supports buy
      */
     isNativeTokenBuySupported: PropTypes.bool,
+    /**
+     * Indicates if a transaction is going to be routed through smart tx
+     */
+    isSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -788,6 +793,7 @@ class Confirm extends PureComponent {
       navigation,
       resetTransaction,
       gasEstimateType,
+      isSmartTransaction,
     } = this.props;
 
     const {
@@ -852,9 +858,20 @@ class Confirm extends PureComponent {
       }
 
       await KeyringController.resetQRKeyringState();
-      await ApprovalController.accept(transactionMeta.id, undefined, {
-        waitForResult: true,
-      });
+
+      if (isSmartTransaction) {
+        await ApprovalController.accept(transactionMeta.id, undefined, {
+          waitForResult: false,
+        });
+        navigation && navigation.dangerouslyGetParent()?.pop();
+        Logger.log('STX Send Confirm');
+      } else {
+        await ApprovalController.accept(transactionMeta.id, undefined, {
+          waitForResult: true,
+        });
+        Logger.log('STX Send Confirm 2');
+      }
+
       await new Promise((resolve) => resolve(result));
 
       if (transactionMeta.error) {
@@ -1365,6 +1382,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
+  isSmartTransaction: getIsSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -73,6 +73,7 @@ import createStyles from './styles';
 import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
+import { getIsSmartTransaction } from '../../../../../selectors/preferencesController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -165,6 +166,10 @@ class Approve extends PureComponent {
      * Object that represents the navigator
      */
     navigation: PropTypes.object,
+    /**
+     * Indicates if a transaction is going to be routed through smart tx
+     */
+    isSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -494,7 +499,7 @@ class Approve extends PureComponent {
   onConfirm = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
-    const { transactions, gasEstimateType } = this.props;
+    const { transactions, gasEstimateType, isSmartTransaction } = this.props;
     const {
       legacyGasTransaction,
       transactionConfirmed,
@@ -559,9 +564,17 @@ class Approve extends PureComponent {
         this.props.hideModal();
         return;
       }
-      await ApprovalController.accept(transaction.id, undefined, {
-        waitForResult: true,
-      });
+
+      if (isSmartTransaction) {
+        await ApprovalController.accept(transaction.id, undefined, {
+          waitForResult: false,
+        });
+        this.props.hideModal();
+      } else {
+        await ApprovalController.accept(transaction.id, undefined, {
+          waitForResult: true,
+        });
+      }
 
       AnalyticsV2.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
@@ -754,7 +767,7 @@ class Approve extends PureComponent {
 
     if (!transaction.id) return null;
 
-    Logger.log('RENDER app/components/Views/ApproveView/Approve/index.js');
+    Logger.log('STX RENDER app/components/Views/ApproveView/Approve/index.js');
     return (
       <Modal
         isVisible={this.props.modalVisible}
@@ -906,6 +919,7 @@ const mapStateToProps = (state) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
+  isSmartTransaction: getIsSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
