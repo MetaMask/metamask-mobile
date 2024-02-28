@@ -4,6 +4,7 @@ exports[`Link should render correctly 1`] = `
 <Fragment>
   <Text
     accessibilityRole="link"
+    accessible={true}
     onPress={[Function]}
     onPressIn={[Function]}
     onPressOut={[Function]}
