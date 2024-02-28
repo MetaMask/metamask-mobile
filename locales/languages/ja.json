@@ -8,6 +8,7 @@
     "failed_title": "リクエストが安全でない可能性があります",
     "failed_description": "エラーが発生したため、このリクエストはセキュリティプロバイダーにより確認されませんでした。慎重に進めてください。",
     "loading_title": "セキュリティアラートを確認中...",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "悪質なドメインとやり取りしています。このリクエストを承認すると、資産を失う可能性があります。",
     "other_description": "このリクエストを承認すると、資産を失う可能性があります。",
     "raw_signature_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
@@ -376,10 +377,13 @@
     "nfts_autodetection_title": "NFTの検出",
     "nfts_autodetection_desc": "MetaMaskがOpenSeaからNFTを自動検出し、MetaMaskウォレットに表示できるように許可してください。",
     "network_details_check": "ネットワーク情報の確認",
-    "network_with_chain_id": "The network with chain ID",
-    "use_the_currency_symbol": "uses the currency symbol",
-    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
-    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_with_chain_id": "チェーンIDを持つネットワーク",
+    "potential_scam": "これは詐欺の可能性があります",
+    "network_not_matching": "このネットワークは、関連付けられたチェーンIDまたは名前と一致しません。人気のトークンの多くが「",
+    "target_scam_network": "」という名前を使用しているため、詐欺の標的となっています。詐欺師は、より価値の高い通貨を送り返すように仕向ける可能性があります。続ける前にすべてを確認してください。",
+    "use_the_currency_symbol": "通貨シンボルを使用",
+    "use_correct_symbol": "続ける前に、正しいシンボルを使用していることを確認してください",
+    "chain_id_currently_used": "このチェーンIDは現在次のネットワークで使用されています:",
     "network_check_validation_desc": "悪質なネットワークや正しくないネットワークに接続してしまう可能性が減ります。",
     "nfts_autodetection_cta": "設定でNFTの検出をオンにしてください",
     "learn_more": "詳細",
@@ -887,21 +891,38 @@
     "network_provider": "ネットワークプロバイダー",
     "token_nft_ens_subheading": "トークン、NFT、ENSの自動検出",
     "security_check_subheading": "セキュリティチェック",
-    "security_alerts": "セキュリティアラート",
-    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",    
+    "symbol_required": "シンボルが必要です",
     "blockaid": "Blockaid",
-    "blockaid_desc": "プライバシーの保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygonで利用可能。",    
-    "symbol_required": "Symbol is required."
+    "blockaid_desc": "プライバシーの保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygonで利用可能。",
+    "security_alerts": "セキュリティアラート",
+    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。"
   },
   "sdk": {
     "disconnect_title": "すべてのサイトとの接続を解除しますか？",
     "disconnect_all_info": "すべてのサイトへの接続を削除した場合、再び接続するにはアクセス許可の付与が必要になります。",
     "disconnect": "接続解除",
     "disconnect_all": "すべて接続解除",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
+    "manage": "Manage",
     "cancel": "キャンセル",
     "loading": "MetaMaskに接続しています...",
     "unkown_dapp": "DApp名が利用できません",
-    "no_connections": "接続が見つかりません"
+    "no_connections": "No connections",
+    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} account(s) connected."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Disconnect from all sites?",
+    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
+    "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_confirm": "Disconnect",
+    "cancel": "Cancel"
   },
   "sdk_return_to_app_modal": {
     "title": "アプリに戻る",
@@ -1466,7 +1487,7 @@
     "add": "追加",
     "cancel": "キャンセル",
     "approve": "承認",
-    "edit_network_details": "Edit network details",
+    "edit_network_details": "ネットワークの詳細を編集",
     "malicious_network_warning": "悪意のあるネットワーク プロバイダーは、ブロックチェーンのステータスを偽り、ユーザーのネットワークアクティビティを記録することがあります。信頼するカスタムネットワークのみを追加してください。",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "ネットワーク情報",
@@ -1486,7 +1507,9 @@
     "add_network": "他のネットワークを手動で追加できます。",
     "select_network": "ネットワークを選択",
     "show_test_networks": "テストネットワークを表示",
-    "deprecated_goerli": "イーサリアムのプロトコルの変更により、Goerliテストネットワークは安定して動作しない可能性があり、近日中に非推奨になります。"
+    "deprecated_goerli": "イーサリアムのプロトコルの変更により、Goerliテストネットワークは安定して動作しない可能性があり、近日中に非推奨になります。",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
   },
   "select": {
     "cancel": "キャンセル",
@@ -2037,7 +2060,7 @@
     "get_new_quotes": "新しいクォートを入手",
     "quotes_timeout": "クォートのタイムアウト",
     "request_new_quotes": "最も有利な最新のレートを入手できるよう、新しいクォートをリクエストしてください",
-    "terms_of_service": "Terms of Service",
+    "terms_of_service": "サービス規約",
     "amount_to_buy": "購入額",
     "amount_to_sell": "売却額",
     "want_to_buy": "購入希望",
