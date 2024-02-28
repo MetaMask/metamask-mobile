@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import Icon, {
@@ -10,15 +10,29 @@ import Icon, {
 import ProgressBar from './ProgressBar';
 import { useTheme } from '../../../util/theme';
 import { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
+import {
+  findBlockExplorerForRpc,
+  getBlockExplorerTxUrl,
+} from '../../../util/networks';
+import { useSelector } from 'react-redux';
+import {
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
+import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
+import { useNavigation } from '@react-navigation/native';
 
 interface Props {
   requestState: {
     smartTransaction: SmartTransaction;
     creationTime: number;
+    isDapp: boolean;
   };
+  onConfirm: () => void;
 }
 
-const STX_STATUS_DEADLINE_SEC = 160; // TODO: Use a value from backend instead.
+const STX_ESTIMATED_DEADLINE_SEC = 45; // TODO: Use a value from backend instead.
+const STX_MAX_DEADLINE_SEC = 150; // TODO: Use a value from backend instead.
 
 export const showRemainingTimeInMinAndSec = (
   remainingTimeInSec: number,
@@ -32,15 +46,31 @@ export const showRemainingTimeInMinAndSec = (
 };
 
 const SmartTransactionStatus = ({
-  requestState: {
-    smartTransaction: { status },
-    creationTime,
-  },
+  requestState: { smartTransaction, creationTime, isDapp },
+  onConfirm,
 }: Props) => {
+  const { status } = smartTransaction;
+  const providerConfig = useSelector(selectProviderConfig);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const navigation = useNavigation();
   const { colors } = useTheme();
+
+  const [isStxPastEstimatedDeadline, setIsStxPastEstimatedDeadline] =
+    useState(false);
+  const [timeLeftForPendingStxInSec, setTimeLeftForPendingStxInSec] = useState(
+    STX_ESTIMATED_DEADLINE_SEC,
+  );
+
+  // Setup styles
   const styles = StyleSheet.create({
     wrapper: {
       height: '82%',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 20,
+    },
+    textWrapper: {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
@@ -55,29 +85,37 @@ const SmartTransactionStatus = ({
       textAlign: 'center',
       color: colors.text.alternative,
     },
+    link: {
+      color: colors.primary.default,
+    },
   });
 
-  const [timeLeftForPendingStxInSec, setTimeLeftForPendingStxInSec] = useState(
-    STX_STATUS_DEADLINE_SEC,
-  );
+  const isStxPending = status === 'pending';
 
-  // TODO
-  const savings = '$123.45';
+  Logger.log('STX SmartTransactionStatus', status);
+
+  // Calc time left for progress bar and timer display
+  const stxDeadlineSec = isStxPastEstimatedDeadline
+    ? STX_MAX_DEADLINE_SEC
+    : STX_ESTIMATED_DEADLINE_SEC;
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
-    if (status === 'pending') {
+    if (isStxPending) {
       const calculateRemainingTime = () => {
         const secondsAfterStxSubmission = Math.round(
           (Date.now() - creationTime) / 1000,
         );
-        if (secondsAfterStxSubmission > STX_STATUS_DEADLINE_SEC) {
-          setTimeLeftForPendingStxInSec(0);
-          clearInterval(intervalId);
-          return;
+        if (secondsAfterStxSubmission > stxDeadlineSec) {
+          if (isStxPastEstimatedDeadline) {
+            setTimeLeftForPendingStxInSec(0);
+            clearInterval(intervalId);
+            return;
+          }
+          setIsStxPastEstimatedDeadline(true);
         }
         setTimeLeftForPendingStxInSec(
-          STX_STATUS_DEADLINE_SEC - secondsAfterStxSubmission,
+          stxDeadlineSec - secondsAfterStxSubmission,
         );
       };
       intervalId = setInterval(calculateRemainingTime, 1000);
@@ -85,53 +123,105 @@ const SmartTransactionStatus = ({
     }
 
     return () => clearInterval(intervalId);
-  }, [creationTime, status]);
+  }, [isStxPending, isStxPastEstimatedDeadline, creationTime, stxDeadlineSec]);
 
+  // Set block explorer link and show explorer on click
+  let rpcBlockExplorer;
+  let txUrl: string | null;
+  let txTitle: string | null;
+  const txHash = smartTransaction.statusMetadata?.minedHash;
+
+  if (providerConfig.type === RPC) {
+    rpcBlockExplorer =
+      findBlockExplorerForRpc(providerConfig.rpcUrl, networkConfigurations) ||
+      NO_RPC_BLOCK_EXPLORER;
+  }
+  if (txHash) {
+    ({ url: txUrl, title: txTitle } = getBlockExplorerTxUrl(
+      providerConfig.type,
+      txHash,
+      rpcBlockExplorer,
+    ));
+  }
+
+  const onViewTransaction = () => {
+    if (txUrl && txTitle) {
+      Logger.log('STX onViewTransaction', txUrl, txTitle);
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: txUrl,
+          title: txTitle,
+        },
+      });
+      onConfirm();
+    }
+  };
+
+  // Set icon, header, and desc
   let icon;
   let iconColor;
   let header;
   let description;
 
-  if (status === 'pending') {
+  if (isStxPending && isStxPastEstimatedDeadline) {
     icon = IconName.Clock;
     iconColor = IconColor.Primary;
-    header = strings('smart_transactions.status_submitting');
-    description = strings('smart_transactions.estimated_completion', {
+    header = strings(
+      'smart_transactions.status_submitting_past_estimated_deadline_header',
+    );
+    description = strings(
+      'smart_transactions.status_submitting_past_estimated_deadline_description',
+      {
+        timeLeft: showRemainingTimeInMinAndSec(timeLeftForPendingStxInSec),
+      },
+    );
+  } else if (isStxPending) {
+    icon = IconName.Clock;
+    iconColor = IconColor.Primary;
+    header = strings('smart_transactions.status_submitting_header');
+    description = strings('smart_transactions.status_submitting_description', {
       timeLeft: showRemainingTimeInMinAndSec(timeLeftForPendingStxInSec),
     });
   } else if (status === 'success') {
     icon = IconName.CheckCircle;
     iconColor = IconColor.Success;
-    header = strings('smart_transactions.status_success');
+    header = strings('smart_transactions.status_success_header');
     description = undefined;
+    Logger.log('STX HELLO');
   } else if (status === 'cancelled') {
     icon = IconName.WarningTriangle;
     iconColor = IconColor.Warning;
-    header = strings('smart_transactions.status_timeout');
-    description = strings('smart_transactions.timeout_description');
+    header = strings('smart_transactions.status_cancelled_header');
+    description = strings('smart_transactions.status_cancelled_description');
   } else {
+    // Reverted or unknown statuses
     icon = IconName.Danger;
     iconColor = IconColor.Error;
-    header = strings('smart_transactions.status_reverted');
-    description = strings('smart_transactions.reverted_description', {
-      savings,
-    });
+    header = strings('smart_transactions.status_failed_header');
+    description = strings('smart_transactions.status_failed_description');
   }
 
   const percentComplete =
-    (1 - timeLeftForPendingStxInSec / STX_STATUS_DEADLINE_SEC) * 100;
+    (1 - timeLeftForPendingStxInSec / stxDeadlineSec) * 100;
 
   return (
     <View style={styles.wrapper}>
       <Icon name={icon} color={iconColor} size={IconSize.Xl} />
+
       <Text style={styles.header}>{header}</Text>
-      {status === 'pending' && (
-        <ProgressBar percentComplete={percentComplete} />
-      )}
-      {description && <Text style={styles.desc}>{description}</Text>}
-      <Text style={styles.desc}>
-        {strings('smart_transactions.view_transaction')}
-      </Text>
+      {isStxPending && <ProgressBar percentComplete={percentComplete} />}
+
+      <View style={styles.textWrapper}>
+        {description && <Text style={styles.desc}>{description}</Text>}
+        {txHash && (
+          <TouchableOpacity onPress={onViewTransaction}>
+            <Text style={styles.link}>
+              {strings('smart_transactions.view_transaction')}
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 };

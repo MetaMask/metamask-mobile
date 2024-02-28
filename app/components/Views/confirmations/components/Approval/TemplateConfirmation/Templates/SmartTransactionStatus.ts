@@ -17,6 +17,7 @@ function getValues(
         element: 'SmartTransactionStatus',
         props: {
           requestState: pendingApproval.requestState,
+          onConfirm: actions.onConfirm,
         },
       },
     ],

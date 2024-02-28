@@ -1408,16 +1408,20 @@
     "sign_get_signature": "Get Signature"
   },
   "smart_transactions": {
-    "status_submitting": "Submitting your transaction",
-    "status_success": "Transaction successful",
+    "status_submitting_header": "Submitting your transaction",
+    "status_submitting_description": "Estimated completion {{timeLeft}}",
     
-    "status_reverted": "Transaction reverted",
-    "reverted_description": "Due unfavorable market conditions, MetaMask reverted your transaction, saving you {{savings}} in transaction fees. Try resubmitting at a later time.",
+    "status_success_header": "Your transaction is complete",
 
-    "status_timeout": "Transaction timed out",
-    "timeout_description": "Your transaction was not completed and you were not charged. Try resubmitting again through the dApp.",
+    "status_submitting_past_estimated_deadline_header": "Sorry for the wait",
+    "status_submitting_past_estimated_deadline_description": "If your transaction is not finalized within {{timeLeft}}, it will be canceled and you will not be charged for gas.",
     
-    "estimated_completion": "Estimated completion {{timeLeft}}",
+    "status_cancelled_header": "Your transaction was canceled",
+    "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary gas fees.",
+    
+    "status_failed_header": "Your transaction failed",
+    "status_failed_description": "Sudden market changes can cause failures. If the problem continues, reach out to MetaMask customer support.",
+    
     "view_transaction": "View transaction",
     "view_activity": "View activity",
     "return_to_dapp": "Return to dApp"
