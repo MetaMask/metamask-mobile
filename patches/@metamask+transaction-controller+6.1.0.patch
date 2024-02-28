@@ -819,7 +819,7 @@ index 236aaf1..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 3edd9c2..9dff3fc 100644
+index 3edd9c2..c4c72b4 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -1043,7 +1043,7 @@ index 3edd9c2..9dff3fc 100644
      /**
       * Starts a new polling interval.
       *
-@@ -241,11 +197,13 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -241,26 +197,29 @@ class TransactionController extends base_controller_1.BaseController {
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -1060,7 +1060,11 @@ index 3edd9c2..9dff3fc 100644
          return __awaiter(this, void 0, void 0, function* () {
              const { providerConfig, networkId } = this.getNetworkState();
              const { transactions } = this.state;
-@@ -256,11 +214,12 @@ class TransactionController extends base_controller_1.BaseController {
+-            transaction = (0, utils_1.normalizeTransaction)(transaction);
++            transaction = (0, utils_1.normalizeTransactionParams)(transaction);
+             (0, utils_1.validateTransaction)(transaction);
+             const transactionMeta = {
+                 id: (0, uuid_1.v1)(),
                  networkID: networkId !== null && networkId !== void 0 ? networkId : undefined,
                  chainId: providerConfig.chainId,
                  origin,
@@ -1267,7 +1271,14 @@ index 3edd9c2..9dff3fc 100644
              }
              // 4. Pad estimated gas without exceeding the most recent block gasLimit. If the network is a
              // a custom network then return the eth_estimateGas value.
-@@ -661,6 +519,23 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -655,12 +513,29 @@ class TransactionController extends base_controller_1.BaseController {
+      */
+     updateTransaction(transactionMeta) {
+         const { transactions } = this.state;
+-        transactionMeta.transaction = (0, utils_1.normalizeTransaction)(transactionMeta.transaction);
++        transactionMeta.transaction = (0, utils_1.normalizeTransactionParams)(transactionMeta.transaction);
+         (0, utils_1.validateTransaction)(transactionMeta.transaction);
+         const index = transactions.findIndex(({ id }) => transactionMeta.id === id);
          transactions[index] = transactionMeta;
          this.update({ transactions: this.trimTransactionsForState(transactions) });
      }
@@ -2720,13 +2731,13 @@ index 0000000..08b3514
 +{"version":3,"file":"GasFeePoller.js","sourceRoot":"","sources":["../../src/helpers/GasFeePoller.ts"],"names":[],"mappings":"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","sourcesContent":["import EventEmitter from 'events';\nimport type { GasFeeState } from '@metamask/gas-fee-controller';\nimport { createModuleLogger } from '@metamask/utils';\n\nimport { projectLogger } from '../logger';\nimport type { GasFeeFlow, GasFeeFlowRequest } from '../types';\nimport { TransactionStatus, type TransactionMeta } from '../types';\nimport { getGasFeeFlow } from '../utils/gas-flow';\n\nconst log = createModuleLogger(projectLogger, 'gas-fee-poller');\n\nconst INTERVAL_MILLISECONDS = 10000;\n\n/**\n * Automatically polls and updates suggested gas fees on unapproved transactions.\n */\nexport class GasFeePoller {\n  hub: EventEmitter = new EventEmitter();\n\n  #gasFeeFlows: GasFeeFlow[];\n\n  #getChainIds: () => string[];\n\n  #getEthQuery: () => any;\n\n  #getGasFeeControllerEstimates: () => Promise<GasFeeState>;\n\n  #getTransactions: () => TransactionMeta[];\n\n  #timeout: any;\n\n  #running = false;\n\n  /**\n   * Constructs a new instance of the GasFeePoller.\n   *\n   * @param options - The options for this instance.\n   * @param options.gasFeeFlows - The gas fee flows to use to obtain suitable gas fees.\n   * @param options.getChainIds - Callback to specify the chain IDs to monitor.\n   * @param options.getEthQuery - Callback to obtain an EthQuery instance.\n   * @param options.getGasFeeControllerEstimates - Callback to obtain the default fee estimates.\n   * @param options.getTransactions - Callback to obtain the transaction data.\n   * @param options.onStateChange - Callback to register a listener for controller state changes.\n   */\n  constructor({\n    gasFeeFlows,\n    getChainIds,\n    getEthQuery,\n    getGasFeeControllerEstimates,\n    getTransactions,\n    onStateChange,\n  }: {\n    gasFeeFlows: GasFeeFlow[];\n    getChainIds: () => string[];\n    getEthQuery: () => any;\n    getGasFeeControllerEstimates: () => Promise<GasFeeState>;\n    getTransactions: () => TransactionMeta[];\n    onStateChange: (listener: () => void) => void;\n  }) {\n    this.#gasFeeFlows = gasFeeFlows;\n    this.#getChainIds = getChainIds;\n    this.#getEthQuery = getEthQuery;\n    this.#getGasFeeControllerEstimates = getGasFeeControllerEstimates;\n    this.#getTransactions = getTransactions;\n\n    onStateChange(() => {\n      const unapprovedTransactions = this.#getUnapprovedTransactions();\n\n      if (unapprovedTransactions.length) {\n        this.#start();\n      } else {\n        this.#stop();\n      }\n    });\n  }\n\n  #start() {\n    if (this.#running) {\n      return;\n    }\n\n    // Intentionally not awaiting since this starts the timeout chain.\n    // eslint-disable-next-line @typescript-eslint/no-floating-promises\n    this.#onTimeout();\n\n    this.#running = true;\n\n    log('Started polling');\n  }\n\n  #stop() {\n    if (!this.#running) {\n      return;\n    }\n\n    clearTimeout(this.#timeout);\n\n    this.#timeout = undefined;\n    this.#running = false;\n\n    log('Stopped polling');\n  }\n\n  async #onTimeout() {\n    await this.#updateUnapprovedTransactions();\n\n    // eslint-disable-next-line @typescript-eslint/no-misused-promises\n    this.#timeout = setTimeout(() => this.#onTimeout(), INTERVAL_MILLISECONDS);\n  }\n\n  async #updateUnapprovedTransactions() {\n    const unapprovedTransactions = this.#getUnapprovedTransactions();\n\n    log('Found unapproved transactions', {\n      count: unapprovedTransactions.length,\n    });\n\n    const ethQuery = this.#getEthQuery();\n\n    await Promise.all(\n      unapprovedTransactions.map((tx) =>\n        this.#updateTransactionSuggestedFees(tx, ethQuery),\n      ),\n    );\n  }\n\n  async #updateTransactionSuggestedFees(\n    transactionMeta: TransactionMeta,\n    ethQuery: any,\n  ) {\n    const gasFeeFlow = getGasFeeFlow(transactionMeta, this.#gasFeeFlows);\n\n    if (!gasFeeFlow) {\n      log('No gas fee flow found', transactionMeta.id);\n    } else {\n      log(\n        'Found gas fee flow',\n        gasFeeFlow.constructor.name,\n        transactionMeta.id,\n      );\n    }\n\n    const request: GasFeeFlowRequest = {\n      ethQuery,\n      getGasFeeControllerEstimates: this.#getGasFeeControllerEstimates,\n      transactionMeta,\n    };\n\n    if (gasFeeFlow) {\n      try {\n        const response = await gasFeeFlow.getGasFees(request);\n\n        transactionMeta.gasFeeEstimates = response.estimates;\n      } catch (error) {\n        log('Failed to get suggested gas fees', transactionMeta.id, error);\n      }\n    }\n\n    if (!gasFeeFlow && transactionMeta.gasFeeEstimatesLoaded) {\n      return;\n    }\n\n    transactionMeta.gasFeeEstimatesLoaded = true;\n\n    this.hub.emit(\n      'transaction-updated',\n      transactionMeta,\n      'GasFeePoller - Suggested gas fees updated',\n    );\n\n    log('Updated suggested gas fees', {\n      gasFeeEstimates: transactionMeta.gasFeeEstimates,\n      transaction: transactionMeta.id,\n    });\n  }\n\n  #getUnapprovedTransactions() {\n    const chainIds = this.#getChainIds();\n\n    return this.#getTransactions().filter(\n      (tx) =>\n        chainIds.includes(tx.chainId as string) &&\n        tx.status === TransactionStatus.unapproved,\n    );\n  }\n}\n"]}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/index.d.ts b/node_modules/@metamask/transaction-controller/dist/index.d.ts
-index fc7f49b..e80f306 100644
+index fc7f49b..b7c9355 100644
 --- a/node_modules/@metamask/transaction-controller/dist/index.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/index.d.ts
 @@ -1,3 +1,5 @@
  export * from './TransactionController';
 -export { isEIP1559Transaction } from './utils';
-+export { isEIP1559Transaction, normalizeTransaction as normalizeTransactionParams, } from './utils';
++export { isEIP1559Transaction, normalizeTransactionParams } from './utils';
 +export * from './types';
 +export { mergeGasFeeEstimates, getGasFeeFlow } from './utils/gas-flow';
  //# sourceMappingURL=index.d.ts.map
@@ -2740,7 +2751,7 @@ index 2175387..0000000
 -{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,cAAc,yBAAyB,CAAC;AACxC,OAAO,EAAE,oBAAoB,EAAE,MAAM,SAAS,CAAC"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/index.js b/node_modules/@metamask/transaction-controller/dist/index.js
-index a1c07c8..7bc2df1 100644
+index a1c07c8..0818eb8 100644
 --- a/node_modules/@metamask/transaction-controller/dist/index.js
 +++ b/node_modules/@metamask/transaction-controller/dist/index.js
 @@ -14,8 +14,13 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
@@ -2752,7 +2763,7 @@ index a1c07c8..7bc2df1 100644
  __exportStar(require("./TransactionController"), exports);
  var utils_1 = require("./utils");
  Object.defineProperty(exports, "isEIP1559Transaction", { enumerable: true, get: function () { return utils_1.isEIP1559Transaction; } });
-+Object.defineProperty(exports, "normalizeTransactionParams", { enumerable: true, get: function () { return utils_1.normalizeTransaction; } });
++Object.defineProperty(exports, "normalizeTransactionParams", { enumerable: true, get: function () { return utils_1.normalizeTransactionParams; } });
 +__exportStar(require("./types"), exports);
 +var gas_flow_1 = require("./utils/gas-flow");
 +Object.defineProperty(exports, "mergeGasFeeEstimates", { enumerable: true, get: function () { return gas_flow_1.mergeGasFeeEstimates; } });
@@ -3689,7 +3700,7 @@ index 0000000..2cc85ee
 +//# sourceMappingURL=types.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.d.ts b/node_modules/@metamask/transaction-controller/dist/utils.d.ts
-index ccf3362..6fa3839 100644
+index ccf3362..6521edf 100644
 --- a/node_modules/@metamask/transaction-controller/dist/utils.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/utils.d.ts
 @@ -1,6 +1,6 @@
@@ -3701,6 +3712,15 @@ index ccf3362..6fa3839 100644
  export declare const ESTIMATE_GAS_ERROR = "eth_estimateGas rpc method error";
  /**
   * Return a URL that can be used to fetch ETH transactions.
+@@ -16,7 +16,7 @@ export declare function getEtherscanApiUrl(networkType: string, urlParams: any):
+  * @param transaction - Transaction object to normalize.
+  * @returns Normalized Transaction object.
+  */
+-export declare function normalizeTransaction(transaction: Transaction): Transaction;
++export declare function normalizeTransactionParams(transaction: Transaction): Transaction;
+ /**
+  * Validates a Transaction object for required properties and throws in
+  * the event of any validation error.
 @@ -32,20 +32,6 @@ export declare function validateTransaction(transaction: Transaction): void;
   * @returns Boolean that is true if the transaction is EIP-1559 (has maxFeePerGas and maxPriorityFeePerGas), otherwise returns false.
   */
@@ -3753,7 +3773,7 @@ index 9d4045c..0000000
 -{"version":3,"file":"utils.d.ts","sourceRoot":"","sources":["../src/utils.ts"],"names":[],"mappings":"AAOA,OAAO,KAAK,EAAE,WAAW,IAAI,uBAAuB,EAAE,MAAM,iCAAiC,CAAC;AAC9F,OAAO,EACL,WAAW,EACX,eAAe,EACf,aAAa,EACb,sBAAsB,EACtB,iBAAiB,EAClB,MAAM,yBAAyB,CAAC;AACjC,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,yBAAyB,CAAC;AAE/D,eAAO,MAAM,kBAAkB,qCAAqC,CAAC;AAiBrE;;;;;;GAMG;AACH,wBAAgB,kBAAkB,CAChC,WAAW,EAAE,MAAM,EACnB,SAAS,EAAE,GAAG,GACb,MAAM,CAeR;AAED;;;;;GAKG;AACH,wBAAgB,oBAAoB,CAAC,WAAW,EAAE,WAAW,eAS5D;AAED;;;;;GAKG;AACH,wBAAgB,mBAAmB,CAAC,WAAW,EAAE,WAAW,QAmD3D;AAED;;;;;;GAMG;AACH,eAAO,MAAM,oBAAoB,gBAAiB,WAAW,KAAG,OAO/D,CAAC;AAEF;;;;;;;;GAQG;AACH,wBAAsB,sBAAsB,CAC1C,WAAW,EAAE,MAAM,EACnB,OAAO,EAAE,MAAM,EACf,cAAc,EAAE,MAAM,EACtB,GAAG,CAAC,EAAE,eAAe,GACpB,OAAO,CAAC,CAAC;IAAE,CAAC,MAAM,EAAE,MAAM,GAAG,EAAE,CAAA;CAAE,EAAE;IAAE,CAAC,MAAM,EAAE,MAAM,GAAG,EAAE,CAAA;CAAE,CAAC,CAAC,CA8C/D;AAED,eAAO,MAAM,iBAAiB,cACjB,aAAa,GAAG,sBAAsB,SAUlD,CAAC;AAEF,eAAO,MAAM,wBAAwB,yGAIsC,CAAC;AAE5E,eAAO,MAAM,eAAe,gGAG0B,CAAC;AAEvD,eAAO,MAAM,oBAAoB,UAAW,MAAM,QAAQ,MAAM,KAAG,MACF,CAAC;AAElE,eAAO,MAAM,6BAA6B,UACjC,MAAM,GAAG,SAAS,QACnB,MAAM,KACX,MAEF,CAAC;AAEF;;;;;;;GAOG;AACH,wBAAgB,uBAAuB,CAAC,QAAQ,EAAE,MAAM,EAAE,GAAG,EAAE,MAAM,UAQpE;AAED;;;;;;;GAOG;AACH,wBAAgB,uCAAuC,CACrD,WAAW,EAAE,MAAM,EACnB,iBAAiB,EAAE,iBAAiB,EACpC,YAAY,EAAE,eAAe,EAAE,GAC9B,uBAAuB,EAAE,CAsB3B"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.js b/node_modules/@metamask/transaction-controller/dist/utils.js
-index 179a564..64b5f3f 100644
+index 179a564..0bbba70 100644
 --- a/node_modules/@metamask/transaction-controller/dist/utils.js
 +++ b/node_modules/@metamask/transaction-controller/dist/utils.js
 @@ -1,20 +1,11 @@
@@ -3769,7 +3789,7 @@ index 179a564..64b5f3f 100644
 -};
  Object.defineProperty(exports, "__esModule", { value: true });
 -exports.getAndFormatTransactionsForNonceTracker = exports.validateMinimumIncrease = exports.getIncreasedPriceFromExisting = exports.getIncreasedPriceHex = exports.isGasPriceValue = exports.isFeeMarketEIP1559Values = exports.validateGasValues = exports.handleTransactionFetch = exports.isEIP1559Transaction = exports.validateTransaction = exports.normalizeTransaction = exports.getEtherscanApiUrl = exports.ESTIMATE_GAS_ERROR = void 0;
-+exports.padHexToEvenLength = exports.getAndFormatTransactionsForNonceTracker = exports.validateMinimumIncrease = exports.getIncreasedPriceFromExisting = exports.getIncreasedPriceHex = exports.isGasPriceValue = exports.isFeeMarketEIP1559Values = exports.validateGasValues = exports.isEIP1559Transaction = exports.validateTransaction = exports.normalizeTransaction = exports.getEtherscanApiUrl = exports.ESTIMATE_GAS_ERROR = void 0;
++exports.padHexToEvenLength = exports.getAndFormatTransactionsForNonceTracker = exports.validateMinimumIncrease = exports.getIncreasedPriceFromExisting = exports.getIncreasedPriceHex = exports.isGasPriceValue = exports.isFeeMarketEIP1559Values = exports.validateGasValues = exports.isEIP1559Transaction = exports.validateTransaction = exports.normalizeTransactionParams = exports.getEtherscanApiUrl = exports.ESTIMATE_GAS_ERROR = void 0;
  const ethereumjs_util_1 = require("ethereumjs-util");
  const controller_utils_1 = require("@metamask/controller-utils");
  exports.ESTIMATE_GAS_ERROR = 'eth_estimateGas rpc method error';
@@ -3787,6 +3807,24 @@ index 179a564..64b5f3f 100644
  };
  /**
   * Return a URL that can be used to fetch ETH transactions.
+@@ -54,7 +46,7 @@ exports.getEtherscanApiUrl = getEtherscanApiUrl;
+  * @param transaction - Transaction object to normalize.
+  * @returns Normalized Transaction object.
+  */
+-function normalizeTransaction(transaction) {
++function normalizeTransactionParams(transaction) {
+     const normalizedTransaction = { from: '' };
+     let key;
+     for (key in NORMALIZERS) {
+@@ -64,7 +56,7 @@ function normalizeTransaction(transaction) {
+     }
+     return normalizedTransaction;
+ }
+-exports.normalizeTransaction = normalizeTransaction;
++exports.normalizeTransactionParams = normalizeTransactionParams;
+ /**
+  * Validates a Transaction object for required properties and throws in
+  * the event of any validation error.
 @@ -121,50 +113,6 @@ const isEIP1559Transaction = (transaction) => {
          hasOwnProp(transaction, 'maxPriorityFeePerGas'));
  };
