@@ -2,14 +2,18 @@ import AppConstants from '../../../core/AppConstants';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import DefaultPreference from 'react-native-default-preference';
+import Engine from '../../Engine';
+import { PermissionController } from '@metamask/permission-controller';
 
 function removeChannel({
   channelId,
   emitRefresh = true,
+  engine,
   sendTerminate,
   instance,
 }: {
   channelId: string;
+  engine?: typeof Engine;
   sendTerminate?: boolean;
   emitRefresh?: boolean;
   instance: SDKConnect;
@@ -62,7 +66,17 @@ function removeChannel({
       throw err;
     });
   }
+  // Remove matching permissions from controller
+
   delete instance.state.connecting[channelId];
+  if (engine) {
+    const permissionsController = (
+      engine.context as { PermissionController: PermissionController<any, any> }
+    ).PermissionController;
+    if (permissionsController.getPermissions(channelId)) {
+      permissionsController.revokeAllPermissions(channelId);
+    }
+  }
 
   if (emitRefresh) {
     instance.emit('refresh');

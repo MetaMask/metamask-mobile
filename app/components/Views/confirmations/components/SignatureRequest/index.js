@@ -7,11 +7,9 @@ import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals
 import { strings } from '../../../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Analytics from '../../../../../core/Analytics/Analytics';
 import { selectProviderType } from '../../../../../selectors/networkController';
 import { fontStyles } from '../../../../../styles/common';
 import { isHardwareAccount } from '../../../../../util/address';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { getHost } from '../../../../../util/browser';
 import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
 import Device from '../../../../../util/device';
@@ -24,6 +22,8 @@ import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
 import WebsiteIcon from '../../../../UI/WebsiteIcon';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -172,6 +172,10 @@ class SignatureRequest extends PureComponent {
     selectedAddress: PropTypes.string,
     testID: PropTypes.string,
     securityAlertResponse: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   /**
@@ -179,7 +183,7 @@ class SignatureRequest extends PureComponent {
    */
   onReject = () => {
     this.props.onReject();
-    Analytics.trackEventWithParameters(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CANCEL_SIGNATURE,
       this.getTrackingParams(),
     );
@@ -190,7 +194,7 @@ class SignatureRequest extends PureComponent {
    */
   onConfirm = () => {
     this.props.onConfirm();
-    Analytics.trackEventWithParameters(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.TRANSACTIONS_CONFIRM_SIGNATURE,
       this.getTrackingParams(),
     );
@@ -313,7 +317,7 @@ class SignatureRequest extends PureComponent {
       ),
       external_link_clicked: 'security_alert_support_link',
     };
-    AnalyticsV2.trackEvent(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
       analyticsParams,
     );
@@ -414,8 +418,7 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   networkType: selectProviderType(state),
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });
@@ -423,5 +426,5 @@ const mapStateToProps = (state) => ({
 SignatureRequest.contextType = ThemeContext;
 
 export default connect(mapStateToProps)(
-  withQRHardwareAwareness(SignatureRequest),
+  withQRHardwareAwareness(withMetricsAwareness(SignatureRequest)),
 );

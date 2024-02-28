@@ -99,6 +99,7 @@ import {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -2325,8 +2326,7 @@ const mapStateToProps = (state) => ({
     state.engine.backgroundState.SwapsController.quoteRefreshSeconds,
   gasEstimateType:
     state.engine.backgroundState.GasFeeController.gasEstimateType,
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  gasFeeEstimates: selectGasFeeEstimates(state),
   usedGasEstimate: state.engine.backgroundState.SwapsController.usedGasEstimate,
   usedCustomGas: state.engine.backgroundState.SwapsController.usedCustomGas,
   primaryCurrency: state.settings.primaryCurrency,

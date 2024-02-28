@@ -31,7 +31,6 @@ import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { routingInstrumentation } from '../../../util/sentry/utils';
-import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
@@ -99,6 +98,8 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
+import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectModal/SDKDisconnectModal';
+import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
@@ -368,13 +369,12 @@ const App = ({ userLoggedIn }) => {
   }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
-    const initAnalytics = async () => {
+    const initMetrics = async () => {
       await MetaMetrics.getInstance().configure();
-      await Analytics.init();
     };
 
-    initAnalytics().catch((err) => {
-      Logger.error(err, 'Error initializing analytics');
+    initMetrics().catch((err) => {
+      Logger.error(err, 'Error initializing MetaMetrics');
     });
   }, []);
 
@@ -551,6 +551,14 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.SDK_FEEDBACK}
         component={SDKFeedbackModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
+        component={SDKSessionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_DISCONNECT}
+        component={SDKDisconnectModal}
       />
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_CONNECT}
