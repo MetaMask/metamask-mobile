@@ -182,6 +182,12 @@ import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
 import { UpdatePPOMInitializationStatus } from '../actions/experimental';
+import {
+  AccountsController,
+  AccountsControllerActions,
+  AccountsControllerEvents,
+  AccountsControllerState,
+} from '@metamask/accounts-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -225,7 +231,8 @@ type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalActions
   ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions;
+  | KeyringControllerActions
+  | AccountsControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -233,13 +240,13 @@ type GlobalEvents =
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
-  | KeyringControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | KeyringControllerEvents
-  | PPOMControllerEvents;
+  | PPOMControllerEvents
+  | AccountsControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -272,6 +279,7 @@ export interface EngineState {
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
+  AccountsController: AccountsControllerState;
 }
 
 /**
@@ -312,6 +320,7 @@ class Engine {
         TransactionController: TransactionController;
         SignatureController: SignatureController;
         SwapsController: SwapsController;
+        AccountsController: AccountsController;
       }
     | any;
   /**
@@ -906,6 +915,31 @@ class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
+    const accountsControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'AccountsController',
+      allowedEvents: [
+        'SnapController:stateChange',
+        'KeyringController:accountRemoved',
+        'KeyringController:stateChange',
+        'AccountsController:selectedAccountChange',
+      ],
+      allowedActions: [
+        'AccountsController:setCurrentAccount',
+        'AccountsController:setAccountName',
+        'AccountsController:listAccounts',
+        'AccountsController:getSelectedAccount',
+        'AccountsController:getAccountByAddress',
+        'AccountsController:updateAccounts',
+        'KeyringController:getAccounts',
+        'KeyringController:getKeyringsByType',
+        'KeyringController:getKeyringForAccount',
+      ],
+    });
+
+    const accountsController = new AccountsController({
+      messenger: accountsControllerMessenger,
+      state: initialState.AccountsController,
+    });
 
     const controllers = [
       keyringController,
@@ -1123,6 +1157,7 @@ class Engine {
       snapController,
       subjectMetadataController,
       ///: END:ONLY_INCLUDE_IF
+      accountsController,
     ];
 
     if (isBlockaidFeatureEnabled()) {
