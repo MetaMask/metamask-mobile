@@ -18,7 +18,3 @@ export const DEFAULT_BOTTOMSHEETDIALOG_SWIPETHRESHOLD_DURATION =
  * This indicates that 60% of the sheet needs to be offscreen to meet the distance threshold.
  */
 export const DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD = 0.6;
-/**
- * Minimum spacing reserved for the overlay tappable area.
- */
-export const DEFAULT_BOTTOMSHEETDIALOG_MARGINTOP = 250;
