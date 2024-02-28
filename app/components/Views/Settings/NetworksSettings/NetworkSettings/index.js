@@ -7,7 +7,6 @@ import {
   TextInput,
   SafeAreaView,
   Linking,
-  Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
 import {
