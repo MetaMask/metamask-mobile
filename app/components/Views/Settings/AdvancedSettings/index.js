@@ -266,7 +266,7 @@ class AdvancedSettings extends PureComponent {
     // A not so great way to copy objects by value
 
     try {
-      const data = generateStateLogs(fullState);
+      const data = generateStateLogs({ ...fullState, appVersion, buildNumber });
 
       let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
       // // Android accepts attachements as BASE64
