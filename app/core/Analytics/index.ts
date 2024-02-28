@@ -34,6 +34,7 @@ export type { IMetaMetricsEvent };
  * Please help me fix this. You are my only hope 🙏
  *
  * TODO: remove this export once the test/file under test is refactored to not rely on the store.
+ * see https://github.com/MetaMask/metamask-mobile/issues/8756
  */
 import { store } from '../../store';
 export { store };
