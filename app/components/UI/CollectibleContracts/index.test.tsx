@@ -75,7 +75,7 @@ describe('CollectibleContracts', () => {
             providerConfig: {
               ticker: 'ETH',
               type: 'mainnet',
-              chainId: '1',
+              chainId: '0x1',
             },
           },
           AccountTrackerController: {
@@ -93,7 +93,7 @@ describe('CollectibleContracts', () => {
           NftController: {
             allNfts: {
               [CURRENT_ACCOUNT]: {
-                '1': [
+                '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
                     description:
@@ -125,7 +125,7 @@ describe('CollectibleContracts', () => {
             },
             allNftContracts: {
               [CURRENT_ACCOUNT]: {
-                '1': [
+                '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
                     name: 'MyToken',

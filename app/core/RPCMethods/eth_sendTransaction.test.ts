@@ -19,16 +19,18 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
-    TransactionController: {
-      updateTransaction: jest.fn(),
-      updateSecurityAlertResponse: jest.fn(),
-    },
     NetworkController: {
       state: {
-        providerConfig: { chainId: '1' },
+        providerConfig: { chainId: '0x1' },
       },
     },
   },
+}));
+
+jest.mock('../../util/transaction-controller', () => ({
+  __esModule: true,
+  updateSecurityAlertResponse: jest.fn(),
+  updateTransaction: jest.fn(),
 }));
 
 /**
@@ -61,7 +63,7 @@ function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<unknown> {
 }
 
 /**
- * Get a mock implementation of `TransactionController.addTransaction`.
+ * Get a mock implementation of `addTransaction`.
  *
  * A return value or some type of error must be provided.
  *

@@ -7,6 +7,8 @@
     "deceptive_request_title": "Isa itong mapanlinlang na kahilingan",
     "failed_title": "Baka hindi ligtas ang kahilingan",
     "failed_description": "Dahil sa pagkakamali, ang kahilingang ito ay hindi na-verify ng tagapaglaan ng seguridad. Magpatuloy nang may pag-iingat.",
+    "loading_title": "Sinusuri ang mga alertong pangseguridad...",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "Nakikipag-ugnayan ka sa isang mapaminsalang domain. Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "other_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "raw_signature_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
@@ -19,7 +21,7 @@
     "transfer_farming_description": "Kung aaprubahan mo ang kahilingang ito, kukunin ng third party na kilala sa mga panloloko ang lahat ng asset mo.",
     "before_you_proceed": "Bago ka magpatuloy",
     "enable_blockaid_alerts": "Para i-enable ang feature na ito, kailangan naming mag-set up ng ilang alertong pangseguridad. Ang page na ito ay kakailanganing manatiling bukas habang sine-set up ito. Tatagal ito nang wala pang isang minuto para makumpleto.",
-    "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
+    "enable_blockaid_alerts_description": "Ang pahina na ito ay kailangan na manatiling bukas habang itinatakda ang mga alerto sa seguridad. Ang prosesong ito ay aabot ng wala pang isang minuto para makumpleto.",
     "setting_up_alerts": "Pag-set up ng mga alertong pangseguridad",
     "setting_up_alerts_description": "Ginagawa namin ang aming pinakamabilis na makakaya para i-set up ang mga alertong pangseguridad. Maghintay ka lang diyan, halos patapos na kami.",
     "setup_complete": "Kumpleto na ang pag-set up",
@@ -374,8 +376,15 @@
     "no_nfts_yet": "Wala pang mga NFT",
     "nfts_autodetection_title": "Pagtuklas ng NFT",
     "nfts_autodetection_desc": "Payagan ang MetaMask na awtomatikong matuklasan ang mga NFT mula sa OpenSea at ipakita sa iyong wallet sa MetaMask.",
-    "network_details_check": "Network details check",
-    "network_check_validation_desc": "reduces your chances of connecting to a malicious or incorrect network.",
+    "network_details_check": "Pagsusuri ng detalye ng network",
+    "network_with_chain_id": "Ang network na may ID ng chain",
+    "potential_scam": "Isa itong potensyal na scam",
+    "network_not_matching": "Ang network na ito ay hindi tugma sa kaugnay nitong ID ng chain o pangalan. Maraming popular na token ay ginagamit ang pangalan",
+    "target_scam_network": "kaya ito ay isang target para sa mga scam. Maaari kang lokohin ng mga scammer na magpadala ka ng mas mahalagang salapi bilang kapalit. Beripikahin ang lahat bago magpatuloy.",
+    "use_the_currency_symbol": "ginagamit ang simbolo ng salapi",
+    "use_correct_symbol": "Tiyakin na ginagamit mo ang tamang simbolo bago magpatuloy",
+    "chain_id_currently_used": "Ang ID ng Chain na ito ay kasalukuyang ginagamit ng",
+    "network_check_validation_desc": "binabawasan ang iyong tiyansa na kumonekta sa isang malicious o maling network.",
     "nfts_autodetection_cta": "I-on ang pagtuklas ng NFT sa Mga Setting",
     "learn_more": "Matuto pa",
     "add_collectibles": "Mag-import ng mga NFT",
@@ -406,7 +415,7 @@
     "display_media_nft_warning": "Ang pagpapakita ng media at data ng NFT ay maaaring maglantad sa iyong IP address sa mga sentralisadong server. Mag-import lang ng NFT kung nauunawaan mo ang mga kaugnay na panganib.",
     "nfts_autodetect_title": "Awtomatikong pagtuklas ng NFT",
     "nfts_autodetect_cta": "I-on ang awtomatikong pagtuklas ng ng NFT sa Mga Setting",
-    "turn_on_network_check_cta": "Turn on network details check",
+    "turn_on_network_check_cta": "I-on ang pagsusuri ng ng detalye ng network",
     "display_nft_media_cta_new_1": "Para makita ang NFT, i-on ang Display NFT media sa",
     "display_nft_media_cta_new_2": "Mga Setting > Seguridad at Pagkapribado."
   },
@@ -600,10 +609,10 @@
     "please_wait": "Mangyaring maghintay"
   },
   "account_selector": {
-    "prev": "PREV",
-    "next": "NEXT",
-    "unlock": "Unlock",
-    "forget": "Forget this device"
+    "prev": "NAKARAAN",
+    "next": "SUSUNOD",
+    "unlock": "I-unlock",
+    "forget": "Kalimutan ang device na ito"
   },
   "app_settings": {
     "title": "Mga Setting",
@@ -712,7 +721,6 @@
     "network_chain_id_label": "ID ng Chain",
     "network_chain_id_placeholder": "ID ng Chain",
     "network_symbol_label": "Simbolo",
-    "network_symbol_placeholder": "Simbolo (opsyonal)",
     "network_block_explorer_label": "URL ng Block Explorer",
     "network_block_explorer_placeholder": "URL ng Block Explorer (opsyonal)",
     "network_chain_id_warning": "Di-wastong ID ng Chain",
@@ -756,6 +764,9 @@
     "invalid_password": "Di-wastong password",
     "invalid_password_message": "Mali ang password. Pakisubukan ulit.",
     "security_heading": "Seguridad",
+    "ses_heading": "Code Lockdown",
+    "ses_description": "Ito ay isang subok na tampok na bina-block ang anumang pagbabago sa JavaScript ng app nang walang permiso.",
+    "ses_link": "Matuto pa",
     "privacy_heading": "Pagkapribado",
     "failed_to_fetch_chain_id": "Hindi makuha ang ID ng chain. Tama ba ang URL ng iyong RPC?",
     "endpoint_returned_different_chain_id": "Nagbalik ang endpoint ng ibang ID ng chain: %{chainIdReturned}",
@@ -826,8 +837,8 @@
     "incoming_transactions_title": "Ipakita ang mga papasok na transaksyon",
     "incoming_transactions_content": "Umaasa ito sa network na iyong pinili na maglalantad sa iyong Ethereum address at IP address.",
     "display_nft_media_desc_new": "Ang pag-display ng NFT media at datos ay naglalantad sa iyong IP address sa OpenSeas o iba pang third party. Ang auto-detection ng NFT ay nakaasa sa tampok na ito, at hindi ito available kapag naka-off. Kung ang NFT media ay lubos na matatagpuan sa IPFS, maaari pa ring itong i-display kapag ang tampok na ito ay naka-off.",
-    "use_safe_chains_list_validation_desc_1": "MetaMask uses a third-party service called ",
-    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  ",
+    "use_safe_chains_list_validation_desc_1": "Ang MetaMask ay gumagamit ng isang third-party na serbisyo na tinatawag na ",
+    "use_safe_chains_list_validation_desc_2": "para magpakita ng tumpak at naka-standardized na detalye ng network. Binabawasan nito ang iyong tiyansa sa pagkonekta sa malisiyoso o malitang network. Kapag ginagamit ang tampok na ito, ang iyong IP address ay nakalantad sa  ",
     "snaps": {
       "title": "Mga Snap",
       "description": "I-overview at pamahalaan ang iyong mga snap",
@@ -879,17 +890,39 @@
     "transactions_subheading": "Mga Transaksyon",
     "network_provider": "Network provider",
     "token_nft_ens_subheading": "Awtomatikong pagtuklas ng token, NFT at ENS",
-    "security_check_subheading": "Pagsusuring panseguridad"
+    "security_check_subheading": "Pagsusuring panseguridad",
+    "symbol_required": "Kailangan ang simbolo.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Pagpapanatili ng pagkapribado - walang datos na ibinahagi sa mga third party. Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism at Polygon.",
+    "security_alerts": "Mga alerto sa seguridad",
+    "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider."
   },
   "sdk": {
     "disconnect_title": "Idiskonekta ang lahat ng site?",
     "disconnect_all_info": "Kung aalisin mo ang iyong mga koneksyon sa lahat ng site, kakailanganin mong magbigay ng pahintulot na kumonekta muli.",
     "disconnect": "Idiskonekta",
     "disconnect_all": "Idiskonekta ang lahat",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
+    "manage": "Manage",
     "cancel": "Kanselahin",
     "loading": "Kumokonekta sa MetaMask...",
     "unkown_dapp": "Hindi available ang pangalan ng DAPP",
-    "no_connections": "Walang nakitang koneksyon"
+    "no_connections": "No connections",
+    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} account(s) connected."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Disconnect from all sites?",
+    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
+    "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_confirm": "Disconnect",
+    "cancel": "Cancel"
   },
   "sdk_return_to_app_modal": {
     "title": "Bumalik sa app",
@@ -1191,7 +1224,7 @@
     "gas_education_2_ethereum": "Network ng Ethereum.",
     "gas_education_2": "network.",
     "gas_education_3": "Hindi kumikita ang MetaMask mula sa mga bayad sa gas.",
-    "gas_education_4": "Nagbabago-bago ang mga bayad sa gas batay sa trapiko sa network at pagkakumplikado ng transaksyon.",
+    "gas_education_4": "Nagbabago-bago ang mga gas fee batay sa trapiko sa network at pagkakumplikado ng transaksyon.",
     "gas_education_learn_more": "Matuto pa tungkol sa mga bayad sa gas",
     "confusable_title": "Tingnan ang address ng tatanggap",
     "confusable_msg": "May na-detect kaming nakakalitong character sa ENS name. Tingnan ang ENS name para maiwasan ang potensyal na panloloko.",
@@ -1436,7 +1469,7 @@
     "status_ok": "Gumagana ang Lahat ng System",
     "status_not_ok": "Nagkakaroon ng ilang isyu ang network",
     "want_to_add_network": "Gusto mo bang idagdag ang network na ito?",
-    "add_custom_network": "Add custom network",
+    "add_custom_network": "Magdagdag ng custom na network",
     "network_infomation": "Binibigyang-daan nito ang network na ito na magamit sa loob ng MetaMask",
     "network_endorsement": "Hindi ineendorso ng MetaMask ang mga custom na network o ang seguridad ng mga ito.",
     "learn_about": "Alamin ang tungkol sa",
@@ -1446,14 +1479,15 @@
     "network_rpc_url": "URL ng Network",
     "view_details": "Tingnan ang mga detalye",
     "network_details": "Mga detalye ng network",
-    "network_select_confirm_use_safe_check": "Selecting Confirm turns on Network details check. You can turn off Network details check in ",
-    "network_settings_security_privacy": "Settings > Security and privacy",
+    "network_select_confirm_use_safe_check": "Ang pagpili ng Kumpirmahin ay magbubukas ng pagsusuri ng detalye ng network. Maaari mong i-off ang pagsusuri ng detalye ng network sa ",
+    "network_settings_security_privacy": "Settings > Seguridad at pagkapribado",
     "network_currency_symbol": "Simbolo ng Currency",
     "network_block_explorer_url": "URL ng Block Explorer",
     "search": "Maghanap ng mga dati nang idinagdag na network",
     "add": "Idagdag",
     "cancel": "Kanselahin",
     "approve": "Aprubahan",
+    "edit_network_details": "I-edit ang mga detalye ng network",
     "malicious_network_warning": "Ang isang mapaminsalang network provider ay maaaring magsinungaling tungkol sa estado ng blockchain at itala ang iyong aktibidad sa network. Magdagdag lang ng mga custom na network na pinagkakatiwalaan mo.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Impormasyon ng Network",
@@ -1473,7 +1507,9 @@
     "add_network": "magdagdag pa ng mga network nang manu-mano.",
     "select_network": "Pumili ng network",
     "show_test_networks": "Ipakita ang mga test network",
-    "deprecated_goerli": "Dahil sa mga pagbabago sa protocol ng Ethereum: Ang Goerli test network ay maaaring hindi gumana tulad ng inaasahan at malapit nang ihinto ang paggamit."
+    "deprecated_goerli": "Dahil sa mga pagbabago sa protocol ng Ethereum: Ang Goerli test network ay maaaring hindi gumana tulad ng inaasahan at malapit nang ihinto ang paggamit.",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
   },
   "select": {
     "cancel": "Kanselahin",
@@ -1831,11 +1867,7 @@
     "wallet_connect_dapps_desc": "Tingnan ang listahan ng mga aktibong session ng WalletConnect",
     "wallet_connect_dapps_cta": "Tingnan ang mga sesyon",
     "network_not_supported": "Hindi sinusuportahan ang kasalukuyang network",
-    "security_alerts": "Mga alerto sa seguridad",
-    "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
     "select_provider": "Piliin ang iyong mas gustong provider",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
     "switch_network": "Mangyaring lumipat sa mainnet o sepolia"
   },
   "walletconnect_sessions": {
@@ -2028,6 +2060,7 @@
     "get_new_quotes": "Kumuha ng mga bagong quote",
     "quotes_timeout": "Natapos na ang quote",
     "request_new_quotes": "Mangyaring humiling ng mga bagong quote para makuha ng pinakabagong pinakamahusay na rate.",
+    "terms_of_service": "Mga Tuntunin ng Serbisyo",
     "amount_to_buy": "Halagang bibilhin",
     "amount_to_sell": "Halagang ibebenta",
     "want_to_buy": "Gusto mong bilhin",
@@ -2350,7 +2383,7 @@
     "not_supported": "Hindi sinusuportahan ang deeplink"
   },
   "error_screen": {
-    "title": "Nagkaroon ng error",
+    "title": "An error occurred",
     "subtitle": "Hindi maipapakita ang iyong impormasyon. Huwag mag-alala, ligtas ang iyong wallet at pondo.",
     "try_again_button": "Subukan ulit",
     "submit_ticket_1": "Paki-report ang isyung ito para maayos namin:",
@@ -2370,8 +2403,10 @@
     "title": "Ano'ng bago",
     "blockaid": {
       "title": "Manatiling ligtas gamit ang mga alerto sa seguridad",
-      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
-      "description_2": "Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang mga kahilingan."
+      "description_1": "Manatiling ligtas sa mga scam habang patuloy na pinoprotektahan ang iyong pagkapribado sa pamamagitan ng mga alerto sa seguridad na pinatatakbo ng Blockaid. Ang tampok na ito ay naka-on nang default para sa lahat ng user ng MetaMask.",
+      "description_2": "Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang mga kahilingan.",
+      "description_3": "Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism at Polygon.",
+      "got_it": "Nakuha ko"
     },
     "sell": {
       "title": "Pinadali ang pag-cash out",
@@ -2389,7 +2424,7 @@
   "switch_custom_network": {
     "title_existing_network": "Gusto ng site na ito na lumipat ng network",
     "title_new_network": "Nagdagdag ng bagong network",
-    "switch_warning": "Dahil dito, lilipat sa dating idinagdag na network ang napiling network sa loob ng MetaMask:",
+    "switch_warning": "Ililipat nito ang napiling network sa loob ng MetaMask sa dating idinagdag na network:",
     "available": "ay available na ngayon sa network selector.",
     "cancel": "Kanselahin",
     "switch": "Lumipat ng Network"
@@ -2408,7 +2443,7 @@
     "details_title": "Mga detalye ng network",
     "cancel": "Kanselahin",
     "approve": "Aprubahan",
-    "unrecognized_chain": "Hindi kinikilala ang custom na network na ito",
+    "unrecognized_chain": "Hindi kilala ang custom network na ito",
     "invalid_chain": "Ang %{rpcUrl} para sa ID ng Chain na ito ay hindi tumutugma sa chainid.network listing",
     "alert_recommend": "Inirerekomenda namin sa iyo na",
     "alert_verify": "i-verify ang ID ng chain",
@@ -2433,7 +2468,7 @@
     "max_fee": "Pinakamataas na bayad",
     "estimate": "Tantyahin",
     "recommended_gas_fee": "Inirerekomendang bayad sa gas",
-    "swaps_warning": "Ang mga pag-swap ay masyadong sensitibo sa oras. Ang “Mataas” ay makakatulong na maiwasan ang mga potensyal na pagkalugi dahil sa mga pagbabago sa mga kondisyon ng merkado.",
+    "swaps_warning": "Ang mga pag-swap ay masyadong sensitibo sa oras. Ang “High” ay makakatulong na maiwasan ang mga potensyal na pagkalugi dahil sa mga pagbabago sa mga kondisyon ng merkado.",
     "priority_fee_at_least_0_error": "Dapat na hindi bababa sa 1 GWEI ang bayad sa priyoridad",
     "learn_more": {
       "title": "Paano ako dapat pumili?",
@@ -2450,12 +2485,12 @@
     "submit": "Isumite",
     "max_priority_fee_low": "Mababa ang Pinakamataas na Bayad sa Priyoridad para sa kasalukuyang mga kundisyon ng network",
     "max_priority_fee_high": "Ang Pinakamataas na Bayad sa Priyoridad ay mas mataas kaysa sa kinakailangan",
-    "max_priority_fee_speed_up_low": "Ang Pinakamataas na Bayad sa Priyoridad ay dapat hindi bababa sa {{speed_up_floor_value}} GWEI (10% na mas mataas kaysa sa paunang transaksyon)",
-    "max_priority_fee_cancel_low": "Ang Pinakamataas na Bayad sa Priyoridad ay dapat hindi bababa sa {{cancel_value}} GWEI (50% na mas mataas kaysa sa paunang transaksyon)",
+    "max_priority_fee_speed_up_low": "Ang Bayad sa Pinakamataas na Priyoridad ay dapat hindi bababa sa {{speed_up_floor_value}} GWEI (10% na mas mataas kaysa sa paunang transaksyon)",
+    "max_priority_fee_cancel_low": "Ang Bayad sa Pinakamataas na Priyoridad ay dapat na hindi bababa sa {{cancel_value}} GWEI (50% na mas mataas kaysa sa paunang transaksyon)",
     "max_fee_low": "Mababa ang Pinakamataas na Bayad para sa kasalukuyang mga kundisyon ng network",
     "max_fee_high": "Ang Pinakamataas na Bayad ay mas mataas kaysa sa kinakailangan",
-    "max_fee_speed_up_low": "Ang Pinakamataas na Bayad ay dapat hindi bababa sa {{speed_up_floor_value}} GWEI (10% na mas mataas kaysa sa paunang transaksyon)",
-    "max_fee_cancel_low": "Ang Pinakamataas na Bayad ay dapat hindi bababa sa {{cancel_value}} GWEI (50% na mas mataas kaysa sa paunang transaksyon)",
+    "max_fee_speed_up_low": "Ang Pinakamataas na Bayad ay dapat na hindi bababa sa {{speed_up_floor_value}} GWEI (10% na mas mataas kaysa sa paunang transaksyon)",
+    "max_fee_cancel_low": "Ang Pinakamataas na Bayad ay dapat na hindi bababa sa {{cancel_value}} GWEI (10% na mas mataas kaysa sa paunang transaksyon)",
     "learn_more_gas_limit": "Ang limitasyon ng gas ay ang pinakamataas na yunit ng gas na handa mong gamitin. Ang mga yunit ng gas ay multiplier sa “Pinakamataas na bayad sa priyoridad” at “Pinakamataas na bayad”. ",
     "learn_more_max_priority_fee": "Ang pinakamataas na bayad sa priyoridad (aka \"tip ng minero\") ay direktang napupunta sa mga minero at nagbibigay-insentibo sa kanila upang unahin ang iyong transaksyon. Madalas mong babayaran ang iyong pinakamataas na setting. ",
     "learn_more_max_fee": "Ang pinakamataas na bayad ay ang pinakamalaking babayaran mo (batayang bayad + bayad sa priyoridad). ",
@@ -2717,7 +2752,7 @@
     "ledger_disconnected": "Nadiskonekta ang iyong device",
     "ledger_disconnected_error": "Nawala ang koneksyon sa iyong device. Pakisubukang muli.",
     "unknown_error": "Naganap ang hindi inaasahang error.",
-    "unknown_error_message": "May naganap na hindi inaasahang error. Pakisubukang muli.",
+    "unknown_error_message": "May naganap na hindi inaasahang error. Mangyaring subukan muli.",
     "error_occured": "May naganap na error",
     "how_to_install_eth_app": "Paano i-install ang app ng Ethereum sa isang Ledger device",
     "ledger_account_count": "Gumagamit ka ng 1 account mula sa iyong Ledger gamit ang MetaMask Mobile.",
@@ -2737,10 +2772,7 @@
     "error_during_connection_message": "Nagkaroon ng kaunting problema sa pagkonekta sa iyong Ledger Nano X, i-tap ang 'Subukang muli' sa ibaba upang subukan ito. Minsan nangyayari ito dahil sa pagiging bukas ng ETH app sa iyong Ledger Nano X sa simula ng proseso ng pagpapares sa MetaMask Mobile.",
     "how_to_install_eth_webview_title": "Paano i-install ang App ng Ethereum",
     "nonce_too_low": "Masyadong mababa ang nonce",
-    "nonce_too_low_error": "Masyadong mababa ang itinakdang nonce",
-    "ledger_beta_alert": "Pinapagana ang integration sa Ledger",
-    "ledger_beta_alert_description": "Nakahanap ka ng eksperimental na feature! Sa pagpapatuloy, tinatanggap mo na ginagamit mo ang eksperimental na feature na ito sa sarili mong panganib.",
-    "ledger_beta_cta": "Magpatuloy"
+    "nonce_too_low_error": "Masyadong mababa ang itinakdang nonce"
   },
   "account_actions": {
     "edit_name": "I-edit ang pangalan ng account",
@@ -2765,7 +2797,7 @@
     "show_display_nft_media_content_2": "I-display ang NFT media.",
     "show_display_nft_media_content_3": "Ang pagpapakita ng NFT media at datos ay naglalantad sa iyong IP address sa OpenSea o sa ibang mga third party. Ang awtomatikong pagtuklas ng NFT ay nakasalalay sa tampok na ito, at hindi magiging available kapag ito ay naka-off.",
     "show_display_nft_media_content_4": "Maaari mong i-off ang I-display ang NFT media sa",
-    "show_display_nft_media_content_5": "Mga Setting > Seguridad at pagkapribado."
+    "show_display_nft_media_content_5": "Settings > Seguridad at pagkapribado."
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",

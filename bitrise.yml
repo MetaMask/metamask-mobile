@@ -185,14 +185,6 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
-      # Manual cache path needed here because the `yarn` step only caches for the `install` command
-      - save-cache@1:
-          title: Save cache dependencies
-          inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
-            - paths: |-
-                node_modules
-                $YARN_CACHE_DIR
   prep_environment:
     steps:
       - script@1:
@@ -208,10 +200,6 @@ workflows:
                 asdf install yarn "$YARN_VERSION"
                 asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
-      - restore-cache@2:
-          title: Restore cache dependencies
-          inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -400,6 +388,7 @@ workflows:
       - android_e2e_test
   run_tag_smoke_core_ios:
     envs:
+      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - ios_e2e_test
@@ -409,24 +398,22 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
+      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
-
-  e2e_setup:
-    steps:
-      - yarn@:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: global add detox-cli
-          title: Detox - Install CLI
   android_e2e_build:
     before_run:
       - code_setup
-      - e2e_setup
     after_run:
       - _notify_failure_on_slack
     steps:
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh android
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
@@ -440,12 +427,6 @@ workflows:
                 #!/usr/bin/env bash
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - script@1:
-          title: Check native folder diff for Android
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh android
-      - script@1:
           title: Install CCache & symlink
           inputs:
             - content: |-
@@ -454,16 +435,22 @@ workflows:
                 sudo apt install ccache
       - restore-cache@2:
           title: Restore CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - restore-cache@2:
           title: Restore build from cache
           inputs:
             - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
             - content: |-
@@ -491,6 +478,11 @@ workflows:
           inputs:
             - key: apk-cache-{{ .CommitHash }}
             - paths: android/app/build/outputs
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - paths: node_modules
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -499,7 +491,6 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      - e2e_setup
     after_run:
       - _notify_failure_on_slack
     steps:
@@ -508,6 +499,10 @@ workflows:
           title: Restore cache build
           inputs:
             - key: apk-cache-{{ .CommitHash }}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
       - script@1:
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
@@ -579,10 +574,15 @@ workflows:
   ios_e2e_build:
     before_run:
       - code_setup
-      - e2e_setup
     after_run:
       - _notify_failure_on_slack
     steps:
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh ios
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -597,12 +597,6 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
-          title: Check native folder diff for iOS
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh ios
-      - script@1:
           title: Install CCache & symlink
           inputs:
             - content: |-
@@ -616,16 +610,22 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/clang++
       - restore-cache@2:
           title: Restore CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
       - restore-cache@2:
           title: Restore build from cache
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
             - content: |-
@@ -655,11 +655,15 @@ workflows:
             - paths: |-
                 ios/build/Build
                 ../Library/Detox/ios
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - paths: node_modules
   ios_e2e_test:
     before_run:
       - setup
       - prep_environment
-      - e2e_setup
     after_run:
       - _notify_failure_on_slack
     steps:
@@ -668,6 +672,10 @@ workflows:
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
       - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -1236,16 +1244,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.15.0
+      VERSION_NAME: 7.16.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1245
+      VERSION_NUMBER: 1265
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.15.0
+      FLASK_VERSION_NAME: 7.16.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1243
+      FLASK_VERSION_NUMBER: 1248
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

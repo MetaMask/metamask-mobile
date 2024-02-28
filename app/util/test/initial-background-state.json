@@ -12,7 +12,10 @@
     "logs": {}
   },
   "AccountTrackerController": {
-    "accounts": {}
+    "accounts": {},
+    "accountsByChainId": {
+      "0x1": {}
+    }
   },
   "AddressBookController": {
     "addressBook": {}
@@ -26,7 +29,6 @@
   "TokensController": {
     "tokens": [],
     "ignoredTokens": [],
-    "suggestedAssets": [],
     "detectedTokens": [],
     "allTokens": {},
     "allIgnoredTokens": {},
@@ -64,10 +66,10 @@
     "networkConfigurations": {},
     "providerConfig": {
       "type": "mainnet",
-      "chainId": "1"
+      "chainId": "0x1"
     },
     "networkDetails": {
-      "isEIP1559Compatible": false
+      "EIPS": {}
     },
     "networkId": null,
     "networkStatus": "unknown"
@@ -142,7 +144,8 @@
   },
   "SnapController": {
     "snapStates": {},
-    "snaps": {}
+    "snaps": {},
+    "unencryptedSnapStates": {}
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -189,7 +192,7 @@
     "usedGasEstimate": null,
     "usedCustomGas": null,
     "chainCache": {
-      "1": {
+      "0x1": {
         "aggregatorMetadata": null,
         "tokens": null,
         "topAssets": null,

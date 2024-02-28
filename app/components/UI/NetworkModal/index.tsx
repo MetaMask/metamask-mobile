@@ -20,7 +20,6 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
@@ -33,6 +32,7 @@ import { ButtonProps } from '../../../component-library/components/Buttons/Butto
 import checkSafeNetwork from '../../../core/RPCMethods/networkChecker.util';
 import NetworkVerificationInfo from '../NetworkVerificationInfo';
 import createNetworkModalStyles from './index.styles';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 interface NetworkProps {
   isVisible: boolean;
@@ -59,7 +59,7 @@ const NetworkModals = (props: NetworkProps) => {
     shouldNetworkSwitchPopToWallet,
     onNetworkSwitch,
   } = props;
-
+  const { trackEvent } = useMetrics();
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
@@ -127,7 +127,7 @@ const NetworkModals = (props: NetworkProps) => {
   const checkNetwork = useCallback(async () => {
     if (useSafeChainsListValidation) {
       const alertsNetwork = await checkSafeNetwork(
-        chainId,
+        getDecimalChainId(chainId),
         rpcUrl,
         nickname,
         ticker,
@@ -144,12 +144,11 @@ const NetworkModals = (props: NetworkProps) => {
   const closeModal = () => {
     const { NetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
-    const decimalChainId = getDecimalChainId(chainId);
     !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
     NetworkController.upsertNetworkConfiguration(
       {
         rpcUrl: url.href,
-        chainId: decimalChainId,
+        chainId,
         ticker,
         nickname,
         rpcPrefs: { blockExplorerUrl },
@@ -167,13 +166,12 @@ const NetworkModals = (props: NetworkProps) => {
   const switchNetwork = () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
-    const decimalChainId = getDecimalChainId(chainId);
     CurrencyRateController.setNativeCurrency(ticker);
     !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
     NetworkController.upsertNetworkConfiguration(
       {
         rpcUrl: url.href,
-        chainId: decimalChainId,
+        chainId,
         ticker,
         nickname,
         rpcPrefs: { blockExplorerUrl },
@@ -188,12 +186,12 @@ const NetworkModals = (props: NetworkProps) => {
     );
 
     const analyticsParamsAdd = {
-      chain_id: decimalChainId,
+      chain_id: getDecimalChainId(chainId),
       source: 'Popular network list',
       symbol: ticker,
     };
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+    trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
 
     closeModal();
     if (onNetworkSwitch) {
