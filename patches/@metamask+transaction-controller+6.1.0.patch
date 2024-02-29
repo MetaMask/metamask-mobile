@@ -1924,7 +1924,7 @@ index 0000000..c7de118
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/constants.js b/node_modules/@metamask/transaction-controller/dist/constants.js
 new file mode 100644
-index 0000000..06e56cd
+index 0000000..5f7644a
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/constants.js
 @@ -0,0 +1,124 @@
@@ -1937,7 +1937,7 @@ index 0000000..06e56cd
 +    BSC: '0x38',
 +    BSC_TESTNET: '0x61',
 +    OPTIMISM: '0xa',
-+    OPTIMISM_TESTNET: '0xaa37dc',
++    OPTIMISM_SEPOLIA: '0xaa37dc',
 +    POLYGON: '0x89',
 +    POLYGON_TESTNET: '0x13881',
 +    AVALANCHE: '0xa86a',
@@ -1995,10 +1995,10 @@ index 0000000..06e56cd
 +        subdomain: `${DEFAULT_ETHERSCAN_SUBDOMAIN_PREFIX}-optimistic`,
 +        networkId: parseInt(exports.CHAIN_IDS.OPTIMISM, 16).toString(),
 +    },
-+    [exports.CHAIN_IDS.OPTIMISM_TESTNET]: {
++    [exports.CHAIN_IDS.OPTIMISM_SEPOLIA]: {
 +        domain: DEFAULT_ETHERSCAN_DOMAIN,
 +        subdomain: `${DEFAULT_ETHERSCAN_SUBDOMAIN_PREFIX}-sepolia-optimistic`,
-+        networkId: parseInt(exports.CHAIN_IDS.OPTIMISM_TESTNET, 16).toString(),
++        networkId: parseInt(exports.CHAIN_IDS.OPTIMISM_SEPOLIA, 16).toString(),
 +    },
 +    [exports.CHAIN_IDS.POLYGON]: {
 +        domain: 'polygonscan.com',
