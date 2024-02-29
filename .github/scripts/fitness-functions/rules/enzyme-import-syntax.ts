@@ -5,8 +5,10 @@ import {
   hasNumberOfCodeBlocksIncreased,
 } from '../common/shared';
 
+// Define it as a template string to prevent original commit from being picked up
+const fromEnzyme = `from ${'enzyme'}`
 const codeBlocks = [
-  "from 'enzyme'",
+  fromEnzyme,
 ];
 
 function preventEnzymeImportSyntax(diff: string): boolean {
