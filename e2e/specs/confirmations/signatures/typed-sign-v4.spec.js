@@ -37,6 +37,16 @@ describe(SmokeConfirmations('Typed Sign V4'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
+        // Cancel Sign
+
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapTypedV4SignButton();
+          await SigningModal.isTypedRequestVisible();
+          await SigningModal.tapCancelButton();
+          await SigningModal.isNotVisible();
+        });
+
+        // Confirming Sign
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapTypedV4SignButton();
           await SigningModal.isTypedRequestVisible();
@@ -45,14 +55,5 @@ describe(SmokeConfirmations('Typed Sign V4'), () => {
         });
       },
     );
-  });
-
-  it('should cancel typed V4 message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapTypedV4SignButton();
-      await SigningModal.isTypedRequestVisible();
-      await SigningModal.tapCancelButton();
-      await SigningModal.isNotVisible();
-    });
   });
 });

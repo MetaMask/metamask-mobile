@@ -42,6 +42,16 @@ describe(SmokeConfirmations('Eth Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
+        // Cancel first
+
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapEthSignButton();
+          await SigningModal.isEthRequestVisible();
+          await SigningModal.tapCancelButton();
+          await SigningModal.isNotVisible();
+        });
+
+        // Sign ETH
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapEthSignButton();
           await SigningModal.isEthRequestVisible();
@@ -50,14 +60,5 @@ describe(SmokeConfirmations('Eth Sign'), () => {
         });
       },
     );
-  });
-
-  it('should cancel eth_sign message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapEthSignButton();
-      await SigningModal.isEthRequestVisible();
-      await SigningModal.tapCancelButton();
-      await SigningModal.isNotVisible();
-    });
   });
 });

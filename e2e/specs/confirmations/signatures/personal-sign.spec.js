@@ -37,6 +37,15 @@ describe(SmokeConfirmations('Personal Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
+        // Cancel Sign
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapPersonalSignButton();
+          await SigningModal.isPersonalRequestVisible();
+          await SigningModal.tapCancelButton();
+          await SigningModal.isNotVisible();
+        });
+
+        // Confirming Sign
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapPersonalSignButton();
           await SigningModal.isPersonalRequestVisible();
@@ -45,14 +54,5 @@ describe(SmokeConfirmations('Personal Sign'), () => {
         });
       },
     );
-  });
-
-  it('should cancel personal message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapPersonalSignButton();
-      await SigningModal.isPersonalRequestVisible();
-      await SigningModal.tapCancelButton();
-      await SigningModal.isNotVisible();
-    });
   });
 });

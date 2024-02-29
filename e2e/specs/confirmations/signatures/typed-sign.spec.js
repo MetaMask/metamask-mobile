@@ -37,6 +37,15 @@ describe(SmokeConfirmations('Typed Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
+        // Cancel Sign
+        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+          await TestDApp.tapTypedSignButton();
+          await SigningModal.isTypedRequestVisible();
+          await SigningModal.tapCancelButton();
+          await SigningModal.isNotVisible();
+        });
+
+        // Confirming Sign
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapTypedSignButton();
           await SigningModal.isTypedRequestVisible();
@@ -45,14 +54,5 @@ describe(SmokeConfirmations('Typed Sign'), () => {
         });
       },
     );
-  });
-
-  it('should cancel typed message', async () => {
-    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-      await TestDApp.tapTypedSignButton();
-      await SigningModal.isTypedRequestVisible();
-      await SigningModal.tapCancelButton();
-      await SigningModal.isNotVisible();
-    });
   });
 });
