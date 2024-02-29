@@ -764,6 +764,17 @@ class Engine {
     });
     ///: END:ONLY_INCLUDE_IF
 
+    const accountTrackerController = new AccountTrackerController({
+      onPreferencesStateChange: (listener) =>
+        preferencesController.subscribe(listener),
+      getIdentities: () => preferencesController.state.identities,
+      getSelectedAddress: () => preferencesController.state.selectedAddress,
+      getMultiAccountBalancesEnabled: () =>
+        preferencesController.state.isMultiAccountBalancesEnabled,
+      getCurrentChainId: () =>
+        toHexadecimal(networkController.state.providerConfig.chainId),
+    });
+
     const permissionController = new PermissionController({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -812,7 +823,7 @@ class Engine {
             const internalAccountCount = internalAccounts.length;
 
             const accountTrackerCount = Object.keys(
-              accountTracker.store.getState().accounts || {},
+              accountTrackerController.state.accounts || {},
             ).length;
 
             captureException(
@@ -992,16 +1003,7 @@ class Engine {
 
     const controllers = [
       keyringController,
-      new AccountTrackerController({
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
-        getIdentities: () => preferencesController.state.identities,
-        getSelectedAddress: () => preferencesController.state.selectedAddress,
-        getMultiAccountBalancesEnabled: () =>
-          preferencesController.state.isMultiAccountBalancesEnabled,
-        getCurrentChainId: () =>
-          toHexadecimal(networkController.state.providerConfig.chainId),
-      }),
+      accountTrackerController,
       new AddressBookController(),
       assetsContractController,
       nftController,
