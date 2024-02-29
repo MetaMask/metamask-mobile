@@ -46,3 +46,11 @@ export function setUseBlockieIcon(useBlockieIcon) {
     useBlockieIcon,
   };
 }
+
+export function toggleBasicServices(basicServicesEnabled) {
+  console.log("ACTION - YAYYYYY", basicServicesEnabled)
+  return {
+    type: 'TOGGLE_BASIC_SERVICES',
+    basicServicesEnabled,
+  };
+}
