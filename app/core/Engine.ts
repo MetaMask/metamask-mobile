@@ -114,7 +114,7 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
-import { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
+import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
 ///: END:ONLY_INCLUDE_IF
@@ -471,6 +471,12 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
+      onTokenListStateChange: (listener) =>
+        this.controllerMessenger.subscribe(
+          AppConstants.TOKEN_LIST_STATE_CHANGE_EVENT,
+          listener,
+        ),
+
       chainId: networkController.state.providerConfig.chainId,
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
@@ -942,8 +948,6 @@ class Engine {
           );
           tokensController.addDetectedTokens(tokens);
         },
-        updateTokensName: (tokenList) =>
-          tokensController.updateTokensName(tokenList),
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
         getNetworkState: () => networkController.state,

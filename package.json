@@ -88,6 +88,7 @@
     "close-release-bug-report-issue": "ts-node ./.github/scripts/close-release-bug-report-issue.ts",
     "check-template-and-add-labels": "ts-node ./.github/scripts/check-template-and-add-labels.ts",
     "patch:tx": "./scripts/patch-transaction-controller.sh",
+    "patch:assets": "./scripts/patch-assets-controllers.sh",
     "storybook-generate": "sb-rn-get-stories",
     "storybook-watch": "sb-rn-watcher"
   },
@@ -175,7 +176,7 @@
     "@ledgerhq/react-native-hw-transport-ble": "^6.29.5",
     "@metamask/address-book-controller": "^3.0.0",
     "@metamask/approval-controller": "^3.4.0",
-    "@metamask/assets-controllers": "^9.0.0",
+    "@metamask/assets-controllers": "^10.0.0",
     "@metamask/base-controller": "^4.1.1",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",
