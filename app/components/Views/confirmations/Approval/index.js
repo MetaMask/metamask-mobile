@@ -441,7 +441,7 @@ class Approval extends PureComponent {
 
       Logger.log('STX Approval::onConfirm::transaction', transaction);
 
-      // Don't wait for TxController to get finished event, since it will take some time to get hash for STX
+      // For STX, don't wait for TxController to get finished event, since it will take some time to get hash for STX
       if (isSmartTransaction) {
         this.setState({ transactionHandled: true });
         this.props.hideModal();
