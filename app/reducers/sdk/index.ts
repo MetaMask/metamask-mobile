@@ -7,6 +7,7 @@ export const initialState: Readonly<SDKState> = {
   connections: {},
   approvedHosts: {},
   androidConnections: {},
+  wc2Metadata: undefined,
 };
 
 const sdkReducer = (
@@ -14,6 +15,11 @@ const sdkReducer = (
   action: Action,
 ): SDKState => {
   switch (action.type) {
+    case ActionType.WC2_METADATA:
+      return {
+        ...state,
+        wc2Metadata: action.metadata,
+      };
     case ActionType.DISCONNECT_ALL:
       // Set connected: false to all connections
       return {

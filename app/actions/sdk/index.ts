@@ -1,8 +1,10 @@
 import type { Action as ReduxAction } from 'redux';
 import { ConnectionProps } from '../../core/SDKConnect/Connection';
 import { ApprovedHosts, SDKSessions } from '../../core/SDKConnect/SDKConnect';
+import { WC2Metadata } from './state';
 
 export enum ActionType {
+  WC2_METADATA = 'WC2_METADATA',
   RESET_CONNECTIONS = 'RESET_CONNECTIONS',
   UPDATE_CONNECTION = 'UPDATE_CONNECTION',
   REMOVE_CONNECTION = 'REMOVE_CONNECTION',
@@ -18,7 +20,7 @@ export enum ActionType {
   RESET_ANDROID_CONNECTIONS = 'RESET_ANDROID_CONNECTIONS',
 }
 
-export type DISCONNECT_ALL = ReduxAction<ActionType.DISCONNECT_ALL>;
+export type DisconnectAll = ReduxAction<ActionType.DISCONNECT_ALL>;
 
 export interface UpdateConnection
   extends ReduxAction<ActionType.UPDATE_CONNECTION> {
@@ -84,23 +86,36 @@ export interface SetConnected extends ReduxAction<ActionType.SET_CONNECTED> {
   connected: boolean;
 }
 
+export interface UpdateWC2Metadata
+  extends ReduxAction<ActionType.WC2_METADATA> {
+  metadata?: WC2Metadata;
+}
+
 export type Action =
   | UpdateConnection
-  | DISCONNECT_ALL
+  | DisconnectAll
   | RemoveConnection
   | AddConnection
   | ResetConnection
   | RemoveApprovedHost
   | SetApprovedHost
   | ResetApprovedHosts
+  | UpdateWC2Metadata
   | AddAndroidConnection
   | UpdateAndroidConnection
   | RemoveAndroidConnection
   | ResetAndroidConnections
   | SetConnected;
 
-export const disconnectAll = (): DISCONNECT_ALL => ({
+export const disconnectAll = (): DisconnectAll => ({
   type: ActionType.DISCONNECT_ALL,
+});
+
+export const updateWC2Metadata = (
+  metadata: WC2Metadata,
+): UpdateWC2Metadata => ({
+  type: ActionType.WC2_METADATA,
+  metadata,
 });
 
 export const updateConnection = (
