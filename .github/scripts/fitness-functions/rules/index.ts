@@ -4,8 +4,7 @@ const RULES: IRule[] = [
   {
     name: "Don't introduce more enzyme imports",
     fn: preventEnzymeImportSyntax,
-    docURL:
-      '[WIP] No document exists for standardized unit tests yet.',
+    docURL: '[WIP] No document exists for standardized unit tests yet.',
   },
 ];
 

@@ -6,8 +6,6 @@ const automationType: AUTOMATION_TYPE = process.argv[2] as AUTOMATION_TYPE;
 
 const diff = getDiffByAutomationType(automationType);
 
-console.log("DIFF", diff)
-
 if (typeof diff === 'string') {
   RULES.forEach((rule: IRule): void => runFitnessFunctionRule(rule, diff));
 }
