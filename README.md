@@ -23,7 +23,7 @@ To learn how to develop MetaMask-compatible applications, visit our [Developer D
 
 ### Environment setup
 
-Before running the app, make sure your development environment has all the required tools.
+Before running the app, make sure your development environment has all the required tools. Several of these tools (ie Node and Ruby) may require specific versions in order to succcessfully build the app.
 
 [Setup your development environment](./docs/readme/environment.md)
 
