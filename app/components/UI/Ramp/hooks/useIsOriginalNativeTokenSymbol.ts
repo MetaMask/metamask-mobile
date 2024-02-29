@@ -26,6 +26,12 @@ function useIsOriginalNativeTokenSymbol(
   useEffect(() => {
     async function getNativeTokenSymbol(networkId: string) {
       try {
+        // Skip if the network doesn't have symbol
+        if (!ticker) {
+          setIsOriginalNativeSymbol(true);
+          return;
+        }
+
         // Skip network safety checks and warning tooltip if privacy toggle is off.
         if (!useSafeChainsListValidation) {
           setIsOriginalNativeSymbol(true);
