@@ -2063,6 +2063,7 @@
     "explore_more_options": "Explore more options",
     "one_more_option": "1 more option",
     "more_options": "{{count}} more options",
+    "previously_used": "Previously used",
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
     "terms_of_service": "Terms of Service",
