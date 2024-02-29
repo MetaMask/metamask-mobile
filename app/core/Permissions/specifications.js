@@ -97,6 +97,7 @@ export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
 export const getPermissionSpecifications = ({
   getAllAccounts,
   getInternalAccounts,
+  captureKeyringTypesWithMissingIdentities,
 }) => ({
   [PermissionKeys.eth_accounts]: {
     permissionType: PermissionType.RestrictedMethod,

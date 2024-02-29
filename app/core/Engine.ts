@@ -188,6 +188,7 @@ import {
   AccountsControllerEvents,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
+import { captureException } from '@sentry/react-native';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -615,14 +616,6 @@ class Engine {
       messenger: accountsControllerMessenger,
       state: initialState.AccountsController,
     });
-    const getIdentities = () => {
-      const identities = preferencesController.state.identities;
-      const lowerCasedIdentities: PreferencesState['identities'] = {};
-      Object.keys(identities).forEach((key) => {
-        lowerCasedIdentities[key.toLowerCase()] = identities[key];
-      });
-      return lowerCasedIdentities;
-    };
 
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
@@ -800,6 +793,34 @@ class Engine {
           getAllAccounts: () => keyringController.getAccounts(),
           getInternalAccounts:
             accountsController.listAccounts.bind(accountsController),
+          captureKeyringTypesWithMissingIdentities: (
+            internalAccounts = [],
+            accounts = [],
+          ) => {
+            const accountsMissingIdentities = accounts.filter(
+              (address) =>
+                !internalAccounts.some(
+                  (account) =>
+                    account.address.toLowerCase() === address.toLowerCase(),
+                ),
+            );
+            const keyringTypesWithMissingIdentities =
+              accountsMissingIdentities.map((address) =>
+                keyringController.getAccountKeyringType(address),
+              );
+
+            const internalAccountCount = internalAccounts.length;
+
+            const accountTrackerCount = Object.keys(
+              accountTracker.store.getState().accounts || {},
+            ).length;
+
+            captureException(
+              new Error(
+                `Attempt to get permission specifications failed because their were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
+              ),
+            );
+          },
         }),
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         ...getSnapPermissionSpecifications(),
