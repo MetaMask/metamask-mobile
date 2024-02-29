@@ -4448,36 +4448,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-3.1.0.tgz#f8067796f89fbbd6eaa594660bd6a1fbd6837a51"
   integrity sha512-bFlJ8jhTYJ4iQ0zgh2WMO2615UJ4Ne5J831EjsqKYaZs3qd6UTw/cy76hAmSxhnBluNAH5S6zZzxESLrTitCmQ==
 
-"@metamask/snaps-controllers@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-5.0.0.tgz#007811ab7a7f7d9dd772e94a142c9bb8f7697c4d"
-  integrity sha512-LZeRFJ3alhR+yjfsoMQvX/f3w0V2eePXjEwOiB95LxhhS93aai+F1jEkM2he9lSOV+pBI6jsBEaXFotspBgudw==
-  dependencies:
-    "@metamask/approval-controller" "^5.1.2"
-    "@metamask/base-controller" "^4.1.0"
-    "@metamask/json-rpc-engine" "^7.3.2"
-    "@metamask/object-multiplex" "^2.0.0"
-    "@metamask/permission-controller" "^8.0.0"
-    "@metamask/phishing-controller" "^8.0.2"
-    "@metamask/post-message-stream" "^8.0.0"
-    "@metamask/rpc-errors" "^6.1.0"
-    "@metamask/snaps-registry" "^3.0.0"
-    "@metamask/snaps-rpc-methods" "^6.0.0"
-    "@metamask/snaps-sdk" "^2.0.0"
-    "@metamask/snaps-utils" "^6.0.0"
-    "@metamask/utils" "^8.3.0"
-    "@xstate/fsm" "^2.0.0"
-    browserify-zlib "^0.2.0"
-    concat-stream "^2.0.0"
-    get-npm-tarball-url "^2.0.3"
-    immer "^9.0.6"
-    json-rpc-middleware-stream "^5.0.0"
-    nanoid "^3.1.31"
-    readable-stream "^3.6.2"
-    readable-web-to-node-stream "^3.0.2"
-    tar-stream "^3.1.7"
-
-"@metamask/snaps-controllers@^5.0.1":
+"@metamask/snaps-controllers@^5.0.0", "@metamask/snaps-controllers@^5.0.1":
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-5.0.1.tgz#89d60011dbd5f2686918796c6cbcc73307cf40a5"
   integrity sha512-Ian2Ky6YSoFHFdSUZ3TqZIHXvW09bV2OhgrQlGRslxnNQDSYhwsQ0O5kOzcuVQ1EvaLwZu3zvaPHpxJGLt20pA==
@@ -4542,19 +4513,7 @@
     is-svg "^4.4.0"
     superstruct "^1.0.3"
 
-"@metamask/snaps-sdk@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-2.0.0.tgz#dfdc25543449e66375cfab2bd79d0ba74c6148d3"
-  integrity sha512-NwRSlgxVpqFEVnTe4zst3/2uMqbltvw8BdCyW7dX+aIZ9jNQXAC7ZDeJQm3WDxvSTLnv65nBJv0AaDVZK21q+w==
-  dependencies:
-    "@metamask/key-tree" "^9.0.0"
-    "@metamask/providers" "^14.0.2"
-    "@metamask/rpc-errors" "^6.1.0"
-    "@metamask/utils" "^8.3.0"
-    is-svg "^4.4.0"
-    superstruct "^1.0.3"
-
-"@metamask/snaps-sdk@^2.1.0":
+"@metamask/snaps-sdk@^2.0.0", "@metamask/snaps-sdk@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-2.1.0.tgz#0a8a621731841e9d641ca687ab0f8e75ef94d261"
   integrity sha512-np65mEcck5Ald9Phf65ItmIz1CExi1a/wZc/6H+WLyyPwkh9R+b22CQJjpr3pFeF+JY/etulM/vCECw5Wwux3Q==
@@ -4594,35 +4553,7 @@
     superstruct "^1.0.3"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/snaps-utils@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-6.0.0.tgz#ec9f31288e94a7a700cec6e788a2724f2b4c499a"
-  integrity sha512-YO8U1eTmJoRsJfFpJIOEC9cBK6JDFg+Q+xbXRDpwl5/4G40D5q1MFjgwYUN8odyeq0vUcNlc09S2/2PsZLMbRw==
-  dependencies:
-    "@babel/core" "^7.23.2"
-    "@babel/types" "^7.23.0"
-    "@metamask/base-controller" "^4.1.0"
-    "@metamask/key-tree" "^9.0.0"
-    "@metamask/permission-controller" "^8.0.0"
-    "@metamask/rpc-errors" "^6.1.0"
-    "@metamask/slip44" "^3.1.0"
-    "@metamask/snaps-registry" "^3.0.0"
-    "@metamask/snaps-sdk" "^2.0.0"
-    "@metamask/utils" "^8.3.0"
-    "@noble/hashes" "^1.3.1"
-    "@scure/base" "^1.1.1"
-    chalk "^4.1.2"
-    cron-parser "^4.5.0"
-    fast-deep-equal "^3.1.3"
-    fast-json-stable-stringify "^2.1.0"
-    is-svg "^4.4.0"
-    rfdc "^1.3.0"
-    semver "^7.5.4"
-    ses "^1.1.0"
-    superstruct "^1.0.3"
-    validate-npm-package-name "^5.0.0"
-
-"@metamask/snaps-utils@^6.1.0":
+"@metamask/snaps-utils@^6.0.0", "@metamask/snaps-utils@^6.1.0":
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-6.1.0.tgz#8350e4d69c57902f9ca5caa175421994e25af79a"
   integrity sha512-N8aeqN2DGcqEdb90q1ps3gHLOG7X5M9/1m6Fi/F7CBrRxQGXXL2aAZotRXg3CJzu5bChFimHwiDe8dLrjcidtw==
