@@ -185,12 +185,16 @@ export async function publishHook(request: Request) {
           return;
         }
 
-        await approvalController.updateRequestState({
-          id: smartTransactionStatusApprovalId,
-          requestState: {
-            smartTransaction: smartTransaction as any,
-          },
-        });
+        try {
+          await approvalController.updateRequestState({
+            id: smartTransactionStatusApprovalId,
+            requestState: {
+              smartTransaction: smartTransaction as any,
+            },
+          });
+        } catch (e) {
+          Logger.log('STX - Error updating approval request state', e);
+        }
 
         if (statusMetadata?.minedHash) {
           Logger.log('STX - Received tx hash: ', statusMetadata?.minedHash);
@@ -230,10 +234,14 @@ export async function publishHook(request: Request) {
     Logger.error(error, '');
     throw error;
   } finally {
-    // This removes the loading spinner
-    approvalController.endFlow({
-      id: smartTransactionStatusApprovalId,
-    });
-    Logger.log('STX - Ended approval flow', smartTransactionStatusApprovalId);
+    try {
+      // This removes the loading spinner
+      approvalController.endFlow({
+        id: smartTransactionStatusApprovalId,
+      });
+      Logger.log('STX - Ended approval flow', smartTransactionStatusApprovalId);
+    } catch (e) {
+      Logger.log('STX - publish hook Error 2', e);
+    }
   }
 }
