@@ -4,6 +4,7 @@ const Routes = {
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
   SETTINGS_VIEW: 'SettingsView',
+  DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
     ID: 'Ramp',
     BUY: 'RampBuy',

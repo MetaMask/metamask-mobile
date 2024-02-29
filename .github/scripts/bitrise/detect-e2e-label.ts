@@ -1,11 +1,7 @@
 import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
-
-enum PullRequestTriggerType {
-  ReadyForReview = 'ready_for_review',
-  Labeled = 'labeled',
-}
+import { PullRequestTriggerType } from '../scripts.types';
 
 main().catch((error: Error): void => {
   console.error(error);
@@ -78,5 +74,5 @@ async function main(): Promise<void> {
   }
 
   // Set the output for the next step to use.
-  core.setOutput("shouldTriggerE2E", shouldTriggerE2E);
+  core.setOutput('shouldTriggerE2E', shouldTriggerE2E);
 }

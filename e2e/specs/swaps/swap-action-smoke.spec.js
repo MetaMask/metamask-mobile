@@ -48,7 +48,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
-    ${'.05'} | ${'ETH'}          | ${'USDC'}
+    ${'.05'} | ${'ETH'}          | ${'USDT'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {

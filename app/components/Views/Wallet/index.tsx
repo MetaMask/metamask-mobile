@@ -44,6 +44,7 @@ import {
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAccounts } from '../../hooks/useAccounts';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -123,6 +124,32 @@ const Wallet = ({ navigation }: any) => {
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
+
+  /**
+   * A list of all the user accounts and a mapping of ENS name to account address if they exist
+   */
+  const { accounts, ensByAccountAddress } = useAccounts();
+
+  /**
+   * An object representing the currently selected account.
+   */
+  const selectedAccount = useMemo(() => {
+    if (accounts.length > 0) {
+      return accounts.find((account) => account.isSelected);
+    }
+    return undefined;
+  }, [accounts]);
+
+  /**
+   * ENS name for the currently selected account.
+   * This value may be undefined if there is no corresponding ENS name for the account.
+   */
+  const ensForSelectedAccount = useMemo(() => {
+    if (ensByAccountAddress && selectedAccount) {
+      return ensByAccountAddress[selectedAccount.address];
+    }
+    return undefined;
+  }, [ensByAccountAddress, selectedAccount]);
 
   const networkName = useMemo(
     () => getNetworkNameFromProviderConfig(providerConfig),
@@ -274,8 +301,14 @@ const Wallet = ({ navigation }: any) => {
     }
     return (
       <View style={styles.wrapper}>
-        <WalletAccount style={styles.walletAccount} ref={walletRef} />
-
+        {selectedAccount ? (
+          <WalletAccount
+            account={selectedAccount}
+            ens={ensForSelectedAccount}
+            style={styles.walletAccount}
+            ref={walletRef}
+          />
+        ) : null}
         <ScrollableTabView
           renderTabBar={renderTabBar}
           // eslint-disable-next-line react/jsx-no-bind
@@ -304,17 +337,20 @@ const Wallet = ({ navigation }: any) => {
       </View>
     );
   }, [
+    tokens,
+    accountsByChainId,
+    providerConfig.chainId,
+    selectedAddress,
+    styles.wrapper,
+    styles.walletAccount,
+    selectedAccount,
+    ensForSelectedAccount,
     renderTabBar,
+    onChangeTab,
+    navigation,
+    ticker,
     conversionRate,
     currentCurrency,
-    navigation,
-    onChangeTab,
-    selectedAddress,
-    ticker,
-    tokens,
-    styles,
-    providerConfig.chainId,
-    accountsByChainId,
   ]);
   const renderLoader = useCallback(
     () => (
