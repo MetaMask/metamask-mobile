@@ -1,6 +1,6 @@
 diff --git a/node_modules/@metamask/transaction-controller/dist/.patch.txt b/node_modules/@metamask/transaction-controller/dist/.patch.txt
 new file mode 100644
-index 0000000..550de56
+index 0000000..e8035ba
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/.patch.txt
 @@ -0,0 +1,7 @@
@@ -1924,7 +1924,7 @@ index 0000000..c7de118
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/constants.js b/node_modules/@metamask/transaction-controller/dist/constants.js
 new file mode 100644
-index 0000000..a19d2ca
+index 0000000..06e56cd
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/constants.js
 @@ -0,0 +1,124 @@
@@ -1937,7 +1937,7 @@ index 0000000..a19d2ca
 +    BSC: '0x38',
 +    BSC_TESTNET: '0x61',
 +    OPTIMISM: '0xa',
-+    OPTIMISM_TESTNET: '0x1a4',
++    OPTIMISM_TESTNET: '0xaa37dc',
 +    POLYGON: '0x89',
 +    POLYGON_TESTNET: '0x13881',
 +    AVALANCHE: '0xa86a',
@@ -1997,7 +1997,7 @@ index 0000000..a19d2ca
 +    },
 +    [exports.CHAIN_IDS.OPTIMISM_TESTNET]: {
 +        domain: DEFAULT_ETHERSCAN_DOMAIN,
-+        subdomain: `${DEFAULT_ETHERSCAN_SUBDOMAIN_PREFIX}-goerli-optimistic`,
++        subdomain: `${DEFAULT_ETHERSCAN_SUBDOMAIN_PREFIX}-sepolia-optimistic`,
 +        networkId: parseInt(exports.CHAIN_IDS.OPTIMISM_TESTNET, 16).toString(),
 +    },
 +    [exports.CHAIN_IDS.POLYGON]: {

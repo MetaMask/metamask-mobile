@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
-index 323a8e8..8fa1856 100644
+index 323a8e8..0c5ed1b 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.ts
 @@ -35,7 +35,8 @@ export interface PreferencesState extends BaseState {
@@ -54,8 +54,9 @@ index 323a8e8..8fa1856 100644
  }
  export default PreferencesController;
  //# sourceMappingURL=PreferencesController.d.ts.map
+\ No newline at end of file
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index 1a98ab0..a31d967 100644
+index 1a98ab0..234db5e 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 @@ -3,6 +3,29 @@ Object.defineProperty(exports, "__esModule", { value: true });
@@ -69,7 +70,7 @@ index 1a98ab0..a31d967 100644
 +                BSC: '0x38',
 +                BSC_TESTNET: '0x61',
 +                OPTIMISM: '0xa',
-+                OPTIMISM_TESTNET: '0x1a4',
++                OPTIMISM_TESTNET: '0xaa37dc',
 +                POLYGON: '0x89',
 +                POLYGON_TESTNET: '0x13881',
 +                AVALANCHE: '0xa86a',
@@ -193,3 +194,4 @@ index 1a98ab0..a31d967 100644
  exports.PreferencesController = PreferencesController;
  exports.default = PreferencesController;
  //# sourceMappingURL=PreferencesController.js.map
+\ No newline at end of file
