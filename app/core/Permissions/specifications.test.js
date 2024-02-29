@@ -5,6 +5,7 @@ import {
   unrestrictedMethods,
 } from './specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
+import { SnapCaveatType } from '@metamask/snaps-utils';
 
 describe('PermissionController specifications', () => {
   describe('caveat specifications', () => {
@@ -14,6 +15,39 @@ describe('PermissionController specifications', () => {
       expect(
         caveatSpecifications[CaveatTypes.restrictReturnedAccounts].type,
       ).toStrictEqual(CaveatTypes.restrictReturnedAccounts);
+      expect(caveatSpecifications.permittedDerivationPaths.type).toStrictEqual(
+        SnapCaveatType.PermittedDerivationPaths,
+      );
+      expect(caveatSpecifications.permittedCoinTypes.type).toStrictEqual(
+        SnapCaveatType.PermittedCoinTypes,
+      );
+      expect(caveatSpecifications.chainIds.type).toStrictEqual(
+        SnapCaveatType.ChainIds,
+      );
+      expect(caveatSpecifications.snapCronjob.type).toStrictEqual(
+        SnapCaveatType.SnapCronjob,
+      );
+      expect(caveatSpecifications.transactionOrigin.type).toStrictEqual(
+        SnapCaveatType.TransactionOrigin,
+      );
+      expect(caveatSpecifications.signatureOrigin.type).toStrictEqual(
+        SnapCaveatType.SignatureOrigin,
+      );
+      expect(caveatSpecifications.rpcOrigin.type).toStrictEqual(
+        SnapCaveatType.RpcOrigin,
+      );
+      expect(caveatSpecifications.snapIds.type).toStrictEqual(
+        SnapCaveatType.SnapIds,
+      );
+      expect(caveatSpecifications.keyringOrigin.type).toStrictEqual(
+        SnapCaveatType.KeyringOrigin,
+      );
+      expect(caveatSpecifications.maxRequestTime.type).toStrictEqual(
+        SnapCaveatType.MaxRequestTime,
+      );
+      expect(caveatSpecifications.lookupMatchers.type).toStrictEqual(
+        SnapCaveatType.LookupMatchers,
+      );
     });
 
     describe('restrictReturnedAccounts', () => {
@@ -231,7 +265,7 @@ describe('PermissionController specifications', () => {
       });
 
       describe('methodImplementation', () => {
-        it('returns the exact keyring accounts', async () => {
+        it('returns the exact keyring accounts in lastSelected order', async () => {
           const getInternalAccounts = jest.fn().mockImplementationOnce(() => {
             return [
               {
@@ -307,6 +341,101 @@ describe('PermissionController specifications', () => {
             '0x1',
             '0x2',
           ]);
+        });
+        it('throws if a keyring account is missing an address (case 1)', async () => {
+          const getInternalAccounts = jest.fn().mockImplementationOnce(() => {
+            return [
+              {
+                address: '0x2',
+                id: '0bd7348e-bdfe-4f67-875c-de831a583857',
+                metadata: {
+                  name: 'Test Account',
+                  lastSelected: 2,
+                  keyring: {
+                    type: 'HD Key Tree',
+                  },
+                },
+                options: {},
+                methods: [...Object.values(EthMethod)],
+                type: EthAccountType.Eoa,
+              },
+              {
+                address: '0x3',
+                id: 'ff8fda69-d416-4d25-80a2-efb77bc7d4ad',
+                metadata: {
+                  name: 'Test Account',
+                  lastSelected: 3,
+                  keyring: {
+                    type: 'HD Key Tree',
+                  },
+                },
+                options: {},
+                methods: [...Object.values(EthMethod)],
+                type: EthAccountType.Eoa,
+              },
+            ];
+          });
+          const getAllAccounts = jest
+            .fn()
+            .mockImplementationOnce(() => ['0x1', '0x2', '0x3']);
+
+          const { methodImplementation } = getPermissionSpecifications({
+            getInternalAccounts,
+            getAllAccounts,
+            captureKeyringTypesWithMissingIdentities: jest.fn(),
+          })[RestrictedMethods.eth_accounts];
+
+          await expect(() => methodImplementation()).rejects.toThrow(
+            'Missing identity for address: "0x1".',
+          );
+        });
+
+        it('throws if a keyring account is missing an address (case 2)', async () => {
+          const getInternalAccounts = jest.fn().mockImplementationOnce(() => {
+            return [
+              {
+                address: '0x1',
+                id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
+                metadata: {
+                  name: 'Test Account',
+                  lastSelected: 1,
+                  keyring: {
+                    type: 'HD Key Tree',
+                  },
+                },
+                options: {},
+                methods: [...Object.values(EthMethod)],
+                type: EthAccountType.Eoa,
+              },
+              {
+                address: '0x3',
+                id: 'ff8fda69-d416-4d25-80a2-efb77bc7d4ad',
+                metadata: {
+                  name: 'Test Account',
+                  lastSelected: 3,
+                  keyring: {
+                    type: 'HD Key Tree',
+                  },
+                },
+                options: {},
+                methods: [...Object.values(EthMethod)],
+                type: EthAccountType.Eoa,
+              },
+            ];
+          });
+          const getAllAccounts = jest
+            .fn()
+            .mockImplementationOnce(() => ['0x1', '0x2', '0x3']);
+
+          const { methodImplementation } = getPermissionSpecifications({
+            getInternalAccounts,
+            getAllAccounts,
+            captureKeyringTypesWithMissingIdentities: jest.fn(),
+          })[RestrictedMethods.eth_accounts];
+
+          await expect(() => methodImplementation()).rejects.toThrow(
+            'Missing identity for address: "0x2".',
+          );
         });
       });
 
