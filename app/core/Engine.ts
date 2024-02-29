@@ -179,7 +179,6 @@ import ExtendedKeyringTypes from '../constants/keyringTypes';
 import { UpdatePPOMInitializationStatus } from '../actions/experimental';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { getIsSmartTransaction } from '../selectors/preferencesController';
 import { publishHook as smartPublishHook } from '../util/smart-transactions/smart-tx';
 
@@ -338,15 +337,8 @@ class Engine {
   snapExecutionService: WebviewExecutionService;
   ///: END:ONLY_INCLUDE_IF
 
-  // This is here to resolve the circular dependency between the txController and stxController initialization
   txController: TransactionController;
   stxController: SmartTransactionsController;
-  getExternalPendingTransactions(address: string) {
-    return this.stxController.getTransactions({
-      addressFrom: address,
-      status: SmartTransactionStatuses.PENDING,
-    });
-  }
 
   /**
    * Creates a CoreController instance
@@ -877,8 +869,6 @@ class Engine {
         ),
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
-      getExternalPendingTransactions:
-        this.getExternalPendingTransactions.bind(this),
 
       hooks: {
         publish: (transactionMeta) => {
