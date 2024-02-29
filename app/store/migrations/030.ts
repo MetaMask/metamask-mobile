@@ -10,7 +10,7 @@ import { isObject } from '@metamask/utils';
 export default function migrate(state: unknown) {
   if (!isObject(state)) {
     captureException(
-      new Error(`Migration 31: Invalid root state: '${typeof state}'`),
+      new Error(`Migration 30: Invalid root state: '${typeof state}'`),
     );
     return state;
   }
@@ -18,7 +18,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine)) {
     captureException(
       new Error(
-        `Migration 31: Invalid root engine state: '${typeof state.engine}'`,
+        `Migration 30: Invalid root engine state: '${typeof state.engine}'`,
       ),
     );
     return state;
@@ -27,7 +27,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
-        `Migration 31: Invalid root engine backgroundState: '${typeof state
+        `Migration 30: Invalid root engine backgroundState: '${typeof state
           .engine.backgroundState}'`,
       ),
     );
@@ -40,7 +40,7 @@ export default function migrate(state: unknown) {
   if (!isObject(preferencesControllerState)) {
     captureException(
       new Error(
-        `Migration 31: Invalid PreferencesController state: '${typeof preferencesControllerState}'`,
+        `Migration 30: Invalid PreferencesController state: '${typeof preferencesControllerState}'`,
       ),
     );
     return state;
