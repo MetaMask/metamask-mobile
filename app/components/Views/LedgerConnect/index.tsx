@@ -124,7 +124,7 @@ const LedgerConnect = () => {
   const [retryTimes, setRetryTimes] = useState(0);
   const dispatch = useDispatch();
 
-  const deviceOSVersion = Number(getSystemVersion()) ?? '';
+  const deviceOSVersion = Number(getSystemVersion()) || 0;
 
   useEffect(() => {
     navigation.setOptions(

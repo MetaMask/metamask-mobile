@@ -23,62 +23,70 @@ const useBluetoothPermissions = () => {
     useState<BluetoothPermissionErrors>();
   const deviceOSVersion = Number(getSystemVersion()) ?? '';
 
-  // Checking if app has required permissions every time the app becomes active
-  const checkPermissions = async () => {
-    setBluetoothPermissionError(undefined);
+  const checkIosPermission = async () => {
+    const bluetoothPermissionStatus = await request(
+      PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL,
+    );
+    const bluetoothAllowed = bluetoothPermissionStatus === RESULTS.GRANTED;
 
-    if (Device.isIos()) {
-      const bluetoothPermissionStatus = await request(
-        PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL,
+    if (bluetoothAllowed) {
+      setHasBluetoothPermissions(true);
+      setBluetoothPermissionError(undefined);
+    } else {
+      setBluetoothPermissionError(
+        BluetoothPermissionErrors.BluetoothAccessBlocked,
       );
-      const bluetoothAllowed = bluetoothPermissionStatus === RESULTS.GRANTED;
-      if (bluetoothAllowed) {
-        setHasBluetoothPermissions(true);
-      } else {
+    }
+  };
+
+  const checkAndroidPermission = async () => {
+    let hasError = false;
+
+    if (deviceOSVersion >= 12) {
+      const result = await requestMultiple([
+        PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+        PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
+      ]);
+
+      if (
+        result[PERMISSIONS.ANDROID.BLUETOOTH_CONNECT] !== RESULTS.GRANTED ||
+        result[PERMISSIONS.ANDROID.BLUETOOTH_SCAN] !== RESULTS.GRANTED
+      ) {
         setBluetoothPermissionError(
-          BluetoothPermissionErrors.BluetoothAccessBlocked,
+          BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
         );
+        hasError = true;
+      }
+    } else {
+      const bluetoothPermissionStatus = await request(
+        PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+      );
+
+      if (bluetoothPermissionStatus !== RESULTS.GRANTED) {
+        setBluetoothPermissionError(
+          BluetoothPermissionErrors.LocationAccessBlocked,
+        );
+        hasError = true;
       }
     }
 
+    if (!hasError) {
+      setHasBluetoothPermissions(true);
+      // Edge case, when `View setting` click, checkPermissions will trigger, and setBluetoothPermissionError(undefined), but when screen move away to android setting page,
+      // bluetoothPermissionError somehow has been set back to `LocationAccessBlocked` error because screen not in metamask. therefore we need to setBluetoothPermissionError(undefined) again below
+      // to make sure User come back to Metamask, the bluetoothPermissionError is undefined, otherwise, `ledgerConfirmationModal.tsx` will have issue on retry.
+      setBluetoothPermissionError(undefined);
+    }
+  };
+
+  // Checking if app has required permissions every time the app becomes active
+  const checkPermissions = async () => {
+    if (Device.isIos()) {
+      await checkIosPermission();
+    }
+
     if (Device.isAndroid()) {
-      let hasError = false;
-
-      if (deviceOSVersion >= 12) {
-        const result = await requestMultiple([
-          PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
-          PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
-        ]);
-
-        if (
-          result[PERMISSIONS.ANDROID.BLUETOOTH_CONNECT] !== RESULTS.GRANTED ||
-          result[PERMISSIONS.ANDROID.BLUETOOTH_SCAN] !== RESULTS.GRANTED
-        ) {
-          setBluetoothPermissionError(
-            BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
-          );
-          hasError = true;
-        }
-      } else {
-        const bluetoothPermissionStatus = await request(
-          PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-        );
-
-        if (bluetoothPermissionStatus !== RESULTS.GRANTED) {
-          setBluetoothPermissionError(
-            BluetoothPermissionErrors.LocationAccessBlocked,
-          );
-          hasError = true;
-        }
-      }
-
-      if (!hasError) {
-        setHasBluetoothPermissions(true);
-        // Edge case, when `View setting` click, checkPermissions will trigger, and setBluetoothPermissionError(undefined), but when screen move away to android setting page,
-        // bluetoothPermissionError somehow has been set back to `LocationAccessBlocked` error because screen not in metamask. therefore we need to setBluetoothPermissionError(undefined) again below
-        // to make sure User come back to Metamask, the bluetoothPermissionError is undefined, otherwise, `ledgerConfirmationModal.tsx` will have issue on retry.
-        setBluetoothPermissionError(undefined);
-      }
+      await checkAndroidPermission();
     }
   };
 

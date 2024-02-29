@@ -61,7 +61,7 @@ const SearchingForDeviceStep = () => {
   const styles = useMemo(() => createStyles(), []);
   const navigation = useNavigation();
 
-  const deviceOSVersion = Number(getSystemVersion()) ?? '';
+  const deviceOSVersion = Number(getSystemVersion()) || 0;
 
   const ledgerImage = useAssetFromTheme(
     ledgerConnectLightImage,
