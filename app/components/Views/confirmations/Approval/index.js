@@ -441,6 +441,12 @@ class Approval extends PureComponent {
 
       Logger.log('STX Approval::onConfirm::transaction', transaction);
 
+      // Don't wait for TxController to get finished event, since it will take some time to get hash for STX
+      if (isSmartTransaction) {
+        this.setState({ transactionHandled: true });
+        this.props.hideModal();
+      }
+
       TransactionController.hub.once(
         `${transaction.id}:finished`,
         (transactionMeta) => {
@@ -493,20 +499,10 @@ class Approval extends PureComponent {
         return;
       }
 
-      // The STX Status page will be shown instead
-      if (isSmartTransaction) {
-        await ApprovalController.accept(transaction.id, undefined, {
-          // Need this so we can hide the modal right away
-          waitForResult: false,
-        });
-        this.props.hideModal();
-        Logger.log('STX Approval::onConfirm hideModal 1');
-      } else {
-        await ApprovalController.accept(transaction.id, undefined, {
-          waitForResult: true,
-        });
-        Logger.log('STX Approval::onConfirm hideModal 2');
-      }
+      await ApprovalController.accept(transaction.id, undefined, {
+        waitForResult: true,
+      });
+
       this.showWalletConnectNotification(true);
 
       Logger.log('STX Approval::onConfirm 3');
