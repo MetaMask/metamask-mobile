@@ -3,11 +3,7 @@ import BigNumber from 'bignumber.js';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
-import {
-  GOERLI,
-  NETWORKS_CHAIN_ID,
-  SEPOLIA,
-} from '../../../../constants/network';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 
 const {
   ETH_CHAIN_ID,
@@ -33,8 +29,8 @@ const allowedChainIds = [
   SWAPS_TESTNET_CHAIN_ID,
 ];
 if (__DEV__) {
-  allowedChainIds.push(NETWORKS_CHAIN_ID[GOERLI]);
-  allowedChainIds.push(NETWORKS_CHAIN_ID[SEPOLIA]);
+  allowedChainIds.push(NETWORKS_CHAIN_ID.GOERLI);
+  allowedChainIds.push(NETWORKS_CHAIN_ID.SEPOLIA);
 }
 
 export function isSwapsAllowed(chainId) {
