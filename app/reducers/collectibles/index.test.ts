@@ -66,14 +66,14 @@ describe('swaps reducer', () => {
     const secondState = reducer(firstState, {
       type: ADD_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressA,
-      chainId: ChainId.goerli,
+      chainId: ChainId.sepolia,
       collectible: collectibleA2,
     });
     expect(secondState).toEqual({
       favorites: {
         [selectedAddressA]: {
           [ChainId.mainnet]: [collectibleA1],
-          [ChainId.goerli]: [collectibleA2],
+          [ChainId.sepolia]: [collectibleA2],
         },
       },
     });
@@ -128,21 +128,21 @@ describe('swaps reducer', () => {
       favorites: {
         [selectedAddressA]: {
           [ChainId.mainnet]: [collectibleA1, collectibleA2],
-          [ChainId.goerli]: [collectibleA1],
+          [ChainId.sepolia]: [collectibleA1],
         },
       },
     };
     const secondState = reducer(firstState, {
       type: REMOVE_FAVORITE_COLLECTIBLE,
       selectedAddress: selectedAddressA,
-      chainId: ChainId.goerli,
+      chainId: ChainId.sepolia,
       collectible: collectibleA1,
     });
     expect(secondState).toEqual({
       favorites: {
         [selectedAddressA]: {
           [ChainId.mainnet]: [collectibleA1, collectibleA2],
-          [ChainId.goerli]: [],
+          [ChainId.sepolia]: [],
         },
       },
     });

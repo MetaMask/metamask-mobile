@@ -109,7 +109,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.
         </Text>
         <Text
-          accessibilityRole="text"
+          accessibilityRole="link"
+          accessible={true}
           onPress={[Function]}
           onPressIn={[Function]}
           onPressOut={[Function]}
@@ -198,6 +199,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           </View>
         </View>
         <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
@@ -274,6 +277,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your Secret Recovery Phrase to re-import your wallet.
         </Text>
         <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
@@ -591,6 +596,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           This is the private key for the current selected account: [missing {{accountName}} value]. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
         </Text>
         <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
@@ -826,6 +833,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         >
           <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
@@ -913,6 +922,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         >
           <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}
@@ -1027,6 +1038,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         >
           <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
             activeOpacity={1}
             disabled={true}
             onPress={[Function]}
@@ -1114,6 +1127,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         >
           <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
             activeOpacity={1}
             disabled={true}
             onPress={[Function]}
@@ -2365,7 +2380,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           </Text>
            
           <Text
-            accessibilityRole="text"
+            accessibilityRole="link"
+            accessible={true}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
@@ -2402,6 +2418,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         >
           <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
             activeOpacity={1}
             disabled={false}
             onPress={[Function]}
@@ -2519,6 +2537,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         >
           <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
             activeOpacity={1}
             onPress={[Function]}
             onPressIn={[Function]}

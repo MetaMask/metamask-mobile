@@ -23,6 +23,7 @@ import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwa
 import WebsiteIcon from '../../../../UI/WebsiteIcon';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -417,8 +418,7 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
   networkType: selectProviderType(state),
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });

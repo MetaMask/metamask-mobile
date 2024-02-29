@@ -8,7 +8,7 @@
     "failed_title": "Request may not be safe",
     "failed_description": "Because of an error, this request was not verified by the security provider. Proceed with caution.",
     "loading_title": "Checking for security alerts...",
-    "loading_complete_title": "No alerts received",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
     "other_description": "If you approve this request, you might lose your assets.",
     "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
@@ -1508,7 +1508,10 @@
     "add_network": "add more networks manually.",
     "select_network": "Select a network",
     "show_test_networks": "Show test networks",
-    "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon."
+    "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+
   },
   "select": {
     "cancel": "Cancel",
@@ -2057,6 +2060,10 @@
     "fetching_new_quotes": "Fetching new quotes...",
     "quotes_expire_in": "Quotes expire in",
     "get_new_quotes": "Get new quotes",
+    "explore_more_options": "Explore more options",
+    "one_more_option": "1 more option",
+    "more_options": "{{count}} more options",
+    "previously_used": "Previously used",
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
     "terms_of_service": "Terms of Service",
