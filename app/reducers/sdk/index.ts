@@ -14,6 +14,18 @@ const sdkReducer = (
   action: Action,
 ): SDKState => {
   switch (action.type) {
+    case ActionType.DISCONNECT_ALL:
+      // Set connected: false to all connections
+      return {
+        ...state,
+        connections: Object.keys(state.connections).reduce(
+          (acc, channelId) => ({
+            ...acc,
+            [channelId]: { ...state.connections[channelId], connected: false },
+          }),
+          {},
+        ),
+      };
     case ActionType.UPDATE_CONNECTION:
       return {
         ...state,

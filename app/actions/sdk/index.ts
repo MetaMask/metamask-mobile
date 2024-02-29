@@ -7,6 +7,7 @@ export enum ActionType {
   UPDATE_CONNECTION = 'UPDATE_CONNECTION',
   REMOVE_CONNECTION = 'REMOVE_CONNECTION',
   ADD_CONNECTION = 'ADD_CONNECTION',
+  DISCONNECT_ALL = 'DISCONNECT_ALL',
   REMOVE_APPROVED_HOST = 'REMOVE_APPROVWED_HOST',
   SET_APPROVED_HOST = 'SET_APPROVED_HOST',
   RESET_APPROVED_HOSTS = 'RESET_APPROVED_HOSTS',
@@ -16,6 +17,8 @@ export enum ActionType {
   REMOVE_ANDROID_CONNECTION = 'REMOVE_ANDROID_CONNECTION',
   RESET_ANDROID_CONNECTIONS = 'RESET_ANDROID_CONNECTIONS',
 }
+
+export type DISCONNECT_ALL = ReduxAction<ActionType.DISCONNECT_ALL>;
 
 export interface UpdateConnection
   extends ReduxAction<ActionType.UPDATE_CONNECTION> {
@@ -83,6 +86,7 @@ export interface SetConnected extends ReduxAction<ActionType.SET_CONNECTED> {
 
 export type Action =
   | UpdateConnection
+  | DISCONNECT_ALL
   | RemoveConnection
   | AddConnection
   | ResetConnection
@@ -94,6 +98,10 @@ export type Action =
   | RemoveAndroidConnection
   | ResetAndroidConnections
   | SetConnected;
+
+export const disconnectAll = (): DISCONNECT_ALL => ({
+  type: ActionType.DISCONNECT_ALL,
+});
 
 export const updateConnection = (
   channelId: string,
