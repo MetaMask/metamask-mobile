@@ -3,10 +3,12 @@ import { Actions } from '../TemplateConfirmation';
 import { ConfirmationTemplateValues, ConfirmationTemplate } from '.';
 import Logger from '../../../../../../../util/Logger';
 import Engine from '../../../../../../../core/Engine';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import TransactionTypes from '../../../../../../../core/TransactionTypes';
 
 function getValues(
   pendingApproval: ApprovalRequest<any>,
-  strings: (key: string) => string,
+  strings: (key: string, params?: Record<string, string>) => string,
   actions: Actions,
 ): ConfirmationTemplateValues {
   return {
@@ -23,9 +25,20 @@ function getValues(
       },
     ],
     confirmText: strings('smart_transactions.view_activity'),
-    onConfirm: actions.onConfirm,
-    cancelText: strings('smart_transactions.return_to_dapp'),
+    onConfirm: () => {
+      actions.onConfirm();
+      Engine.context.ApprovalController.endFlow({ id: pendingApproval.id });
+      actions.navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    },
+    cancelText:
+      pendingApproval.origin === TransactionTypes.MMM
+        ? strings('smart_transactions.return')
+        : strings('smart_transactions.return_to_dapp', {
+            dappName: pendingApproval.origin,
+          }),
     onCancel: () => {
+      actions.onConfirm();
+
       // Remove the loading spinner on swipe down
       Engine.context.ApprovalController.endFlow({ id: pendingApproval.id });
       Logger.log('STX SmartTransactionStatus onCancel');

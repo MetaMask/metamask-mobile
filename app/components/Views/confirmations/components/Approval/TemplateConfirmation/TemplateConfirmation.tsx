@@ -14,6 +14,7 @@ import {
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useAppThemeFromContext } from '../../../../../../util/theme';
 import { AcceptOptions, ApprovalRequest } from '@metamask/approval-controller';
+import { useNavigation } from '@react-navigation/native';
 
 export interface TemplateConfirmationProps {
   approvalRequest: ApprovalRequest<any>;
@@ -24,6 +25,7 @@ export interface TemplateConfirmationProps {
 export interface Actions {
   onConfirm: (opts?: AcceptOptions) => void;
   onCancel: () => void;
+  navigation: ReturnType<typeof useNavigation>;
 }
 
 const TemplateConfirmation = ({
@@ -33,6 +35,7 @@ const TemplateConfirmation = ({
 }: TemplateConfirmationProps) => {
   const { styles } = useStyles(stylesheet, {});
   const { colors } = useAppThemeFromContext();
+  const navigation = useNavigation();
 
   const templatedValues = useMemo<Partial<ConfirmationTemplateValues>>(
     () =>
@@ -42,11 +45,11 @@ const TemplateConfirmation = ({
               ...approvalRequest,
             },
             strings,
-            { onConfirm, onCancel },
+            { onConfirm, onCancel, navigation },
             colors,
           )
         : {},
-    [approvalRequest, onConfirm, onCancel, colors],
+    [approvalRequest, onConfirm, onCancel, colors, navigation],
   );
 
   useEffect(() => {

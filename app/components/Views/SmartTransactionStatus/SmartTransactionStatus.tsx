@@ -98,6 +98,11 @@ const SmartTransactionStatus = ({
     link: {
       color: colors.primary.default,
     },
+    close: {
+      position: 'absolute',
+      top: 20,
+      right: 20,
+    },
   });
 
   const isStxPending = status === 'pending';
@@ -215,6 +220,10 @@ const SmartTransactionStatus = ({
   return (
     <View style={styles.wrapper}>
       <Icon name={icon} color={iconColor} size={IconSize.Xl} />
+
+      <TouchableOpacity onPress={onConfirm} style={styles.close}>
+        <Icon name={IconName.Close} />
+      </TouchableOpacity>
 
       <Text style={styles.header}>{header}</Text>
       {isStxPending && <ProgressBar percentComplete={percentComplete} />}

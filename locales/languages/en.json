@@ -1424,7 +1424,8 @@
     
     "view_transaction": "View transaction",
     "view_activity": "View activity",
-    "return_to_dapp": "Return to dApp"
+    "return": "Return",
+    "return_to_dapp": "Return to {{dappName}}"
   },
   "address_book": {
     "recents": "Recents",
