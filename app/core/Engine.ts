@@ -772,7 +772,7 @@ class Engine {
       onPreferencesStateChange: (listener) =>
         preferencesController.subscribe(listener),
       getIdentities: () => preferencesController.state.identities,
-      getSelectedAddress: () => preferencesController.state.selectedAddress,
+      getSelectedAddress: () => accountsController.getSelectedAccount().address,
       getMultiAccountBalancesEnabled: () =>
         preferencesController.state.isMultiAccountBalancesEnabled,
       getCurrentChainId: () =>
@@ -1072,7 +1072,8 @@ class Engine {
         {
           onTokensStateChange: (listener) =>
             tokensController.subscribe(listener),
-          getSelectedAddress: () => preferencesController.state.selectedAddress,
+          getSelectedAddress: () =>
+            accountsController.getSelectedAccount().address,
           getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
             assetsContractController,
           ),
@@ -1109,7 +1110,8 @@ class Engine {
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
         getNetworkState: () => networkController.state,
-        getSelectedAddress: () => preferencesController.state.selectedAddress,
+        getSelectedAddress: () =>
+          accountsController.getSelectedAccount().address,
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () => {
