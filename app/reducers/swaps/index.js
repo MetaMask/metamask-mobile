@@ -59,11 +59,23 @@ export const swapsLivenessSelector = createSelector(
   (swapsState, chainId) => swapsState[chainId]?.isLive || false,
 );
 
+/**
+ * Returns if smart transactions are enabled in feature flags
+ */
 export const swapsSmartTxEnabled = createSelector(
   swapsStateSelector,
   chainIdSelector,
   (swapsState, chainId) =>
     Object.keys(swapsState[chainId]?.smartTransactions).length > 0,
+);
+
+/**
+ * Returns the swaps feature flags
+ */
+export const getSwapsFeatureFlags = createSelector(
+  swapsStateSelector,
+  chainIdSelector,
+  (swapsState, chainId) => swapsState[chainId],
 );
 
 /**

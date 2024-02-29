@@ -20,6 +20,8 @@ import {
 } from '../../../selectors/networkController';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import { useNavigation } from '@react-navigation/native';
+import { getSwapsFeatureFlags } from '../../../reducers/swaps';
+import Logger from '../../../util/Logger';
 
 interface Props {
   requestState: {
@@ -30,8 +32,8 @@ interface Props {
   onConfirm: () => void;
 }
 
-const STX_ESTIMATED_DEADLINE_SEC = 45; // TODO: Use a value from backend instead.
-const STX_MAX_DEADLINE_SEC = 150; // TODO: Use a value from backend instead.
+const FALLBACK_STX_ESTIMATED_DEADLINE_SEC = 45; // TODO: Use a value from backend instead.
+const FALLBACK_STX_MAX_DEADLINE_SEC = 150; // TODO: Use a value from backend instead.
 
 export const showRemainingTimeInMinAndSec = (
   remainingTimeInSec: number,
@@ -51,13 +53,22 @@ const SmartTransactionStatus = ({
   const { status } = smartTransaction;
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const swapFeatureFlags = useSelector(getSwapsFeatureFlags);
+
   const navigation = useNavigation();
   const { colors } = useTheme();
+
+  const stxEstimatedDeadlineSec =
+    swapFeatureFlags.smartTransactions?.expectedDeadline ||
+    FALLBACK_STX_ESTIMATED_DEADLINE_SEC;
+  const stxMaxDeadlineSec =
+    swapFeatureFlags.smartTransactions?.maxDeadline ||
+    FALLBACK_STX_MAX_DEADLINE_SEC;
 
   const [isStxPastEstimatedDeadline, setIsStxPastEstimatedDeadline] =
     useState(false);
   const [timeLeftForPendingStxInSec, setTimeLeftForPendingStxInSec] = useState(
-    STX_ESTIMATED_DEADLINE_SEC,
+    stxEstimatedDeadlineSec,
   );
 
   // Setup styles
@@ -93,8 +104,8 @@ const SmartTransactionStatus = ({
 
   // Calc time left for progress bar and timer display
   const stxDeadlineSec = isStxPastEstimatedDeadline
-    ? STX_MAX_DEADLINE_SEC
-    : STX_ESTIMATED_DEADLINE_SEC;
+    ? stxMaxDeadlineSec
+    : stxEstimatedDeadlineSec;
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
