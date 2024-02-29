@@ -99,6 +99,12 @@ function hasNumberOfCodeBlocksIncreased(
     codeBlockFound[codeBlock] = false;
 
     for (const diffLine of diffLines) {
+      console.log(
+        'CODEBLOCK',
+        diffLine,
+        codeBlock,
+        diffLine.includes(codeBlock),
+      );
       if (diffLine.includes(codeBlock)) {
         codeBlockFound[codeBlock] = true;
         break;
