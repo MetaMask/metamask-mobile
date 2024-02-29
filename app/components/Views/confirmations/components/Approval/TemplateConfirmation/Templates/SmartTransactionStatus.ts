@@ -2,6 +2,7 @@ import { ApprovalRequest } from '@metamask/approval-controller';
 import { Actions } from '../TemplateConfirmation';
 import { ConfirmationTemplateValues, ConfirmationTemplate } from '.';
 import Logger from '../../../../../../../util/Logger';
+import Engine from '../../../../../../../core/Engine';
 
 function getValues(
   pendingApproval: ApprovalRequest<any>,
@@ -25,9 +26,9 @@ function getValues(
     onConfirm: actions.onConfirm,
     cancelText: strings('smart_transactions.return_to_dapp'),
     onCancel: () => {
-      // TODO if I pass this in, then this component will stay on screen. This is b/c I'm getting "user rejected" for some reason
-      // this is called every time it renders, but the actual useApprovalRequest.onReject is only called on swipe down
-      // Logger.log('STX SmartTransactionStatus onCancel');
+      // Remove the loading spinner on swipe down
+      Engine.context.ApprovalController.endFlow({ id: pendingApproval.id });
+      Logger.log('STX SmartTransactionStatus onCancel');
     },
   };
 }
