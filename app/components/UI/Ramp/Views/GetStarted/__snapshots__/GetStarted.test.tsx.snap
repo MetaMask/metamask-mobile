@@ -2226,7 +2226,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }

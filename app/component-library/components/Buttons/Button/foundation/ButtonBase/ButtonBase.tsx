@@ -45,6 +45,8 @@ const ButtonBase = ({
       activeOpacity={1}
       onPress={onPress}
       style={styles.base}
+      accessibilityRole="button"
+      accessible
       {...props}
     >
       {startIconName && (
@@ -59,6 +61,7 @@ const ButtonBase = ({
         <Text
           variant={DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT}
           style={styles.label}
+          accessibilityRole="none"
         >
           {label}
         </Text>

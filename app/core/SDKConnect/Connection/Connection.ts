@@ -185,6 +185,7 @@ export class Connection extends EventEmitter2 {
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
       otherPublicKey,
       reconnect,
+      transports: ['websocket'],
       walletInfo: {
         type: 'MetaMask Mobile',
         version,

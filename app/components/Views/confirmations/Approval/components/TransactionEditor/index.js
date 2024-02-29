@@ -50,6 +50,8 @@ import {
 import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../../../../selectors/preferencesController';
+import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/gasFeeController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -970,10 +972,8 @@ const mapStateToProps = (state) => ({
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-  gasEstimateType:
-    state.engine.backgroundState.GasFeeController.gasEstimateType,
+  gasFeeEstimates: selectGasFeeEstimates(state),
+  gasEstimateType: selectGasFeeControllerEstimateType(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   nativeCurrency: selectNativeCurrency(state),

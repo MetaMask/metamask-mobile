@@ -1,11 +1,11 @@
 {
-  "Goerli": {
+  "Sepolia": {
     "providerConfig": {
       "type": "mainnet",
-      "chainId": "0x5",
-      "rpcUrl": "https://goerli.infura.io/v3/",
-      "nickname": "Goerli Test Network",
-      "ticker": "GoerliETH"
+      "chainId": "11155111",
+      "rpcTarget": "https://sepolia.infura.io/v3/",
+      "nickname": "Sepolia Test Network",
+      "ticker": "SepoliaETH"
     }
   },
   "Avalanche": {

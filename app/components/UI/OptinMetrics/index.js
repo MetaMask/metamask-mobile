@@ -19,8 +19,10 @@ import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
-import { Analytics, MetaMetricsEvents } from '../../../core/Analytics';
-import { withMetricsAwareness } from '../../hooks/useMetrics';
+import {
+  MetaMetricsEvents,
+  withMetricsAwareness,
+} from '../../hooks/useMetrics';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext } from '../../../util/theme';
 import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
@@ -263,7 +265,6 @@ class OptinMetrics extends PureComponent {
       // and disable analytics
       clearOnboardingEvents();
       await metrics.enable(false);
-      Analytics.disableInstance();
     }, 200);
     this.continue();
   };

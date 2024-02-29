@@ -38,6 +38,15 @@ jest.mock('../../../core/Engine', () => ({
     AccountTrackerController: {
       refresh: jest.fn(),
     },
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+          },
+        ],
+      },
+    },
   },
 }));
 

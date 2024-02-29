@@ -10,7 +10,6 @@ import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import TokenImage from '../../../../UI/TokenImage';
 import Device from '../../../../../util/device';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 
 import useTokenBalance from '../../../../hooks/useTokenBalance';
 import { useTheme } from '../../../../../util/theme';
@@ -21,6 +20,7 @@ import { getActiveTabUrl } from '../../../../../util/transactions';
 import { isEqual } from 'lodash';
 import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
 import { getDecimalChainId } from '../../../../../util/networks';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -104,6 +104,7 @@ const WatchAssetRequest = ({
   const { asset, interactingAddress } = suggestedAssetMeta;
   // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
   const chainId = useSelector(selectChainId);
@@ -132,10 +133,7 @@ const WatchAssetRequest = ({
   const onConfirmPress = async () => {
     await onConfirm();
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.TOKEN_ADDED,
-        getAnalyticsParams(),
-      );
+      trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
       NotificationManager.showSimpleNotification({
         status: `simple_notification`,
         duration: 5000,
