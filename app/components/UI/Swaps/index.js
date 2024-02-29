@@ -259,13 +259,9 @@ function SwapsAmountView({
   useEffect(() => {
     (async () => {
       try {
-        const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
-          AppConstants.SWAPS.CLIENT_ID,
-        );
-
-        const featureFlagsByChainId = swapsUtils.getSwapsFeatureFlagsByChainId(
-          featureFlags,
+        const featureFlags = await swapsUtils.fetchSwapsFeatureLiveness(
           chainId,
+          AppConstants.SWAPS.CLIENT_ID,
         );
 
         const isIphone = Device.isIos();
@@ -276,9 +272,9 @@ function SwapsAmountView({
           ? 'mobileActiveAndroid'
           : 'mobileActive';
         const liveness =
-          typeof featureFlagsByChainId === 'boolean'
-            ? featureFlagsByChainId
-            : featureFlagsByChainId?.[featureFlagKey] ?? false;
+          typeof data === 'boolean'
+            ? featureFlags
+            : featureFlags?.[featureFlagKey] ?? false;
         setLiveness(chainId, featureFlags);
 
         if (liveness) {

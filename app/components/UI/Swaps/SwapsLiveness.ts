@@ -19,16 +19,18 @@ function SwapLiveness() {
   const chainId = useSelector((state: EngineState) => selectChainId(state));
   const dispatch = useDispatch();
   const setLiveness = useCallback(
-    (currentChainId, featureFlags) => {
-      dispatch(setSwapsLiveness(currentChainId, featureFlags));
+    (_chainId, featureFlags) => {
+      dispatch(setSwapsLiveness(_chainId, featureFlags));
     },
     [dispatch],
   );
   const checkLiveness = useCallback(async () => {
     try {
-      const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
+      const featureFlags = await swapsUtils.fetchSwapsFeatureLiveness(
+        chainId,
         AppConstants.SWAPS.CLIENT_ID,
       );
+
       setLiveness(chainId, featureFlags);
     } catch (error) {
       Logger.error(error as any, 'Swaps: error while fetching swaps liveness');

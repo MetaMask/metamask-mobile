@@ -8,7 +8,7 @@ import { selectChainId } from '../../selectors/networkController';
 import { selectTokens } from '../../selectors/tokensController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
 import Device from '../../util/device';
-import { swapsUtils } from '@metamask/swaps-controller';
+import Logger from '../../util/Logger';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -61,7 +61,9 @@ export const swapsLivenessSelector = createSelector(
 
 export const swapsSmartTxEnabled = createSelector(
   swapsStateSelector,
-  (swapsState) => swapsState.smartTransactions,
+  chainIdSelector,
+  (swapsState, chainId) =>
+    Object.keys(swapsState[chainId]?.smartTransactions).length > 0,
 );
 
 /**
@@ -213,6 +215,7 @@ function swapsReducer(state = initialState, action) {
   switch (action.type) {
     case SWAPS_SET_LIVENESS: {
       const { chainId, featureFlags } = action.payload;
+
       const data = state[chainId];
 
       if (!featureFlags) {
@@ -220,15 +223,11 @@ function swapsReducer(state = initialState, action) {
           ...state,
           [chainId]: {
             ...data,
+            ...featureFlags,
             isLive: false,
           },
         };
       }
-
-      const featureFlagsByChainId = swapsUtils.getSwapsFeatureFlagsByChainId(
-        featureFlags,
-        chainId,
-      );
 
       const isIphone = Device.isIos();
       const isAndroid = Device.isAndroid();
@@ -241,18 +240,16 @@ function swapsReducer(state = initialState, action) {
       const liveness =
         // @ts-expect-error interface mismatch
         typeof featureFlagsByChainId === 'boolean'
-          ? featureFlagsByChainId
-          : featureFlagsByChainId?.[featureFlagKey] ?? false;
+          ? featureFlags
+          : featureFlags?.[featureFlagKey] ?? false;
 
       return {
         ...state,
         [chainId]: {
           ...data,
+          ...featureFlags,
           isLive: liveness,
         },
-        // TODO - uncomment when not in dev
-        // smartTransactions: true,
-        smartTransactions: featureFlags?.smartTransactions[featureFlagKey],
       };
     }
     case SWAPS_SET_HAS_ONBOARDED: {
