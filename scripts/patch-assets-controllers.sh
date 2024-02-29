@@ -20,7 +20,7 @@ PACKAGE="@metamask/assets-controllers"
 PACKAGE_DIR_MOBILE="node_modules/$PACKAGE"
 DIST_DIR_MOBILE="$PACKAGE_DIR_MOBILE/dist"
 PATCH_FILE="patches/@metamask+assets-controllers+*.patch"
-COMMENT_LINE_COUNT=13
+COMMENT_LINE_COUNT=14
 
 COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-assets-controllers-v10\
 +This patch backports various assets controllers features from the main branch of MetaMask/core\

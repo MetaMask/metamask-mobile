@@ -3,7 +3,7 @@ new file mode 100644
 index 0000000..550de56
 --- /dev/null
 +++ b/node_modules/@metamask/assets-controllers/dist/.patch.txt
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,14 @@
 +PATCH GENERATED FROM MetaMask/core branch: patch/mobile-assets-controllers-v10
 +This patch backports various assets controllers features from the main branch of MetaMask/core
 +Steps to update patch:
@@ -19,7 +19,7 @@ index 0000000..550de56
 +* Run "yarn patch:assets <core-directory>" in the mobile repo
 +* If you have changes also add them to the branch: patch/mobile-assets-controllers-v10
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
-index ad327da..6c6077c 100644
+index ad327da..87f41a4 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
 @@ -1,6 +1,7 @@
@@ -44,7 +44,7 @@ index ad327da..6c6077c 100644
      private getIdentities;
      private getSelectedAddress;
      private getMultiAccountBalancesEnabled;
-+    private getCurrentChainId;
++    getCurrentChainId: () => NetworkState['providerConfig']['chainId'];
      /**
       * Creates an AccountTracker instance.
       *
