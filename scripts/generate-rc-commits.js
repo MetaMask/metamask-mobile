@@ -54,7 +54,7 @@ const authorTeams = {
     'Vinicius Stevam',
     'Derek Brans',
   ],
-  'Design Systems': ['georgewrmarshall', 'Garrett Bear', 'George Marshall'],
+  'Design Systems': ['georgewrmarshall', 'Garrett Bear', 'George Marshall', 'Brian August Nguyen'],
   Snaps: [
     'David Drazic',
     'hmalik88',
@@ -65,10 +65,11 @@ const authorTeams = {
     'Guillaume Roux',
     'Hassan Malik',
     'Maarten Zuidhoorn',
+    'Jonathan Ferreira',
   ],
   Assets: ['salimtb', 'sahar-fehri', 'Brian Bergeron'],
   Linea: ['VGau'],
-  lavamoat: ['weizman', 'legobeat', 'kumavis',  'leotm'],
+  Lavamoat: ['weizman', 'legobeat', 'kumavis',  'LeoTM'],
   'Shared Libraries': ['Michele Esposito', 'Elliot Winkler'],
   MMI: [
     'António Regadas',
@@ -88,12 +89,20 @@ const authorTeams = {
     'sethkfman',
     'jpcloureiro',
     'kylanhurt',
+    'SamuelSalas',
+    'Nico MASSART',
+    'Cal Leung',
+    'Curtis David',
+    'yande',
+    'Aslau Mario-Daniel',
   ],
   WalletUX: [
-    'frankvonhoven',
+    'Frank von Hoven',
   ],
   Swaps: ['Daniel', 'Davide Brocchetto'],
   Devex: ['Thomas Huang', 'Alex Donesky', 'jiexi', 'Zachary Belford'],
+  Security: ['witmicko'],
+  SDK: ['abretonc7s'],
 };
 
 // Function to get the team for a given author
@@ -137,10 +146,12 @@ async function filterCommitsByTeam(branchA, branchB) {
       const team = getTeamForAuthor(author);
 
       // Extract PR number from the commit message using regex
-      const prMatch = message.match(/\(#(\d{5})\)$/u);
+      const prMatch = message.match(/\(#(\d{4})\)$/u);
+      console.log('Match', prMatch)
       const prLink = prMatch
         ? `https://github.com/MetaMask/metamask-mobile/pull/${prMatch[1]}`
         : '';
+      console.log('Match', prLink)
 
       // Check if the commit message is unique
       if (!seenMessages.has(message)) {
@@ -171,20 +182,49 @@ async function filterCommitsByTeam(branchA, branchB) {
 function formatAsCSV(commitsByTeam) {
   const csvContent = [];
   for (const [team, commits] of Object.entries(commitsByTeam)) {
+  
     commits.forEach((commit) => {
       const row = [
-        commit.hash,
-        commit.message,
-        commit.author,
-        team,
-        commit.prLink,
+        escapeCSV(commit.hash),
+        assignChangeType(commit.message),
+        escapeCSV(commit.message),
+        escapeCSV(commit.author),
+        escapeCSV(team),
+        commit.prLink
       ];
       csvContent.push(row.join(','));
     });
   }
-  csvContent.unshift('Commit Hash,Commit Message,Author,Team,PR Link');
+  csvContent.unshift('Commit Hash,Change Type,Commit Message,Author,Team,PR Link');
 
   return csvContent;
+}
+
+// Helper function to escape CSV fields
+function escapeCSV(field) {
+  if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+    return `"${field.replace(/"/g, '""')}"`; // Encapsulate in double quotes and escape existing quotes
+  }
+  return field;
+}
+// Helper function to escape CSV fields
+function assignChangeType(field) {
+  if (field.includes('feat'))
+    return 'Added';
+  else if (field.includes('chore') || field.includes('test') || field.includes('ci')  || field.includes('docs'))
+    return 'Changed';
+  else if(field.includes('fix'))
+    return 'Fixed';
+  else 
+    return 'Unknown';
+}
+
+// Helper function to escape CSV fields
+function escapeCSV(field) {
+  if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+    return `"${field.replace(/"/g, '""')}"`; // Encapsulate in double quotes and escape existing quotes
+  }
+  return field;
 }
 
 async function main() {
