@@ -59,11 +59,6 @@ DIST_DIR_CORE="$CORE_DIR/packages/assets-controllers/dist"
 rm -rf "$DIST_DIR_MOBILE"
 cp -r  "$DIST_DIR_CORE" "$PACKAGE_DIR_MOBILE"
 
-rm -f "$DIST_DIR_MOBILE"/*.map
-rm -f "$DIST_DIR_MOBILE/Standards"/*.map
-rm -f "$DIST_DIR_MOBILE/Standards/NftStandards/ERC721"/*.map
-rm -f "$DIST_DIR_MOBILE/Standards/NftStandards/ERC1155"/*.map
-rm -f "$DIST_DIR_MOBILE/token-prices-service"/*.map
 rm -rf "$DIST_DIR_MOBILE/mocks"
 
 yarn patch-package "$PACKAGE"
