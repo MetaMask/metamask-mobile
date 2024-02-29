@@ -12,6 +12,12 @@ import WalletView from '../../pages/WalletView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import NetworksView from '../../pages/Settings/NetworksView';
 
+const testData = {
+  password: 'Autop@ss1',
+  invalidURL: 'not a valid url',
+  validURL: 'https://eth.llamarpc.com',
+};
+
 describe(Regression('Add custom default ETH Mainnet'), () => {
   beforeAll(async () => {
     await device.launchApp();
@@ -25,12 +31,12 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
 
   it('should not edit default network with invalid RPC', async () => {
     await MetaMetricsOptIn.tapEditDefaultNetworkHere();
-    await DefaultNetworkView.typeRpcURL('not a valid URL');
+    await DefaultNetworkView.typeRpcURL(testData.invalidURL);
     await Assertions.checkIfVisible(NetworksView.rpcWarningBanner);
   });
 
   it('should edit default ETH Mainnet with valid RPC', async () => {
-    await DefaultNetworkView.typeRpcURL('https://eth.llamarpc.com');
+    await DefaultNetworkView.typeRpcURL(testData.validURL);
     await DefaultNetworkView.tapUseThisNetworkButton();
     await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   });
@@ -40,8 +46,8 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
     await TermsOfUseModal.tapScrollEndButton();
     await TermsOfUseModal.tapAgreeCheckBox();
     await TermsOfUseModal.tapAcceptButton();
-    await CreatePasswordView.enterPassword('Autop@ss1');
-    await CreatePasswordView.reEnterPassword('Autop@ss1');
+    await CreatePasswordView.enterPassword(testData.password);
+    await CreatePasswordView.reEnterPassword(testData.password);
     await CreatePasswordView.tapIUnderstandCheckBox();
     await CreatePasswordView.tapCreatePasswordButton();
     await ProtectYourWalletView.tapOnRemindMeLaterButton();
