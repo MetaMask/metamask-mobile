@@ -130,6 +130,25 @@ async function main(): Promise<void> {
     commits = [...previousCommitBatch, ...commits];
   }
 
+  const latestCommit = commits[commits.length - 1];
+  const createCheckRunResponse = await octokit.rest.checks.create({
+    owner,
+    repo,
+    name: 'Example Check',
+    head_sha: latestCommit.sha,
+    status: 'completed',
+    conclusion: 'success',
+    output: {
+      title: 'Check Run',
+      summary: 'This is an example check run created via getOctokit.',
+    },
+  });
+  if (createCheckRunResponse.status !== 201) {
+    console.log("FAILED TO CREATE STATUS")
+  }
+  
+  return;
+
   // Relevant hashes include both merge from main commits and the last non-merge from main commit
   const relevantCommitHashes: string[] = [];
   for (const commit of commits.reverse()) {
