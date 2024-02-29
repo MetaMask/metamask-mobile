@@ -48,29 +48,11 @@ describe(SmokeConfirmations('Typed Sign V3'), () => {
   });
 
   it('should cancel typed V3 message', async () => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
-          .build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-      },
-      async () => {
-        await loginToApp();
-
-        await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-
-        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapTypedV3SignButton();
-          await SigningModal.isTypedRequestVisible();
-          await SigningModal.tapSignButton();
-          await SigningModal.isNotVisible();
-        });
-      },
-    );
+    await TestHelpers.retry(MAX_ATTEMPTS, async () => {
+      await TestDApp.tapTypedV3SignButton();
+      await SigningModal.isTypedRequestVisible();
+      await SigningModal.tapSignButton();
+      await SigningModal.isNotVisible();
+    });
   });
 });
