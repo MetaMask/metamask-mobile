@@ -186,8 +186,8 @@ const SmartTransactionStatus = ({
     header = strings('smart_transactions.status_success_header');
     description = undefined;
   } else if (status === 'cancelled') {
-    icon = IconName.WarningTriangle;
-    iconColor = IconColor.Warning;
+    icon = IconName.Danger;
+    iconColor = IconColor.Error;
     header = strings('smart_transactions.status_cancelled_header');
     description = strings('smart_transactions.status_cancelled_description');
   } else {
