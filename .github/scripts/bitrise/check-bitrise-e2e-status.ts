@@ -143,9 +143,9 @@ async function main(): Promise<void> {
       summary: 'This is an example check run created via getOctokit.',
     },
   });
-  if (createCheckRunResponse.status !== 201) {
-    console.log("FAILED TO CREATE STATUS")
-  }
+  console.log("FAILED TO CREATE STATUS", createCheckRunResponse)
+  // if (createCheckRunResponse.status !== 201) {
+  // }
   
   return;
 
