@@ -91,6 +91,10 @@ class EngineService {
         name: 'LoggingController',
         key: `${engine.context.LoggingController.name}:stateChange`,
       },
+      {
+        name: 'AccountsController',
+        key: `${engine.context.SnapController.name}:stateChange`,
+      },
     ];
 
     if (isBlockaidFeatureEnabled()) {
