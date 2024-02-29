@@ -481,7 +481,11 @@ class Engine {
         this.controllerMessenger.subscribe(
           `AccountsController:selectedAccountChange`,
           (newlySelectedInternalAccount) => {
-            listener({ selectedAddress: newlySelectedInternalAccount.address });
+            const prevState = preferencesController.state;
+            listener({
+              ...prevState,
+              selectedAddress: newlySelectedInternalAccount.address,
+            });
           },
         ),
       onNetworkStateChange: (listener) =>
@@ -1086,7 +1090,9 @@ class Engine {
           this.controllerMessenger.subscribe(
             `AccountsController:selectedAccountChange`,
             (newlySelectedInternalAccount) => {
+              const prevState = preferencesController.state;
               listener({
+                ...prevState,
                 selectedAddress: newlySelectedInternalAccount.address,
               });
             },
