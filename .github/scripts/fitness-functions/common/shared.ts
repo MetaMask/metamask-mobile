@@ -20,9 +20,6 @@ function filterDiffByFilePath(diff: string, regex: string): string {
         .forEach((path) => {
           if (new RegExp(regex, 'u').test(path)) {
             didAPathInBlockMatchRegEx = true;
-            console.log('INCLUDE', path, 'include');
-          } else {
-            console.log('EXCLUDE', path, 'exclude');
           }
         });
 
@@ -99,12 +96,6 @@ function hasNumberOfCodeBlocksIncreased(
     codeBlockFound[codeBlock] = false;
 
     for (const diffLine of diffLines) {
-      console.log(
-        'CODEBLOCK',
-        diffLine,
-        codeBlock,
-        diffLine.includes(codeBlock),
-      );
       if (diffLine.includes(codeBlock)) {
         codeBlockFound[codeBlock] = true;
         break;

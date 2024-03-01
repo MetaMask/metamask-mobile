@@ -1,16 +1,15 @@
-import { EXCLUDE_E2E_TESTS_REGEX } from '../common/constants';
+import { EXCLUDE_REGEX } from '../common/constants';
 import {
   filterDiffByFilePath,
   filterDiffFileCreations,
   hasNumberOfCodeBlocksIncreased,
 } from '../common/shared';
 
-// Define it as a template string to prevent original commit from being picked up
-const fromEnzyme = `from ${'enzyme'}`;
-const codeBlocks = [fromEnzyme];
+// Code blocks to detect
+const codeBlocks = [`from 'enzyme'`];
 
-function preventEnzymeImportSyntax(diff: string): boolean {
-  const diffByFilePath = filterDiffByFilePath(diff, EXCLUDE_E2E_TESTS_REGEX);
+function preventCodeBlocksRule(diff: string): boolean {
+  const diffByFilePath = filterDiffByFilePath(diff, EXCLUDE_REGEX);
   const diffAdditions = filterDiffFileCreations(diffByFilePath);
   const hashmap = hasNumberOfCodeBlocksIncreased(diffAdditions, codeBlocks);
 
@@ -22,4 +21,4 @@ function preventEnzymeImportSyntax(diff: string): boolean {
   return true;
 }
 
-export { preventEnzymeImportSyntax };
+export { preventCodeBlocksRule };

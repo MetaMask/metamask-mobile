@@ -1,10 +1,5 @@
-// include JS, TS, JSX, TSX files only excluding files in the e2e tests and
-// fitness functions directories
-const EXCLUDE_E2E_TESTS_REGEX =
-  '^(?!test/e2e)(?!development/fitness).*.(js|ts|jsx|tsx)$';
-
-// include JS and JSX files in the shared directory only
-const SHARED_FOLDER_JS_REGEX = '^(shared).*.(js|jsx)$';
+// Exclude checking for files in .github directory
+const EXCLUDE_REGEX = '^(?!.*/.github/).*$';
 
 enum AUTOMATION_TYPE {
   CI = 'ci',
@@ -12,4 +7,4 @@ enum AUTOMATION_TYPE {
   PRE_PUSH_HOOK = 'pre-push-hook',
 }
 
-export { EXCLUDE_E2E_TESTS_REGEX, SHARED_FOLDER_JS_REGEX, AUTOMATION_TYPE };
+export { EXCLUDE_REGEX, AUTOMATION_TYPE };
