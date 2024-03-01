@@ -235,7 +235,7 @@ export async function publishHook(request: Request) {
     throw error;
   } finally {
     try {
-      // This removes the loading spinner
+      // This removes the loading spinner, does not close modal
       approvalController.endFlow({
         id: smartTransactionStatusApprovalId,
       });
