@@ -34,10 +34,7 @@ function getValues(
       // However, we want to handle swipe down during in progress STX
       // Remove the loading spinner on swipe down
       Engine.context.ApprovalController.endFlow({ id: pendingApproval.id });
-
-      // // Need onCancel() to handle swipe down
-      // actions.onConfirm();
-      // Logger.log('STX SmartTransactionStatus onCancel');
+      Logger.log('STX SmartTransactionStatus onCancel');
     },
   };
 }
