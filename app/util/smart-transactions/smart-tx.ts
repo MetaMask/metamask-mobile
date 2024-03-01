@@ -156,8 +156,11 @@ export async function publishHook(request: Request) {
 
     Logger.log('STX - Received UUID', uuid);
 
-    // If it isn't a dapp tx, check if it's MM Swap or Send
-    const isDapp = transactionMeta?.origin !== TransactionTypes.MMM;
+    // If it isn't a dapp tx, check if it's MM Swaps or Send
+    // process.env.MM_FOX_CODE is from MM Swaps
+    const isDapp =
+      transactionMeta?.origin !== TransactionTypes.MMM &&
+      transactionMeta?.origin !== process.env.MM_FOX_CODE;
 
     const to = transactionMeta.transaction.to?.toLowerCase();
     const { data } = transactionMeta.transaction;
