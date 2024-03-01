@@ -4,9 +4,6 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-env:
-  WORKFLOW_NAME: 'check-package-resolutions-for-additions'
-
 jobs:
   check-package-resolutions-for-additions:
     runs-on: ubuntu-latest
