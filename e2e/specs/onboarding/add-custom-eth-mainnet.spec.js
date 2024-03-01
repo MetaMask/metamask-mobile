@@ -12,6 +12,7 @@ import WalletView from '../../pages/WalletView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import NetworksView from '../../pages/Settings/NetworksView';
 import Accounts from '../../../wdio/helpers/Accounts';
+import { DEFAULT_MAINNET_CUSTOM_NAME } from '../../../app/constants/network';
 
 const validAccount = Accounts.getValidAccount();
 
@@ -56,6 +57,6 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
     await EnableAutomaticSecurityChecksView.tapNoThanks();
-    await WalletView.isNetworkNameVisible('Ethereum Main Custom');
+    await WalletView.isNetworkNameVisible(DEFAULT_MAINNET_CUSTOM_NAME);
   });
 });
