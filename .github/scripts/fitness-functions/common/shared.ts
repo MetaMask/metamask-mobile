@@ -18,7 +18,7 @@ function filterDiffByFilePath(diff: string, regex: RegExp): string {
         // if at least one of the two paths matches the regex, filter the
         // corresponding diff block in
         .forEach((path) => {
-          if (regex.test(path)) {
+          if (!regex.test(path)) {
             didAPathInBlockMatchRegEx = true;
           }
         });
