@@ -11,9 +11,11 @@ import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModa
 import WalletView from '../../pages/WalletView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import NetworksView from '../../pages/Settings/NetworksView';
+import Accounts from '../../../wdio/helpers/Accounts';
+
+const validAccount = Accounts.getValidAccount();
 
 const testData = {
-  password: 'Autop@ss1',
   invalidURL: 'not a valid url',
   validURL: 'https://eth.llamarpc.com',
 };
@@ -46,8 +48,8 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
     await TermsOfUseModal.tapScrollEndButton();
     await TermsOfUseModal.tapAgreeCheckBox();
     await TermsOfUseModal.tapAcceptButton();
-    await CreatePasswordView.enterPassword(testData.password);
-    await CreatePasswordView.reEnterPassword(testData.password);
+    await CreatePasswordView.enterPassword(validAccount.password);
+    await CreatePasswordView.reEnterPassword(validAccount.password);
     await CreatePasswordView.tapIUnderstandCheckBox();
     await CreatePasswordView.tapCreatePasswordButton();
     await ProtectYourWalletView.tapOnRemindMeLaterButton();
