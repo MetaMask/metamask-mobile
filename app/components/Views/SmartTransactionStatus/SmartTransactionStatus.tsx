@@ -27,7 +27,6 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
-import TransactionTypes from '../../../core/TransactionTypes';
 
 interface Props {
   requestState: {
@@ -205,7 +204,7 @@ const SmartTransactionStatus = ({
   const returnTextDapp = strings('smart_transactions.return_to_dapp', {
     dappName: origin,
   });
-  const returnTextMM = 'Try again';
+  const returnTextMM = strings('smart_transactions.try_again');
 
   if (isStxPending && isStxPastEstimatedDeadline) {
     icon = IconName.Clock;
@@ -238,7 +237,10 @@ const SmartTransactionStatus = ({
       secondaryButtonText = returnTextDapp;
       onSecondaryButtonPress = closeStatusPage;
     } else {
-      primaryButtonText = 'Create new';
+      // TODO figure out how to determine swap or send
+      primaryButtonText = strings('smart_transactions.create_new', {
+        txType: '',
+      });
       onPrimaryButtonPress = closeStatusPage;
       secondaryButtonText = strings('smart_transactions.view_activity');
       onSecondaryButtonPress = viewActivity;
