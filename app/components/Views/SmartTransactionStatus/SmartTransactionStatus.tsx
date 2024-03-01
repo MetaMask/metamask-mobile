@@ -86,8 +86,15 @@ const SmartTransactionStatus = ({
       height: '82%',
       display: 'flex',
       justifyContent: 'center',
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+    },
+    content: {
+      display: 'flex',
+      justifyContent: 'center',
       alignItems: 'center',
       gap: 20,
+      flex: 1,
     },
     textWrapper: {
       display: 'flex',
@@ -111,6 +118,14 @@ const SmartTransactionStatus = ({
       position: 'absolute',
       top: 20,
       right: 20,
+    },
+    buttonWrapper: {
+      display: 'flex',
+      width: '100%',
+      gap: 10,
+    },
+    button: {
+      width: '100%',
     },
   });
 
@@ -283,32 +298,35 @@ const SmartTransactionStatus = ({
 
   return (
     <View style={styles.wrapper}>
-      <Icon name={icon} color={iconColor} size={IconSize.Xl} />
-
       <TouchableOpacity onPress={onConfirm} style={styles.close}>
         <Icon name={IconName.Close} />
       </TouchableOpacity>
 
-      <Text style={styles.header}>{header}</Text>
-      {isStxPending && <ProgressBar percentComplete={percentComplete} />}
+      <View style={styles.content}>
+        <Icon name={icon} color={iconColor} size={IconSize.Xl} />
 
-      <View style={styles.textWrapper}>
-        {description && <Text style={styles.desc}>{description}</Text>}
-        {txHash && (
-          <TouchableOpacity onPress={onViewTransaction}>
-            <Text style={styles.link}>
-              {strings('smart_transactions.view_transaction')}
-            </Text>
-          </TouchableOpacity>
-        )}
+        <Text style={styles.header}>{header}</Text>
+        {isStxPending && <ProgressBar percentComplete={percentComplete} />}
+
+        <View style={styles.textWrapper}>
+          {description && <Text style={styles.desc}>{description}</Text>}
+          {txHash && (
+            <TouchableOpacity onPress={onViewTransaction}>
+              <Text style={styles.link}>
+                {strings('smart_transactions.view_transaction')}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      <View>
+      <View style={styles.buttonWrapper}>
         {onPrimaryButtonPress && (
           <Button
             variant={ButtonVariants.Primary}
             label={primaryButtonText}
             onPress={onPrimaryButtonPress}
+            style={styles.button}
           >
             {primaryButtonText}
           </Button>
@@ -318,6 +336,7 @@ const SmartTransactionStatus = ({
             variant={ButtonVariants.Secondary}
             label={secondaryButtonText}
             onPress={onSecondaryButtonPress}
+            style={styles.button}
           >
             {secondaryButtonText}
           </Button>
