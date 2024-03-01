@@ -9,7 +9,6 @@ import {
   Linking,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { isSafeChainId, toHex } from '@metamask/controller-utils';
 import { typography } from '@metamask/design-tokens';
 import {
   fontStyles,
