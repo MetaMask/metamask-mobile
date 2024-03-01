@@ -22,6 +22,12 @@ import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import { useNavigation } from '@react-navigation/native';
 import { getSwapsFeatureFlags } from '../../../reducers/swaps';
 import Logger from '../../../util/Logger';
+import Button, {
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
+import Engine from '../../../core/Engine';
+import Routes from '../../../constants/navigation/Routes';
+import TransactionTypes from '../../../core/TransactionTypes';
 
 interface Props {
   requestState: {
@@ -29,6 +35,8 @@ interface Props {
     creationTime: number;
     isDapp: boolean;
   };
+  pendingApprovalId: string;
+  origin: string;
   onConfirm: () => void;
 }
 
@@ -48,6 +56,8 @@ export const showRemainingTimeInMinAndSec = (
 
 const SmartTransactionStatus = ({
   requestState: { smartTransaction, creationTime, isDapp },
+  pendingApprovalId,
+  origin,
   onConfirm,
 }: Props) => {
   const { status } = smartTransaction;
@@ -217,6 +227,26 @@ const SmartTransactionStatus = ({
   const percentComplete =
     (1 - timeLeftForPendingStxInSec / stxDeadlineSec) * 100;
 
+  // Primary button
+  const onPrimaryButtonPress = () => {
+    onConfirm();
+    Engine.context.ApprovalController.endFlow({ id: pendingApprovalId });
+    navigation.navigate(Routes.TRANSACTIONS_VIEW);
+  };
+  const primaryButtonText = strings('smart_transactions.view_activity');
+
+  // Secondary button
+  const onSecondaryButtonPress = () => {
+    onConfirm();
+    Engine.context.ApprovalController.endFlow({ id: pendingApprovalId });
+  };
+  const secondaryButtonText =
+    origin === TransactionTypes.MMM
+      ? strings('smart_transactions.return')
+      : strings('smart_transactions.return_to_dapp', {
+          dappName: origin,
+        });
+
   return (
     <View style={styles.wrapper}>
       <Icon name={icon} color={iconColor} size={IconSize.Xl} />
@@ -237,6 +267,23 @@ const SmartTransactionStatus = ({
             </Text>
           </TouchableOpacity>
         )}
+      </View>
+
+      <View>
+        <Button
+          variant={ButtonVariants.Primary}
+          label={primaryButtonText}
+          onPress={onPrimaryButtonPress}
+        >
+          {primaryButtonText}
+        </Button>
+        <Button
+          variant={ButtonVariants.Secondary}
+          label={secondaryButtonText}
+          onPress={onSecondaryButtonPress}
+        >
+          {secondaryButtonText}
+        </Button>
       </View>
     </View>
   );
