@@ -1,5 +1,5 @@
 // Exclude checking for files in .github directory
-const EXCLUDE_REGEX = '^(?!.*/.github/).*$';
+const EXCLUDE_REGEX = '^(?!.*\/\.github\/).*$';
 
 enum AUTOMATION_TYPE {
   CI = 'ci',
