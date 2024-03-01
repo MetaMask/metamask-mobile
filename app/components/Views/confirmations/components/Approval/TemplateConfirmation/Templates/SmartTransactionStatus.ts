@@ -10,6 +10,7 @@ function getValues(
   strings: (key: string, params?: Record<string, string>) => string,
   actions: Actions,
 ): ConfirmationTemplateValues {
+  Logger.log('STX SmartTransactionStatus pendingApproval', pendingApproval);
   return {
     content: [
       {
@@ -25,13 +26,18 @@ function getValues(
         },
       },
     ],
+    onConfirm: () => {
+      Logger.log('STX SmartTransactionStatus onConfirm DUMMY');
+    },
     onCancel: () => {
-      // Need onCancel() to handle swipe down
-      actions.onConfirm();
-
+      // Cannot do onConfirm(), it will dismiss the status modal after tx complete, we want to keep it up after success
+      // However, we want to handle swipe down during in progress STX
       // Remove the loading spinner on swipe down
       Engine.context.ApprovalController.endFlow({ id: pendingApproval.id });
-      Logger.log('STX SmartTransactionStatus onCancel');
+
+      // // Need onCancel() to handle swipe down
+      // actions.onConfirm();
+      // Logger.log('STX SmartTransactionStatus onCancel');
     },
   };
 }
