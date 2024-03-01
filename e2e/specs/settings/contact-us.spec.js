@@ -1,5 +1,5 @@
 'use strict';
-import { RegressionCore } from '../../tags';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
