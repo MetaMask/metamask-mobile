@@ -1,0 +1,48 @@
+name: Check Package Resolutions for Additions
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  WORKFLOW_NAME: 'check-package-resolutions-for-additions'
+
+jobs:
+  check-package-resolutions-for-additions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+     - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Check for resolutions additions
+        run: |
+          # Fetch the base branch (e.g., main) package.json and rename it to package-base.json
+          git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
+          git checkout ${{ github.base_ref }} -- package.json
+          mv package.json package-base.json
+
+          # Checkout back to the PR branch
+          git checkout -- package.json
+
+          # Use jq to compare resolutions field in base and PR branch package.json files
+          # Count resolutions in base and PR branch package.json
+          BASE_COUNT=$(jq '.resolutions | length' package-base.json)
+          PR_COUNT=$(jq '.resolutions | length' package.json)
+
+          # If the PR branch has more resolutions, fail the check
+          if [ "$PR_COUNT" -gt "$BASE_COUNT" ]; then
+            echo "Adding new resolutions to package.json is not allowed."
+            exit 1
+          fi
