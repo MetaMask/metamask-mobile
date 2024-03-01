@@ -8,7 +8,7 @@
     "failed_title": "Baka hindi ligtas ang kahilingan",
     "failed_description": "Dahil sa pagkakamali, ang kahilingang ito ay hindi na-verify ng tagapaglaan ng seguridad. Magpatuloy nang may pag-iingat.",
     "loading_title": "Sinusuri ang mga alertong pangseguridad...",
-    "loading_complete_title": "Walang alertong natanggap",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "Nakikipag-ugnayan ka sa isang mapaminsalang domain. Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "other_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
     "raw_signature_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
@@ -377,10 +377,13 @@
     "nfts_autodetection_title": "Pagtuklas ng NFT",
     "nfts_autodetection_desc": "Payagan ang MetaMask na awtomatikong matuklasan ang mga NFT mula sa OpenSea at ipakita sa iyong wallet sa MetaMask.",
     "network_details_check": "Pagsusuri ng detalye ng network",
-    "network_with_chain_id": "The network with chain ID",
-    "use_the_currency_symbol": "uses the currency symbol",
-    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
-    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_with_chain_id": "Ang network na may ID ng chain",
+    "potential_scam": "Isa itong potensyal na scam",
+    "network_not_matching": "Ang network na ito ay hindi tugma sa kaugnay nitong ID ng chain o pangalan. Maraming popular na token ay ginagamit ang pangalan",
+    "target_scam_network": "kaya ito ay isang target para sa mga scam. Maaari kang lokohin ng mga scammer na magpadala ka ng mas mahalagang salapi bilang kapalit. Beripikahin ang lahat bago magpatuloy.",
+    "use_the_currency_symbol": "ginagamit ang simbolo ng salapi",
+    "use_correct_symbol": "Tiyakin na ginagamit mo ang tamang simbolo bago magpatuloy",
+    "chain_id_currently_used": "Ang ID ng Chain na ito ay kasalukuyang ginagamit ng",
     "network_check_validation_desc": "binabawasan ang iyong tiyansa na kumonekta sa isang malicious o maling network.",
     "nfts_autodetection_cta": "I-on ang pagtuklas ng NFT sa Mga Setting",
     "learn_more": "Matuto pa",
@@ -888,17 +891,38 @@
     "network_provider": "Network provider",
     "token_nft_ens_subheading": "Awtomatikong pagtuklas ng token, NFT at ENS",
     "security_check_subheading": "Pagsusuring panseguridad",
-    "symbol_required": "Symbol is required."
+    "symbol_required": "Kailangan ang simbolo.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Pagpapanatili ng pagkapribado - walang datos na ibinahagi sa mga third party. Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism at Polygon.",
+    "security_alerts": "Mga alerto sa seguridad",
+    "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider."
   },
   "sdk": {
     "disconnect_title": "Idiskonekta ang lahat ng site?",
     "disconnect_all_info": "Kung aalisin mo ang iyong mga koneksyon sa lahat ng site, kakailanganin mong magbigay ng pahintulot na kumonekta muli.",
     "disconnect": "Idiskonekta",
     "disconnect_all": "Idiskonekta ang lahat",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
+    "manage": "Manage",
     "cancel": "Kanselahin",
     "loading": "Kumokonekta sa MetaMask...",
     "unkown_dapp": "Hindi available ang pangalan ng DAPP",
-    "no_connections": "Walang nakitang koneksyon"
+    "no_connections": "No connections",
+    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} account(s) connected."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Disconnect from all sites?",
+    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
+    "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_confirm": "Disconnect",
+    "cancel": "Cancel"
   },
   "sdk_return_to_app_modal": {
     "title": "Bumalik sa app",
@@ -1463,7 +1487,7 @@
     "add": "Idagdag",
     "cancel": "Kanselahin",
     "approve": "Aprubahan",
-    "edit_network_details": "Edit network details",
+    "edit_network_details": "I-edit ang mga detalye ng network",
     "malicious_network_warning": "Ang isang mapaminsalang network provider ay maaaring magsinungaling tungkol sa estado ng blockchain at itala ang iyong aktibidad sa network. Magdagdag lang ng mga custom na network na pinagkakatiwalaan mo.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Impormasyon ng Network",
@@ -1483,7 +1507,9 @@
     "add_network": "magdagdag pa ng mga network nang manu-mano.",
     "select_network": "Pumili ng network",
     "show_test_networks": "Ipakita ang mga test network",
-    "deprecated_goerli": "Dahil sa mga pagbabago sa protocol ng Ethereum: Ang Goerli test network ay maaaring hindi gumana tulad ng inaasahan at malapit nang ihinto ang paggamit."
+    "deprecated_goerli": "Dahil sa mga pagbabago sa protocol ng Ethereum: Ang Goerli test network ay maaaring hindi gumana tulad ng inaasahan at malapit nang ihinto ang paggamit.",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
   },
   "select": {
     "cancel": "Kanselahin",
@@ -1841,11 +1867,7 @@
     "wallet_connect_dapps_desc": "Tingnan ang listahan ng mga aktibong session ng WalletConnect",
     "wallet_connect_dapps_cta": "Tingnan ang mga sesyon",
     "network_not_supported": "Hindi sinusuportahan ang kasalukuyang network",
-    "security_alerts": "Mga alerto sa seguridad",
-    "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
     "select_provider": "Piliin ang iyong mas gustong provider",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Pagpapanatili ng pagkapribado - walang datos na ibinhagi sa mga third party. Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism at Polygon.",
     "switch_network": "Mangyaring lumipat sa mainnet o sepolia"
   },
   "walletconnect_sessions": {
@@ -2038,7 +2060,7 @@
     "get_new_quotes": "Kumuha ng mga bagong quote",
     "quotes_timeout": "Natapos na ang quote",
     "request_new_quotes": "Mangyaring humiling ng mga bagong quote para makuha ng pinakabagong pinakamahusay na rate.",
-    "terms_of_service": "Terms of Service",
+    "terms_of_service": "Mga Tuntunin ng Serbisyo",
     "amount_to_buy": "Halagang bibilhin",
     "amount_to_sell": "Halagang ibebenta",
     "want_to_buy": "Gusto mong bilhin",

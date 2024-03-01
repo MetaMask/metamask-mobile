@@ -1,6 +1,5 @@
 import AppConstants from '../../core/AppConstants';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import { trackEventV2 as trackEvent } from '../analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
 import { TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
@@ -12,11 +11,11 @@ import AsyncStorage from '../../store/async-storage-wrapper';
 
 const onConfirmUseTerms = async () => {
   await AsyncStorage.setItem(USE_TERMS, TRUE);
-  trackEvent(MetaMetricsEvents.USER_TERMS_ACCEPTED, {});
+  MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.USER_TERMS_ACCEPTED);
 };
 
 const useTermsDisplayed = () => {
-  trackEvent(MetaMetricsEvents.USER_TERMS_SHOWN, {});
+  MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.USER_TERMS_SHOWN);
 };
 
 export default async function navigateTermsOfUse(

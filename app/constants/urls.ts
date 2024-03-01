@@ -16,6 +16,9 @@ export const TOKEN_APPROVAL_SPENDING_CAP = `https://support.metamask.io/hc/en-us
 export const CONNECTING_TO_A_DECEPTIVE_SITE =
   'https://support.metamask.io/hc/en-us/articles/4428045875483--Deceptive-site-ahead-when-trying-to-connect-to-a-site';
 
+export const CONNECTING_TO_DEPRECATED_NETWORK =
+  'https://support.metamask.io/hc/en-us/articles/360059213492-ETH-on-Sepolia-and-Goerli-networks-testnets';
+
 // Policies
 export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
 
@@ -75,9 +78,6 @@ export const LINEA_FAUCET = 'https://www.infura.io/faucet/linea';
 // Add custom network
 export const ADD_CUSTOM_NETWORK_ARTCILE =
   'https://support.metamask.io/hc/en-us/articles/360057142392-Verifying-custom-network-information';
-
-export const GOERLI_DEPRECATED_ARTICLE =
-  'https://github.com/eth-clients/goerli#goerli-goerlitzer-testnet';
 
 export const LEDGER_SUPPORT_LINK =
   'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true';

@@ -4,7 +4,7 @@ import WalletView from '../../pages/WalletView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 
-const GORELI = 'Goerli Test Network';
+const SEPOLIA = 'Sepolia Test Network';
 const ETHEREUM = 'Ethereum Main Network';
 
 describe(RegressionCore('Connect to a Test Network'), () => {
@@ -23,13 +23,13 @@ describe(RegressionCore('Connect to a Test Network'), () => {
     await NetworkListModal.isVisible();
     await NetworkListModal.tapTestNetworkSwitch();
     await NetworkListModal.isTestNetworkToggleOn();
-    await NetworkListModal.changeNetwork(GORELI);
+    await NetworkListModal.changeNetwork(SEPOLIA);
     await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.isNetworkNameCorrect(GORELI);
+    await NetworkEducationModal.isNetworkNameCorrect(SEPOLIA);
     await NetworkEducationModal.tapGotItButton();
     await NetworkEducationModal.isNotVisible();
     await WalletView.isVisible();
-    await WalletView.isConnectedNetwork(GORELI);
+    await WalletView.isConnectedNetwork(SEPOLIA);
   });
 
   it('should not toggle off the Test Network switch while connected to test network', async () => {
@@ -54,6 +54,6 @@ describe(RegressionCore('Connect to a Test Network'), () => {
     await NetworkListModal.isVisible();
     await NetworkListModal.tapTestNetworkSwitch();
     await NetworkListModal.isTestNetworkToggleOff();
-    await NetworkListModal.isTestNetworkDisplayed(GORELI);
+    await NetworkListModal.isTestNetworkDisplayed(SEPOLIA);
   });
 });
