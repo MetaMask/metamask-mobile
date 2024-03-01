@@ -109,7 +109,6 @@
   "resolutions": {
     "**/json-schema": "^0.4.0",
     "react-native-svg/**/nth-check": "^2.0.1",
-    "**/ansi-regex": "^5.0.1",
     "**/node-fetch": "^2.6.7",
     "**/lodash": "^4.17.21",
     "**/y18n": "^3.2.2",
