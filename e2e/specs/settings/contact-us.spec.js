@@ -1,5 +1,5 @@
 'use strict';
-import { RegressionCore } from '../../tags';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -16,7 +16,7 @@ import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
-describe(RegressionCore('Settings'), () => {
+describe(Regression('Settings'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
