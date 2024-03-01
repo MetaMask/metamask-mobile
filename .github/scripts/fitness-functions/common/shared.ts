@@ -1,4 +1,4 @@
-function filterDiffByFilePath(diff: string, regex: string): string {
+function filterDiffByFilePath(diff: string, regex: RegExp): string {
   // split by `diff --git` and remove the first element which is empty
   const diffBlocks = diff.split(`diff --git`).slice(1);
 
@@ -18,11 +18,8 @@ function filterDiffByFilePath(diff: string, regex: string): string {
         // if at least one of the two paths matches the regex, filter the
         // corresponding diff block in
         .forEach((path) => {
-          if (new RegExp(regex, 'u').test(path)) {
+          if (regex.test(path)) {
             didAPathInBlockMatchRegEx = true;
-            console.log('INCLUDE', path);
-          } else {
-            console.log('EXCLUDE', path);
           }
         });
 
