@@ -16,7 +16,7 @@ import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
-describe(RegressionCore('Settings'), () => {
+describe(Regression('Settings'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
