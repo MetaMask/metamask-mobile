@@ -3795,7 +3795,7 @@
     "@metamask/scure-bip39" "^2.0.3"
     ethereum-cryptography "^1.1.2"
 
-"@metamask/eth-json-rpc-infura@^8.0.0", "@metamask/eth-json-rpc-infura@^8.1.0":
+"@metamask/eth-json-rpc-infura@^8.0.0", "@metamask/eth-json-rpc-infura@^8.1.0", "@metamask/eth-json-rpc-infura@^8.1.1":
   version "8.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-infura/-/eth-json-rpc-infura-8.1.1.tgz#e877284634fb0727b347575115c74dc9ddd4400c"
   integrity sha512-Ey05VRIMqvF845+pbJeptPm4RrzwHSfmT3QiJfQGWLG4yKdkhvlgOJ7xxYxqbdvPIywA5qCLI7Kszk0gAbWiKA==
@@ -4060,7 +4060,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/network-controller@^10.0.0", "@metamask/network-controller@^10.2.0":
+"@metamask/network-controller@^10.2.0":
   version "10.3.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-10.3.1.tgz#ca0e9134b2600bd834c5193ce0f06e973ec3b152"
   integrity sha512-ohx9DnVI0a07yrYqxtMD460oBlXqsy+fcORRI5foiTLk3LudM4fdjLUG8u5JvYHUeEoIl8bkMZuwWxOFrqHB2g==
@@ -4074,6 +4074,26 @@
     "@metamask/utils" "^5.0.2"
     async-mutex "^0.2.6"
     babel-runtime "^6.26.0"
+    eth-block-tracker "^7.0.1"
+    eth-query "^2.1.2"
+    eth-rpc-errors "^4.0.2"
+    immer "^9.0.6"
+    json-rpc-engine "^6.1.0"
+    uuid "^8.3.2"
+
+"@metamask/network-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-11.0.0.tgz#c128e3aae9e3c1c721aa52ad85cb42e003e847c3"
+  integrity sha512-wgxZo7BVpJrS3WOZwqQBNisoLGrUYMBIZ5IIWUTMkTfzvLJ9LtDHQFriEP/fHpubj6Nfsr6aKs4fCCs8nsVFPQ==
+  dependencies:
+    "@metamask/base-controller" "^3.2.0"
+    "@metamask/controller-utils" "^4.3.0"
+    "@metamask/eth-json-rpc-infura" "^8.1.1"
+    "@metamask/eth-json-rpc-middleware" "^11.0.0"
+    "@metamask/eth-json-rpc-provider" "^1.0.0"
+    "@metamask/swappable-obj-proxy" "^2.1.0"
+    "@metamask/utils" "^6.2.0"
+    async-mutex "^0.2.6"
     eth-block-tracker "^7.0.1"
     eth-query "^2.1.2"
     eth-rpc-errors "^4.0.2"
