@@ -78,6 +78,9 @@ enum EVENT_NAME {
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
   NETWORK_SELECTOR = 'Network Menu Opened',
 
+  // Provider
+  INPAGE_PROVIDER = 'Inpage Provider',
+
   // Send transaction
   SEND_TRANSACTION_STARTED = 'Send Transaction Started',
   SEND_TRANSACTION_COMPLETED = 'Send Transaction Completed',
@@ -396,6 +399,8 @@ enum ACTIONS {
   ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP = 'eth_sign_input_seen',
   ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
   ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
+  // Provider
+  PROVIDER_METHOD_CALLED = 'Provider Method Called',
 }
 
 const events = {
@@ -781,6 +786,9 @@ const events = {
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
   NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
+
+  // Provider
+  PROVIDER_METHOD_CALLED: generateOpt(EVENT_NAME.INPAGE_PROVIDER, ACTIONS.PROVIDER_METHOD_CALLED),
 
   // Edit account name
   ACCOUNT_RENAMED: generateOpt(EVENT_NAME.ACCOUNT_RENAMED),
