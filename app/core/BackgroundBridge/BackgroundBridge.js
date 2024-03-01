@@ -4,10 +4,8 @@ import { ChainId } from '@metamask/controller-utils';
 import { JsonRpcEngine } from 'json-rpc-engine';
 import MobilePortStream from '../MobilePortStream';
 import { setupMultiplex } from '../../util/streams';
-import {
-  createOriginMiddleware,
-  createLoggerMiddleware,
-} from '../../util/middlewares';
+import createLoggerMiddleware from '../../util/middlewares/logger';
+import createOriginMiddleware from '../../util/middlewares/origin';
 import Engine from '../Engine';
 import { createSanitizationMiddleware } from '../SanitizationMiddleware';
 import { getAllNetworks } from '../../util/networks';
