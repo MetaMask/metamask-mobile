@@ -1,6 +1,21 @@
 import { captureException } from '@sentry/react-native';
-import { isObject, hasProperty } from '@metamask/utils';
-import { NetworkState } from '@metamask/network-controller';
+import { isObject, hasProperty, Hex } from '@metamask/utils';
+import type {
+  NetworkState,
+  NetworkConfigurations,
+} from '@metamask/network-controller';
+
+function findKeyByChainId(
+  networkConfigurations: NetworkConfigurations,
+  chainId: Hex,
+): string {
+  for (const key in networkConfigurations) {
+    if (networkConfigurations[key].chainId === chainId) {
+      return key;
+    }
+  }
+  throw new Error(`Key with chainId ${chainId} not found.`);
+}
 
 /**
  * Enable security alerts by default.
@@ -74,18 +89,51 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
+  /*
+* Trying to understand if we need to pre populate the new property `networksMetadata`
+* it seems that countains networkStatus
+* that property needs to be used on the getEIP1559Compatibility function and on the backgroundBridge file
 
+State example:
+{"networkConfigurations": 
+{"1409fc9f-47a6-4b96-bbc4-7031e7f1af6e": {"chainId": "0xa86a", "id": "1409fc9f-47a6-4b96-bbc4-7031e7f1af6e", "nickname": "Avalanche Mainnet C-Chain", "rpcPrefs": [Object], "rpcUrl": "https://api.avax.network/ext/bc/C/rpc", "ticker": "AVAX"}}, "networkDetails": {"EIPS": {"1559": true}},
+ "networkId": null,
+  "networkStatus": "available",
+   "networksMetadata": 
+   {"1409fc9f-47a6-4b96-bbc4-7031e7f1af6e": {"EIPS": [Object], "status": "available"}, 
+   "linea-mainnet": {"EIPS": [Object], "status": "available"}, 
+   "mainnet": {"EIPS": [Object], "status": "available"}}, 
+   "providerConfig": {"chainId": "0xa86a", "id": "1409fc9f-47a6-4b96-bbc4-7031e7f1af6e", "nickname": "Avalanche Mainnet C-Chain", "rpcPrefs": {"blockExplorerUrl": "https://snowtrace.io"}, "rpcUrl": "https://api.avax.network/ext/bc/C/rpc", "ticker": "AVAX", "type": "rpc"}, "selectedNetworkClientId": "1409fc9f-47a6-4b96-bbc4-7031e7f1af6e"}
+
+
+*/
   if (networkControllerState.networkDetails) {
-    newNetworkControllerState.networksMetadata = {};
     delete networkControllerState.networkDetails;
   }
   if (networkControllerState.networkStatus) {
     delete networkControllerState.networkStatus;
   }
 
+  if (
+    !hasProperty(networkControllerState, 'networkConfigurations') ||
+    !isObject(networkControllerState.networkConfigurations)
+  ) {
+    captureException(
+      new Error(
+        `Migration 32: Invalid NetworkController networkConfigurations: '${typeof networkControllerState.networkConfigurations}'`,
+      ),
+    );
+    return state;
+  }
+
   if (networkControllerState.providerConfig.type) {
     newNetworkControllerState.selectedNetworkClientId =
-      newNetworkControllerState.providerConfig.type;
+      newNetworkControllerState.providerConfig.type === 'rpc'
+        ? findKeyByChainId(
+            networkControllerState.networkConfigurations as NetworkConfigurations,
+            networkControllerState.providerConfig.chainId as Hex,
+          )
+        : newNetworkControllerState.providerConfig.type;
   }
 
   return state;

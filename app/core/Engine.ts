@@ -48,7 +48,6 @@ import {
   NetworkControllerActions,
   NetworkControllerEvents,
   NetworkState,
-  NetworkStatus,
 } from '@metamask/network-controller';
 import {
   PhishingController,
@@ -114,7 +113,7 @@ import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
 } from '@metamask/snaps-rpc-methods';
-import { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
+import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 // eslint-disable-next-line import/no-nodejs-modules
 import { Duplex } from 'stream';
 ///: END:ONLY_INCLUDE_IF
@@ -186,7 +185,6 @@ import { UpdatePPOMInitializationStatus } from '../actions/experimental';
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor();
-let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO remove these custom types when the PhishingController is to version >= 7.0.0
@@ -538,8 +536,17 @@ class Engine {
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
           listener,
         ),
-      getCurrentNetworkEIP1559Compatibility: async () =>
-        await networkController.getEIP1559Compatibility(),
+      getCurrentNetworkEIP1559Compatibility: async () => {
+        const getEIP1559Compatibility =
+          await networkController.getEIP1559Compatibility(
+            networkController.state.selectedNetworkClientId,
+          );
+        // It returns undefined if the last block is not available
+        if (getEIP1559Compatibility === undefined) {
+          return false;
+        }
+        return getEIP1559Compatibility;
+      },
       getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
@@ -946,6 +953,7 @@ class Engine {
           tokensController.updateTokensName(tokenList),
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
+        //@ts-expect-error This will be fixed on the next assets-controllers update to v11
         getNetworkState: () => networkController.state,
         getPreferencesState: () => preferencesController.state,
         getBalancesInSingleCall:
@@ -1003,6 +1011,7 @@ class Engine {
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        //@ts-expect-error This will be fixed on the next transaction-controller update to v8
         getNetworkState: () => networkController.state,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
@@ -1210,6 +1219,7 @@ class Engine {
       NotificationManager.gotIncomingTransaction(blockNumber);
     });
 
+    /* This doens't seem needed anymore, need to test the detects on `configureControllersOnNetworkChange`
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       (state: NetworkState) => {
@@ -1224,7 +1234,7 @@ class Engine {
           }, 500);
         }
       },
-    );
+    ); */
 
     this.configureControllersOnNetworkChange();
     this.startPolling();

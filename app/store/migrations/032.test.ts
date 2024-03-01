@@ -7,11 +7,11 @@ const expectedState = {
   engine: {
     backgroundState: {
       NetworkController: {
-        networksMetadata: {},
+        networkConfigurations: {},
         providerConfig: {
           type: 'mainnet',
           chainId: '0x1',
-          rpcTarget: 'https://api.avax.network/ext/bc/C/rpc',
+          rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
           ticker: 'ETH',
         },
         selectedNetworkClientId: 'mainnet',
@@ -96,7 +96,7 @@ describe('Migration #32', () => {
             providerConfig: {
               type: 'mainnet',
               chainId: '0x1',
-              rpcTarget: 'https://api.avax.network/ext/bc/C/rpc',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
               ticker: 'AVAX',
             },
           },
@@ -113,11 +113,12 @@ describe('Migration #32', () => {
       engine: {
         backgroundState: {
           NetworkController: {
+            networkConfigurations: {},
             networkDetails: {},
             providerConfig: {
               type: 'mainnet',
               chainId: '0x1',
-              rpcTarget: 'https://api.avax.network/ext/bc/C/rpc',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
             },
           },
         },
@@ -125,5 +126,58 @@ describe('Migration #32', () => {
     };
     const migratedState = migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
+  });
+  it('should add selectedNetworkClientId property as unique id if type on provider config is rpc', () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {
+              '1409fc9f-47a6-4b96-bbc4-7031e7f1af6e': {
+                chainId: '0x89',
+                nickname: 'Polygon Mainnet',
+                rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
+                rpcUrl:
+                  'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+                ticker: 'MATIC',
+              },
+            },
+            networkDetails: {},
+            providerConfig: {
+              type: 'rpc',
+              chainId: '0x89',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+              ticker: 'MATIC',
+            },
+          },
+        },
+      },
+    };
+    const migratedState = migrate(oldState);
+    expect(migratedState).toStrictEqual({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {
+              '1409fc9f-47a6-4b96-bbc4-7031e7f1af6e': {
+                chainId: '0x89',
+                nickname: 'Polygon Mainnet',
+                rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
+                rpcUrl:
+                  'https://polygon-mainnet.infura.io/v3/cda392a134014865ad3c273dc7ddfff3',
+                ticker: 'MATIC',
+              },
+            },
+            providerConfig: {
+              type: 'rpc',
+              chainId: '0x89',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+              ticker: 'MATIC',
+            },
+            selectedNetworkClientId: '1409fc9f-47a6-4b96-bbc4-7031e7f1af6e',
+          },
+        },
+      },
+    });
   });
 });
