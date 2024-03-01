@@ -33,6 +33,7 @@ interface Props {
     smartTransaction: SmartTransaction;
     creationTime: number;
     isDapp: boolean;
+    isMetamaskSwap: boolean;
   };
   pendingApprovalId: string;
   origin: string;
@@ -54,7 +55,7 @@ export const showRemainingTimeInMinAndSec = (
 };
 
 const SmartTransactionStatus = ({
-  requestState: { smartTransaction, creationTime, isDapp },
+  requestState: { smartTransaction, creationTime, isDapp, isMetamaskSwap },
   pendingApprovalId,
   origin,
   onConfirm,
@@ -252,9 +253,10 @@ const SmartTransactionStatus = ({
       secondaryButtonText = returnTextDapp;
       onSecondaryButtonPress = closeStatusPage;
     } else {
-      // TODO figure out how to determine swap or send
       primaryButtonText = strings('smart_transactions.create_new', {
-        txType: '',
+        txType: isMetamaskSwap
+          ? strings('smart_transactions.swap')
+          : strings('smart_transactions.send'),
       });
       onPrimaryButtonPress = closeStatusPage;
       secondaryButtonText = strings('smart_transactions.view_activity');

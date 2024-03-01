@@ -1426,7 +1426,9 @@
     "view_activity": "View activity",
     "return_to_dapp": "Return to {{dappName}}",
     "try_again": "Try again",
-    "create_new": "Create new {{txType}}"
+    "create_new": "Create new {{txType}}",
+    "swap": "swap",
+    "send": "send"
   },
   "address_book": {
     "recents": "Recents",

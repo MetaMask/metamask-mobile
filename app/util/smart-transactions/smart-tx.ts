@@ -8,6 +8,8 @@ import { TransactionController } from '@metamask/transaction-controller';
 import Logger from '../Logger';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
+import TransactionTypes from '../../core/TransactionTypes';
+import { isSwapTransaction } from '../transactions';
 
 // TODO import these from tx controller
 export declare type Hex = `0x${string}`;
@@ -154,6 +156,18 @@ export async function publishHook(request: Request) {
 
     Logger.log('STX - Received UUID', uuid);
 
+    // If it isn't a dapp tx, check if it's MM Swap or Send
+    const isDapp = transactionMeta?.origin !== TransactionTypes.MMM;
+
+    const to = transactionMeta.transaction.to?.toLowerCase();
+    const { data } = transactionMeta.transaction;
+    const isMetamaskSwap = isSwapTransaction(
+      data,
+      transactionMeta.origin,
+      to,
+      chainId,
+    );
+
     approvalController.addAndShowApprovalRequest({
       id: smartTransactionStatusApprovalId,
       origin,
@@ -164,6 +178,8 @@ export async function publishHook(request: Request) {
           status: 'pending',
         },
         creationTime: Date.now(),
+        isDapp,
+        isMetamaskSwap,
       },
     });
     Logger.log('STX - Added approval', smartTransactionStatusApprovalId);
@@ -190,6 +206,8 @@ export async function publishHook(request: Request) {
             id: smartTransactionStatusApprovalId,
             requestState: {
               smartTransaction: smartTransaction as any,
+              isDapp,
+              isMetamaskSwap,
             },
           });
         } catch (e) {
