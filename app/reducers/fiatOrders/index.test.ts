@@ -42,6 +42,7 @@ import fiatOrderReducer, {
   fiatOrdersGetStartedSell,
   setFiatSellTxHash,
   removeFiatSellTxHash,
+  getOrdersProviders,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -1639,5 +1640,62 @@ describe('selectors', () => {
         ),
       ).toEqual('...');
     });
+  });
+});
+
+describe('getOrdersProviders', () => {
+  function createMockOrderWithProviderId(provider: string) {
+    return {
+      ...mockOrder1,
+      data: {
+        ...mockOrder1.data,
+        provider: {
+          ...mockOrder1.data.provider,
+          id: provider,
+        },
+      },
+    };
+  }
+
+  it('should return the correct providers', () => {
+    const state = merge({}, initialRootState, {
+      fiatOrders: {
+        orders: [
+          createMockOrderWithProviderId('test-provider-id-1'),
+          createMockOrderWithProviderId('test-provider-id-2'),
+          createMockOrderWithProviderId('test-provider-id-4'),
+          createMockOrderWithProviderId('test-provider-id-3'),
+          createMockOrderWithProviderId('test-provider-id-1'),
+          createMockOrderWithProviderId('test-provider-id-2'),
+        ],
+      },
+    });
+
+    expect(getOrdersProviders(state)).toEqual([
+      'test-provider-id-1',
+      'test-provider-id-2',
+      'test-provider-id-4',
+      'test-provider-id-3',
+    ]);
+  });
+
+  it('should return empty array without orders', () => {
+    const state = merge({}, initialRootState, {
+      fiatOrders: {
+        orders: [],
+      },
+    });
+
+    expect(getOrdersProviders(state)).toEqual([]);
+  });
+
+  it('should return empty array with undefined orders', () => {
+    const state = merge({}, initialRootState, {
+      fiatOrders: {
+        orders: undefined,
+      },
+    });
+
+    expect(getOrdersProviders(state)).toEqual([]);
   });
 });
