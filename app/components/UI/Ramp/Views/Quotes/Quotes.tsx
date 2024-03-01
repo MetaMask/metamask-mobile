@@ -235,6 +235,48 @@ function Quotes() {
     trackEvent,
   ]);
 
+  const handleExpandQuotes = useCallback(() => {
+    setIsExpanded(true);
+    const payload = {
+      payment_method_id: selectedPaymentMethodId as string,
+      amount: params.amount,
+      refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
+      results_count: filteredQuotes.length,
+      provider_onramp_first: filteredQuotes[0]?.provider?.name,
+      provider_onramp_list: filteredQuotes.map(({ provider }) => provider.name),
+      previously_used_count: filteredQuotes.filter(({ provider }) =>
+        ordersProviders.includes(provider.id),
+      ).length,
+    };
+    if (isBuy) {
+      trackEvent('ONRAMP_QUOTES_EXPANDED', {
+        ...payload,
+        chain_id_destination: selectedChainId,
+        currency_source: params.fiatCurrency?.symbol,
+        currency_destination: params.asset?.symbol,
+      });
+    } else {
+      trackEvent('OFFRAMP_QUOTES_EXPANDED', {
+        ...payload,
+        chain_id_source: selectedChainId,
+        currency_source: params.asset?.symbol,
+        currency_destination: params.fiatCurrency?.symbol,
+      });
+    }
+  }, [
+    appConfig.POLLING_CYCLES,
+    filteredQuotes,
+    isBuy,
+    ordersProviders,
+    params.amount,
+    params.asset?.symbol,
+    params.fiatCurrency?.symbol,
+    pollingCyclesLeft,
+    selectedChainId,
+    selectedPaymentMethodId,
+    trackEvent,
+  ]);
+
   const handleOnQuotePress = useCallback(
     (quote: QuoteResponse | SellQuoteResponse) => {
       setProviderId(quote.provider.id);
@@ -747,7 +789,7 @@ function Quotes() {
                     label: strings(
                       'fiat_on_ramp_aggregator.explore_more_options',
                     ),
-                    onPress: () => setIsExpanded(true),
+                    onPress: handleExpandQuotes,
                   },
                 ]
               : []
