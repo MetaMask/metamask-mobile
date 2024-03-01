@@ -217,6 +217,16 @@ const SmartTransactionStatus = ({
     Logger.log('STX - Close Status Page');
   };
 
+  const createNewSwap = () => {
+    onConfirm();
+    navigation.navigate(Routes.SWAPS);
+  };
+
+  const createNewSend = () => {
+    onConfirm();
+    navigation.navigate('SendFlowView');
+  };
+
   const returnTextDapp = strings('smart_transactions.return_to_dapp', {
     dappName: origin,
   });
@@ -253,12 +263,18 @@ const SmartTransactionStatus = ({
       secondaryButtonText = returnTextDapp;
       onSecondaryButtonPress = closeStatusPage;
     } else {
-      primaryButtonText = strings('smart_transactions.create_new', {
-        txType: isMetamaskSwap
-          ? strings('smart_transactions.swap')
-          : strings('smart_transactions.send'),
-      });
-      onPrimaryButtonPress = closeStatusPage;
+      if (isMetamaskSwap) {
+        primaryButtonText = strings('smart_transactions.create_new', {
+          txType: strings('smart_transactions.swap'),
+        });
+        onPrimaryButtonPress = createNewSwap;
+      } else {
+        primaryButtonText = strings('smart_transactions.create_new', {
+          txType: strings('smart_transactions.send'),
+        });
+        onPrimaryButtonPress = createNewSend;
+      }
+
       secondaryButtonText = strings('smart_transactions.view_activity');
       onSecondaryButtonPress = viewActivity;
     }
