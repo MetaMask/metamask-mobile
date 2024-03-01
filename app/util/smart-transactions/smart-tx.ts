@@ -168,6 +168,7 @@ export async function publishHook(request: Request) {
       chainId,
     );
 
+    // Do not await on this, since it will not progress any further if so
     approvalController.addAndShowApprovalRequest({
       id: smartTransactionStatusApprovalId,
       origin,

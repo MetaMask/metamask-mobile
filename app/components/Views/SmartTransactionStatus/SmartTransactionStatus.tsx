@@ -208,13 +208,13 @@ const SmartTransactionStatus = ({
 
   const viewActivity = () => {
     onConfirm();
-    Engine.context.ApprovalController.endFlow({ id: pendingApprovalId });
     navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    Logger.log('STX - View Activity');
   };
 
   const closeStatusPage = () => {
     onConfirm();
-    Engine.context.ApprovalController.endFlow({ id: pendingApprovalId });
+    Logger.log('STX - Close Status Page');
   };
 
   const returnTextDapp = strings('smart_transactions.return_to_dapp', {

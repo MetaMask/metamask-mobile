@@ -26,15 +26,19 @@ function getValues(
         },
       },
     ],
-    onConfirm: () => {
-      Logger.log('STX SmartTransactionStatus onConfirm DUMMY');
-    },
+    onConfirm: () => actions.onConfirm,
     onCancel: () => {
+      // This is called when the stx is done for some reason, ALSO called when user swipes down
       // Cannot do onConfirm(), it will dismiss the status modal after tx complete, we want to keep it up after success
-      // However, we want to handle swipe down during in progress STX
-      // Remove the loading spinner on swipe down
-      Engine.context.ApprovalController.endFlow({ id: pendingApproval.id });
-      Logger.log('STX SmartTransactionStatus onCancel');
+
+      try {
+        // Remove the loading spinner on swipe down if tx is in progress
+        // If swipe down after tx success an error is thrown b/c app/util/smart-transactions/smart-tx.ts ends the flow if tx success, so just catch
+        Engine.context.ApprovalController.endFlow({ id: pendingApproval.id });
+        Logger.log('STX SmartTransactionStatus onCancel');
+      } catch (e) {
+        Logger.log('STX SmartTransactionStatus onCancel error', e);
+      }
     },
   };
 }
