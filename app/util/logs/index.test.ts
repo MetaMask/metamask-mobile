@@ -34,7 +34,7 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
   });
 
-  it('should generate extra logs if they added to the state object', () => {
+  it('generates extra logs if values added to the state object parameter', () => {
     const mockStateInput = {
       appVersion: '1',
       buildNumber: '123',
