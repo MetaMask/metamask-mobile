@@ -29,7 +29,6 @@ import {
   calculateERC20EIP1559,
 } from '../../../../../../util/transactions';
 import { sumHexWEIs } from '../../../../../../util/conversions';
-import Analytics from '../../../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   TESTNET_FAUCETS,
@@ -63,6 +62,7 @@ import { createBrowserNavDetails } from '../../../../Browser';
 import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -234,6 +234,10 @@ class TransactionReviewInformation extends PureComponent {
      * Boolean that indicates if the network supports buy
      */
     isNativeTokenBuySupported: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -300,9 +304,10 @@ class TransactionReviewInformation extends PureComponent {
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
-    });
+
+    this.props.metrics.trackEvent(
+      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+    );
   };
 
   edit = () => {
@@ -757,4 +762,4 @@ TransactionReviewInformation.contextType = ThemeContext;
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(TransactionReviewInformation);
+)(withMetricsAwareness(TransactionReviewInformation));

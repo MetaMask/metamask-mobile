@@ -1,16 +1,14 @@
-import { PreferencesState } from '@metamask/preferences-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import { SEPOLIA } from '../../../app/constants/network';
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
+import { NetworkState } from '@metamask/network-controller';
+import NetworkList from '../../../app/util/networks';
 
-/**
- * Enable security alerts by default.
- * @param {any} state - Redux state.
- * @returns Migrated Redux state.
- */
 export default function migrate(state: unknown) {
   if (!isObject(state)) {
     captureException(
-      new Error(`Migration 30: Invalid root state: '${typeof state}'`),
+      new Error(`Migration 30: Invalid state error: '${typeof state}'`),
     );
     return state;
   }
@@ -18,7 +16,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine)) {
     captureException(
       new Error(
-        `Migration 30: Invalid root engine state: '${typeof state.engine}'`,
+        `Migration 30: Invalid engine state error: '${typeof state.engine}'`,
       ),
     );
     return state;
@@ -27,28 +25,42 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
-        `Migration 30: Invalid root engine backgroundState: '${typeof state
+        `Migration 30: Invalid engine backgroundState error: '${typeof state
           .engine.backgroundState}'`,
       ),
     );
     return state;
   }
-
-  const preferencesControllerState = state.engine.backgroundState
-    .PreferencesController as PreferencesState;
-
-  if (!isObject(preferencesControllerState)) {
+  const networkControllerState = state.engine.backgroundState
+    .NetworkController as NetworkState;
+  if (!isObject(networkControllerState)) {
     captureException(
       new Error(
-        `Migration 30: Invalid PreferencesController state: '${typeof preferencesControllerState}'`,
+        `Migration 30: Invalid NetworkController state error: '${typeof networkControllerState}'`,
       ),
     );
     return state;
   }
 
-  if (!preferencesControllerState.securityAlertsEnabled) {
-    preferencesControllerState.securityAlertsEnabled = true;
+  if (!networkControllerState.providerConfig.chainId) {
+    captureException(
+      new Error(
+        `Migration 30: NetworkController providerConfig chainId not found: '${JSON.stringify(
+          networkControllerState.providerConfig.chainId,
+        )}'`,
+      ),
+    );
+    return state;
   }
-
+  const chainId = networkControllerState.providerConfig.chainId;
+  // If user on goerli, fallback to Sepolia
+  if (chainId === CHAIN_IDS.GOERLI) {
+    networkControllerState.providerConfig = {
+      chainId: CHAIN_IDS.SEPOLIA,
+      ticker: 'SepoliaETH',
+      type: SEPOLIA,
+    };
+    networkControllerState.networkId = `${NetworkList[SEPOLIA].networkId}`;
+  }
   return state;
 }

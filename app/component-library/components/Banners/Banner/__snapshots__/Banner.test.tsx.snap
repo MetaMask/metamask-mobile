@@ -151,6 +151,8 @@ exports[`Banner should render correctly with a close button 1`] = `
       Sample Banner Description
     </Text>
     <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}
@@ -385,6 +387,8 @@ exports[`Banner should render correctly with an action button 1`] = `
       Sample Banner Description
     </Text>
     <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
       activeOpacity={1}
       onPress={[Function]}
       onPressIn={[Function]}

@@ -36,6 +36,7 @@ import {
   resetTransaction,
   setNonce,
   setProposedNonce,
+  setTransactionId,
 } from '../../../../../actions/transaction';
 import { getGasLimit } from '../../../../../util/custom-gas';
 import Engine from '../../../../../core/Engine';
@@ -48,7 +49,6 @@ import CollectibleMedia from '../../../../UI/CollectibleMedia';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import TransactionTypes from '../../../../../core/TransactionTypes';
-import Analytics from '../../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { shallowEqual, renderShortText } from '../../../../../util/general';
 import {
@@ -62,7 +62,6 @@ import {
   getDecimalChainId,
 } from '../../../../../util/networks';
 import Text from '../../../../Base/Text';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { addHexPrefix } from 'ethereumjs-util';
 import { removeFavoriteCollectible } from '../../../../../actions/collectibles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -96,6 +95,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
+
 import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
@@ -115,6 +115,10 @@ import TransactionBlockaidBanner from '../../components/TransactionBlockaidBanne
 import { createLedgerTransactionModalNavDetails } from '../../../../../components/UI/LedgerModals/LedgerTransactionModal';
 import CustomGasModal from './components/CustomGasModal';
 import { ResultType } from '../../components/BlockaidBanner/BlockaidBanner.types';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { selectTransactionGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
+import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { updateTransaction } from '../../../../../util/transaction-controller';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -228,6 +232,14 @@ class Confirm extends PureComponent {
      * Boolean that indicates if the network supports buy
      */
     isNativeTokenBuySupported: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
+    /**
+     * Set transaction ID
+     */
+    setTransactionId: PropTypes.func,
   };
 
   state = {
@@ -324,9 +336,16 @@ class Confirm extends PureComponent {
       contractBalances,
       transactionState: { selectedAsset },
     } = this.props;
+
+    const { transactionMeta } = this.state;
     const { TokensController } = Engine.context;
     await stopGasPolling(this.state.pollToken);
     clearInterval(intervalIdForEstimatedL1Fee);
+
+    Engine.rejectPendingApproval(transactionMeta.id, undefined, {
+      ignoreMissing: true,
+      logErrors: false,
+    });
 
     /**
      * Remove token that was added to the account temporarily
@@ -373,6 +392,7 @@ class Confirm extends PureComponent {
       navigation,
       providerType,
       isPaymentRequest,
+      setTransactionId,
     } = this.props;
 
     const {
@@ -390,7 +410,7 @@ class Confirm extends PureComponent {
       pollToken,
     });
     // For analytics
-    AnalyticsV2.trackEvent(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.SEND_TRANSACTION_STARTED,
       this.getAnalyticsParams(),
     );
@@ -412,6 +432,8 @@ class Confirm extends PureComponent {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         origin: TransactionTypes.MMM,
       });
+
+    setTransactionId(transactionMeta.id);
 
     this.setState({ result, transactionMeta });
 
@@ -473,7 +495,8 @@ class Confirm extends PureComponent {
     if (
       this.props.gasFeeEstimates &&
       gas &&
-      (!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
+      (!prevProps.gasFeeEstimates ||
+        !shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
         gas !== prevProps?.transactionState?.transaction?.gas)
     ) {
       const gasEstimateTypeChanged =
@@ -529,11 +552,9 @@ class Confirm extends PureComponent {
   onModeChange = (mode) => {
     this.setState({ mode });
     if (mode === EDIT) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEvent(
-          MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
-        );
-      });
+      this.props.metrics.trackEvent(
+        MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+      );
     }
   };
 
@@ -757,7 +778,7 @@ class Confirm extends PureComponent {
             assetType,
           });
           this.checkRemoveCollectible();
-          AnalyticsV2.trackEvent(
+          this.props.metrics.trackEvent(
             MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
             gaParams,
           );
@@ -856,10 +877,13 @@ class Confirm extends PureComponent {
           assetType,
         });
         this.checkRemoveCollectible();
-        AnalyticsV2.trackEvent(MetaMetricsEvents.SEND_TRANSACTION_COMPLETED, {
-          ...this.getAnalyticsParams(),
-          ...this.withBlockaidMetricsParams(),
-        });
+        this.props.metrics.trackEvent(
+          MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
+          {
+            ...this.getAnalyticsParams(),
+            ...this.withBlockaidMetricsParams(),
+          },
+        );
         stopGasPolling();
         resetTransaction();
         navigation && navigation.dangerouslyGetParent()?.pop();
@@ -873,7 +897,7 @@ class Confirm extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
-        AnalyticsV2.trackEvent(
+        this.props.metrics.trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         );
       }
@@ -1006,9 +1030,10 @@ class Confirm extends PureComponent {
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
-    });
+
+    this.props.metrics.trackEvent(
+      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+    );
   };
 
   goToFaucet = () => {
@@ -1072,7 +1097,7 @@ class Confirm extends PureComponent {
       ...this.withBlockaidMetricsParams(),
       external_link_clicked: 'security_alert_support_link',
     };
-    AnalyticsV2.trackEvent(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
       analyticsParams,
     );
@@ -1118,7 +1143,7 @@ class Confirm extends PureComponent {
 
     controllerTransactionMeta.transaction = transactionParams;
 
-    await TransactionController.updateTransaction(controllerTransactionMeta);
+    await updateTransaction(controllerTransactionMeta);
   }
 
   render = () => {
@@ -1355,10 +1380,8 @@ const mapStateToProps = (state) => ({
   selectedAsset: state.transaction.selectedAsset,
   transactionState: state.transaction,
   primaryCurrency: state.settings.primaryCurrency,
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
-  gasEstimateType:
-    state.engine.backgroundState.GasFeeController.gasEstimateType,
+  gasFeeEstimates: selectTransactionGasFeeEstimates(state),
+  gasEstimateType: selectGasFeeControllerEstimateType(state),
   isPaymentRequest: state.transaction.paymentRequest,
   securityAlertResponse:
     state.transaction.currentTransactionSecurityAlertResponse,
@@ -1372,6 +1395,8 @@ const mapDispatchToProps = (dispatch) => ({
   prepareTransaction: (transaction) =>
     dispatch(prepareTransaction(transaction)),
   resetTransaction: () => dispatch(resetTransaction()),
+  setTransactionId: (transactionId) =>
+    dispatch(setTransactionId(transactionId)),
   setNonce: (nonce) => dispatch(setNonce(nonce)),
   setProposedNonce: (nonce) => dispatch(setProposedNonce(nonce)),
   removeFavoriteCollectible: (selectedAddress, chainId, collectible) =>
@@ -1379,4 +1404,7 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Confirm);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Confirm));

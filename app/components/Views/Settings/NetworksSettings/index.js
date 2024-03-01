@@ -40,6 +40,7 @@ import {
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import Routes from '../../../../constants/navigation/Routes';
 import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { updateIncomingTransactions } from '../../../../util/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -162,7 +163,10 @@ class NetworksSettings extends PureComponent {
 
   onNetworkPress = (networkTypeOrRpcUrl) => {
     const { navigation } = this.props;
-    navigation.navigate(Routes.ADD_NETWORK, { network: networkTypeOrRpcUrl });
+    navigation.navigate(Routes.ADD_NETWORK, {
+      network: networkTypeOrRpcUrl,
+      isEdit: true,
+    });
   };
 
   onAddNetwork = () => {
@@ -176,14 +180,13 @@ class NetworksSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController, CurrencyRateController, TransactionController } =
-      Engine.context;
+    const { NetworkController, CurrencyRateController } = Engine.context;
 
     CurrencyRateController.setNativeCurrency('ETH');
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
-      await TransactionController.updateIncomingTransactions();
+      await updateIncomingTransactions();
     }, 1000);
   };
 

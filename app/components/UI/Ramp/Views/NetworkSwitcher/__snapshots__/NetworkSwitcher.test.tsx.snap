@@ -1332,6 +1332,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                               testID="bottomsheetfooter"
                                             >
                                               <TouchableOpacity
+                                                accessibilityRole="button"
+                                                accessible={true}
                                                 activeOpacity={1}
                                                 onPress={[Function]}
                                                 onPressIn={[Function]}
@@ -1371,6 +1373,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                 </Text>
                                               </TouchableOpacity>
                                               <TouchableOpacity
+                                                accessibilityRole="button"
+                                                accessible={true}
                                                 activeOpacity={1}
                                                 onPress={[Function]}
                                                 onPressIn={[Function]}
@@ -8172,7 +8176,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }
@@ -8854,7 +8858,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }
@@ -9536,7 +9540,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }

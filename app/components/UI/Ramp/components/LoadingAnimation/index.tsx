@@ -28,17 +28,22 @@ const IS_NARROW = Device.getDeviceWidth() <= 320;
 const STAGE_SIZE = IS_NARROW ? 240 : 260;
 const FINALIZING_PERCENTAGE = 80;
 
-const createStyles = (colors: Colors) =>
+const createStyles = (
+  colors: Colors,
+  options?: {
+    asScreen: boolean;
+  },
+) =>
   StyleSheet.create({
     screen: {
-      flex: 1,
+      flex: options?.asScreen ? 1 : undefined,
       justifyContent: 'center',
       alignItems: 'center',
     },
     content: {
       width: '100%',
       paddingHorizontal: 60,
-      marginVertical: 15,
+      marginVertical: 60,
     },
     progressWrapper: {
       backgroundColor: colors.primary.muted,
@@ -89,15 +94,17 @@ interface Props {
   title: string;
   finish: boolean;
   onAnimationEnd?: () => any;
+  asScreen?: boolean;
 }
 
 function LoadingAnimation({
   title,
   finish,
   onAnimationEnd,
+  asScreen = true,
 }: Props): React.ReactElement<Props> {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, { asScreen });
   const [hasStartedFinishing, setHasStartedFinishing] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
 
@@ -161,13 +168,13 @@ function LoadingAnimation({
         <View style={styles.progressWrapper}>
           <Animated.View style={[styles.progressBar, progressStyle]} />
         </View>
-      </View>
-      <View style={styles.foxContainer} pointerEvents="none">
-        <Fox
-          ref={foxRef}
-          customContent={backgroundShapes}
-          customStyle={customStyle(colors)}
-        />
+        <View style={styles.foxContainer} pointerEvents="none">
+          <Fox
+            ref={foxRef}
+            customContent={backgroundShapes}
+            customStyle={customStyle(colors)}
+          />
+        </View>
       </View>
     </View>
   );

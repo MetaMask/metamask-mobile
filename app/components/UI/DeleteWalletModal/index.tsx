@@ -23,8 +23,8 @@ import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Modals/DeleteWalletModal.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { trackEventV2 as trackEvent } from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const DELETE_KEYWORD = 'delete';
 
@@ -35,6 +35,7 @@ if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
 const DeleteWalletModal = () => {
   const navigation = useNavigation();
   const { colors, themeAppearance } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
   const modalRef = useRef<ReusableModalRef>(null);

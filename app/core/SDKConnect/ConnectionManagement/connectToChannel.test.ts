@@ -201,6 +201,7 @@ describe('connectToChannel', () => {
 
       expect(mockInstance.state.connections[id]).toEqual({
         id,
+        initialConnection: true,
         otherPublicKey,
         origin,
         validUntil,

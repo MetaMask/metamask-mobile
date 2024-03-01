@@ -1373,6 +1373,7 @@
 					"@executable_path/Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift",
 					"$(SDKROOT)/usr/lib/swift$(inherited)",
 					"${inherited}",
 				);
@@ -1438,6 +1439,7 @@
 					"@executable_path/Frameworks",
 				);
 				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift",
 					"$(SDKROOT)/usr/lib/swift$(inherited)",
 					"${inherited}",
 				);
