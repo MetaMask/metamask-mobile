@@ -14,8 +14,30 @@ jest.mock('../../core/Engine', () => ({
 describe('logs :: generateStateLogs', () => {
   it('should generate the state logs correctly without the explicitly deleted controller states', async () => {
     const mockStateInput = {
-      appVersion: 1,
-      buildNumber: 123,
+      engine: {
+        backgroundState: {
+          ...initialBackgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+    const logs = generateStateLogs(mockStateInput);
+
+    expect(logs.includes('NftController')).toBe(false);
+    expect(logs.includes('TokensController')).toBe(false);
+    expect(logs.includes('AssetsContractController')).toBe(false);
+    expect(logs.includes('TokenDetectionController')).toBe(false);
+    expect(logs.includes('NftDetectionController')).toBe(false);
+    expect(logs.includes('PhishingController')).toBe(false);
+    expect(logs.includes("vault: 'vault mock'")).toBe(false);
+  });
+
+  it('should generate extra logs if they added to the state object', () => {
+    const mockStateInput = {
+      appVersion: '1',
+      buildNumber: '123',
       engine: {
         backgroundState: {
           ...initialBackgroundState,
