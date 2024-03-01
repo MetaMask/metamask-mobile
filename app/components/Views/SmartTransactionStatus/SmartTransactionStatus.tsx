@@ -181,11 +181,31 @@ const SmartTransactionStatus = ({
     }
   };
 
-  // Set icon, header, and desc
+  // Set icon, header, desc, and buttons
   let icon;
   let iconColor;
   let header;
   let description;
+  let primaryButtonText;
+  let secondaryButtonText;
+  let onPrimaryButtonPress;
+  let onSecondaryButtonPress;
+
+  const viewActivity = () => {
+    onConfirm();
+    Engine.context.ApprovalController.endFlow({ id: pendingApprovalId });
+    navigation.navigate(Routes.TRANSACTIONS_VIEW);
+  };
+
+  const closeStatusPage = () => {
+    onConfirm();
+    Engine.context.ApprovalController.endFlow({ id: pendingApprovalId });
+  };
+
+  const returnTextDapp = strings('smart_transactions.return_to_dapp', {
+    dappName: origin,
+  });
+  const returnTextMM = 'Try again';
 
   if (isStxPending && isStxPastEstimatedDeadline) {
     icon = IconName.Clock;
@@ -211,41 +231,53 @@ const SmartTransactionStatus = ({
     iconColor = IconColor.Success;
     header = strings('smart_transactions.status_success_header');
     description = undefined;
+
+    if (isDapp) {
+      primaryButtonText = strings('smart_transactions.view_activity');
+      onPrimaryButtonPress = viewActivity;
+      secondaryButtonText = returnTextDapp;
+      onSecondaryButtonPress = closeStatusPage;
+    } else {
+      primaryButtonText = 'Create new';
+      onPrimaryButtonPress = closeStatusPage;
+      secondaryButtonText = strings('smart_transactions.view_activity');
+      onSecondaryButtonPress = viewActivity;
+    }
   } else if (status === 'cancelled') {
     icon = IconName.Danger;
     iconColor = IconColor.Error;
     header = strings('smart_transactions.status_cancelled_header');
     description = strings('smart_transactions.status_cancelled_description');
+
+    if (isDapp) {
+      secondaryButtonText = returnTextDapp;
+      onSecondaryButtonPress = closeStatusPage;
+    } else {
+      primaryButtonText = returnTextMM;
+      onPrimaryButtonPress = closeStatusPage;
+      secondaryButtonText = strings('smart_transactions.view_activity');
+      onSecondaryButtonPress = viewActivity;
+    }
   } else {
-    // Reverted or unknown statuses
+    // Reverted or unknown statuses (tx failed)
     icon = IconName.Danger;
     iconColor = IconColor.Error;
     header = strings('smart_transactions.status_failed_header');
     description = strings('smart_transactions.status_failed_description');
+
+    if (isDapp) {
+      secondaryButtonText = returnTextDapp;
+      onSecondaryButtonPress = closeStatusPage;
+    } else {
+      primaryButtonText = returnTextMM;
+      onPrimaryButtonPress = closeStatusPage;
+      secondaryButtonText = strings('smart_transactions.view_activity');
+      onSecondaryButtonPress = viewActivity;
+    }
   }
 
   const percentComplete =
     (1 - timeLeftForPendingStxInSec / stxDeadlineSec) * 100;
-
-  // Primary button
-  const onPrimaryButtonPress = () => {
-    onConfirm();
-    Engine.context.ApprovalController.endFlow({ id: pendingApprovalId });
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
-  };
-  const primaryButtonText = strings('smart_transactions.view_activity');
-
-  // Secondary button
-  const onSecondaryButtonPress = () => {
-    onConfirm();
-    Engine.context.ApprovalController.endFlow({ id: pendingApprovalId });
-  };
-  const secondaryButtonText =
-    origin === TransactionTypes.MMM
-      ? strings('smart_transactions.return')
-      : strings('smart_transactions.return_to_dapp', {
-          dappName: origin,
-        });
 
   return (
     <View style={styles.wrapper}>
@@ -270,20 +302,24 @@ const SmartTransactionStatus = ({
       </View>
 
       <View>
-        <Button
-          variant={ButtonVariants.Primary}
-          label={primaryButtonText}
-          onPress={onPrimaryButtonPress}
-        >
-          {primaryButtonText}
-        </Button>
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={secondaryButtonText}
-          onPress={onSecondaryButtonPress}
-        >
-          {secondaryButtonText}
-        </Button>
+        {onPrimaryButtonPress && (
+          <Button
+            variant={ButtonVariants.Primary}
+            label={primaryButtonText}
+            onPress={onPrimaryButtonPress}
+          >
+            {primaryButtonText}
+          </Button>
+        )}
+        {onSecondaryButtonPress && (
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={secondaryButtonText}
+            onPress={onSecondaryButtonPress}
+          >
+            {secondaryButtonText}
+          </Button>
+        )}
       </View>
     </View>
   );
