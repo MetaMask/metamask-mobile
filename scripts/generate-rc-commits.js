@@ -182,7 +182,6 @@ async function filterCommitsByTeam(branchA, branchB) {
 function formatAsCSV(commitsByTeam) {
   const csvContent = [];
   for (const [team, commits] of Object.entries(commitsByTeam)) {
-  
     commits.forEach((commit) => {
       const row = [
         escapeCSV(commit.hash),
@@ -213,18 +212,10 @@ function assignChangeType(field) {
     return 'Added';
   else if (field.includes('chore') || field.includes('test') || field.includes('ci')  || field.includes('docs'))
     return 'Changed';
-  else if(field.includes('fix'))
+  else if (field.includes('fix'))
     return 'Fixed';
-  else 
+  else
     return 'Unknown';
-}
-
-// Helper function to escape CSV fields
-function escapeCSV(field) {
-  if (field.includes(',') || field.includes('"') || field.includes('\n')) {
-    return `"${field.replace(/"/g, '""')}"`; // Encapsulate in double quotes and escape existing quotes
-  }
-  return field;
 }
 
 async function main() {
