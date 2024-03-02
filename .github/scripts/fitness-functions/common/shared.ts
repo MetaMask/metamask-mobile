@@ -5,7 +5,7 @@ function filterDiffByFilePath(diff: string, regex: RegExp): string {
   const filteredDiff = diffBlocks
     .map((block) => block.trim())
     .filter((block) => {
-      let didAPathInBlockMatchRegEx = false;
+      let shouldCheckBlock = false;
 
       block
         // get the first line of the block which has the paths
@@ -19,11 +19,12 @@ function filterDiffByFilePath(diff: string, regex: RegExp): string {
         // corresponding diff block in
         .forEach((path) => {
           if (!regex.test(path)) {
-            didAPathInBlockMatchRegEx = true;
+            // Not excluded, include in check
+            shouldCheckBlock = true;
           }
         });
 
-      return didAPathInBlockMatchRegEx;
+      return shouldCheckBlock;
     })
     // prepend `git --diff` to each block
     .map((block) => `diff --git ${block}`)
@@ -44,7 +45,9 @@ function filterDiffLineAdditions(diff: string): string {
   const diffLines = diff.split('\n');
 
   const diffAdditionLines = diffLines.filter((line) => {
-    const isAdditionLine = line.startsWith('+') && !line.startsWith('+++');
+    let trimmedLine = line.trim();
+    const isAdditionLine =
+      trimmedLine.startsWith('+') && !trimmedLine.startsWith('+++');
 
     return isAdditionLine;
   });
