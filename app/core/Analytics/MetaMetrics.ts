@@ -476,7 +476,22 @@ class MetaMetrics implements IMetaMetrics {
         proxy: process.env.SEGMENT_PROXY_URL as string,
         debug: __DEV__,
         anonymousId: METAMETRICS_ANONYMOUS_ID,
+        // allow custom flush interval and event limit for dev and testing
+        // each is optional and can be set in the .js.env file
+        // if not set, the default values from the Segment SDK will be used
+        flushInterval: process.env.SEGMENT_FLUSH_INTERVAL as unknown as number,
+        flushAt: process.env.SEGMENT_FLUSH_EVENT_LIMIT as unknown as number,
       };
+
+      if (__DEV__)
+        Logger.log(
+          `MetaMetrics client configured with: ${JSON.stringify(
+            config,
+            null,
+            2,
+          )}`,
+        );
+
       this.instance = new MetaMetrics(createClient(config));
     }
     return this.instance;
