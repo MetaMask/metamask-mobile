@@ -14,6 +14,28 @@ class NetworkView {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_CONTAINER);
   }
 
+  get NoMatchingText() {
+    return Matchers.getElementByText(
+      NetworkViewSelectorsText.NO_MATCHING_SEARCH_RESULTS,
+    );
+  }
+
+  get closeIcon() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
+  }
+
+  get deleteNetworkButton() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON,
+    );
+  }
+
+  get networkSearchInput() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
+    );
+  }
+
   get addNetworkButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_NETWORKS_BUTTON)
@@ -82,10 +104,30 @@ class NetworkView {
     await Gestures.waitAndTap(this.customNetworkTab);
   }
 
-  async tapPopularNetworkByName(networkName) {
+  async tapNetworkByName(networkName) {
     const network = Matchers.getElementByText(networkName);
     await Gestures.waitAndTap(network);
   }
+
+  async SearchNetworkName(networkName) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.networkSearchInput,
+      networkName,
+    );
+  }
+
+  async tapDeleteButton() {
+    await Gestures.waitAndTap(this.deleteNetworkButton);
+  }
+
+  async tapClearSearch() {
+    await Gestures.waitAndTap(this.closeIcon);
+  }
+  async closePopularNetwork() {
+    await Gestures.waitAndTap(this.closeIcon);
+  }
+
+  // CUSTOM NETWORK SCREEN
   async typeInNetworkName(networkName) {
     await Gestures.typeTextAndHideKeyboard(this.networkNameInput, networkName);
   }
