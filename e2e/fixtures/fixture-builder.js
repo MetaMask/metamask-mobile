@@ -1,8 +1,14 @@
 import { getGanachePort } from './utils';
 import { merge } from 'lodash';
+import { toHex } from '@metamask/controller-utils';
 
 const DAPP_URL = 'localhost';
+const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
+const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
+/* eslint-enable */
+
+import PopularList from '../../app/util/networks/customNetworks';
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
  */
@@ -646,6 +652,33 @@ class FixtureBuilder {
         ticker: 'ETH',
       },
     };
+    return this;
+  }
+
+  withPopularNetworks() {
+    const fixtures = this.fixture.state.engine.backgroundState;
+    const networkIDs = {}; // Object to store network configurations
+
+    // Loop through each network in PopularList
+    PopularList.forEach((network, index) => {
+      const networkId = `networkId${index + 2}`; // Starting from networkId2
+      const { rpcUrl, chainId, ticker, nickname } = network;
+
+      // Store network configuration in the networkIDs object
+      networkIDs[networkId] = {
+        rpcUrl,
+        chainId,
+        ticker,
+        nickname,
+      };
+    });
+
+    // Assign networkIDs object to NetworkController in fixtures
+    fixtures.NetworkController = {
+      isCustomNetwork: true,
+      networkConfigurations: networkIDs,
+    };
+
     return this;
   }
 
