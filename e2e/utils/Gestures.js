@@ -54,24 +54,6 @@ class Gestures {
   }
 
   /**
-   * Waits for an element with a specific label to become visible within a given timeout, then taps on it.
-   * This function is particularly useful in automated UI testing where you need to interact with elements that may take some time to appear.
-   *
-   * @param {string} text The label of the element to wait for and tap.
-   * @param {number} [timeout=8000] The maximum amount of time (in milliseconds) to wait for the element to become visible. Defaults to 8000ms if not specified.
-   * @param {number} [index=0] The index of the element to tap if there are multiple elements with the same label. Defaults to 0 (the first element) if not specified.
-   * @returns {Promise<void>} A promise that resolves when the tap action has been completed.
-   * @static
-   * @async
-   */
-  static async waitAndTapByLabel(text, timeout = 8000, index = 0) {
-    await waitFor(element(by.label(text)))
-      .toBeVisible()
-      .withTimeout(timeout);
-    await element(by.label(text)).atIndex(index).tap();
-  }
-
-  /**
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableWebElement>} elementID - ID of the element to tap

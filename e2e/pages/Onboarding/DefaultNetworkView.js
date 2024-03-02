@@ -8,23 +8,18 @@ import {
 
 class DefaultNetworkView {
   get useThisNetworkButton() {
-    return Matchers.getElementByID(
-      CustomDefaultNetworkIDs.USE_THIS_NETWORK_BUTTON_ID,
-    );
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(
+          CustomDefaultNetworkIDs.USE_THIS_NETWORK_BUTTON_ID,
+        )
+      : Matchers.getElementByLabel(
+          CustomDefaultNetworkTexts.USE_THIS_NETWORK_BUTTON_TEXT,
+        );
   }
 
   async tapUseThisNetworkButton() {
-    if (device.getPlatform() === 'ios') {
-      await Gestures.waitAndTap(this.useThisNetworkButton);
-      await Gestures.waitAndTap(this.useThisNetworkButton);
-    } else {
-      await Gestures.waitAndTapByLabel(
-        CustomDefaultNetworkTexts.USE_THIS_NETWORK_BUTTON_TEXT,
-      );
-      await Gestures.waitAndTapByLabel(
-        CustomDefaultNetworkTexts.USE_THIS_NETWORK_BUTTON_TEXT,
-      );
-    }
+    await Gestures.waitAndTap(this.useThisNetworkButton);
+    await Gestures.waitAndTap(this.useThisNetworkButton);
   }
 
   async typeRpcURL(rpcURL) {
