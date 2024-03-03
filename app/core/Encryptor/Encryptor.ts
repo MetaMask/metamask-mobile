@@ -3,21 +3,34 @@ const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
 
 /**
- * Class that exposes two public methods: Encrypt and Decrypt
- * This is used by the KeyringController to encrypt / decrypt the state
- * which contains sensitive seed words and addresses
+ * The Encryptor class provides methods for encrypting and
+ * decrypting data objects using AES encryption with native libraries.
+ * It supports generating a salt, deriving an encryption key from a
+ * password and salt, and performing the encryption and decryption processes.
  */
 class Encryptor {
-  key = null;
+  key: string | null = null;
 
-  _generateSalt(byteCount = 32) {
+  /**
+   * Generates a base64-encoded salt string.
+   * @param byteCount - The number of bytes for the salt. Defaults to 32.
+   * @returns The base64-encoded salt string.
+   */
+  private _generateSalt(byteCount = 32) {
     const view = new Uint8Array(byteCount);
     global.crypto.getRandomValues(view);
     const b64encoded = btoa(String.fromCharCode.apply(null, Array.from(view)));
     return b64encoded;
   }
 
-  _generateKey = ({
+  /**
+   * Generates an encryption key based on the provided password, salt, and library choice.
+   * @param params.password - The password used for key derivation.
+   * @param params.salt - The salt used for key derivation.
+   * @param params.lib - The library to use ('original' or forked version).
+   * @returns A promise that resolves to the derived encryption key.
+   */
+  private _generateKey = ({
     password,
     salt,
     lib,
@@ -30,7 +43,14 @@ class Encryptor {
       ? Aes.pbkdf2(password, salt, 5000, 256)
       : AesForked.pbkdf2(password, salt);
 
-  _keyFromPassword = ({
+  /**
+   * Wrapper method for key generation from a password.
+   * @param params.password - The password used for key derivation.
+   * @param params.salt - The salt used for key derivation.
+   * @param params.lib - The library to use ('original' or forked version).
+   * @returns A promise that resolves to the derived encryption key.
+   */
+  private _keyFromPassword = ({
     password,
     salt,
     lib,
@@ -40,7 +60,13 @@ class Encryptor {
     lib: string;
   }) => this._generateKey({ password, salt, lib });
 
-  _encryptWithKey = async ({
+  /**
+   * Encrypts a text string using the provided key.
+   * @param params.text - The text to encrypt.
+   * @param params.keyBase64 - The base64-encoded encryption key.
+   * @returns A promise that resolves to an object containing the cipher text and initialization vector (IV).
+   */
+  private _encryptWithKey = async ({
     text,
     keyBase64,
   }: {
@@ -54,7 +80,14 @@ class Encryptor {
     }));
   };
 
-  _decryptWithKey = ({
+  /**
+   * Decrypts encrypted data using the provided key.
+   * @param params.encryptedData - The encrypted data object containing the cipher text and IV.
+   * @param params.key - The decryption key.
+   * @param params.lib - The library to use ('original' or forked version) for decryption.
+   * @returns A promise that resolves to the decrypted text.
+   */
+  private _decryptWithKey = ({
     encryptedData,
     key,
     lib,
@@ -103,8 +136,8 @@ class Encryptor {
    * Decrypts an encrypted JS object (encryptedString)
    * using a password (and AES decryption with native libraries)
    *
-   * @param {string} password - Password used for decryption
-   * @param {string} encryptedString - String to decrypt
+   * @param password - Password used for decryption
+   * @param encryptedString - String to decrypt
    * @returns - Promise resolving to decrypted data object
    */
   decrypt = async ({
