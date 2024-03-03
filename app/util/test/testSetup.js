@@ -198,7 +198,7 @@ NativeModules.AesForked = {
     .mockImplementation((_password, _salt) =>
       Promise.resolve('mockedKeyForked'),
     ),
-  decrypt: jest.fn().mockResolvedValue('mockedPlainTextForked'),
+  decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainTextForked"}'),
 };
 
 jest.mock(
