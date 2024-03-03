@@ -1,4 +1,11 @@
 import { NativeModules } from 'react-native';
+import {
+  SHA256_DIGEST_LENGTH,
+  OLD_NUMBER_ITERATIONS,
+  ENCRYPTION_LIBRARY,
+} from './constants';
+import type { EncryptionResult } from './types';
+
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
 
@@ -33,14 +40,16 @@ class Encryptor {
   private _generateKey = ({
     password,
     salt,
+    rounds,
     lib,
   }: {
     password: string;
     salt: string;
+    rounds: number;
     lib: string;
   }) =>
-    lib === 'original'
-      ? Aes.pbkdf2(password, salt, 5000, 256)
+    lib === ENCRYPTION_LIBRARY.original
+      ? Aes.pbkdf2(password, salt, rounds, SHA256_DIGEST_LENGTH)
       : AesForked.pbkdf2(password, salt);
 
   /**
@@ -53,12 +62,14 @@ class Encryptor {
   private _keyFromPassword = ({
     password,
     salt,
+    rounds,
     lib,
   }: {
     password: string;
     salt: string;
+    rounds: number;
     lib: string;
-  }) => this._generateKey({ password, salt, lib });
+  }): Promise<string> => this._generateKey({ password, salt, rounds, lib });
 
   /**
    * Encrypts a text string using the provided key.
@@ -72,7 +83,7 @@ class Encryptor {
   }: {
     text: string;
     keyBase64: string;
-  }) => {
+  }): Promise<EncryptionResult> => {
     const iv = await Aes.randomKey(16);
     return Aes.encrypt(text, keyBase64, iv).then((cipher: string) => ({
       cipher,
@@ -95,8 +106,8 @@ class Encryptor {
     encryptedData: { cipher: string; iv: string };
     key: string;
     lib: string;
-  }) =>
-    lib === 'original'
+  }): Promise<string> =>
+    lib === ENCRYPTION_LIBRARY.original
       ? Aes.decrypt(encryptedData.cipher, key, encryptedData.iv)
       : AesForked.decrypt(encryptedData.cipher, key, encryptedData.iv);
 
@@ -110,25 +121,20 @@ class Encryptor {
    * @param params.object - The data object to encrypt. It can be of any type, as it will be stringified during the encryption process.
    * @returns A promise that resolves to a string. The string is a JSON representation of an object containing the encrypted data, the salt used for encryption, and the library version.
    */
-  encrypt = async ({
-    password,
-    object,
-  }: {
-    password: string;
-    object: unknown;
-  }): Promise<string> => {
+  encrypt = async (password: string, object: unknown): Promise<string> => {
     const salt = this._generateSalt(16);
     const key = await this._keyFromPassword({
       password,
       salt,
-      lib: 'original',
+      rounds: OLD_NUMBER_ITERATIONS,
+      lib: ENCRYPTION_LIBRARY.original,
     });
     const result = await this._encryptWithKey({
       text: JSON.stringify(object),
       keyBase64: key,
     });
     result.salt = salt;
-    result.lib = 'original';
+    result.lib = ENCRYPTION_LIBRARY.original;
     return JSON.stringify(result);
   };
 
@@ -140,23 +146,22 @@ class Encryptor {
    * @param encryptedString - String to decrypt
    * @returns - Promise resolving to decrypted data object
    */
-  decrypt = async ({
-    password,
-    encryptedString,
-  }: {
-    password: string;
-    encryptedString: string;
-  }) => {
-    const encryptedData = JSON.parse(encryptedString);
+  decrypt = async (
+    password: string,
+    encryptedString: string,
+  ): Promise<unknown> => {
+    console.log({ password, encryptedString });
+    const payload = JSON.parse(encryptedString);
     const key = await this._keyFromPassword({
       password,
-      salt: encryptedData.salt,
-      lib: encryptedData.lib,
+      salt: payload.salt,
+      rounds: OLD_NUMBER_ITERATIONS,
+      lib: payload.lib,
     });
     const data = await this._decryptWithKey({
-      encryptedData,
+      encryptedData: payload,
       key,
-      lib: encryptedData.lib,
+      lib: payload.lib,
     });
     return JSON.parse(data);
   };
