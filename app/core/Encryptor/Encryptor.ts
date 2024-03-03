@@ -150,7 +150,6 @@ class Encryptor {
     password: string,
     encryptedString: string,
   ): Promise<unknown> => {
-    console.log({ password, encryptedString });
     const payload = JSON.parse(encryptedString);
     const key = await this._keyFromPassword({
       password,
