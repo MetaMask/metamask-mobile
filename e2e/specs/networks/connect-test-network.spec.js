@@ -5,7 +5,7 @@ import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import Assertions from '../../utils/Assertions';
 
-const GORELI = 'Goerli Test Network';
+const SEPOLIA = 'Sepolia Test Network';
 const ETHEREUM = 'Ethereum Main Network';
 
 describe(Regression('Connect to a Test Network'), () => {
@@ -24,20 +24,16 @@ describe(Regression('Connect to a Test Network'), () => {
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await NetworkListModal.tapTestNetworkSwitch();
     await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
-    await NetworkListModal.changeNetwork(GORELI);
+    await NetworkListModal.changeNetwork(SEPOLIA);
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
-      GORELI,
-    );
-    await Assertions.checkIfElementToHaveText(
-      NetworkEducationModal.networkName,
-      GORELI,
+      SEPOLIA,
     );
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await WalletView.isVisible();
-    await WalletView.isConnectedNetwork(GORELI);
+    await WalletView.isConnectedNetwork(SEPOLIA);
   });
 
   it('should not toggle off the Test Network switch while connected to test network', async () => {
@@ -66,6 +62,6 @@ describe(Regression('Connect to a Test Network'), () => {
     await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
     await NetworkListModal.tapTestNetworkSwitch();
     await Assertions.checkIfToggleIsOff(NetworkListModal.testSwitch);
-    await Assertions.checkIfTextIsDisplayed(GORELI);
+    await Assertions.checkIfTextIsDisplayed(SEPOLIA);
   });
 });

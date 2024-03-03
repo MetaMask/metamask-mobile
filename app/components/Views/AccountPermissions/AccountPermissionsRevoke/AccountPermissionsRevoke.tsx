@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useContext } from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -25,22 +25,18 @@ import { ToastOptions } from '../../../../component-library/components/Toast/Toa
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 import { selectAccountsLength } from '../../../../selectors/accountTrackerController';
 
 // Internal dependencies.
 import { AccountPermissionsRevokeProps } from './AccountPermissionsRevoke.types';
 import styleSheet from './AccountPermissionsRevoke.styles';
 import { useSelector } from 'react-redux';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import {
-  CONNECTED_ACCOUNTS_MODAL_DISCONNECT_ALL_BUTTON_ID,
-  CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import Avatar from '../../../../component-library/components/Avatars/Avatar/Avatar';
 import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -56,6 +52,7 @@ const AccountPermissionsRevoke = ({
 }: AccountPermissionsRevokeProps) => {
   const Engine = UntypedEngine as any;
   const { styles } = useStyles(styleSheet, {});
+  const { trackEvent } = useMetrics();
   const activeAddress = permittedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
@@ -71,30 +68,24 @@ const AccountPermissionsRevoke = ({
         await Engine.context.PermissionController.revokeAllPermissions(
           hostname,
         );
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
-          {
-            number_of_accounts: accountsLength,
-            number_of_accounts_connected: permittedAddresses.length,
-            number_of_networks: nonTestnetNetworks,
-          },
-        );
+        trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
+          number_of_accounts: accountsLength,
+          number_of_accounts_connected: permittedAddresses.length,
+          number_of_networks: nonTestnetNetworks,
+        });
       } catch (e) {
         Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
       }
     },
     /* eslint-disable-next-line */
-    [hostname],
+    [hostname, trackEvent],
   );
 
   const renderSheetAction = useCallback(
     () => (
       <View
         style={styles.sheetActionContainer}
-        {...generateTestId(
-          Platform,
-          CONNECTED_ACCOUNTS_MODAL_DISCONNECT_ALL_BUTTON_ID,
-        )}
+        testID={ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_BUTTON}
       >
         <SheetActions
           actions={[
@@ -185,23 +176,17 @@ const AccountPermissionsRevoke = ({
                     labelOptions,
                   });
                 }
-                AnalyticsV2.trackEvent(
-                  MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
-                  {
-                    number_of_accounts: accountsLength,
-                    number_of_accounts_connected: permittedAddresses.length,
-                    number_of_networks: nonTestnetNetworks,
-                  },
-                );
+                trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
+                  number_of_accounts: accountsLength,
+                  number_of_accounts_connected: permittedAddresses.length,
+                  number_of_networks: nonTestnetNetworks,
+                });
               }
             }}
             label={strings('accounts.disconnect')}
             size={ButtonSize.Sm}
             style={styles.disconnectButton}
-            {...generateTestId(
-              Platform,
-              CONNECTED_ACCOUNTS_MODAL_REVOKE_BUTTON_ID,
-            )}
+            testID={ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_BUTTON}
           />
         )}
         isSelectionDisabled

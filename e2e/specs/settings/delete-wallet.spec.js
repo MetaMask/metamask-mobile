@@ -60,14 +60,13 @@ describe(
         // should tap reset wallet button
         await LoginView.tapResetWalletButton();
 
-        await DeleteWalletModal.isVisible();
+        await Assertions.checkIfVisible(DeleteWalletModal.container);
 
         // should delete wallet
         await DeleteWalletModal.tapIUnderstandButton();
         await DeleteWalletModal.typeDeleteInInputBox();
         await DeleteWalletModal.tapDeleteMyWalletButton();
-        await TestHelpers.delay(2000);
-        await OnboardingView.isVisible();
+        await Assertions.checkIfVisible(OnboardingView.container);
       });
     });
   },

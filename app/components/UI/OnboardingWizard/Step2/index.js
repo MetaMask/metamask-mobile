@@ -10,9 +10,9 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
+import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {
@@ -40,6 +40,10 @@ class Step2 extends PureComponent {
      * Callback called when closing step
      */
     onClose: PropTypes.func,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -69,10 +73,13 @@ class Step2 extends PureComponent {
   onNext = () => {
     const { setOnboardingWizardStep } = this.props;
     setOnboardingWizardStep && setOnboardingWizardStep(3);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
-      tutorial_step_count: 2,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
-    });
+    this.props.metrics.trackEvent(
+      MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED,
+      {
+        tutorial_step_count: 2,
+        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
+      },
+    );
   };
 
   /**
@@ -81,10 +88,13 @@ class Step2 extends PureComponent {
   onBack = () => {
     const { setOnboardingWizardStep } = this.props;
     setOnboardingWizardStep && setOnboardingWizardStep(1);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
-      tutorial_step_count: 2,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
-    });
+    this.props.metrics.trackEvent(
+      MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED,
+      {
+        tutorial_step_count: 2,
+        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
+      },
+    );
   };
 
   getOnboardingStyles = () => {
@@ -150,4 +160,4 @@ const mapDispatchToProps = (dispatch) => ({
 
 Step2.contextType = ThemeContext;
 
-export default connect(null, mapDispatchToProps)(Step2);
+export default connect(null, mapDispatchToProps)(withMetricsAwareness(Step2));

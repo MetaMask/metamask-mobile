@@ -1,3 +1,4 @@
+import AppConstants from '../../../../app/core/AppConstants';
 import Logger from '../../../util/Logger';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
@@ -14,7 +15,9 @@ async function reconnectAll(instance: SDKConnect) {
 
   const channelIds = Object.keys(instance.state.connections);
   channelIds.forEach((channelId) => {
-    if (channelId) {
+    // Only reconnects to type 'qrcode' connections.
+    const connection = instance.state.connections[channelId];
+    if (connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE) {
       instance
         .reconnect({
           channelId,

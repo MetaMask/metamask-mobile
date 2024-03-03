@@ -36,7 +36,6 @@ ignores:
   - 'fbjs-scripts'
   - 'improved-yarn-audit'
   - 'jetifier'
-  - 'metro'
   - 'metro-react-native-babel-preset'
   - 'octonode'
   - 'prettier-plugin-gherkin'
@@ -81,6 +80,7 @@ ignores:
   - 'stream-browserify'
   - 'url'
   - 'vm-browserify'
+  - 'react-native-cli'
 
   ## Missing dependencies to investigate
   - '@react-navigation/core'

@@ -1,14 +1,10 @@
 'use strict';
 import TestHelpers from '../../helpers';
-
 import Browser from '../../pages/Browser';
-
 import AccountListView from '../../pages/AccountListView';
 import TabBarComponent from '../../pages/TabBarComponent';
-
 import ConnectModal from '../../pages/modals/ConnectModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
-
 import { loginToApp } from '../../viewHelper';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -42,7 +38,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         // should connect to sushi swap dapp
         await Browser.tapUrlInputBox();
         await Browser.navigateToURL(SUSHI_SWAP);
-        await ConnectModal.isVisible();
+        await Assertions.checkIfVisible(ConnectModal.container);
         await ConnectModal.scrollToBottomOfModal();
         await Browser.isAccountToastVisible('Account 1');
 
@@ -52,7 +48,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await Browser.navigateToTestDApp();
         await Browser.isAccountToastVisible('Account 1');
         await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-        await ConnectedAccountsModal.isVisible();
+        await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
         await TestHelpers.delay(1000);
         await AccountListView.tapAddAccountButton();
@@ -68,7 +64,7 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await ConnectedAccountsModal.tapDisconnectAllButton();
         await Browser.isRevokeAllAccountToastVisible();
         await Browser.tapNetworkAvatarButtonOnBrowser();
-        await ConnectedAccountsModal.isNotVisible();
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.swipeToDismissModal();
         await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);

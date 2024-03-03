@@ -18,6 +18,7 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeSwaps } from '../../tags';
+import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
@@ -47,7 +48,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
-    ${'.05'} | ${'ETH'}          | ${'USDC'}
+    ${'.05'} | ${'ETH'}          | ${'USDT'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
@@ -87,8 +88,11 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         sourceTokenSymbol,
         destTokenSymbol,
       );
-      await DetailsModal.isTitleVisible(sourceTokenSymbol, destTokenSymbol);
-      await DetailsModal.isStatusCorrect('Confirmed');
+      await Assertions.checkIfElementToHaveText(
+        DetailsModal.title,
+        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+      );
+      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
       await DetailsModal.tapOnCloseIcon();
     },
   );

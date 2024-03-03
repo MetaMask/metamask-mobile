@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useContext, useMemo } from 'react';
-import { View, Platform } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { ProviderConfig } from '@metamask/network-controller';
@@ -14,6 +14,7 @@ import PickerNetwork from '../../../../component-library/components/Pickers/Pick
 import {
   getNetworkNameFromProviderConfig,
   getNetworkImageSource,
+  getDecimalChainId,
 } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
@@ -23,20 +24,15 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import getAccountNameWithENS from '../../../../util/accounts';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import {
-  CONNECTED_ACCOUNTS_MODAL_CONTAINER,
-  CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Components/ConnectedAccountsModal.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectProviderConfig } from '../../../../selectors/networkController';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccounts.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
 import styles from './AccountPermissionsConnected.styles';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -53,6 +49,7 @@ const AccountPermissionsConnected = ({
   urlWithProtocol,
 }: AccountPermissionsConnectedProps) => {
   const { navigate } = useNavigation();
+  const { trackEvent } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
 
@@ -116,10 +113,10 @@ const AccountPermissionsConnected = ({
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: providerConfig.chainId,
+    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
+      chain_id: getDecimalChainId(providerConfig.chainId),
     });
-  }, [providerConfig.chainId, navigate]);
+  }, [providerConfig.chainId, navigate, trackEvent]);
 
   const renderSheetAction = useCallback(
     () => (
@@ -144,10 +141,7 @@ const AccountPermissionsConnected = ({
   return (
     <>
       <SheetHeader title={strings('accounts.connected_accounts_title')} />
-      <View
-        style={styles.body}
-        {...generateTestId(Platform, CONNECTED_ACCOUNTS_MODAL_CONTAINER)}
-      >
+      <View style={styles.body}>
         <TagUrl
           imageSource={favicon}
           label={urlWithProtocol}
@@ -162,10 +156,7 @@ const AccountPermissionsConnected = ({
           imageSource={networkImageSource}
           onPress={switchNetwork}
           style={styles.networkPicker}
-          {...generateTestId(
-            Platform,
-            CONNECTED_ACCOUNTS_MODAL_NETWORK_PICKER_ID,
-          )}
+          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
         />
       </View>
       <AccountSelectorList

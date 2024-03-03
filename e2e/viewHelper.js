@@ -26,7 +26,7 @@ import LoginView from './pages/LoginView';
 import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
 
-const GOERLI = 'Goerli Test Network';
+const SEPOLIA = 'Sepolia Test Network';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 
@@ -48,7 +48,7 @@ export const acceptTermOfUse = async () => {
 
 export const importWalletWithRecoveryPhrase = async () => {
   // tap on import seed phrase button
-  await OnboardingCarouselView.isVisible();
+  await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
@@ -91,22 +91,21 @@ export const CreateNewWallet = async () => {
   //'should create new wallet'
 
   // tap on import seed phrase button
-  await OnboardingCarouselView.isGetStartedButtonVisible();
   await OnboardingCarouselView.tapOnGetStartedButton();
   await OnboardingView.tapCreateWallet();
 
-  await MetaMetricsOptIn.isVisible();
+  await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   await MetaMetricsOptIn.tapAgreeButton();
   await acceptTermOfUse();
 
-  await CreatePasswordView.isVisible();
+  await Assertions.checkIfVisible(CreatePasswordView.container);
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
   // await CreatePasswordView.tapCreatePasswordButton();
 
   // Check that we are on the Secure your wallet screen
-  await ProtectYourWalletView.isVisible();
+  await Assertions.checkIfVisible(ProtectYourWalletView.container);
   await ProtectYourWalletView.tapOnRemindMeLaterButton();
   await device.disableSynchronization();
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
@@ -150,7 +149,7 @@ export const CreateNewWallet = async () => {
 export const addLocalhostNetwork = async () => {
   await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
-  await NetworkView.isNetworkViewVisible();
+  await Assertions.checkIfVisible(NetworkView.networkContainer);
 
   await TestHelpers.delay(3000);
   await NetworkView.tapAddNetworkButton();
@@ -176,12 +175,12 @@ export const addLocalhostNetwork = async () => {
   await Assertions.checkIfNotVisible(NetworkEducationModal.container);
 };
 
-export const switchToGoreliNetwork = async () => {
+export const switchToSepoliaNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
   await NetworkListModal.tapTestNetworkSwitch();
   await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
-  await NetworkListModal.changeNetwork(GOERLI);
-  await WalletView.isNetworkNameVisible(GOERLI);
+  await NetworkListModal.changeNetwork(SEPOLIA);
+  await WalletView.isNetworkNameVisible(SEPOLIA);
   await NetworkEducationModal.tapGotItButton();
 };
 

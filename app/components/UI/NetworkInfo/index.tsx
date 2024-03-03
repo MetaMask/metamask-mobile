@@ -113,7 +113,7 @@ interface NetworkInfoProps {
 const NetworkInfo = (props: NetworkInfoProps) => {
   const { onClose, ticker, isTokenDetectionEnabled } = props;
   const providerConfig = useSelector(selectProviderConfig);
-  const { type, ticker: networkTicker, rpcTarget, chainId } = providerConfig;
+  const { type, ticker: networkTicker, rpcUrl, chainId } = providerConfig;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
@@ -163,9 +163,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
               {networkName}
             </Text>
           </View>
-          {ticker === undefined && (
-            <Text style={styles.rpcUrl}>{rpcTarget}</Text>
-          )}
+          {ticker === undefined && <Text style={styles.rpcUrl}>{rpcUrl}</Text>}
         </View>
         <Text style={styles.messageTitle}>
           {strings('network_information.things_to_keep_in_mind')}:

@@ -4,7 +4,6 @@ import AppConstants from '../AppConstants';
 import addAndroidConnection from './AndroidSDK/addAndroidConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
 import loadAndroidConnections from './AndroidSDK/loadAndroidConnections';
-import removeAndroidConnection from './AndroidSDK/removeAndroidConnection';
 import { Connection, ConnectionProps } from './Connection';
 import {
   approveHost,
@@ -33,6 +32,7 @@ import {
   updateOriginatorInfos,
   updateSDKLoadingState,
 } from './StateManagement';
+import Engine from '../../core/Engine';
 
 jest.mock('./Connection');
 jest.mock('@react-navigation/native');
@@ -41,13 +41,13 @@ jest.mock('./AndroidSDK/AndroidService');
 jest.mock('./AndroidSDK/addAndroidConnection');
 jest.mock('./AndroidSDK/bindAndroidSDK');
 jest.mock('./AndroidSDK/loadAndroidConnections');
-jest.mock('./AndroidSDK/removeAndroidConnection');
 jest.mock('./ConnectionManagement');
 jest.mock('./InitializationManagement');
 jest.mock('./RPCQueueManager');
 jest.mock('./SDKConnectConstants');
 jest.mock('./SessionManagement');
 jest.mock('./StateManagement');
+jest.mock('../../core/Engine');
 
 describe('SDKConnect', () => {
   let sdkConnect: SDKConnect;
@@ -95,6 +95,7 @@ describe('SDKConnect', () => {
   >;
 
   const mockRemoveAll = removeAll as jest.MockedFunction<typeof removeAll>;
+  mockRemoveAll.mockResolvedValue(Promise.resolve());
 
   const mockInvalidateChannel = invalidateChannel as jest.MockedFunction<
     typeof invalidateChannel
@@ -120,11 +121,6 @@ describe('SDKConnect', () => {
   const mockAddAndroidConnection = addAndroidConnection as jest.MockedFunction<
     typeof addAndroidConnection
   >;
-
-  const mockRemoveAndroidConnection =
-    removeAndroidConnection as jest.MockedFunction<
-      typeof removeAndroidConnection
-    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -247,11 +243,12 @@ describe('SDKConnect', () => {
       it('should remove a specified channel', async () => {
         const channelId = 'testChannelId';
 
-        await sdkConnect.removeChannel(channelId);
+        await sdkConnect.removeChannel({ channelId });
 
         expect(mockRemoveChannel).toHaveBeenCalledTimes(1);
         expect(mockRemoveChannel).toHaveBeenCalledWith({
           channelId,
+          engine: Engine,
           instance: sdkConnect,
         });
       });
@@ -337,20 +334,6 @@ describe('SDKConnect', () => {
         expect(mockAddAndroidConnection).toHaveBeenCalledTimes(1);
         expect(mockAddAndroidConnection).toHaveBeenCalledWith(
           testConnection,
-          sdkConnect,
-        );
-      });
-    });
-
-    describe('removeAndroidConnection', () => {
-      it('should remove an Android connection', () => {
-        const id = 'testId';
-
-        sdkConnect.removeAndroidConnection(id);
-
-        expect(mockRemoveAndroidConnection).toHaveBeenCalledTimes(1);
-        expect(mockRemoveAndroidConnection).toHaveBeenCalledWith(
-          id,
           sdkConnect,
         );
       });

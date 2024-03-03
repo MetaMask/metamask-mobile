@@ -1,27 +1,30 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import {
-  View,
+  Image,
   SafeAreaView,
   StyleSheet,
   TouchableOpacity,
-  Image,
+  View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { strings } from '../../../../../locales/i18n';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
+import Routes from '../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
+import { fontStyles } from '../../../../styles/common';
 import {
   mockTheme,
   useAppThemeFromContext,
   useAssetFromTheme,
 } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { fontStyles } from '../../../../styles/common';
-import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const createStyle = (colors: any) =>
   StyleSheet.create({
@@ -66,6 +69,13 @@ const createStyle = (colors: any) =>
     },
   });
 
+// Ledger Logo
+const ledgerLogoLightImgPath = 'images/ledger-light.png';
+const ledgerLogoLight = require(ledgerLogoLightImgPath);
+
+const ledgerLogoDarkImgPath = 'images/ledger-dark.png';
+const ledgerLogoDark = require(ledgerLogoDarkImgPath);
+
 // QR Hardware Logo
 const qrHardwareLogoLightImgPath = 'images/qrhardware-light.png';
 const qrHardwareLogoLight = require(qrHardwareLogoLightImgPath);
@@ -75,6 +85,7 @@ const qrHardwareLogoDark = require(qrHardwareLogoDarkImgPath);
 
 const SelectHardwareWallet = () => {
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
 
@@ -93,11 +104,36 @@ const SelectHardwareWallet = () => {
     navigation.navigate(Routes.HW.CONNECT_QR_DEVICE);
   };
 
+  const navigateToConnectLedger = async () => {
+    const ledgerKeyring = await getLedgerKeyring();
+    const accounts = await ledgerKeyring.getAccounts();
+
+    trackEvent(MetaMetricsEvents.CONNECT_LEDGER, {
+      device_type: 'Ledger',
+    });
+
+    if (accounts.length === 0) {
+      navigation.navigate(Routes.HW.CONNECT_LEDGER);
+    } else {
+      navigation.navigate(Routes.HW.LEDGER_ACCOUNT, {
+        screen: Routes.HW.LEDGER_ACCOUNT,
+        params: {
+          accounts,
+        },
+      });
+    }
+  };
+
   const renderHardwareButton = (image: any, onPress: any) => (
     <TouchableOpacity onPress={onPress} style={styles.hardwareButton}>
       <Image style={styles.image} source={image} resizeMode={'contain'} />
     </TouchableOpacity>
   );
+
+  const LedgerButton = () => {
+    const ledgerLogo = useAssetFromTheme(ledgerLogoLight, ledgerLogoDark);
+    return renderHardwareButton(ledgerLogo, navigateToConnectLedger);
+  };
 
   const QRButton = () => {
     const qrHardwareLogo = useAssetFromTheme(
@@ -115,6 +151,7 @@ const SelectHardwareWallet = () => {
         </Text>
       </View>
       <View style={styles.buttonsContainer}>
+        <LedgerButton />
         <QRButton />
       </View>
     </SafeAreaView>

@@ -19,6 +19,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import Assertions from '../../utils/Assertions';
+import CommonView from '../../pages/CommonView';
 
 const PASSWORD = '12345678';
 
@@ -47,7 +48,7 @@ describe(
           await Browser.isVisible();
           await Browser.navigateToTestDApp();
           await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-          await ConnectedAccountsModal.isVisible();
+          await Assertions.checkIfVisible(ConnectedAccountsModal.title);
           await Assertions.checkIfVisible(NetworkListModal.networkScroll);
           await ConnectedAccountsModal.scrollToBottomOfModal();
 
@@ -60,26 +61,27 @@ describe(
           // should tap reset wallet button
           await LoginView.tapResetWalletButton();
 
-          await DeleteWalletModal.isVisible();
+          await Assertions.checkIfVisible(DeleteWalletModal.container);
 
           //Delete wallet
           await DeleteWalletModal.tapIUnderstandButton();
           await DeleteWalletModal.typeDeleteInInputBox();
           await DeleteWalletModal.tapDeleteMyWalletButton();
           await TestHelpers.delay(2000);
-          await OnboardingView.isVisible();
-          await OnboardingView.deleteWalletToastIsNotVisible();
+          await Assertions.checkIfVisible(OnboardingView.container);
+          await Assertions.checkIfVisible(CommonView.toast);
+          await Assertions.checkIfNotVisible(CommonView.toast);
           await OnboardingView.tapCreateWallet();
 
           //Create new wallet
-          await MetaMetricsOptIn.isVisible();
+          await Assertions.checkIfVisible(MetaMetricsOptIn.container);
           await MetaMetricsOptIn.tapAgreeButton();
-          await CreatePasswordView.isVisible();
+          await Assertions.checkIfVisible(CreatePasswordView.container);
           await CreatePasswordView.enterPassword(PASSWORD);
           await CreatePasswordView.reEnterPassword(PASSWORD);
           await CreatePasswordView.tapIUnderstandCheckBox();
           await CreatePasswordView.tapCreatePasswordButton();
-          await ProtectYourWalletView.isVisible();
+          await Assertions.checkIfVisible(ProtectYourWalletView.container);
           await ProtectYourWalletView.tapOnRemindMeLaterButton();
           await SkipAccountSecurityModal.tapIUnderstandCheckBox();
           await SkipAccountSecurityModal.tapSkipButton();
@@ -92,7 +94,7 @@ describe(
           await TabBarComponent.tapBrowser();
           await Browser.isVisible();
           await Browser.tapNetworkAvatarButtonOnBrowser();
-          await ConnectedAccountsModal.isNotVisible();
+          await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
           await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         },
       );

@@ -39,7 +39,6 @@ import {
   swapsTokensWithBalanceSelector,
   swapsTopAssetsSelector,
 } from '../../../reducers/swaps';
-import Analytics from '../../../core/Analytics/Analytics';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
@@ -81,12 +80,14 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import AccountSelector from '../Ramp/common/components/AccountSelector';
+import AccountSelector from '../Ramp/components/AccountSelector';
 import {
   SWAP_SOURCE_TOKEN,
   SWAP_DEST_TOKEN,
   SWAP_MAX_SLIPPAGE,
 } from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -202,6 +203,7 @@ function SwapsAmountView({
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
+  const { trackAnonymousEvent } = useMetrics();
   const styles = createStyles(colors);
 
   const previousSelectedAddress = useRef();
@@ -283,17 +285,10 @@ function SwapsAmountView({
               activeCurrency: swapsTokens?.find((token) =>
                 toLowerCaseEquals(token.address, initialSource),
               )?.symbol,
-              chain_id: chainId,
+              chain_id: getDecimalChainId(chainId),
             };
-            Analytics.trackEventWithParameters(
-              MetaMetricsEvents.SWAPS_OPENED,
-              {},
-            );
-            Analytics.trackEventWithParameters(
-              MetaMetricsEvents.SWAPS_OPENED,
-              parameters,
-              true,
-            );
+
+            trackAnonymousEvent(MetaMetricsEvents.SWAPS_OPENED, parameters);
           });
         } else {
           navigation.pop();

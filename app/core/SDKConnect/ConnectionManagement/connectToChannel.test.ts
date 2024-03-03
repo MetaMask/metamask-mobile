@@ -181,7 +181,7 @@ describe('connectToChannel', () => {
             channelId: string;
             sendTerminate?: boolean;
           }) => {
-            mockInstance.removeChannel(channelId, sendTerminate);
+            mockInstance.removeChannel({ channelId, sendTerminate });
           },
         }),
       );
@@ -201,6 +201,7 @@ describe('connectToChannel', () => {
 
       expect(mockInstance.state.connections[id]).toEqual({
         id,
+        initialConnection: true,
         otherPublicKey,
         origin,
         validUntil,

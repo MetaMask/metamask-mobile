@@ -1,4 +1,4 @@
-# BottomSheet
+# [BottomSheet](https://metamask-consensys.notion.site/Bottom-Sheet-302164aff8a74b6eb721f49586f88ecd)
 
 ![BottomSheet](./BottomSheet.png)
 
@@ -21,6 +21,7 @@ Boolean that indicates if sheet is swippable. This affects whether or not tappin
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                      | true                                                   |
+
 
 ### `children`
 
