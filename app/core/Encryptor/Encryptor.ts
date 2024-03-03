@@ -1,7 +1,7 @@
 import { NativeModules } from 'react-native';
 import {
   SHA256_DIGEST_LENGTH,
-  OLD_NUMBER_ITERATIONS,
+  OLD_ITERATIONS_NUMBER,
   ENCRYPTION_LIBRARY,
 } from './constants';
 import type { EncryptionResult } from './types';
@@ -40,16 +40,16 @@ class Encryptor {
   private _generateKey = ({
     password,
     salt,
-    rounds,
+    iterations,
     lib,
   }: {
     password: string;
     salt: string;
-    rounds: number;
+    iterations: number;
     lib: string;
   }) =>
     lib === ENCRYPTION_LIBRARY.original
-      ? Aes.pbkdf2(password, salt, rounds, SHA256_DIGEST_LENGTH)
+      ? Aes.pbkdf2(password, salt, iterations, SHA256_DIGEST_LENGTH)
       : AesForked.pbkdf2(password, salt);
 
   /**
@@ -62,14 +62,14 @@ class Encryptor {
   private _keyFromPassword = ({
     password,
     salt,
-    rounds,
+    iterations,
     lib,
   }: {
     password: string;
     salt: string;
-    rounds: number;
+    iterations: number;
     lib: string;
-  }): Promise<string> => this._generateKey({ password, salt, rounds, lib });
+  }): Promise<string> => this._generateKey({ password, salt, iterations, lib });
 
   /**
    * Encrypts a text string using the provided key.
@@ -126,7 +126,7 @@ class Encryptor {
     const key = await this._keyFromPassword({
       password,
       salt,
-      rounds: OLD_NUMBER_ITERATIONS,
+      iterations: OLD_ITERATIONS_NUMBER,
       lib: ENCRYPTION_LIBRARY.original,
     });
     const result = await this._encryptWithKey({
@@ -155,7 +155,7 @@ class Encryptor {
     const key = await this._keyFromPassword({
       password,
       salt: payload.salt,
-      rounds: OLD_NUMBER_ITERATIONS,
+      iterations: OLD_ITERATIONS_NUMBER,
       lib: payload.lib,
     });
     const data = await this._decryptWithKey({
