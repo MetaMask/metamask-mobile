@@ -1,4 +1,9 @@
+import { NativeModules } from 'react-native';
 import { Encryptor } from './Encryptor';
+import { ENCRYPTION_LIBRARY } from './constants';
+
+const Aes = NativeModules.Aes;
+// const AesForked = NativeModules.AesForked;
 
 describe('Encryptor', () => {
   let encryptor: Encryptor;
@@ -12,10 +17,10 @@ describe('Encryptor', () => {
       const password = 'testPassword';
       const objectToEncrypt = { key: 'value' };
 
-      const encryptedString = await encryptor.encrypt({
+      const encryptedString = await encryptor.encrypt(
         password,
-        object: objectToEncrypt,
-      });
+        objectToEncrypt,
+      );
       const encryptedObject = JSON.parse(encryptedString);
 
       expect(encryptedObject).toHaveProperty('cipher');
@@ -26,21 +31,28 @@ describe('Encryptor', () => {
   });
 
   describe('decrypt', () => {
-    it('should decrypt a string correctly', async () => {
+    it('decrypts a string correctly with original library', async () => {
       const password = 'testPassword';
-      const encryptedString = JSON.stringify({
+      const encryptedString = {
         cipher: 'mockedCipher',
         iv: 'mockedIV',
         salt: 'mockedSalt',
-        lib: 'original',
-      });
+        lib: ENCRYPTION_LIBRARY.original,
+      };
 
-      const decryptedObject = await encryptor.decrypt({
+      const decryptFromAES = jest.spyOn(Aes, 'decrypt');
+
+      const decryptedObject = await encryptor.decrypt(
         password,
-        encryptedString,
-      });
+        JSON.stringify(encryptedString),
+      );
 
       expect(decryptedObject).toEqual(expect.any(Object));
+      expect(decryptFromAES).toHaveBeenCalledWith(
+        encryptedString.cipher,
+        'mockedKey',
+        encryptedString.iv,
+      );
     });
   });
 });
