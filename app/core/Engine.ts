@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
+/* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
 import {
   AccountTrackerController,
@@ -598,7 +599,9 @@ class Engine {
     const accountsControllerMessenger = this.controllerMessenger.getRestricted({
       name: 'AccountsController',
       allowedEvents: [
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         'SnapController:stateChange',
+        ///: END:ONLY_INCLUDE_IF
         'KeyringController:accountRemoved',
         'KeyringController:stateChange',
         'AccountsController:selectedAccountChange',

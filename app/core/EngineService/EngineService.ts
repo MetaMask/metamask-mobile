@@ -93,7 +93,7 @@ class EngineService {
       },
       {
         name: 'AccountsController',
-        key: `${engine.context.SnapController.name}:stateChange`,
+        key: `${engine.context.AccountsController.name}:stateChange`,
       },
     ];
 

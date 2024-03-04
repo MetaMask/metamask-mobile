@@ -1,0 +1,14 @@
+diff --git a/node_modules/@metamask/accounts-controller/dist/AccountsController.js b/node_modules/@metamask/accounts-controller/dist/AccountsController.js
+index 2d7cd3a..d01b558 100644
+--- a/node_modules/@metamask/accounts-controller/dist/AccountsController.js
++++ b/node_modules/@metamask/accounts-controller/dist/AccountsController.js
+@@ -60,7 +60,8 @@ class AccountsController extends base_controller_1.BaseController {
+             state: Object.assign(Object.assign({}, defaultState), state),
+         });
+         _AccountsController_instances.add(this);
+-        this.messagingSystem.subscribe('SnapController:stateChange', (snapStateState) => __classPrivateFieldGet(this, _AccountsController_instances, "m", _AccountsController_handleOnSnapStateChange).call(this, snapStateState));
++        // Snaps controller is not instanciated in the production MetaMask Mobile app (Flask only). For this reason we cannot subscriobe to this state change.
++        // this.messagingSystem.subscribe('SnapController:stateChange', (snapStateState) => __classPrivateFieldGet(this, _AccountsController_instances, "m", _AccountsController_handleOnSnapStateChange).call(this, snapStateState));
+         this.messagingSystem.subscribe('KeyringController:stateChange', (keyringState) => __classPrivateFieldGet(this, _AccountsController_instances, "m", _AccountsController_handleOnKeyringStateChange).call(this, keyringState));
+         __classPrivateFieldGet(this, _AccountsController_instances, "m", _AccountsController_registerMessageHandlers).call(this);
+     }
