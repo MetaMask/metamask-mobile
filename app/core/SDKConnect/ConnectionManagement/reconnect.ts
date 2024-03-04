@@ -51,6 +51,9 @@ async function reconnect({
     }
   }
 
+  // Update initial connection state
+  instance.state.connections[channelId].initialConnection = initialConnection;
+
   const wasPaused = existingConnection?.remote.isPaused();
   // Make sure the connection has resumed from pause before reconnecting.
   await waitForCondition({

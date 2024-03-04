@@ -377,7 +377,7 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "maxHeight": 1064,
+                                "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001A",
@@ -542,6 +542,8 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                             }
                           >
                             <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}
@@ -581,6 +583,8 @@ exports[`ShowIpfsGatewaySheet should render correctly 1`] = `
                               </Text>
                             </TouchableOpacity>
                             <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
                               activeOpacity={1}
                               onPress={[Function]}
                               onPressIn={[Function]}

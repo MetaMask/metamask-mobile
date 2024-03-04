@@ -22,7 +22,6 @@ import {
   TX_UNAPPROVED,
 } from '../../../constants/transaction';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import {
   swapsLivenessSelector,
@@ -60,11 +59,12 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
-import Engine from '../../../core/Engine';
 import {
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -176,6 +176,10 @@ class Asset extends PureComponent {
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -441,11 +445,9 @@ class Asset extends PureComponent {
   };
 
   onRefresh = async () => {
-    const { TransactionController } = Engine.context;
-
     this.setState({ refreshing: true });
 
-    await TransactionController.updateIncomingTransactions();
+    await updateIncomingTransactions();
 
     this.setState({ refreshing: false });
   };
@@ -476,15 +478,11 @@ class Asset extends PureComponent {
 
     const onBuy = () => {
       navigation.navigate(Routes.RAMP.BUY);
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.BUY_BUTTON_CLICKED,
-          {
-            text: 'Buy',
-            location: 'Token Screen',
-            chain_id_destination: chainId,
-          },
-        );
+
+      this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+        text: 'Buy',
+        location: 'Token Screen',
+        chain_id_destination: chainId,
       });
     };
 
@@ -597,4 +595,4 @@ const mapStateToProps = (state) => ({
   ),
 });
 
-export default connect(mapStateToProps)(Asset);
+export default connect(mapStateToProps)(withMetricsAwareness(Asset));

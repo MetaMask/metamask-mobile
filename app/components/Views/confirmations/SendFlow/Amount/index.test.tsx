@@ -64,6 +64,15 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../util/transaction-controller', () => ({
+  __esModule: true,
+  estimateGas: jest.fn(() =>
+    Promise.resolve({
+      gas: mockTransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
+    }),
+  ),
+}));
+
 const mockNavigate = jest.fn();
 
 const CURRENT_ACCOUNT = '0x1a';

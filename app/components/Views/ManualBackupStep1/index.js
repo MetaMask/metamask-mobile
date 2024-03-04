@@ -4,7 +4,6 @@ import {
   View,
   SafeAreaView,
   ActivityIndicator,
-  InteractionManager,
   TextInput,
   KeyboardAvoidingView,
   Appearance,
@@ -35,9 +34,9 @@ import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 /**
  * View that's shown during the second step of
@@ -69,6 +68,10 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       password,
     );
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
+  };
+
+  const track = (event, properties) => {
+    trackOnboarding(event, properties);
   };
 
   useEffect(() => {
@@ -111,9 +114,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
   };
 
   const tryUnlockWithPassword = async (password) => {
