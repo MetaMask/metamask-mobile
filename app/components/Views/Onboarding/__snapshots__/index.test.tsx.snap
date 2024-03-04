@@ -1,37 +1,318 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Onboarding should render correctly 1`] = `
-<ContextProvider
-  value={
+<View
+  style={
     Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
+      "flex": 1,
     }
   }
+  testID="onboarding-screen"
 >
-  <Component />
-</ContextProvider>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      accessibilityIgnoresInvertColors={true}
+      style={
+        Object {
+          "borderTopWidth": 0,
+          "bottom": 0,
+          "flex": 1,
+          "height": null,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "width": null,
+        }
+      }
+    >
+      <Image
+        resizeMode="stretch"
+        source={
+          Object {
+            "default": Object {
+              "uri": "MockImage",
+            },
+          }
+        }
+        style={
+          Array [
+            Object {
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            },
+            Object {
+              "height": null,
+              "width": null,
+            },
+            undefined,
+          ]
+        }
+      />
+      <RCTScrollView
+        contentContainerStyle={
+          Object {
+            "flex": 1,
+          }
+        }
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      >
+        <View>
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flex": 1,
+                "paddingVertical": 30,
+              }
+            }
+          >
+            <View
+              style={
+                Object {
+                  "flex": 1,
+                  "position": "relative",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 24,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 32,
+                    "textAlign": "center",
+                  }
+                }
+                testID="wallet-setup-screen-title-id"
+              >
+                Wallet setup
+              </Text>
+              <View
+                style={
+                  Object {
+                    "marginVertical": 24,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    Object {
+                      "color": "#24272A",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                      "marginBottom": 16,
+                      "textAlign": "center",
+                    }
+                  }
+                  testID="wallet-setup-screen-description-id"
+                >
+                  Import an existing wallet or create a new one
+                </Text>
+              </View>
+              <View
+                style={
+                  Object {
+                    "flex": 1,
+                    "justifyContent": "flex-end",
+                    "marginBottom": 24,
+                  }
+                }
+              >
+                <View
+                  style={
+                    Object {
+                      "marginBottom": 16,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessible={true}
+                    activeOpacity={0.2}
+                    onPress={[Function]}
+                    style={
+                      Array [
+                        Array [
+                          Object {
+                            "borderRadius": 100,
+                            "justifyContent": "center",
+                            "padding": 15,
+                          },
+                          Object {
+                            "backgroundColor": "#FFFFFF",
+                            "borderColor": "#0376C9",
+                            "borderWidth": 1,
+                          },
+                          undefined,
+                        ],
+                        null,
+                      ]
+                    }
+                    testID="wallet-setup-screen-import-from-seed-button-id"
+                  >
+                    <Text
+                      style={
+                        Array [
+                          Object {
+                            "color": "#007aff",
+                            "fontSize": 17,
+                            "fontWeight": "500",
+                            "textAlign": "center",
+                          },
+                          null,
+                          Array [
+                            Object {
+                              "fontFamily": "EuclidCircularB-Bold",
+                              "fontSize": 14,
+                              "fontWeight": "600",
+                              "textAlign": "center",
+                            },
+                            Object {
+                              "color": "#0376C9",
+                            },
+                            undefined,
+                          ],
+                          null,
+                        ]
+                      }
+                    >
+                      Import using Secret Recovery Phrase
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <View
+                  style={
+                    Object {
+                      "marginBottom": 16,
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    accessible={true}
+                    activeOpacity={0.2}
+                    onPress={[Function]}
+                    style={
+                      Array [
+                        Array [
+                          Object {
+                            "borderRadius": 100,
+                            "justifyContent": "center",
+                            "padding": 15,
+                          },
+                          Object {
+                            "backgroundColor": "#0376C9",
+                          },
+                          undefined,
+                        ],
+                        null,
+                      ]
+                    }
+                    testID="wallet-setup-screen-create-new-wallet-button-id"
+                  >
+                    <Text
+                      style={
+                        Array [
+                          Object {
+                            "color": "#007aff",
+                            "fontSize": 17,
+                            "fontWeight": "500",
+                            "textAlign": "center",
+                          },
+                          null,
+                          Array [
+                            Object {
+                              "fontFamily": "EuclidCircularB-Bold",
+                              "fontSize": 14,
+                              "fontWeight": "600",
+                              "textAlign": "center",
+                            },
+                            Object {
+                              "color": "#FFFFFF",
+                            },
+                            undefined,
+                          ],
+                          null,
+                        ]
+                      }
+                    >
+                      Create a new wallet
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+  </View>
+  <View
+    collapsable={false}
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "bottom": 0,
+        "left": 0,
+        "opacity": 1,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  />
+  <View />
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
+  />
+</View>
 `;

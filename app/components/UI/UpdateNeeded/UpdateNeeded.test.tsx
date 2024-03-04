@@ -1,19 +1,26 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../..//util/test/renderWithProvider';
 import { UpdateNeeded } from './';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 
-const mockStore = configureMockStore();
-const store = mockStore({});
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
+
+jest.mock('react-native-device-info', () => ({
+  getBrand: () => 'some brand',
+  getBuildNumber: () => 'some build number',
+  getVersion: () => 'some version',
+}));
 
 describe('UpdateNeeded', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <UpdateNeeded />
-      </Provider>,
-    );
+    const wrapper = renderWithProvider(<UpdateNeeded />, {});
     expect(wrapper).toMatchSnapshot();
   });
 });

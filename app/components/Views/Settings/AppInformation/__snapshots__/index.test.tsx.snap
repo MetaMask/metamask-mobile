@@ -1,43 +1,204 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AppInformation should render correctly 1`] = `
-<ContextProvider
-  value={
+<RCTSafeAreaView
+  style={
     Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
     }
   }
+  testID="app-settings-screen"
 >
-  <AppInformation
-    route={
+  <RCTScrollView
+    contentContainerStyle={
       Object {
-        "params": Object {},
+        "paddingLeft": 24,
+        "paddingRight": 24,
+        "paddingVertical": 24,
       }
     }
-  />
-</ContextProvider>
+  >
+    <View>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "backgroundColor": "#FFFFFF",
+            "flex": 1,
+            "justifyContent": "center",
+            "marginBottom": 40,
+            "top": 20,
+          }
+        }
+      >
+        <Image
+          resizeMethod="auto"
+          source={
+            Object {
+              "default": Object {
+                "uri": "MockImage",
+              },
+            }
+          }
+          style={
+            Object {
+              "height": 100,
+              "width": 100,
+            }
+          }
+        />
+        <Text
+          style={
+            Object {
+              "color": "#535A61",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 18,
+              "fontWeight": "400",
+              "marginBottom": 20,
+              "marginTop": 20,
+              "textAlign": "left",
+            }
+          }
+        />
+      </View>
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 18,
+            "fontWeight": "400",
+            "marginBottom": 20,
+            "textAlign": "left",
+          }
+        }
+      >
+        Links
+      </Text>
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <Text
+            style={
+              Object {
+                "color": "#0376C9",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 18,
+                "fontWeight": "400",
+                "marginBottom": 20,
+                "textAlign": "left",
+              }
+            }
+          >
+            Privacy Policy
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <Text
+            style={
+              Object {
+                "color": "#0376C9",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 18,
+                "fontWeight": "400",
+                "marginBottom": 20,
+                "textAlign": "left",
+              }
+            }
+          >
+            Terms of use
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <Text
+            style={
+              Object {
+                "color": "#0376C9",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 18,
+                "fontWeight": "400",
+                "marginBottom": 20,
+                "textAlign": "left",
+              }
+            }
+          >
+            Attributions
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          Object {
+            "borderBottomColor": "#D6D9DC",
+            "borderBottomWidth": 1,
+            "marginBottom": 20,
+            "width": "30%",
+          }
+        }
+      />
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <Text
+            style={
+              Object {
+                "color": "#0376C9",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 18,
+                "fontWeight": "400",
+                "marginBottom": 20,
+                "textAlign": "left",
+              }
+            }
+          >
+            Visit our Support Center
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <Text
+            style={
+              Object {
+                "color": "#0376C9",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 18,
+                "fontWeight": "400",
+                "marginBottom": 20,
+                "textAlign": "left",
+              }
+            }
+          >
+            Visit our Website
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <Text
+            style={
+              Object {
+                "color": "#0376C9",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 18,
+                "fontWeight": "400",
+                "marginBottom": 20,
+                "textAlign": "left",
+              }
+            }
+          >
+            Contact Us
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </RCTScrollView>
+</RCTSafeAreaView>
 `;

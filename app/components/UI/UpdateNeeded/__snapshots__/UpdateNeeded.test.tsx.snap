@@ -1,37 +1,230 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`UpdateNeeded should render correctly 1`] = `
-<ContextProvider
-  value={
+<View
+  style={
     Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
+      "bottom": 0,
+      "left": 0,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
     }
   }
 >
-  <Component />
-</ContextProvider>
+  <View
+    style={
+      Array [
+        Object {
+          "backgroundColor": "#00000099",
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        Object {
+          "opacity": undefined,
+        },
+      ]
+    }
+  />
+  <View
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    style={
+      Array [
+        Array [
+          Object {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          Object {
+            "transform": Array [
+              Object {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ],
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#FFFFFF",
+          "flex": 1,
+          "justifyContent": "space-between",
+          "paddingHorizontal": 24,
+          "paddingVertical": 16,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
+      style={
+        Object {
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
+      }
+    />
+    <RCTScrollView
+      collapsable={false}
+      contentContainerStyle={
+        Object {
+          "flexGrow": 1,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      onGestureHandlerEvent={[Function]}
+      onGestureHandlerStateChange={[Function]}
+    >
+      <View>
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+            }
+          }
+        >
+          <Image
+            source={
+              Object {
+                "default": Object {
+                  "uri": "MockImage",
+                },
+              }
+            }
+          />
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 32,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 40,
+              "paddingBottom": 16,
+              "textAlign": "center",
+            }
+          }
+        >
+          Updates needed
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "textAlign": "center",
+            }
+          }
+        >
+          We've increased security for your wallet! Please take a moment to protect yourself and update to the latest version.
+        </Text>
+      </View>
+    </RCTScrollView>
+    <View
+      style={
+        Object {
+          "padding": 16,
+          "width": "100%",
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#0376C9",
+            "borderRadius": 20,
+            "flexDirection": "row",
+            "height": undefined,
+            "justifyContent": "center",
+            "marginVertical": 10,
+            "padding": 8,
+            "paddingHorizontal": 16,
+          }
+        }
+        variant="Primary"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#FFFFFF",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Update to latest version
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "transparent",
+            "borderRadius": 20,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        variant="Link"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Remind me later
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</View>
 `;
