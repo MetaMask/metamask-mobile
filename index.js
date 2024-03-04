@@ -17,6 +17,7 @@ setupSentry();
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
+import { isTest } from './app/util/test/utils';
 
 // List of warnings that we're ignoring
 LogBox.ignoreLogs([
@@ -84,5 +85,5 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
  */
 AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
-  process.env.IS_TEST === 'true' ? Root : Sentry.wrap(Root),
+  isTest === 'true' ? Root : Sentry.wrap(Root),
 );

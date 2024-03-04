@@ -4,6 +4,7 @@ import RPCQueueManager from '../RPCQueueManager';
 import { SDKConnect } from '../SDKConnect';
 import DevLogger from './DevLogger';
 import { Connection } from '../Connection';
+import { isTest } from '../../../util/test/utils';
 
 export const MAX_QUEUE_LOOP = Infinity;
 export const wait = (ms: number) =>
@@ -89,7 +90,7 @@ export const waitForKeychainUnlocked = async ({
   }
 
   // Disable during e2e tests otherwise Detox fails
-  if (process.env.IS_TEST === 'true') {
+  if (isTest === 'true') {
     return true;
   }
 
