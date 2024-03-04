@@ -25,7 +25,6 @@ import Logger from '../../../util/Logger';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 
 interface Props {
@@ -33,7 +32,7 @@ interface Props {
     smartTransaction: SmartTransaction;
     creationTime: number;
     isDapp: boolean;
-    isMetamaskSwap: boolean;
+    isInSwapFlow: boolean;
   };
   pendingApprovalId: string;
   origin: string;
@@ -55,7 +54,7 @@ export const showRemainingTimeInMinAndSec = (
 };
 
 const SmartTransactionStatus = ({
-  requestState: { smartTransaction, creationTime, isDapp, isMetamaskSwap },
+  requestState: { smartTransaction, creationTime, isDapp, isInSwapFlow },
   pendingApprovalId,
   origin,
   onConfirm,
@@ -263,7 +262,7 @@ const SmartTransactionStatus = ({
       secondaryButtonText = returnTextDapp;
       onSecondaryButtonPress = closeStatusPage;
     } else {
-      if (isMetamaskSwap) {
+      if (isInSwapFlow) {
         primaryButtonText = strings('smart_transactions.create_new', {
           txType: strings('smart_transactions.swap'),
         });
@@ -289,7 +288,13 @@ const SmartTransactionStatus = ({
       onSecondaryButtonPress = closeStatusPage;
     } else {
       primaryButtonText = returnTextMM;
-      onPrimaryButtonPress = closeStatusPage;
+
+      if (isInSwapFlow) {
+        onPrimaryButtonPress = createNewSwap;
+      } else {
+        onPrimaryButtonPress = createNewSend;
+      }
+
       secondaryButtonText = strings('smart_transactions.view_activity');
       onSecondaryButtonPress = viewActivity;
     }
