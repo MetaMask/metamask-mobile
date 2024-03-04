@@ -310,8 +310,9 @@ afterEach(() => {
 
 global.crypto = {
   getRandomValues: (arr) => {
+    const uint8Max = 255;
     for (let i = 0; i < arr.length; i++) {
-      arr[i] = Math.floor(Math.random() * 256);
+      arr[i] = Math.floor(Math.random() * (uint8Max + 1));
     }
   },
 };
