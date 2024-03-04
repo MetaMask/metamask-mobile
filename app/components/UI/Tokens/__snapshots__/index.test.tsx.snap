@@ -699,6 +699,35 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   &lt; $0.01
                                 </Text>
                               </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  Array [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -890,6 +919,35 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   &lt; $0.01
                                 </Text>
                               </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  Array [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -1696,6 +1754,35 @@ exports[`Tokens should render correctly 1`] = `
                                   &lt; $0.01
                                 </Text>
                               </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  Array [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -1887,6 +1974,35 @@ exports[`Tokens should render correctly 1`] = `
                                   &lt; $0.01
                                 </Text>
                               </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  Array [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -2701,6 +2817,35 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   &lt; $0.01
                                 </Text>
                               </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  Array [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -2892,6 +3037,35 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   &lt; $0.01
                                 </Text>
                               </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  Array [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -3083,6 +3257,35 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   &lt; $0.01
                                 </Text>
                               </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  Array [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
                               <Text
                                 accessibilityRole="text"
                                 style={
