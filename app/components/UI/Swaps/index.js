@@ -88,6 +88,7 @@ import {
   SWAP_MAX_SLIPPAGE,
 } from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
 import { getDecimalChainId } from '../../../util/networks';
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -260,7 +261,11 @@ function SwapsAmountView({
     (async () => {
       try {
         const featureFlags = await swapsUtils.fetchSwapsFeatureLiveness(
-          chainId,
+          __DEV__ &&
+            (chainId === NETWORKS_CHAIN_ID.GOERLI ||
+              chainId === NETWORKS_CHAIN_ID.SEPOLIA)
+            ? NETWORKS_CHAIN_ID.MAINNET
+            : chainId,
           AppConstants.SWAPS.CLIENT_ID,
         );
 
