@@ -121,7 +121,6 @@
     "@metamask/approval-controller": "3.4.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
     "simple-get": "4.0.1",
-    "shell-quote": "1.7.3",
     "**/plist": "3.0.5",
     "**/minimist": "1.2.6",
     "@metamask/**/cross-fetch": "2.2.6",
