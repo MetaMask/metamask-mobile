@@ -886,6 +886,7 @@ class Engine {
             smartTransactionsController: this.stxController,
             isSmartTransaction,
             approvalController,
+            store,
           });
         },
       },

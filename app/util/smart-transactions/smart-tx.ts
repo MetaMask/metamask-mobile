@@ -9,7 +9,14 @@ import Logger from '../Logger';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import TransactionTypes from '../../core/TransactionTypes';
-import { isSwapTransaction } from '../transactions';
+import {
+  getIsSwapApproveTransaction,
+  getIsInSwapFlowTransaction,
+  getIsSwapTransaction,
+} from '../transactions';
+import { Store } from 'redux';
+import { RootState } from '../../reducers';
+import { setSwapsApproveTxApprovalId } from '../../reducers/swaps';
 
 // TODO import these from tx controller
 export declare type Hex = `0x${string}`;
@@ -83,6 +90,7 @@ interface Request {
   transactionController: TransactionController;
   isSmartTransaction: boolean;
   approvalController: ApprovalController;
+  store: Store<RootState, any>;
 }
 
 export async function publishHook(request: Request) {
@@ -92,6 +100,7 @@ export async function publishHook(request: Request) {
     transactionController,
     isSmartTransaction,
     approvalController,
+    store,
   } = request;
   Logger.log('STX - Executing publish hook', transactionMeta);
 
@@ -104,8 +113,65 @@ export async function publishHook(request: Request) {
     return { transactionHash: undefined };
   }
 
-  const { id } = approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
-  const smartTransactionStatusApprovalId = id;
+  // Determine tx type
+  // If it isn't a dapp tx, check if it's MM Swaps or Send
+  // process.env.MM_FOX_CODE is from MM Swaps
+  const isDapp =
+    transactionMeta?.origin !== TransactionTypes.MMM &&
+    transactionMeta?.origin !== process.env.MM_FOX_CODE;
+
+  const to = transactionMeta.transaction.to?.toLowerCase();
+  const { data } = transactionMeta.transaction;
+
+  const isInSwapFlow = getIsInSwapFlowTransaction(
+    data,
+    transactionMeta.origin,
+    to,
+    chainId,
+  );
+
+  const isSwapApproveTx = getIsSwapApproveTransaction(
+    data,
+    transactionMeta.origin,
+    to,
+    chainId,
+  );
+
+  const isSwapTransaction = getIsSwapTransaction(
+    data,
+    transactionMeta.origin,
+    to,
+    chainId,
+  );
+
+  Logger.log(
+    'STX type',
+    'isDapp',
+    isDapp,
+    'isInSwapFlow',
+    isInSwapFlow,
+    'isSwapApproveTx',
+    isSwapApproveTx,
+    'isSwapTransaction',
+    isSwapTransaction,
+  );
+
+  let smartTransactionStatusApprovalId: string | undefined;
+  // Swap txs are the 2nd in the swap flow, so we don't want to show another status page for that
+  if (!isSwapTransaction) {
+    const { id } = approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
+    smartTransactionStatusApprovalId = id;
+
+    if (isSwapApproveTx) {
+      // set approvalId in swaps reducer
+      store.dispatch(setSwapsApproveTxApprovalId(chainId, id));
+    }
+  } else {
+    // read approve tx approvalId in swaps reducer
+    smartTransactionStatusApprovalId =
+      store.getState().swaps.approveTxApprovalId;
+  }
+
   Logger.log('STX - Started approval flow', smartTransactionStatusApprovalId);
 
   try {
@@ -156,76 +222,69 @@ export async function publishHook(request: Request) {
 
     Logger.log('STX - Received UUID', uuid);
 
-    // If it isn't a dapp tx, check if it's MM Swaps or Send
-    // process.env.MM_FOX_CODE is from MM Swaps
-    const isDapp =
-      transactionMeta?.origin !== TransactionTypes.MMM &&
-      transactionMeta?.origin !== process.env.MM_FOX_CODE;
-
-    const to = transactionMeta.transaction.to?.toLowerCase();
-    const { data } = transactionMeta.transaction;
-    const isMetamaskSwap = isSwapTransaction(
-      data,
-      transactionMeta.origin,
-      to,
-      chainId,
-    );
-
-    // Do not await on this, since it will not progress any further if so
-    approvalController.addAndShowApprovalRequest({
-      id: smartTransactionStatusApprovalId,
-      origin,
-      type: ApprovalTypes.SMART_TRANSACTION_STATUS,
-      // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
-      requestState: {
-        smartTransaction: {
-          status: 'pending',
+    // For MM Swaps, the user just confirms the ERC20 approval tx, then the actual swap tx is auto confirmed, so 2 stx's are sent through in quick succession
+    // '[MetaMask DEBUG]:', 'STX - publish hook Error', { [Error: Request of type 'smart_transaction_status' already pending for origin EXAMPLE_FOX_CODE. Please wait.] code: -32002 }
+    if (smartTransactionStatusApprovalId && !isSwapApproveTx) {
+      // Do not await on this, since it will not progress any further if so
+      approvalController.addAndShowApprovalRequest({
+        id: smartTransactionStatusApprovalId,
+        origin,
+        type: ApprovalTypes.SMART_TRANSACTION_STATUS,
+        // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
+        requestState: {
+          smartTransaction: {
+            status: 'pending',
+          },
+          creationTime: Date.now(),
+          isDapp,
+          isInSwapFlow,
         },
-        creationTime: Date.now(),
-        isDapp,
-        isMetamaskSwap,
-      },
-    });
-    Logger.log('STX - Added approval', smartTransactionStatusApprovalId);
+      });
+      Logger.log('STX - Added approval', smartTransactionStatusApprovalId);
+    }
 
     // undefined for init state
     // null for error
     // string for success
     let transactionHash: string | null | undefined;
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore-next-line
-    smartTransactionsController.eventEmitter.on(
-      `${uuid}:smartTransaction`,
-      async (smartTransaction: SmartTransaction) => {
-        Logger.log('STX - smartTransaction event', smartTransaction);
+    if (smartTransactionStatusApprovalId) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore-next-line
+      smartTransactionsController.eventEmitter.on(
+        `${uuid}:smartTransaction`,
+        async (smartTransaction: SmartTransaction) => {
+          Logger.log('STX - smartTransaction event', smartTransaction);
 
-        const { status, statusMetadata } = smartTransaction;
-        if (!status || status === 'pending') {
-          return;
-        }
+          const { status, statusMetadata } = smartTransaction;
+          if (!status || status === 'pending') {
+            return;
+          }
 
-        try {
-          await approvalController.updateRequestState({
-            id: smartTransactionStatusApprovalId,
-            requestState: {
-              smartTransaction: smartTransaction as any,
-              isDapp,
-              isMetamaskSwap,
-            },
-          });
-        } catch (e) {
-          Logger.log('STX - Error updating approval request state', e);
-        }
+          try {
+            if (!isSwapApproveTx) {
+              await approvalController.updateRequestState({
+                id: smartTransactionStatusApprovalId as string,
+                requestState: {
+                  smartTransaction: smartTransaction as any,
+                  isDapp,
+                  isInSwapFlow,
+                },
+              });
+            }
+          } catch (e) {
+            Logger.log('STX - Error updating approval request state', e);
+          }
 
-        if (statusMetadata?.minedHash) {
-          Logger.log('STX - Received tx hash: ', statusMetadata?.minedHash);
-          transactionHash = statusMetadata.minedHash;
-        } else {
-          transactionHash = null;
-        }
-      },
-    );
+          if (statusMetadata?.minedHash) {
+            Logger.log('STX - Received tx hash: ', statusMetadata?.minedHash);
+            transactionHash = statusMetadata.minedHash;
+          } else {
+            transactionHash = null;
+          }
+        },
+      );
+    }
 
     const waitForTransactionHashChange = () =>
       new Promise((resolve) => {
@@ -258,10 +317,15 @@ export async function publishHook(request: Request) {
   } finally {
     try {
       // This removes the loading spinner, does not close modal
-      approvalController.endFlow({
-        id: smartTransactionStatusApprovalId,
-      });
-      Logger.log('STX - Ended approval flow', smartTransactionStatusApprovalId);
+      if (smartTransactionStatusApprovalId && !isSwapApproveTx) {
+        approvalController.endFlow({
+          id: smartTransactionStatusApprovalId,
+        });
+        Logger.log(
+          'STX - Ended approval flow',
+          smartTransactionStatusApprovalId,
+        );
+      }
     } catch (e) {
       Logger.log('STX - publish hook Error 2', e);
     }
