@@ -5,13 +5,18 @@ import {
   hasNumberOfCodeBlocksIncreased,
 } from '../common/shared';
 
-// Code blocks to detect
-const codeBlocks = [`from 'enzyme'`];
+// Blacklisted code blocks
+const blacklistedCodeblocks = [`from 'enzyme'`];
 
+/**
+ * 
+ * @param diff - Code diff between PR and target branch
+ * @returns - Boolean indicating if diff includes blacklisted code blocks
+ */
 function preventCodeBlocksRule(diff: string): boolean {
   const diffByFilePath = filterDiffByFilePath(diff, EXCLUDE_REGEX);
   const diffAdditions = filterDiffFileCreations(diffByFilePath);
-  const hashmap = hasNumberOfCodeBlocksIncreased(diffAdditions, codeBlocks);
+  const hashmap = hasNumberOfCodeBlocksIncreased(diffAdditions, blacklistedCodeblocks);
 
   const haveOccurencesOfAtLeastOneCodeBlockIncreased =
     Object.values(hashmap).includes(true);
