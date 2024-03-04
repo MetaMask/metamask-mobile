@@ -126,6 +126,13 @@ class Encryptor {
       ? Aes.decrypt(encryptedData.cipher, key, encryptedData.iv)
       : AesForked.decrypt(encryptedData.cipher, key, encryptedData.iv);
 
+  /**
+   * Checks if the provided vault is an updated encryption format.
+   *
+   * @param vault - The vault to check.
+   * @param targetDerivationParams - The options to use for key derivation.
+   * @returns Whether or not the vault is an updated encryption format.
+   */
   private isVaultUpdated = (
     vault: string,
     targetDerivationParams = DEFAULT_DERIVATION_PARAMS,
@@ -192,6 +199,18 @@ class Encryptor {
     return JSON.parse(data);
   };
 
+  /**
+   * Updates the provided vault, re-encrypting
+   * data with a safer algorithm if one is available.
+   *
+   * If the provided vault is already using the latest available encryption method,
+   * it is returned as is.
+   *
+   * @param vault - The vault to update.
+   * @param password - The password to use for encryption.
+   * @param targetDerivationParams - The options to use for key derivation.
+   * @returns A promise resolving to the updated vault.
+   */
   updateVault = async (
     vault: string,
     password: string,
