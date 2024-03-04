@@ -42,14 +42,11 @@ export const settingsReducer = (state = initialState, action) => {
         useBlockieIcon: action.useBlockieIcon,
       };
     case 'SET_PRIMARY_CURRENCY':
-      console.log("RRRRRRRRREDUCER  - TOGGLE_BASIC_SERVICES", action)
-
       return {
         ...state,
         primaryCurrency: action.primaryCurrency,
       };
     case 'TOGGLE_BASIC_SERVICES':
-      console.log("RRRRRRRRREDUCER  - TOGGLE_BASIC_SERVICES", action)
       return {
         ...state,
         basicServicesEnabled: action.basicServicesEnabled,

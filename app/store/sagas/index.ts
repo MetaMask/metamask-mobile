@@ -110,34 +110,29 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
 
 export function* basicFunctionalityToggle() {
   // TODO: cleanup
-  console.log("HEYYYYYYY");
   while (true) {
-    yield take('TOGGLE_BASIC_SERVICES');
-    // console.log('XXX - intercepted fetch', payload);
-    // if (payload) {
-    //   const { basicPrivacy } = payload;
-    //   if (basicPrivacy) {
-    //     const list = ['infura', 'api2', 'api3'];
-    //     window.fetch = function (fetchProp) {
-    //       let url = '';
-    //       if (typeof fetchProp === 'string') {
-    //         url = fetchProp;
-    //       } else if (isObject(fetchProp)) {
-    //         url = fetchProp.url as string;
-    //       }
-    //       if (!url) Promise.reject(new Error('No URL'));
-    //       console.log('XXX - intercepted fetch', url);
-    //       if (basicPrivacy) {
-    //         const disallowed = list.find((api) => url.includes(api));
-    //         if (disallowed) {
-    //           console.log('ZZZZZZZZZ - intercepted fetch - disallowed', url);
-    //           return Promise.reject(new Error('Disallowed'));
-    //         }
-    //       }
-    //       return originalFetch.apply(this, url);
-    //     };
-    //   }
-    // }
+    const { basicServicesEnabled } = yield take('TOGGLE_BASIC_SERVICES');
+    if (!basicServicesEnabled) {
+      const list = ['infura', 'api2', 'api3'];
+      window.fetch = function (fetchProp) {
+        let url = '';
+        if (typeof fetchProp === 'string') {
+          url = fetchProp;
+        } else if (isObject(fetchProp)) {
+          url = fetchProp.url as string;
+        }
+
+        if (!url) Promise.reject(new Error('No URL'));
+
+        if (!basicServicesEnabled) {
+          const disallowed = list.find((api) => url.includes(api));
+          if (disallowed) {
+            return Promise.reject(new Error('Disallowed'));
+          }
+        }
+        return originalFetch.apply(this, url);
+      };
+    }
   }
 }
 

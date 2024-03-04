@@ -33,7 +33,7 @@ export function setLockTime(lockTime) {
   };
 }
 
-export function setPrimaryCurrency(primaryCurrency) {
+export function sectPrimaryCurrency(primaryCurrency) {
   return {
     type: 'SET_PRIMARY_CURRENCY',
     primaryCurrency,
@@ -48,7 +48,6 @@ export function setUseBlockieIcon(useBlockieIcon) {
 }
 
 export function toggleBasicServices(basicServicesEnabled) {
-  console.log("ACTION - YAYYYYY", basicServicesEnabled)
   return {
     type: 'TOGGLE_BASIC_SERVICES',
     basicServicesEnabled,
