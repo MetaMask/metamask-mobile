@@ -120,7 +120,6 @@
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/approval-controller": "3.4.0",
     "@exodus/react-native-payments/validator": "^13.7.0",
-    "**/qs": "6.10.3",
     "simple-get": "4.0.1",
     "shell-quote": "1.7.3",
     "**/plist": "3.0.5",
