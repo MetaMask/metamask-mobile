@@ -17,11 +17,10 @@ const styles = (colors: Colors) =>
     },
     buttons: {
       flexDirection: 'row',
-      marginHorizontal: -4,
+      columnGap: 8,
     },
     button: {
       flex: 1,
-      marginHorizontal: 4,
     },
     title: {
       marginBottom: 8,
