@@ -55,7 +55,7 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import AppConstants from '../../../../app/core/AppConstants';
-import { trackDappVisitedEvent } from '../../../util/metrics';
+import { trackDappViewedEvent } from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const AccountConnect = (props: AccountConnectProps) => {
@@ -152,10 +152,10 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
-  const triggerDappVisitedEvent = useCallback(
+  const triggerDappViewedEvent = useCallback(
     (numberOfConnectedAccounts: number) =>
-      // Track dapp visited event
-      trackDappVisitedEvent({ hostname, numberOfConnectedAccounts }),
+      // Track dapp viewed event
+      trackDappViewedEvent({ hostname, numberOfConnectedAccounts }),
     [hostname],
   );
 
@@ -186,7 +186,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         request,
       );
 
-      triggerDappVisitedEvent(connectedAccountLength);
+      triggerDappViewedEvent(connectedAccountLength);
 
       trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
@@ -231,7 +231,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     toastRef,
     accountsLength,
     metadataOrigin,
-    triggerDappVisitedEvent,
+    triggerDappViewedEvent,
     trackEvent,
   ]);
 
