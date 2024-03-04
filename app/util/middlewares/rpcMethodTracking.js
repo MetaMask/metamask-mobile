@@ -71,16 +71,12 @@ export default function createRPCMethodTrackingMiddleware({
 
     // Boolean variable that reduces code duplication and increases legibility
     const shouldTrackEvent =
-      // Don't track if the request came from our own UI or background
-      origin !== '123' && // fix this
       // Don't track if this is a blocked method
       rateLimitType !== RATE_LIMIT_TYPES.BLOCKED &&
       // Don't track if the rate limit has been hit
       rateLimited === false &&
       // Don't track if the user isn't participating in metametrics
       userParticipatingInMetaMetrics === true;
-
-    console.log({origin, method, shouldTrackEvent, req})
 
     if (shouldTrackEvent) {
       metrics.trackEvent(
