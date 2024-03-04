@@ -18,7 +18,6 @@ import BottomSheet, {
 import UntypedEngine from '../../../core/Engine';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { SelectedAccount } from '../../../components/UI/AccountSelectorList/AccountSelectorList.types';
 import {
@@ -54,12 +53,17 @@ import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import AppConstants from '../../../../app/core/AppConstants';
+import { trackDappVisitedEvent } from '../../../util/metrics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
   const selectedWalletAddress = useSelector(selectSelectedAddress);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
     selectedWalletAddress,
@@ -82,11 +86,23 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  const { id: channelId, origin: metadataOrigin } = hostInfo.metadata as {
+    id: string;
+    origin: string;
+  };
+
+  // Extract connection info from sdk
+  // FIXME should be replaced by passing dynamic parameters to the PermissionController
+  // TODO: Retrive wallet connect connection info from channelId
+  const sdkConnection = SDKConnect.getInstance().getConnection({ channelId });
+  const hostname = (
+    sdkConnection?.originatorInfo?.url ?? metadataOrigin
+  ).replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+
   const origin: string = useSelector(getActiveTabUrl, isEqual);
 
   const faviconSource = useFavicon(origin);
-
-  const hostname = hostInfo.metadata.origin;
   const urlWithProtocol = prefixUrlWithProtocol(hostname);
 
   const secureIcon = useMemo(
@@ -115,13 +131,32 @@ const AccountConnect = (props: AccountConnectProps) => {
   const cancelPermissionRequest = useCallback(
     (requestId) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
+      if (channelId && accountsLength === 0) {
+        // Remove Potential SDK connection
+        SDKConnect.getInstance().removeChannel({
+          channelId,
+          sendTerminate: true,
+        });
+      }
 
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
+      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
         number_of_accounts: accountsLength,
         source: 'permission system',
       });
     },
-    [Engine.context.PermissionController, accountsLength],
+    [
+      Engine.context.PermissionController,
+      accountsLength,
+      channelId,
+      trackEvent,
+    ],
+  );
+
+  const triggerDappVisitedEvent = useCallback(
+    (numberOfConnectedAccounts: number) =>
+      // Track dapp visited event
+      trackDappVisitedEvent({ hostname, numberOfConnectedAccounts }),
+    [hostname],
   );
 
   const handleConnect = useCallback(async () => {
@@ -132,10 +167,11 @@ const AccountConnect = (props: AccountConnectProps) => {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
-        origin: hostname,
+        origin: metadataOrigin,
       },
       approvedAccounts: selectedAccounts,
     };
+
     const connectedAccountLength = selectedAccounts.length;
     const activeAddress = selectedAccounts[0].address;
     const activeAccountName = getAccountNameWithENS({
@@ -149,7 +185,10 @@ const AccountConnect = (props: AccountConnectProps) => {
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
+
+      triggerDappVisitedEvent(connectedAccountLength);
+
+      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
         account_type: getAddressAccountType(activeAddress),
@@ -187,11 +226,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     hostInfo,
     accounts,
     ensByAccountAddress,
-    hostname,
     accountAvatarType,
     Engine.context.PermissionController,
     toastRef,
     accountsLength,
+    metadataOrigin,
+    triggerDappVisitedEvent,
+    trackEvent,
   ]);
 
   const handleCreateAccount = useCallback(
@@ -204,17 +245,14 @@ const AccountConnect = (props: AccountConnectProps) => {
           addedAccountAddress,
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
-          {},
-        );
+        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
       } catch (e: any) {
         Logger.error(e, 'error while trying to add a new account');
       } finally {
         setIsLoading(false);
       }
     },
-    [Engine.context],
+    [Engine.context, trackEvent],
   );
 
   const hideSheet = (callback?: () => void) =>
@@ -254,16 +292,13 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-            {},
-          );
+          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-          AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
 
           break;
         }
@@ -281,6 +316,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     permissionRequestId,
     handleCreateAccount,
     handleConnect,
+    trackEvent,
   ]);
 
   const handleSheetDismiss = () => {
@@ -309,6 +345,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     return (
       <AccountConnectSingle
         onSetSelectedAddresses={setSelectedAddresses}
+        connection={sdkConnection}
         onSetScreen={setScreen}
         onUserAction={setUserIntent}
         defaultSelectedAccount={defaultSelectedAccount}
@@ -329,6 +366,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     secureIcon,
     urlWithProtocol,
     setUserIntent,
+    sdkConnection,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
@@ -367,6 +405,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+        connection={sdkConnection}
       />
     ),
     [
@@ -379,6 +418,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       faviconSource,
       urlWithProtocol,
       secureIcon,
+      sdkConnection,
     ],
   );
 

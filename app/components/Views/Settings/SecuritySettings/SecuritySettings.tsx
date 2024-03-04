@@ -19,7 +19,6 @@ import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
@@ -31,10 +30,7 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import AnalyticsV2, {
-  trackErrorAsAnalytics,
-} from '../../../../util/analyticsV2';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { Authentication } from '../../../../core';
 import AUTHENTICATION_TYPE from '../../../../constants/userProperties';
 import { useTheme } from '../../../../util/theme';
@@ -50,6 +46,7 @@ import {
   ChangePassword,
   AutoLock,
   ClearPrivacy,
+  BlockaidSettings,
 } from './Sections';
 import {
   selectProviderType,
@@ -107,9 +104,11 @@ import Networks, {
   toggleUseSafeChainsListValidation,
 } from '../../../../util/networks';
 import images from 'images/image-icons';
-import { toHexadecimal } from '../../../../util/number';
 import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller/dist/constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import generateDeviceAnalyticsMetaData, {
+  UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
+} from '../../../../util/metrics';
 import Text, {
   TextVariant,
   TextColor,
@@ -119,6 +118,8 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
+import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -133,6 +134,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
+  const { trackEvent, isEnabled, enable, addTraitsToUser } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -233,10 +235,15 @@ const Settings: React.FC = () => {
   useEffect(() => {
     updateNavBar();
     handleHintText();
-    AnalyticsV2.trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
-    const isAnalyticsEnabled = Analytics.checkEnabled();
-    setAnalyticsEnabled(isAnalyticsEnabled);
-  }, [handleHintText, updateNavBar]);
+    setAnalyticsEnabled(isEnabled());
+    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
+  }, [
+    handleHintText,
+    updateNavBar,
+    setAnalyticsEnabled,
+    isEnabled,
+    trackEvent,
+  ]);
 
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
@@ -440,28 +447,24 @@ const Settings: React.FC = () => {
     </View>
   );
 
-  /**
-   * Track the event of opt in or opt out.
-   * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
-   */
-  const trackOptInEvent = (AnalyticsOptionSelected: string) => {
-    InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        analytics_option_selected: AnalyticsOptionSelected,
-        updated_after_onboarding: true,
-      });
-    });
-  };
-
-  const toggleMetricsOptIn = (value: boolean) => {
-    if (value) {
-      Analytics.enable();
-
+  const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
+    if (metricsEnabled) {
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      await enable();
       setAnalyticsEnabled(true);
-      trackOptInEvent('Metrics Opt In');
+
+      InteractionManager.runAfterInteractions(async () => {
+        await addTraitsToUser(consolidatedTraits);
+        trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+          analytics_option_selected: 'Metrics Opt in',
+          updated_after_onboarding: true,
+        });
+      });
     } else {
-      trackOptInEvent('Metrics Opt Out');
-      Analytics.disable();
+      await enable(false);
       setAnalyticsEnabled(false);
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
@@ -782,7 +785,7 @@ const Settings: React.FC = () => {
 
   const renderShowIncomingTransactions = () => {
     const renderMainnet = () => {
-      const { name: mainnetName, hexChainId } = Networks.mainnet;
+      const { name: mainnetName, chainId } = Networks.mainnet;
       return (
         <Cell
           variant={CellVariant.Display}
@@ -796,9 +799,9 @@ const Settings: React.FC = () => {
           style={styles.cellBorder}
         >
           <Switch
-            value={showIncomingTransactionsNetworks[hexChainId]}
+            value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(hexChainId, value)
+              toggleEnableIncomingTransactions(chainId, value)
             }
             trackColor={{
               true: colors.primary.default,
@@ -813,7 +816,7 @@ const Settings: React.FC = () => {
     };
 
     const renderLineaMainnet = () => {
-      const { name: lineaMainnetName, hexChainId } = Networks['linea-mainnet'];
+      const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
 
       return (
         <Cell
@@ -828,9 +831,9 @@ const Settings: React.FC = () => {
           style={styles.cellBorder}
         >
           <Switch
-            value={showIncomingTransactionsNetworks[hexChainId]}
+            value={showIncomingTransactionsNetworks[chainId]}
             onValueChange={(value) =>
-              toggleEnableIncomingTransactions(hexChainId, value)
+              toggleEnableIncomingTransactions(chainId, value)
             }
             trackColor={{
               true: colors.primary.default,
@@ -849,9 +852,7 @@ const Settings: React.FC = () => {
         ({ nickname, rpcUrl, chainId }) => {
           if (!chainId) return null;
 
-          const hexChainId = `0x${toHexadecimal(chainId)}`;
-
-          if (!Object.keys(myNetworks).includes(hexChainId)) return null;
+          if (!Object.keys(myNetworks).includes(chainId)) return null;
 
           const { name } = { name: nickname || rpcUrl };
           //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
@@ -862,7 +863,7 @@ const Settings: React.FC = () => {
               key={chainId}
               variant={CellVariant.Display}
               title={name}
-              secondaryText={myNetworks[hexChainId].domain}
+              secondaryText={myNetworks[chainId].domain}
               avatarProps={{
                 variant: AvatarVariant.Network,
                 name,
@@ -871,9 +872,9 @@ const Settings: React.FC = () => {
               style={styles.cellBorder}
             >
               <Switch
-                value={showIncomingTransactionsNetworks[hexChainId]}
+                value={showIncomingTransactionsNetworks[chainId]}
                 onValueChange={(value) =>
-                  toggleEnableIncomingTransactions(hexChainId, value)
+                  toggleEnableIncomingTransactions(chainId, value)
                 }
                 trackColor={{
                   true: colors.primary.default,
@@ -892,15 +893,14 @@ const Settings: React.FC = () => {
       const NetworksTyped = Networks as NetworksI;
       const getOtherNetworks = () => getAllNetworks().slice(2);
       return getOtherNetworks().map((networkType) => {
-        const { name, imageSource, chainId, hexChainId } =
-          NetworksTyped[networkType];
-        if (!hexChainId) return null;
+        const { name, imageSource, chainId } = NetworksTyped[networkType];
+        if (!chainId) return null;
         return (
           <Cell
             key={chainId}
             variant={CellVariant.Display}
             title={name}
-            secondaryText={myNetworks[hexChainId].domain}
+            secondaryText={myNetworks[chainId].domain}
             avatarProps={{
               variant: AvatarVariant.Network,
               name,
@@ -909,10 +909,9 @@ const Settings: React.FC = () => {
             style={styles.cellBorder}
           >
             <Switch
-              value={showIncomingTransactionsNetworks[hexChainId]}
+              value={showIncomingTransactionsNetworks[chainId]}
               onValueChange={(value) => {
-                hexChainId &&
-                  toggleEnableIncomingTransactions(hexChainId, value);
+                chainId && toggleEnableIncomingTransactions(chainId, value);
               }}
               trackColor={{
                 true: colors.primary.default,
@@ -983,6 +982,7 @@ const Settings: React.FC = () => {
           <RememberMeOptionSection />
         </View>
         <RevealPrivateKey />
+        {isBlockaidFeatureEnabled() && <BlockaidSettings />}
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <Text
           variant={TextVariant.BodyLGMedium}
@@ -1042,7 +1042,7 @@ const Settings: React.FC = () => {
           {strings('app_settings.analytics_subheading')}
         </Text>
         {renderMetaMetricsSection()}
-        <DeleteMetaMetricsData />
+        <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
         <DeleteWalletData />
         {renderHint()}
       </View>

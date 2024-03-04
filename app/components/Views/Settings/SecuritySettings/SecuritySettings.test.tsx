@@ -21,6 +21,7 @@ import {
   USE_SAFE_CHAINS_LIST_VALIDATION,
 } from './SecuritySettings.constants';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 
 const initialState = {
   privacy: { approvedHosts: {} },
@@ -108,5 +109,21 @@ describe('SecuritySettings', () => {
     expect(getByTestId(IPFS_GATEWAY_SECTION)).toBeTruthy();
     expect(getByText('Automatic security checks')).toBeTruthy();
     expect(getByTestId(USE_SAFE_CHAINS_LIST_VALIDATION)).toBeTruthy();
+  });
+
+  it('renders Blockaid settings', async () => {
+    const { getByTestId, findByText } = renderWithProvider(
+      <SecuritySettings />,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(await findByText('Security alerts')).toBeDefined();
+    expect(await findByText('Blockaid')).toBeDefined();
+
+    const toggle = getByTestId(SECURITY_ALERTS_TOGGLE_TEST_ID);
+    expect(toggle).toBeDefined();
+    expect(toggle.props.value).toBe(true);
   });
 });
