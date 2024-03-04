@@ -176,6 +176,7 @@ describe('Quotes', () => {
       jest.useRealTimers();
     });
   });
+
   it('navigates and tracks event on SELL cancel button press', async () => {
     mockUseRampSDKValues.rampType = RampType.SELL;
     mockUseRampSDKValues.isSell = true;
@@ -228,6 +229,49 @@ describe('Quotes', () => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
     });
+    expect(screen.toJSON()).toMatchSnapshot();
+    act(() => {
+      jest.useRealTimers();
+    });
+  });
+
+  it('renders correctly after animation with quotes and expanded', async () => {
+    mockUseQuotesValues = {
+      ...mockUseQuotesInitialValues,
+      data: [
+        ...mockQuotesData.slice(0, 2),
+        { ...mockQuotesData[2], error: false },
+      ] as (QuoteResponse | QuoteError)[],
+    };
+    render(Quotes);
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Explore more options' }),
+    );
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "ONRAMP_QUOTES_EXPANDED",
+        Object {
+          "amount": 50,
+          "chain_id_destination": "1",
+          "currency_destination": "ETH",
+          "currency_source": "USD",
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "previously_used_count": 0,
+          "provider_onramp_first": "Banxa (Staging)",
+          "provider_onramp_list": Array [
+            "Banxa (Staging)",
+            "MoonPay (Staging)",
+            "Transak (Staging)",
+          ],
+          "refresh_count": 1,
+          "results_count": 3,
+        },
+      ]
+    `);
     expect(screen.toJSON()).toMatchSnapshot();
     act(() => {
       jest.useRealTimers();

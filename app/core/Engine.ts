@@ -1286,7 +1286,10 @@ class Engine {
     AccountTrackerController.refresh();
   }
 
-  getTotalFiatAccountBalance = () => {
+  getTotalFiatAccountBalance = (): {
+    ethFiat: number;
+    tokenFiat: number;
+  } => {
     const {
       CurrencyRateController,
       PreferencesController,
@@ -1353,8 +1356,10 @@ class Engine {
       );
     }
 
-    const total = ethFiat + tokenFiat;
-    return total;
+    return {
+      ethFiat: ethFiat ?? 0,
+      tokenFiat: tokenFiat ?? 0,
+    };
   };
 
   /**
@@ -1383,8 +1388,9 @@ class Engine {
       });
 
       const fiatBalance = this.getTotalFiatAccountBalance() || 0;
+      const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
 
-      return fiatBalance > 0 || tokenFound || nfts.length > 0;
+      return totalFiatBalance > 0 || tokenFound || nfts.length > 0;
     } catch (e) {
       Logger.log('Error while getting user funds', e);
     }

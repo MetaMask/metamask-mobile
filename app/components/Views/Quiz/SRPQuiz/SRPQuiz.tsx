@@ -67,8 +67,8 @@ const SRPQuiz = () => {
   );
 
   const goToRevealPrivateCredential = useCallback((): void => {
-    trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED, {});
-    trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA, {});
+    trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED);
+    trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA);
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'seed_phrase',
       shouldUpdateNav: true,
