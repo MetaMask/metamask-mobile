@@ -1,4 +1,4 @@
-import { MetaMetricsEvents } from "../../core/Analytics";
+import { MetaMetricsEvents } from '../../core/Analytics';
 
 /**
  * These types determine how the method tracking middleware handles incoming
@@ -16,20 +16,19 @@ const RATE_LIMIT_TYPES = {
  * default is 'RATE_LIMITED'
  */
 const RATE_LIMIT_MAP = {
-  'eth_sign': RATE_LIMIT_TYPES.NON_RATE_LIMITED,
-  'eth_signTypedData': RATE_LIMIT_TYPES.NON_RATE_LIMITED,
-  'eth_signTypedData_v3': RATE_LIMIT_TYPES.NON_RATE_LIMITED,
-  'eth_signTypedData_v4': RATE_LIMIT_TYPES.NON_RATE_LIMITED,
-  'personal_sign': RATE_LIMIT_TYPES.NON_RATE_LIMITED,
-  'eth_decrypt': RATE_LIMIT_TYPES.NON_RATE_LIMITED,
-  'eth_getEncryptionPublicKey': RATE_LIMIT_TYPES.NON_RATE_LIMITED,
-  'eth_requestAccounts': RATE_LIMIT_TYPES.RATE_LIMITED,
-  'wallet_requestPermissions': RATE_LIMIT_TYPES.RATE_LIMITED,
-  'metamask_sendDomainMetadata': RATE_LIMIT_TYPES.BLOCKED,
-  'metamask_getProviderState': RATE_LIMIT_TYPES.BLOCKED,
-  'metamask_injectHomepageScripts': RATE_LIMIT_TYPES.BLOCKED,
+  eth_sign: RATE_LIMIT_TYPES.NON_RATE_LIMITED,
+  eth_signTypedData: RATE_LIMIT_TYPES.NON_RATE_LIMITED,
+  eth_signTypedData_v3: RATE_LIMIT_TYPES.NON_RATE_LIMITED,
+  eth_signTypedData_v4: RATE_LIMIT_TYPES.NON_RATE_LIMITED,
+  personal_sign: RATE_LIMIT_TYPES.NON_RATE_LIMITED,
+  eth_decrypt: RATE_LIMIT_TYPES.NON_RATE_LIMITED,
+  eth_getEncryptionPublicKey: RATE_LIMIT_TYPES.NON_RATE_LIMITED,
+  eth_requestAccounts: RATE_LIMIT_TYPES.RATE_LIMITED,
+  wallet_requestPermissions: RATE_LIMIT_TYPES.RATE_LIMITED,
+  metamask_sendDomainMetadata: RATE_LIMIT_TYPES.BLOCKED,
+  metamask_getProviderState: RATE_LIMIT_TYPES.BLOCKED,
+  metamask_injectHomepageScripts: RATE_LIMIT_TYPES.BLOCKED,
 };
-
 
 const rateLimitTimeouts = {};
 
@@ -39,7 +38,7 @@ const rateLimitTimeouts = {};
  * signature requests
  *
  * @param {object} opts - options for the rpc method tracking middleware
- * @param {Function} opts.metrics - the MetaMetrics instance
+ * @param {MetaMetrics} opts.metrics - the MetaMetrics instance
  * @param {number} [opts.rateLimitSeconds] - number of seconds to wait before
  *  allowing another set of events to be tracked.
  * @returns {Function}
@@ -67,7 +66,7 @@ export default function createRPCMethodTrackingMiddleware({
     // Get the participateInMetaMetrics state to determine if we should track
     // anything. This is extra redundancy because this value is checked in
     // the metametrics controller's trackEvent method as well.
-    const userParticipatingInMetaMetrics = metrics.isEnabled()
+    const userParticipatingInMetaMetrics = metrics.isEnabled();
 
     // Boolean variable that reduces code duplication and increases legibility
     const shouldTrackEvent =
@@ -79,17 +78,14 @@ export default function createRPCMethodTrackingMiddleware({
       userParticipatingInMetaMetrics === true;
 
     if (shouldTrackEvent) {
-      metrics.trackEvent(
-        MetaMetricsEvents.PROVIDER_METHOD_CALLED,
-        {
-          referrer: {
-            url: origin,
-          },
-          properties: {
-            method
-          },
-        }
-      );
+      metrics.trackEvent(MetaMetricsEvents.PROVIDER_METHOD_CALLED, {
+        referrer: {
+          url: origin,
+        },
+        properties: {
+          method,
+        },
+      });
 
       rateLimitTimeouts[method] = setTimeout(() => {
         delete rateLimitTimeouts[method];

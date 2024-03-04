@@ -347,7 +347,7 @@ export class BackgroundBridge extends EventEmitter {
    **/
   setupProviderEngine() {
     const origin = this.hostname;
-    const metrics = MetaMetrics.getInstance()
+    const metrics = MetaMetrics.getInstance();
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
     const { blockTracker, provider } =
@@ -370,7 +370,7 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(createLoggerMiddleware({ origin }));
 
     // tracking
-    engine.push(createRPCMethodTrackingMiddleware({ metrics }))
+    engine.push(createRPCMethodTrackingMiddleware({ metrics }));
 
     // filter and subscription polyfills
     engine.push(filterMiddleware);
