@@ -1300,7 +1300,7 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.17.0
+      VERSION_NAME: 7.18.0
     - opts:
         is_expand: false
       VERSION_NUMBER: 1270
