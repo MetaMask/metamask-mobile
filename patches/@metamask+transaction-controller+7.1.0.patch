@@ -367,10 +367,10 @@ index 0000000..18bc7af
 +//# sourceMappingURL=IncomingTransactionHelper.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
-index 1b860f2..251e92f 100644
+index 1b860f2..4458adb 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
-@@ -2,11 +2,11 @@
+@@ -2,11 +2,12 @@
  import { EventEmitter } from 'events';
  import Common from '@ethereumjs/common';
  import { TypedTransaction } from '@ethereumjs/tx';
@@ -380,11 +380,12 @@ index 1b860f2..251e92f 100644
  import { AddApprovalRequest } from '@metamask/approval-controller';
 -export declare const HARDFORK = "london";
 +import { NonceLock } from 'nonce-tracker/dist/NonceTracker';
++import { GasFeeState } from '@metamask/gas-fee-controller';
 +import { SecurityAlertResponse, SubmitHistoryEntry, Transaction, TransactionMeta, WalletDevice } from './types';
  /**
   * @type Result
   * @property result - Promise resolving to a new transaction hash
-@@ -16,44 +16,6 @@ export interface Result {
+@@ -16,44 +17,6 @@ export interface Result {
      result: Promise<string>;
      transactionMeta: TransactionMeta;
  }
@@ -429,7 +430,7 @@ index 1b860f2..251e92f 100644
  export interface GasPriceValue {
      gasPrice: string;
  }
-@@ -61,115 +23,6 @@ export interface FeeMarketEIP1559Values {
+@@ -61,115 +24,6 @@ export interface FeeMarketEIP1559Values {
      maxFeePerGas: string;
      maxPriorityFeePerGas: string;
  }
@@ -545,7 +546,7 @@ index 1b860f2..251e92f 100644
  /**
   * @type TransactionConfig
   *
-@@ -206,6 +59,10 @@ export interface TransactionState extends BaseState {
+@@ -206,11 +60,15 @@ export interface TransactionState extends BaseState {
      methodData: {
          [key: string]: MethodData;
      };
@@ -556,8 +557,18 @@ index 1b860f2..251e92f 100644
  }
  /**
   * Multiplier used to determine a transaction's increased gas fee during cancellation
-@@ -239,19 +96,9 @@ export declare class TransactionController extends BaseController<TransactionCon
+  */
+-export declare const CANCEL_RATE = 1.5;
++export declare const CANCEL_RATE = 1.1;
+ /**
+  * Multiplier used to determine a transaction's increased gas fee during speed up
+  */
+@@ -237,21 +95,13 @@ export declare class TransactionController extends BaseController<TransactionCon
+     private provider;
+     private handle?;
      private mutex;
++    private readonly gasFeeFlows;
++    private readonly getGasFeeEstimates;
      private getNetworkState;
      private messagingSystem;
 +    private incomingTransactionHelper;
@@ -577,11 +588,12 @@ index 1b860f2..251e92f 100644
      /**
       * EventEmitter instance used to listen to specific transactional events
       */
-@@ -268,20 +115,33 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -268,20 +118,35 @@ export declare class TransactionController extends BaseController<TransactionCon
       * Creates a TransactionController instance.
       *
       * @param options - The controller options.
 +     * @param options.blockTracker - The block tracker used to poll for new blocks data.
++     * @param options.getGasFeeEstimates - Callback to retrieve gas fee estimates.
       * @param options.getNetworkState - Gets the state of the network controller.
 +     * @param options.getSelectedAddress - Gets the address of the currently selected account.
 +     * @param options.incomingTransactions - Configuration options for incoming transaction support.
@@ -598,8 +610,9 @@ index 1b860f2..251e92f 100644
       * @param state - Initial state to set on this controller.
       */
 -    constructor({ getNetworkState, onNetworkStateChange, provider, blockTracker, messenger, }: {
-+    constructor({ getNetworkState, getSelectedAddress, incomingTransactions, messenger, onNetworkStateChange, provider, blockTracker, }: {
++    constructor({ blockTracker, getGasFeeEstimates, getNetworkState, getSelectedAddress, incomingTransactions, messenger, onNetworkStateChange, provider, }: {
 +        blockTracker: BlockTracker;
++        getGasFeeEstimates: () => Promise<GasFeeState>;
          getNetworkState: () => NetworkState;
 +        getSelectedAddress: () => string;
 +        incomingTransactions: {
@@ -616,7 +629,7 @@ index 1b860f2..251e92f 100644
      }, config?: Partial<TransactionConfig>, state?: Partial<TransactionState>);
      /**
       * Starts a new polling interval.
-@@ -302,11 +162,20 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -302,11 +167,20 @@ export declare class TransactionController extends BaseController<TransactionCon
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -640,7 +653,7 @@ index 1b860f2..251e92f 100644
      prepareUnsignedEthTx(txParams: Record<string, unknown>): TypedTransaction;
      /**
       * `@ethereumjs/tx` uses `@ethereumjs/common` as a configuration tool for
-@@ -359,6 +228,13 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -359,6 +233,13 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @param transactionMeta - The new transaction to store in state.
       */
      updateTransaction(transactionMeta: TransactionMeta): void;
@@ -654,7 +667,7 @@ index 1b860f2..251e92f 100644
      /**
       * Removes all transactions from state, optionally based on the current network.
       *
-@@ -367,32 +243,13 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -367,32 +248,13 @@ export declare class TransactionController extends BaseController<TransactionCon
       */
      wipeTransactions(ignoreNetwork?: boolean): void;
      /**
@@ -692,7 +705,7 @@ index 1b860f2..251e92f 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -439,63 +296,32 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -439,63 +301,33 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @returns Whether the transaction has failed.
       */
      private checkTxReceiptStatusIsFailed;
@@ -771,6 +784,7 @@ index 1b860f2..251e92f 100644
 +    private onUpdatedLastFetchedBlockNumbers;
 +    private getNonceTrackerTransactions;
 +    private updateSubmitHistory;
++    private getGasFeeFlows;
  }
  export default TransactionController;
  //# sourceMappingURL=TransactionController.d.ts.map
@@ -784,7 +798,7 @@ index 851dcd5..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index 99a3ca9..ffa89ef 100644
+index 99a3ca9..c5248b6 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -796,7 +810,7 @@ index 99a3ca9..ffa89ef 100644
  const events_1 = require("events");
  const ethereumjs_util_1 = require("ethereumjs-util");
  const eth_rpc_errors_1 = require("eth-rpc-errors");
-@@ -22,36 +22,16 @@ const common_1 = __importDefault(require("@ethereumjs/common"));
+@@ -22,40 +22,22 @@ const common_1 = __importDefault(require("@ethereumjs/common"));
  const tx_1 = require("@ethereumjs/tx");
  const uuid_1 = require("uuid");
  const async_mutex_1 = require("async-mutex");
@@ -834,16 +848,24 @@ index 99a3ca9..ffa89ef 100644
 +const IncomingTransactionHelper_1 = require("./IncomingTransactionHelper");
 +const EtherscanRemoteTransactionSource_1 = require("./EtherscanRemoteTransactionSource");
 +const types_1 = require("./types");
++const GasFeePoller_1 = require("./helpers/GasFeePoller");
++const LineaGasFeeFlow_1 = require("./gas-flows/LineaGasFeeFlow");
 +const HARDFORK = 'london';
 +const SUBMIT_HISTORY_LIMIT = 100;
  /**
   * Multiplier used to determine a transaction's increased gas fee during cancellation
   */
-@@ -72,45 +52,23 @@ class TransactionController extends base_controller_1.BaseController {
+-exports.CANCEL_RATE = 1.5;
++exports.CANCEL_RATE = 1.1;
+ /**
+  * Multiplier used to determine a transaction's increased gas fee during speed up
+  */
+@@ -72,45 +54,24 @@ class TransactionController extends base_controller_1.BaseController {
       * Creates a TransactionController instance.
       *
       * @param options - The controller options.
 +     * @param options.blockTracker - The block tracker used to poll for new blocks data.
++     * @param options.getGasFeeEstimates - Callback to retrieve gas fee estimates.
       * @param options.getNetworkState - Gets the state of the network controller.
 +     * @param options.getSelectedAddress - Gets the address of the currently selected account.
 +     * @param options.incomingTransactions - Configuration options for incoming transaction support.
@@ -860,7 +882,7 @@ index 99a3ca9..ffa89ef 100644
       * @param state - Initial state to set on this controller.
       */
 -    constructor({ getNetworkState, onNetworkStateChange, provider, blockTracker, messenger, }, config, state) {
-+    constructor({ getNetworkState, getSelectedAddress, incomingTransactions = {}, messenger, onNetworkStateChange, provider, blockTracker, }, config, state) {
++    constructor({ blockTracker, getGasFeeEstimates, getNetworkState, getSelectedAddress, incomingTransactions = {}, messenger, onNetworkStateChange, provider, }, config, state) {
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
 -        this.normalizeTokenTx = (txMeta, currentNetworkID, currentChainId) => {
@@ -894,7 +916,7 @@ index 99a3ca9..ffa89ef 100644
          /**
           * EventEmitter instance used to listen to specific transactional events
           */
-@@ -126,6 +84,8 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -126,19 +87,51 @@ class TransactionController extends base_controller_1.BaseController {
          this.defaultState = {
              methodData: {},
              transactions: [],
@@ -903,7 +925,8 @@ index 99a3ca9..ffa89ef 100644
          };
          this.initialize();
          this.provider = provider;
-@@ -133,12 +93,29 @@ class TransactionController extends base_controller_1.BaseController {
+         this.messagingSystem = messenger;
++        this.getGasFeeEstimates = getGasFeeEstimates;
          this.getNetworkState = getNetworkState;
          this.ethQuery = new eth_query_1.default(provider);
          this.registry = new eth_method_registry_1.default({ provider });
@@ -932,10 +955,22 @@ index 99a3ca9..ffa89ef 100644
 +        });
 +        this.incomingTransactionHelper.hub.on('transactions', this.onIncomingTransactions.bind(this));
 +        this.incomingTransactionHelper.hub.on('updatedLastFetchedBlockNumbers', this.onUpdatedLastFetchedBlockNumbers.bind(this));
++        this.gasFeeFlows = this.getGasFeeFlows();
++        const gasFeePoller = new GasFeePoller_1.GasFeePoller({
++            gasFeeFlows: this.gasFeeFlows,
++            getChainIds: () => [this.getNetworkState().providerConfig.chainId],
++            getEthQuery: () => this.ethQuery,
++            getGasFeeControllerEstimates: this.getGasFeeEstimates,
++            getTransactions: () => this.state.transactions,
++            onStateChange: (listener) => {
++                this.subscribe(listener);
++            },
++        });
++        gasFeePoller.hub.on('transaction-updated', this.updateTransaction.bind(this));
          onNetworkStateChange(() => {
              this.ethQuery = new eth_query_1.default(this.provider);
              this.registry = new eth_method_registry_1.default({ provider: this.provider });
-@@ -146,7 +123,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -146,7 +139,7 @@ class TransactionController extends base_controller_1.BaseController {
          this.poll();
      }
      failTransaction(transactionMeta, error) {
@@ -944,7 +979,7 @@ index 99a3ca9..ffa89ef 100644
          this.updateTransaction(newTransactionMeta);
          this.hub.emit(`${transactionMeta.id}:finished`, newTransactionMeta);
      }
-@@ -157,43 +134,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -157,43 +150,6 @@ class TransactionController extends base_controller_1.BaseController {
              return { registryMethod, parsedRegistryMethod };
          });
      }
@@ -988,7 +1023,7 @@ index 99a3ca9..ffa89ef 100644
      /**
       * Starts a new polling interval.
       *
-@@ -241,11 +181,13 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -241,11 +197,13 @@ class TransactionController extends base_controller_1.BaseController {
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -1005,7 +1040,7 @@ index 99a3ca9..ffa89ef 100644
          return __awaiter(this, void 0, void 0, function* () {
              const { providerConfig, networkId } = this.getNetworkState();
              const { transactions } = this.state;
-@@ -256,11 +198,12 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -256,11 +214,12 @@ class TransactionController extends base_controller_1.BaseController {
                  networkID: networkId !== null && networkId !== void 0 ? networkId : undefined,
                  chainId: providerConfig.chainId,
                  origin,
@@ -1019,7 +1054,7 @@ index 99a3ca9..ffa89ef 100644
              };
              try {
                  const { gas, estimateGasError } = yield this.estimateGas(transaction);
-@@ -280,6 +223,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -280,6 +239,17 @@ class TransactionController extends base_controller_1.BaseController {
              };
          });
      }
@@ -1037,7 +1072,7 @@ index 99a3ca9..ffa89ef 100644
      prepareUnsignedEthTx(txParams) {
          return tx_1.TransactionFactory.fromTxData(txParams, {
              common: this.getCommonConfiguration(),
-@@ -300,14 +254,14 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -300,14 +270,14 @@ class TransactionController extends base_controller_1.BaseController {
          if (chain !== controller_utils_1.RPC &&
              chain !== controller_utils_1.NetworkType['linea-goerli'] &&
              chain !== controller_utils_1.NetworkType['linea-mainnet']) {
@@ -1054,7 +1089,7 @@ index 99a3ca9..ffa89ef 100644
      }
      /**
       * Attempts to cancel a transaction based on its ID by setting its status to "rejected"
-@@ -371,8 +325,8 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -371,8 +341,8 @@ class TransactionController extends base_controller_1.BaseController {
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
              const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
@@ -1065,7 +1100,7 @@ index 99a3ca9..ffa89ef 100644
              this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
          });
      }
-@@ -423,9 +377,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -423,9 +393,7 @@ class TransactionController extends base_controller_1.BaseController {
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
              const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
@@ -1076,7 +1111,16 @@ index 99a3ca9..ffa89ef 100644
              const baseTransactionMeta = Object.assign(Object.assign({}, transactionMeta), { id: (0, uuid_1.v1)(), time: Date.now(), transactionHash });
              const newTransactionMeta = newMaxFeePerGas && newMaxPriorityFeePerGas
                  ? Object.assign(Object.assign({}, baseTransactionMeta), { transaction: Object.assign(Object.assign({}, transactionMeta.transaction), { maxFeePerGas: newMaxFeePerGas, maxPriorityFeePerGas: newMaxPriorityFeePerGas }) }) : Object.assign(Object.assign({}, baseTransactionMeta), { transaction: Object.assign(Object.assign({}, transactionMeta.transaction), { gasPrice: newGasPrice }) });
-@@ -549,6 +501,23 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -484,6 +452,8 @@ class TransactionController extends base_controller_1.BaseController {
+             }
+             catch (error) {
+                 estimateGasError = utils_1.ESTIMATE_GAS_ERROR;
++                // Fallback to 95% of the block gasLimit.
++                gasHex = estimatedTransaction.gas;
+             }
+             // 4. Pad estimated gas without exceeding the most recent block gasLimit. If the network is a
+             // a custom network then return the eth_estimateGas value.
+@@ -549,6 +519,23 @@ class TransactionController extends base_controller_1.BaseController {
          transactions[index] = transactionMeta;
          this.update({ transactions: this.trimTransactionsForState(transactions) });
      }
@@ -1100,7 +1144,7 @@ index 99a3ca9..ffa89ef 100644
      /**
       * Removes all transactions from state, optionally based on the current network.
       *
-@@ -574,205 +543,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -574,205 +561,17 @@ class TransactionController extends base_controller_1.BaseController {
          });
      }
      /**
@@ -1312,7 +1356,7 @@ index 99a3ca9..ffa89ef 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -789,7 +570,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -789,7 +588,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      trimTransactionsForState(transactions) {
          const nonceNetworkSet = new Set();
@@ -1323,7 +1367,7 @@ index 99a3ca9..ffa89ef 100644
              const { chainId, networkID, status, transaction, time } = tx;
              if (transaction) {
                  const key = `${transaction.nonce}-${chainId ? (0, controller_utils_1.convertHexToDecimal)(chainId) : networkID}-${new Date(time).toDateString()}`;
-@@ -804,7 +587,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -804,7 +605,7 @@ class TransactionController extends base_controller_1.BaseController {
              }
              return false;
          });
@@ -1332,7 +1376,7 @@ index 99a3ca9..ffa89ef 100644
          return txsToKeep;
      }
      /**
-@@ -814,10 +597,10 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -814,10 +615,10 @@ class TransactionController extends base_controller_1.BaseController {
       * @returns Whether the transaction is in a final state.
       */
      isFinalState(status) {
@@ -1347,7 +1391,7 @@ index 99a3ca9..ffa89ef 100644
      }
      /**
       * Whether the transaction has at least completed all local processing.
-@@ -827,11 +610,11 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -827,11 +628,11 @@ class TransactionController extends base_controller_1.BaseController {
       */
      isLocalFinalState(status) {
          return [
@@ -1364,7 +1408,7 @@ index 99a3ca9..ffa89ef 100644
          ].includes(status);
      }
      /**
-@@ -844,7 +627,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -844,7 +645,7 @@ class TransactionController extends base_controller_1.BaseController {
          return __awaiter(this, void 0, void 0, function* () {
              const { status, transactionHash } = meta;
              switch (status) {
@@ -1373,7 +1417,7 @@ index 99a3ca9..ffa89ef 100644
                      const txReceipt = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionReceipt', [
                          transactionHash,
                      ]);
-@@ -861,7 +644,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -861,7 +662,7 @@ class TransactionController extends base_controller_1.BaseController {
                          return [meta, false];
                      }
                      return [meta, true];
@@ -1382,7 +1426,7 @@ index 99a3ca9..ffa89ef 100644
                      const txObj = yield (0, controller_utils_1.query)(this.ethQuery, 'getTransactionByHash', [
                          transactionHash,
                      ]);
-@@ -876,9 +659,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -876,9 +677,17 @@ class TransactionController extends base_controller_1.BaseController {
                      }
                      /* istanbul ignore next */
                      if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
@@ -1403,7 +1447,7 @@ index 99a3ca9..ffa89ef 100644
                      }
                      return [meta, false];
                  default:
-@@ -907,89 +698,49 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -907,89 +716,49 @@ class TransactionController extends base_controller_1.BaseController {
              return Number(txReceipt.status) === 0;
          });
      }
@@ -1534,7 +1578,7 @@ index 99a3ca9..ffa89ef 100644
      requestApproval(txMeta) {
          return __awaiter(this, void 0, void 0, function* () {
              const id = this.getApprovalId(txMeta);
-@@ -1005,13 +756,113 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -1005,13 +774,113 @@ class TransactionController extends base_controller_1.BaseController {
              }, true));
          });
      }
@@ -1651,7 +1695,7 @@ index 99a3ca9..ffa89ef 100644
      isTransactionCompleted(transactionid) {
          const transaction = this.getTransaction(transactionid);
          if (!transaction) {
-@@ -1020,6 +871,46 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -1020,6 +889,49 @@ class TransactionController extends base_controller_1.BaseController {
          const isCompleted = this.isLocalFinalState(transaction.status);
          return { meta: transaction, isCompleted };
      }
@@ -1694,6 +1738,9 @@ index 99a3ca9..ffa89ef 100644
 +            submitHistory.pop();
 +        }
 +        this.update({ submitHistory });
++    }
++    getGasFeeFlows() {
++        return [new LineaGasFeeFlow_1.LineaGasFeeFlow()];
 +    }
  }
  exports.TransactionController = TransactionController;
@@ -2159,14 +2206,496 @@ index 0000000..0757847
 +}
 +//# sourceMappingURL=etherscan.js.map
 \ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.d.ts b/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.d.ts
+new file mode 100644
+index 0000000..325802b
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.d.ts
+@@ -0,0 +1,10 @@
++import type { GasFeeFlow, GasFeeFlowRequest, GasFeeFlowResponse, TransactionMeta } from '../types';
++/**
++ * The standard implementation of a gas fee flow that obtains gas fee estimates using only the GasFeeController.
++ */
++export declare class DefaultGasFeeFlow implements GasFeeFlow {
++    #private;
++    matchesTransaction(_transactionMeta: TransactionMeta): boolean;
++    getGasFees(request: GasFeeFlowRequest): Promise<GasFeeFlowResponse>;
++}
++//# sourceMappingURL=DefaultGasFeeFlow.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.d.ts.map b/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.d.ts.map
+new file mode 100644
+index 0000000..1a801e5
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"DefaultGasFeeFlow.d.ts","sourceRoot":"","sources":["../../src/gas-flows/DefaultGasFeeFlow.ts"],"names":[],"mappings":"AASA,OAAO,KAAK,EAGV,UAAU,EACV,iBAAiB,EACjB,kBAAkB,EAClB,eAAe,EAChB,MAAM,UAAU,CAAC;AAiBlB;;GAEG;AACH,qBAAa,iBAAkB,YAAW,UAAU;;IAClD,kBAAkB,CAAC,gBAAgB,EAAE,eAAe,GAAG,OAAO;IAIxD,UAAU,CAAC,OAAO,EAAE,iBAAiB,GAAG,OAAO,CAAC,kBAAkB,CAAC;CA4E1E"}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.js b/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.js
+new file mode 100644
+index 0000000..2b4ffd9
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.js
+@@ -0,0 +1,79 @@
++"use strict";
++var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
++    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
++    return new (P || (P = Promise))(function (resolve, reject) {
++        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
++        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
++        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
++        step((generator = generator.apply(thisArg, _arguments || [])).next());
++    });
++};
++var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
++    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
++};
++var _DefaultGasFeeFlow_instances, _DefaultGasFeeFlow_getEstimateLevel, _DefaultGasFeeFlow_getFeeMarketLevel, _DefaultGasFeeFlow_getLegacyLevel, _DefaultGasFeeFlow_gweiDecimalToWeiHex;
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.DefaultGasFeeFlow = void 0;
++const gas_fee_controller_1 = require("@metamask/gas-fee-controller");
++const utils_1 = require("@metamask/utils");
++const controller_utils_1 = require("@metamask/controller-utils");
++const logger_1 = require("../logger");
++const types_1 = require("../types");
++const log = (0, utils_1.createModuleLogger)(logger_1.projectLogger, 'default-gas-fee-flow');
++/**
++ * The standard implementation of a gas fee flow that obtains gas fee estimates using only the GasFeeController.
++ */
++class DefaultGasFeeFlow {
++    constructor() {
++        _DefaultGasFeeFlow_instances.add(this);
++    }
++    matchesTransaction(_transactionMeta) {
++        return true;
++    }
++    getGasFees(request) {
++        return __awaiter(this, void 0, void 0, function* () {
++            const { getGasFeeControllerEstimates } = request;
++            const { gasEstimateType, gasFeeEstimates } = yield getGasFeeControllerEstimates();
++            if (gasEstimateType === gas_fee_controller_1.GAS_ESTIMATE_TYPES.FEE_MARKET) {
++                log('Using fee market estimates', gasFeeEstimates);
++            }
++            else if (gasEstimateType === gas_fee_controller_1.GAS_ESTIMATE_TYPES.LEGACY) {
++                log('Using legacy estimates', gasFeeEstimates);
++            }
++            else {
++                throw new Error(`'No gas fee estimates available`);
++            }
++            const estimates = Object.values(types_1.GasFeeEstimateLevel).reduce((result, level) => (Object.assign(Object.assign({}, result), { [level]: __classPrivateFieldGet(this, _DefaultGasFeeFlow_instances, "m", _DefaultGasFeeFlow_getEstimateLevel).call(this, {
++                    gasEstimateType,
++                    gasFeeEstimates,
++                    level,
++                }) })), {});
++            return { estimates };
++        });
++    }
++}
++exports.DefaultGasFeeFlow = DefaultGasFeeFlow;
++_DefaultGasFeeFlow_instances = new WeakSet(), _DefaultGasFeeFlow_getEstimateLevel = function _DefaultGasFeeFlow_getEstimateLevel({ gasEstimateType, gasFeeEstimates, level, }) {
++    if (gasEstimateType === gas_fee_controller_1.GAS_ESTIMATE_TYPES.FEE_MARKET) {
++        return __classPrivateFieldGet(this, _DefaultGasFeeFlow_instances, "m", _DefaultGasFeeFlow_getFeeMarketLevel).call(this, gasFeeEstimates, level);
++    }
++    return __classPrivateFieldGet(this, _DefaultGasFeeFlow_instances, "m", _DefaultGasFeeFlow_getLegacyLevel).call(this, gasFeeEstimates, level);
++}, _DefaultGasFeeFlow_getFeeMarketLevel = function _DefaultGasFeeFlow_getFeeMarketLevel(gasFeeEstimates, level) {
++    const maxFeePerGas = __classPrivateFieldGet(this, _DefaultGasFeeFlow_instances, "m", _DefaultGasFeeFlow_gweiDecimalToWeiHex).call(this, gasFeeEstimates[level].suggestedMaxFeePerGas);
++    const maxPriorityFeePerGas = __classPrivateFieldGet(this, _DefaultGasFeeFlow_instances, "m", _DefaultGasFeeFlow_gweiDecimalToWeiHex).call(this, gasFeeEstimates[level].suggestedMaxPriorityFeePerGas);
++    return {
++        maxFeePerGas,
++        maxPriorityFeePerGas,
++    };
++}, _DefaultGasFeeFlow_getLegacyLevel = function _DefaultGasFeeFlow_getLegacyLevel(gasFeeEstimates, level) {
++    const gasPrice = __classPrivateFieldGet(this, _DefaultGasFeeFlow_instances, "m", _DefaultGasFeeFlow_gweiDecimalToWeiHex).call(this, gasFeeEstimates[level]);
++    return {
++        maxFeePerGas: gasPrice,
++        maxPriorityFeePerGas: gasPrice,
++    };
++}, _DefaultGasFeeFlow_gweiDecimalToWeiHex = function _DefaultGasFeeFlow_gweiDecimalToWeiHex(gweiDecimal) {
++    return (0, controller_utils_1.toHex)((0, controller_utils_1.gweiDecToWEIBN)(gweiDecimal));
++};
++//# sourceMappingURL=DefaultGasFeeFlow.js.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.js.map b/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.js.map
+new file mode 100644
+index 0000000..f95c0a5
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/DefaultGasFeeFlow.js.map
+@@ -0,0 +1 @@
++{"version":3,"file":"DefaultGasFeeFlow.js","sourceRoot":"","sources":["../../src/gas-flows/DefaultGasFeeFlow.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;AAIA,qEAAkE;AAClE,2CAA0D;AAE1D,iEAAmE;AACnE,sCAA0C;AAS1C,oCAA+C;AAE/C,MAAM,GAAG,GAAG,IAAA,0BAAkB,EAAC,sBAAa,EAAE,sBAAsB,CAAC,CAAC;AActE;;GAEG;AACH,MAAa,iBAAiB;IAA9B;;IAiFA,CAAC;IAhFC,kBAAkB,CAAC,gBAAiC;QAClD,OAAO,IAAI,CAAC;IACd,CAAC;IAEK,UAAU,CAAC,OAA0B;;YACzC,MAAM,EAAE,4BAA4B,EAAE,GAAG,OAAO,CAAC;YAEjD,MAAM,EAAE,eAAe,EAAE,eAAe,EAAE,GACxC,MAAM,4BAA4B,EAAE,CAAC;YAEvC,IAAI,eAAe,KAAK,uCAAkB,CAAC,UAAU,EAAE;gBACrD,GAAG,CAAC,4BAA4B,EAAE,eAAe,CAAC,CAAC;aACpD;iBAAM,IAAI,eAAe,KAAK,uCAAkB,CAAC,MAAM,EAAE;gBACxD,GAAG,CAAC,wBAAwB,EAAE,eAAe,CAAC,CAAC;aAChD;iBAAM;gBACL,MAAM,IAAI,KAAK,CAAC,iCAAiC,CAAC,CAAC;aACpD;YAED,MAAM,SAAS,GAAG,MAAM,CAAC,MAAM,CAAC,2BAAmB,CAAC,CAAC,MAAM,CACzD,CAAC,MAAM,EAAE,KAAK,EAAE,EAAE,CAAC,iCACd,MAAM,KACT,CAAC,KAAK,CAAC,EAAE,uBAAA,IAAI,yEAAkB,MAAtB,IAAI,EAAmB;oBAC9B,eAAe;oBACf,eAAe;oBACf,KAAK;iBAC8D,CAAC,IACtE,EACF,EAAqB,CACtB,CAAC;YAEF,OAAO,EAAE,SAAS,EAAE,CAAC;QACvB,CAAC;KAAA;CAiDF;AAjFD,8CAiFC;iIA/CmB,EAChB,eAAe,EACf,eAAe,EACf,KAAK,GAG0B;IAC/B,IAAI,eAAe,KAAK,uCAAkB,CAAC,UAAU,EAAE;QACrD,OAAO,uBAAA,IAAI,0EAAmB,MAAvB,IAAI,EAAoB,eAAe,EAAE,KAAK,CAAC,CAAC;KACxD;IAED,OAAO,uBAAA,IAAI,uEAAgB,MAApB,IAAI,EAAiB,eAAe,EAAE,KAAK,CAAC,CAAC;AACtD,CAAC,uFAGC,eAA0C,EAC1C,KAA0B;IAE1B,MAAM,YAAY,GAAG,uBAAA,IAAI,4EAAqB,MAAzB,IAAI,EACvB,eAAe,CAAC,KAAK,CAAC,CAAC,qBAAqB,CAC7C,CAAC;IAEF,MAAM,oBAAoB,GAAG,uBAAA,IAAI,4EAAqB,MAAzB,IAAI,EAC/B,eAAe,CAAC,KAAK,CAAC,CAAC,6BAA6B,CACrD,CAAC;IAEF,OAAO;QACL,YAAY;QACZ,oBAAoB;KACrB,CAAC;AACJ,CAAC,iFAGC,eAAuC,EACvC,KAA0B;IAE1B,MAAM,QAAQ,GAAG,uBAAA,IAAI,4EAAqB,MAAzB,IAAI,EAAsB,eAAe,CAAC,KAAK,CAAC,CAAC,CAAC;IAEnE,OAAO;QACL,YAAY,EAAE,QAAQ;QACtB,oBAAoB,EAAE,QAAQ;KAC/B,CAAC;AACJ,CAAC,2FAEoB,WAAmB;IACtC,OAAO,IAAA,wBAAK,EAAC,IAAA,iCAAc,EAAC,WAAW,CAAC,CAAC,CAAC;AAC5C,CAAC","sourcesContent":["import type {\n  LegacyGasPriceEstimate,\n  GasFeeEstimates as FeeMarketGasPriceEstimate,\n} from '@metamask/gas-fee-controller';\nimport { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';\nimport { createModuleLogger, Hex } from '@metamask/utils';\n\nimport { gweiDecToWEIBN, toHex } from '@metamask/controller-utils';\nimport { projectLogger } from '../logger';\nimport type {\n  GasFeeEstimates,\n  GasFeeEstimatesForLevel,\n  GasFeeFlow,\n  GasFeeFlowRequest,\n  GasFeeFlowResponse,\n  TransactionMeta,\n} from '../types';\nimport { GasFeeEstimateLevel } from '../types';\n\nconst log = createModuleLogger(projectLogger, 'default-gas-fee-flow');\n\ntype FeeMarketGetEstimateLevelRequest = {\n  gasEstimateType: 'fee-market';\n  gasFeeEstimates: FeeMarketGasPriceEstimate;\n  level: GasFeeEstimateLevel;\n};\n\ntype LegacyGetEstimateLevelRequest = {\n  gasEstimateType: 'legacy';\n  gasFeeEstimates: LegacyGasPriceEstimate;\n  level: GasFeeEstimateLevel;\n};\n\n/**\n * The standard implementation of a gas fee flow that obtains gas fee estimates using only the GasFeeController.\n */\nexport class DefaultGasFeeFlow implements GasFeeFlow {\n  matchesTransaction(_transactionMeta: TransactionMeta): boolean {\n    return true;\n  }\n\n  async getGasFees(request: GasFeeFlowRequest): Promise<GasFeeFlowResponse> {\n    const { getGasFeeControllerEstimates } = request;\n\n    const { gasEstimateType, gasFeeEstimates } =\n      await getGasFeeControllerEstimates();\n\n    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {\n      log('Using fee market estimates', gasFeeEstimates);\n    } else if (gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {\n      log('Using legacy estimates', gasFeeEstimates);\n    } else {\n      throw new Error(`'No gas fee estimates available`);\n    }\n\n    const estimates = Object.values(GasFeeEstimateLevel).reduce(\n      (result, level) => ({\n        ...result,\n        [level]: this.#getEstimateLevel({\n          gasEstimateType,\n          gasFeeEstimates,\n          level,\n        } as FeeMarketGetEstimateLevelRequest | LegacyGetEstimateLevelRequest),\n      }),\n      {} as GasFeeEstimates,\n    );\n\n    return { estimates };\n  }\n\n  #getEstimateLevel({\n    gasEstimateType,\n    gasFeeEstimates,\n    level,\n  }:\n    | FeeMarketGetEstimateLevelRequest\n    | LegacyGetEstimateLevelRequest): GasFeeEstimatesForLevel {\n    if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {\n      return this.#getFeeMarketLevel(gasFeeEstimates, level);\n    }\n\n    return this.#getLegacyLevel(gasFeeEstimates, level);\n  }\n\n  #getFeeMarketLevel(\n    gasFeeEstimates: FeeMarketGasPriceEstimate,\n    level: GasFeeEstimateLevel,\n  ): GasFeeEstimatesForLevel {\n    const maxFeePerGas = this.#gweiDecimalToWeiHex(\n      gasFeeEstimates[level].suggestedMaxFeePerGas,\n    );\n\n    const maxPriorityFeePerGas = this.#gweiDecimalToWeiHex(\n      gasFeeEstimates[level].suggestedMaxPriorityFeePerGas,\n    );\n\n    return {\n      maxFeePerGas,\n      maxPriorityFeePerGas,\n    };\n  }\n\n  #getLegacyLevel(\n    gasFeeEstimates: LegacyGasPriceEstimate,\n    level: GasFeeEstimateLevel,\n  ): GasFeeEstimatesForLevel {\n    const gasPrice = this.#gweiDecimalToWeiHex(gasFeeEstimates[level]);\n\n    return {\n      maxFeePerGas: gasPrice,\n      maxPriorityFeePerGas: gasPrice,\n    };\n  }\n\n  #gweiDecimalToWeiHex(gweiDecimal: string): Hex {\n    return toHex(gweiDecToWEIBN(gweiDecimal));\n  }\n}\n"]}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts
+new file mode 100644
+index 0000000..ce728db
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts
+@@ -0,0 +1,12 @@
++import type { GasFeeFlow, GasFeeFlowRequest, GasFeeFlowResponse, TransactionMeta } from '../types';
++/**
++ * Implementation of a gas fee flow specific to Linea networks that obtains gas fee estimates using:
++ * - The `linea_estimateGas` RPC method to obtain the base fee and lowest priority fee.
++ * - Static multipliers to increase the base and priority fees.
++ */
++export declare class LineaGasFeeFlow implements GasFeeFlow {
++    #private;
++    matchesTransaction(transactionMeta: TransactionMeta): boolean;
++    getGasFees(request: GasFeeFlowRequest): Promise<GasFeeFlowResponse>;
++}
++//# sourceMappingURL=LineaGasFeeFlow.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts.map b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts.map
+new file mode 100644
+index 0000000..56042e1
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"LineaGasFeeFlow.d.ts","sourceRoot":"","sources":["../../src/gas-flows/LineaGasFeeFlow.ts"],"names":[],"mappings":"AAKA,OAAO,KAAK,EAEV,UAAU,EACV,iBAAiB,EACjB,kBAAkB,EAClB,eAAe,EAChB,MAAM,UAAU,CAAC;AAgClB;;;;GAIG;AACH,qBAAa,eAAgB,YAAW,UAAU;;IAChD,kBAAkB,CAAC,eAAe,EAAE,eAAe,GAAG,OAAO;IAIvD,UAAU,CAAC,OAAO,EAAE,iBAAiB,GAAG,OAAO,CAAC,kBAAkB,CAAC;CAqG1E"}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js
+new file mode 100644
+index 0000000..da048be
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js
+@@ -0,0 +1,111 @@
++"use strict";
++var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
++    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
++    return new (P || (P = Promise))(function (resolve, reject) {
++        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
++        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
++        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
++        step((generator = generator.apply(thisArg, _arguments || [])).next());
++    });
++};
++var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
++    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
++};
++var _LineaGasFeeFlow_instances, _LineaGasFeeFlow_getLineaGasFees, _LineaGasFeeFlow_getLineaResponse, _LineaGasFeeFlow_getValuesFromMultipliers, _LineaGasFeeFlow_getMaxFees, _LineaGasFeeFlow_feesToString;
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.LineaGasFeeFlow = void 0;
++const controller_utils_1 = require("@metamask/controller-utils");
++const utils_1 = require("@metamask/utils");
++const logger_1 = require("../logger");
++const types_1 = require("../types");
++const DefaultGasFeeFlow_1 = require("./DefaultGasFeeFlow");
++const log = (0, utils_1.createModuleLogger)(logger_1.projectLogger, 'linea-gas-fee-flow');
++const LINEA_CHAIN_IDS = [
++    controller_utils_1.ChainId['linea-mainnet'],
++    controller_utils_1.ChainId['linea-goerli'],
++];
++const BASE_FEE_MULTIPLIERS = {
++    low: 1,
++    medium: 1.35,
++    high: 1.7,
++};
++const PRIORITY_FEE_MULTIPLIERS = {
++    low: 1,
++    medium: 1.05,
++    high: 1.1,
++};
++/**
++ * Implementation of a gas fee flow specific to Linea networks that obtains gas fee estimates using:
++ * - The `linea_estimateGas` RPC method to obtain the base fee and lowest priority fee.
++ * - Static multipliers to increase the base and priority fees.
++ */
++class LineaGasFeeFlow {
++    constructor() {
++        _LineaGasFeeFlow_instances.add(this);
++    }
++    matchesTransaction(transactionMeta) {
++        return LINEA_CHAIN_IDS.includes(transactionMeta.chainId);
++    }
++    getGasFees(request) {
++        return __awaiter(this, void 0, void 0, function* () {
++            try {
++                return yield __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getLineaGasFees).call(this, request);
++            }
++            catch (error) {
++                log('Using default flow as fallback due to error', error);
++                return new DefaultGasFeeFlow_1.DefaultGasFeeFlow().getGasFees(request);
++            }
++        });
++    }
++}
++exports.LineaGasFeeFlow = LineaGasFeeFlow;
++_LineaGasFeeFlow_instances = new WeakSet(), _LineaGasFeeFlow_getLineaGasFees = function _LineaGasFeeFlow_getLineaGasFees(request) {
++    return __awaiter(this, void 0, void 0, function* () {
++        const { ethQuery, transactionMeta } = request;
++        const lineaResponse = yield __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getLineaResponse).call(this, transactionMeta, ethQuery);
++        log('Received Linea response', lineaResponse);
++        const baseFees = __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getValuesFromMultipliers).call(this, lineaResponse.baseFeePerGas, BASE_FEE_MULTIPLIERS);
++        log('Generated base fees', __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_feesToString).call(this, baseFees));
++        const priorityFees = __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getValuesFromMultipliers).call(this, lineaResponse.priorityFeePerGas, PRIORITY_FEE_MULTIPLIERS);
++        log('Generated priority fees', __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_feesToString).call(this, priorityFees));
++        const maxFees = __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_getMaxFees).call(this, baseFees, priorityFees);
++        log('Generated max fees', __classPrivateFieldGet(this, _LineaGasFeeFlow_instances, "m", _LineaGasFeeFlow_feesToString).call(this, maxFees));
++        const estimates = Object.values(types_1.GasFeeEstimateLevel).reduce((result, level) => (Object.assign(Object.assign({}, result), { [level]: {
++                maxFeePerGas: (0, controller_utils_1.toHex)(maxFees[level]),
++                maxPriorityFeePerGas: (0, controller_utils_1.toHex)(priorityFees[level]),
++            } })), {});
++        return { estimates };
++    });
++}, _LineaGasFeeFlow_getLineaResponse = function _LineaGasFeeFlow_getLineaResponse(transactionMeta, ethQuery) {
++    return (0, controller_utils_1.query)(ethQuery, 'linea_estimateGas', [
++        {
++            from: transactionMeta.transaction.from,
++            to: transactionMeta.transaction.to,
++            value: transactionMeta.transaction.value,
++            input: transactionMeta.transaction.data,
++            // Required in request but no impact on response.
++            gasPrice: '0x100000000',
++        },
++    ]);
++}, _LineaGasFeeFlow_getValuesFromMultipliers = function _LineaGasFeeFlow_getValuesFromMultipliers(value, multipliers) {
++    const base = (0, controller_utils_1.hexToBN)(value);
++    const low = base.muln(multipliers.low);
++    const medium = base.muln(multipliers.medium);
++    const high = base.muln(multipliers.high);
++    return {
++        low,
++        medium,
++        high,
++    };
++}, _LineaGasFeeFlow_getMaxFees = function _LineaGasFeeFlow_getMaxFees(baseFees, priorityFees) {
++    return {
++        low: baseFees.low.add(priorityFees.low),
++        medium: baseFees.medium.add(priorityFees.medium),
++        high: baseFees.high.add(priorityFees.high),
++    };
++}, _LineaGasFeeFlow_feesToString = function _LineaGasFeeFlow_feesToString(fees) {
++    return Object.values(types_1.GasFeeEstimateLevel).map((level) => fees[level].toString(10));
++};
++//# sourceMappingURL=LineaGasFeeFlow.js.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js.map b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js.map
+new file mode 100644
+index 0000000..4742145
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/gas-flows/LineaGasFeeFlow.js.map
+@@ -0,0 +1 @@
++{"version":3,"file":"LineaGasFeeFlow.js","sourceRoot":"","sources":["../../src/gas-flows/LineaGasFeeFlow.ts"],"names":[],"mappings":"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","sourcesContent":["import { ChainId, hexToBN, query, toHex } from '@metamask/controller-utils';\nimport { createModuleLogger, type Hex } from '@metamask/utils';\nimport type { BN } from 'ethereumjs-util';\n\nimport { projectLogger } from '../logger';\nimport type {\n  GasFeeEstimates,\n  GasFeeFlow,\n  GasFeeFlowRequest,\n  GasFeeFlowResponse,\n  TransactionMeta,\n} from '../types';\nimport { GasFeeEstimateLevel } from '../types';\nimport { DefaultGasFeeFlow } from './DefaultGasFeeFlow';\n\ntype LineaEstimateGasResponse = {\n  baseFeePerGas: Hex;\n  priorityFeePerGas: Hex;\n};\n\ntype FeesByLevel = {\n  [key in GasFeeEstimateLevel]: BN;\n};\n\nconst log = createModuleLogger(projectLogger, 'linea-gas-fee-flow');\n\nconst LINEA_CHAIN_IDS: Hex[] = [\n  ChainId['linea-mainnet'],\n  ChainId['linea-goerli'],\n];\n\nconst BASE_FEE_MULTIPLIERS = {\n  low: 1,\n  medium: 1.35,\n  high: 1.7,\n};\n\nconst PRIORITY_FEE_MULTIPLIERS = {\n  low: 1,\n  medium: 1.05,\n  high: 1.1,\n};\n\n/**\n * Implementation of a gas fee flow specific to Linea networks that obtains gas fee estimates using:\n * - The `linea_estimateGas` RPC method to obtain the base fee and lowest priority fee.\n * - Static multipliers to increase the base and priority fees.\n */\nexport class LineaGasFeeFlow implements GasFeeFlow {\n  matchesTransaction(transactionMeta: TransactionMeta): boolean {\n    return LINEA_CHAIN_IDS.includes(transactionMeta.chainId as Hex);\n  }\n\n  async getGasFees(request: GasFeeFlowRequest): Promise<GasFeeFlowResponse> {\n    try {\n      return await this.#getLineaGasFees(request);\n    } catch (error) {\n      log('Using default flow as fallback due to error', error);\n      return new DefaultGasFeeFlow().getGasFees(request);\n    }\n  }\n\n  async #getLineaGasFees(\n    request: GasFeeFlowRequest,\n  ): Promise<GasFeeFlowResponse> {\n    const { ethQuery, transactionMeta } = request;\n\n    const lineaResponse = await this.#getLineaResponse(\n      transactionMeta,\n      ethQuery,\n    );\n\n    log('Received Linea response', lineaResponse);\n\n    const baseFees = this.#getValuesFromMultipliers(\n      lineaResponse.baseFeePerGas,\n      BASE_FEE_MULTIPLIERS,\n    );\n\n    log('Generated base fees', this.#feesToString(baseFees));\n\n    const priorityFees = this.#getValuesFromMultipliers(\n      lineaResponse.priorityFeePerGas,\n      PRIORITY_FEE_MULTIPLIERS,\n    );\n\n    log('Generated priority fees', this.#feesToString(priorityFees));\n\n    const maxFees = this.#getMaxFees(baseFees, priorityFees);\n\n    log('Generated max fees', this.#feesToString(maxFees));\n\n    const estimates = Object.values(GasFeeEstimateLevel).reduce(\n      (result, level) => ({\n        ...result,\n        [level]: {\n          maxFeePerGas: toHex(maxFees[level]),\n          maxPriorityFeePerGas: toHex(priorityFees[level]),\n        },\n      }),\n      {} as GasFeeEstimates,\n    );\n\n    return { estimates };\n  }\n\n  #getLineaResponse(\n    transactionMeta: TransactionMeta,\n    ethQuery: any,\n  ): Promise<LineaEstimateGasResponse> {\n    return query(ethQuery, 'linea_estimateGas', [\n      {\n        from: transactionMeta.transaction.from,\n        to: transactionMeta.transaction.to,\n        value: transactionMeta.transaction.value,\n        input: transactionMeta.transaction.data,\n        // Required in request but no impact on response.\n        gasPrice: '0x100000000',\n      },\n    ]);\n  }\n\n  #getValuesFromMultipliers(\n    value: Hex,\n    multipliers: { low: number; medium: number; high: number },\n  ): FeesByLevel {\n    const base = hexToBN(value);\n    const low = base.muln(multipliers.low);\n    const medium = base.muln(multipliers.medium);\n    const high = base.muln(multipliers.high);\n\n    return {\n      low,\n      medium,\n      high,\n    };\n  }\n\n  #getMaxFees(\n    baseFees: Record<GasFeeEstimateLevel, BN>,\n    priorityFees: Record<GasFeeEstimateLevel, BN>,\n  ): FeesByLevel {\n    return {\n      low: baseFees.low.add(priorityFees.low),\n      medium: baseFees.medium.add(priorityFees.medium),\n      high: baseFees.high.add(priorityFees.high),\n    };\n  }\n\n  #feesToString(fees: FeesByLevel) {\n    return Object.values(GasFeeEstimateLevel).map((level) =>\n      fees[level].toString(10),\n    );\n  }\n}\n"]}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.d.ts b/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.d.ts
+new file mode 100644
+index 0000000..dfaddc5
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.d.ts
+@@ -0,0 +1,32 @@
++/// <reference types="node" />
++import EventEmitter from 'events';
++import type { GasFeeState } from '@metamask/gas-fee-controller';
++import type { GasFeeFlow } from '../types';
++import { type TransactionMeta } from '../types';
++/**
++ * Automatically polls and updates suggested gas fees on unapproved transactions.
++ */
++export declare class GasFeePoller {
++    #private;
++    hub: EventEmitter;
++    /**
++     * Constructs a new instance of the GasFeePoller.
++     *
++     * @param options - The options for this instance.
++     * @param options.gasFeeFlows - The gas fee flows to use to obtain suitable gas fees.
++     * @param options.getChainIds - Callback to specify the chain IDs to monitor.
++     * @param options.getEthQuery - Callback to obtain an EthQuery instance.
++     * @param options.getGasFeeControllerEstimates - Callback to obtain the default fee estimates.
++     * @param options.getTransactions - Callback to obtain the transaction data.
++     * @param options.onStateChange - Callback to register a listener for controller state changes.
++     */
++    constructor({ gasFeeFlows, getChainIds, getEthQuery, getGasFeeControllerEstimates, getTransactions, onStateChange, }: {
++        gasFeeFlows: GasFeeFlow[];
++        getChainIds: () => string[];
++        getEthQuery: () => any;
++        getGasFeeControllerEstimates: () => Promise<GasFeeState>;
++        getTransactions: () => TransactionMeta[];
++        onStateChange: (listener: () => void) => void;
++    });
++}
++//# sourceMappingURL=GasFeePoller.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.d.ts.map b/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.d.ts.map
+new file mode 100644
+index 0000000..8ccb3d4
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"GasFeePoller.d.ts","sourceRoot":"","sources":["../../src/helpers/GasFeePoller.ts"],"names":[],"mappings":";AAAA,OAAO,YAAY,MAAM,QAAQ,CAAC;AAClC,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,8BAA8B,CAAC;AAIhE,OAAO,KAAK,EAAE,UAAU,EAAqB,MAAM,UAAU,CAAC;AAC9D,OAAO,EAAqB,KAAK,eAAe,EAAE,MAAM,UAAU,CAAC;AAOnE;;GAEG;AACH,qBAAa,YAAY;;IACvB,GAAG,EAAE,YAAY,CAAsB;IAgBvC;;;;;;;;;;OAUG;gBACS,EACV,WAAW,EACX,WAAW,EACX,WAAW,EACX,4BAA4B,EAC5B,eAAe,EACf,aAAa,GACd,EAAE;QACD,WAAW,EAAE,UAAU,EAAE,CAAC;QAC1B,WAAW,EAAE,MAAM,MAAM,EAAE,CAAC;QAC5B,WAAW,EAAE,MAAM,GAAG,CAAC;QACvB,4BAA4B,EAAE,MAAM,OAAO,CAAC,WAAW,CAAC,CAAC;QACzD,eAAe,EAAE,MAAM,eAAe,EAAE,CAAC;QACzC,aAAa,EAAE,CAAC,QAAQ,EAAE,MAAM,IAAI,KAAK,IAAI,CAAC;KAC/C;CA+HF"}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.js b/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.js
+new file mode 100644
+index 0000000..00676ac
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.js
+@@ -0,0 +1,147 @@
++"use strict";
++var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
++    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
++    return new (P || (P = Promise))(function (resolve, reject) {
++        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
++        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
++        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
++        step((generator = generator.apply(thisArg, _arguments || [])).next());
++    });
++};
++var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
++    if (kind === "m") throw new TypeError("Private method is not writable");
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
++    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
++};
++var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
++    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
++    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
++    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
++};
++var __importDefault = (this && this.__importDefault) || function (mod) {
++    return (mod && mod.__esModule) ? mod : { "default": mod };
++};
++var _GasFeePoller_instances, _GasFeePoller_gasFeeFlows, _GasFeePoller_getChainIds, _GasFeePoller_getEthQuery, _GasFeePoller_getGasFeeControllerEstimates, _GasFeePoller_getTransactions, _GasFeePoller_timeout, _GasFeePoller_running, _GasFeePoller_start, _GasFeePoller_stop, _GasFeePoller_onTimeout, _GasFeePoller_updateUnapprovedTransactions, _GasFeePoller_updateTransactionSuggestedFees, _GasFeePoller_getUnapprovedTransactions;
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.GasFeePoller = void 0;
++const events_1 = __importDefault(require("events"));
++const utils_1 = require("@metamask/utils");
++const logger_1 = require("../logger");
++const types_1 = require("../types");
++const gas_flow_1 = require("../utils/gas-flow");
++const log = (0, utils_1.createModuleLogger)(logger_1.projectLogger, 'gas-fee-poller');
++const INTERVAL_MILLISECONDS = 10000;
++/**
++ * Automatically polls and updates suggested gas fees on unapproved transactions.
++ */
++class GasFeePoller {
++    /**
++     * Constructs a new instance of the GasFeePoller.
++     *
++     * @param options - The options for this instance.
++     * @param options.gasFeeFlows - The gas fee flows to use to obtain suitable gas fees.
++     * @param options.getChainIds - Callback to specify the chain IDs to monitor.
++     * @param options.getEthQuery - Callback to obtain an EthQuery instance.
++     * @param options.getGasFeeControllerEstimates - Callback to obtain the default fee estimates.
++     * @param options.getTransactions - Callback to obtain the transaction data.
++     * @param options.onStateChange - Callback to register a listener for controller state changes.
++     */
++    constructor({ gasFeeFlows, getChainIds, getEthQuery, getGasFeeControllerEstimates, getTransactions, onStateChange, }) {
++        _GasFeePoller_instances.add(this);
++        this.hub = new events_1.default();
++        _GasFeePoller_gasFeeFlows.set(this, void 0);
++        _GasFeePoller_getChainIds.set(this, void 0);
++        _GasFeePoller_getEthQuery.set(this, void 0);
++        _GasFeePoller_getGasFeeControllerEstimates.set(this, void 0);
++        _GasFeePoller_getTransactions.set(this, void 0);
++        _GasFeePoller_timeout.set(this, void 0);
++        _GasFeePoller_running.set(this, false);
++        __classPrivateFieldSet(this, _GasFeePoller_gasFeeFlows, gasFeeFlows, "f");
++        __classPrivateFieldSet(this, _GasFeePoller_getChainIds, getChainIds, "f");
++        __classPrivateFieldSet(this, _GasFeePoller_getEthQuery, getEthQuery, "f");
++        __classPrivateFieldSet(this, _GasFeePoller_getGasFeeControllerEstimates, getGasFeeControllerEstimates, "f");
++        __classPrivateFieldSet(this, _GasFeePoller_getTransactions, getTransactions, "f");
++        onStateChange(() => {
++            const unapprovedTransactions = __classPrivateFieldGet(this, _GasFeePoller_instances, "m", _GasFeePoller_getUnapprovedTransactions).call(this);
++            if (unapprovedTransactions.length) {
++                __classPrivateFieldGet(this, _GasFeePoller_instances, "m", _GasFeePoller_start).call(this);
++            }
++            else {
++                __classPrivateFieldGet(this, _GasFeePoller_instances, "m", _GasFeePoller_stop).call(this);
++            }
++        });
++    }
++}
++exports.GasFeePoller = GasFeePoller;
++_GasFeePoller_gasFeeFlows = new WeakMap(), _GasFeePoller_getChainIds = new WeakMap(), _GasFeePoller_getEthQuery = new WeakMap(), _GasFeePoller_getGasFeeControllerEstimates = new WeakMap(), _GasFeePoller_getTransactions = new WeakMap(), _GasFeePoller_timeout = new WeakMap(), _GasFeePoller_running = new WeakMap(), _GasFeePoller_instances = new WeakSet(), _GasFeePoller_start = function _GasFeePoller_start() {
++    if (__classPrivateFieldGet(this, _GasFeePoller_running, "f")) {
++        return;
++    }
++    // Intentionally not awaiting since this starts the timeout chain.
++    // eslint-disable-next-line @typescript-eslint/no-floating-promises
++    __classPrivateFieldGet(this, _GasFeePoller_instances, "m", _GasFeePoller_onTimeout).call(this);
++    __classPrivateFieldSet(this, _GasFeePoller_running, true, "f");
++    log('Started polling');
++}, _GasFeePoller_stop = function _GasFeePoller_stop() {
++    if (!__classPrivateFieldGet(this, _GasFeePoller_running, "f")) {
++        return;
++    }
++    clearTimeout(__classPrivateFieldGet(this, _GasFeePoller_timeout, "f"));
++    __classPrivateFieldSet(this, _GasFeePoller_timeout, undefined, "f");
++    __classPrivateFieldSet(this, _GasFeePoller_running, false, "f");
++    log('Stopped polling');
++}, _GasFeePoller_onTimeout = function _GasFeePoller_onTimeout() {
++    return __awaiter(this, void 0, void 0, function* () {
++        yield __classPrivateFieldGet(this, _GasFeePoller_instances, "m", _GasFeePoller_updateUnapprovedTransactions).call(this);
++        // eslint-disable-next-line @typescript-eslint/no-misused-promises
++        __classPrivateFieldSet(this, _GasFeePoller_timeout, setTimeout(() => __classPrivateFieldGet(this, _GasFeePoller_instances, "m", _GasFeePoller_onTimeout).call(this), INTERVAL_MILLISECONDS), "f");
++    });
++}, _GasFeePoller_updateUnapprovedTransactions = function _GasFeePoller_updateUnapprovedTransactions() {
++    return __awaiter(this, void 0, void 0, function* () {
++        const unapprovedTransactions = __classPrivateFieldGet(this, _GasFeePoller_instances, "m", _GasFeePoller_getUnapprovedTransactions).call(this);
++        log('Found unapproved transactions', {
++            count: unapprovedTransactions.length,
++        });
++        const ethQuery = __classPrivateFieldGet(this, _GasFeePoller_getEthQuery, "f").call(this);
++        yield Promise.all(unapprovedTransactions.map((tx) => __classPrivateFieldGet(this, _GasFeePoller_instances, "m", _GasFeePoller_updateTransactionSuggestedFees).call(this, tx, ethQuery)));
++    });
++}, _GasFeePoller_updateTransactionSuggestedFees = function _GasFeePoller_updateTransactionSuggestedFees(transactionMeta, ethQuery) {
++    return __awaiter(this, void 0, void 0, function* () {
++        const gasFeeFlow = (0, gas_flow_1.getGasFeeFlow)(transactionMeta, __classPrivateFieldGet(this, _GasFeePoller_gasFeeFlows, "f"));
++        if (!gasFeeFlow) {
++            log('No gas fee flow found', transactionMeta.id);
++        }
++        else {
++            log('Found gas fee flow', gasFeeFlow.constructor.name, transactionMeta.id);
++        }
++        const request = {
++            ethQuery,
++            getGasFeeControllerEstimates: __classPrivateFieldGet(this, _GasFeePoller_getGasFeeControllerEstimates, "f"),
++            transactionMeta,
++        };
++        if (gasFeeFlow) {
++            try {
++                const response = yield gasFeeFlow.getGasFees(request);
++                transactionMeta.gasFeeEstimates = response.estimates;
++            }
++            catch (error) {
++                log('Failed to get suggested gas fees', transactionMeta.id, error);
++            }
++        }
++        if (!gasFeeFlow && transactionMeta.gasFeeEstimatesLoaded) {
++            return;
++        }
++        transactionMeta.gasFeeEstimatesLoaded = true;
++        this.hub.emit('transaction-updated', transactionMeta, 'GasFeePoller - Suggested gas fees updated');
++        log('Updated suggested gas fees', {
++            gasFeeEstimates: transactionMeta.gasFeeEstimates,
++            transaction: transactionMeta.id,
++        });
++    });
++}, _GasFeePoller_getUnapprovedTransactions = function _GasFeePoller_getUnapprovedTransactions() {
++    const chainIds = __classPrivateFieldGet(this, _GasFeePoller_getChainIds, "f").call(this);
++    return __classPrivateFieldGet(this, _GasFeePoller_getTransactions, "f").call(this).filter((tx) => chainIds.includes(tx.chainId) &&
++        tx.status === types_1.TransactionStatus.unapproved);
++};
++//# sourceMappingURL=GasFeePoller.js.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.js.map b/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.js.map
+new file mode 100644
+index 0000000..08b3514
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/helpers/GasFeePoller.js.map
+@@ -0,0 +1 @@
++{"version":3,"file":"GasFeePoller.js","sourceRoot":"","sources":["../../src/helpers/GasFeePoller.ts"],"names":[],"mappings":"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","sourcesContent":["import EventEmitter from 'events';\nimport type { GasFeeState } from '@metamask/gas-fee-controller';\nimport { createModuleLogger } from '@metamask/utils';\n\nimport { projectLogger } from '../logger';\nimport type { GasFeeFlow, GasFeeFlowRequest } from '../types';\nimport { TransactionStatus, type TransactionMeta } from '../types';\nimport { getGasFeeFlow } from '../utils/gas-flow';\n\nconst log = createModuleLogger(projectLogger, 'gas-fee-poller');\n\nconst INTERVAL_MILLISECONDS = 10000;\n\n/**\n * Automatically polls and updates suggested gas fees on unapproved transactions.\n */\nexport class GasFeePoller {\n  hub: EventEmitter = new EventEmitter();\n\n  #gasFeeFlows: GasFeeFlow[];\n\n  #getChainIds: () => string[];\n\n  #getEthQuery: () => any;\n\n  #getGasFeeControllerEstimates: () => Promise<GasFeeState>;\n\n  #getTransactions: () => TransactionMeta[];\n\n  #timeout: any;\n\n  #running = false;\n\n  /**\n   * Constructs a new instance of the GasFeePoller.\n   *\n   * @param options - The options for this instance.\n   * @param options.gasFeeFlows - The gas fee flows to use to obtain suitable gas fees.\n   * @param options.getChainIds - Callback to specify the chain IDs to monitor.\n   * @param options.getEthQuery - Callback to obtain an EthQuery instance.\n   * @param options.getGasFeeControllerEstimates - Callback to obtain the default fee estimates.\n   * @param options.getTransactions - Callback to obtain the transaction data.\n   * @param options.onStateChange - Callback to register a listener for controller state changes.\n   */\n  constructor({\n    gasFeeFlows,\n    getChainIds,\n    getEthQuery,\n    getGasFeeControllerEstimates,\n    getTransactions,\n    onStateChange,\n  }: {\n    gasFeeFlows: GasFeeFlow[];\n    getChainIds: () => string[];\n    getEthQuery: () => any;\n    getGasFeeControllerEstimates: () => Promise<GasFeeState>;\n    getTransactions: () => TransactionMeta[];\n    onStateChange: (listener: () => void) => void;\n  }) {\n    this.#gasFeeFlows = gasFeeFlows;\n    this.#getChainIds = getChainIds;\n    this.#getEthQuery = getEthQuery;\n    this.#getGasFeeControllerEstimates = getGasFeeControllerEstimates;\n    this.#getTransactions = getTransactions;\n\n    onStateChange(() => {\n      const unapprovedTransactions = this.#getUnapprovedTransactions();\n\n      if (unapprovedTransactions.length) {\n        this.#start();\n      } else {\n        this.#stop();\n      }\n    });\n  }\n\n  #start() {\n    if (this.#running) {\n      return;\n    }\n\n    // Intentionally not awaiting since this starts the timeout chain.\n    // eslint-disable-next-line @typescript-eslint/no-floating-promises\n    this.#onTimeout();\n\n    this.#running = true;\n\n    log('Started polling');\n  }\n\n  #stop() {\n    if (!this.#running) {\n      return;\n    }\n\n    clearTimeout(this.#timeout);\n\n    this.#timeout = undefined;\n    this.#running = false;\n\n    log('Stopped polling');\n  }\n\n  async #onTimeout() {\n    await this.#updateUnapprovedTransactions();\n\n    // eslint-disable-next-line @typescript-eslint/no-misused-promises\n    this.#timeout = setTimeout(() => this.#onTimeout(), INTERVAL_MILLISECONDS);\n  }\n\n  async #updateUnapprovedTransactions() {\n    const unapprovedTransactions = this.#getUnapprovedTransactions();\n\n    log('Found unapproved transactions', {\n      count: unapprovedTransactions.length,\n    });\n\n    const ethQuery = this.#getEthQuery();\n\n    await Promise.all(\n      unapprovedTransactions.map((tx) =>\n        this.#updateTransactionSuggestedFees(tx, ethQuery),\n      ),\n    );\n  }\n\n  async #updateTransactionSuggestedFees(\n    transactionMeta: TransactionMeta,\n    ethQuery: any,\n  ) {\n    const gasFeeFlow = getGasFeeFlow(transactionMeta, this.#gasFeeFlows);\n\n    if (!gasFeeFlow) {\n      log('No gas fee flow found', transactionMeta.id);\n    } else {\n      log(\n        'Found gas fee flow',\n        gasFeeFlow.constructor.name,\n        transactionMeta.id,\n      );\n    }\n\n    const request: GasFeeFlowRequest = {\n      ethQuery,\n      getGasFeeControllerEstimates: this.#getGasFeeControllerEstimates,\n      transactionMeta,\n    };\n\n    if (gasFeeFlow) {\n      try {\n        const response = await gasFeeFlow.getGasFees(request);\n\n        transactionMeta.gasFeeEstimates = response.estimates;\n      } catch (error) {\n        log('Failed to get suggested gas fees', transactionMeta.id, error);\n      }\n    }\n\n    if (!gasFeeFlow && transactionMeta.gasFeeEstimatesLoaded) {\n      return;\n    }\n\n    transactionMeta.gasFeeEstimatesLoaded = true;\n\n    this.hub.emit(\n      'transaction-updated',\n      transactionMeta,\n      'GasFeePoller - Suggested gas fees updated',\n    );\n\n    log('Updated suggested gas fees', {\n      gasFeeEstimates: transactionMeta.gasFeeEstimates,\n      transaction: transactionMeta.id,\n    });\n  }\n\n  #getUnapprovedTransactions() {\n    const chainIds = this.#getChainIds();\n\n    return this.#getTransactions().filter(\n      (tx) =>\n        chainIds.includes(tx.chainId as string) &&\n        tx.status === TransactionStatus.unapproved,\n    );\n  }\n}\n"]}
+\ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/index.d.ts b/node_modules/@metamask/transaction-controller/dist/index.d.ts
-index fc7f49b..cd9486a 100644
+index fc7f49b..52e424e 100644
 --- a/node_modules/@metamask/transaction-controller/dist/index.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/index.d.ts
-@@ -1,3 +1,4 @@
+@@ -1,3 +1,5 @@
  export * from './TransactionController';
  export { isEIP1559Transaction } from './utils';
 +export * from './types';
++export { mergeGasFeeEstimates, getGasFeeFlow } from './utils/gas-flow';
  //# sourceMappingURL=index.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/index.d.ts.map b/node_modules/@metamask/transaction-controller/dist/index.d.ts.map
@@ -2178,14 +2707,22 @@ index 2175387..0000000
 -{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,cAAc,yBAAyB,CAAC;AACxC,OAAO,EAAE,oBAAoB,EAAE,MAAM,SAAS,CAAC"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/index.js b/node_modules/@metamask/transaction-controller/dist/index.js
-index a1c07c8..602f51c 100644
+index a1c07c8..99cea84 100644
 --- a/node_modules/@metamask/transaction-controller/dist/index.js
 +++ b/node_modules/@metamask/transaction-controller/dist/index.js
-@@ -18,4 +18,5 @@ exports.isEIP1559Transaction = void 0;
+@@ -14,8 +14,12 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
+     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.isEIP1559Transaction = void 0;
++exports.getGasFeeFlow = exports.mergeGasFeeEstimates = exports.isEIP1559Transaction = void 0;
  __exportStar(require("./TransactionController"), exports);
  var utils_1 = require("./utils");
  Object.defineProperty(exports, "isEIP1559Transaction", { enumerable: true, get: function () { return utils_1.isEIP1559Transaction; } });
 +__exportStar(require("./types"), exports);
++var gas_flow_1 = require("./utils/gas-flow");
++Object.defineProperty(exports, "mergeGasFeeEstimates", { enumerable: true, get: function () { return gas_flow_1.mergeGasFeeEstimates; } });
++Object.defineProperty(exports, "getGasFeeFlow", { enumerable: true, get: function () { return gas_flow_1.getGasFeeFlow; } });
  //# sourceMappingURL=index.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/index.js.map b/node_modules/@metamask/transaction-controller/dist/index.js.map
@@ -2195,6 +2732,35 @@ index a4460fa..0000000
 +++ /dev/null
 @@ -1 +0,0 @@
 -{"version":3,"file":"index.js","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":";;;;;;;;;;;;;;;;;AAAA,0DAAwC;AACxC,iCAA+C;AAAtC,6GAAA,oBAAoB,OAAA","sourcesContent":["export * from './TransactionController';\nexport { isEIP1559Transaction } from './utils';\n"]}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/logger.d.ts b/node_modules/@metamask/transaction-controller/dist/logger.d.ts
+new file mode 100644
+index 0000000..43ad63f
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/logger.d.ts
+@@ -0,0 +1,6 @@
++/// <reference types="debug" />
++import { createModuleLogger } from '@metamask/utils';
++export declare const projectLogger: import("debug").Debugger;
++export declare const incomingTransactionsLogger: import("debug").Debugger;
++export { createModuleLogger };
++//# sourceMappingURL=logger.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/logger.js b/node_modules/@metamask/transaction-controller/dist/logger.js
+new file mode 100644
+index 0000000..bb55b17
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/logger.js
+@@ -0,0 +1,9 @@
++"use strict";
++/* istanbul ignore file */
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.createModuleLogger = exports.incomingTransactionsLogger = exports.projectLogger = void 0;
++const utils_1 = require("@metamask/utils");
++Object.defineProperty(exports, "createModuleLogger", { enumerable: true, get: function () { return utils_1.createModuleLogger; } });
++exports.projectLogger = (0, utils_1.createProjectLogger)('transaction-controller');
++exports.incomingTransactionsLogger = (0, utils_1.createModuleLogger)(exports.projectLogger, 'incoming-transactions');
++//# sourceMappingURL=logger.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts b/node_modules/@metamask/transaction-controller/dist/mocks/txsMock.d.ts
 deleted file mode 100644
@@ -2808,11 +3374,12 @@ index 99e8f02..0000000
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.d.ts b/node_modules/@metamask/transaction-controller/dist/types.d.ts
 new file mode 100644
-index 0000000..3f922df
+index 0000000..39cc136
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/types.d.ts
-@@ -0,0 +1,174 @@
+@@ -0,0 +1,232 @@
 +import { Hex } from '@metamask/utils';
++import { GasFeeState } from '@metamask/gas-fee-controller';
 +/**
 + * @type TransactionMeta
 + *
@@ -2855,6 +3422,10 @@ index 0000000..3f922df
 +    blockNumber?: string;
 +    deviceConfirmedOn?: WalletDevice;
 +    verifiedOnBlockchain?: boolean;
++    /** Alternate EIP-1559 gas fee estimates for multiple priority levels. */
++    gasFeeEstimates?: GasFeeEstimates;
++    /** Whether the gas fee estimates have been checked at least once. */
++    gasFeeEstimatesLoaded?: boolean;
 +    /**
 +     * Response from security validator.
 +     */
@@ -2984,18 +3555,71 @@ index 0000000..3f922df
 +    /** The transaction parameters that were submitted. */
 +    transaction: Record<string, unknown>;
 +};
++/** Gas fee estimates for a specific priority level. */
++export declare type GasFeeEstimatesForLevel = {
++    /** Maximum amount to pay per gas. */
++    maxFeePerGas: Hex;
++    /** Maximum amount per gas to give to the validator as an incentive. */
++    maxPriorityFeePerGas: Hex;
++};
++/** Alternate priority levels for which values are provided in gas fee estimates. */
++export declare enum GasFeeEstimateLevel {
++    low = "low",
++    medium = "medium",
++    high = "high"
++}
++/** Gas fee estimates for a transaction. */
++export declare type GasFeeEstimates = {
++    /** The gas fee estimate for a low priority transaction. */
++    [GasFeeEstimateLevel.low]: GasFeeEstimatesForLevel;
++    /** The gas fee estimate for a medium priority transaction. */
++    [GasFeeEstimateLevel.medium]: GasFeeEstimatesForLevel;
++    /** The gas fee estimate for a high priority transaction. */
++    [GasFeeEstimateLevel.high]: GasFeeEstimatesForLevel;
++};
++/** Request to a gas fee flow to obtain gas fee estimates. */
++export declare type GasFeeFlowRequest = {
++    /** An EthQuery instance to enable queries to the associated RPC provider. */
++    ethQuery: any;
++    /** Callback to get the GasFeeController estimates. */
++    getGasFeeControllerEstimates: () => Promise<GasFeeState>;
++    /** The metadata of the transaction to obtain estimates for. */
++    transactionMeta: TransactionMeta;
++};
++/** Response from a gas fee flow containing gas fee estimates. */
++export declare type GasFeeFlowResponse = {
++    /** The gas fee estimates for the transaction. */
++    estimates: GasFeeEstimates;
++};
++/** A method of obtaining gas fee estimates for a specific transaction. */
++export declare type GasFeeFlow = {
++    /**
++     * Determine if the gas fee flow supports the specified transaction.
++     *
++     * @param transactionMeta - The transaction metadata.
++     * @returns Whether the gas fee flow supports the transaction.
++     */
++    matchesTransaction(transactionMeta: TransactionMeta): boolean;
++    /**
++     * Get gas fee estimates for a specific transaction.
++     *
++     * @param request - The gas fee flow request.
++     * @returns The gas fee flow response containing the gas fee estimates.
++     */
++    getGasFees: (request: GasFeeFlowRequest) => Promise<GasFeeFlowResponse>;
++};
 +export {};
 +//# sourceMappingURL=types.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/types.js b/node_modules/@metamask/transaction-controller/dist/types.js
 new file mode 100644
-index 0000000..1cddb49
+index 0000000..2cc85ee
 --- /dev/null
 +++ b/node_modules/@metamask/transaction-controller/dist/types.js
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,36 @@
 +"use strict";
 +Object.defineProperty(exports, "__esModule", { value: true });
-+exports.WalletDevice = exports.TransactionStatus = void 0;
++exports.GasFeeEstimateLevel = exports.WalletDevice = exports.TransactionStatus = void 0;
 +/**
 + * The status of the transaction. Each status represents the state of the transaction internally
 + * in the wallet. Some of these correspond with the state of the transaction on the network, but
@@ -3021,6 +3645,13 @@ index 0000000..1cddb49
 +    WalletDevice["MM_EXTENSION"] = "metamask_extension";
 +    WalletDevice["OTHER"] = "other_device";
 +})(WalletDevice = exports.WalletDevice || (exports.WalletDevice = {}));
++/** Alternate priority levels for which values are provided in gas fee estimates. */
++var GasFeeEstimateLevel;
++(function (GasFeeEstimateLevel) {
++    GasFeeEstimateLevel["low"] = "low";
++    GasFeeEstimateLevel["medium"] = "medium";
++    GasFeeEstimateLevel["high"] = "high";
++})(GasFeeEstimateLevel = exports.GasFeeEstimateLevel || (exports.GasFeeEstimateLevel = {}));
 +//# sourceMappingURL=types.js.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/utils.d.ts b/node_modules/@metamask/transaction-controller/dist/utils.d.ts
@@ -3186,4 +3817,123 @@ index 8f2f6e3..0000000
 +++ /dev/null
 @@ -1 +0,0 @@
 -{"version":3,"file":"utils.js","sourceRoot":"","sources":["../src/utils.ts"],"names":[],"mappings":"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","sourcesContent":["import { addHexPrefix, isHexString } from 'ethereumjs-util';\nimport {\n  NetworkType,\n  convertHexToDecimal,\n  handleFetch,\n  isValidHexAddress,\n} from '@metamask/controller-utils';\nimport type { Transaction as NonceTrackerTransaction } from 'nonce-tracker/dist/NonceTracker';\nimport {\n  Transaction,\n  FetchAllOptions,\n  GasPriceValue,\n  FeeMarketEIP1559Values,\n  TransactionStatus,\n} from './TransactionController';\nimport type { TransactionMeta } from './TransactionController';\n\nexport const ESTIMATE_GAS_ERROR = 'eth_estimateGas rpc method error';\n\nconst NORMALIZERS: { [param in keyof Transaction]: any } = {\n  data: (data: string) => addHexPrefix(data),\n  from: (from: string) => addHexPrefix(from).toLowerCase(),\n  gas: (gas: string) => addHexPrefix(gas),\n  gasPrice: (gasPrice: string) => addHexPrefix(gasPrice),\n  nonce: (nonce: string) => addHexPrefix(nonce),\n  to: (to: string) => addHexPrefix(to).toLowerCase(),\n  value: (value: string) => addHexPrefix(value),\n  maxFeePerGas: (maxFeePerGas: string) => addHexPrefix(maxFeePerGas),\n  maxPriorityFeePerGas: (maxPriorityFeePerGas: string) =>\n    addHexPrefix(maxPriorityFeePerGas),\n  estimatedBaseFee: (maxPriorityFeePerGas: string) =>\n    addHexPrefix(maxPriorityFeePerGas),\n};\n\n/**\n * Return a URL that can be used to fetch ETH transactions.\n *\n * @param networkType - Network type of desired network.\n * @param urlParams - The parameters used to construct the URL.\n * @returns URL to fetch the access the endpoint.\n */\nexport function getEtherscanApiUrl(\n  networkType: string,\n  urlParams: any,\n): string {\n  let etherscanSubdomain = 'api';\n  if (networkType !== NetworkType.mainnet) {\n    etherscanSubdomain = `api-${networkType}`;\n  }\n  const apiUrl = `https://${etherscanSubdomain}.etherscan.io`;\n  let url = `${apiUrl}/api?`;\n\n  for (const paramKey in urlParams) {\n    if (urlParams[paramKey]) {\n      url += `${paramKey}=${urlParams[paramKey]}&`;\n    }\n  }\n  url += 'tag=latest&page=1';\n  return url;\n}\n\n/**\n * Normalizes properties on a Transaction object.\n *\n * @param transaction - Transaction object to normalize.\n * @returns Normalized Transaction object.\n */\nexport function normalizeTransaction(transaction: Transaction) {\n  const normalizedTransaction: Transaction = { from: '' };\n  let key: keyof Transaction;\n  for (key in NORMALIZERS) {\n    if (transaction[key as keyof Transaction]) {\n      normalizedTransaction[key] = NORMALIZERS[key](transaction[key]) as never;\n    }\n  }\n  return normalizedTransaction;\n}\n\n/**\n * Validates a Transaction object for required properties and throws in\n * the event of any validation error.\n *\n * @param transaction - Transaction object to validate.\n */\nexport function validateTransaction(transaction: Transaction) {\n  if (\n    !transaction.from ||\n    typeof transaction.from !== 'string' ||\n    !isValidHexAddress(transaction.from)\n  ) {\n    throw new Error(\n      `Invalid \"from\" address: ${transaction.from} must be a valid string.`,\n    );\n  }\n\n  if (transaction.to === '0x' || transaction.to === undefined) {\n    if (transaction.data) {\n      delete transaction.to;\n    } else {\n      throw new Error(\n        `Invalid \"to\" address: ${transaction.to} must be a valid string.`,\n      );\n    }\n  } else if (\n    transaction.to !== undefined &&\n    !isValidHexAddress(transaction.to)\n  ) {\n    throw new Error(\n      `Invalid \"to\" address: ${transaction.to} must be a valid string.`,\n    );\n  }\n\n  if (transaction.value !== undefined) {\n    const value = transaction.value.toString();\n    if (value.includes('-')) {\n      throw new Error(`Invalid \"value\": ${value} is not a positive number.`);\n    }\n\n    if (value.includes('.')) {\n      throw new Error(\n        `Invalid \"value\": ${value} number must be denominated in wei.`,\n      );\n    }\n    const intValue = parseInt(transaction.value, 10);\n    const isValid =\n      Number.isFinite(intValue) &&\n      !Number.isNaN(intValue) &&\n      !isNaN(Number(value)) &&\n      Number.isSafeInteger(intValue);\n    if (!isValid) {\n      throw new Error(\n        `Invalid \"value\": ${value} number must be a valid number.`,\n      );\n    }\n  }\n}\n\n/**\n * Checks if a transaction is EIP-1559 by checking for the existence of\n * maxFeePerGas and maxPriorityFeePerGas within its parameters.\n *\n * @param transaction - Transaction object to add.\n * @returns Boolean that is true if the transaction is EIP-1559 (has maxFeePerGas and maxPriorityFeePerGas), otherwise returns false.\n */\nexport const isEIP1559Transaction = (transaction: Transaction): boolean => {\n  const hasOwnProp = (obj: Transaction, key: string) =>\n    Object.prototype.hasOwnProperty.call(obj, key);\n  return (\n    hasOwnProp(transaction, 'maxFeePerGas') &&\n    hasOwnProp(transaction, 'maxPriorityFeePerGas')\n  );\n};\n\n/**\n * Handles the fetch of incoming transactions.\n *\n * @param networkType - Network type of desired network.\n * @param address - Address to get the transactions from.\n * @param txHistoryLimit - The maximum number of transactions to fetch.\n * @param opt - Object that can contain fromBlock and Etherscan service API key.\n * @returns Responses for both ETH and ERC20 token transactions.\n */\nexport async function handleTransactionFetch(\n  networkType: string,\n  address: string,\n  txHistoryLimit: number,\n  opt?: FetchAllOptions,\n): Promise<[{ [result: string]: [] }, { [result: string]: [] }]> {\n  // transactions\n  const urlParams = {\n    module: 'account',\n    address,\n    startBlock: opt?.fromBlock,\n    apikey: opt?.etherscanApiKey,\n    offset: txHistoryLimit.toString(),\n    order: 'desc',\n  };\n  const etherscanTxUrl = getEtherscanApiUrl(networkType, {\n    ...urlParams,\n    action: 'txlist',\n  });\n  const etherscanTxResponsePromise = handleFetch(etherscanTxUrl);\n\n  // tokens\n  const etherscanTokenUrl = getEtherscanApiUrl(networkType, {\n    ...urlParams,\n    action: 'tokentx',\n  });\n  const etherscanTokenResponsePromise = handleFetch(etherscanTokenUrl);\n\n  let [etherscanTxResponse, etherscanTokenResponse] = await Promise.all([\n    etherscanTxResponsePromise,\n    etherscanTokenResponsePromise,\n  ]);\n\n  if (\n    etherscanTxResponse.status === '0' ||\n    etherscanTxResponse.result.length <= 0\n  ) {\n    etherscanTxResponse = { status: etherscanTxResponse.status, result: [] };\n  }\n\n  if (\n    etherscanTokenResponse.status === '0' ||\n    etherscanTokenResponse.result.length <= 0\n  ) {\n    etherscanTokenResponse = {\n      status: etherscanTokenResponse.status,\n      result: [],\n    };\n  }\n\n  return [etherscanTxResponse, etherscanTokenResponse];\n}\n\nexport const validateGasValues = (\n  gasValues: GasPriceValue | FeeMarketEIP1559Values,\n) => {\n  Object.keys(gasValues).forEach((key) => {\n    const value = (gasValues as any)[key];\n    if (typeof value !== 'string' || !isHexString(value)) {\n      throw new TypeError(\n        `expected hex string for ${key} but received: ${value}`,\n      );\n    }\n  });\n};\n\nexport const isFeeMarketEIP1559Values = (\n  gasValues?: GasPriceValue | FeeMarketEIP1559Values,\n): gasValues is FeeMarketEIP1559Values =>\n  (gasValues as FeeMarketEIP1559Values)?.maxFeePerGas !== undefined ||\n  (gasValues as FeeMarketEIP1559Values)?.maxPriorityFeePerGas !== undefined;\n\nexport const isGasPriceValue = (\n  gasValues?: GasPriceValue | FeeMarketEIP1559Values,\n): gasValues is GasPriceValue =>\n  (gasValues as GasPriceValue)?.gasPrice !== undefined;\n\nexport const getIncreasedPriceHex = (value: number, rate: number): string =>\n  addHexPrefix(`${parseInt(`${value * rate}`, 10).toString(16)}`);\n\nexport const getIncreasedPriceFromExisting = (\n  value: string | undefined,\n  rate: number,\n): string => {\n  return getIncreasedPriceHex(convertHexToDecimal(value), rate);\n};\n\n/**\n * Validates that the proposed value is greater than or equal to the minimum value.\n *\n * @param proposed - The proposed value.\n * @param min - The minimum value.\n * @returns The proposed value.\n * @throws Will throw if the proposed value is too low.\n */\nexport function validateMinimumIncrease(proposed: string, min: string) {\n  const proposedDecimal = convertHexToDecimal(proposed);\n  const minDecimal = convertHexToDecimal(min);\n  if (proposedDecimal >= minDecimal) {\n    return proposed;\n  }\n  const errorMsg = `The proposed value: ${proposedDecimal} should meet or exceed the minimum value: ${minDecimal}`;\n  throw new Error(errorMsg);\n}\n\n/**\n * Helper function to filter and format transactions for the nonce tracker.\n *\n * @param fromAddress - Address of the account from which the transactions to filter from are sent.\n * @param transactionStatus - Status of the transactions for which to filter.\n * @param transactions - Array of transactionMeta objects that have been prefiltered.\n * @returns Array of transactions formatted for the nonce tracker.\n */\nexport function getAndFormatTransactionsForNonceTracker(\n  fromAddress: string,\n  transactionStatus: TransactionStatus,\n  transactions: TransactionMeta[],\n): NonceTrackerTransaction[] {\n  return transactions\n    .filter(\n      ({ status, transaction: { from } }) =>\n        status === transactionStatus &&\n        from.toLowerCase() === fromAddress.toLowerCase(),\n    )\n    .map(({ status, transaction: { from, gas, value, nonce } }) => {\n      // the only value we care about is the nonce\n      // but we need to return the other values to satisfy the type\n      // TODO: refactor nonceTracker to not require this\n      return {\n        status,\n        history: [{}],\n        txParams: {\n          from: from ?? '',\n          gas: gas ?? '',\n          value: value ?? '',\n          nonce: nonce ?? '',\n        },\n      };\n    });\n}\n"]}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.d.ts b/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.d.ts
+new file mode 100644
+index 0000000..59837f9
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.d.ts
+@@ -0,0 +1,33 @@
++import type { GasFeeEstimates, LegacyGasPriceEstimate } from '@metamask/gas-fee-controller';
++import { type GasFeeState } from '@metamask/gas-fee-controller';
++import { type GasFeeEstimates as TransactionGasFeeEstimates, type GasFeeFlow, type TransactionMeta } from '../types';
++/**
++ * Returns the first gas fee flow that matches the transaction.
++ *
++ * @param transactionMeta - The transaction metadata to find a gas fee flow for.
++ * @param gasFeeFlows - The gas fee flows to search.
++ * @returns The first gas fee flow that matches the transaction, or undefined if none match.
++ */
++export declare function getGasFeeFlow(transactionMeta: TransactionMeta, gasFeeFlows: GasFeeFlow[]): GasFeeFlow | undefined;
++declare type FeeMarketMergeGasFeeEstimatesRequest = {
++    gasFeeControllerEstimateType: 'fee-market';
++    gasFeeControllerEstimates: GasFeeEstimates;
++    transactionGasFeeEstimates: TransactionGasFeeEstimates;
++};
++declare type LegacyMergeGasFeeEstimatesRequest = {
++    gasFeeControllerEstimateType: 'legacy';
++    gasFeeControllerEstimates: LegacyGasPriceEstimate;
++    transactionGasFeeEstimates: TransactionGasFeeEstimates;
++};
++/**
++ * Merge the gas fee estimates from the gas fee controller with the gas fee estimates from a transaction.
++ *
++ * @param request - Data required to merge gas fee estimates.
++ * @param request.gasFeeControllerEstimateType - Gas fee estimate type from the gas fee controller.
++ * @param request.gasFeeControllerEstimates - Gas fee estimates from the GasFeeController.
++ * @param request.transactionGasFeeEstimates - Gas fee estimates from the transaction.
++ * @returns The merged gas fee estimates.
++ */
++export declare function mergeGasFeeEstimates({ gasFeeControllerEstimateType, gasFeeControllerEstimates, transactionGasFeeEstimates, }: FeeMarketMergeGasFeeEstimatesRequest | LegacyMergeGasFeeEstimatesRequest): GasFeeState['gasFeeEstimates'];
++export {};
++//# sourceMappingURL=gas-flow.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.d.ts.map b/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.d.ts.map
+new file mode 100644
+index 0000000..46c3e5a
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"gas-flow.d.ts","sourceRoot":"","sources":["../../src/utils/gas-flow.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAEV,eAAe,EACf,sBAAsB,EACvB,MAAM,8BAA8B,CAAC;AACtC,OAAO,EAEL,KAAK,WAAW,EACjB,MAAM,8BAA8B,CAAC;AAEtC,OAAO,EACL,KAAK,eAAe,IAAI,0BAA0B,EAClD,KAAK,UAAU,EACf,KAAK,eAAe,EAGrB,MAAM,UAAU,CAAC;AAElB;;;;;;GAMG;AACH,wBAAgB,aAAa,CAC3B,eAAe,EAAE,eAAe,EAChC,WAAW,EAAE,UAAU,EAAE,GACxB,UAAU,GAAG,SAAS,CAIxB;AAED,aAAK,oCAAoC,GAAG;IAC1C,4BAA4B,EAAE,YAAY,CAAC;IAC3C,yBAAyB,EAAE,eAAe,CAAC;IAC3C,0BAA0B,EAAE,0BAA0B,CAAC;CACxD,CAAC;AAEF,aAAK,iCAAiC,GAAG;IACvC,4BAA4B,EAAE,QAAQ,CAAC;IACvC,yBAAyB,EAAE,sBAAsB,CAAC;IAClD,0BAA0B,EAAE,0BAA0B,CAAC;CACxD,CAAC;AAEF;;;;;;;;GAQG;AACH,wBAAgB,oBAAoB,CAAC,EACnC,4BAA4B,EAC5B,yBAAyB,EACzB,0BAA0B,GAC3B,EACG,oCAAoC,GACpC,iCAAiC,GAAG,WAAW,CAAC,iBAAiB,CAAC,CAyBrE"}
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.js b/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.js
+new file mode 100644
+index 0000000..7f4e8a9
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.js
+@@ -0,0 +1,56 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.mergeGasFeeEstimates = exports.getGasFeeFlow = void 0;
++const controller_utils_1 = require("@metamask/controller-utils");
++const gas_fee_controller_1 = require("@metamask/gas-fee-controller");
++const types_1 = require("../types");
++/**
++ * Returns the first gas fee flow that matches the transaction.
++ *
++ * @param transactionMeta - The transaction metadata to find a gas fee flow for.
++ * @param gasFeeFlows - The gas fee flows to search.
++ * @returns The first gas fee flow that matches the transaction, or undefined if none match.
++ */
++function getGasFeeFlow(transactionMeta, gasFeeFlows) {
++    return gasFeeFlows.find((gasFeeFlow) => gasFeeFlow.matchesTransaction(transactionMeta));
++}
++exports.getGasFeeFlow = getGasFeeFlow;
++/**
++ * Merge the gas fee estimates from the gas fee controller with the gas fee estimates from a transaction.
++ *
++ * @param request - Data required to merge gas fee estimates.
++ * @param request.gasFeeControllerEstimateType - Gas fee estimate type from the gas fee controller.
++ * @param request.gasFeeControllerEstimates - Gas fee estimates from the GasFeeController.
++ * @param request.transactionGasFeeEstimates - Gas fee estimates from the transaction.
++ * @returns The merged gas fee estimates.
++ */
++function mergeGasFeeEstimates({ gasFeeControllerEstimateType, gasFeeControllerEstimates, transactionGasFeeEstimates, }) {
++    if (gasFeeControllerEstimateType === gas_fee_controller_1.GAS_ESTIMATE_TYPES.FEE_MARKET) {
++        return Object.values(types_1.GasFeeEstimateLevel).reduce((result, level) => (Object.assign(Object.assign({}, result), { [level]: mergeFeeMarketEstimate(gasFeeControllerEstimates[level], transactionGasFeeEstimates[level]) })), Object.assign({}, gasFeeControllerEstimates));
++    }
++    if (gasFeeControllerEstimateType === gas_fee_controller_1.GAS_ESTIMATE_TYPES.LEGACY) {
++        return Object.values(types_1.GasFeeEstimateLevel).reduce((result, level) => (Object.assign(Object.assign({}, result), { [level]: getLegacyEstimate(transactionGasFeeEstimates[level]) })), {});
++    }
++    return gasFeeControllerEstimates;
++}
++exports.mergeGasFeeEstimates = mergeGasFeeEstimates;
++/**
++ * Merge a specific priority level of EIP-1559 gas fee estimates.
++ *
++ * @param gasFeeControllerEstimate - The gas fee estimate from the gas fee controller.
++ * @param transactionGasFeeEstimate - The gas fee estimate from the transaction.
++ * @returns The merged gas fee estimate.
++ */
++function mergeFeeMarketEstimate(gasFeeControllerEstimate, transactionGasFeeEstimate) {
++    return Object.assign(Object.assign({}, gasFeeControllerEstimate), { suggestedMaxFeePerGas: (0, controller_utils_1.weiHexToGweiDec)(transactionGasFeeEstimate.maxFeePerGas), suggestedMaxPriorityFeePerGas: (0, controller_utils_1.weiHexToGweiDec)(transactionGasFeeEstimate.maxPriorityFeePerGas) });
++}
++/**
++ * Generate a specific priority level for a legacy gas fee estimate.
++ *
++ * @param transactionGasFeeEstimate - The gas fee estimate from the transaction.
++ * @returns The legacy gas fee estimate.
++ */
++function getLegacyEstimate(transactionGasFeeEstimate) {
++    return (0, controller_utils_1.weiHexToGweiDec)(transactionGasFeeEstimate.maxFeePerGas);
++}
++//# sourceMappingURL=gas-flow.js.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.js.map b/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.js.map
+new file mode 100644
+index 0000000..fe93a4a
+--- /dev/null
++++ b/node_modules/@metamask/transaction-controller/dist/utils/gas-flow.js.map
+@@ -0,0 +1 @@
++{"version":3,"file":"gas-flow.js","sourceRoot":"","sources":["../../src/utils/gas-flow.ts"],"names":[],"mappings":";;;AAAA,iEAA6D;AAM7D,qEAGsC;AAEtC,oCAMkB;AAElB;;;;;;GAMG;AACH,SAAgB,aAAa,CAC3B,eAAgC,EAChC,WAAyB;IAEzB,OAAO,WAAW,CAAC,IAAI,CAAC,CAAC,UAAU,EAAE,EAAE,CACrC,UAAU,CAAC,kBAAkB,CAAC,eAAe,CAAC,CAC/C,CAAC;AACJ,CAAC;AAPD,sCAOC;AAcD;;;;;;;;GAQG;AACH,SAAgB,oBAAoB,CAAC,EACnC,4BAA4B,EAC5B,yBAAyB,EACzB,0BAA0B,GAGS;IACnC,IAAI,4BAA4B,KAAK,uCAAkB,CAAC,UAAU,EAAE;QAClE,OAAO,MAAM,CAAC,MAAM,CAAC,2BAAmB,CAAC,CAAC,MAAM,CAC9C,CAAC,MAAM,EAAE,KAAK,EAAE,EAAE,CAAC,iCACd,MAAM,KACT,CAAC,KAAK,CAAC,EAAE,sBAAsB,CAC7B,yBAAyB,CAAC,KAAK,CAAC,EAChC,0BAA0B,CAAC,KAAK,CAAC,CAClC,IACD,EACF,kBAAK,yBAAyB,CAAqB,CACpD,CAAC;KACH;IAED,IAAI,4BAA4B,KAAK,uCAAkB,CAAC,MAAM,EAAE;QAC9D,OAAO,MAAM,CAAC,MAAM,CAAC,2BAAmB,CAAC,CAAC,MAAM,CAC9C,CAAC,MAAM,EAAE,KAAK,EAAE,EAAE,CAAC,iCACd,MAAM,KACT,CAAC,KAAK,CAAC,EAAE,iBAAiB,CAAC,0BAA0B,CAAC,KAAK,CAAC,CAAC,IAC7D,EACF,EAA4B,CAC7B,CAAC;KACH;IAED,OAAO,yBAAyB,CAAC;AACnC,CAAC;AA/BD,oDA+BC;AAED;;;;;;GAMG;AACH,SAAS,sBAAsB,CAC7B,wBAAuC,EACvC,yBAAkD;IAElD,uCACK,wBAAwB,KAC3B,qBAAqB,EAAE,IAAA,kCAAe,EACpC,yBAAyB,CAAC,YAAY,CACvC,EACD,6BAA6B,EAAE,IAAA,kCAAe,EAC5C,yBAAyB,CAAC,oBAAoB,CAC/C,IACD;AACJ,CAAC;AAED;;;;;GAKG;AACH,SAAS,iBAAiB,CACxB,yBAAkD;IAElD,OAAO,IAAA,kCAAe,EAAC,yBAAyB,CAAC,YAAY,CAAC,CAAC;AACjE,CAAC","sourcesContent":["import { weiHexToGweiDec } from '@metamask/controller-utils';\nimport type {\n  Eip1559GasFee,\n  GasFeeEstimates,\n  LegacyGasPriceEstimate,\n} from '@metamask/gas-fee-controller';\nimport {\n  GAS_ESTIMATE_TYPES,\n  type GasFeeState,\n} from '@metamask/gas-fee-controller';\n\nimport {\n  type GasFeeEstimates as TransactionGasFeeEstimates,\n  type GasFeeFlow,\n  type TransactionMeta,\n  type GasFeeEstimatesForLevel,\n  GasFeeEstimateLevel,\n} from '../types';\n\n/**\n * Returns the first gas fee flow that matches the transaction.\n *\n * @param transactionMeta - The transaction metadata to find a gas fee flow for.\n * @param gasFeeFlows - The gas fee flows to search.\n * @returns The first gas fee flow that matches the transaction, or undefined if none match.\n */\nexport function getGasFeeFlow(\n  transactionMeta: TransactionMeta,\n  gasFeeFlows: GasFeeFlow[],\n): GasFeeFlow | undefined {\n  return gasFeeFlows.find((gasFeeFlow) =>\n    gasFeeFlow.matchesTransaction(transactionMeta),\n  );\n}\n\ntype FeeMarketMergeGasFeeEstimatesRequest = {\n  gasFeeControllerEstimateType: 'fee-market';\n  gasFeeControllerEstimates: GasFeeEstimates;\n  transactionGasFeeEstimates: TransactionGasFeeEstimates;\n};\n\ntype LegacyMergeGasFeeEstimatesRequest = {\n  gasFeeControllerEstimateType: 'legacy';\n  gasFeeControllerEstimates: LegacyGasPriceEstimate;\n  transactionGasFeeEstimates: TransactionGasFeeEstimates;\n};\n\n/**\n * Merge the gas fee estimates from the gas fee controller with the gas fee estimates from a transaction.\n *\n * @param request - Data required to merge gas fee estimates.\n * @param request.gasFeeControllerEstimateType - Gas fee estimate type from the gas fee controller.\n * @param request.gasFeeControllerEstimates - Gas fee estimates from the GasFeeController.\n * @param request.transactionGasFeeEstimates - Gas fee estimates from the transaction.\n * @returns The merged gas fee estimates.\n */\nexport function mergeGasFeeEstimates({\n  gasFeeControllerEstimateType,\n  gasFeeControllerEstimates,\n  transactionGasFeeEstimates,\n}:\n  | FeeMarketMergeGasFeeEstimatesRequest\n  | LegacyMergeGasFeeEstimatesRequest): GasFeeState['gasFeeEstimates'] {\n  if (gasFeeControllerEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {\n    return Object.values(GasFeeEstimateLevel).reduce(\n      (result, level) => ({\n        ...result,\n        [level]: mergeFeeMarketEstimate(\n          gasFeeControllerEstimates[level],\n          transactionGasFeeEstimates[level],\n        ),\n      }),\n      { ...gasFeeControllerEstimates } as GasFeeEstimates,\n    );\n  }\n\n  if (gasFeeControllerEstimateType === GAS_ESTIMATE_TYPES.LEGACY) {\n    return Object.values(GasFeeEstimateLevel).reduce(\n      (result, level) => ({\n        ...result,\n        [level]: getLegacyEstimate(transactionGasFeeEstimates[level]),\n      }),\n      {} as LegacyGasPriceEstimate,\n    );\n  }\n\n  return gasFeeControllerEstimates;\n}\n\n/**\n * Merge a specific priority level of EIP-1559 gas fee estimates.\n *\n * @param gasFeeControllerEstimate - The gas fee estimate from the gas fee controller.\n * @param transactionGasFeeEstimate - The gas fee estimate from the transaction.\n * @returns The merged gas fee estimate.\n */\nfunction mergeFeeMarketEstimate(\n  gasFeeControllerEstimate: Eip1559GasFee,\n  transactionGasFeeEstimate: GasFeeEstimatesForLevel,\n): Eip1559GasFee {\n  return {\n    ...gasFeeControllerEstimate,\n    suggestedMaxFeePerGas: weiHexToGweiDec(\n      transactionGasFeeEstimate.maxFeePerGas,\n    ),\n    suggestedMaxPriorityFeePerGas: weiHexToGweiDec(\n      transactionGasFeeEstimate.maxPriorityFeePerGas,\n    ),\n  };\n}\n\n/**\n * Generate a specific priority level for a legacy gas fee estimate.\n *\n * @param transactionGasFeeEstimate - The gas fee estimate from the transaction.\n * @returns The legacy gas fee estimate.\n */\nfunction getLegacyEstimate(\n  transactionGasFeeEstimate: GasFeeEstimatesForLevel,\n): string {\n  return weiHexToGweiDec(transactionGasFeeEstimate.maxFeePerGas);\n}\n"]}
 \ No newline at end of file
