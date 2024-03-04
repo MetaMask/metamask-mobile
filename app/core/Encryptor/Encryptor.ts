@@ -1,13 +1,28 @@
 import { NativeModules } from 'react-native';
+import { hasProperty, isPlainObject } from '@metamask/utils';
 import {
+  BYTE_COUNT,
   SHA256_DIGEST_LENGTH,
-  OLD_ITERATIONS_NUMBER,
   ENCRYPTION_LIBRARY,
+  DEFAULT_DERIVATION_PARAMS,
 } from './constants';
-import type { EncryptionResult } from './types';
+import type { EncryptionResult, KeyDerivationOptions } from './types';
 
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
+
+/**
+ * Checks if the provided object is a `KeyDerivationOptions`.
+ *
+ * @param derivationOptions - The object to check.
+ * @returns Whether or not the object is a `KeyDerivationOptions`.
+ */
+const isKeyDerivationOptions = (
+  derivationOptions: unknown,
+): derivationOptions is KeyDerivationOptions =>
+  isPlainObject(derivationOptions) &&
+  hasProperty(derivationOptions, 'algorithm') &&
+  hasProperty(derivationOptions, 'params');
 
 /**
  * The Encryptor class provides methods for encrypting and
@@ -23,7 +38,7 @@ class Encryptor {
    * @param byteCount - The number of bytes for the salt. Defaults to 32.
    * @returns The base64-encoded salt string.
    */
-  private _generateSalt(byteCount = 32) {
+  private generateSalt(byteCount = BYTE_COUNT) {
     const view = new Uint8Array(byteCount);
     global.crypto.getRandomValues(view);
     const b64encoded = btoa(String.fromCharCode.apply(null, Array.from(view)));
@@ -37,7 +52,7 @@ class Encryptor {
    * @param params.lib - The library to use ('original' or forked version).
    * @returns A promise that resolves to the derived encryption key.
    */
-  private _generateKey = ({
+  private generateKey = ({
     password,
     salt,
     iterations,
@@ -59,7 +74,7 @@ class Encryptor {
    * @param params.lib - The library to use ('original' or forked version).
    * @returns A promise that resolves to the derived encryption key.
    */
-  private _keyFromPassword = ({
+  private keyFromPassword = ({
     password,
     salt,
     iterations,
@@ -69,7 +84,7 @@ class Encryptor {
     salt: string;
     iterations: number;
     lib: string;
-  }): Promise<string> => this._generateKey({ password, salt, iterations, lib });
+  }): Promise<string> => this.generateKey({ password, salt, iterations, lib });
 
   /**
    * Encrypts a text string using the provided key.
@@ -77,7 +92,7 @@ class Encryptor {
    * @param params.keyBase64 - The base64-encoded encryption key.
    * @returns A promise that resolves to an object containing the cipher text and initialization vector (IV).
    */
-  private _encryptWithKey = async ({
+  private encryptWithKey = async ({
     text,
     keyBase64,
   }: {
@@ -98,7 +113,7 @@ class Encryptor {
    * @param params.lib - The library to use ('original' or forked version) for decryption.
    * @returns A promise that resolves to the decrypted text.
    */
-  private _decryptWithKey = ({
+  private decryptWithKey = ({
     encryptedData,
     key,
     lib,
@@ -111,6 +126,17 @@ class Encryptor {
       ? Aes.decrypt(encryptedData.cipher, key, encryptedData.iv)
       : AesForked.decrypt(encryptedData.cipher, key, encryptedData.iv);
 
+  private isVaultUpdated = (
+    vault: string,
+    targetDerivationParams = DEFAULT_DERIVATION_PARAMS,
+  ): boolean => {
+    const { keyMetadata } = JSON.parse(vault);
+    return (
+      isKeyDerivationOptions(keyMetadata) &&
+      keyMetadata.params.iterations === targetDerivationParams.params.iterations
+    );
+  };
+
   /**
    * Asynchronously encrypts a given object using AES encryption.
    * The encryption process involves generating a salt, deriving a key from the provided password and salt,
@@ -122,19 +148,20 @@ class Encryptor {
    * @returns A promise that resolves to a string. The string is a JSON representation of an object containing the encrypted data, the salt used for encryption, and the library version.
    */
   encrypt = async (password: string, object: unknown): Promise<string> => {
-    const salt = this._generateSalt(16);
-    const key = await this._keyFromPassword({
+    const salt = this.generateSalt(16);
+    const key = await this.keyFromPassword({
       password,
       salt,
-      iterations: OLD_ITERATIONS_NUMBER,
+      iterations: DEFAULT_DERIVATION_PARAMS.params.iterations,
       lib: ENCRYPTION_LIBRARY.original,
     });
-    const result = await this._encryptWithKey({
+    const result = await this.encryptWithKey({
       text: JSON.stringify(object),
       keyBase64: key,
     });
     result.salt = salt;
     result.lib = ENCRYPTION_LIBRARY.original;
+    result.keyMetadata = DEFAULT_DERIVATION_PARAMS;
     return JSON.stringify(result);
   };
 
@@ -151,18 +178,29 @@ class Encryptor {
     encryptedString: string,
   ): Promise<unknown> => {
     const payload = JSON.parse(encryptedString);
-    const key = await this._keyFromPassword({
+    const key = await this.keyFromPassword({
       password,
       salt: payload.salt,
-      iterations: OLD_ITERATIONS_NUMBER,
+      iterations: DEFAULT_DERIVATION_PARAMS.params.iterations,
       lib: payload.lib,
     });
-    const data = await this._decryptWithKey({
+    const data = await this.decryptWithKey({
       encryptedData: payload,
       key,
       lib: payload.lib,
     });
     return JSON.parse(data);
+  };
+
+  updateVault = async (
+    vault: string,
+    password: string,
+    targetDerivationParams = DEFAULT_DERIVATION_PARAMS,
+  ): Promise<string> => {
+    if (this.isVaultUpdated(vault, targetDerivationParams)) {
+      return vault;
+    }
+    return this.encrypt(password, await this.decrypt(password, vault));
   };
 }
 
