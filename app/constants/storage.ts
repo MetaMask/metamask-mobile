@@ -16,6 +16,15 @@ export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`
 export const METAMETRICS_DELETION_REGULATION_ID = `${prefix}MetaMetricsDeletionRegulationId`;
 export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
 export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
+
+/**
+ * @deprecated, use {@link METAMETRICS_ID} instead
+ * Keeping MIXPANEL_METAMETRICS_ID for backward compatibility
+ *
+ * TODO remove MIXPANEL_METAMETRICS_ID:
+ * - add a migration
+ * - aremove the legacy id test from {@link MetaMetrics}.#getMetaMetricsId()
+ */
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
 
 export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;
