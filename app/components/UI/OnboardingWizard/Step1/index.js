@@ -1,13 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import {
-  View,
-  Text,
-  StyleSheet,
-  InteractionManager,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import Coachmark from '../Coachmark';
 import Device from '../../../../util/device';
 import setOnboardingWizardStep from '../../../../actions/wizard';
@@ -17,11 +11,11 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import AnalyticsV2 from '../../../../util/analyticsV2';
 
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {
@@ -49,6 +43,10 @@ class Step1 extends PureComponent {
      * Dispatch set onboarding wizard step
      */
     setOnboardingWizardStep: PropTypes.func,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   /**
@@ -57,11 +55,10 @@ class Step1 extends PureComponent {
   onNext = () => {
     const { setOnboardingWizardStep } = this.props;
     setOnboardingWizardStep && setOnboardingWizardStep(2);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
-        tutorial_step_count: 1,
-        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
-      });
+
+    this.props.metrics.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
+      tutorial_step_count: 1,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
     });
   };
 
@@ -118,4 +115,4 @@ const mapDispatchToProps = (dispatch) => ({
 
 Step1.contextType = ThemeContext;
 
-export default connect(null, mapDispatchToProps)(Step1);
+export default connect(null, mapDispatchToProps)(withMetricsAwareness(Step1));

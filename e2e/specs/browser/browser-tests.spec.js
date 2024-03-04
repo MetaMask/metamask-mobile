@@ -1,7 +1,7 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
-import Browser from '../../pages/Drawer/Browser';
+import Browser from '../../pages/Browser';
 import { BROWSER_SCREEN_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import TabBarComponent from '../../pages/TabBarComponent';
 import { loginToApp } from '../../viewHelper';

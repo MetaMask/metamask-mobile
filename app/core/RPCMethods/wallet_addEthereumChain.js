@@ -1,23 +1,20 @@
 import { InteractionManager } from 'react-native';
 import validUrl from 'valid-url';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import {
+  getDecimalChainId,
   isPrefixedFormattedHexString,
-  isSafeChainId,
 } from '../../util/networks';
-import URL from 'url-parse';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../../util/analyticsV2';
+import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
 import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import { BannerAlertSeverity } from '../../component-library/components/Banners/Banner';
-import { strings } from '../../../locales/i18n';
+import checkSafeNetwork from './networkChecker.util';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -108,17 +105,13 @@ const wallet_addEthereumChain = async ({
     );
   }
 
-  if (!isSafeChainId(parseInt(_chainId, 16))) {
+  if (!isSafeChainId(_chainId)) {
     throw ethErrors.rpc.invalidParams(
       `Invalid chain ID "${_chainId}": numerical value greater than max safe value. Received:\n${chainId}`,
     );
   }
 
-  const chainIdDecimal = parseInt(_chainId, 16).toString(10);
-
-  if (
-    Object.values(NetworksChainId).find((value) => value === chainIdDecimal)
-  ) {
+  if (Object.values(ChainId).find((value) => value === _chainId)) {
     throw ethErrors.rpc.invalidParams(
       `May not specify default MetaMask chain.`,
     );
@@ -126,20 +119,19 @@ const wallet_addEthereumChain = async ({
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const existingEntry = Object.entries(networkConfigurations).find(
-    ([, networkConfiguration]) =>
-      networkConfiguration.chainId === chainIdDecimal,
+    ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
   );
 
   if (existingEntry) {
     const [networkConfigurationId, networkConfiguration] = existingEntry;
     const currentChainId = selectChainId(store.getState());
-    if (currentChainId === chainIdDecimal) {
+    if (currentChainId === _chainId) {
       res.result = null;
       return;
     }
 
     const analyticsParams = {
-      chain_id: _chainId,
+      chain_id: getDecimalChainId(_chainId),
       source: 'Custom Network API',
       symbol: networkConfiguration.ticker,
       ...analytics,
@@ -157,7 +149,7 @@ const wallet_addEthereumChain = async ({
         },
       });
     } catch (e) {
-      AnalyticsV2.trackEvent(
+      MetaMetrics.getInstance().trackEvent(
         MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
         analyticsParams,
       );
@@ -167,7 +159,10 @@ const wallet_addEthereumChain = async ({
     CurrencyRateController.setNativeCurrency(networkConfiguration.ticker);
     NetworkController.setActiveNetwork(networkConfigurationId);
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
+    MetaMetrics.getInstance().trackEvent(
+      MetaMetricsEvents.NETWORK_SWITCHED,
+      analyticsParams,
+    );
 
     res.result = null;
     return;
@@ -233,67 +228,23 @@ const wallet_addEthereumChain = async ({
     ticker,
   };
 
-  const alerts = [];
-  const safeChainsListRequest = await fetch(
-    'https://chainid.network/chains.json',
+  const alerts = await checkSafeNetwork(
+    getDecimalChainId(_chainId),
+    requestData.rpcUrl,
+    requestData.chainName,
+    requestData.ticker,
   );
-  const safeChainsList = await safeChainsListRequest.json();
-  const matchedChain = safeChainsList.find(
-    (chain) => chain.chainId.toString() === chainIdDecimal,
-  );
-
-  if (matchedChain) {
-    const { origin } = new URL(requestData.rpcUrl);
-    if (!matchedChain.rpc?.map((rpc) => new URL(rpc).origin).includes(origin)) {
-      alerts.push({
-        alertError: strings('add_custom_network.invalid_rpc_url'),
-        alertSeverity: BannerAlertSeverity.Error,
-        alertOrigin: 'rpc_url',
-      });
-    }
-    if (matchedChain.nativeCurrency?.decimals !== EVM_NATIVE_TOKEN_DECIMALS) {
-      alerts.push({
-        alertError: strings('add_custom_network.invalid_chain_token_decimals'),
-        alertSeverity: BannerAlertSeverity.Warning,
-        alertOrigin: 'decimals',
-      });
-    }
-    if (
-      matchedChain.name?.toLowerCase() !== requestData.chainName.toLowerCase()
-    ) {
-      alerts.push({
-        alertError: strings('add_custom_network.unrecognized_chain_name'),
-        alertSeverity: BannerAlertSeverity.Warning,
-        alertOrigin: 'chain_name',
-      });
-    }
-    if (matchedChain.nativeCurrency?.symbol !== requestData.ticker) {
-      alerts.push({
-        alertError: strings('add_custom_network.unrecognized_chain_ticker'),
-        alertSeverity: BannerAlertSeverity.Warning,
-        alertOrigin: 'chain_ticker',
-      });
-    }
-  }
-
-  if (!matchedChain) {
-    alerts.push({
-      alertError: strings('add_custom_network.unrecognized_chain_id'),
-      alertSeverity: BannerAlertSeverity.Error,
-      alertOrigin: 'unknown_chain',
-    });
-  }
 
   requestData.alerts = alerts;
 
   const analyticsParamsAdd = {
-    chain_id: chainIdDecimal,
+    chain_id: getDecimalChainId(_chainId),
     source: 'Custom Network API',
     symbol: ticker,
     ...analytics,
   };
 
-  AnalyticsV2.trackEvent(
+  MetaMetrics.getInstance().trackEvent(
     MetaMetricsEvents.NETWORK_REQUESTED,
     analyticsParamsAdd,
   );
@@ -314,18 +265,17 @@ const wallet_addEthereumChain = async ({
         requestData,
       });
     } catch (e) {
-      AnalyticsV2.trackEvent(
+      MetaMetrics.getInstance().trackEvent(
         MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
         analyticsParamsAdd,
       );
       throw ethErrors.provider.userRejectedRequest();
     }
-
     const networkConfigurationId =
       await NetworkController.upsertNetworkConfiguration(
         {
           rpcUrl: firstValidRPCUrl,
-          chainId: chainIdDecimal,
+          chainId: _chainId,
           ticker,
           nickname: chainName,
           rpcPrefs: {
@@ -340,7 +290,10 @@ const wallet_addEthereumChain = async ({
         },
       );
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+    MetaMetrics.getInstance().trackEvent(
+      MetaMetricsEvents.NETWORK_ADDED,
+      analyticsParamsAdd,
+    );
 
     await waitForInteraction();
 

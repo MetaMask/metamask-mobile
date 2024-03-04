@@ -22,7 +22,6 @@ import {
   TX_UNAPPROVED,
 } from '../../../constants/transaction';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import {
   swapsLivenessSelector,
@@ -32,7 +31,7 @@ import {
   selectChainId,
   selectNetworkId,
   selectNetworkConfigurations,
-  selectRpcTarget,
+  selectRpcUrl,
 } from '../../../selectors/networkController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { sortTransactions } from '../../../util/activity';
@@ -49,7 +48,7 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
-import { isNetworkRampNativeTokenSupported } from '../../UI/Ramp/common/utils';
+import { isNetworkRampNativeTokenSupported } from '../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
 import {
@@ -60,11 +59,12 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
-import Engine from '../../../core/Engine';
 import {
   TOKEN_OVERVIEW_BUY_BUTTON,
   TOKEN_OVERVIEW_SWAP_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -170,12 +170,16 @@ class Asset extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    rpcTarget: PropTypes.string,
+    rpcUrl: PropTypes.string,
     networkConfigurations: PropTypes.object,
     /**
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -196,13 +200,13 @@ class Asset extends PureComponent {
   navAddress = undefined;
 
   updateNavBar = (contentOffset = 0) => {
-    const { navigation, route, chainId, rpcTarget, networkConfigurations } =
+    const { navigation, route, chainId, rpcUrl, networkConfigurations } =
       this.props;
     const colors = this.context.colors || mockTheme.colors;
     const isNativeToken = route.params.isETH;
     const isMainnet = isMainnetByChainId(chainId);
     const blockExplorer = findBlockExplorerForRpc(
-      rpcTarget,
+      rpcUrl,
       networkConfigurations,
     );
 
@@ -441,11 +445,9 @@ class Asset extends PureComponent {
   };
 
   onRefresh = async () => {
-    const { TransactionController } = Engine.context;
-
     this.setState({ refreshing: true });
 
-    await TransactionController.updateIncomingTransactions();
+    await updateIncomingTransactions();
 
     this.setState({ refreshing: false });
   };
@@ -476,15 +478,11 @@ class Asset extends PureComponent {
 
     const onBuy = () => {
       navigation.navigate(Routes.RAMP.BUY);
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.BUY_BUTTON_CLICKED,
-          {
-            text: 'Buy',
-            location: 'Token Screen',
-            chain_id_destination: chainId,
-          },
-        );
+
+      this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
+        text: 'Buy',
+        location: 'Token Screen',
+        chain_id_destination: chainId,
       });
     };
 
@@ -589,7 +587,7 @@ const mapStateToProps = (state) => ({
   tokens: selectTokens(state),
   networkId: selectNetworkId(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  rpcTarget: selectRpcTarget(state),
+  rpcUrl: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
   isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
@@ -597,4 +595,4 @@ const mapStateToProps = (state) => ({
   ),
 });
 
-export default connect(mapStateToProps)(Asset);
+export default connect(mapStateToProps)(withMetricsAwareness(Asset));

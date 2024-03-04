@@ -19,10 +19,7 @@ import { typography } from '@metamask/design-tokens';
 // External dependencies.
 import ActionModal from '../../../UI/ActionModal';
 import Engine from '../../../../core/Engine';
-import {
-  baseStyles,
-  colors as importedColors,
-} from '../../../../styles/common';
+import { baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setShowCustomNonce,
@@ -39,7 +36,7 @@ import {
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
 import Routes from '../../../../constants/navigation/Routes';
-import { trackEventV2 as trackEvent } from '../../../../util/analyticsV2';
+
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AdvancedViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/AdvancedView.selectors';
 import Text, {
@@ -55,6 +52,8 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../component-library/components/Banners/Banner';
+import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { wipeTransactions } from '../../../../util/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -188,6 +187,10 @@ class AdvancedSettings extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   scrollView = React.createRef();
@@ -243,9 +246,8 @@ class AdvancedSettings extends PureComponent {
   };
 
   resetAccount = () => {
-    const { TransactionController } = Engine.context;
     const { navigation } = this.props;
-    TransactionController.wipeTransactions(true);
+    wipeTransactions(true);
     navigation.navigate('WalletView');
   };
 
@@ -294,7 +296,9 @@ class AdvancedSettings extends PureComponent {
       // Disable eth_sign directly without friction
       const { PreferencesController } = Engine.context;
       PreferencesController.setDisabledRpcMethodPreference('eth_sign', false);
-      trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_DISABLED, {});
+      this.props.metrics.trackEvent(
+        MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_DISABLED,
+      );
     }
   };
 
@@ -306,6 +310,7 @@ class AdvancedSettings extends PureComponent {
   renderTokenDetectionSection = () => {
     const { isTokenDetectionEnabled, chainId } = this.props;
     const { styles, colors } = this.getStyles();
+    const theme = this.context || mockTheme;
     if (!isTokenDetectionSupportedForNetwork(chainId)) {
       return null;
     }
@@ -326,7 +331,7 @@ class AdvancedSettings extends PureComponent {
                 true: colors.primary.default,
                 false: colors.border.muted,
               }}
-              thumbColor={importedColors.white}
+              thumbColor={theme.brandColors.white['000']}
               ios_backgroundColor={colors.border.muted}
               style={styles.switch}
             />
@@ -353,6 +358,7 @@ class AdvancedSettings extends PureComponent {
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
+    const theme = this.context || mockTheme;
 
     return (
       <SafeAreaView style={baseStyles.flexGrow}>
@@ -415,7 +421,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={importedColors.white}
+                    thumbColor={theme.brandColors.white['000']}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />
@@ -455,7 +461,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={importedColors.white}
+                    thumbColor={theme.brandColors.white['000']}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                     accessibilityRole={'switch'}
@@ -494,7 +500,7 @@ class AdvancedSettings extends PureComponent {
                       true: colors.primary.default,
                       false: colors.border.muted,
                     }}
-                    thumbColor={importedColors.white}
+                    thumbColor={theme.brandColors.white['000']}
                     style={styles.switch}
                     ios_backgroundColor={colors.border.muted}
                   />
@@ -553,4 +559,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setShowCustomNonce(showCustomNonce)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(AdvancedSettings);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(AdvancedSettings));

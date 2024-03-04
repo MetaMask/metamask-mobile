@@ -22,15 +22,15 @@ import {
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
-import processOrder from './common/orderProcessor';
-import processCustomOrderIdData from './common/orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from './common/orderProcessor/aggregator';
-import { trackEvent } from './common/hooks/useAnalytics';
-import { AnalyticsEvents } from './common/types';
+import processOrder from './orderProcessor';
+import processCustomOrderIdData from './orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';
+import { trackEvent } from './hooks/useAnalytics';
+import { AnalyticsEvents } from './types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
-import { callbackBaseUrl } from './common/sdk';
-import useFetchRampNetworks from './common/hooks/useFetchRampNetworks';
-import { getNotificationDetails, stateHasOrder } from './common/utils';
+import { callbackBaseUrl } from './sdk';
+import useFetchRampNetworks from './hooks/useFetchRampNetworks';
+import { getNotificationDetails, stateHasOrder } from './utils';
 import Routes from '../../../constants/navigation/Routes';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
@@ -226,19 +226,25 @@ function FiatOrders() {
 
   const dispatchAddFiatOrder = useCallback(
     (order: FiatOrder) => {
-      dispatch(addFiatOrder(order));
-      if (order.orderType === OrderOrderTypeEnum.Sell) {
-        navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-          screen: Routes.RAMP.ORDER_DETAILS,
-          initial: false,
-          params: {
-            orderId: order.id,
-            redirectToSendTransaction: true,
-          },
-        });
-      }
+      dispatchThunk((_dispatch, getState) => {
+        const state = getState();
+        if (stateHasOrder(state, order)) {
+          return;
+        }
+        _dispatch(addFiatOrder(order));
+        if (order.orderType === OrderOrderTypeEnum.Sell) {
+          navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+            screen: Routes.RAMP.ORDER_DETAILS,
+            initial: false,
+            params: {
+              orderId: order.id,
+              redirectToSendTransaction: true,
+            },
+          });
+        }
+      });
     },
-    [dispatch, navigation],
+    [dispatchThunk, navigation],
   );
   const dispatchUpdateFiatOrder = useCallback(
     (order: FiatOrder) => dispatch(updateFiatOrder(order)),

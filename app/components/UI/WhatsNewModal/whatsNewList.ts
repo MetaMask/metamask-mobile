@@ -7,8 +7,8 @@ import { WhatsNew } from './types';
 export const whatsNew: WhatsNew = {
   // All users that have <6.4.0 and are updating to >=6.4.0 should see
   onlyUpdates: false, // false: Users who updated the app and new installs will see this. true: only users who update will see it
-  maxLastAppVersion: '7.12.0', // Only users who had a previous version <7.12.0 version will see this
-  minAppVersion: '7.12.0', // Only users who updated to a version >= 7.3.0 will see this
+  maxLastAppVersion: '7.20', // When updating, only users who had a previous version < '7.20' may see the modal
+  minAppVersion: '7.16.0', // Only users whose current version is >= 7.16.0 may see the modal. This should match the version with the latest copy changes in the modal.
   /**
    * Slides utilizes a templating system in the form of a 2D array, which is eventually rendered within app/components/UI/WhatsNewModal/index.js.
    * The root layer determines the number of slides. Ex. To display 3 slides, the root layer should contain 3 arrays.
@@ -17,27 +17,6 @@ export const whatsNew: WhatsNew = {
    * Both slide count and slide content will be rendered in the same order as the data set.
    */
   slides: [
-    [
-      {
-        type: 'image',
-        image: require('../../../images/whats_new_sell.png'),
-      },
-      {
-        type: 'title',
-        title: strings('whats_new.sell.title'),
-      },
-      {
-        type: 'description',
-        description: strings('whats_new.sell.description'),
-      },
-      // button to try it out
-      {
-        type: 'button',
-        buttonText: strings('whats_new.sell.action_text'),
-        buttonType: 'blue',
-        onPress: (props) => props.navigation.navigate(Routes.RAMP.SELL),
-      },
-    ],
     ...(isBlockaidFeatureEnabled()
       ? ([
           [
@@ -58,8 +37,12 @@ export const whatsNew: WhatsNew = {
               description: strings('whats_new.blockaid.description_2'),
             },
             {
+              type: 'description',
+              description: strings('whats_new.blockaid.description_3'),
+            },
+            {
               type: 'button',
-              buttonText: strings('whats_new.blockaid.action_text'),
+              buttonText: strings('whats_new.blockaid.got_it'),
               buttonType: 'blue',
               onPress: (props) =>
                 props.navigation.navigate(Routes.SETTINGS_VIEW, {

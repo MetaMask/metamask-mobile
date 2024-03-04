@@ -1,68 +1,20 @@
-import Engine from '../Engine';
-import {
-  KeyringController,
-  SignTypedDataVersion,
-} from '@metamask/keyring-controller';
+import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
+import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
-
-interface SerializationOptions {
-  vault: any;
-  keyrings: any[];
-  isUnlocked: boolean;
-  encryptionKey: string;
-  encryptionSalt: string;
-}
-
-interface LedgerKeyring {
-  setTransport: (transport: any, deviceId: string) => void;
-  getAppAndVersion: () => Promise<{ appName: string }>;
-  getDefaultAccount: () => Promise<string>;
-  openEthApp: () => Promise<void>;
-  quitApp: () => Promise<void>;
-  forgetDevice: () => void;
-  deserialize: (keyringSerialized: SerializationOptions) => void;
-  deviceId: string;
-  getName: () => string;
-}
-
-/**
- * Get EthKeyringController from KeyringController
- *
- * @returns The EthKeyringController
- */
-const getEthKeyringController = () => {
-  const keyringController: KeyringController = Engine.context.KeyringController;
-  return keyringController.getEthKeyringController();
-};
-
-/**
- * A method replicate #fullupdate from the keyring controller.
- */
-export const syncKeyringState = async (): Promise<void> => {
-  const keyringController = Engine.context.KeyringController;
-  const ethKeyringController = getEthKeyringController();
-  const { vault } = ethKeyringController.store.getState();
-  const { keyrings, isUnlocked, encryptionKey, encryptionSalt } =
-    ethKeyringController.memStore.getState();
-
-  keyringController.update(() => ({
-    vault,
-    keyrings,
-    isUnlocked,
-    encryptionKey,
-    encryptionSalt,
-  }));
-};
+import Engine from '../Engine';
 
 /**
  * Add LedgerKeyring.
  *
  * @returns The Ledger Keyring
  */
-export const addLedgerKeyring = async (): Promise<LedgerKeyring> =>
-  (await getEthKeyringController().addNewKeyring(
+export const addLedgerKeyring = async (): Promise<LedgerKeyring> => {
+  const keyringController = Engine.context.KeyringController;
+  return (await keyringController.addNewKeyring(
     ExtendedKeyringTypes.ledger,
-  )) as unknown as LedgerKeyring;
+  )) as LedgerKeyring;
+};
 
 /**
  * Retrieve the existing LedgerKeyring or create a new one.
@@ -70,31 +22,13 @@ export const addLedgerKeyring = async (): Promise<LedgerKeyring> =>
  * @returns The stored Ledger Keyring
  */
 export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
-  const keyring = getEthKeyringController().getKeyringsByType(
-    ExtendedKeyringTypes.ledger,
-  )[0] as unknown as LedgerKeyring;
-
-  if (keyring) {
-    return keyring;
-  }
-
-  return await addLedgerKeyring();
-};
-
-/**
- * Restores the Ledger Keyring. This is only used at the time the user resets the account's password at the moment.
- *
- * @param keyringSerialized - The serialized keyring;
- */
-export const restoreLedgerKeyring = async (
-  keyringSerialized: SerializationOptions,
-): Promise<void> => {
   const keyringController = Engine.context.KeyringController;
-  const ethKeyringController = getEthKeyringController();
+  // There should only be one ledger keyring.
+  const keyring = keyringController.getKeyringsByType(
+    ExtendedKeyringTypes.ledger,
+  );
 
-  (await getLedgerKeyring()).deserialize(keyringSerialized);
-  keyringController.updateIdentities(await ethKeyringController.getAccounts());
-  await syncKeyringState();
+  return keyring.length ? keyring[0] : await addLedgerKeyring();
 };
 
 /**
@@ -105,7 +39,7 @@ export const restoreLedgerKeyring = async (
  * @returns The name of the currently open application on the device
  */
 export const connectLedgerHardware = async (
-  transport: any,
+  transport: BleTransport,
   deviceId: string,
 ): Promise<string> => {
   const keyring = await getLedgerKeyring();
@@ -116,34 +50,24 @@ export const connectLedgerHardware = async (
 
 /**
  * Retrieve the first account from the Ledger device.
- *
+ * @param isAccountImportReq - Whether we need to import a ledger account by calling addNewAccountForKeyring
  * @returns The default (first) account on the device
  */
-export const unlockLedgerDefaultAccount = async (): Promise<{
+export const unlockLedgerDefaultAccount = async (
+  isAccountImportReq: boolean,
+): Promise<{
   address: string;
   balance: string;
 }> => {
   const keyringController = Engine.context.KeyringController;
-  const ethKeyringController = getEthKeyringController();
+
   const keyring = await getLedgerKeyring();
-  const oldAccounts = await ethKeyringController.getAccounts();
-  await ethKeyringController.addNewAccount(keyring);
-  const newAccounts = await ethKeyringController.getAccounts();
 
-  keyringController.updateIdentities(newAccounts);
-  newAccounts.forEach((address: string) => {
-    if (!oldAccounts.includes(address)) {
-      if (keyringController.setAccountLabel) {
-        // The first ledger account is always returned.
-        keyringController.setAccountLabel(address, `${keyring.getName()} 1`);
-      }
-      keyringController.setSelectedAddress(address);
-    }
-  });
-  await ethKeyringController.persistAllKeyrings();
-  await syncKeyringState();
-
+  if (isAccountImportReq) {
+    await keyringController.addNewAccountForKeyring(keyring);
+  }
   const address = await keyring.getDefaultAccount();
+
   return {
     address,
     balance: `0x0`,
@@ -171,15 +95,14 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  */
 export const forgetLedger = async (): Promise<void> => {
   const keyringController = Engine.context.KeyringController;
-  const ethKeyringController = getEthKeyringController();
+  const preferencesController = Engine.context.PreferencesController;
   const keyring = await getLedgerKeyring();
   keyring.forgetDevice();
 
-  const accounts: string[] = await ethKeyringController.getAccounts();
-  keyringController.setSelectedAddress(accounts[0]);
+  const accounts: string[] = await keyringController.getAccounts();
+  preferencesController.setSelectedAddress(accounts[0]);
 
-  await ethKeyringController.persistAllKeyrings();
-  await syncKeyringState();
+  await keyringController.persistAllKeyrings();
 };
 
 /**
@@ -205,13 +128,14 @@ export const ledgerSignTypedMessage = async (
   version: SignTypedDataVersion,
 ): Promise<string> => {
   await getLedgerKeyring();
-  return await getEthKeyringController().signTypedMessage(
+  const keyringController = Engine.context.KeyringController;
+  return await keyringController.signTypedMessage(
     {
       from: messageParams.from,
       data: messageParams.data as
         | Record<string, unknown>
         | Record<string, unknown>[],
     },
-    { version },
+    version,
   );
 };

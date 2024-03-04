@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-import { Alert, InteractionManager } from 'react-native';
+import { Alert } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
 import { ethers } from 'ethers';
@@ -30,13 +30,15 @@ import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { query } from '@metamask/controller-utils';
-import Analytics from '../../../core/Analytics/Analytics';
 import BigNumber from 'bignumber.js';
 import { toLowerCaseEquals } from '../../../util/general';
 import { KEYSTONE_TX_CANCELED } from '../../../constants/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { getAddressAccountType } from '../../../util/address';
+import {
+  getAddressAccountType,
+  isHardwareAccount,
+} from '../../../util/address';
+
 import {
   selectChainId,
   selectProviderType,
@@ -57,6 +59,11 @@ import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 ///: END:ONLY_INCLUDE_IF
@@ -64,6 +71,7 @@ import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 const hstInterface = new ethers.utils.Interface(abi);
 
 const RootRPCMethodsUI = (props) => {
+  const { trackEvent, trackAnonymousEvent } = useMetrics();
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
@@ -158,27 +166,28 @@ const RootRPCMethodsUI = (props) => {
         delete newSwapsTransactions[transactionMeta.id].analytics;
         delete newSwapsTransactions[transactionMeta.id].paramsForAnalytics;
 
-        InteractionManager.runAfterInteractions(() => {
-          const parameters = {
-            ...analyticsParams,
-            time_to_mine: timeToMine,
-            estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
-            quote_vs_executionRatio: quoteVsExecutionRatio,
-            token_to_amount_received: tokenToAmountReceived.toString(),
-          };
-          Analytics.trackEventWithParameters(event, {});
-          Analytics.trackEventWithParameters(event, parameters, true);
-        });
+        const parameters = {
+          ...analyticsParams,
+          time_to_mine: timeToMine,
+          estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
+          quote_vs_executionRatio: quoteVsExecutionRatio,
+          token_to_amount_received: tokenToAmountReceived.toString(),
+        };
+
+        trackAnonymousEvent(event, parameters);
       } catch (e) {
         Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
-        InteractionManager.runAfterInteractions(() => {
-          Analytics.trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
-            error: e,
-          });
+        trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
+          error: e,
         });
       }
     },
-    [props.selectedAddress, props.swapsTransactions],
+    [
+      props.selectedAddress,
+      props.swapsTransactions,
+      trackEvent,
+      trackAnonymousEvent,
+    ],
   );
 
   const autoSign = useCallback(
@@ -211,7 +220,27 @@ const RootRPCMethodsUI = (props) => {
         );
         await KeyringController.resetQRKeyringState();
 
-        Engine.acceptPendingApproval(transactionMeta.id);
+        const isLedgerAccount = isHardwareAccount(
+          transactionMeta.transaction.from,
+          [ExtendedKeyringTypes.ledger],
+        );
+
+        // For Ledger Accounts we handover the signing to the confirmation flow
+        if (isLedgerAccount) {
+          const ledgerKeyring = await getLedgerKeyring();
+
+          props.navigation.navigate(
+            ...createLedgerTransactionModalNavDetails({
+              transactionId: transactionMeta.id,
+              deviceId: ledgerKeyring.deviceId,
+              // eslint-disable-next-line no-empty-function
+              onConfirmationComplete: () => {},
+              type: 'signTransaction',
+            }),
+          );
+        } else {
+          Engine.acceptPendingApproval(transactionMeta.id);
+        }
       } catch (error) {
         if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
           Alert.alert(
@@ -221,13 +250,11 @@ const RootRPCMethodsUI = (props) => {
           );
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          );
+          trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
         }
       }
     },
-    [props.swapsTransactions, trackSwaps],
+    [props.navigation, props.swapsTransactions, trackSwaps, trackEvent],
   );
 
   const onUnapprovedTransaction = useCallback(

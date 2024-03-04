@@ -2,6 +2,8 @@
 
 exports[`ButtonBase should render correctly 1`] = `
 <TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
   activeOpacity={1}
   onPress={[Function]}
   style={
@@ -28,6 +30,7 @@ exports[`ButtonBase should render correctly 1`] = `
     }
   />
   <Text
+    accessibilityRole="none"
     style={
       Object {
         "color": "#24272A",
@@ -42,6 +45,8 @@ exports[`ButtonBase should render correctly 1`] = `
 
 exports[`ButtonBase should render correctly when disabled 1`] = `
 <TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
   activeOpacity={1}
   disabled={true}
   onPress={[Function]}
@@ -70,6 +75,7 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
     }
   />
   <Text
+    accessibilityRole="none"
     style={
       Object {
         "color": "#24272A",

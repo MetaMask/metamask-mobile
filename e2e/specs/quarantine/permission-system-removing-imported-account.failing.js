@@ -5,7 +5,7 @@ import WalletView from '../../pages/WalletView';
 import ImportAccountView from '../../pages/ImportAccountView';
 import TabBarComponent from '../../pages/TabBarComponent';
 
-import Browser from '../../pages/Drawer/Browser';
+import Browser from '../../pages/Browser';
 import AccountListView from '../../pages/AccountListView';
 
 import ConnectModal from '../../pages/modals/ConnectModal';
@@ -17,6 +17,7 @@ import Accounts from '../../../wdio/helpers/Accounts';
 
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
+import Assertions from '../../utils/Assertions';
 
 const SEPOLIA = 'Sepolia Test Network';
 
@@ -82,7 +83,6 @@ describe(
 
     it('should set the imported account as primary account', async () => {
       await TestHelpers.delay(1500);
-      await ConnectedAccountsModal.tapToSetAsPrimaryAccount();
     });
 
     it('should navigate to wallet view', async () => {
@@ -110,7 +110,7 @@ describe(
 
     it('imported account is not visible', async () => {
       await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-      await ConnectedAccountsModal.isVisible();
+      await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
       await AccountListView.accountNameNotVisible('Account 2');
     });
   },

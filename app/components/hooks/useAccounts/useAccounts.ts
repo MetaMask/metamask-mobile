@@ -36,7 +36,7 @@ import {
 /**
  * Hook that returns both wallet accounts and ens name information.
  *
- * @returns Object that contins both wallet accounts and ens name information.
+ * @returns Object that contains both wallet accounts and ens name information.
  */
 const useAccounts = ({
   checkBalanceError,
@@ -93,7 +93,7 @@ const useAccounts = ({
             };
           }
         } catch (e) {
-          // ENS either doesn't exists or failed to fetch.
+          // ENS either doesn't exist or failed to fetch.
         }
       };
 
@@ -127,12 +127,11 @@ const useAccounts = ({
         type,
       }: { accounts: string[]; type: KeyringTypes } = keyring;
       for (const index in accountAddresses) {
-        const address = accountAddresses[index];
-        const isSelected = selectedAddress === address;
+        const checksummedAddress = toChecksumAddress(accountAddresses[index]);
+        const isSelected = selectedAddress === checksummedAddress;
         if (isSelected) {
           selectedIndex = result.length;
         }
-        const checksummedAddress = toChecksumAddress(address);
         const identity = identities[checksummedAddress];
         if (!identity) continue;
         const { name } = identity;

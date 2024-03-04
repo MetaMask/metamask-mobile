@@ -3,6 +3,7 @@ import {
   AggregatorNetwork,
   OrderOrderTypeEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
+import { toHex } from '@metamask/controller-utils';
 import { merge } from 'lodash';
 import fiatOrderReducer, {
   addActivationKey,
@@ -41,6 +42,7 @@ import fiatOrderReducer, {
   fiatOrdersGetStartedSell,
   setFiatSellTxHash,
   removeFiatSellTxHash,
+  getOrdersProviders,
 } from '.';
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
@@ -658,7 +660,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '56',
+                chainId: '0x38',
               },
             },
           },
@@ -758,7 +760,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '56',
+                chainId: '0x38',
               },
             },
             PreferencesController: {
@@ -813,7 +815,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -885,7 +887,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '11155111',
+                chainId: toHex('11155111'),
               },
             },
             PreferencesController: {
@@ -940,7 +942,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '11155111',
+                chainId: '0xaa36a7',
               },
             },
             PreferencesController: {
@@ -1017,7 +1019,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1039,7 +1041,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '56',
+                chainId: '0x38',
               },
             },
             PreferencesController: {
@@ -1096,7 +1098,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1171,7 +1173,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1203,7 +1205,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '56',
+                chainId: '0x38',
               },
             },
             PreferencesController: {
@@ -1250,7 +1252,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1272,7 +1274,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1341,7 +1343,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
             PreferencesController: {
@@ -1403,7 +1405,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '56',
+                chainId: '0x38',
               },
             },
             PreferencesController: {
@@ -1553,7 +1555,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1',
+                chainId: '0x1',
               },
             },
           },
@@ -1568,7 +1570,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '1313161554',
+                chainId: '0x4e454152',
               },
             },
           },
@@ -1583,7 +1585,7 @@ describe('selectors', () => {
           backgroundState: {
             NetworkController: {
               providerConfig: {
-                chainId: '918273645',
+                chainId: '0x36bbbe6d',
               },
             },
           },
@@ -1638,5 +1640,62 @@ describe('selectors', () => {
         ),
       ).toEqual('...');
     });
+  });
+});
+
+describe('getOrdersProviders', () => {
+  function createMockOrderWithProviderId(provider: string) {
+    return {
+      ...mockOrder1,
+      data: {
+        ...mockOrder1.data,
+        provider: {
+          ...mockOrder1.data.provider,
+          id: provider,
+        },
+      },
+    };
+  }
+
+  it('should return the correct providers', () => {
+    const state = merge({}, initialRootState, {
+      fiatOrders: {
+        orders: [
+          createMockOrderWithProviderId('test-provider-id-1'),
+          createMockOrderWithProviderId('test-provider-id-2'),
+          createMockOrderWithProviderId('test-provider-id-4'),
+          createMockOrderWithProviderId('test-provider-id-3'),
+          createMockOrderWithProviderId('test-provider-id-1'),
+          createMockOrderWithProviderId('test-provider-id-2'),
+        ],
+      },
+    });
+
+    expect(getOrdersProviders(state)).toEqual([
+      'test-provider-id-1',
+      'test-provider-id-2',
+      'test-provider-id-4',
+      'test-provider-id-3',
+    ]);
+  });
+
+  it('should return empty array without orders', () => {
+    const state = merge({}, initialRootState, {
+      fiatOrders: {
+        orders: [],
+      },
+    });
+
+    expect(getOrdersProviders(state)).toEqual([]);
+  });
+
+  it('should return empty array with undefined orders', () => {
+    const state = merge({}, initialRootState, {
+      fiatOrders: {
+        orders: undefined,
+      },
+    });
+
+    expect(getOrdersProviders(state)).toEqual([]);
   });
 });

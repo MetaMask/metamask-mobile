@@ -144,10 +144,9 @@ stages:
   run_e2e_android_stage:
     workflows:
       - android_e2e_test: {}
-
   notify:
     workflows:
-      - notify_success_on_slack: {}
+      - notify_success: {}
   release_notify:
     workflows:
       - release_announcing_stores: {}
@@ -174,6 +173,7 @@ workflows:
       - setup
       - prep_environment
     steps:
+      - restore-cocoapods-cache@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -184,23 +184,6 @@ workflows:
           inputs:
             - command: setup
           title: Yarn Setup
-      - save-cache@1:
-          title: Save cache dependencies
-          inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
-            - paths: |-
-                node_modules
-                $YARN_CACHE_DIR
-  code_setup_dev:
-    steps:
-      - script@1:
-          title: Generate `.npmrc` file for preview builds
-          inputs:
-            - content: |
-                #!/bin/bash
-                printf '%s\n\n%s' '@metamask:registry=https://npm.pkg.github.com' "//npm.pkg.github.com/:_authToken=${PACKAGE_READ_TOKEN}" > .npmrc
-    after_run:
-      - code_setup
   prep_environment:
     steps:
       - script@1:
@@ -216,10 +199,6 @@ workflows:
                 asdf install yarn "$YARN_VERSION"
                 asdf global yarn "$YARN_VERSION"
           title: Install node and yarn
-      - restore-cache@1:
-          title: Restore cache dependencies
-          inputs:
-            - key: '{{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "yarn.lock" }}'
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -273,10 +252,33 @@ workflows:
         machine_type_id: standard
 
   # Send a Slack message when workflow succeeds
-  notify_success_on_slack:
+  notify_success:
     before_run:
       - _get_workflow_info
     steps:
+      # Update Bitrise comment in PR with success status
+      - comment-on-github-pull-request@0:
+          is_always_run: true
+          run_if: '{{getenv "TRIGGERED_BY_PR_LABEL" | eq "true"}}'
+          inputs:
+            - personal_access_token: '$GITHUB_ACCESS_TOKEN'
+            - body: |-
+                ## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${BITRISEIO_PIPELINE_BUILD_URL}) **Bitrise**
+
+                ✅✅✅ `${BITRISEIO_PIPELINE_TITLE}` passed on Bitrise! ✅✅✅
+
+                Commit hash: ${GITHUB_PR_HASH}
+                Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
+
+                >[!NOTE]
+                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
+
+                <!-- BITRISE_TAG -->
+                <!-- BITRISE_SUCCESS_TAG -->
+            - repository_url: '$GIT_REPOSITORY_URL'
+            - issue_number: '$GITHUB_PR_NUMBER'
+            - api_base_url: 'https://api.github.com'
+            - update_comment_tag: '$GITHUB_PR_HASH'
       - slack@3:
           inputs:
             - text: '${BITRISE_APP_TITLE} ${BITRISEIO_PIPELINE_TITLE} workflow notification'
@@ -297,10 +299,44 @@ workflows:
             - webhook_url: https://hooks.slack.com/services/${MM_SLACK_TOKEN}/${MM_SLACK_SECRET}/${MM_SLACK_ROOM}
 
   # Send a Slack message when workflow fails
-  _notify_failure_on_slack:
+  notify_failure:
     before_run:
       - _get_workflow_info
     steps:
+      - script@1:
+          is_always_run: true
+          title: Check if PR comment should be updated
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                if [[ "$TRIGGERED_BY_PR_LABEL" == "true" && $BITRISE_BUILD_STATUS == 1 ]]; then
+                  envman add --key SHOULD_UPDATE_PR_COMMENT --value "true"
+                else
+                  envman add --key SHOULD_UPDATE_PR_COMMENT --value "false"
+                fi
+      # Update Bitrise comment in PR with failure status
+      - comment-on-github-pull-request@0:
+          is_always_run: true
+          run_if: '{{getenv "SHOULD_UPDATE_PR_COMMENT" | eq "true"}}'
+          inputs:
+            - personal_access_token: '$GITHUB_ACCESS_TOKEN'
+            - body: |-
+                ## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${BITRISEIO_PIPELINE_BUILD_URL}) **Bitrise**
+
+                ❌❌❌ `${BITRISEIO_PIPELINE_TITLE}` failed on Bitrise! ❌❌❌
+
+                Commit hash: ${GITHUB_PR_HASH}
+                Build link: ${BITRISEIO_PIPELINE_BUILD_URL}
+
+                >[!NOTE]
+                >- You can kick off another `${BITRISEIO_PIPELINE_TITLE}` on Bitrise by removing and re-applying the `Run Smoke E2E` label on the pull request
+
+                <!-- BITRISE_TAG -->
+                <!-- BITRISE_FAIL_TAG -->
+            - repository_url: '$GIT_REPOSITORY_URL'
+            - issue_number: '$GITHUB_PR_NUMBER'
+            - api_base_url: 'https://api.github.com'
+            - update_comment_tag: '$GITHUB_PR_HASH'
       - slack@3:
           is_always_run: true
           run_if: .IsBuildFailed
@@ -373,65 +409,68 @@ workflows:
     after_run:
       - android_e2e_test
 
-### Seperating workflows so they run concurrently during smoke runs
+  ### Seperating workflows so they run concurrently during smoke runs
   run_tag_smoke_confirmations_ios:
-      envs:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
-      after_run:
+    after_run:
       - ios_e2e_test
   run_tag_smoke_confirmations_android:
-      meta:
-          bitrise.io:
-            stack: linux-docker-android-20.04
-            machine_type_id: elite-xl
-      envs:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
-      after_run:
+    after_run:
       - android_e2e_test
   run_tag_smoke_swaps_ios:
-      envs:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
       - TEST_SUITE_TAG: '.*SmokeSwaps.*'
-      after_run:
+    after_run:
       - ios_e2e_test
   run_tag_smoke_swaps_android:
-      meta:
-          bitrise.io:
-            stack: linux-docker-android-20.04
-            machine_type_id: elite-xl
-      envs:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
       - TEST_SUITE_TAG: '.*SmokeSwaps.*'
-      after_run:
+    after_run:
       - android_e2e_test
   run_tag_smoke_core_ios:
-      envs:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
-      after_run:
+    after_run:
       - ios_e2e_test
   run_tag_smoke_core_android:
-      meta:
-          bitrise.io:
-            stack: linux-docker-android-20.04
-            machine_type_id: elite-xl
-      envs:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
-      after_run:
+    after_run:
       - android_e2e_test
-
-  e2e_setup:
-    steps:
-      - yarn@:
-          inputs:
-            - cache_local_deps: 'yes'
-            - command: global add detox-cli
-          title: Detox - Install CLI
   android_e2e_build:
     before_run:
-      - code_setup_dev
-      - e2e_setup
+      - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
-      - restore-gradle-cache@1: {}
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh android
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -444,30 +483,30 @@ workflows:
                 #!/usr/bin/env bash
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - script@1:
-          title: Check native folder diff for Android
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh android
-      - script@1:
           title: Install CCache & symlink
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 sudo apt update
                 sudo apt install ccache
-      - restore-cache@1:
+      - restore-cache@2:
           title: Restore CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
-      - restore-cache@1:
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
+      - restore-cache@2:
           title: Restore build from cache
           inputs:
             - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
             - content: |-
@@ -495,6 +534,11 @@ workflows:
           inputs:
             - key: apk-cache-{{ .CommitHash }}
             - paths: android/app/build/outputs
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - paths: node_modules
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -503,15 +547,18 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      - e2e_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
-      - restore-gradle-cache@1: {}
-      - restore-cache@1:
+      - restore-gradle-cache@2: {}
+      - restore-cache@2:
           title: Restore cache build
           inputs:
             - key: apk-cache-{{ .CommitHash }}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
       - script@1:
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
@@ -532,6 +579,9 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                if [ -n "$TEST_SUITE_FOLDER" ]; then
+                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
+                fi
                 if [ "$TEST_SUITE" = "Regression" ]; then
                 TEST_SUITE="Regression"
                 else
@@ -543,7 +593,7 @@ workflows:
                 fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
@@ -579,12 +629,16 @@ workflows:
         stack: linux-docker-android-20.04
   ios_e2e_build:
     before_run:
-      - code_setup_dev
-      - e2e_setup
+      - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
-      - restore-cocoapods-cache@1: {}
+      - script@1:
+          title: Generating ccache key using native folder checksum
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                ./scripts/cache/set-cache-envs.sh ios
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -597,18 +651,7 @@ workflows:
                 envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
                 envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
                 brew tap wix/brew
-                asdf install ruby 3.0.3
-                sudo gem install cocoapods
-          title: Set Env Path for caching deps & Ruby install
-      - cocoapods-install@2:
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
-          is_always_run: false
-      - script@1:
-          title: Check native folder diff for iOS
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh ios
+          title: Set Env Path for caching deps
       - script@1:
           title: Install CCache & symlink
           inputs:
@@ -621,18 +664,24 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/c++
                 ln -s $(which ccache) /usr/local/bin/clang
                 ln -s $(which ccache) /usr/local/bin/clang++
-      - restore-cache@1:
+      - restore-cache@2:
           title: Restore CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_RESTORE" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
-      - restore-cache@1:
+      - script@1:
+          title: Set skip ccache upload
+          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                envman add --key SKIP_CCACHE_UPLOAD --value "true"
+      - restore-cache@2:
           title: Restore build from cache
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
-          run_if: '{{not (enveq "BITRISE_CACHE_HIT" "exact")}}'
+          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
             - content: |-
@@ -662,19 +711,27 @@ workflows:
             - paths: |-
                 ios/build/Build
                 ../Library/Detox/ios
+      - save-cache@1:
+          title: Save node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - paths: node_modules
   ios_e2e_test:
     before_run:
       - setup
       - prep_environment
-      - e2e_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
-      - restore-cache@1:
+      - restore-cache@2:
           title: Restore cache build
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
-      - restore-cocoapods-cache@1: {}
+      - restore-cocoapods-cache@2: {}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
@@ -692,6 +749,9 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
+                if [ -n "$TEST_SUITE_FOLDER" ]; then
+                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
+                fi                
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -704,7 +764,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
           title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
@@ -753,7 +813,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -764,7 +824,7 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_KEYSTORE_URL
             - destination: android/keystores/release.keystore
-      - restore-gradle-cache@1: {}
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -826,10 +886,10 @@ workflows:
         machine_type_id: elite-xl
   build_android_qa:
     before_run:
-      - code_setup_dev
+      - code_setup
     after_run:
       - _upload_apk_to_browserstack
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -840,7 +900,7 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-      - restore-gradle-cache@1: {}
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -937,7 +997,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - script@1:
           title: Run Android E2E tests on Browserstack
@@ -990,7 +1050,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -998,12 +1058,10 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                node -v
                 METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-release
           title: iOS Sourcemaps & Build
           is_always_run: false
@@ -1029,10 +1087,10 @@ workflows:
           title: Deploy Source Map
   build_ios_qa:
     before_run:
-      - code_setup_dev
+      - code_setup
     after_run:
       - _upload_ipa_to_browserstack
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -1040,7 +1098,6 @@ workflows:
             - build_short_version_string: $VERSION_NAME
             - build_version: $VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -1097,7 +1154,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
@@ -1105,7 +1162,6 @@ workflows:
             - build_short_version_string: $FLASK_VERSION_NAME
             - build_version: $FLASK_VERSION_NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-Flask-Info.plist
-      - cocoapods-install@2: {}
       - script@1:
           inputs:
             - content: |-
@@ -1138,7 +1194,7 @@ workflows:
     before_run:
       - code_setup
     after_run:
-      - _notify_failure_on_slack
+      - notify_failure
     steps:
       - change-android-versioncode-and-versionname@1:
           inputs:
@@ -1149,7 +1205,7 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
             - destination: android/keystores/flaskRelease.keystore
-      - restore-gradle-cache@1: {}
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_revision: $NDK_VERSION
@@ -1244,16 +1300,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.12.4
+      VERSION_NAME: 7.17.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1233
+      VERSION_NUMBER: 1267
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 0.0.4
+      FLASK_VERSION_NAME: 7.17.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1197
+      FLASK_VERSION_NUMBER: 1267
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1269,7 +1325,6 @@ app:
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.19
-
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
