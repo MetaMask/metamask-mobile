@@ -436,42 +436,17 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 8,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -510,42 +485,16 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🇪🇺
@@ -562,42 +511,16 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 16,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           Europe Union
@@ -608,51 +531,37 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      Array [
-                                        Array [
-                                          Object {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          Object {
-                                            "backgroundColor": "#FFFFFF",
-                                            "borderColor": "#0376C9",
-                                            "borderWidth": 1,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      Object {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 24,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
+                                    variant="Secondary"
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          Array [
-                                            Object {
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            Object {
-                                              "color": "#0376C9",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        Object {
+                                          "color": "#0376C9",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Reset Region
@@ -672,112 +581,45 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        false,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginBottom": 8,
+                                      }
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          Object {
-                                            "fontSize": 20,
-                                          },
-                                        ]
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
                                       }
                                     >
                                       SDK Activation Keys
                                     </Text>
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                         
@@ -799,42 +641,16 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          Object {
-                                            "color": "#535A61",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        Object {
+                                          "color": "#535A61",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Activation Keys will enable specific features or providers.
@@ -908,43 +724,17 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           selectable={true}
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "color": "#BBC0C5",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#BBC0C5",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           testKey1
@@ -976,26 +766,18 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           }
                                           onPress={[Function]}
                                         >
-                                          <Text
-                                            allowFontScaling={false}
+                                          <SvgMock
+                                            color="#D7384780"
+                                            height={24}
+                                            name="Trash"
                                             style={
-                                              Array [
-                                                Object {
-                                                  "color": "#D7384780",
-                                                  "fontSize": 20,
-                                                },
-                                                undefined,
-                                                Object {
-                                                  "fontFamily": "Material Design Icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                Object {},
-                                              ]
+                                              Object {
+                                                "height": 24,
+                                                "width": 24,
+                                              }
                                             }
-                                          >
-                                            罹
-                                          </Text>
+                                            width={24}
+                                          />
                                         </TouchableOpacity>
                                       </View>
                                     </View>
@@ -1068,43 +850,17 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           selectable={true}
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "color": "#BBC0C5",
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#BBC0C5",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           testKey2
@@ -1136,26 +892,18 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           }
                                           onPress={[Function]}
                                         >
-                                          <Text
-                                            allowFontScaling={false}
+                                          <SvgMock
+                                            color="#D7384780"
+                                            height={24}
+                                            name="Trash"
                                             style={
-                                              Array [
-                                                Object {
-                                                  "color": "#D7384780",
-                                                  "fontSize": 20,
-                                                },
-                                                undefined,
-                                                Object {
-                                                  "fontFamily": "Material Design Icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                Object {},
-                                              ]
+                                              Object {
+                                                "height": 24,
+                                                "width": 24,
+                                              }
                                             }
-                                          >
-                                            罹
-                                          </Text>
+                                            width={24}
+                                          />
                                         </TouchableOpacity>
                                       </View>
                                     </View>
@@ -1177,55 +925,37 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       accessible={true}
                                       activeOpacity={1}
                                       disabled={true}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
                                       style={
-                                        Array [
-                                          Array [
-                                            Object {
-                                              "borderRadius": 100,
-                                              "justifyContent": "center",
-                                              "padding": 15,
-                                            },
-                                            Object {
-                                              "backgroundColor": "#FFFFFF",
-                                              "borderColor": "#0376C9",
-                                              "borderWidth": 1,
-                                            },
-                                            undefined,
-                                          ],
-                                          Object {
-                                            "opacity": 0.6,
-                                          },
-                                        ]
+                                        Object {
+                                          "alignItems": "center",
+                                          "alignSelf": "stretch",
+                                          "backgroundColor": "transparent",
+                                          "borderColor": "#0376C9",
+                                          "borderRadius": 24,
+                                          "borderWidth": 1,
+                                          "flexDirection": "row",
+                                          "height": 48,
+                                          "justifyContent": "center",
+                                          "opacity": 0.5,
+                                          "paddingHorizontal": 16,
+                                        }
                                       }
+                                      variant="Secondary"
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          Array [
-                                            Object {
-                                              "color": "#007aff",
-                                              "fontSize": 17,
-                                              "fontWeight": "500",
-                                              "textAlign": "center",
-                                            },
-                                            Object {
-                                              "color": "#dcdcdc",
-                                            },
-                                            Array [
-                                              Object {
-                                                "fontFamily": "EuclidCircularB-Bold",
-                                                "fontSize": 14,
-                                                "fontWeight": "600",
-                                                "textAlign": "center",
-                                              },
-                                              Object {
-                                                "color": "#0376C9",
-                                              },
-                                              undefined,
-                                            ],
-                                            Object {
-                                              "opacity": 0.6,
-                                            },
-                                          ]
+                                          Object {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
                                         }
                                       >
                                         Add Activation Key
@@ -1687,42 +1417,17 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 8,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -1761,42 +1466,16 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🇪🇺
@@ -1813,42 +1492,16 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 16,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           Europe Union
@@ -1859,51 +1512,37 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      Array [
-                                        Array [
-                                          Object {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          Object {
-                                            "backgroundColor": "#FFFFFF",
-                                            "borderColor": "#0376C9",
-                                            "borderWidth": 1,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      Object {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 24,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
+                                    variant="Secondary"
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          Array [
-                                            Object {
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            Object {
-                                              "color": "#0376C9",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        Object {
+                                          "color": "#0376C9",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Reset Region
@@ -1923,112 +1562,45 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        false,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginBottom": 8,
+                                      }
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          Object {
-                                            "fontSize": 20,
-                                          },
-                                        ]
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
                                       }
                                     >
                                       SDK Activation Keys
                                     </Text>
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                         
@@ -2047,42 +1619,16 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          Object {
-                                            "color": "#535A61",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        Object {
+                                          "color": "#535A61",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Activation Keys will enable specific features or providers.
@@ -2103,52 +1649,38 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                     <TouchableOpacity
                                       accessibilityRole="button"
                                       accessible={true}
-                                      activeOpacity={0.2}
+                                      activeOpacity={1}
                                       disabled={false}
                                       onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
                                       style={
-                                        Array [
-                                          Array [
-                                            Object {
-                                              "borderRadius": 100,
-                                              "justifyContent": "center",
-                                              "padding": 15,
-                                            },
-                                            Object {
-                                              "backgroundColor": "#FFFFFF",
-                                              "borderColor": "#0376C9",
-                                              "borderWidth": 1,
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        Object {
+                                          "alignItems": "center",
+                                          "alignSelf": "stretch",
+                                          "backgroundColor": "transparent",
+                                          "borderColor": "#0376C9",
+                                          "borderRadius": 24,
+                                          "borderWidth": 1,
+                                          "flexDirection": "row",
+                                          "height": 48,
+                                          "justifyContent": "center",
+                                          "paddingHorizontal": 16,
+                                        }
                                       }
+                                      variant="Secondary"
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          Array [
-                                            Object {
-                                              "color": "#007aff",
-                                              "fontSize": 17,
-                                              "fontWeight": "500",
-                                              "textAlign": "center",
-                                            },
-                                            null,
-                                            Array [
-                                              Object {
-                                                "fontFamily": "EuclidCircularB-Bold",
-                                                "fontSize": 14,
-                                                "fontWeight": "600",
-                                                "textAlign": "center",
-                                              },
-                                              Object {
-                                                "color": "#0376C9",
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
+                                          Object {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
                                         }
                                       >
                                         Add Activation Key
@@ -2610,42 +2142,17 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 8,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -2684,42 +2191,16 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🏳️
@@ -2736,89 +2217,19 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Array [
-                                                Object {
-                                                  "color": "#24272A",
-                                                  "fontSize": 15,
-                                                },
-                                                undefined,
-                                              ],
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
-                                          <Text
-                                            style={
-                                              Array [
-                                                Object {
-                                                  "color": "#24272A",
-                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                  "fontSize": 30,
-                                                  "fontWeight": "400",
-                                                  "marginVertical": 2,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                Object {
-                                                  "fontSize": 16,
-                                                },
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                                undefined,
-                                              ]
-                                            }
-                                          >
-                                            No region selected
-                                          </Text>
+                                          No region selected
                                         </Text>
                                       </View>
                                     </View>
@@ -3278,42 +2689,17 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 8,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -3352,42 +2738,16 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🇪🇺
@@ -3404,42 +2764,16 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 16,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           Europe Union
@@ -3450,51 +2784,37 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      Array [
-                                        Array [
-                                          Object {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          Object {
-                                            "backgroundColor": "#FFFFFF",
-                                            "borderColor": "#0376C9",
-                                            "borderWidth": 1,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      Object {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 24,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
+                                    variant="Secondary"
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          Array [
-                                            Object {
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            Object {
-                                              "color": "#0376C9",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        Object {
+                                          "color": "#0376C9",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Reset Region
@@ -3955,42 +3275,17 @@ exports[`Settings renders correctly 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 8,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -4029,42 +3324,16 @@ exports[`Settings renders correctly 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🇪🇺
@@ -4081,42 +3350,16 @@ exports[`Settings renders correctly 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 16,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           Europe Union
@@ -4127,51 +3370,37 @@ exports[`Settings renders correctly 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      Array [
-                                        Array [
-                                          Object {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          Object {
-                                            "backgroundColor": "#FFFFFF",
-                                            "borderColor": "#0376C9",
-                                            "borderWidth": 1,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      Object {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 24,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
+                                    variant="Secondary"
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          Array [
-                                            Object {
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            Object {
-                                              "color": "#0376C9",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        Object {
+                                          "color": "#0376C9",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Reset Region
@@ -4632,42 +3861,17 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "fontSize": 20,
-                                        },
-                                      ]
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                        "marginBottom": 8,
+                                      }
                                     }
                                   >
                                     Current Region
@@ -4706,42 +3910,16 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 18,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           🇪🇺
@@ -4758,42 +3936,16 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              Object {
-                                                "fontSize": 16,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#24272A",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           Europe Union
@@ -4804,51 +3956,37 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                   <TouchableOpacity
                                     accessibilityRole="button"
                                     accessible={true}
-                                    activeOpacity={0.2}
+                                    activeOpacity={1}
                                     onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
                                     style={
-                                      Array [
-                                        Array [
-                                          Object {
-                                            "borderRadius": 100,
-                                            "justifyContent": "center",
-                                            "padding": 15,
-                                          },
-                                          Object {
-                                            "backgroundColor": "#FFFFFF",
-                                            "borderColor": "#0376C9",
-                                            "borderWidth": 1,
-                                          },
-                                          undefined,
-                                        ],
-                                        null,
-                                      ]
+                                      Object {
+                                        "alignItems": "center",
+                                        "alignSelf": "stretch",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 24,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                      }
                                     }
+                                    variant="Secondary"
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#007aff",
-                                            "fontSize": 17,
-                                            "fontWeight": "500",
-                                            "textAlign": "center",
-                                          },
-                                          null,
-                                          Array [
-                                            Object {
-                                              "fontFamily": "EuclidCircularB-Bold",
-                                              "fontSize": 14,
-                                              "fontWeight": "600",
-                                              "textAlign": "center",
-                                            },
-                                            Object {
-                                              "color": "#0376C9",
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        Object {
+                                          "color": "#0376C9",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Reset Region
@@ -4868,112 +4006,45 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        false,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginBottom": 8,
+                                      }
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          Object {
-                                            "fontSize": 20,
-                                          },
-                                        ]
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
                                       }
                                     >
                                       SDK Activation Keys
                                     </Text>
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                         
@@ -4992,42 +4063,16 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     }
                                   >
                                     <Text
+                                      accessibilityRole="text"
                                       style={
-                                        Array [
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "EuclidCircularB-Regular",
-                                            "fontSize": 30,
-                                            "fontWeight": "400",
-                                            "marginVertical": 2,
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          Object {
-                                            "color": "#535A61",
-                                          },
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                          undefined,
-                                        ]
+                                        Object {
+                                          "color": "#535A61",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
                                       }
                                     >
                                       Activation Keys will enable specific features or providers.
@@ -5101,41 +4146,17 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           selectable={true}
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              false,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#BBC0C5",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           testKey1
@@ -5167,26 +4188,18 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           }
                                           onPress={[Function]}
                                         >
-                                          <Text
-                                            allowFontScaling={false}
+                                          <SvgMock
+                                            color="#D73847"
+                                            height={24}
+                                            name="Trash"
                                             style={
-                                              Array [
-                                                Object {
-                                                  "color": "#D73847",
-                                                  "fontSize": 20,
-                                                },
-                                                undefined,
-                                                Object {
-                                                  "fontFamily": "Material Design Icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                Object {},
-                                              ]
+                                              Object {
+                                                "height": 24,
+                                                "width": 24,
+                                              }
                                             }
-                                          >
-                                            罹
-                                          </Text>
+                                            width={24}
+                                          />
                                         </TouchableOpacity>
                                       </View>
                                     </View>
@@ -5259,41 +4272,17 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         }
                                       >
                                         <Text
+                                          accessibilityRole="text"
                                           selectable={true}
                                           style={
-                                            Array [
-                                              Object {
-                                                "color": "#24272A",
-                                                "fontFamily": "EuclidCircularB-Regular",
-                                                "fontSize": 30,
-                                                "fontWeight": "400",
-                                                "marginVertical": 2,
-                                              },
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              false,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                              undefined,
-                                            ]
+                                            Object {
+                                              "color": "#BBC0C5",
+                                              "fontFamily": "Euclid Circular B",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
                                           }
                                         >
                                           testKey2
@@ -5325,26 +4314,18 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           }
                                           onPress={[Function]}
                                         >
-                                          <Text
-                                            allowFontScaling={false}
+                                          <SvgMock
+                                            color="#D73847"
+                                            height={24}
+                                            name="Trash"
                                             style={
-                                              Array [
-                                                Object {
-                                                  "color": "#D73847",
-                                                  "fontSize": 20,
-                                                },
-                                                undefined,
-                                                Object {
-                                                  "fontFamily": "Material Design Icons",
-                                                  "fontStyle": "normal",
-                                                  "fontWeight": "normal",
-                                                },
-                                                Object {},
-                                              ]
+                                              Object {
+                                                "height": 24,
+                                                "width": 24,
+                                              }
                                             }
-                                          >
-                                            罹
-                                          </Text>
+                                            width={24}
+                                          />
                                         </TouchableOpacity>
                                       </View>
                                     </View>
@@ -5364,52 +4345,38 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     <TouchableOpacity
                                       accessibilityRole="button"
                                       accessible={true}
-                                      activeOpacity={0.2}
+                                      activeOpacity={1}
                                       disabled={false}
                                       onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
                                       style={
-                                        Array [
-                                          Array [
-                                            Object {
-                                              "borderRadius": 100,
-                                              "justifyContent": "center",
-                                              "padding": 15,
-                                            },
-                                            Object {
-                                              "backgroundColor": "#FFFFFF",
-                                              "borderColor": "#0376C9",
-                                              "borderWidth": 1,
-                                            },
-                                            undefined,
-                                          ],
-                                          null,
-                                        ]
+                                        Object {
+                                          "alignItems": "center",
+                                          "alignSelf": "stretch",
+                                          "backgroundColor": "transparent",
+                                          "borderColor": "#0376C9",
+                                          "borderRadius": 24,
+                                          "borderWidth": 1,
+                                          "flexDirection": "row",
+                                          "height": 48,
+                                          "justifyContent": "center",
+                                          "paddingHorizontal": 16,
+                                        }
                                       }
+                                      variant="Secondary"
                                     >
                                       <Text
+                                        accessibilityRole="text"
                                         style={
-                                          Array [
-                                            Object {
-                                              "color": "#007aff",
-                                              "fontSize": 17,
-                                              "fontWeight": "500",
-                                              "textAlign": "center",
-                                            },
-                                            null,
-                                            Array [
-                                              Object {
-                                                "fontFamily": "EuclidCircularB-Bold",
-                                                "fontSize": 14,
-                                                "fontWeight": "600",
-                                                "textAlign": "center",
-                                              },
-                                              Object {
-                                                "color": "#0376C9",
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
+                                          Object {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
                                         }
                                       >
                                         Add Activation Key
