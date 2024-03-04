@@ -26,6 +26,7 @@ import {
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { AppState } from 'react-native';
+import { PREINSTALLED_SNAPS } from '../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
@@ -877,6 +878,7 @@ class Engine {
           allowLocal: allowLocalSnaps,
           fetch: fetchFunction,
         }),
+      preinstalledSnaps: PREINSTALLED_SNAPS,
     });
 
     this.controllerMessenger.subscribe(
