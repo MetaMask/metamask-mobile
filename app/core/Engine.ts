@@ -993,7 +993,7 @@ class Engine {
         onPreferencesStateChange: (listener) =>
           preferencesController.subscribe(listener),
         chainId: networkController.state.providerConfig.chainId,
-        ticker: networkController.state.providerConfig.ticker ?? 'ETH',
+        ticker: networkController.state.providerConfig.ticker,
         selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
