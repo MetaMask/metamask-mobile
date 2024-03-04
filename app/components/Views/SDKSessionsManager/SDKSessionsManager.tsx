@@ -24,7 +24,6 @@ import { RootState } from '../../../../app/reducers';
 import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
 import SDKSessionItem from './SDKSessionItem';
-import DevLogger from '../../../../app/core/SDKConnect/utils/DevLogger';
 
 interface SDKSessionsManagerProps {
   navigation: StackNavigationProp<any>;
@@ -78,8 +77,6 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
   const { trigger } = route.params ?? { trigger: undefined };
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
-
-  DevLogger.log('render SDKSessionsManager', connectionsList);
 
   const { navigate } = useNavigation();
 
