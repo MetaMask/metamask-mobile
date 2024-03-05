@@ -140,38 +140,36 @@ describe('PermissionController specifications', () => {
         });
 
         it('rejects addresses that have no corresponding identity', () => {
-          const getInternalAccounts = jest.fn().mockImplementationOnce(() => {
-            return [
-              {
-                address: '0x1',
-                id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
-                metadata: {
-                  name: 'Test Account 1',
-                  lastSelected: 1,
-                  keyring: {
-                    type: 'HD Key Tree',
-                  },
+          const getInternalAccounts = jest.fn().mockImplementationOnce(() => [
+            {
+              address: '0x1',
+              id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
+              metadata: {
+                name: 'Test Account 1',
+                lastSelected: 1,
+                keyring: {
+                  type: 'HD Key Tree',
                 },
-                options: {},
-                methods: [...Object.values(EthMethod)],
-                type: EthAccountType.Eoa,
               },
-              {
-                address: '0x3',
-                id: 'ff8fda69-d416-4d25-80a2-efb77bc7d4ad',
-                metadata: {
-                  name: 'Test Account 3',
-                  lastSelected: 3,
-                  keyring: {
-                    type: 'HD Key Tree',
-                  },
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+            {
+              address: '0x3',
+              id: 'ff8fda69-d416-4d25-80a2-efb77bc7d4ad',
+              metadata: {
+                name: 'Test Account 3',
+                lastSelected: 3,
+                keyring: {
+                  type: 'HD Key Tree',
                 },
-                options: {},
-                methods: [...Object.values(EthMethod)],
-                type: EthAccountType.Eoa,
               },
-            ];
-          });
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+          ]);
           const caveatValues = [
             { address: '0x1', lastUsed: '1' },
             { address: '0x2', lastUsed: '2' },
@@ -266,65 +264,63 @@ describe('PermissionController specifications', () => {
 
       describe('methodImplementation', () => {
         it('returns the exact keyring accounts in lastSelected order', async () => {
-          const getInternalAccounts = jest.fn().mockImplementationOnce(() => {
-            return [
-              {
-                address: '0x1',
-                id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
-                metadata: {
-                  name: 'Test Account',
-                  lastSelected: 1,
-                  keyring: {
-                    type: 'HD Key Tree',
-                  },
+          const getInternalAccounts = jest.fn().mockImplementationOnce(() => [
+            {
+              address: '0x1',
+              id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
+              metadata: {
+                name: 'Test Account',
+                lastSelected: 1,
+                keyring: {
+                  type: 'HD Key Tree',
                 },
-                options: {},
-                methods: [...Object.values(EthMethod)],
-                type: EthAccountType.Eoa,
               },
-              {
-                address: '0x2',
-                id: '0bd7348e-bdfe-4f67-875c-de831a583857',
-                metadata: {
-                  name: 'Test Account',
-                  keyring: {
-                    type: 'HD Key Tree',
-                  },
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+            {
+              address: '0x2',
+              id: '0bd7348e-bdfe-4f67-875c-de831a583857',
+              metadata: {
+                name: 'Test Account',
+                keyring: {
+                  type: 'HD Key Tree',
                 },
-                options: {},
-                methods: [...Object.values(EthMethod)],
-                type: EthAccountType.Eoa,
               },
-              {
-                address: '0x3',
-                id: 'ff8fda69-d416-4d25-80a2-efb77bc7d4ad',
-                metadata: {
-                  name: 'Test Account',
-                  keyring: {
-                    type: 'HD Key Tree',
-                  },
-                  lastSelected: 3,
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+            {
+              address: '0x3',
+              id: 'ff8fda69-d416-4d25-80a2-efb77bc7d4ad',
+              metadata: {
+                name: 'Test Account',
+                keyring: {
+                  type: 'HD Key Tree',
                 },
-                options: {},
-                methods: [...Object.values(EthMethod)],
-                type: EthAccountType.Eoa,
+                lastSelected: 3,
               },
-              {
-                address: '0x4',
-                id: '0bd7348e-bdfe-4f67-875c-de831a583857',
-                metadata: {
-                  name: 'Test Account',
-                  lastSelected: 3,
-                  keyring: {
-                    type: 'HD Key Tree',
-                  },
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+            {
+              address: '0x4',
+              id: '0bd7348e-bdfe-4f67-875c-de831a583857',
+              metadata: {
+                name: 'Test Account',
+                lastSelected: 3,
+                keyring: {
+                  type: 'HD Key Tree',
                 },
-                options: {},
-                methods: [...Object.values(EthMethod)],
-                type: EthAccountType.Eoa,
               },
-            ];
-          });
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+          ]);
           const getAllAccounts = jest
             .fn()
             .mockImplementationOnce(() => ['0x1', '0x2', '0x3', '0x4']);
@@ -343,38 +339,36 @@ describe('PermissionController specifications', () => {
           ]);
         });
         it('throws if a keyring account is missing an address (case 1)', async () => {
-          const getInternalAccounts = jest.fn().mockImplementationOnce(() => {
-            return [
-              {
-                address: '0x2',
-                id: '0bd7348e-bdfe-4f67-875c-de831a583857',
-                metadata: {
-                  name: 'Test Account',
-                  lastSelected: 2,
-                  keyring: {
-                    type: 'HD Key Tree',
-                  },
+          const getInternalAccounts = jest.fn().mockImplementationOnce(() => [
+            {
+              address: '0x2',
+              id: '0bd7348e-bdfe-4f67-875c-de831a583857',
+              metadata: {
+                name: 'Test Account',
+                lastSelected: 2,
+                keyring: {
+                  type: 'HD Key Tree',
                 },
-                options: {},
-                methods: [...Object.values(EthMethod)],
-                type: EthAccountType.Eoa,
               },
-              {
-                address: '0x3',
-                id: 'ff8fda69-d416-4d25-80a2-efb77bc7d4ad',
-                metadata: {
-                  name: 'Test Account',
-                  lastSelected: 3,
-                  keyring: {
-                    type: 'HD Key Tree',
-                  },
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+            {
+              address: '0x3',
+              id: 'ff8fda69-d416-4d25-80a2-efb77bc7d4ad',
+              metadata: {
+                name: 'Test Account',
+                lastSelected: 3,
+                keyring: {
+                  type: 'HD Key Tree',
                 },
-                options: {},
-                methods: [...Object.values(EthMethod)],
-                type: EthAccountType.Eoa,
               },
-            ];
-          });
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+          ]);
           const getAllAccounts = jest
             .fn()
             .mockImplementationOnce(() => ['0x1', '0x2', '0x3']);
@@ -391,38 +385,36 @@ describe('PermissionController specifications', () => {
         });
 
         it('throws if a keyring account is missing an address (case 2)', async () => {
-          const getInternalAccounts = jest.fn().mockImplementationOnce(() => {
-            return [
-              {
-                address: '0x1',
-                id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
-                metadata: {
-                  name: 'Test Account',
-                  lastSelected: 1,
-                  keyring: {
-                    type: 'HD Key Tree',
-                  },
+          const getInternalAccounts = jest.fn().mockImplementationOnce(() => [
+            {
+              address: '0x1',
+              id: 'cf8dace4-9439-4bd4-b3a8-88c821c8fcb3',
+              metadata: {
+                name: 'Test Account',
+                lastSelected: 1,
+                keyring: {
+                  type: 'HD Key Tree',
                 },
-                options: {},
-                methods: [...Object.values(EthMethod)],
-                type: EthAccountType.Eoa,
               },
-              {
-                address: '0x3',
-                id: 'ff8fda69-d416-4d25-80a2-efb77bc7d4ad',
-                metadata: {
-                  name: 'Test Account',
-                  lastSelected: 3,
-                  keyring: {
-                    type: 'HD Key Tree',
-                  },
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+            {
+              address: '0x3',
+              id: 'ff8fda69-d416-4d25-80a2-efb77bc7d4ad',
+              metadata: {
+                name: 'Test Account',
+                lastSelected: 3,
+                keyring: {
+                  type: 'HD Key Tree',
                 },
-                options: {},
-                methods: [...Object.values(EthMethod)],
-                type: EthAccountType.Eoa,
               },
-            ];
-          });
+              options: {},
+              methods: [...Object.values(EthMethod)],
+              type: EthAccountType.Eoa,
+            },
+          ]);
           const getAllAccounts = jest
             .fn()
             .mockImplementationOnce(() => ['0x1', '0x2', '0x3']);
