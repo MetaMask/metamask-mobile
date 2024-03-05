@@ -4215,13 +4215,13 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/phishing-controller@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-5.0.0.tgz#f2d1006c4063d13f62f1926d2d3c7ffac5736fec"
-  integrity sha512-mY9g3RV0lxak6YzOD7Ki5WRDIfXbkyn/cpI6BmFMY2Iz/eY0WmDs++NorsWyty3yjLEyTLpMklPA1JsssEylhA==
+"@metamask/phishing-controller@6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-6.0.0.tgz#4086ddb0abf263933146b296fea98ee2a17c9484"
+  integrity sha512-dlAxoWAU+k31jdkBESCvY2bwfC7jOE2pSxDwSWHdEmuLs4S2niSs4boQ67azONRiLvF20lF71bKthEhTf/RGdQ==
   dependencies:
-    "@metamask/base-controller" "^3.0.0"
-    "@metamask/controller-utils" "^4.0.0"
+    "@metamask/base-controller" "^3.2.0"
+    "@metamask/controller-utils" "^4.3.0"
     "@types/punycode" "^2.1.0"
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
