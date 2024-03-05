@@ -40,7 +40,8 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await Browser.navigateToURL(SUSHI_SWAP);
         await Assertions.checkIfVisible(ConnectModal.container);
         await ConnectModal.scrollToBottomOfModal();
-        await Browser.isAccountToastVisible('Account 1');
+        await Assertions.checkIfNotVisible(ConnectModal.container);
+        await TabBarComponent.tapBrowser();
 
         // should connect with multiple accounts
         await Browser.tapOpenAllTabsButton();

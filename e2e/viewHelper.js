@@ -179,7 +179,7 @@ export const switchToSepoliaNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
   await NetworkListModal.tapTestNetworkSwitch();
   await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
-  await NetworkListModal.changeNetwork(SEPOLIA);
+  await NetworkListModal.changeToNetwork(SEPOLIA);
   await WalletView.isNetworkNameVisible(SEPOLIA);
   await NetworkEducationModal.tapGotItButton();
 };

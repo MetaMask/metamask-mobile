@@ -14,6 +14,7 @@ import Assertions from '../../utils/Assertions';
 
 const TOKEN_ADDRESS = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
+const SEPOLIA = 'Sepolia Test Network';
 
 describe(SmokeCore('Send ERC Token'), () => {
   beforeAll(async () => {
@@ -30,7 +31,7 @@ describe(SmokeCore('Send ERC Token'), () => {
     await TestHelpers.delay(2000);
     await NetworkListModal.tapTestNetworkSwitch();
     await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
-    await NetworkListModal.changeNetwork('Sepolia Test Network');
+    await NetworkListModal.changeToNetwork(SEPOLIA);
   });
 
   it('should dismiss network education modal', async () => {

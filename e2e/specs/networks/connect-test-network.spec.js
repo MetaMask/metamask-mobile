@@ -1,30 +1,49 @@
 import { Regression } from '../../tags';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/WalletView';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
 import Assertions from '../../utils/Assertions';
+import TestHelpers from '../../helpers';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  loadFixture,
+  startFixtureServer,
+  stopFixtureServer,
+} from '../../fixtures/fixture-helper';
+import { getFixturesServerPort } from '../../fixtures/utils';
+import FixtureServer from '../../fixtures/fixture-server';
 
+const fixtureServer = new FixtureServer();
 const SEPOLIA = 'Sepolia Test Network';
 const ETHEREUM = 'Ethereum Main Network';
 
 describe(Regression('Connect to a Test Network'), () => {
   beforeAll(async () => {
-    jest.setTimeout(150000);
-    await device.launchApp();
+    await TestHelpers.reverseServerPort();
+    const fixture = new FixtureBuilder().build();
+    await startFixtureServer(fixtureServer);
+    await loadFixture(fixtureServer, { fixture });
+    await device.launchApp({
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+    });
+    await loginToApp();
   });
 
-  it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase();
+  beforeEach(() => {
+    jest.setTimeout(150000);
+  });
+
+  afterAll(async () => {
+    await stopFixtureServer(fixtureServer);
   });
 
   it('should switch to test Network then dismiss the network education modal', async () => {
     // Tap to prompt network list
     await WalletView.tapNetworksButtonOnNavBar();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-    await NetworkListModal.tapTestNetworkSwitch();
     await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
-    await NetworkListModal.changeNetwork(SEPOLIA);
+    await NetworkListModal.changeToNetwork(SEPOLIA);
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
@@ -44,7 +63,7 @@ describe(Regression('Connect to a Test Network'), () => {
   });
 
   it('should disconnect to Test Network', async () => {
-    await NetworkListModal.changeNetwork(ETHEREUM);
+    await NetworkListModal.changeToNetwork(ETHEREUM);
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
@@ -62,6 +81,6 @@ describe(Regression('Connect to a Test Network'), () => {
     await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
     await NetworkListModal.tapTestNetworkSwitch();
     await Assertions.checkIfToggleIsOff(NetworkListModal.testSwitch);
-    await Assertions.checkIfTextIsDisplayed(SEPOLIA);
+    await Assertions.checkIfTextIsNotDisplayed(SEPOLIA);
   });
 });
