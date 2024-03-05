@@ -550,6 +550,10 @@
     "qr_hardware": "QR hardware",
     "remove_account_title": "Account removal",
     "remove_account_message": "Do you really want to remove this account?",
+    "forget_qr_device_title": "Forget QR devices",
+    "forget_qr_device_message": "Do you really want to forget this QR device, this will remove all accounts associated with this device?",
+    "forget_ledger_device_title": "Forget Ledger device",
+    "forget_ledger_device_message": "Do you really want to forget this Ledger device, this will remove all accounts associated with this device?",
     "no": "No",
     "yes_remove_it": "Yes, remove it",
     "accounts_title": "Accounts",
@@ -1488,7 +1492,7 @@
     "add": "Add",
     "cancel": "Cancel",
     "approve": "Approve",
-    "edit_network_details":"Edit network details",
+    "edit_network_details": "Edit network details",
     "malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Network Information",
@@ -1511,7 +1515,6 @@
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
     "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
-
   },
   "select": {
     "cancel": "Cancel",

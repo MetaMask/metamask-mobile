@@ -1,36 +1,39 @@
 // Third party dependencies.
+import { KeyringTypes } from '@metamask/keyring-controller';
+import type { Hex } from '@metamask/utils';
 import React, { useCallback, useRef } from 'react';
 import { Alert, ListRenderItem, Platform, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import type { Hex } from '@metamask/utils';
 
 // External dependencies.
+import { strings } from '../../../../locales/i18n';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
-import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
-import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import {
-  formatAddress,
-  safeToChecksumAddress,
-  getLabelTextByAddress,
-} from '../../../util/address';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
-import { strings } from '../../../../locales/i18n';
-import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
-import { Account, Assets } from '../../hooks/useAccounts';
+import { useStyles } from '../../../component-library/hooks';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
+import { isDefaultAccountName } from '../../../util/ENSUtils';
+import {
+  formatAddress,
+  getLabelTextByAddress,
+  safeToChecksumAddress,
+} from '../../../util/address';
+import { Account, Assets } from '../../hooks/useAccounts';
 
 // Internal dependencies.
-import { AccountSelectorListProps } from './AccountSelectorList.types';
-import styleSheet from './AccountSelectorList.styles';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { forgetLedger } from '../../../core/Ledger/Ledger';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import styleSheet from './AccountSelectorList.styles';
+import { AccountSelectorListProps } from './AccountSelectorList.types';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -46,6 +49,8 @@ const AccountSelectorList = ({
   isAutoScrollEnabled = true,
   ...props
 }: AccountSelectorListProps) => {
+
+  const { trackEvent } = useMetrics();
   const Engine = UntypedEngine as any;
   const accountListRef = useRef<any>(null);
   const accountsLengthRef = useRef<number>(0);
@@ -77,57 +82,125 @@ const AccountSelectorList = ({
   const onLongPress = useCallback(
     ({
       address,
-      imported,
+      keyringType,
       isSelected,
       index,
     }: {
       address: Hex;
-      imported: boolean;
+      keyringType: KeyringTypes;
       isSelected: boolean;
       index: number;
     }) => {
-      if (!imported || !isRemoveAccountEnabled) return;
-      Alert.alert(
-        strings('accounts.remove_account_title'),
-        strings('accounts.remove_account_message'),
-        [
-          {
-            text: strings('accounts.no'),
-            onPress: () => false,
-            style: 'cancel',
-          },
-          {
-            text: strings('accounts.yes_remove_it'),
-            onPress: async () => {
-              // TODO: Refactor account deletion logic to make more robust.
-              const selectedAddressOverride = selectedAddresses?.[0];
-              const account = accounts.find(
-                ({ isSelected: isAccountSelected, address: accountAddress }) =>
-                  selectedAddressOverride
-                    ? safeToChecksumAddress(selectedAddressOverride) ===
-                      safeToChecksumAddress(accountAddress)
-                    : isAccountSelected,
-              ) as Account;
-              let nextActiveAddress = account?.address;
-              if (isSelected) {
-                const nextActiveIndex = index === 0 ? 1 : index - 1;
-                nextActiveAddress = accounts[nextActiveIndex]?.address;
-              }
-              // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
-              // If needed, place PreferencesController.setSelectedAddress in onRemoveImportedAccount callback.
-              onRemoveImportedAccount?.({
-                removedAddress: address,
-                nextActiveAddress,
-              });
-              await Engine.context.KeyringController.removeAccount(address);
-              // Revocation of accounts from PermissionController is needed whenever accounts are removed.
-              // If there is an instance where this is not the case, this logic will need to be updated.
-              removeAccountsFromPermissions([address]);
-            },
-          },
-        ],
-        { cancelable: false },
-      );
+      if (!isRemoveAccountEnabled) return;
+
+      switch(keyringType){
+        case KeyringTypes.simple: {
+          Alert.alert(
+            strings('accounts.remove_account_title'),
+            strings('accounts.remove_account_message'),
+            [
+              {
+                text: strings('accounts.no'),
+                onPress: () => false,
+                style: 'cancel',
+              },
+              {
+                text: strings('accounts.yes_remove_it'),
+                onPress: async () => {
+                  // TODO: Refactor account deletion logic to make more robust.
+                  const selectedAddressOverride = selectedAddresses?.[0];
+                  const account = accounts.find(
+                    ({ isSelected: isAccountSelected, address: accountAddress }) =>
+                      selectedAddressOverride
+                        ? safeToChecksumAddress(selectedAddressOverride) ===
+                          safeToChecksumAddress(accountAddress)
+                        : isAccountSelected,
+                  ) as Account;
+                  let nextActiveAddress = account?.address;
+                  if (isSelected) {
+                    const nextActiveIndex = index === 0 ? 1 : index - 1;
+                    nextActiveAddress = accounts[nextActiveIndex]?.address;
+                  }
+                  // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
+                  // If needed, place PreferencesController.setSelectedAddress in onRemoveImportedAccount callback.
+                  onRemoveImportedAccount?.({
+                    removedAddress: address,
+                    nextActiveAddress,
+                  });
+                  await Engine.context.KeyringController.removeAccount(address);
+                  // Revocation of accounts from PermissionController is needed whenever accounts are removed.
+                  // If there is an instance where this is not the case, this logic will need to be updated.
+                  removeAccountsFromPermissions([address]);
+                },
+              },
+            ],
+            { cancelable: false },
+          );
+
+          break;
+          }
+        case KeyringTypes.qr: {
+
+          Alert.alert(
+            strings('accounts.forget_qr_device_title'),
+            strings('accounts.forget_qr_device_message'),
+            [
+              {
+                text: strings('accounts.no'),
+                onPress: () => false,
+                style: 'cancel',
+              },
+              {
+                text: strings('accounts.yes_remove_it'),
+                onPress: async () => {
+                  const { PreferencesController, KeyringController } = Engine.context as any;
+
+                  // removedAccounts and remainingAccounts are not checksummed here.
+                  const { removedAccounts, remainingAccounts } =
+                    await KeyringController.forgetQRDevice();
+                  PreferencesController.setSelectedAddress(
+                    remainingAccounts[remainingAccounts.length - 1],
+                  );
+                  const checksummedRemovedAccounts = removedAccounts.map(
+                    safeToChecksumAddress,
+                  );
+                  removeAccountsFromPermissions(checksummedRemovedAccounts);
+                },
+              },
+            ],
+            { cancelable: false },
+          );
+
+          break;
+        }
+        case KeyringTypes.ledger: {
+          Alert.alert(
+            strings('accounts.forget_ledger_device_title'),
+            strings('accounts.forget_ledger_device_message'),
+            [
+              {
+                text: strings('accounts.no'),
+                onPress: () => false,
+                style: 'cancel',
+              },
+              {
+                text: strings('accounts.yes_remove_it'),
+                onPress: async () => {
+                  await forgetLedger();
+                  trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
+                    device_type: 'Ledger',
+                  });
+                  removeAccountsFromPermissions([address]);
+                },
+              },
+            ],
+            { cancelable: false },
+          );
+
+        }
+
+        default: break;
+      }
     },
     /* eslint-disable-next-line */
     [
@@ -166,7 +239,7 @@ const AccountSelectorList = ({
           onLongPress={() => {
             onLongPress({
               address,
-              imported: type === KeyringTypes.simple,
+              keyringType: type,
               isSelected: isSelectedAccount,
               index,
             });
