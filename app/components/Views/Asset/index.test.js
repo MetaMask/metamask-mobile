@@ -18,7 +18,7 @@ jest.mock('../../../core/Engine.ts', () => ({
   init: () => mockedEngine.init({}),
   context: {
     KeyringController: {
-      getQRKeyringState: async () => ({ subscribe: () => {}}),
+      getQRKeyringState: async () => ({ subscribe: () => ({}) }),
     },
   },
 }));
