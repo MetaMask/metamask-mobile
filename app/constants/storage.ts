@@ -23,7 +23,8 @@ export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
  *
  * TODO remove MIXPANEL_METAMETRICS_ID:
  * - add a migration
- * - aremove the legacy id test from {@link MetaMetrics}.#getMetaMetricsId()
+ * - remove the legacy id test from {@link MetaMetrics}.#getMetaMetricsId()
+ * @see https://github.com/MetaMask/metamask-mobile/issues/8833
  */
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
 
