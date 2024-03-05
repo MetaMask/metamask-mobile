@@ -513,13 +513,11 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted<
         'TokensController',
         'ApprovalController:addRequest',
-        never
+        'AccountsController:selectedAccountChange'
       >({
         name: 'TokensController',
-        allowedActions: [
-          `${approvalController.name}:addRequest`,
-          'AccountsController:selectedAccountChange',
-        ],
+        allowedActions: [`${approvalController.name}:addRequest`],
+        allowedEvents: ['AccountsController:selectedAccountChange'],
       }),
       getERC20TokenName: assetsContractController.getERC20TokenName.bind(
         assetsContractController,
@@ -604,15 +602,8 @@ class Engine {
         ///: END:ONLY_INCLUDE_IF
         'KeyringController:accountRemoved',
         'KeyringController:stateChange',
-        'AccountsController:selectedAccountChange',
       ],
       allowedActions: [
-        'AccountsController:setCurrentAccount',
-        'AccountsController:setAccountName',
-        'AccountsController:listAccounts',
-        'AccountsController:getSelectedAccount',
-        'AccountsController:getAccountByAddress',
-        'AccountsController:updateAccounts',
         'KeyringController:getAccounts',
         'KeyringController:getKeyringsByType',
         'KeyringController:getKeyringForAccount',
