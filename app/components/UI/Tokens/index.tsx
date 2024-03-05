@@ -7,6 +7,7 @@ import {
   FlatList,
   RefreshControl,
 } from 'react-native';
+import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 import ActionSheet from 'react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
@@ -69,7 +70,11 @@ import SkeletonText from '../Ramp/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
-import { IconName } from '../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 
 import {
   PORTFOLIO_BUTTON,
@@ -89,6 +94,12 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { regex } from '../../../../app/util/regex';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import useIsOriginalNativeTokenSymbol from '../../UI/Ramp/hooks/useIsOriginalNativeTokenSymbol';
+import ButtonIcon, {
+  ButtonIconVariants,
+} from '../../../../app/component-library/components/Buttons/ButtonIcon';
+import Box from '../../UI/Ramp/components/Box';
+import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -99,6 +110,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const [showScamWarningModal, setShowScamWarningModal] = useState(false);
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
   const actionSheet = useRef<ActionSheet>();
@@ -107,6 +119,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     const providerConfig = selectProviderConfig(state);
     return getNetworkNameFromProviderConfig(providerConfig);
   });
+  const { type, rpcUrl } = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -123,6 +136,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const browserTabs = useSelector((state: any) => state.browser.tabs);
 
+  const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
+    chainId,
+    ticker,
+    type,
+  );
+
   const renderEmpty = () => (
     <View style={styles.emptyView}>
       <Text style={styles.text}>{strings('wallet.no_tokens')}</Text>
@@ -134,6 +153,68 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       ...token,
     });
   };
+
+  const goToNetworkEdit = () => {
+    navigation.navigate(Routes.ADD_NETWORK, {
+      network: rpcUrl,
+      isEdit: true,
+    });
+
+    setShowScamWarningModal(false);
+  };
+
+  const renderScamWarningIcon = (asset) => {
+    if (!isOriginalNativeTokenSymbol && asset.isETH) {
+      return (
+        <ButtonIcon
+          iconName={IconName.Danger}
+          onPressIn={() => {
+            setShowScamWarningModal(true);
+          }}
+          variant={ButtonIconVariants.Primary}
+          size={IconSize.Lg}
+          iconColorOverride={IconColor.Error}
+        />
+      );
+    }
+    return null;
+  };
+
+  const renderScamWarningModal = () => (
+    <Modal
+      isVisible={showScamWarningModal}
+      onBackdropPress={() => setShowScamWarningModal(false)}
+      onSwipeComplete={() => setShowScamWarningModal(false)}
+      swipeDirection="down"
+      propagateSwipe
+      avoidKeyboard
+      style={styles.bottomModal}
+      backdropColor={colors.overlay.default}
+      backdropOpacity={1}
+    >
+      <Box style={styles.box}>
+        <View style={styles.notch} />
+        <SheetHeader title={strings('wallet.potential_scam')} />
+
+        <Box style={styles.boxContent}>
+          <Text>
+            {strings('wallet.network_not_matching')}
+            {` ${ticker},`}
+            {strings('wallet.target_scam_network')}
+          </Text>
+        </Box>
+        <Box style={styles.boxContent}>
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={strings('networks.edit_network_details')}
+            onPress={goToNetworkEdit}
+            style={styles.editNetworkButton}
+            size={ButtonSize.Lg}
+          />
+        </Box>
+      </Box>
+    </Modal>
+  );
 
   const goToAddToken = () => {
     setIsAddTokenEnabled(false);
@@ -230,12 +311,35 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     let mainBalance, secondaryBalance;
     mainBalance = TOKEN_BALANCE_LOADING;
 
+    // Set main and secondary balances based on the primary currency and asset type.
     if (primaryCurrency === 'ETH') {
+      // Default to displaying the formatted balance value and its fiat equivalent.
       mainBalance = balanceValueFormatted;
       secondaryBalance = balanceFiat;
+
+      // For ETH as a native currency, adjust display based on network safety.
+      if (asset.isETH) {
+        // Main balance always shows the formatted balance value for ETH.
+        mainBalance = balanceValueFormatted;
+        // Display fiat value as secondary balance only for original native tokens on safe networks.
+        secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
+      }
     } else {
+      // For non-ETH currencies, determine balances based on the presence of fiat value.
       mainBalance = !balanceFiat ? balanceValueFormatted : balanceFiat;
       secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
+
+      // Adjust balances for native currencies in non-ETH scenarios.
+      if (asset.isETH) {
+        // Main balance logic: Show crypto value if fiat is absent or fiat value on safe networks.
+        mainBalance = !balanceFiat
+          ? balanceValueFormatted // Show crypto value if fiat setting is not preferred.
+          : isOriginalNativeTokenSymbol // Check for safe network to decide on fiat display.
+          ? balanceFiat
+          : null;
+        // Secondary balance mirrors the main balance logic for consistency.
+        secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
+      }
     }
 
     if (asset?.balanceError) {
@@ -310,6 +414,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             )}
           </Text>
         </View>
+
+        {renderScamWarningIcon(asset)}
+        {renderScamWarningModal()}
       </AssetElement>
     );
   };
@@ -408,10 +515,16 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const renderNetworth = () => {
-    const fiatBalance = `${renderFiat(
-      Engine.getTotalFiatAccountBalance(),
-      currentCurrency,
-    )}`;
+    const balance = Engine.getTotalFiatAccountBalance();
+    let total;
+    if (isOriginalNativeTokenSymbol) {
+      const tokenFiatTotal = balance?.tokenFiat ?? 0;
+      const ethFiatTotal = balance?.ethFiat ?? 0;
+      total = tokenFiatTotal + ethFiatTotal;
+    } else {
+      total = balance?.tokenFiat ?? 0;
+    }
+    const fiatBalance = `${renderFiat(total, currentCurrency)}`;
 
     const onOpenPortfolio = () => {
       const existingPortfolioTab = browserTabs.find((tab: BrowserTab) =>
