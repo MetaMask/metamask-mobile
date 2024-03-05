@@ -550,7 +550,8 @@
       "husky": false,
       "react-native-inappbrowser-reborn": false,
       "react-native-svg-asset-plugin>sharp": true,
-      "ts-node>@swc/core": false
+      "ts-node>@swc/core": false,
+      "ethereumjs-util>ethereum-cryptography>keccak": false
     }
   }
 }
