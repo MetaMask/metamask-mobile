@@ -63,7 +63,7 @@ import {
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -105,9 +105,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const confirmPasswordInput = React.createRef();
 
   const track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('ImportFromSecretRecoveryPhrase', `Failed to track ${event}`);
-    });
+    trackOnboarding(event, properties);
   };
 
   const updateNavBar = () => {

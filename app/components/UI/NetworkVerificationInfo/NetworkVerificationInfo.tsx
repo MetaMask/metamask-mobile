@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Linking } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
@@ -28,8 +28,12 @@ import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { toggleUseSafeChainsListValidation } from '../../../util/networks';
+import {
+  getNetworkImageSource,
+  toggleUseSafeChainsListValidation,
+} from '../../../util/networks';
 import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
+import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 
 interface Alert {
   alertError: string;
@@ -67,6 +71,15 @@ const NetworkVerificationInfo = ({
 
   useEffect(() => setAlerts(alertsFromProps), [alertsFromProps]);
 
+  const networkImageSource = useMemo(
+    () =>
+      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+      getNetworkImageSource({
+        chainId: customNetworkInformation.chainId,
+      }),
+    [customNetworkInformation],
+  );
+
   const renderNetworkInfo = () => (
     <ScrollView
       nestedScrollEnabled
@@ -98,7 +111,9 @@ const NetworkVerificationInfo = ({
       <Text variant={TextVariant.BodyMDBold}>
         {strings('add_custom_network.network_url')}
       </Text>
-      <Text style={styles.textSection}>{customNetworkInformation.rpcUrl}</Text>
+      <Text style={styles.textSection}>
+        {hideKeyFromUrl(customNetworkInformation.rpcUrl)}
+      </Text>
 
       <Accordion
         title={strings('spend_limit_edition.view_details')}
@@ -149,6 +164,7 @@ const NetworkVerificationInfo = ({
   const renderAlerts = useCallback(() => {
     if (!safeChainsListValidationEnabled) return null;
     if (!alerts.length) return null;
+
     return alerts.map(
       (
         networkAlert: {
@@ -229,7 +245,7 @@ const NetworkVerificationInfo = ({
       </BottomSheetHeader>
       <ScrollView style={styles.root}>
         <PickerNetwork
-          imageSource={customNetworkInformation.icon}
+          imageSource={networkImageSource}
           label={customNetworkInformation.chainName}
           style={styles.networkSection}
           disabled

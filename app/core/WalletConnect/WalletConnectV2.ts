@@ -10,10 +10,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import Logger from '../../util/Logger';
 
-import {
-  TransactionController,
-  WalletDevice,
-} from '@metamask/transaction-controller';
+import { WalletDevice } from '@metamask/transaction-controller';
 
 import AsyncStorage from '../../store/async-storage-wrapper';
 import { Core } from '@walletconnect/core';
@@ -36,6 +33,7 @@ import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import { addTransaction } from '../../util/transaction-controller';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -85,6 +83,7 @@ class WalletConnect2Session {
 
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
+      channelId: session.pairingTopic,
       url,
       isWalletConnect: true,
       wcRequestActions: {
@@ -189,7 +188,14 @@ class WalletConnect2Session {
       );
     }
 
-    this.needsRedirect(id);
+    const requests = this.web3Wallet.getPendingSessionRequests() || [];
+
+    const hasPendingSignRequest =
+      requests[0]?.params?.request?.method === 'personal_sign';
+
+    if (!hasPendingSignRequest) {
+      this.needsRedirect(id);
+    }
   };
 
   rejectRequest = async ({ id, error }: { id: string; error: unknown }) => {
@@ -281,18 +287,11 @@ class WalletConnect2Session {
 
     if (method === 'eth_sendTransaction') {
       try {
-        const transactionController = (
-          Engine.context as { TransactionController: TransactionController }
-        ).TransactionController;
-
-        const trx = await transactionController.addTransaction(
-          methodParams[0],
-          {
-            origin,
-            deviceConfirmedOn: WalletDevice.MM_MOBILE,
-            securityAlertResponse: undefined,
-          },
-        );
+        const trx = await addTransaction(methodParams[0], {
+          origin,
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          securityAlertResponse: undefined,
+        });
 
         const id = trx.transactionMeta.id;
         const reqObject = {

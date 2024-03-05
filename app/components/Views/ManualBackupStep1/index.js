@@ -35,8 +35,8 @@ import { createStyles } from './styles';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
-import trackAfterInteractions from '../../../util/metrics/TrackAfterInteraction/trackAfterInteractions';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 /**
  * View that's shown during the second step of
@@ -71,9 +71,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   };
 
   const track = (event, properties) => {
-    trackAfterInteractions(event, properties).catch(() => {
-      Logger.log('ManualBackupStep1', `Failed to track ${event}`);
-    });
+    trackOnboarding(event, properties);
   };
 
   useEffect(() => {

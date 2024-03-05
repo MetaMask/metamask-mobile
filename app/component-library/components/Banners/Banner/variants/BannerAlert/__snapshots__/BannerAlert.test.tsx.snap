@@ -73,7 +73,8 @@ exports[`BannerAlert should render BannerAlert 1`] = `
       Sample Banner Alert Description
     </Text>
     <Text
-      accessibilityRole="text"
+      accessibilityRole="link"
+      accessible={true}
       onPress={[Function]}
       onPressIn={[Function]}
       onPressOut={[Function]}
