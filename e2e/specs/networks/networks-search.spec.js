@@ -15,7 +15,6 @@ import {
 import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
-import Matchers from '../../utils/Matchers';
 
 const fixtureServer = new FixtureServer();
 const SHORT_HAND_NETWORK_TEXT = 'ava';
@@ -49,11 +48,6 @@ describe(Regression('Networks Search'), () => {
       PopularNetworksList.Avalanche.providerConfig.nickname,
     );
     await NetworkView.tapDeleteButton();
-    await Assertions.checkIfElementNotToHaveText(
-      Matchers.getElementByText(
-        PopularNetworksList.Avalanche.providerConfig.nickname,
-      ),
-      PopularNetworksList.Avalanche.providerConfig.nickname,
-    );
+    await Assertions.checkIfVisible(NetworkView.noMatchingText);
   });
 });
