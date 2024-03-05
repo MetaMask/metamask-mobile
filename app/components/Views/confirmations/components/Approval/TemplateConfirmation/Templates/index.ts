@@ -14,6 +14,7 @@ export interface ConfirmationTemplateValues {
   onConfirm?: (opts?: AcceptOptions) => void;
   onlyConfirmButton?: boolean;
   loadingText?: string;
+  hideSubmitButton?: boolean;
 }
 
 export interface ConfirmationTemplate {
@@ -41,6 +42,7 @@ const ALLOWED_TEMPLATE_KEYS: string[] = [
   'onConfirm',
   'onlyConfirmButton',
   'loadingText',
+  'hideSubmitButton',
 ];
 
 export function getTemplateValues(
