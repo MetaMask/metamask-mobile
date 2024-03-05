@@ -44,7 +44,7 @@ pipelines:
   release_e2e_pipeline:
     stages:
       - build_e2e_ios_android_stage: {}
-      - run_e2e_ios_android_stage: {}
+      - run_smoke_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {} 
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
