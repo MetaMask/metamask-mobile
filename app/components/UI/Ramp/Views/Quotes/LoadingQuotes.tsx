@@ -2,7 +2,23 @@ import React from 'react';
 import Row from '../../components/Row';
 import SkeletonQuote from '../../components/SkeletonQuote';
 
-function LoadingQuotes() {
+interface Props {
+  count?: number;
+}
+
+function LoadingQuotes({ count }: Props) {
+  if (count) {
+    return (
+      <>
+        {Array.from({ length: count }, (_, index) => (
+          <Row key={index} first={index === 0}>
+            <SkeletonQuote collapsed />
+          </Row>
+        ))}
+      </>
+    );
+  }
+
   return (
     <>
       <Row first>

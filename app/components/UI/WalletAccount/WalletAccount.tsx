@@ -1,12 +1,5 @@
 // Third parties dependencies
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Platform, View } from 'react-native';
@@ -18,15 +11,7 @@ import { createAccountSelectorNavDetails } from '../../../components/Views/Accou
 import { useStyles } from '../../../component-library/hooks';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import AddressCopy from '../AddressCopy';
-import {
-  doENSReverseLookup,
-  isDefaultAccountName,
-} from '../../../util/ENSUtils';
-import { selectChainId } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { isDefaultAccountName } from '../../../util/ENSUtils';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import Routes from '../../../constants/navigation/Routes';
@@ -40,12 +25,13 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import { getLabelTextByAddress } from '../../../util/address';
 
-const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
+const WalletAccount = (
+  { style, account, ens }: WalletAccountProps,
+  ref: React.Ref<any>,
+) => {
   const { styles } = useStyles(styleSheet, { style });
 
   const { navigate } = useNavigation();
-  const [ens, setEns] = useState<string>();
-
   const yourAccountRef = useRef(null);
   const accountActionsRef = useRef(null);
 
@@ -53,40 +39,12 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
     yourAccountRef,
     accountActionsRef,
   }));
-  /**
-   * A string that represents the selected address
-   */
-  const selectedAddress = useSelector(selectSelectedAddress);
-
-  /**
-   * An object containing each identity in the format address => account
-   */
-  const identities = useSelector(selectIdentities);
-
-  const chainId = useSelector(selectChainId);
 
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const account = {
-    ...identities[selectedAddress],
-    address: selectedAddress,
-  };
-
-  const lookupEns = useCallback(async () => {
-    try {
-      const accountEns = await doENSReverseLookup(account.address, chainId);
-
-      setEns(accountEns);
-      // eslint-disable-next-line no-empty
-    } catch {}
-  }, [account.address, chainId]);
-
-  useEffect(() => {
-    lookupEns();
-  }, [lookupEns]);
 
   const onNavigateToAccountActions = () => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

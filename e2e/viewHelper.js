@@ -26,7 +26,7 @@ import LoginView from './pages/LoginView';
 import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
 
-const GOERLI = 'Goerli Test Network';
+const SEPOLIA = 'Sepolia Test Network';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 
@@ -175,12 +175,12 @@ export const addLocalhostNetwork = async () => {
   await NetworkEducationModal.isNotVisible();
 };
 
-export const switchToGoreliNetwork = async () => {
+export const switchToSepoliaNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
   await NetworkListModal.tapTestNetworkSwitch();
   await NetworkListModal.isTestNetworkToggleOn();
-  await NetworkListModal.changeNetwork(GOERLI);
-  await WalletView.isNetworkNameVisible(GOERLI);
+  await NetworkListModal.changeNetwork(SEPOLIA);
+  await WalletView.isNetworkNameVisible(SEPOLIA);
   await NetworkEducationModal.tapGotItButton();
 };
 

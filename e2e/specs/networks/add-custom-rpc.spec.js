@@ -22,7 +22,7 @@ import Assertions from '../../utils/Assertions';
 import Networks from '../../resources/networks.json';
 
 const fixtureServer = new FixtureServer();
-const GORELI = 'Goerli Test Network';
+const SEPOLIA = 'Sepolia Test Network';
 const MAINNET = 'Ethereum Main Network';
 
 describe(Regression('Custom RPC Tests'), () => {
@@ -107,7 +107,7 @@ describe(Regression('Custom RPC Tests'), () => {
 
   it('should switch to Sepolia then dismiss the network education modal', async () => {
     await NetworkListModal.isTestNetworkToggleOn();
-    await NetworkListModal.changeNetwork(GORELI);
+    await NetworkListModal.changeNetwork(SEPOLIA);
     await NetworkEducationModal.isVisible();
     await NetworkEducationModal.isNetworkNameCorrect('Goreli Test Network');
     await NetworkEducationModal.tapGotItButton();
@@ -116,7 +116,7 @@ describe(Regression('Custom RPC Tests'), () => {
   });
 
   it('should switch back to xDAI', async () => {
-    await WalletView.isNetworkNameVisible(GORELI);
+    await WalletView.isNetworkNameVisible(SEPOLIA);
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.isVisible();
     await NetworkListModal.scrollToBottomOfNetworkList();

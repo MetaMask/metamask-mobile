@@ -160,6 +160,13 @@ const transactionReducer = (state = initialState, action) => {
         },
       };
     }
+    case 'SET_TRANSACTION_ID': {
+      const { transactionId } = action;
+      return {
+        ...state,
+        id: transactionId,
+      };
+    }
     default:
       return state;
   }

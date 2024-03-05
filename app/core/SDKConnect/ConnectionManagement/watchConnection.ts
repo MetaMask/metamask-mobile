@@ -16,6 +16,11 @@ function watchConnection(connection: Connection, instance: SDKConnect) {
           emitRefresh: true,
           sendTerminate: false,
         });
+      } else if (connectionStatus === ConnectionStatus.DISCONNECTED) {
+        instance.updateSDKLoadingState({
+          channelId: connection.channelId,
+          loading: false,
+        });
       }
       DevLogger.log(
         `SDKConnect::watchConnection CONNECTION_STATUS ${connection.channelId} ${connectionStatus}`,
@@ -32,6 +37,9 @@ function watchConnection(connection: Connection, instance: SDKConnect) {
     DevLogger.log(
       `SDKConnect::watchConnection CLIENTS_DISCONNECTED channel=${connection.channelId} origin=${connection.origin} isDisabled=${isDisabled}`,
     );
+    // Always update initialConnection state
+    instance.state.connections[connection.channelId].initialConnection = false;
+
     if (isDisabled !== undefined) {
       instance
         .updateSDKLoadingState({
