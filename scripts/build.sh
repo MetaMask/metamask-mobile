@@ -125,11 +125,10 @@ remapEnvVariable() {
 }
 
 remapFlaskEnvVariables() {
-	# remap flask env variables to match what the app expects
-
-	echo "Remapping flask env variable names to match production"
-	# ios.env/android.env variables
-	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
+	echo "Remapping flask env variable names to match app common names"
+	# .js.env variables
+	remapEnvVariable "MM_FLASK_SEGMENT_WRITE_KEY" "SEGMENT_WRITE_KEY"
+	remapEnvVariable "MM_FLASK_SEGMENT_PROXY_URL" "SEGMENT_PROXY_URL"
 }
 
 loadJSEnv(){
