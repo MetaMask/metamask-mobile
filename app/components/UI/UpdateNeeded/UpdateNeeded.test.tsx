@@ -1,16 +1,5 @@
-import React from 'react';
-import renderWithProvider from '../../..//util/test/renderWithProvider';
+import { renderScreen } from '../../..//util/test/renderWithProvider';
 import { UpdateNeeded } from './';
-
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: jest.fn(),
-    }),
-  };
-});
 
 jest.mock('react-native-device-info', () => ({
   getBrand: () => 'some brand',
@@ -20,7 +9,11 @@ jest.mock('react-native-device-info', () => ({
 
 describe('UpdateNeeded', () => {
   it('should render correctly', () => {
-    const wrapper = renderWithProvider(<UpdateNeeded />, {});
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderScreen(
+      UpdateNeeded,
+      { name: 'UpdateNeeded' },
+      { state: {} },
+    );
+    expect(toJSON).toMatchSnapshot();
   });
 });
