@@ -39,6 +39,21 @@ async function main(): Promise<void> {
 
   const latestCommitHash = pullRequestResponse.data.head.sha;
 
+  const createCheckResponse = await octokit.rest.checks.create({
+    owner: repoOwner,
+    repo,
+    name: 'My Custom Check', // Name of the check
+    head_sha: latestCommitHash,
+    status: 'in_progress', // Mark the check as pending
+    started_at: new Date().toISOString(),
+    output: {
+      title: 'Bitrise Custom Check',
+      summary: 'The check is currently running.',
+    },
+  });
+
+  console.log('createCheckResponse', createCheckResponse.data)
+
   // Configure Bitrise configuration for API call
   const data = {
     build_params: {
