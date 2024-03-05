@@ -610,9 +610,15 @@ class Engine {
       ],
     });
 
+    const defaultAccountControllerState: AccountsControllerState = {
+      internalAccounts: {
+        accounts: {},
+        selectedAccount: '',
+      },
+    };
     const accountsController = new AccountsController({
       messenger: accountsControllerMessenger,
-      state: initialState.AccountsController,
+      state: initialState.AccountsController ?? defaultAccountControllerState,
     });
 
     const qrKeyringBuilder = () => new QRHardwareKeyring();
