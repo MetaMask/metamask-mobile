@@ -83,7 +83,7 @@ index 0000000..f4a6af9
 +  }
 +}
 diff --git a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
-index f743bbc..0f193d8 100644
+index f743bbc..b520532 100644
 --- a/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 +++ b/node_modules/react-native-webview/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewManager.java
 @@ -5,6 +5,7 @@ import android.annotation.TargetApi;
@@ -1022,7 +1022,7 @@ index f743bbc..0f193d8 100644
  
      @Override
      public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
-@@ -1266,7 +1620,18 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1266,7 +1620,22 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
          requestPermissions(Collections.singletonList(Manifest.permission.ACCESS_FINE_LOCATION));
  
        } else {
@@ -1037,12 +1037,16 @@ index f743bbc..0f193d8 100644
 +            builder.setNegativeButton("Don't allow", (dialog, which) -> {
 +                callback.invoke(origin, false, false);
 +            });
-+            AlertDialog alertDialog = builder.create();
++             AlertDialog alertDialog = builder.create();
 +            alertDialog.show();
++            //Delay making `allow` clickable for 500ms to avoid unwanted presses.
++            Button posButton = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
++            posButton.setEnabled(false);
++            this.runDelayed(() -> posButton.setEnabled(true), 500);
        }
      }
  
-@@ -1402,6 +1767,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1402,6 +1771,15 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      }
  
@@ -1058,7 +1062,7 @@ index f743bbc..0f193d8 100644
      @Override
      public void onHostPause() { }
  
-@@ -1447,6 +1821,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1447,6 +1825,13 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
      protected boolean nestedScrollEnabled = false;
      protected ProgressChangedFilter progressChangedFilter;
  
@@ -1072,7 +1076,7 @@ index f743bbc..0f193d8 100644
      /**
       * WebView must be created with an context of the current activity
       * <p>
-@@ -1475,6 +1856,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1475,6 +1860,42 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        this.nestedScrollEnabled = nestedScrollEnabled;
      }
  
@@ -1115,7 +1119,7 @@ index f743bbc..0f193d8 100644
      @Override
      public void onHostResume() {
        // do nothing
-@@ -1533,6 +1950,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1533,6 +1954,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
        }
      }
  
@@ -1124,7 +1128,7 @@ index f743bbc..0f193d8 100644
      public @Nullable
      RNCWebViewClient getRNCWebViewClient() {
        return mRNCWebViewClient;
-@@ -1609,8 +2028,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1609,8 +2032,8 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
      public void callInjectedJavaScriptBeforeContentLoaded() {
        if (getSettings().getJavaScriptEnabled() &&
@@ -1135,7 +1139,7 @@ index f743bbc..0f193d8 100644
          evaluateJavascriptWithFallback("(function() {\n" + injectedJSBeforeContentLoaded + ";\n})();");
        }
      }
-@@ -1672,16 +2091,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
+@@ -1672,16 +2095,16 @@ public class RNCWebViewManager extends SimpleViewManager<WebView> {
  
        if (mOnScrollDispatchHelper.onScrollChanged(x, y)) {
          ScrollEvent event = ScrollEvent.obtain(
