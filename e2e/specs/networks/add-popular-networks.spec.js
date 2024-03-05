@@ -36,7 +36,7 @@ describe(Regression('Add all popular networks'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  it(`Adds popular networks to see the empty list content`, async () => {
+  it(`Add all popular networks to verify the empty list content`, async () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
     await NetworkView.tapAddNetworkButton();
