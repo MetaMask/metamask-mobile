@@ -7,11 +7,9 @@ import { getLedgerKeyring } from './Ledger/Ledger';
 /**
  * Restores the QR keyring if it exists.
  */
-export const restoreQRKeyring = async () => {
+export const restoreQRKeyring = async (qrKeyring) => {
   const { KeyringController } = Engine.context;
-  const qrKeyring = (
-    await KeyringController.getKeyringsByType(KeyringTypes.qr)
-  )[0];
+
   if (qrKeyring) {
     try {
       const serializedQRKeyring = await qrKeyring.serialize();
@@ -102,12 +100,17 @@ export const recreateVaultWithNewPassword = async (
   const hdKeyring = KeyringController.state.keyrings[0];
   const existingAccountCount = hdKeyring.accounts.length;
 
+
   const oldLedgerKeyring = await getLedgerKeyring();
+  const qrKeyring = (
+    await KeyringController.getKeyringsByType(KeyringTypes.qr)
+  )[0];
+
 
   // Recreate keyring with password given to this method
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
-  await restoreQRKeyring();
+  await restoreQRKeyring(qrKeyring);
   await restoreLedgerKeyring(oldLedgerKeyring);
 
   // Create previous accounts again
