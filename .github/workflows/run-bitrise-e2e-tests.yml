@@ -15,6 +15,7 @@ jobs:
     permissions:
       pull-requests: write
       contents: write
+      checks: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
