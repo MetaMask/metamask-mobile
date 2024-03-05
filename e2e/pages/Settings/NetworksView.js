@@ -14,9 +14,15 @@ class NetworkView {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_CONTAINER);
   }
 
-  get NoMatchingText() {
+  get noMatchingText() {
     return Matchers.getElementByText(
       NetworkViewSelectorsText.NO_MATCHING_SEARCH_RESULTS,
+    );
+  }
+
+  get emptyPopularNetworksText() {
+    return Matchers.getElementByText(
+      NetworkViewSelectorsText.EMPTY_POPULAR_NETWORKS,
     );
   }
 
