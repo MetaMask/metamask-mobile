@@ -1,9 +1,8 @@
-import Engine from './Engine';
 import Logger from '../util/Logger';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import Engine from './Engine';
 
-import { restoreQRKeyring, restoreLedgerKeyring } from './Vault';
 import { getLedgerKeyring } from './Ledger/Ledger';
+import { restoreLedgerKeyring, restoreQRKeyring } from './Vault';
 
 jest.mock('./Engine', () => ({
   context: {
@@ -36,11 +35,9 @@ describe('Vault', () => {
       const mockQRKeyring = {
         serialize: jest.fn().mockResolvedValue('serialized-keyring-data'),
       };
-      KeyringController.getKeyringsByType.mockResolvedValue([mockQRKeyring]);
-      await restoreQRKeyring();
-      expect(KeyringController.getKeyringsByType).toHaveBeenCalledWith(
-        KeyringTypes.qr,
-      );
+
+      await restoreQRKeyring(mockQRKeyring);
+
       expect(mockQRKeyring.serialize).toHaveBeenCalled();
       expect(KeyringController.restoreQRKeyring).toHaveBeenCalledWith(
         'serialized-keyring-data',
@@ -49,20 +46,17 @@ describe('Vault', () => {
 
     it('should not restore QR keyring if it does not exist', async () => {
       const { KeyringController } = Engine.context;
-      KeyringController.getKeyringsByType.mockResolvedValue([]);
-      await restoreQRKeyring();
-      expect(KeyringController.getKeyringsByType).toHaveBeenCalledWith(
-        KeyringTypes.qr,
-      );
+
+      await restoreQRKeyring([]);
+
       expect(KeyringController.restoreQRKeyring).not.toHaveBeenCalled();
     });
 
     it('should log error if an exception is thrown', async () => {
-      const { KeyringController } = Engine.context;
       const error = new Error('Test error');
       const mockKeyring = { serialize: jest.fn().mockRejectedValue(error) };
-      KeyringController.getKeyringsByType.mockResolvedValue([mockKeyring]);
-      await restoreQRKeyring();
+
+      await restoreQRKeyring(mockKeyring);
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         'error while trying to get qr accounts on recreate vault',
