@@ -513,7 +513,9 @@ class Engine {
     });
 
     const phishingController = new PhishingController();
-    phishingController.maybeUpdateState();
+    console.log('ENGINE FILE =>>>>>>>>>>>>>>>>>>>>>>>>.');
+    console.log('PHISING CONTROLLER IN ENGINE:', phishingController);
+    // phishingController.maybeUpdateState(); // @PHISING
 
     const getIdentities = () => {
       const identities = preferencesController.state.identities;

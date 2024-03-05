@@ -1,0 +1,15 @@
+diff --git a/node_modules/@metamask/phishing-controller/dist/PhishingController.js b/node_modules/@metamask/phishing-controller/dist/PhishingController.js
+index 5919d93..0407fc8 100644
+--- a/node_modules/@metamask/phishing-controller/dist/PhishingController.js
++++ b/node_modules/@metamask/phishing-controller/dist/PhishingController.js
+@@ -122,6 +122,10 @@ class PhishingController extends base_controller_1.BaseController {
+             stalelistLastFetched: 0,
+         };
+         this.initialize();
++        // this.updatePhishingDetector();
++    }
++
++    start() {
+         this.updatePhishingDetector();
+     }
+     /**

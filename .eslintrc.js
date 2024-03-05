@@ -34,7 +34,7 @@ module.exports = {
     {
       files: ['scripts/**/*.js'],
       rules: {
-        'no-console': 0,
+        // 'no-console': 0,
         'import/no-commonjs': 0,
         'import/no-nodejs-modules': 0,
       },
@@ -69,7 +69,7 @@ module.exports = {
 
   rules: {
     'no-catch-shadow': 0,
-    'no-console': ['error', { allow: ['warn', 'error'] }],
+    // 'no-console': ['error', { allow: ['warn', 'error'] }],
     quotes: [
       'error',
       'single',
