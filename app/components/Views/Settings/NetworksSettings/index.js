@@ -155,7 +155,11 @@ class NetworksSettings extends PureComponent {
     this.updateNavBar();
   };
 
-  componentDidUpdate = () => {
+  componentDidUpdate = (prevProps) => {
+    if (this.props.networkConfigurations !== prevProps.networkConfigurations) {
+      this.handleSearchTextChange(this.state.searchString);
+    }
+
     this.updateNavBar();
   };
 
