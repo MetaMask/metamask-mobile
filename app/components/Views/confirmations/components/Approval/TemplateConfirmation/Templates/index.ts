@@ -10,11 +10,11 @@ export interface ConfirmationTemplateValues {
   cancelText?: string;
   confirmText?: string;
   content: TemplateRendererInput;
+  hideCancelButton?: boolean;
+  hideSubmitButton?: boolean;
   onCancel?: () => void;
   onConfirm?: (opts?: AcceptOptions) => void;
-  onlyConfirmButton?: boolean;
   loadingText?: string;
-  hideSubmitButton?: boolean;
 }
 
 export interface ConfirmationTemplate {
@@ -38,11 +38,11 @@ const ALLOWED_TEMPLATE_KEYS: string[] = [
   'cancelText',
   'confirmText',
   'content',
+  'hideCancelButton',
+  'hideSubmitButton',
   'onCancel',
   'onConfirm',
-  'onlyConfirmButton',
   'loadingText',
-  'hideSubmitButton',
 ];
 
 export function getTemplateValues(

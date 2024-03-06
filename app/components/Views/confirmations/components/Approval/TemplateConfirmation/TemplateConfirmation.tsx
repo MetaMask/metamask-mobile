@@ -49,15 +49,6 @@ const TemplateConfirmation = ({
     [approvalRequest, onConfirm, onCancel, colors],
   );
 
-  const showActions =
-    !templatedValues.hideSubmitButton &&
-    Boolean(
-      templatedValues.onConfirm ||
-        onConfirm ||
-        templatedValues.onCancel ||
-        onCancel,
-    );
-
   useEffect(() => {
     // Handles the cancellation logic
     const handleOnCancel = () => {
@@ -70,16 +61,18 @@ const TemplateConfirmation = ({
     };
   }, [templatedValues.onCancel, onCancel, templatedValues]);
 
-  const buttons = [
-    {
+  const buttons = [];
+
+  if (!templatedValues.hideSubmitButton) {
+    buttons.push({
       variant: ButtonVariants.Primary,
       label: templatedValues.confirmText ?? strings('template_confirmation.ok'),
       size: ButtonSize.Lg,
       onPress: templatedValues.onConfirm ?? onConfirm,
-    },
-  ];
+    });
+  }
 
-  if (!templatedValues.onlyConfirmButton) {
+  if (!templatedValues.hideCancelButton) {
     buttons.push({
       variant: ButtonVariants.Secondary,
       label:
@@ -92,7 +85,7 @@ const TemplateConfirmation = ({
   return (
     <View style={styles.root}>
       <TemplateRenderer sections={templatedValues.content} />
-      {showActions && (
+      {buttons.length > 0 && (
         <View style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}
