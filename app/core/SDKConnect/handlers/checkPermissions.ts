@@ -51,6 +51,9 @@ export const checkPermissions = async ({
 
   if (connection.approvalPromise) {
     DevLogger.log(`checkPermissions approvalPromise exists`);
+    // Make sure the window is displayed.
+    const match = permissionsController.hasPermissions(connection.channelId);
+    DevLogger.log(`checkPermissions match`, match);
     // Wait for result and clean the promise afterwards.
     await connection.approvalPromise;
     connection.approvalPromise = undefined;

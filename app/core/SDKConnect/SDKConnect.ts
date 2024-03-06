@@ -4,7 +4,7 @@ import AppConstants from '../AppConstants';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
-import { EventEmitter2 } from 'eventemitter2';
+import Engine from '../../core/Engine';
 import AndroidService from './AndroidSDK/AndroidService';
 import addAndroidConnection from './AndroidSDK/addAndroidConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
@@ -32,7 +32,6 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import DevLogger from './utils/DevLogger';
-import Engine from '../../core/Engine';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -85,7 +84,7 @@ export interface SDKConnectState {
 
 export type SDKEventListener = (event: string) => void;
 
-export class SDKConnect extends EventEmitter2 {
+export class SDKConnect {
   private static instance: SDKConnect;
 
   public state: SDKConnectState = {
@@ -254,18 +253,15 @@ export class SDKConnect extends EventEmitter2 {
   public removeChannel({
     channelId,
     sendTerminate,
-    emitRefresh,
   }: {
     channelId: string;
     sendTerminate?: boolean;
-    emitRefresh?: boolean;
   }) {
     return removeChannel({
       channelId,
       engine: Engine,
       sendTerminate,
       instance: this,
-      emitRefresh,
     });
   }
 
