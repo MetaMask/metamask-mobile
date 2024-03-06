@@ -20,8 +20,7 @@ PACKAGE="@metamask/assets-controllers"
 PACKAGE_DIR_MOBILE="node_modules/$PACKAGE"
 DIST_DIR_MOBILE="$PACKAGE_DIR_MOBILE/dist"
 PATCH_FILE="patches/@metamask+assets-controllers+*.patch"
-# Comment line count is needed to represent the end line of the patch.txt file
-COMMENT_LINE_COUNT=14
+
 
 COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-assets-controllers-v10\
 +This patch backports various assets controllers features from the main branch of MetaMask/core\
@@ -37,6 +36,9 @@ COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-assets-control
 +* Run "yarn build" in the core monorepo\
 +* Run "yarn patch:assets <core-directory>" in the mobile repo\
 +* If you have changes also add them to the branch: patch/mobile-assets-controllers-v10'
+
+# The number of lines of the `COMMENT` variable
+COMMENT_LINE_COUNT=14
 
 COMMENT_DIFF='diff --git a/node_modules/@metamask/assets-controllers/dist/.patch.txt b/node_modules/@metamask/assets-controllers/dist/.patch.txt\
 new file mode 100644\
