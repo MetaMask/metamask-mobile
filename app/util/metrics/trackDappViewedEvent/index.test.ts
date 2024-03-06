@@ -1,4 +1,4 @@
-import trackDappVisitedEvent from './index';
+import trackDappViewedEvent from './index';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
@@ -34,7 +34,7 @@ jest.mock('../../../store', () => {
   };
 });
 
-describe('trackDappVisitedEvent', () => {
+describe('trackDappViewedEvent', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -60,13 +60,13 @@ describe('trackDappVisitedEvent', () => {
       source: 'in-app browser',
     };
 
-    trackDappVisitedEvent({
+    trackDappViewedEvent({
       hostname: 'uniswap.org',
       numberOfConnectedAccounts: 1,
     });
 
     expect(mockMetrics.trackEvent).toBeCalledWith(
-      MetaMetricsEvents.DAPP_VISITED,
+      MetaMetricsEvents.DAPP_VIEWED,
       expectedMetrics,
     );
   });
@@ -92,13 +92,13 @@ describe('trackDappVisitedEvent', () => {
       source: 'in-app browser',
     };
 
-    trackDappVisitedEvent({
+    trackDappViewedEvent({
       hostname: 'uniswap.org',
       numberOfConnectedAccounts: 1,
     });
 
     expect(mockMetrics.trackEvent).toBeCalledWith(
-      MetaMetricsEvents.DAPP_VISITED,
+      MetaMetricsEvents.DAPP_VIEWED,
       expectedMetrics,
     );
   });
@@ -124,13 +124,13 @@ describe('trackDappVisitedEvent', () => {
       source: 'in-app browser',
     };
 
-    trackDappVisitedEvent({
+    trackDappViewedEvent({
       hostname: 'uniswap.org',
       numberOfConnectedAccounts: 1,
     });
 
     expect(mockMetrics.trackEvent).toBeCalledWith(
-      MetaMetricsEvents.DAPP_VISITED,
+      MetaMetricsEvents.DAPP_VIEWED,
       expectedMetrics,
     );
   });
@@ -156,13 +156,13 @@ describe('trackDappVisitedEvent', () => {
       source: 'in-app browser',
     };
 
-    trackDappVisitedEvent({
+    trackDappViewedEvent({
       hostname: 'uniswap.org',
       numberOfConnectedAccounts: 1,
     });
 
     expect(mockMetrics.trackEvent).toBeCalledWith(
-      MetaMetricsEvents.DAPP_VISITED,
+      MetaMetricsEvents.DAPP_VIEWED,
       expectedMetrics,
     );
   });
