@@ -196,8 +196,12 @@ buildAndroidRunFlask(){
 
 buildIosSimulator(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM"
+	if [ -n "$IOS_SIMULATOR" ]; then
+		SIM_OPTION="--simulator \"$IOS_SIMULATOR\""
+	else
+		SIM_OPTION=""
+	fi
+	react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
 }
 
 buildIosSimulatorQA(){

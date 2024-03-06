@@ -7,6 +7,8 @@
     "deceptive_request_title": "Dies ist eine betrügerische Anfrage.",
     "failed_title": "Anfrage ist möglicherweise nicht sicher",
     "failed_description": "Aufgrund eines Fehlers wurde diese Anfrage vom Sicherheitsanbieter nicht überprüft. Gehen Sie mit Bedacht vor.",
+    "loading_title": "Suche nach Sicherheitsbenachrichtigungen ...",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "Sie haben es mit einer bösartigen Domain zu tun. Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "other_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "raw_signature_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
@@ -375,6 +377,13 @@
     "nfts_autodetection_title": "NFT-Erkennung",
     "nfts_autodetection_desc": "Erlauben Sie MetaMask, NFTs automatisch in OpenSea zu erkennen und in Ihrer MetaMask-Wallet anzuzeigen.",
     "network_details_check": "Überprüfung der Netzwerkangaben",
+    "network_with_chain_id": "Das Netzwerk mit Chain-ID",
+    "potential_scam": "Dies ist ein möglicher Betrug",
+    "network_not_matching": "Dieses Netzwerk passt nicht zu seiner zugehörigen Chain-ID oder seinem Namen. Viele beliebte Tokens verwenden diesen Namen,",
+    "target_scam_network": "was sie zu einem Ziel für Betrüger macht. Betrüger könnten Sie dazu verleiten, ihnen im Gegenzug wertvollere Währung zu senden. Überprüfen Sie alles, bevor Sie fortfahren.",
+    "use_the_currency_symbol": "verwendet das Währungssymbol",
+    "use_correct_symbol": "Vergewissern Sie sich, dass Sie das richtige Symbol verwenden, bevor Sie fortfahren.",
+    "chain_id_currently_used": "Diese Chain-ID wird derzeit verwendet von der",
     "network_check_validation_desc": "verringert die Wahrscheinlichkeit, dass Sie sich mit einem böswilligen oder falschen Netz verbinden.",
     "nfts_autodetection_cta": "Aktivieren Sie die NFT-Erkennung in den Einstellungen.",
     "learn_more": "Mehr erfahren",
@@ -712,7 +721,6 @@
     "network_chain_id_label": "Chain-ID",
     "network_chain_id_placeholder": "Chain-ID",
     "network_symbol_label": "Symbol",
-    "network_symbol_placeholder": "Symbol (optional)",
     "network_block_explorer_label": "Block-Explorer-URL",
     "network_block_explorer_placeholder": "Explorer-URL blockieren (optional)",
     "network_chain_id_warning": "Ungültige Chain-ID",
@@ -756,6 +764,9 @@
     "invalid_password": "Ungültiges Passwort",
     "invalid_password_message": "Das Passwort war nicht korrekt. Bitte versuchen Sie es erneut.",
     "security_heading": "Sicherheit",
+    "ses_heading": "Code-Sperre",
+    "ses_description": "Hierbei handelt es sich um eine Testfunktion, die alle Änderungen am JavaScript-Code der Anwendung ohne Genehmigung blockiert.",
+    "ses_link": "Mehr erfahren",
     "privacy_heading": "Datenschutz",
     "failed_to_fetch_chain_id": "Chain-ID konnte nicht abgerufen werden. Ist Ihre RPC-URL korrekt?",
     "endpoint_returned_different_chain_id": "Der Endpunkt hat eine andere Chain-ID angegeben: %{chainIdReturned}",
@@ -879,17 +890,39 @@
     "transactions_subheading": "Transaktionen",
     "network_provider": "Netzwerkanbieter",
     "token_nft_ens_subheading": "Automatische Token-, NFT- und ENS-Erkennung",
-    "security_check_subheading": "Sicherheitsprüfungen"
+    "security_check_subheading": "Sicherheitsprüfungen",
+    "symbol_required": "Symbol ist erforderlich.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Wahrung der Privatsphäre – keine Daten werden an Dritte weitergegeben. Verfügbar auf Arbitrum, Avalanche, BNB Chain, Ethereum Mainnet, Optimism und Polygon.",
+    "security_alerts": "Sicherheitsbenachrichtigungen",
+    "security_alerts_desc": "Diese Funktion warnt Sie vor bösartigen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie Anfragen genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden."
   },
   "sdk": {
     "disconnect_title": "Verbindung mit allen Seiten trennen?",
     "disconnect_all_info": "Wenn Sie Ihre Verbindungen mit allen Seiten trennen, müssen Sie die Genehmigung dazu erteilen, sich erneut zu verbinden.",
     "disconnect": "Trennen",
     "disconnect_all": "Alle trennen",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
+    "manage": "Manage",
     "cancel": "Stornieren",
     "loading": "Verbindung mit MetaMask wird hergestellt ...",
     "unkown_dapp": "DAPP-Name nicht verfügbar",
-    "no_connections": "Keine Verbindungen gefunden"
+    "no_connections": "No connections",
+    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} account(s) connected."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Disconnect from all sites?",
+    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
+    "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_confirm": "Disconnect",
+    "cancel": "Cancel"
   },
   "sdk_return_to_app_modal": {
     "title": "Zur App zurückkehren",
@@ -1191,7 +1224,7 @@
     "gas_education_2_ethereum": "Ethereum-Netzwerk verarbeiten.",
     "gas_education_2": "Netzwerk.",
     "gas_education_3": "MetaMask profitiert nicht von Gas-Gebühren.",
-    "gas_education_4": "Gas-Gebühren schwanken je nach Netzwerkverkehr und Komplexität der Transaktion.",
+    "gas_education_4": "Die Gas-Gebühren schwanken je nach Netzverkehr und Komplexität der Transaktion.",
     "gas_education_learn_more": "Erfahren Sie mehr über Gas-Gebühren.",
     "confusable_title": "Überprüfen Sie die Empfängeradresse",
     "confusable_msg": "Wir haben ein verwirrendes Zeichen im ENS-Namen festgestellt. Überprüfen Sie den ENS-Namen, um möglichen Betrug zu vermeiden.",
@@ -1454,6 +1487,7 @@
     "add": "Hinzufügen",
     "cancel": "Stornieren",
     "approve": "Genehmigen",
+    "edit_network_details": "Netzwerkdetails bearbeiten",
     "malicious_network_warning": "Ein betrügerischer Netzwerkanbieter kann bezüglich des Status der Blockchain täuschen und Ihre Netzwerkaktivitäten aufzeichnen. Fügen Sie nur vertrauenswürdige benutzerdefinierte Netzwerke hinzu.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Netzwerkinformationen",
@@ -1473,7 +1507,9 @@
     "add_network": "weitere Netzwerke manuell hinzufügen.",
     "select_network": "Netzwerk wählen",
     "show_test_networks": "Testnetzwerke anzeigen",
-    "deprecated_goerli": "Aufgrund der Protokolländerungen von Ethereum: Das Goerli-Testnetzwerk funktioniert möglicherweise nicht mehr so zuverlässig und wird demnächst abgeschaltet."
+    "deprecated_goerli": "Aufgrund der Protokolländerungen von Ethereum: Das Goerli-Testnetzwerk funktioniert möglicherweise nicht mehr so zuverlässig und wird demnächst abgeschaltet.",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
   },
   "select": {
     "cancel": "Stornieren",
@@ -1692,7 +1728,7 @@
   },
   "manual_backup_step_1": {
     "action": "Schreiben Sie Ihre geheime Wiederherstellungsphrase auf.",
-    "info": "Dies ist ihre geheime Wiederherstellungsphrase. Schreiben Sie diese auf ein Blatt Papier und bewahren Sie dieses an einem sicheren Ort auf. Im nächsten Schritt werden Sie gebeten, diese Phrase (in der richtigen Reihenfolge) erneut einzugeben.",
+    "info": "Dies ist Ihre geheime Wiederherstellungsphrase. Schreiben Sie sie auf ein Blatt Papier und bewahren Sie sie an einem sicheren Ort auf. Im nächsten Schritt werden Sie aufgefordert, diese Phrase (in der richtigen Reihenfolge) erneut einzugeben.",
     "continue": "Weiter",
     "reveal": "Zum Einsehen Ihrer geheime Wiederherstellungsphrase tippen",
     "watching": "Stellen Sie sicher, dass Ihnen niemand auf den Bildschirm schaut.",
@@ -1831,11 +1867,7 @@
     "wallet_connect_dapps_desc": "Liste aktiver WalletConnect-Sitzungen anzeigen",
     "wallet_connect_dapps_cta": "Sitzungen anzeigen",
     "network_not_supported": "Aktuelles Netzwerk nicht unterstützt",
-    "security_alerts": "Sicherheitsbenachrichtigungen",
-    "security_alerts_desc": "Diese Funktion warnt Sie vor böswilligen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie eine Anfrage genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",
     "select_provider": "Wählen Sie Ihren bevorzugten Anbieter",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Wahrung der Privatsphäre – keine Daten werden an Dritte weitergegeben. Verfügbar auf Arbiträr, Avalanche, BNB Chain, Ethereum Mainnet, Linea, Optimism und Polygon.",
     "switch_network": "Bitte wechseln Sie auf Mainnet oder Sepolia."
   },
   "walletconnect_sessions": {
@@ -2028,6 +2060,7 @@
     "get_new_quotes": "Neue Angebote einholen",
     "quotes_timeout": "Angebote-Timeout",
     "request_new_quotes": "Bitte fragen Sie neue Angebote an, um den besten Kurs zu bekommen.",
+    "terms_of_service": "Nutzungsbedingungen",
     "amount_to_buy": "Betrag zum Kauf",
     "amount_to_sell": "Betrag zum Verkauf",
     "want_to_buy": "Sie möchten kaufen",
@@ -2350,7 +2383,7 @@
     "not_supported": "Deeplink nicht unterstützt"
   },
   "error_screen": {
-    "title": "Ein Fehler ist aufgetreten.",
+    "title": "Ein Fehler ist aufgetreten",
     "subtitle": "Ihre Informationen können nicht angezeigt werden. Keine Sorge, Ihre Wallet und Ihre Gelder sind sicher.",
     "try_again_button": "Erneut versuchen",
     "submit_ticket_1": "Bitte melden Sie diesen Fehler, damit wir ihn beheben können:",
@@ -2370,8 +2403,10 @@
     "title": "Was neu ist",
     "blockaid": {
       "title": "Gehen Sie mit Sicherheitsbenachrichtigungen auf Nummer sicher.",
-      "description_1": "Vermeiden Sie bekannte Betrügereien und bewahren Sie gleichzeitig Ihre Privatsphäre mit Sicherheitsbenachrichtigungen von Blockaid. Diese Funktion ist auf Arbitrum, Avalanche, BNB Chain, Ethereum Mainnet, Linea, Optimism und Polygon verfügbar.",
-      "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen."
+      "description_1": "Mit den Sicherheitswarnungen von Blockaid sind Sie vor bekannten Betrügereien sicher und schützen gleichzeitig Ihre Privatsphäre. Diese Funktion ist jetzt standardmäßig für alle MetaMask-Benutzer aktiviert.",
+      "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen.",
+      "description_3": "Verfügbar auf Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism und Polygon.",
+      "got_it": "Verstanden"
     },
     "sell": {
       "title": "Auszahlen leicht gemacht",
@@ -2389,7 +2424,7 @@
   "switch_custom_network": {
     "title_existing_network": "Diese Seite möchte das Netzwerk wechseln.",
     "title_new_network": "Neues Netzwerk hinzugefügt",
-    "switch_warning": "Dies wird das ausgewählte Netzwerk in MetaMask auf ein vorher hinzugefügtes Netzwerk umstellen:",
+    "switch_warning": "Dadurch wird das ausgewählte Netzwerk in MetaMask auf ein zuvor hinzugefügtes Netzwerk umgestellt:",
     "available": "ist jetzt in der Netzwerkauswahl verfügbar.",
     "cancel": "Stornieren",
     "switch": "Netzwerk wechseln"
@@ -2408,7 +2443,7 @@
     "details_title": "Netzwerkdetails",
     "cancel": "Stornieren",
     "approve": "Genehmigen",
-    "unrecognized_chain": "Dieses benutzerdefinierte Netzwerk wird nicht erkannt.",
+    "unrecognized_chain": "Dieses benutzerdefinierte Netzwerk wird nicht erkannt",
     "invalid_chain": "Die %{rpcUrl} für diese Chain-ID stimmt nicht mit dem chainid.network-Eintrag überein",
     "alert_recommend": "Wir empfehlen Ihnen,",
     "alert_verify": "die Chain-ID zu verifizieren.",
@@ -2433,7 +2468,7 @@
     "max_fee": "Maximale Gebühr",
     "estimate": "Schätzung",
     "recommended_gas_fee": "Empfohlene Gas-Gebühr",
-    "swaps_warning": "Swaps sind normalerweise sehr zeitkritisch. „Hoch“ wird Ihnen dabei helfen, möglichen Verluste durch Änderungen der Marktzustände zu vermeiden.",
+    "swaps_warning": "Swaps sind sehr zeitkritisch. „Hoch“ hilft dabei, potenzielle Verluste aufgrund von Änderungen der Marktbedingungen zu vermeiden.",
     "priority_fee_at_least_0_error": "Die Prioritätsgebühr muss mindestens 1 GWEI betragen.",
     "learn_more": {
       "title": "Wie sollte ich mich entscheiden?",
@@ -2450,12 +2485,12 @@
     "submit": "Absenden",
     "max_priority_fee_low": "Die maximale Prioritätsgebühr ist für aktuelle Netzwerkkonditionen niedrig.",
     "max_priority_fee_high": "Maximale Prioritätsgebühr höher als nötig",
-    "max_priority_fee_speed_up_low": "Die maximale Prioritätsgebühr muss mindestens {{speed_up_floor_value}} GWEI betragen (10 % höher als die anfängliche Transaktion).",
-    "max_priority_fee_cancel_low": "Die maximale Prioritätsgebühr muss mindestens {{cancel_value}} GWEI betragen (50 % höher als die anfängliche Transaktion).",
+    "max_priority_fee_speed_up_low": "Die maximale Prioritätsgebühr muss mindestens {{speed_up_floor_value}} GWEI betragen (10 % höher als die erste Transaktion)",
+    "max_priority_fee_cancel_low": "Die maximale Prioritätsgebühr muss mindestens {{cancel_value}} GWEI betragen (50 % höher als die erste Transaktion)",
     "max_fee_low": "Die maximale Gebühr ist für aktuelle Netzwerkkonditionen niedrig.",
     "max_fee_high": "Die maximale Gebühr ist höher als nötig.",
-    "max_fee_speed_up_low": "Die maximale Gebühr muss mindestens {{speed_up_floor_value}} GWEI betragen (10 % höher als die anfängliche Transaktion).",
-    "max_fee_cancel_low": "Die maximale Gebühr muss mindestens {{cancel_value}} GWEI betragen (50 % höher als die anfängliche Transaktion).",
+    "max_fee_speed_up_low": "Die maximale Gebühr muss mindestens {{speed_up_floor_value}} GWEI betragen (10 % höher als die erste Transaktion)",
+    "max_fee_cancel_low": "Die maximale Gebühr muss mindestens {{cancel_value}} GWEI betragen (50 % höher als die erste Transaktion)",
     "learn_more_gas_limit": "Das Gas-Limit ist die maximale Anzahl an Gas, die Sie verwenden möchten. Gas-Einheiten sind ein Multiplikator für die „maximale Prioritätsgebühr“ und die „maximale Gebühr“.",
     "learn_more_max_priority_fee": "Die maximale Prioritätsgebühr (auch als „Miner Tip“ bekannt) geht direkt an die Miner und reizt sie dazu an, Ihre Transaktion zu priorisieren. Meistens zahlen Sie Ihre maximale Einstellung. ",
     "learn_more_max_fee": "Die maximale Gebühr ist der Höchstbetrag, den Sie zahlen müssen (Grundgebühr + Prioritätsgebühr). ",
@@ -2718,7 +2753,7 @@
     "ledger_disconnected_error": "Die Verbindung zu Ihrem Gerät wurde unterbrochen. Bitte versuchen Sie es erneut.",
     "unknown_error": "Ein unerwarteter Fehler ist aufgetreten.",
     "unknown_error_message": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
-    "error_occured": "Ein Fehler ist aufgetreten.",
+    "error_occured": "Ein Fehler ist aufgetreten",
     "how_to_install_eth_app": "So installieren Sie die Ethereum-App auf einem Ledger-Gerät",
     "ledger_account_count": "Sie verwenden 1 Konto von Ihrem Ledger mit MetaMask Mobile.",
     "open_eth_app": "Bitte öffnen Sie die Ethereum-App.",
@@ -2733,14 +2768,11 @@
     "ledger_pending_confirmation_error": "Auf Ihrem Ledger gibt es eine ausstehende Aktion. Bitte beenden Sie diese Aktion erst und versuchen Sie es erneut.",
     "not_supported": "Operation nicht unterstützt",
     "not_supported_error": "Nur Version 4 der getippten Daten-Unterzeichnung wird unterstützt.",
-    "error_during_connection": "Es ist ein unbekannter Fehler aufgetreten.",
+    "error_during_connection": "Ein unerwarteter Fehler ist aufgetreten",
     "error_during_connection_message": "Es gab ein kleines Problem mit der Verbindung zu Ihrem Ledger Nano X. Tippen Sie weiter unten auf „erneut versuchen“, um es noch einmal zu probieren. Dies passiert manchmal, wenn die EHP-App auf Ihrem Ledger X zu Beginn der Kopplung bereits mit MetaMask Mobile geöffnet ist.",
     "how_to_install_eth_webview_title": "So installieren Sie die Etherum-App",
     "nonce_too_low": "Nonce zu niedrig",
-    "nonce_too_low_error": "Die eingestellte Nonce ist zu niedrig",
-    "ledger_beta_alert": "Aktivierung der Ledger-Integration",
-    "ledger_beta_alert_description": "Sie haben eine experimentelle Funktion gefunden! Wenn Sie fortfahren, akzeptieren Sie, dass Sie diese experimentelle Funktion auf eigenes Risiko nutzen.",
-    "ledger_beta_cta": "Fortfahren"
+    "nonce_too_low_error": "Die eingestellte Nonce ist zu niedrig"
   },
   "account_actions": {
     "edit_name": "Kontonamen bearbeiten",

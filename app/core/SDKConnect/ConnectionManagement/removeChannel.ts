@@ -1,17 +1,23 @@
+import { PermissionController } from '@metamask/permission-controller';
+import {
+  removeApprovedHost,
+  removeConnection,
+} from '../../../../app/actions/sdk';
+import { store } from '../../../../app/store';
 import AppConstants from '../../../core/AppConstants';
+import Engine from '../../Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
-import DefaultPreference from 'react-native-default-preference';
 
 function removeChannel({
   channelId,
-  emitRefresh = true,
+  engine,
   sendTerminate,
   instance,
 }: {
   channelId: string;
+  engine?: typeof Engine;
   sendTerminate?: boolean;
-  emitRefresh?: boolean;
   instance: SDKConnect;
 }) {
   // check if it is an android sdk connection, if it doesn't belong to regular connections
@@ -48,24 +54,19 @@ function removeChannel({
       AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId
     ];
 
-    DefaultPreference.set(
-      AppConstants.MM_SDK.SDK_CONNECTIONS,
-      JSON.stringify(instance.state.connections),
-    ).catch((err) => {
-      throw err;
-    });
-
-    DefaultPreference.set(
-      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-      JSON.stringify(instance.state.approvedHosts),
-    ).catch((err) => {
-      throw err;
-    });
+    store.dispatch(removeConnection(channelId));
+    store.dispatch(removeApprovedHost(channelId));
   }
-  delete instance.state.connecting[channelId];
+  // Remove matching permissions from controller
 
-  if (emitRefresh) {
-    instance.emit('refresh');
+  delete instance.state.connecting[channelId];
+  if (engine) {
+    const permissionsController = (
+      engine.context as { PermissionController: PermissionController<any, any> }
+    ).PermissionController;
+    if (permissionsController.getPermissions(channelId)) {
+      permissionsController.revokeAllPermissions(channelId);
+    }
   }
 }
 

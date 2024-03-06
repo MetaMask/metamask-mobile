@@ -26,7 +26,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectIdentities } from '../../../selectors/preferencesController';
-import ApproveTransactionHeader from '../ApproveTransactionHeader';
+import ApproveTransactionHeader from '../../Views/confirmations/components/ApproveTransactionHeader';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';

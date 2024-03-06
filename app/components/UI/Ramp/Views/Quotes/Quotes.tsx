@@ -1,5 +1,21 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import Animated, {
+  Extrapolate,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { ScrollView } from 'react-native-gesture-handler';
 import {
   CryptoCurrency,
   FiatCurrency,
@@ -12,7 +28,8 @@ import { Provider } from '@consensys/on-ramp-sdk/dist/API';
 
 import styleSheet from './Quotes.styles';
 import LoadingQuotes from './LoadingQuotes';
-import Text from '../../../../Base/Text';
+import Timer from './Timer';
+import TextLegacy from '../../../../Base/Text';
 import ScreenLayout from '../../components/ScreenLayout';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import ErrorView from '../../components/ErrorView';
@@ -20,6 +37,21 @@ import Row from '../../components/Row';
 import Quote from '../../components/Quote';
 import InfoAlert from '../../components/InfoAlert';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
+
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import BottomSheetFooter, {
+  ButtonsAlignment,
+} from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 
 import useAnalytics from '../../hooks/useAnalytics';
 import useQuotes from '../../hooks/useQuotes';
@@ -33,20 +65,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import LoadingAnimation from '../../components/LoadingAnimation';
 import useInterval from '../../../../hooks/useInterval';
-import Animated, {
-  Extrapolate,
-  interpolate,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-} from 'react-native-reanimated';
 import useInAppBrowser from '../../hooks/useInAppBrowser';
 import { createCheckoutNavDetails } from '../Checkout';
 import { PROVIDER_LINKS, ScreenLocation } from '../../types';
 import Logger from '../../../../../util/Logger';
-import Timer from './Timer';
-import { isBuyQuote, isBuyQuotes, isSellQuotes } from '../../utils';
+import { isBuyQuote } from '../../utils';
+import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
 
+const HIGHLIGHTED_QUOTES_COUNT = 2;
 export interface QuotesParams {
   amount: number | string;
   asset: CryptoCurrency;
@@ -71,6 +97,10 @@ function Quotes() {
     isBuy,
   } = useRampSDK();
   const renderInAppBrowser = useInAppBrowser();
+
+  const ordersProviders = useSelector(getOrdersProviders);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [shouldFinishAnimation, setShouldFinishAnimation] = useState(false);
@@ -111,18 +141,32 @@ function Quotes() {
     query: fetchQuotes,
   } = useQuotes(params.amount);
 
-  const filteredQuotes = useMemo(() => {
+  const [filteredQuotes, highlightedQuotes] = useMemo(() => {
     if (quotes) {
-      if (isBuyQuotes(quotes, rampType)) {
-        return quotes.filter((quote): quote is QuoteResponse => !quote.error);
-      } else if (isSellQuotes(quotes, rampType)) {
-        return quotes.filter(
-          (quote): quote is SellQuoteResponse => !quote.error,
-        );
+      const allQuotes = quotes.filter(
+        (quote): quote is QuoteResponse | SellQuoteResponse => !quote.error,
+      );
+      const highlightedPreviouslyUsed = allQuotes.findIndex(({ provider }) =>
+        ordersProviders.includes(provider.id),
+      );
+
+      let reorderedQuotes = allQuotes;
+      if (highlightedPreviouslyUsed > -1) {
+        reorderedQuotes = [
+          allQuotes[highlightedPreviouslyUsed],
+          ...allQuotes.slice(0, highlightedPreviouslyUsed),
+          ...allQuotes.slice(highlightedPreviouslyUsed + 1),
+        ];
       }
+      return [
+        reorderedQuotes,
+        reorderedQuotes.slice(0, HIGHLIGHTED_QUOTES_COUNT),
+      ] as const;
     }
-    return [];
-  }, [quotes, rampType]);
+    return [[], []] as const;
+  }, [ordersProviders, quotes]);
+
+  const expandedCount = filteredQuotes.length - highlightedQuotes.length;
 
   const handleCancelPress = useCallback(() => {
     if (isBuy) {
@@ -139,6 +183,18 @@ function Quotes() {
       });
     }
   }, [filteredQuotes.length, isBuy, selectedChainId, trackEvent]);
+
+  const handleClosePress = useCallback(
+    (bottomSheetDialogRef) => {
+      handleCancelPress();
+      if (bottomSheetDialogRef?.current) {
+        bottomSheetDialogRef.current.onCloseBottomSheet();
+      } else {
+        navigation.goBack();
+      }
+    },
+    [handleCancelPress, navigation],
+  );
 
   const handleFetchQuotes = useCallback(() => {
     setIsLoading(true);
@@ -174,6 +230,48 @@ function Quotes() {
     fetchQuotes,
     isBuy,
     params,
+    selectedChainId,
+    selectedPaymentMethodId,
+    trackEvent,
+  ]);
+
+  const handleExpandQuotes = useCallback(() => {
+    setIsExpanded(true);
+    const payload = {
+      payment_method_id: selectedPaymentMethodId as string,
+      amount: params.amount,
+      refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
+      results_count: filteredQuotes.length,
+      provider_onramp_first: filteredQuotes[0]?.provider?.name,
+      provider_onramp_list: filteredQuotes.map(({ provider }) => provider.name),
+      previously_used_count: filteredQuotes.filter(({ provider }) =>
+        ordersProviders.includes(provider.id),
+      ).length,
+    };
+    if (isBuy) {
+      trackEvent('ONRAMP_QUOTES_EXPANDED', {
+        ...payload,
+        chain_id_destination: selectedChainId,
+        currency_source: params.fiatCurrency?.symbol,
+        currency_destination: params.asset?.symbol,
+      });
+    } else {
+      trackEvent('OFFRAMP_QUOTES_EXPANDED', {
+        ...payload,
+        chain_id_source: selectedChainId,
+        currency_source: params.asset?.symbol,
+        currency_destination: params.fiatCurrency?.symbol,
+      });
+    }
+  }, [
+    appConfig.POLLING_CYCLES,
+    filteredQuotes,
+    isBuy,
+    ordersProviders,
+    params.amount,
+    params.asset?.symbol,
+    params.fiatCurrency?.symbol,
+    pollingCyclesLeft,
     selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
@@ -498,71 +596,155 @@ function Quotes() {
   }, [filteredQuotes]);
 
   if (sdkError) {
+    if (!isExpanded) {
+      return (
+        <BottomSheet>
+          <ErrorViewWithReporting
+            error={sdkError}
+            location={'Quotes Screen'}
+            asScreen={false}
+          />
+        </BottomSheet>
+      );
+    }
+
     return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ErrorViewWithReporting error={sdkError} location={'Quotes Screen'} />
-        </ScreenLayout.Body>
-      </ScreenLayout>
+      <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
+        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)} />
+        <ErrorViewWithReporting error={sdkError} location={'Quotes Screen'} />
+      </BottomSheet>
     );
   }
 
   if (ErrorFetchingQuotes) {
+    if (!isExpanded) {
+      return (
+        <BottomSheet>
+          <ErrorView
+            description={ErrorFetchingQuotes}
+            ctaOnPress={handleFetchQuotes}
+            location={'Quotes Screen'}
+            asScreen={false}
+          />
+        </BottomSheet>
+      );
+    }
+
     return (
-      <ErrorView
-        description={ErrorFetchingQuotes}
-        ctaOnPress={handleFetchQuotes}
-        location={'Quotes Screen'}
-      />
+      <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
+        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)} />
+        <ErrorView
+          description={ErrorFetchingQuotes}
+          ctaOnPress={handleFetchQuotes}
+          location={'Quotes Screen'}
+        />
+      </BottomSheet>
     );
   }
 
   if (pollingCyclesLeft < 0) {
+    if (!isExpanded) {
+      return (
+        <BottomSheet>
+          <ErrorView
+            icon="expired"
+            title={strings('fiat_on_ramp_aggregator.quotes_timeout')}
+            description={strings('fiat_on_ramp_aggregator.request_new_quotes')}
+            ctaLabel={strings('fiat_on_ramp_aggregator.get_new_quotes')}
+            ctaOnPress={handleFetchQuotes}
+            location={'Quotes Screen'}
+            asScreen={false}
+          />
+        </BottomSheet>
+      );
+    }
     return (
-      <ErrorView
-        icon="expired"
-        title={strings('fiat_on_ramp_aggregator.quotes_timeout')}
-        description={strings('fiat_on_ramp_aggregator.request_new_quotes')}
-        ctaLabel={strings('fiat_on_ramp_aggregator.get_new_quotes')}
-        ctaOnPress={handleFetchQuotes}
-        location={'Quotes Screen'}
-      />
+      <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
+        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)} />
+        <ErrorView
+          icon="expired"
+          title={strings('fiat_on_ramp_aggregator.quotes_timeout')}
+          description={strings('fiat_on_ramp_aggregator.request_new_quotes')}
+          ctaLabel={strings('fiat_on_ramp_aggregator.get_new_quotes')}
+          ctaOnPress={handleFetchQuotes}
+          location={'Quotes Screen'}
+        />
+      </BottomSheet>
     );
   }
 
-  if (isLoading) {
-    return (
-      <ScreenLayout>
-        <ScreenLayout.Body>
+  if (isLoading && !firstFetchCompleted) {
+    if (!isExpanded) {
+      return (
+        <BottomSheet>
           <LoadingAnimation
             title={strings('fiat_on_ramp_aggregator.fetching_quotes')}
             finish={shouldFinishAnimation}
             onAnimationEnd={() => setIsLoading(false)}
+            asScreen={false}
           />
-        </ScreenLayout.Body>
-      </ScreenLayout>
+        </BottomSheet>
+      );
+    }
+
+    return (
+      <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
+        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)} />
+        <LoadingAnimation
+          title={strings('fiat_on_ramp_aggregator.fetching_quotes')}
+          finish={shouldFinishAnimation}
+          onAnimationEnd={() => setIsLoading(false)}
+        />
+      </BottomSheet>
     );
   }
 
   // No providers available
   if (!isFetchingQuotes && filteredQuotes.length === 0) {
+    if (!isExpanded) {
+      return (
+        <BottomSheet>
+          <ErrorView
+            title={strings('fiat_on_ramp_aggregator.no_providers_available')}
+            description={strings(
+              isBuy
+                ? 'fiat_on_ramp_aggregator.try_different_amount_to_buy_input'
+                : 'fiat_on_ramp_aggregator.try_different_amount_to_sell_input',
+            )}
+            ctaOnPress={() => navigation.goBack()}
+            location={'Quotes Screen'}
+            asScreen={false}
+          />
+        </BottomSheet>
+      );
+    }
+
     return (
-      <ErrorView
-        title={strings('fiat_on_ramp_aggregator.no_providers_available')}
-        description={strings(
-          isBuy
-            ? 'fiat_on_ramp_aggregator.try_different_amount_to_buy_input'
-            : 'fiat_on_ramp_aggregator.try_different_amount_to_sell_input',
-        )}
-        ctaOnPress={() => navigation.goBack()}
-        location={'Quotes Screen'}
-      />
+      <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
+        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)} />
+        <ScreenLayout>
+          <ErrorView
+            title={strings('fiat_on_ramp_aggregator.no_providers_available')}
+            description={strings(
+              isBuy
+                ? 'fiat_on_ramp_aggregator.try_different_amount_to_buy_input'
+                : 'fiat_on_ramp_aggregator.try_different_amount_to_sell_input',
+            )}
+            ctaOnPress={() => navigation.goBack()}
+            location={'Quotes Screen'}
+          />
+        </ScreenLayout>
+      </BottomSheet>
     );
   }
 
-  return (
-    <ScreenLayout>
-      <ScreenLayout.Header>
+  if (!isExpanded) {
+    return (
+      <BottomSheet ref={bottomSheetRef}>
+        <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)}>
+          {strings('fiat_on_ramp_aggregator.select_a_quote')}
+        </BottomSheetHeader>
+
         {isInPolling && (
           <Timer
             pollingCyclesLeft={pollingCyclesLeft}
@@ -570,46 +752,18 @@ function Quotes() {
             remainingTime={remainingTime}
           />
         )}
-        <ScreenLayout.Content style={styles.withoutVerticalPadding}>
-          <Text centered grey>
-            {strings('fiat_on_ramp_aggregator.compare_rates')}
-          </Text>
-        </ScreenLayout.Content>
-      </ScreenLayout.Header>
-      <InfoAlert
-        isVisible={showProviderInfo}
-        dismiss={() => setShowProviderInfo(false)}
-        providerName={selectedProviderInfo?.name}
-        logos={selectedProviderInfo?.logos}
-        subtitle={selectedProviderInfo?.hqAddress}
-        body={selectedProviderInfo?.description}
-        providerWebsite={
-          selectedProviderInfo?.links?.find(
-            (link) => link.name === PROVIDER_LINKS.HOMEPAGE,
-          )?.url
-        }
-        providerPrivacyPolicy={
-          selectedProviderInfo?.links?.find(
-            (link) => link.name === PROVIDER_LINKS.PRIVACY_POLICY,
-          )?.url
-        }
-        providerSupport={
-          selectedProviderInfo?.links?.find(
-            (link) => link.name === PROVIDER_LINKS.SUPPORT,
-          )?.url
-        }
-      />
-      <ScreenLayout.Body>
-        <Animated.View style={[styles.topBorder, animatedStyles]} />
-        <Animated.ScrollView onScroll={scrollHandler} scrollEventThrottle={16}>
-          <ScreenLayout.Content style={styles.withoutTopPadding}>
+        <ScreenLayout.Content style={styles.withoutTopPadding}>
+          <ScrollView>
             {isFetchingQuotes && isInPolling ? (
-              <LoadingQuotes />
+              <LoadingQuotes count={2} />
             ) : (
-              filteredQuotes.map((quote, index) => (
+              highlightedQuotes.map((quote, index) => (
                 <Row key={quote.provider.id}>
                   <Quote
                     isLoading={isQuoteLoading}
+                    previouslyUsedProvider={ordersProviders.includes(
+                      quote.provider.id,
+                    )}
                     quote={quote}
                     onPress={() => handleOnQuotePress(quote)}
                     onPressCTA={() => handleOnPressCTA(quote, index)}
@@ -620,10 +774,155 @@ function Quotes() {
                 </Row>
               ))
             )}
+          </ScrollView>
+        </ScreenLayout.Content>
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Vertical}
+          buttonPropsArray={
+            expandedCount > 0
+              ? [
+                  {
+                    accessible: true,
+                    accessibilityRole: 'button',
+                    variant: ButtonVariants.Link,
+                    size: ButtonSize.Md,
+                    label: strings(
+                      'fiat_on_ramp_aggregator.explore_more_options',
+                    ),
+                    onPress: handleExpandQuotes,
+                  },
+                ]
+              : []
+          }
+        />
+
+        <InfoAlert
+          isVisible={showProviderInfo}
+          dismiss={() => setShowProviderInfo(false)}
+          providerName={selectedProviderInfo?.name}
+          logos={selectedProviderInfo?.logos}
+          subtitle={selectedProviderInfo?.hqAddress}
+          body={selectedProviderInfo?.description}
+          providerWebsite={
+            selectedProviderInfo?.links?.find(
+              (link) => link.name === PROVIDER_LINKS.HOMEPAGE,
+            )?.url
+          }
+          providerPrivacyPolicy={
+            selectedProviderInfo?.links?.find(
+              (link) => link.name === PROVIDER_LINKS.PRIVACY_POLICY,
+            )?.url
+          }
+          providerTermsOfService={
+            selectedProviderInfo?.links?.find(
+              (link) => link.name === PROVIDER_LINKS.TOS,
+            )?.url
+          }
+          providerSupport={
+            selectedProviderInfo?.links?.find(
+              (link) => link.name === PROVIDER_LINKS.SUPPORT,
+            )?.url
+          }
+        />
+      </BottomSheet>
+    );
+  }
+
+  return (
+    <BottomSheet isInteractable={false} isFullscreen ref={bottomSheetRef}>
+      <BottomSheetHeader onClose={() => handleClosePress(bottomSheetRef)}>
+        {strings('fiat_on_ramp_aggregator.select_a_quote')}
+      </BottomSheetHeader>
+      <ScreenLayout>
+        <ScreenLayout.Header>
+          {isInPolling && (
+            <Timer
+              pollingCyclesLeft={pollingCyclesLeft}
+              isFetchingQuotes={isFetchingQuotes}
+              remainingTime={remainingTime}
+            />
+          )}
+
+          <ScreenLayout.Content style={styles.withoutVerticalPadding}>
+            <TextLegacy centered grey>
+              {strings('fiat_on_ramp_aggregator.compare_rates')}
+            </TextLegacy>
           </ScreenLayout.Content>
-        </Animated.ScrollView>
-      </ScreenLayout.Body>
-    </ScreenLayout>
+        </ScreenLayout.Header>
+        <InfoAlert
+          isVisible={showProviderInfo}
+          dismiss={() => setShowProviderInfo(false)}
+          providerName={selectedProviderInfo?.name}
+          logos={selectedProviderInfo?.logos}
+          subtitle={selectedProviderInfo?.hqAddress}
+          body={selectedProviderInfo?.description}
+          providerWebsite={
+            selectedProviderInfo?.links?.find(
+              (link) => link.name === PROVIDER_LINKS.HOMEPAGE,
+            )?.url
+          }
+          providerPrivacyPolicy={
+            selectedProviderInfo?.links?.find(
+              (link) => link.name === PROVIDER_LINKS.PRIVACY_POLICY,
+            )?.url
+          }
+          providerSupport={
+            selectedProviderInfo?.links?.find(
+              (link) => link.name === PROVIDER_LINKS.SUPPORT,
+            )?.url
+          }
+        />
+        <ScreenLayout.Body>
+          <Animated.View style={[styles.topBorder, animatedStyles]} />
+          <Animated.ScrollView
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
+          >
+            <ScreenLayout.Content style={styles.withoutTopPadding}>
+              {isFetchingQuotes && isInPolling ? (
+                <LoadingQuotes />
+              ) : (
+                filteredQuotes.map((quote, index) => (
+                  <Fragment key={quote.provider.id}>
+                    {index === HIGHLIGHTED_QUOTES_COUNT &&
+                      expandedCount > 0 && (
+                        <Row>
+                          <Text variant={TextVariant.BodyLGMedium}>
+                            {expandedCount === 1
+                              ? strings(
+                                  'fiat_on_ramp_aggregator.one_more_option',
+                                )
+                              : strings(
+                                  'fiat_on_ramp_aggregator.more_options',
+                                  {
+                                    count: expandedCount,
+                                  },
+                                )}
+                          </Text>
+                        </Row>
+                      )}
+                    <Row>
+                      <Quote
+                        isLoading={isQuoteLoading}
+                        previouslyUsedProvider={ordersProviders.includes(
+                          quote.provider.id,
+                        )}
+                        quote={quote}
+                        onPress={() => handleOnQuotePress(quote)}
+                        onPressCTA={() => handleOnPressCTA(quote, index)}
+                        highlighted={quote.provider.id === providerId}
+                        showInfo={() => handleInfoPress(quote)}
+                        rampType={rampType}
+                      />
+                    </Row>
+                  </Fragment>
+                ))
+              )}
+            </ScreenLayout.Content>
+          </Animated.ScrollView>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    </BottomSheet>
   );
 }
 

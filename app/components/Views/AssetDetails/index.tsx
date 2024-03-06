@@ -27,10 +27,9 @@ import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
-import WarningMessage from '../SendFlow/WarningMessage';
+import WarningMessage from '../confirmations/SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 import {
   selectChainId,
@@ -43,6 +42,7 @@ import {
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -104,6 +104,7 @@ interface Props {
 const AssetDetails = (props: Props) => {
   const { address } = props.route.params;
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -178,7 +179,7 @@ const AssetDetails = (props: Props) => {
                   tokenSymbol: symbol,
                 }),
               });
-              AnalyticsV2.trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+              trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
                 location: 'token_details',
                 token_standard: 'ERC20',
                 asset_type: 'token',

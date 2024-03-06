@@ -1,5 +1,3 @@
-import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../../core/AppConstants';
 import { ConnectionProps } from '../Connection';
 import SDKConnect from '../SDKConnect';
 import addAndroidConnection from './addAndroidConnection';
@@ -38,29 +36,5 @@ describe('addAndroidConnection', () => {
     expect(mockInstance.state.androidConnections[mockConnection.id]).toBe(
       mockConnection,
     );
-  });
-
-  it('should save the updated connections to DefaultPreference', async () => {
-    const mockConnection = {
-      id: 'test-id',
-    } as unknown as ConnectionProps;
-
-    await addAndroidConnection(mockConnection, mockInstance);
-
-    expect(DefaultPreference.set).toHaveBeenCalledWith(
-      AppConstants.MM_SDK.ANDROID_CONNECTIONS,
-      JSON.stringify(mockInstance.state.androidConnections),
-    );
-  });
-
-  it('should emit a refresh event', async () => {
-    const mockConnection = {
-      id: 'test-id',
-    } as unknown as ConnectionProps;
-
-    await addAndroidConnection(mockConnection, mockInstance);
-
-    expect(mockEmit).toHaveBeenCalledTimes(1);
-    expect(mockEmit).toHaveBeenCalledWith('refresh');
   });
 });

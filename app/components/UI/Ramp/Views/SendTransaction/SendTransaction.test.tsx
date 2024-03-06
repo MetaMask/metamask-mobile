@@ -6,8 +6,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 
+import { addTransaction } from '../../../../../util/transaction-controller';
+
 import SendTransaction from './SendTransaction';
-import Engine from '../../../../../core/Engine';
 
 type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
@@ -290,6 +291,7 @@ const mockGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockPop = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockAddTransaction = addTransaction as jest.Mock;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -320,12 +322,10 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TransactionController: {
-      addTransaction: jest.fn(),
-    },
-  },
+jest.mock('../../../../../util/transaction-controller', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../../util/transaction-controller'),
+  addTransaction: jest.fn(),
 }));
 
 const mockDispatch = jest.fn();
@@ -346,7 +346,7 @@ describe('SendTransaction View', () => {
     mockPop.mockClear();
     mockDispatch.mockClear();
     mockTrackEvent.mockClear();
-    Engine.context.TransactionController.addTransaction.mockClear();
+    mockAddTransaction.mockClear();
   });
 
   beforeEach(() => {
@@ -378,6 +378,7 @@ describe('SendTransaction View', () => {
           "fiat_out": 0,
           "order_id": "test-id-1",
           "payment_method_id": "/payments/instant-bank-transfer",
+          "provider_offramp": "Test (Staging)",
         },
       ]
     `);
@@ -395,15 +396,12 @@ describe('SendTransaction View', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('calls TransactionController.addTransaction for native coin when clicking on send button', async () => {
+  it('calls addTransaction for native coin when clicking on send button', async () => {
     render(SendTransaction);
     const nextButton = screen.getByRole('button', { name: 'Next' });
     fireEvent.press(nextButton);
-    expect(Engine.context.TransactionController.addTransaction).toBeCalledTimes(
-      1,
-    );
-    expect(Engine.context.TransactionController.addTransaction.mock.calls)
-      .toMatchInlineSnapshot(`
+    expect(mockAddTransaction).toBeCalledTimes(1);
+    expect(mockAddTransaction.mock.calls).toMatchInlineSnapshot(`
       Array [
         Array [
           Object {
@@ -435,21 +433,19 @@ describe('SendTransaction View', () => {
           "fiat_out": 0,
           "order_id": "test-id-1",
           "payment_method_id": "/payments/instant-bank-transfer",
+          "provider_offramp": "Test (Staging)",
         },
       ]
     `);
   });
 
-  it('calls TransactionController.addTransaction for erc20 when clicking on send button', async () => {
+  it('calls addTransaction for erc20 when clicking on send button', async () => {
     mockUseParamsValues = { orderId: 'test-id-2' };
     render(SendTransaction);
     const nextButton = screen.getByRole('button', { name: 'Next' });
     fireEvent.press(nextButton);
-    expect(Engine.context.TransactionController.addTransaction).toBeCalledTimes(
-      1,
-    );
-    expect(Engine.context.TransactionController.addTransaction.mock.calls)
-      .toMatchInlineSnapshot(`
+    expect(mockAddTransaction).toBeCalledTimes(1);
+    expect(mockAddTransaction.mock.calls).toMatchInlineSnapshot(`
       Array [
         Array [
           Object {
@@ -469,9 +465,7 @@ describe('SendTransaction View', () => {
   it('calls analytics and redirects when the transaction is confirmed ', async () => {
     render(SendTransaction);
     const nextButton = screen.getByRole('button', { name: 'Next' });
-    (
-      Engine.context.TransactionController.addTransaction as jest.Mock
-    ).mockImplementationOnce(() => ({
+    mockAddTransaction.mockImplementationOnce(() => ({
       result: Promise.resolve('0x987654321'),
     }));
 
@@ -487,6 +481,7 @@ describe('SendTransaction View', () => {
           "fiat_out": 0,
           "order_id": "test-id-1",
           "payment_method_id": "/payments/instant-bank-transfer",
+          "provider_offramp": "Test (Staging)",
         },
       ]
     `);
@@ -494,12 +489,10 @@ describe('SendTransaction View', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('dispatches setFiatSellTxHash after getting hash from TransactionController.addTransaction', async () => {
+  it('dispatches setFiatSellTxHash after getting hash from addTransaction', async () => {
     render(SendTransaction);
     const nextButton = screen.getByRole('button', { name: 'Next' });
-    (
-      Engine.context.TransactionController.addTransaction as jest.Mock
-    ).mockImplementationOnce(() => ({
+    mockAddTransaction.mockImplementationOnce(() => ({
       result: Promise.resolve('0x987654321'),
     }));
 
@@ -523,9 +516,7 @@ describe('SendTransaction View', () => {
   it('calls analytics when the transaction is rejected', async () => {
     render(SendTransaction);
     const nextButton = screen.getByRole('button', { name: 'Next' });
-    (
-      Engine.context.TransactionController.addTransaction as jest.Mock
-    ).mockImplementationOnce(() => ({
+    mockAddTransaction.mockImplementationOnce(() => ({
       result: Promise.reject(new Error('Transaction rejected')),
     }));
 
@@ -541,6 +532,7 @@ describe('SendTransaction View', () => {
           "fiat_out": 0,
           "order_id": "test-id-1",
           "payment_method_id": "/payments/instant-bank-transfer",
+          "provider_offramp": "Test (Staging)",
         },
       ]
     `);
