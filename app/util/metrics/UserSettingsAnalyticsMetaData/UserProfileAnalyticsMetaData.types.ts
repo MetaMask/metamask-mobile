@@ -1,4 +1,4 @@
-export enum UserProfilePropery {
+export enum UserProfileProperty {
   ENABLE_OPENSEA_API = 'Enable OpenSea API',
   NFT_AUTODETECTION = 'NFT Autodetection',
   THEME = 'Theme',
@@ -11,10 +11,10 @@ export enum UserProfilePropery {
 }
 
 export interface UserProfileMetaData {
-  [UserProfilePropery.ENABLE_OPENSEA_API]: string;
-  [UserProfilePropery.NFT_AUTODETECTION]: string;
-  [UserProfilePropery.THEME]: string;
-  [UserProfilePropery.TOKEN_DETECTION]: string;
-  [UserProfilePropery.MULTI_ACCOUNT_BALANCE]: string;
-  [UserProfilePropery.SECURITY_PROVIDERS]: string;
+  [UserProfileProperty.ENABLE_OPENSEA_API]: string;
+  [UserProfileProperty.NFT_AUTODETECTION]: string;
+  [UserProfileProperty.THEME]: string;
+  [UserProfileProperty.TOKEN_DETECTION]: string;
+  [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: string;
+  [UserProfileProperty.SECURITY_PROVIDERS]: string;
 }
