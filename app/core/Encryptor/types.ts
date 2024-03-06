@@ -1,3 +1,5 @@
+import type { Json } from '@metamask/utils';
+
 /**
  * Parameters used for key derivation.
  * @interface KeyParams
@@ -33,4 +35,35 @@ export interface EncryptionResult {
   salt?: string;
   lib?: string;
   keyMetadata?: KeyDerivationOptions;
+}
+
+export interface GenericEncryptor {
+  /**
+   * Encrypts the given object with the given password.
+   *
+   * @param password - The password to encrypt with.
+   * @param object - The object to encrypt.
+   * @returns The encrypted string.
+   */
+  encrypt: (password: string, object: Json) => Promise<string>;
+  /**
+   * Decrypts the given encrypted string with the given password.
+   *
+   * @param password - The password to decrypt with.
+   * @param encryptedString - The encrypted string to decrypt.
+   * @returns The decrypted object.
+   */
+  decrypt: (password: string, encryptedString: string) => Promise<unknown>;
+  /**
+   * Optional vault migration helper. Checks if the provided vault is up to date
+   * with the desired encryption algorithm.
+   *
+   * @param vault - The encrypted string to check.
+   * @param targetDerivationParams - The desired target derivation params.
+   * @returns The updated encrypted string.
+   */
+  isVaultUpdated?: (
+    vault: string,
+    targetDerivationParams?: KeyDerivationOptions,
+  ) => boolean;
 }

@@ -6,7 +6,11 @@ import {
   ENCRYPTION_LIBRARY,
   DEFAULT_DERIVATION_PARAMS,
 } from './constants';
-import type { EncryptionResult, KeyDerivationOptions } from './types';
+import type {
+  EncryptionResult,
+  KeyDerivationOptions,
+  GenericEncryptor,
+} from './types';
 
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
@@ -30,7 +34,7 @@ const isKeyDerivationOptions = (
  * It supports generating a salt, deriving an encryption key from a
  * password and salt, and performing the encryption and decryption processes.
  */
-class Encryptor {
+class Encryptor implements GenericEncryptor {
   key: string | null = null;
 
   /**
@@ -133,7 +137,7 @@ class Encryptor {
    * @param targetDerivationParams - The options to use for key derivation.
    * @returns Whether or not the vault is an updated encryption format.
    */
-  private isVaultUpdated = (
+  isVaultUpdated = (
     vault: string,
     targetDerivationParams = DEFAULT_DERIVATION_PARAMS,
   ): boolean => {
@@ -196,6 +200,7 @@ class Encryptor {
       key,
       lib: payload.lib,
     });
+
     return JSON.parse(data);
   };
 
@@ -219,6 +224,7 @@ class Encryptor {
     if (this.isVaultUpdated(vault, targetDerivationParams)) {
       return vault;
     }
+
     return this.encrypt(password, await this.decrypt(password, vault));
   };
 }
