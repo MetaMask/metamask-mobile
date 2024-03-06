@@ -25,8 +25,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import AppConstants from '../../../../../core/AppConstants';
-import { trackEventV2 as trackEvent } from '../../../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
   TOGGLE_ETH_SIGN_CONTINUE_BUTTON,
@@ -47,6 +46,7 @@ import createStyles from './EthSignFriction.styles';
  * - The second step is to ask the user to type a specific text to confirm that they understand the risk and allow them to enable eth_sign.
  */
 const EthSignFriction = () => {
+  const { trackEvent } = useMetrics();
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -68,7 +68,7 @@ const EthSignFriction = () => {
         {},
       );
     }
-  }, [firstFrictionPassed]);
+  }, [firstFrictionPassed, trackEvent]);
 
   // friction element status checks.
   const isApproveTextMatched = (text: string) =>
