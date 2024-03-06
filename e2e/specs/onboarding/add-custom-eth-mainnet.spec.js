@@ -13,13 +13,9 @@ import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView'
 import NetworksView from '../../pages/Settings/NetworksView';
 import Accounts from '../../../wdio/helpers/Accounts';
 import { DEFAULT_MAINNET_CUSTOM_NAME } from '../../../app/constants/network';
+import networks from '../../resources/networks.json';
 
 const validAccount = Accounts.getValidAccount();
-
-const testData = {
-  invalidURL: 'not a valid url',
-  validURL: 'https://eth.llamarpc.com',
-};
 
 describe(Regression('Add custom default ETH Mainnet'), () => {
   beforeAll(async () => {
@@ -34,12 +30,16 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
 
   it('should not edit default network with invalid RPC', async () => {
     await MetaMetricsOptIn.tapEditDefaultNetworkHere();
-    await DefaultNetworkView.typeRpcURL(testData.invalidURL);
+    await DefaultNetworkView.typeRpcURL(
+      networks['Ethereum Main Custom'].providerConfig.invalidUrl,
+    );
     await Assertions.checkIfVisible(NetworksView.rpcWarningBanner);
   });
 
   it('should edit default ETH Mainnet with valid RPC', async () => {
-    await DefaultNetworkView.typeRpcURL(testData.validURL);
+    await DefaultNetworkView.typeRpcURL(
+      networks['Ethereum Main Custom'].providerConfig.rpcUrl,
+    );
     await DefaultNetworkView.tapUseThisNetworkButton();
     await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   });
