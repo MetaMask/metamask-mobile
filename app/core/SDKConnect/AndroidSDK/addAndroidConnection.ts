@@ -1,8 +1,8 @@
+import { updateAndroidConnection } from '../../../../app/actions/sdk';
+import { store } from '../../../../app/store';
 import { ConnectionProps } from '../Connection';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
-import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../../core/AppConstants';
 
 async function addAndroidConnection(
   connection: ConnectionProps,
@@ -12,14 +12,7 @@ async function addAndroidConnection(
 
   DevLogger.log(`SDKConnect::addAndroidConnection`, connection);
 
-  await DefaultPreference.set(
-    AppConstants.MM_SDK.ANDROID_CONNECTIONS,
-    JSON.stringify(instance.state.androidConnections),
-  ).catch((err) => {
-    throw err;
-  });
-
-  instance.emit('refresh');
+  store.dispatch(updateAndroidConnection(connection.id, connection));
 }
 
 export default addAndroidConnection;

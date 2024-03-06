@@ -39,6 +39,7 @@ export interface ConnectionProps {
   initialConnection?: boolean;
   navigation?: NavigationContainerRef;
   originatorInfo?: OriginatorInfo;
+  connected?: boolean;
   validUntil?: number;
   lastAuthorized?: number; // timestamp of last received activity
 }
