@@ -20,11 +20,7 @@ describe('loadAndroidConnections', () => {
   });
 
   it('should parse the retrieved connections', async () => {
-    const mockConnections = {
-      'test-id': {
-        id: 'test-id',
-      },
-    };
+    const mockConnections = {};
 
     (DefaultPreference.get as jest.Mock).mockResolvedValueOnce(
       JSON.stringify(mockConnections),
