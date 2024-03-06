@@ -257,6 +257,17 @@ const App = ({ userLoggedIn }) => {
   };
 
   useEffect(() => {
+    console.log(
+      'Accounts/ AccountController',
+      JSON.stringify(Engine.context.AccountsController, null, 2),
+    );
+    console.log(
+      'Accounts/ PreferencesController',
+      JSON.stringify(Engine.context.PreferencesController, null, 2),
+    );
+  }, []);
+
+  useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
       const { PreferencesController } = Engine.context;
