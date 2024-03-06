@@ -8,6 +8,10 @@ import React, {
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import Icon, {
+  IconSize,
+  IconName,
+} from '../../../../app/component-library/components/Icons/Icon';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';
@@ -102,7 +106,8 @@ import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectMo
 import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
-import DefaultSettings from '../../Views/DefaultSettings';
+import OnboardingSuccess from '../../Views/Success';
+import DefaultSettings from '../../Views/Success/DefaultSettings';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -432,12 +437,11 @@ const App = ({ userLoggedIn }) => {
     async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
-      const route = !existingUser
-        ? Routes.ONBOARDING.ROOT_NAV
-        : Routes.ONBOARDING.DEFAULT_SETTINGS;
-      // TODO: reinstate this
-      // : Routes.ONBOARDING.LOGIN;
-      setRoute(route);
+      // FRANK: revert this
+      // const route = !existingUser
+      //   ? Routes.ONBOARDING.ROOT_NAV
+      //   : Routes.ONBOARDING.LOGIN;
+      setRoute('OnboardingSuccessFlow'); // TODO: replace with route
     }
 
     checkExisting().catch((error) => {
@@ -691,6 +695,31 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
+  // eslint-disable-next-line react/prop-types
+  const OnboardingSuccessFlow = ({ route, navigation }) => (
+    <Stack.Navigator>
+      <Stack.Screen
+        name={Routes.ONBOARDING.SUCCESS}
+        component={OnboardingSuccess}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.DEFAULT_SETTINGS}
+        component={DefaultSettings}
+        options={{
+          headerTitle: 'Default settings', // FRANK: replace with string from i18n
+          // eslint-disable-next-line react/display-name, react/prop-types
+          headerLeft: () => (
+            <Icon
+              name={IconName.ArrowLeft}
+              size={IconSize.Lg}
+              color={'black'}
+            />
+          ),
+        }}
+      />
+    </Stack.Navigator>
+  );
+
   return (
     // do not render unless a route is defined
     (route && (
@@ -730,8 +759,8 @@ const App = ({ userLoggedIn }) => {
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="AdvancedPrivacy"
-              component={AdvancedPrivacy}
+              name="OnboardingSuccessFlow"
+              component={OnboardingSuccessFlow}
               options={{ headerShown: false }}
             />
             {userLoggedIn && (
