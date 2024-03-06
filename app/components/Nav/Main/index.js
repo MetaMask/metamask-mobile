@@ -78,7 +78,7 @@ import {
   stopIncomingTransactionPolling,
 } from '../../../util/transaction-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { SnapsExecutionWebView } from '../../UI/SnapsExecutionWebView';
+import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 
 const Stack = createStackNavigator();

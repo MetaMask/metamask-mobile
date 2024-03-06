@@ -41,7 +41,6 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import ReceiveRequest from '../ReceiveRequest';
-import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import URL from 'url-parse';
@@ -53,7 +52,6 @@ import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager
 import SettingsNotification from '../SettingsNotification';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import {
   isDefaultAccountName,
   doENSReverseLookup,
@@ -90,6 +88,7 @@ import {
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -452,6 +451,10 @@ class DrawerView extends PureComponent {
      * Redux action to close info network modal
      */
     toggleInfoNetworkModal: PropTypes.func,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -546,15 +549,14 @@ class DrawerView extends PureComponent {
       ) {
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({ showProtectWalletModal: true });
-        InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
-            {
-              wallet_protection_required: false,
-              source: 'Backup Alert',
-            },
-          );
-        });
+
+        this.props.metrics.trackEvent(
+          MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
+          {
+            wallet_protection_required: false,
+            source: 'Backup Alert',
+          },
+        );
       } else {
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({ showProtectWalletModal: false });
@@ -624,15 +626,13 @@ class DrawerView extends PureComponent {
   };
 
   trackEvent = (event) => {
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(event);
-    });
+    this.props.metrics.trackEvent(event);
   };
 
   // NOTE: do we need this event?
   trackOpenBrowserEvent = () => {
     const { providerConfig } = this.props;
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+    this.props.metrics.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
       source: 'In-app Navigation',
       chain_id: getDecimalChainId(providerConfig.chainId),
     });
@@ -928,7 +928,7 @@ class DrawerView extends PureComponent {
       this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
+      this.props.metrics.trackEvent(
         MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
         {
           wallet_protection_required: true,
@@ -1025,10 +1025,11 @@ class DrawerView extends PureComponent {
         renderFromWei(accounts[selectedAddress].balance)) ||
       0;
     const fiatBalance = Engine.getTotalFiatAccountBalance();
-    if (fiatBalance !== this.previousBalance) {
+    const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.tokenFiat;
+    if (totalFiatBalance !== Number(this.previousBalance)) {
       this.previousBalance = this.currentBalance;
     }
-    this.currentBalance = fiatBalance;
+    this.currentBalance = totalFiatBalance;
     const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
     const accountName = isDefaultAccountName(name) && ens ? ens : name;
 
@@ -1273,4 +1274,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 DrawerView.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(DrawerView);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(DrawerView));

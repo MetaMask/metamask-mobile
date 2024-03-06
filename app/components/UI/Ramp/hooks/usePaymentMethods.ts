@@ -20,7 +20,7 @@ function usePaymentMethods() {
 
   const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
     useSDKMethod(paymentMethodsMethod, selectedRegion?.id);
-  useEffect(() => setAllowedMethodIds(undefined), [selectedRegion]);
+  useEffect(() => setAllowedMethodIds(undefined), [selectedRegion?.id]);
 
   useEffect(() => {
     if (!isFetching && !error && paymentMethods && selectedRegion) {
