@@ -8,11 +8,11 @@ import PickerBase from './PickerBase';
 
 describe('PickerBase', () => {
   it('should render correctly', () => {
-    const wrapper = render(
+    const { toJSON } = render(
       <PickerBase onPress={jest.fn}>
         <View />
       </PickerBase>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

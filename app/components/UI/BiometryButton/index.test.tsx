@@ -5,7 +5,7 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 describe('BiometryButton', () => {
   it('should render correctly', () => {
-    const wrapper = render(
+    const { toJSON } = render(
       <BiometryButton
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         onPress={() => {}}
@@ -13,6 +13,6 @@ describe('BiometryButton', () => {
         biometryType={AUTHENTICATION_TYPE.BIOMETRIC}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
