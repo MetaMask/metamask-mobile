@@ -6,7 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
-import { Animated, Linking } from 'react-native';
+import { Animated, Linking, TouchableOpacity } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Icon, {
   IconSize,
@@ -709,11 +709,18 @@ const App = ({ userLoggedIn }) => {
           headerTitle: 'Default settings', // FRANK: replace with string from i18n
           // eslint-disable-next-line react/display-name, react/prop-types
           headerLeft: () => (
-            <Icon
-              name={IconName.ArrowLeft}
-              size={IconSize.Lg}
-              color={'black'}
-            />
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={{ padding: 10 }}
+            >
+              <Icon
+                // eslint-disable-next-line react/prop-types
+                onpress={() => navigation.goBack()}
+                name={IconName.ArrowLeft}
+                size={IconSize.Lg}
+                color={'black'}
+              />
+            </TouchableOpacity>
           ),
         }}
       />
