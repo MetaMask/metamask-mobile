@@ -88,6 +88,40 @@ describe('Encryptor', () => {
     );
   });
 
+  describe('isVaultUpdated', () => {
+    it('returns true if a vault has the correct format', () => {
+      expect(
+        encryptor.isVaultUpdated(
+          JSON.stringify({
+            cipher: 'mockedCipher',
+            iv: 'mockedIV',
+            salt: 'mockedSalt',
+            lib: 'original',
+            keyMetadata: {
+              algorithm: 'PBKDF2',
+              params: {
+                iterations: 900000,
+              },
+            },
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false if a vault has the incorrect format', () => {
+      expect(
+        encryptor.isVaultUpdated(
+          JSON.stringify({
+            cipher: 'mockedCipher',
+            iv: 'mockedIV',
+            salt: 'mockedSalt',
+            lib: 'original',
+          }),
+        ),
+      ).toBe(false);
+    });
+  });
+
   describe('updateVault', () => {
     let encryptSpy: jest.SpyInstance, decryptSpy: jest.SpyInstance;
 
