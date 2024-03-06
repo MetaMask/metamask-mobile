@@ -103,7 +103,7 @@ const PopularList = [
     rpcUrl: `https://mainnet.era.zksync.io/`,
     ticker: 'ETH',
     rpcPrefs: {
-      blockExplorerUrl: 'https://era.zksync.network/',
+      blockExplorerUrl: 'https://explorer.zksync.io/',
       imageUrl: 'ZKSYNC',
       imageSource: require('../../images/zksync.png'),
     },
