@@ -20,6 +20,10 @@ import {
   TOKEN_METHOD_TRANSFER_FROM,
   calculateEIP1559Times,
   parseTransactionLegacy,
+  getIsNativeTokenTransferred,
+  getIsInSwapFlowTransaction,
+  getIsSwapApproveTransaction,
+  getIsSwapTransaction,
 } from '.';
 import { buildUnserializedTransaction } from './optimismTransaction';
 import Engine from '../../core/Engine';
@@ -673,5 +677,133 @@ describe('Transactions utils :: buildUnserializedTransaction', () => {
       value: '0x9184e72a000',
       data: '0x00',
     });
+  });
+});
+
+const dappTxMeta = {
+  origin: 'pancakeswap.finance',
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: '0x5ae401dc0000000000000000000000000000000000000000000000000000000065e8dac400000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000e404e45aaf000000000000000000000000b4fbf271143f4fbf7b91a5ded31805e42b2208d600000000000000000000000007865c6e87b9f70255377e024ace6630c1eaa37f00000000000000000000000000000000000000000000000000000000000001f4000000000000000000000000c5fe6ef47965741f6f7a4734bf784bf3ae3f245200000000000000000000000000000000000000000000000000038d7ea4c680000000000000000000000000000000000000000000000000000000000f666eed80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
+    gas: '0x2e7b1',
+    nonce: '0xeb',
+    to: '0x9a489505a00ce272eaa5e07dba6491314cae3796',
+    value: '0x38d7ea4c68000',
+    maxFeePerGas: '0x59682f0a',
+    maxPriorityFeePerGas: '0x59682f00',
+  },
+};
+const sendTxMeta = {
+  origin: 'MetaMask Mobile',
+  transaction: {
+    from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+    data: undefined,
+    gas: '0x5208',
+    nonce: '0xf3',
+    to: '0xdc738206f559bdae106894a62876a119e470aee2',
+    value: '0x2386f26fc10000',
+    maxFeePerGas: '0x59682f0a',
+    maxPriorityFeePerGas: '0x59682f00',
+    estimatedBaseFee: '0x7',
+  },
+};
+
+// TODO fill these out
+// const swapFlowApproveTxMeta;
+// const swapFlowSwapTxMeta;
+
+describe('Transactions utils :: getIsInSwapFlowTransaction', () => {
+  // it('returns true if the transaction is an approve tx in the swap flow', () => {});
+  // it('returns true if the transaction is a swap tx in the swap flow', () => {});
+  it('returns false if the transaction is a send tx', () => {
+    const result = getIsInSwapFlowTransaction(
+      sendTxMeta.transaction.data,
+      sendTxMeta.origin,
+      sendTxMeta.transaction.to,
+      '0x5',
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a dapp tx', () => {
+    const result = getIsInSwapFlowTransaction(
+      dappTxMeta.transaction.data,
+      dappTxMeta.origin,
+      dappTxMeta.transaction.to,
+      '0x5',
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getIsSwapApproveTransaction', () => {
+  // it('returns true if the transaction is an approve tx in the swap flow', () => {});
+  // it('returns false if the transaction is a swap tx in the swap flow', () => {});
+  it('returns false if the transaction is a send tx', () => {
+    const result = getIsSwapApproveTransaction(
+      sendTxMeta.transaction.data,
+      sendTxMeta.origin,
+      sendTxMeta.transaction.to,
+      '0x5',
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a dapp tx', () => {
+    const result = getIsSwapApproveTransaction(
+      dappTxMeta.transaction.data,
+      dappTxMeta.origin,
+      dappTxMeta.transaction.to,
+      '0x5',
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getIsSwapTransaction', () => {
+  it('returns true if the transaction is a swap tx in the swap flow', () => {});
+  it('returns false if the transaction is an approve tx in the swap flow', () => {});
+  it('returns false if the transaction is a send tx', () => {
+    const result = getIsSwapTransaction(
+      sendTxMeta.transaction.data,
+      sendTxMeta.origin,
+      sendTxMeta.transaction.to,
+      '0x5',
+    );
+    expect(result).toBe(false);
+  });
+  it('returns false if the transaction is a dapp tx', () => {
+    const result = getIsSwapTransaction(
+      dappTxMeta.transaction.data,
+      dappTxMeta.origin,
+      dappTxMeta.transaction.to,
+      '0x5',
+    );
+    expect(result).toBe(false);
+  });
+});
+
+describe('Transactions utils :: getIsNativeTokenTransferred', () => {
+  it('should return true if the transaction does not have a value of 0x0', () => {
+    const tx = {
+      nonce: '0x0',
+      gasPrice: `0x${new BN('100').toString(16)}`,
+      gas: `0x${new BN('21000').toString(16)}`,
+      to: '0x0000000000000000000000000000000000000000',
+      value: `0x${new BN('10000000000000').toString(16)}`,
+      data: '0x0',
+    };
+    const result = getIsNativeTokenTransferred(tx);
+    expect(result).toBe(true);
+  });
+  it('should return false if the transaction has a value of 0x0', () => {
+    const tx = {
+      nonce: '0x0',
+      gasPrice: `0x${new BN('100').toString(16)}`,
+      gas: `0x${new BN('21000').toString(16)}`,
+      to: '0x0000000000000000000000000000000000000000',
+      value: `0x0`,
+      data: '0x0',
+    };
+    const result = getIsNativeTokenTransferred(tx);
+    expect(result).toBe(false);
   });
 });

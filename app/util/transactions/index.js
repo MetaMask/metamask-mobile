@@ -1488,3 +1488,9 @@ export const getIsSwapTransaction = (data, origin, to, chainId) => {
 
   return isInSwapFlow && !isSwapApprove;
 };
+
+/**
+ * For a MM Swap tx: Determines if the transaction is a native swap
+ */
+export const getIsNativeTokenTransferred = (transaction) =>
+  transaction?.value !== '0x0';
