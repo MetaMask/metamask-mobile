@@ -556,9 +556,10 @@ class Engine {
         'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
     });
 
+    console.log('ENGINE FILE !!!!!');
     const phishingController = new PhishingController();
     console.log('ENGINE FILE =>>>>>>>>>>>>>>>>>>>>>>>>.');
-    console.log('PHISING CONTROLLER IN ENGINE:', phishingController);
+    console.log('PHISING CONTROLLER IN ENGINE:', JSON.stringify(phishingController, null, 2));
     // phishingController.maybeUpdateState(); // @PHISING
 
     const getIdentities = () => {
@@ -670,19 +671,19 @@ class Engine {
           ),
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
-          maybeUpdatePhishingList: this.controllerMessenger.call.bind(
-            this.controllerMessenger,
-            'PhishingController:maybeUpdateState',
-          ),
-          isOnPhishingList: (origin: string) =>
-            this.controllerMessenger.call<'PhishingController:testOrigin'>(
-              'PhishingController:testOrigin',
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              origin,
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-            ).result,
+          // maybeUpdatePhishingList: this.controllerMessenger.call.bind(
+          //   this.controllerMessenger,
+          //   'PhishingController:maybeUpdateState',
+          // ),
+          // isOnPhishingList: (origin: string) =>
+          //   this.controllerMessenger.call<'PhishingController:testOrigin'>(
+          //     'PhishingController:testOrigin',
+          //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //     // @ts-ignore
+          //     origin,
+          //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //     // @ts-ignore
+          //   ).result,
           showDialog: (
             origin: string,
             type: EnumToUnion<DialogType>,
@@ -845,8 +846,8 @@ class Engine {
         `${permissionController.name}:grantPermissions`,
         `${subjectMetadataController.name}:getSubjectMetadata`,
         `${subjectMetadataController.name}:addSubjectMetadata`,
-        `${phishingController.name}:maybeUpdateState`,
-        `${phishingController.name}:testOrigin`,
+        // `${phishingController.name}:maybeUpdateState`,
+        // `${phishingController.name}:testOrigin`,
         `${snapsRegistry.name}:get`,
         `${snapsRegistry.name}:getMetadata`,
         `${snapsRegistry.name}:update`,

@@ -12,11 +12,11 @@ const isAllowedHostname = (hostname: string): boolean => {
   const { PhishingController } = Engine.context as {
     PhishingController: PhishingControllerClass;
   };
-  PhishingController.maybeUpdateState();
-  const phishingControllerTestResult = PhishingController.test(hostname);
+  // PhishingController.maybeUpdateState();
+  // const phishingControllerTestResult = PhishingController.test(hostname);
 
   return !(
-    phishingControllerTestResult.result || DENYLISTED_DOMAINS.includes(hostname)
+     DENYLISTED_DOMAINS.includes(hostname)
   );
 };
 

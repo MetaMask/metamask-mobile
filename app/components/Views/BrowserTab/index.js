@@ -429,9 +429,9 @@ export const BrowserTab = (props) => {
     // Update phishing configuration if it is out-of-date
     // This is async but we are not `await`-ing it here intentionally, so that we don't slow
     // down network requests. The configuration is updated for the next request.
-    PhishingController.maybeUpdateState();
+    // PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(hostname);
+    // const phishingControllerTestResult = PhishingController.test(hostname);
 
     // Only assign the if the hostname is on the block list
     if (phishingControllerTestResult.result)

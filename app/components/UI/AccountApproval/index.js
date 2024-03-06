@@ -252,8 +252,8 @@ class AccountApproval extends PureComponent {
 
   checkUrlFlaggedAsPhishing = (hostname) => {
     const { PhishingController } = Engine.context;
-    PhishingController.maybeUpdateState();
-    const phishingControllerTestResult = PhishingController.test(hostname);
+    // PhishingController.maybeUpdateState();
+    // const phishingControllerTestResult = PhishingController.test(hostname);
 
     this.setState({
       isUrlFlaggedAsPhishing: phishingControllerTestResult.result,
