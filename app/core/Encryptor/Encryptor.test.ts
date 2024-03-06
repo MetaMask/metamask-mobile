@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
 import { Encryptor } from './Encryptor';
-import { ENCRYPTION_LIBRARY } from './constants';
+import { ENCRYPTION_LIBRARY, DEFAULT_DERIVATION_PARAMS } from './constants';
 
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
@@ -13,6 +13,10 @@ describe('Encryptor', () => {
   });
 
   describe('encrypt', () => {
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('should encrypt an object correctly', async () => {
       const password = 'testPassword';
       const objectToEncrypt = { key: 'value' };
@@ -31,6 +35,10 @@ describe('Encryptor', () => {
   });
 
   describe('decrypt', () => {
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
     it.each([
       {
         lib: ENCRYPTION_LIBRARY.original,
@@ -48,7 +56,7 @@ describe('Encryptor', () => {
       'decrypts a string correctly $description',
       async ({ lib, expectedDecryptFunction, expectedKey }) => {
         const password = 'testPassword';
-        const encryptedString = {
+        const mockVault = {
           cipher: 'mockedCipher',
           iv: 'mockedIV',
           salt: 'mockedSalt',
@@ -65,18 +73,100 @@ describe('Encryptor', () => {
 
         const decryptedObject = await encryptor.decrypt(
           password,
-          JSON.stringify(encryptedString),
+          JSON.stringify(mockVault),
         );
 
         expect(decryptedObject).toEqual(expect.any(Object));
         expect(decryptSpy).toHaveBeenCalledWith(
-          encryptedString.cipher,
+          mockVault.cipher,
           expectedKey,
-          encryptedString.iv,
+          mockVault.iv,
         );
 
         decryptSpy.mockRestore();
       },
     );
+  });
+
+  describe('updateVault', () => {
+    let encryptSpy: jest.SpyInstance, decryptSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      encryptSpy = jest
+        .spyOn(Aes, 'encrypt')
+        .mockResolvedValue(() => Promise.resolve('mockedCipher'));
+      decryptSpy = jest
+        .spyOn(Aes, 'decrypt')
+        .mockResolvedValue('{"mockData": "mockedPlainText"}');
+    });
+
+    afterEach(() => {
+      encryptSpy.mockRestore();
+      decryptSpy.mockRestore();
+    });
+
+    it('updates a vault correctly if keyMetadata is not present', async () => {
+      const mockVault = {
+        cipher: 'mockedCipher',
+        iv: 'mockedIV',
+        salt: 'mockedSalt',
+        lib: 'original',
+      };
+
+      const updatedVault = await encryptor.updateVault(
+        JSON.stringify(mockVault),
+        'mockPassword',
+      );
+
+      const vault = JSON.parse(updatedVault);
+
+      expect(encryptSpy).toBeCalledTimes(1);
+      expect(decryptSpy).toBeCalledTimes(1);
+      expect(vault).toHaveProperty('keyMetadata');
+      expect(vault.keyMetadata).toHaveProperty('algorithm');
+      expect(vault.keyMetadata).toHaveProperty('params');
+      expect(vault.keyMetadata.params).toHaveProperty('iterations');
+      expect(vault.keyMetadata.params.iterations).toBe(
+        DEFAULT_DERIVATION_PARAMS.params.iterations,
+      );
+      expect(vault.keyMetadata.algorithm).toBe(
+        DEFAULT_DERIVATION_PARAMS.algorithm,
+      );
+    });
+
+    it('does not update a vault if algorithm is PBKDF2 the number of iterations is 900000', async () => {
+      const mockVault = {
+        cipher: 'mockedCipher',
+        iv: 'mockedIV',
+        salt: 'mockedSalt',
+        lib: 'original',
+        keyMetadata: {
+          algorithm: 'PBKDF2',
+          params: {
+            iterations: 900000,
+          },
+        },
+      };
+
+      const updatedVault = await encryptor.updateVault(
+        JSON.stringify(mockVault),
+        'mockPassword',
+      );
+
+      const vault = JSON.parse(updatedVault);
+
+      expect(encryptSpy).toBeCalledTimes(0);
+      expect(decryptSpy).toBeCalledTimes(0);
+      expect(vault).toHaveProperty('keyMetadata');
+      expect(vault.keyMetadata).toHaveProperty('algorithm');
+      expect(vault.keyMetadata).toHaveProperty('params');
+      expect(vault.keyMetadata.params).toHaveProperty('iterations');
+      expect(vault.keyMetadata.params.iterations).toBe(
+        DEFAULT_DERIVATION_PARAMS.params.iterations,
+      );
+      expect(vault.keyMetadata.algorithm).toBe(
+        DEFAULT_DERIVATION_PARAMS.algorithm,
+      );
+    });
   });
 });
