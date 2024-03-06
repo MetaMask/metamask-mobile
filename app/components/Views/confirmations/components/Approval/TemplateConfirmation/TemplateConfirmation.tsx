@@ -16,7 +16,10 @@ import { useAppThemeFromContext } from '../../../../../../util/theme';
 import { AcceptOptions, ApprovalRequest } from '@metamask/approval-controller';
 
 export interface TemplateConfirmationProps {
-  approvalRequest: ApprovalRequest<any>;
+  approvalRequest: ApprovalRequest<any> & {
+    hideCancelButton?: boolean;
+    hideSubmitButton?: boolean;
+  };
   onConfirm: (opts?: AcceptOptions) => void;
   onCancel: () => void;
 }
