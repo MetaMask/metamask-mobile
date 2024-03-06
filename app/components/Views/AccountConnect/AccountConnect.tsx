@@ -57,6 +57,7 @@ import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import AppConstants from '../../../../app/core/AppConstants';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { RootState } from '../../../../app/reducers';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
@@ -92,28 +93,46 @@ const AccountConnect = (props: AccountConnectProps) => {
     origin: string;
   };
 
-  // Extract connection info from sdk
-  // FIXME should be replaced by passing dynamic parameters to the PermissionController
-  // TODO: Retrive wallet connect connection info from channelId
-  const sdkConnection = SDKConnect.getInstance().getConnection({ channelId });
-  const hostname = (
-    sdkConnection?.originatorInfo?.url ?? metadataOrigin
-  ).replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
-
   const origin: string = useSelector(getActiveTabUrl, isEqual);
+  const accountsLength = useSelector(selectAccountsLength);
 
-  const faviconSource = useFavicon(origin);
+  const [hostname, setHostname] = useState<string>(origin);
   const urlWithProtocol = prefixUrlWithProtocol(hostname);
+  const sdkConnection = SDKConnect.getInstance().getConnection({ channelId });
+  // Last wallet connect session metadata
+  const wc2Metadata = useSelector((state: RootState) => state.sdk.wc2Metadata);
+
+  const dappIconUrl = sdkConnection.originatorInfo?.icon;
+  const faviconSource = useFavicon(origin);
+
+  const actualIcon = useMemo(
+    () => (dappIconUrl ? { uri: dappIconUrl } : faviconSource),
+    [dappIconUrl, faviconSource],
+  );
 
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(origin) as URLParse<string>).protocol === 'https:'
+      (getUrlObj(hostname) as URLParse<string>).protocol === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
-    [origin],
+    [hostname],
   );
 
-  const accountsLength = useSelector(selectAccountsLength);
+  const loadHostname = useCallback(async () => {
+    if (sdkConnection) {
+      const _hostname = (
+        sdkConnection?.originatorInfo?.url ?? metadataOrigin
+      ).replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+      return _hostname;
+    }
+
+    return wc2Metadata?.url ?? channelId;
+  }, [channelId, metadataOrigin, sdkConnection, wc2Metadata]);
+
+  // Retrieve hostname info based on channelId
+  useEffect(() => {
+    loadHostname().then(setHostname);
+  }, [hostname, setHostname, loadHostname]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -350,7 +369,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         onUserAction={setUserIntent}
         defaultSelectedAccount={defaultSelectedAccount}
         isLoading={isLoading}
-        favicon={faviconSource}
+        favicon={actualIcon}
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
       />
@@ -362,11 +381,11 @@ const AccountConnect = (props: AccountConnectProps) => {
     isLoading,
     setScreen,
     setSelectedAddresses,
-    faviconSource,
+    actualIcon,
     secureIcon,
+    sdkConnection,
     urlWithProtocol,
     setUserIntent,
-    sdkConnection,
   ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
