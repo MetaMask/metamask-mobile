@@ -5,8 +5,8 @@ export const FIXTURE_SERVER_PORT = 12345;
 // E2E test configuration required in app
 export const testConfig = {};
 
-export const isTest =
-  process.env.IS_TEST === 'true' &&
+export const isTest = 'true';
+process.env.IS_TEST === 'true' &&
   process.env.METAMASK_ENVIRONMENT !== 'production';
 
 export const getFixturesServerPortInApp = () =>

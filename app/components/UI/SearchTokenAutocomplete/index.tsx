@@ -19,10 +19,19 @@ import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
 import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+  selectTicker,
+} from '../../../selectors/networkController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  getNetworkNameFromProviderConfig,
+} from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { EngineState } from '../../../selectors/types';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -57,14 +66,22 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const { trackEvent } = useMetrics();
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedAsset, setSelectedAsset] = useState({});
+  const [selectedAsset, setSelectedAsset] = useState<any[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const { address, symbol, decimals, iconUrl, name } = selectedAsset as any;
+
+  const enableImport =
+    selectedAsset.length > 0 &&
+    selectedAsset.every(
+      (asset) =>
+        asset.address && asset.symbol && typeof asset.decimals === 'number',
+    );
+
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
+  const ticker = useSelector(selectTicker);
 
   const setFocusState = useCallback(
     (isFocused: boolean) => {
@@ -76,16 +93,16 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const getAnalyticsParams = useCallback(() => {
     try {
-      return {
-        token_address: address,
-        token_symbol: symbol,
+      return selectedAsset.map((asset) => ({
+        token_address: asset.address,
+        token_symbol: asset.symbol,
         chain_id: getDecimalChainId(chainId),
         source: 'Add token dropdown',
-      };
+      }));
     } catch (error) {
       return {};
     }
-  }, [address, symbol, chainId]);
+  }, [selectedAsset, chainId]);
 
   const cancelAddToken = useCallback(() => {
     navigation.goBack();
@@ -101,49 +118,90 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const handleSelectAsset = useCallback(
     (asset) => {
-      setSelectedAsset(asset);
+      const assetAddressLower = asset.address.toLowerCase();
+
+      const newSelectedAsset = selectedAsset.reduce((acc, currentAsset) => {
+        const currentAssetAddressLower = currentAsset.address.toLowerCase();
+        if (currentAssetAddressLower === assetAddressLower) {
+          return acc;
+        }
+
+        return [...acc, currentAsset];
+      }, []);
+
+      if (newSelectedAsset.length === selectedAsset.length) {
+        newSelectedAsset.push(asset);
+      }
+
+      setSelectedAsset(newSelectedAsset);
     },
-    [setSelectedAsset],
+    [selectedAsset, setSelectedAsset],
   );
 
-  const addToken = useCallback(async () => {
-    const { TokensController } = Engine.context as any;
-    await TokensController.addToken(address, symbol, decimals, {
-      image: iconUrl,
-      name,
+  const addToken = useCallback(
+    async ({ address, symbol, decimals, iconUrl, name }) => {
+      const { TokensController } = Engine.context as any;
+      await TokensController.addToken(address, symbol, decimals, {
+        image: iconUrl,
+        name,
+      });
+
+      trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
+    },
+    [getAnalyticsParams, trackEvent],
+  );
+
+  /**
+   * Go to wallet page
+   */
+  const goToWalletPage = () => {
+    navigation.navigate(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
     });
+  };
 
-    trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
+  const addTokenList = useCallback(async () => {
+    for (const asset of selectedAsset) {
+      await addToken({ ...asset });
+    }
 
-    // Clear state before closing
     setSearchResults([]);
     setSearchQuery('');
-    setSelectedAsset({});
+    setSelectedAsset([]);
 
     InteractionManager.runAfterInteractions(() => {
-      navigation.goBack();
+      goToWalletPage();
       NotificationManager.showSimpleNotification({
         status: `simple_notification`,
         duration: 5000,
         title: strings('wallet.token_toast.token_imported_title'),
-        description: strings('wallet.token_toast.token_imported_desc', {
-          tokenSymbol: symbol,
-        }),
+        description: strings('wallet.token_toast.token_imported_desc_1'),
       });
     });
-  }, [
-    address,
-    symbol,
-    decimals,
-    iconUrl,
-    setSearchResults,
-    setSearchQuery,
-    setSelectedAsset,
-    navigation,
-    getAnalyticsParams,
-    name,
-    trackEvent,
-  ]);
+  }, [addToken, selectedAsset, goToWalletPage]);
+
+  const networkName = useSelector((state: EngineState) => {
+    const providerConfig = selectProviderConfig(state);
+    return getNetworkNameFromProviderConfig(providerConfig);
+  });
+
+  const goToConfirmAddToken = () => {
+    navigation.push('ConfirmAddAsset', {
+      selectedAsset,
+      networkName,
+      chainId,
+      ticker,
+      addTokenList,
+    });
+
+    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      source: 'manual',
+      chain_id: getDecimalChainId(chainId),
+    });
+  };
 
   const renderTokenDetectionBanner = useCallback(() => {
     if (isTokenDetectionEnabled || isSearchFocused) {
@@ -200,8 +258,8 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         cancelText={strings('add_asset.tokens.cancel_add_token')}
         confirmText={strings('add_asset.tokens.add_token')}
         onCancelPress={cancelAddToken}
-        onConfirmPress={addToken}
-        confirmDisabled={!(address && symbol && decimals)}
+        onConfirmPress={goToConfirmAddToken}
+        confirmDisabled={!enableImport}
       >
         <View>
           {renderTokenDetectionBanner()}
@@ -217,6 +275,9 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
             handleSelectAsset={handleSelectAsset}
             selectedAsset={selectedAsset}
             searchQuery={searchQuery}
+            chainId={chainId}
+            ticker={ticker}
+            networkName={networkName}
           />
         </View>
       </ActionView>

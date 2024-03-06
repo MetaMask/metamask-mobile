@@ -505,6 +505,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
         CurrencyRateController.start(),
+        // TODO HERE -----
         TokenRatesController.updateExchangeRates(),
       ];
       await Promise.all(actions).catch((error) => {

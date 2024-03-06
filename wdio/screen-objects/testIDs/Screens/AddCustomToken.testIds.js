@@ -7,3 +7,5 @@ export const TOKEN_PRECISION_WARNING_MESSAGE_ID = 'token-decimals-warning';
 export const CUSTOM_TOKEN_BACK_BUTTON_ID = 'asset-back-button';
 export const TOKEN_IMPORT_BUTTON_ID = 'add-custom-asset-confirm-button';
 export const TOKEN_CANCEL_IMPORT_BUTTON_ID = 'add-asset-cancel-button';
+export const ADD_CONFIRM_CUSTOM_ASSET = 'add-confirm-custom-asset';
+export const ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL = 'add-cancel-custom-asset-modal';

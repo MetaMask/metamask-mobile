@@ -303,6 +303,7 @@ function TokenSelectModal({
   const handlePressImportToken = useCallback(
     (item) => {
       const { address, symbol } = item;
+
       trackEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
         address,
         symbol,

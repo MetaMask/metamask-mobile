@@ -45,6 +45,7 @@ import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
+import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 
 import RampRoutes from '../../UI/Ramp/routes';
 import { RampType } from '../../UI/Ramp/types';
@@ -151,6 +152,11 @@ const WalletTabStackFlow = () => (
       name="AddAsset"
       component={AddAsset}
       options={AddAsset.navigationOptions}
+    />
+    <Stack.Screen
+      name="ConfirmAddAsset"
+      component={ConfirmAddAsset}
+      options={ConfirmAddAsset.navigationOptions}
     />
     <Stack.Screen
       name="Collectible"

@@ -53,6 +53,7 @@ export default function useBalance(asset?: Asset) {
       assetAddress && assetAddress in tokenExchangeRates
         ? tokenExchangeRates[assetAddress]
         : undefined;
+
     balance =
       assetAddress && assetAddress in balances
         ? renderFromTokenMinimalUnit(
