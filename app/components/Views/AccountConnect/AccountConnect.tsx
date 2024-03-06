@@ -102,7 +102,13 @@ const AccountConnect = (props: AccountConnectProps) => {
   // Last wallet connect session metadata
   const wc2Metadata = useSelector((state: RootState) => state.sdk.wc2Metadata);
 
+  const dappIconUrl = sdkConnection.originatorInfo?.icon;
   const faviconSource = useFavicon(origin);
+
+  const actualIcon = useMemo(
+    () => ({ uri: dappIconUrl } ?? faviconSource),
+    [dappIconUrl, faviconSource],
+  );
 
   const secureIcon = useMemo(
     () =>
@@ -363,7 +369,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         onUserAction={setUserIntent}
         defaultSelectedAccount={defaultSelectedAccount}
         isLoading={isLoading}
-        favicon={faviconSource}
+        favicon={actualIcon}
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
       />
@@ -375,7 +381,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     isLoading,
     setScreen,
     setSelectedAddresses,
-    faviconSource,
+    actualIcon,
     secureIcon,
     sdkConnection,
     urlWithProtocol,
