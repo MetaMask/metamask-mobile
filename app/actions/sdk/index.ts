@@ -13,7 +13,6 @@ export enum ActionType {
   REMOVE_APPROVED_HOST = 'REMOVE_APPROVWED_HOST',
   SET_APPROVED_HOST = 'SET_APPROVED_HOST',
   RESET_APPROVED_HOSTS = 'RESET_APPROVED_HOSTS',
-  ADD_ANDROID_CONNECTION = 'ADD_ANDROID_CONNECTION',
   SET_CONNECTED = 'SET_CONNECTED',
   UPDATE_ANDROID_CONNECTION = 'UPDATE_ANDROID_CONNECTION',
   REMOVE_ANDROID_CONNECTION = 'REMOVE_ANDROID_CONNECTION',
@@ -59,12 +58,6 @@ export interface ResetApprovedHosts
   approvedHosts: ApprovedHosts;
 }
 
-export interface AddAndroidConnection
-  extends ReduxAction<ActionType.ADD_ANDROID_CONNECTION> {
-  channelId: string;
-  connection: ConnectionProps;
-}
-
 export interface UpdateAndroidConnection
   extends ReduxAction<ActionType.UPDATE_ANDROID_CONNECTION> {
   channelId: string;
@@ -101,7 +94,6 @@ export type Action =
   | SetApprovedHost
   | ResetApprovedHosts
   | UpdateWC2Metadata
-  | AddAndroidConnection
   | UpdateAndroidConnection
   | RemoveAndroidConnection
   | ResetAndroidConnections
@@ -167,15 +159,6 @@ export const resetApprovedHosts = (
 ): ResetApprovedHosts => ({
   type: ActionType.RESET_APPROVED_HOSTS,
   approvedHosts,
-});
-
-export const addAndroidConnection = (
-  channelId: string,
-  connection: ConnectionProps,
-): AddAndroidConnection => ({
-  type: ActionType.ADD_ANDROID_CONNECTION,
-  channelId,
-  connection,
 });
 
 export const updateAndroidConnection = (

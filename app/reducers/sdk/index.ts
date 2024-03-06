@@ -89,14 +89,6 @@ const sdkReducer = (
           [action.channelId]: action.validUntil,
         },
       };
-    case ActionType.ADD_ANDROID_CONNECTION:
-      return {
-        ...state,
-        androidConnections: {
-          ...state.androidConnections,
-          [action.channelId]: action.connection,
-        },
-      };
     case ActionType.UPDATE_ANDROID_CONNECTION:
       return {
         ...state,

@@ -106,7 +106,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const faviconSource = useFavicon(origin);
 
   const actualIcon = useMemo(
-    () => ({ uri: dappIconUrl } ?? faviconSource),
+    () => (dappIconUrl ? { uri: dappIconUrl } : faviconSource),
     [dappIconUrl, faviconSource],
   );
 
