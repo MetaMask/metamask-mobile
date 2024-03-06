@@ -916,7 +916,6 @@ function SwapsQuotesView({
       newSwapsTransactions,
       approvalTransactionMetaId,
       isHardwareAddress,
-      SmartTransactionsController,
     ) => {
       if (!selectedQuote) {
         return;
@@ -972,7 +971,6 @@ function SwapsQuotesView({
       newSwapsTransactions,
       approvalTransactionMetaId,
       isHardwareAddress,
-      SmartTransactionsController,
     ) => {
       try {
         resetTransaction();
@@ -1016,7 +1014,6 @@ function SwapsQuotesView({
                   newSwapsTransactions,
                   approvalTransactionMetaId,
                   isHardwareAddress,
-                  SmartTransactionsController,
                 );
               }
             },
@@ -1048,21 +1045,7 @@ function SwapsQuotesView({
 
     startSwapAnalytics(selectedQuote, selectedAddress);
 
-    const { TransactionController, SmartTransactionsController } =
-      Engine.context;
-
-    Logger.log(
-      'STX QuotesView Engine.context.TransactionController',
-      !!TransactionController,
-    );
-    Logger.log(
-      'STX QuotesView Engine.context.TransactionController.approveTransactionsWithSameNonce',
-      !!TransactionController.approveTransactionsWithSameNonce,
-    );
-    Logger.log(
-      'STX QuotesView Engine.context.SmartTransactionsController',
-      !!SmartTransactionsController,
-    );
+    const { TransactionController } = Engine.context;
 
     Logger.log('STX approvalTransaction', !!approvalTransaction);
 
@@ -1076,7 +1059,6 @@ function SwapsQuotesView({
         newSwapsTransactions,
         approvalTransactionMetaId,
         isHardwareAddress,
-        SmartTransactionsController,
       );
 
       if (isHardwareAddress) {
@@ -1090,7 +1072,6 @@ function SwapsQuotesView({
       newSwapsTransactions,
       approvalTransactionMetaId,
       isHardwareAddress,
-      SmartTransactionsController,
     );
 
     navigation.dangerouslyGetParent()?.pop();
