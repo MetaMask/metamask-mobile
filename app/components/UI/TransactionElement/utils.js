@@ -10,7 +10,6 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   addCurrencySymbol,
-  toBN,
   BNToHex,
   limitToMaximumDecimalPlaces,
 } from '../../../util/number';
@@ -34,7 +33,6 @@ import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
 import Engine from '../../../core/Engine';
 import { isEIP1559Transaction } from '@metamask/transaction-controller';
-import { convertHexToDecimal } from '@metamask/controller-utils';
 
 const { getSwapsContractAddress } = swapsUtils;
 
@@ -282,8 +280,7 @@ export function decodeIncomingTransfer(args) {
     selectedAddress,
   } = args;
 
-  const decimalAmount = convertHexToDecimal(value);
-  const amount = toBN(decimalAmount);
+  const amount = hexToBN(value);
   const token = { symbol, decimals, address: contractAddress };
 
   const renderTokenAmount = token

@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { colors } from '../../../../../../styles/common';
@@ -24,10 +24,7 @@ const styleSheet = (params: { vars: ButtonLinkStyleSheetVars }) => {
       { backgroundColor: colors.transparent },
       style,
     ) as ViewStyle,
-    pressedText: Object.assign(
-      { textDecorationLine: 'underline' } as TextStyle,
-      style,
-    ) as TextStyle,
+    pressedText: { textDecorationLine: 'underline' },
   });
 };
 

@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
-index ad327da..56a1ae3 100644
+index ad327da..8df74ba 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
 @@ -1,6 +1,7 @@
@@ -47,7 +47,7 @@ index ad327da..56a1ae3 100644
      /**
       * Sets a new provider.
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
-index 18802c9..002f27c 100644
+index 18802c9..4b0d158 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.js
 @@ -18,6 +18,7 @@ const async_mutex_1 = require("async-mutex");
@@ -71,7 +71,7 @@ index 18802c9..002f27c 100644
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
          /**
-@@ -46,23 +48,36 @@ class AccountTrackerController extends base_controller_1.BaseController {
+@@ -46,23 +48,38 @@ class AccountTrackerController extends base_controller_1.BaseController {
           * If multi-account is enabled, updates balances for all accounts.
           */
          this.refresh = () => __awaiter(this, void 0, void 0, function* () {
@@ -86,12 +86,16 @@ index 18802c9..002f27c 100644
                  ? Object.keys(accounts)
                  : [this.getSelectedAddress()];
              for (const address of accountsToUpdate) {
-+                const hexBalance = yield this.getBalanceFromChain(address);
-                 accounts[address] = {
+-                accounts[address] = {
 -                    balance: (0, controller_utils_1.BNToHex)(yield this.getBalanceFromChain(address)),
-+                    balance: (0, controller_utils_1.BNToHex)(hexBalance),
-                 };
-+                accountsForChain[address] = { balance: (0, controller_utils_1.BNToHex)(hexBalance) };
+-                };
++                const hexBalance = yield this.getBalanceFromChain(address);
++                if(hexBalance){
++                    accounts[address] = {
++                        balance: (0, controller_utils_1.BNToHex)(hexBalance),
++                    };
++                    accountsForChain[address] = { balance: (0, controller_utils_1.BNToHex)(hexBalance) };
++                }
              }
 -            this.update({ accounts });
 +            this.update({
@@ -112,7 +116,7 @@ index 18802c9..002f27c 100644
          this.initialize();
          this.getIdentities = getIdentities;
          this.getSelectedAddress = getSelectedAddress;
-@@ -70,21 +85,41 @@ class AccountTrackerController extends base_controller_1.BaseController {
+@@ -70,21 +87,41 @@ class AccountTrackerController extends base_controller_1.BaseController {
          onPreferencesStateChange(() => {
              this.refresh();
          });

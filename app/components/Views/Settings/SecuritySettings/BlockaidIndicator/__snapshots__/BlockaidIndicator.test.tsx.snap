@@ -116,6 +116,8 @@ Array [
         }
       >
         <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
@@ -154,6 +156,8 @@ Array [
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
@@ -312,6 +316,8 @@ Array [
         }
       >
         <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
@@ -350,6 +356,8 @@ Array [
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
@@ -496,6 +504,8 @@ Array [
         }
       >
         <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}
@@ -534,6 +544,8 @@ Array [
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
           activeOpacity={1}
           onPress={[Function]}
           onPressIn={[Function]}

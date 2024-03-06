@@ -398,7 +398,7 @@ describe('getRpcMethodMiddleware', () => {
       });
 
       describe('SDK', () => {
-        it('returns the selected account for an approved host', async () => {
+        it('returns permitted account for connected host', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
           const mockAddress2 = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
@@ -408,7 +408,6 @@ describe('getRpcMethodMiddleware', () => {
           const middleware = getRpcMethodMiddleware({
             ...getMinimalSDKOptions(),
             hostname: 'example.metamask.io',
-            getApprovedHosts: () => ({ 'example.metamask.io': true }),
           });
           const request = {
             jsonrpc,
@@ -420,21 +419,19 @@ describe('getRpcMethodMiddleware', () => {
 
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
-            mockAddress2,
+            mockAddress1,
           ]);
         });
 
-        it('returns an empty array for an unapproved host', async () => {
-          const mockAddress1 = '0x0000000000000000000000000000000000000001';
+        it('returns an empty array for an unconnected channel', async () => {
           const mockAddress2 = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
-            permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+            permittedAccounts: {},
             selectedAddress: mockAddress2,
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalSDKOptions(),
             hostname: 'example.metamask.io',
-            getApprovedHosts: () => ({}),
           });
           const request = {
             jsonrpc,
@@ -627,6 +624,7 @@ describe('getRpcMethodMiddleware', () => {
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
+          permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
           providerConfig: {
             chainId: '0x1',
@@ -659,6 +657,7 @@ describe('getRpcMethodMiddleware', () => {
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
+          permittedAccounts: { 'example.metamask.io': [] },
           providerConfig: {
             chainId: '0x1',
             type: RPC,
@@ -694,6 +693,9 @@ describe('getRpcMethodMiddleware', () => {
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
+          permittedAccounts: {
+            '70a863a4-a756-4660-8c72-dc367d02f625': [mockAddress],
+          },
           // Set minimal network controller state to support validation
           providerConfig: {
             chainId: '0x1',
@@ -704,6 +706,7 @@ describe('getRpcMethodMiddleware', () => {
         const middleware = getRpcMethodMiddleware({
           ...getMinimalSDKOptions(),
           hostname: 'example.metamask.io',
+          channelId: '70a863a4-a756-4660-8c72-dc367d02f625',
         });
         const request = {
           jsonrpc,

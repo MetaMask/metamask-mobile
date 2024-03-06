@@ -12,7 +12,6 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../../util/analyticsV2';
 import { strings } from '../../../../../../../locales/i18n';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -22,6 +21,7 @@ import {
   selectSelectedAddress,
 } from '../../../../../../selectors/preferencesController';
 import { REVEAL_PRIVATE_KEY_SECTION } from '../../SecuritySettings.constants';
+import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 
 const testIds = {
   section: REVEAL_PRIVATE_KEY_SECTION,
@@ -30,6 +30,7 @@ const testIds = {
 const RevealPrivateKey = () => {
   const styles = createStyles();
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
 
   const accounts = useSelector(selectAccounts);
   const identities = useSelector(selectIdentities);
@@ -41,7 +42,7 @@ const RevealPrivateKey = () => {
   };
 
   const goToExportPrivateKey = () => {
-    AnalyticsV2.trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED, {});
+    trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED, {});
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'private_key',
       shouldUpdateNav: true,
