@@ -14,7 +14,7 @@ const CONTENT_MOCK = 'CONTENT_MOCK';
 const CANCEL_TEXT_MOCK = 'CANCEL_TEXT_MOCK';
 const CONFIRM_TEXT_MOCK = 'CONFIRM_TEXT_MOCK';
 
-describe('ApprovalResult', () => {
+describe('TemplateConfirmation', () => {
   const mockProps: TemplateConfirmationProps = {
     approvalRequest: {
       id: 'mocked',
