@@ -1003,6 +1003,8 @@ class Engine {
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        // @ts-expect-error network controller will be updated on this PR: https://github.com/MetaMask/metamask-mobile/pull/8812 and this type error will be addressed
+        // This is not a blocker because gas fee controller does not need ticker to be defined
         getNetworkState: () => networkController.state,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
