@@ -76,6 +76,17 @@ const PopularList = [
     },
   },
   {
+    chainId: toHex('11297108109'),
+    nickname: 'Palm',
+    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
+    ticker: 'PALM',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.palm.io',
+      imageUrl: 'PALM',
+      imageSource: require('../../images/palm.png'),
+    },
+  },
+  {
     chainId: toHex('137'),
     nickname: 'Polygon Mainnet',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
@@ -87,14 +98,14 @@ const PopularList = [
     },
   },
   {
-    chainId: toHex('11297108109'),
-    nickname: 'Palm',
-    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
-    ticker: 'PALM',
+    chainId: toHex('324'),
+    nickname: 'zkSync Era',
+    rpcUrl: `https://mainnet.era.zksync.io/`,
+    ticker: 'ETH',
     rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.palm.io',
-      imageUrl: 'PALM',
-      imageSource: require('../../images/palm.png'),
+      blockExplorerUrl: 'https://era.zksync.network/',
+      imageUrl: 'ZKSYNC',
+      imageSource: require('../../images/zksync.png'),
     },
   },
 ];

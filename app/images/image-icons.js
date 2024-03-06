@@ -10,6 +10,7 @@ import AVAX from './avalanche.png';
 import LINEA_GOERLI from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
+import ZKSYNC from './zksync.png';
 
 export default {
   PALM,
@@ -24,4 +25,5 @@ export default {
   'LINEA-GOERLI': LINEA_GOERLI,
   SEPOLIA,
   'LINEA-MAINNET': LINEA_MAINNET,
+  ZKSYNC,
 };
