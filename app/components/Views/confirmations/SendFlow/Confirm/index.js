@@ -1186,8 +1186,6 @@ class Confirm extends PureComponent {
       ? strings('transaction.go_to_faucet')
       : strings('transaction.buy_more');
 
-    Logger.log('RENDER app/components/Views/SendFlow/Confirm/index.js');
-
     return (
       <SafeAreaView
         edges={['bottom']}

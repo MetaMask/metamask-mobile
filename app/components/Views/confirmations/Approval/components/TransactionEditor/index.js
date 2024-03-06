@@ -843,8 +843,6 @@ class TransactionEditor extends PureComponent {
       transaction?.type === '0x0' ||
       gasEstimateType !== GAS_ESTIMATE_TYPES.FEE_MARKET;
 
-    Logger.log('RENDER app/components/UI/TransactionEditor/index.js');
-
     return (
       <React.Fragment>
         {mode === 'review' && (
