@@ -81,14 +81,14 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 
 notifee.onBackgroundEvent(async ({ type, detail }) => {
   const { notification, pressAction } = detail;
-
   if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
-    // Do nothing for now just Remove the notification
-    await notifee.cancelNotification(notification.id);
+    notifee.decrementBadgeCount(1).then(async () => {
+      await notifee.cancelNotification(notification.id);
+    });
   } else {
-    // eslint-disable-next-line no-console
-    console.log('Notification caused application to open', notification);
-    NotificationManager.onMessageReceived(notification);
+    notifee.incrementBadgeCount(1).then(() => {
+      NotificationManager.onMessageReceived(notification);
+    });
   }
 });
 

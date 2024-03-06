@@ -1,10 +1,3 @@
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
-
-export interface FixedRemoteMessage
-  extends FirebaseMessagingTypes.RemoteMessage {
-  data: { [key: string]: string } & { fcm_options: { image: string } };
-}
-
 export const NotificationTypes = {
   transaction: 'transaction',
   marketing: 'marketing',

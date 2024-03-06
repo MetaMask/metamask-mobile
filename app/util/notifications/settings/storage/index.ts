@@ -5,8 +5,8 @@ export const notificationSettingsStorage = new MMKV({
   id: STORAGE_IDS.NOTIFICATIONS,
 });
 
-export function mmStorage() {
-  const getLocal = (key: string) => {
+export default class mmStorage {
+  static getLocal(key: string) {
     if (!key) {
       return;
     }
@@ -25,9 +25,9 @@ export function mmStorage() {
       default:
         return notificationSettingsStorage.getString(key);
     }
-  };
+  }
 
-  const saveLocal = (key: string, value: any) => {
+  static saveLocal(key: string, value: any) {
     if (!key) {
       return;
     }
@@ -38,9 +38,9 @@ export function mmStorage() {
     }
 
     return notificationSettingsStorage.set(key, value);
-  };
+  }
 
-  const clearAllStorages = () => {
+  static clearAllStorages() {
     Object.keys(STORAGE_IDS).forEach((id) => {
       const storage = new MMKV({ id });
       storage.clearAll();
@@ -48,7 +48,5 @@ export function mmStorage() {
 
     const defaultStorage = new MMKV();
     defaultStorage.clearAll();
-  };
-
-  return { getLocal, saveLocal, clearAllStorages };
+  }
 }

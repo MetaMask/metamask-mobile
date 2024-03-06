@@ -273,6 +273,22 @@ const Main = (props) => {
     }
   });
 
+  const bootstrapInitialNotification = useCallback(async () => {
+    const initialNotification = await notifee.getInitialNotification();
+
+    if (initialNotification) {
+      if (
+        initialNotification.data &&
+        initialNotification.data.action === 'tx'
+      ) {
+        if (initialNotification.data.id) {
+          NotificationManager.setTransactionToView(initialNotification.data.id);
+        }
+        props.navigation.navigate('TransactionsView');
+      }
+    }
+  }, [props.navigation]);
+
   // Remove all notifications that aren't visible
   useEffect(() => {
     removeNotVisibleNotifications();
@@ -296,33 +312,6 @@ const Main = (props) => {
       removeConnectionStatusListener.current = NetInfo.addEventListener(
         connectionChangeHandler,
       );
-
-      notifee.onForegroundEvent(({ type, detail }) => {
-        if (type === EventType.DELIVERED) {
-          let data = null;
-          if (Device.isAndroid()) {
-            if (detail.data) {
-              data = JSON.parse(detail.data);
-            }
-          } else if (detail.data) {
-            data = detail.data;
-          }
-          if (data && data.action === 'tx') {
-            if (data.id) {
-              NotificationManager.setTransactionToView(data.id);
-            }
-            props.navigation.navigate('TransactionsHome');
-          }
-        }
-      });
-      /**
-       * Creates a channel (required for Android)
-       */
-      notifee.createChannel({
-        id: STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID,
-        name: 'Default',
-        importance: AndroidImportance.HIGH,
-      });
     }, 1000);
 
     return function cleanup() {
@@ -342,6 +331,42 @@ const Main = (props) => {
   useEffect(() => {
     termsOfUse();
   }, [termsOfUse]);
+
+  useEffect(() => {
+    notifee.decrementBadgeCount(1);
+
+    bootstrapInitialNotification();
+    setTimeout(() => {
+      notifee.onForegroundEvent(({ type, detail }) => {
+        if (type !== EventType.DISMISSED) {
+          let data = null;
+          if (Device.isAndroid()) {
+            if (detail.notification.data) {
+              data = JSON.parse(detail.notification.data);
+            }
+          } else if (detail.notification.data) {
+            data = detail.notification.data;
+          }
+          if (data && data.action === 'tx') {
+            if (data.id) {
+              NotificationManager.setTransactionToView(data.id);
+            }
+            if (props.navigation) {
+              props.navigation.navigate('TransactionsView');
+            }
+          }
+        }
+      });
+      /**
+       * Creates a channel (required for Android)
+       */
+      notifee.createChannel({
+        id: STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID,
+        name: 'Default',
+        importance: AndroidImportance.HIGH,
+      });
+    }, 1000);
+  }, [bootstrapInitialNotification, props.navigation]);
 
   const openDeprecatedNetworksArticle = () => {
     Linking.openURL(GOERLI_DEPRECATED_ARTICLE);

@@ -1,15 +1,16 @@
 'use strict';
 
-import notifee from '@notifee/react-native';
+import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
+import Logger from '../util/Logger';
+import AppConstants from '../core/AppConstants';
 import { strings } from '../../locales/i18n';
-import { AppState } from 'react-native';
-import {
-  NotificationTransactionTypes,
-  checkPushNotificationPermissions,
-} from '../util/notifications';
+import { AppState, Alert } from 'react-native';
+import { NotificationTransactionTypes } from '../util/notifications/types';
+import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
+import mmStorage from '../util/notifications/settings/storage';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
@@ -117,34 +118,39 @@ class NotificationManager {
 
   // TODO: Refactor this method to use notifee's channels in combination with MM auth
   _showNotification(data, channelId = 'default') {
-    // eslint-disable-next-line no-console
-    console.log('NotificationManager _showNotification', data);
     if (this._backgroundMode) {
       const { title, message } = constructTitleAndMessage(data);
+      const id = data?.transaction?.id || '';
+      if (id) {
+        this._transactionToView.push(id);
+      }
 
       const pushData = {
         title,
         body: message,
         android: {
+          lightUpScreen: true,
+          channelId,
           smallIcon: 'ic_notification_small',
           largeIcon: 'ic_notification',
-          channelId,
           pressAction: {
             id: 'default',
+            launchActivity: 'com.metamask.ui.MainActivity',
           },
         },
         ios: {
           foregroundPresentationOptions: {
-            badge: true,
+            alert: true,
             sound: true,
+            badge: true,
             banner: true,
             list: true,
           },
         },
       };
-      const id = data?.transaction?.id || null;
 
       const extraData = { action: 'tx', id };
+      pushData.data = { ...data?.transaction, ...extraData };
       if (Device.isAndroid()) {
         pushData.tag = JSON.stringify(extraData);
       } else {
@@ -152,10 +158,6 @@ class NotificationManager {
       }
 
       notifee.displayNotification(pushData);
-
-      if (id) {
-        this._transactionToView.push(id);
-      }
     } else {
       this._showTransactionNotification({
         autodismiss: data.duration,
@@ -234,7 +236,7 @@ class NotificationManager {
         Device.isIos() &&
           setTimeout(() => {
             this.requestPushNotificationsPermission();
-          }, 7000);
+          }, 5000);
 
         // Prompt review
         ReviewManager.promptReview();
@@ -290,13 +292,62 @@ class NotificationManager {
     this._navigation.navigate(view);
   }
 
-  onMessageReceived = async (data) => {
+  onMessageReceived(data) {
     this._showNotification(data);
-  };
-
-  requestPushNotificationsPermission() {
-    return checkPushNotificationPermissions();
   }
+
+  requestPushNotificationsPermission = async () => {
+    try {
+      const promptCount = mmStorage.getLocal(
+        STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
+      );
+
+      const permissionStatus = await notifee.requestPermission();
+
+      if (
+        !promptCount ||
+        promptCount < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES
+      ) {
+        if (
+          permissionStatus.authorizationStatus < AuthorizationStatus.AUTHORIZED
+        ) {
+          Alert.alert(
+            strings('notifications.prompt_title'),
+            strings('notifications.prompt_desc'),
+            [
+              {
+                text: strings('notifications.prompt_cancel'),
+                onPress: () => false,
+                style: 'default',
+              },
+              {
+                text: strings('notifications.prompt_ok'),
+                onPress: async () => {
+                  if (Device.isIos()) {
+                    await notifee.requestPermission({
+                      provisional: true,
+                    });
+                  } else {
+                    await notifee.requestPermission();
+                  }
+                  // await saveFCMToken();
+                },
+              },
+            ],
+            { cancelable: false },
+          );
+        }
+        const times = promptCount + 1 || 1;
+        mmStorage.saveLocal(STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT, times);
+        mmStorage.saveLocal(
+          STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_TIME,
+          Date.now().toString(),
+        );
+      }
+    } catch (e) {
+      Logger.error(e, strings('notifications.error_checking_permission'));
+    }
+  };
   /**
    * Returns the id of the transaction that should
    * be displayed and removes it from memory
@@ -409,7 +460,7 @@ class NotificationManager {
             assetType: strings('unit.eth'),
           },
           autoHide: true,
-          duration: 5000,
+          duration: 7000,
         });
       }
     }
@@ -427,7 +478,6 @@ export default {
     hideCurrentNotification,
     showSimpleNotification,
     removeNotificationById,
-    onMessageReceived,
   }) {
     instance = new NotificationManager(
       navigation,
@@ -435,7 +485,6 @@ export default {
       hideCurrentNotification,
       showSimpleNotification,
       removeNotificationById,
-      onMessageReceived,
     );
     return instance;
   },
@@ -456,5 +505,8 @@ export default {
   },
   showSimpleNotification(data) {
     return instance?.showSimpleNotification(data);
+  },
+  onMessageReceived(data) {
+    return instance?.onMessageReceived(data);
   },
 };
