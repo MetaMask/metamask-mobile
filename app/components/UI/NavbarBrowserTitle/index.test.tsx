@@ -33,10 +33,10 @@ jest.mock('../../../core/Engine', () => ({
 
 describe('NavbarBrowserTitle', () => {
   it('should render correctly', () => {
-    const wrapper = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <NavbarBrowserTitle hostname={'faucet.metamask.io'} https />,
       { state: mockInitialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

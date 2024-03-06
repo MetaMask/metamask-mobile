@@ -4,7 +4,7 @@ import UrlAutocomplete from './';
 
 describe('UrlAutocomplete', () => {
   it('should render correctly', () => {
-    const wrapper = renderWithProvider(<UrlAutocomplete />, {});
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<UrlAutocomplete />, {});
+    expect(toJSON()).toMatchSnapshot();
   });
 });

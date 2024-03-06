@@ -5,7 +5,7 @@ jest.useFakeTimers();
 
 describe('Coachmark', () => {
   it('should render correctly', () => {
-    const wrapper = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <Coachmark
         content={'content'}
         title={'title'}
@@ -13,6 +13,6 @@ describe('Coachmark', () => {
         topIndicatorPosition={'topLeft'}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

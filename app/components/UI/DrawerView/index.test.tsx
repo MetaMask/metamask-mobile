@@ -35,12 +35,12 @@ jest.mock('../../../core/Engine', () => ({
 
 describe('DrawerView', () => {
   it('should render correctly', () => {
-    const wrapper = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <DrawerView navigation={{ goBack: () => null }} />,
       {
         state: mockInitialState,
       },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

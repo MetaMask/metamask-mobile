@@ -25,7 +25,7 @@ jest.mock('../../../core/Engine.ts', () => ({
 
 describe('Asset', () => {
   it('should render correctly', () => {
-    const wrapper = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <Asset
         navigation={{ setOptions: () => null }}
         route={{ params: { symbol: 'ETH', address: 'something', isETH: true } }}
@@ -35,6 +35,6 @@ describe('Asset', () => {
         state: mockInitialState,
       },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
