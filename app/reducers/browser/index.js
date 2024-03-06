@@ -7,12 +7,12 @@ const initialState = {
   tabs: [],
   favicons: [],
   activeTab: null,
-  // Keep track of visited Dapps, which is used for MetaMetricsEvents.DAPP_VIEWED event
+  // Keep track of viewed Dapps, which is used for MetaMetricsEvents.DAPP_VIEWED event
   visitedDappsByHostname: {},
 };
 const browserReducer = (state = initialState, action) => {
   switch (action.type) {
-    case BrowserActionTypes.ADD_TO_VISITED_DAPP: {
+    case BrowserActionTypes.ADD_TO_VIEWED_DAPP: {
       const { hostname } = action;
       return {
         ...state,

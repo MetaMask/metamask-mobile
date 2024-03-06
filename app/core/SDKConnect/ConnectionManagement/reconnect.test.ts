@@ -35,7 +35,6 @@ describe('reconnect', () => {
   const mockRemoteConnect = jest.fn();
   const mockRemoveChannel = jest.fn();
   const mockWatchConnection = jest.fn();
-  const mockEmit = jest.fn();
   const mockSetTrigger = jest.fn();
   const mockApproveHost = jest.fn();
   const mockDisapproveChannel = jest.fn();
@@ -44,6 +43,7 @@ describe('reconnect', () => {
   const mockIsApproved = jest.fn();
   const mockUpdateOriginatorInfos = jest.fn();
   const mockReconnect = jest.fn();
+  const mockUpdateSDKLoadingState = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -77,6 +77,7 @@ describe('reconnect', () => {
         rpcqueueManager: {},
         navigation: {},
       },
+      updateSDKLoadingState: mockUpdateSDKLoadingState,
       _approveHost: mockApproveHost,
       disapproveChannel: mockDisapproveChannel,
       getApprovedHosts: mockGetApprovedHosts,
@@ -86,7 +87,6 @@ describe('reconnect', () => {
       updateOriginatorInfos: mockUpdateOriginatorInfos,
       reconnect: mockReconnect,
       watchConnection: mockWatchConnection,
-      emit: mockEmit,
     } as unknown as SDKConnect;
   });
 
@@ -106,7 +106,6 @@ describe('reconnect', () => {
       expect(mockRemoteIsReady).toHaveBeenCalledTimes(1);
       expect(mockRemoteConnect).toHaveBeenCalledTimes(0);
       expect(mockSetTrigger).toHaveBeenCalledTimes(1);
-      expect(mockEmit).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -151,7 +150,6 @@ describe('reconnect', () => {
       expect(mockRemoteIsConnected).toHaveBeenCalledTimes(2);
       expect(mockRemoteConnect).toHaveBeenCalledTimes(0);
       expect(mockSetTrigger).toHaveBeenCalledTimes(0);
-      expect(mockEmit).toHaveBeenCalledTimes(1);
     });
 
     it('should create a new connection instance if necessary', async () => {
@@ -175,7 +173,6 @@ describe('reconnect', () => {
         mockInstance.state.connected['test-channel-id'].connect,
       ).toHaveBeenCalledTimes(1);
       expect(mockSetTrigger).toHaveBeenCalledTimes(0);
-      expect(mockEmit).toHaveBeenCalledTimes(1);
     });
 
     it('should initiate the connection with key exchange', async () => {
@@ -199,7 +196,6 @@ describe('reconnect', () => {
         mockInstance.state.connected['test-channel-id'].connect,
       ).toHaveBeenCalledTimes(1);
       expect(mockSetTrigger).toHaveBeenCalledTimes(0);
-      expect(mockEmit).toHaveBeenCalledTimes(1);
     });
 
     it('should watch the new connection', async () => {
@@ -237,24 +233,6 @@ describe('reconnect', () => {
       });
 
       expect(mockInstance.state.connecting['test-channel-id']).toEqual(true);
-    });
-
-    it('should emit a refresh event', async () => {
-      mockRemoteIsReady.mockReturnValue(false);
-      mockRemoteIsPaused.mockReturnValue(false);
-      mockRemoteIsConnected.mockReturnValue(false);
-
-      await reconnect({
-        initialConnection: false,
-        instance: mockInstance,
-        channelId: 'test-channel-id',
-        trigger: 'deeplink',
-        otherPublicKey: 'test-other-public-key',
-        context: 'test-context',
-      });
-
-      expect(mockEmit).toHaveBeenCalledTimes(1);
-      expect(mockEmit).toHaveBeenCalledWith('refresh');
     });
   });
 });
