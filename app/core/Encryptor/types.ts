@@ -37,6 +37,13 @@ export interface EncryptionResult {
   keyMetadata?: KeyDerivationOptions;
 }
 
+/**
+ * Defines the structure for a generic encryption utility.
+ * This utility provides methods for encrypting and decrypting objects
+ * using a specified password. It may also include an optional method
+ * for checking if an encrypted vault is up to date with the desired
+ * encryption algorithm and parameters.
+ */
 export interface GenericEncryptor {
   /**
    * Encrypts the given object with the given password.
