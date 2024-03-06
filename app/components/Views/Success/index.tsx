@@ -6,6 +6,7 @@ import {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button/Button.types';
+import { useNavigation } from '@react-navigation/native';
 // import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
@@ -57,37 +58,39 @@ const strings = (key: string) =>
     done: 'Done',
   }[key]);
 
-const DefaultSettings = () => (
-  <View style={styles.root}>
-    <View style={styles.topWrapper}>
-      <Text style={styles.emoji}>🎉</Text>
-      <Text style={styles.title}>{strings('title')}</Text>
-      <View style={styles.descriptionWrapper}>
-        <Text style={styles.description}>{strings('description')}</Text>
+const OnboardingSuccess = () => {
+  const navigation = useNavigation();
+    return (
+      <View style={styles.root}>
+      <View style={styles.topWrapper}>
+          <Text style={styles.emoji}>🎉</Text>
+          <Text style={styles.title}>{strings('title')}</Text>
+          <View style={styles.descriptionWrapper}>
+            <Text style={styles.description}>{strings('description')}</Text>
+          </View>
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            label={strings('defaultSettings')}
+            variant={ButtonVariants.Secondary}
+            style={styles.button}
+            onPress={() => navigation.navigate('DefaultSettings')}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+          >
+            {strings('account_backup_step_1B.cta_text')}
+          </Button>
+          <Button
+            label={strings('done')}
+            variant={ButtonVariants.Primary}
+            onPress={() => console.log('DONE')}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+          >
+            {strings('account_backup_step_1B.cta_text')}
+          </Button>
+        </View>
       </View>
-    </View>
-    <View style={styles.buttonWrapper}>
-      <Button
-        label={strings('defaultSettings')}
-        variant={ButtonVariants.Secondary}
-        style={styles.button}
-        onPress={() => console.log('DEFAULT NEXT')}
-        size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-      >
-        {strings('account_backup_step_1B.cta_text')}
-      </Button>
-      <Button
-        label={strings('done')}
-        variant={ButtonVariants.Primary}
-        onPress={() => console.log('DONE')}
-        size={ButtonSize.Lg}
-        width={ButtonWidthTypes.Full}
-      >
-        {strings('account_backup_step_1B.cta_text')}
-      </Button>
-    </View>
-  </View>
-);
+    )};
 
-export default DefaultSettings;
+export default OnboardingSuccess;

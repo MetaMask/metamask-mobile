@@ -102,6 +102,7 @@ import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectMo
 import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import DefaultSettings from '../../Views/DefaultSettings';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -433,7 +434,9 @@ const App = ({ userLoggedIn }) => {
       setOnboarded(!!existingUser);
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
-        : Routes.ONBOARDING.LOGIN;
+        : Routes.ONBOARDING.DEFAULT_SETTINGS;
+      // TODO: reinstate this
+      // : Routes.ONBOARDING.LOGIN;
       setRoute(route);
     }
 
@@ -724,6 +727,11 @@ const App = ({ userLoggedIn }) => {
             <Stack.Screen
               name="OnboardingRootNav"
               component={OnboardingRootNav}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="AdvancedPrivacy"
+              component={AdvancedPrivacy}
               options={{ headerShown: false }}
             />
             {userLoggedIn && (
