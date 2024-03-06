@@ -1,6 +1,17 @@
 # Changelog
 
 ## Current Main Branch
+- [#8779](https://github.com/MetaMask/metamask-mobile/pull/8779): chore: bump version 1267
+- [#8760](https://github.com/MetaMask/metamask-mobile/pull/8760): chore: cherry-pick #8708
+- [#8766](https://github.com/MetaMask/metamask-mobile/pull/8766): fix: cherry-pick (#8727)
+- [#8757](https://github.com/MetaMask/metamask-mobile/pull/8757): chore: cherry-pick #8744
+- [#8765](https://github.com/MetaMask/metamask-mobile/pull/8765): fix: cherry-pick (#8742)
+- [#8767](https://github.com/MetaMask/metamask-mobile/pull/8767): fix: cherry-pick (#8725)
+- [#8773](https://github.com/MetaMask/metamask-mobile/pull/8773): fix: Cherry pick translations
+- [#8640](https://github.com/MetaMask/metamask-mobile/pull/8640): chore: cherry pick 8615
+- updated changelog
+- [#8613](https://github.com/MetaMask/metamask-mobile/pull/8613): chore: merge 7.16.0 into 7.17.0
+- 7.17.0
 
 ## 7.17.0 - Feb 16, 2024
 ### Added
