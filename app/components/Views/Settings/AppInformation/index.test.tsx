@@ -3,11 +3,11 @@ import AppInformation from './';
 
 describe('AppInformation', () => {
   it('should render correctly', () => {
-    const wrapper = renderScreen(
+    const { toJSON } = renderScreen(
       AppInformation,
       { name: 'AppInformation' },
       { state: {} },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
