@@ -20,8 +20,8 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
-import Send from '../../Views/Send';
-import SendTo from '../../Views/SendFlow/SendTo';
+import Send from '../../Views/confirmations/Send';
+import SendTo from '../../Views/confirmations/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -36,8 +36,8 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import Amount from '../../Views/SendFlow/Amount';
-import Confirm from '../../Views/SendFlow/Confirm';
+import Amount from '../../Views/confirmations/SendFlow/Amount';
+import Confirm from '../../Views/confirmations/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
@@ -61,7 +61,6 @@ import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
@@ -74,6 +73,8 @@ import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManage
 import URL from 'url-parse';
 import Logger from '../../../util/Logger';
 import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -326,6 +327,7 @@ const SettingsFlow = () => (
 );
 
 const HomeTabs = () => {
+  const { trackEvent } = useMetrics();
   const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
@@ -365,7 +367,7 @@ const HomeTabs = () => {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
+        trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
           chain_id: getDecimalChainId(chainId),
         });
@@ -379,7 +381,7 @@ const HomeTabs = () => {
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+        trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
           chain_id: getDecimalChainId(chainId),
           source: 'Navigation Tab',
@@ -392,16 +394,14 @@ const HomeTabs = () => {
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
       callback: () => {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-        );
+        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
+        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
       },
       rootScreenName: Routes.SETTINGS_VIEW,
       unmountOnBlur: true,
@@ -615,6 +615,19 @@ const MainNavigator = () => (
     <Stack.Screen
       name="CollectiblesDetails"
       component={CollectiblesDetails}
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+    />
+    <Stack.Screen
+      name={Routes.DEPRECATED_NETWORK_DETAILS}
+      component={DeprecatedNetworkDetails}
       options={{
         //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
         cardStyle: { backgroundColor: importedColors.transparent },

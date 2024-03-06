@@ -1,11 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  InteractionManager,
-  Platform,
-} from 'react-native';
+import { View, TouchableOpacity, Platform } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
 import { baseStyles } from '../../../styles/common';
@@ -13,7 +8,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   NOTIFICATION_REMIND_ME_LATER_BUTTON_ID,
@@ -31,6 +25,7 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const BROWSER_ROUTE = 'BrowserView';
 
@@ -50,7 +45,7 @@ const BLOCKED_LIST = [
 
 const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
   const { styles } = useStyles(styleSheet, {});
-
+  const { trackEvent } = useMetrics();
   const [inBrowserView, setInBrowserView] = useState(false);
   const [inBlockedView, setInBlockedView] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -81,28 +76,21 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
     navigation.navigate('SetPasswordFlow', {
       screen: 'AccountBackupStep1',
     });
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
-        {
-          wallet_protection_required: false,
-          source: 'Backup Alert',
-        },
-      );
+
+    trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED, {
+      wallet_protection_required: false,
+      source: 'Backup Alert',
     });
   };
 
   const onDismissAlert = () => {
     dispatch(backUpSeedphraseAlertNotVisible());
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
-        {
-          wallet_protection_required: false,
-          source: 'Backup Alert',
-        },
-      );
+
+    trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED, {
+      wallet_protection_required: false,
+      source: 'Backup Alert',
     });
+
     if (onDismiss) onDismiss();
   };
 

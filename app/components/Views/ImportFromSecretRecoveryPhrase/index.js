@@ -8,7 +8,6 @@ import {
   View,
   TextInput,
   SafeAreaView,
-  InteractionManager,
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
@@ -35,7 +34,6 @@ import {
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -65,6 +63,7 @@ import {
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -104,6 +103,10 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const passwordInput = React.createRef();
   const confirmPasswordInput = React.createRef();
+
+  const track = (event, properties) => {
+    trackOnboarding(event, properties);
+  };
 
   const updateNavBar = () => {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
@@ -184,9 +187,7 @@ const ImportFromSecretRecoveryPhrase = ({
     setSeed(parsedSeed);
 
     if (loading) return;
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
-    });
+    track(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
     let error = null;
     if (!passwordRequirementsMet(password)) {
       error = strings('import_from_seed.password_length_error');
@@ -202,11 +203,9 @@ const ImportFromSecretRecoveryPhrase = ({
 
     if (error) {
       Alert.alert(strings('import_from_seed.error'), error);
-      InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-          wallet_setup_type: 'import',
-          error_type: error,
-        });
+      track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        wallet_setup_type: 'import',
+        error_type: error,
       });
     } else {
       try {
@@ -234,14 +233,12 @@ const ImportFromSecretRecoveryPhrase = ({
         passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
         seedphraseBackedUp();
-        InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
-            biometrics_enabled: Boolean(biometryType),
-          });
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-            wallet_setup_type: 'import',
-            new_wallet: false,
-          });
+        track(MetaMetricsEvents.WALLET_IMPORTED, {
+          biometrics_enabled: Boolean(biometryType),
+        });
+        track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+          wallet_setup_type: 'import',
+          new_wallet: false,
         });
         if (onboardingWizard) {
           navigation.replace(Routes.ONBOARDING.MANUAL_BACKUP.STEP_3);
@@ -265,11 +262,9 @@ const ImportFromSecretRecoveryPhrase = ({
           setError(error.message);
           Logger.log('Error with seed phrase import', error.message);
         }
-        InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-            wallet_setup_type: 'import',
-            error_type: error.toString(),
-          });
+        track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          wallet_setup_type: 'import',
+          error_type: error.toString(),
         });
       }
     }
