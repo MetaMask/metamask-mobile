@@ -14,6 +14,6 @@ describe('UpdateNeeded', () => {
       { name: 'UpdateNeeded' },
       { state: {} },
     );
-    expect(toJSON).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

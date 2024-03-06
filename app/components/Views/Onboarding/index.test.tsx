@@ -19,6 +19,6 @@ describe('Onboarding', () => {
         state: mockInitialState,
       },
     );
-    expect(toJSON).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
