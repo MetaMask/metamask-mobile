@@ -85,7 +85,7 @@ describe(Regression('Custom RPC Tests'), () => {
     await TestHelpers.delay(3000);
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible(
-      Networks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig.nickname,
     );
   });
 
