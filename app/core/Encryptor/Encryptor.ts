@@ -1,5 +1,5 @@
 import { NativeModules } from 'react-native';
-import { hasProperty, isPlainObject } from '@metamask/utils';
+import { hasProperty, isPlainObject, Json } from '@metamask/utils';
 import {
   BYTE_COUNT,
   SHA256_DIGEST_LENGTH,
@@ -158,7 +158,7 @@ class Encryptor implements GenericEncryptor {
    * @param params.object - The data object to encrypt. It can be of any type, as it will be stringified during the encryption process.
    * @returns A promise that resolves to a string. The string is a JSON representation of an object containing the encrypted data, the salt used for encryption, and the library version.
    */
-  encrypt = async (password: string, object: unknown): Promise<string> => {
+  encrypt = async (password: string, object: Json): Promise<string> => {
     const salt = this.generateSalt(16);
     const key = await this.keyFromPassword({
       password,
@@ -187,7 +187,7 @@ class Encryptor implements GenericEncryptor {
   decrypt = async (
     password: string,
     encryptedString: string,
-  ): Promise<unknown> => {
+  ): Promise<Json> => {
     const payload = JSON.parse(encryptedString);
     const key = await this.keyFromPassword({
       password,
