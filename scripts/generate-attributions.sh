@@ -32,6 +32,7 @@ main() {
   cd "${PROJECT_DIRECTORY}/scripts/generate-attributions"
 
   # Install sub-project that just contains attribution generation package
+  # so that it can be used without installing `devDependencies` in root.
   yarn setup
 
   yarn generate-attribution -o "${PROJECT_DIRECTORY}" -b "${PROJECT_DIRECTORY}"
