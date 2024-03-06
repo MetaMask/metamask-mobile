@@ -49,5 +49,11 @@ describe(Regression('Networks Search'), () => {
     );
     await NetworkView.tapDeleteButton();
     await Assertions.checkIfVisible(NetworkView.noMatchingText);
+    await NetworkView.tapClearSearch();
+    await Assertions.checkIfNotVisible(
+      NetworkView.getnetworkName(
+        PopularNetworksList.Avalanche.providerConfig.nickname,
+      ),
+    );
   });
 });

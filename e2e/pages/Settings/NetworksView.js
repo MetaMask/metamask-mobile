@@ -102,6 +102,9 @@ class NetworkView {
     return Matchers.getElementByText(NetworkViewSelectorsText.REMOVE_NETWORK);
   }
 
+  async getnetworkName(networkName) {
+    return Matchers.getElementByText(networkName);
+  }
   async tapAddNetworkButton() {
     await Gestures.waitAndTap(this.addNetworkButton);
   }
@@ -111,7 +114,7 @@ class NetworkView {
   }
 
   async tapNetworkByName(networkName) {
-    const network = Matchers.getElementByText(networkName);
+    const network = this.getnetworkName(networkName);
     await Gestures.waitAndTap(network);
   }
 
@@ -120,6 +123,11 @@ class NetworkView {
       this.networkSearchInput,
       networkName,
     );
+  }
+  async longPressToRemoveNetwork(networkName) {
+    const network = this.getnetworkName(networkName);
+    await Gestures.tapAndLongPress(network);
+    await Gestures.waitAndTap(this.removeNetwork);
   }
 
   async tapDeleteButton() {
@@ -162,12 +170,6 @@ class NetworkView {
   async swipeToRPCTitleAndDismissKeyboard() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
     await Gestures.waitAndTap(this.blockExplorer);
-  }
-
-  async tapRemoveNetwork(networkName) {
-    const network = Matchers.getElementByText(networkName);
-    await Gestures.tapAndLongPress(network);
-    await Gestures.waitAndTap(this.removeNetwork);
   }
 }
 

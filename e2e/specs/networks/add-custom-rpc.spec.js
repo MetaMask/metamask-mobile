@@ -138,7 +138,7 @@ describe(Regression('Custom RPC Tests'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
     await Assertions.checkIfVisible(NetworkView.networkContainer);
-    await NetworkView.tapRemoveNetwork(
+    await NetworkView.longPressToRemoveNetwork(
       CustomNetworks.Gnosis.providerConfig.nickname,
     ); // Tap on xDai to remove network
     await NetworkEducationModal.tapGotItButton();
