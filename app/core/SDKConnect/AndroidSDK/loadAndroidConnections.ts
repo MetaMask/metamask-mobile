@@ -1,23 +1,21 @@
-import AppConstants from '../../../core/AppConstants';
+import { RootState } from '../../../../app/reducers';
+import { store } from '../../../../app/store';
 import { ConnectionProps } from '../Connection';
-import DefaultPreference from 'react-native-default-preference';
 import DevLogger from '../utils/DevLogger';
 
 async function loadAndroidConnections(): Promise<{
   [id: string]: ConnectionProps;
 }> {
-  const rawConnections = await DefaultPreference.get(
-    AppConstants.MM_SDK.ANDROID_CONNECTIONS,
-  );
+  const { sdk } = store.getState() as RootState;
 
-  if (!rawConnections) return {};
-
-  const parsed = JSON.parse(rawConnections);
+  const androidConnections = sdk.androidConnections || {};
   DevLogger.log(
-    `SDKConnect::loadAndroidConnections found ${Object.keys(parsed).length}`,
-    parsed,
+    `SDKConnect::loadAndroidConnections found ${
+      Object.keys(androidConnections).length
+    }`,
+    androidConnections,
   );
-  return parsed;
+  return androidConnections;
 }
 
 export default loadAndroidConnections;

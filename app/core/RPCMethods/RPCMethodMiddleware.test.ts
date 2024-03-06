@@ -662,6 +662,7 @@ describe('getRpcMethodMiddleware', () => {
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
+          permittedAccounts: { 'example.metamask.io': [] },
           providerConfig: {
             chainId: '0x1',
             type: RPC,
