@@ -12,10 +12,10 @@ import { useStyles } from '../../../hooks';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../util/theme';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectChainId } from '../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../util/networks';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 // Internal dependencies.
 import { TabBarProps } from './TabBar.types';
@@ -27,6 +27,7 @@ import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { bottomInset });
   const chainId = useSelector(selectChainId);
@@ -73,13 +74,10 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.MODAL.WALLET_ACTIONS,
             });
-            Analytics.trackEventWithParameters(
-              MetaMetricsEvents.ACTIONS_BUTTON_CLICKED,
-              {
-                text: '',
-                chain_id: getDecimalChainId(chainId),
-              },
-            );
+            trackEvent(MetaMetricsEvents.ACTIONS_BUTTON_CLICKED, {
+              text: '',
+              chain_id: getDecimalChainId(chainId),
+            });
             break;
           case Routes.BROWSER_VIEW:
             navigation.navigate(Routes.BROWSER.HOME, {
@@ -127,7 +125,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
         />
       );
     },
-    [state, descriptors, navigation, colors, chainId],
+    [state, descriptors, navigation, colors, chainId, trackEvent],
   );
 
   const renderTabBarItems = useCallback(

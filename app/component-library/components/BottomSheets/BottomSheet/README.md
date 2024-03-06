@@ -22,6 +22,7 @@ Boolean that indicates if sheet is swippable. This affects whether or not tappin
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                      | true                                                   |
 
+
 ### `children`
 
 Content to wrap in sheet.
