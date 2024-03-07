@@ -8,8 +8,8 @@ import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselVie
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../../pages/WalletView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
-import SettingsView from '../../pages/Drawer/Settings/SettingsView';
-import SecurityAndPrivacy from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import SettingsView from '../../pages/Settings/SettingsView';
+import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import LoginView from '../../pages/LoginView';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
@@ -17,6 +17,8 @@ import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import WhatsNewModal from '../../pages/modals/WhatsNewModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
+import CommonView from '../../pages/CommonView';
+import Assertions from '../../utils/Assertions';
 
 const PASSWORD = '12345678';
 
@@ -31,10 +33,10 @@ describe(
     it('should be able to opt-in of the onboarding-wizard', async () => {
       await OnboardingCarouselView.tapOnGetStartedButton();
       await OnboardingView.tapCreateWallet();
-      await MetaMetricsOptIn.isVisible();
+      await Assertions.checkIfVisible(MetaMetricsOptIn.container);
       await MetaMetricsOptIn.tapAgreeButton();
       await acceptTermOfUse();
-      await CreatePasswordView.isVisible();
+      await Assertions.checkIfVisible(CreatePasswordView.container);
     });
 
     it('should be able to create a new wallet', async () => {
@@ -46,7 +48,7 @@ describe(
 
     it('Should skip backup check', async () => {
       // Check that we are on the Secure your wallet screen
-      await ProtectYourWalletView.isVisible();
+      await Assertions.checkIfVisible(ProtectYourWalletView.container);
       await ProtectYourWalletView.tapOnRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
@@ -96,16 +98,14 @@ describe(
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
       await TestHelpers.delay(2000);
-      await SecurityAndPrivacy.isMetaMetricsToggleOn();
-      await TestHelpers.delay(4500);
+      await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.metaMetricsToggle);
     });
 
     it('should disable metametrics', async () => {
       await SecurityAndPrivacy.tapMetaMetricsToggle();
-      // await SecurityAndPrivacy.isMetaMetricsToggleOff();
       await TestHelpers.delay(1500);
-      await SecurityAndPrivacy.tapOKAlertButton();
-      await SecurityAndPrivacy.isMetaMetricsToggleOff();
+      await CommonView.tapOkAlert();
+      await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle);
     });
 
     it('should relaunch the app and log in', async () => {
@@ -133,7 +133,7 @@ describe(
       await TabBarComponent.tapSettings();
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
-      await SecurityAndPrivacy.isMetaMetricsToggleOff();
+      await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle);
     });
   },
 );

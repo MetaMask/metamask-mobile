@@ -4,6 +4,7 @@ const Routes = {
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
   SETTINGS_VIEW: 'SettingsView',
+  DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
     ID: 'Ramp',
     BUY: 'RampBuy',
@@ -12,6 +13,7 @@ const Routes = {
     PAYMENT_METHOD: 'PaymentMethod',
     PAYMENT_METHOD_HAS_STARTED: 'PaymentMethodHasStarted',
     BUILD_QUOTE: 'BuildQuote',
+    BUILD_QUOTE_HAS_STARTED: 'BuildQuoteHasStarted',
     QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
     REGION: 'Region',
@@ -22,6 +24,16 @@ const Routes = {
     SETTINGS: 'RampSettings',
     ADD_ACTIVATION_KEY: 'RampAddActivationKey',
   },
+  HW: {
+    CONNECT: 'ConnectHardwareWalletFlow',
+    SELECT_DEVICE: 'SelectHardwareWallet',
+    CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
+    CONNECT_LEDGER: 'ConnectLedgerFlow',
+    LEDGER_ACCOUNT: 'LedgerAccountInfo',
+    LEDGER_CONNECT: 'LedgerConnect',
+  },
+  LEDGER_MESSAGE_SIGN_MODAL: 'LedgerMessageSignModal',
+  LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
   MODAL: {
@@ -61,16 +73,20 @@ const Routes = {
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     CHANGE_PASSWORD: 'ResetPassword',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
+    SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
+    SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',
+    SDK_DISCONNECT: 'SDKDisconnect',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
+    BLOCKAID_INDICATOR: 'BlockaidIndicator',
     ACCOUNT_ACTIONS: 'AccountActions',
     ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
     SHOW_IPFS: 'ShowIpfs',
@@ -97,6 +113,12 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  SNAPS: {
+    SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
+    SNAP_SETTINGS: 'SnapSettings',
+  },
+  ///: END:ONLY_INCLUDE_IF
 };
 
 export default Routes;

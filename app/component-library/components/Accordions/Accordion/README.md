@@ -1,4 +1,6 @@
-# Accordion
+# [Accordion](https://metamask-consensys.notion.site/Accordion-f43e500b92754d9bb06bc72553c44494)
+
+![Accordion](./Accordion.png)
 
 Accordion is a single component, used to hide certain contents under an Accordion Header, and can be triggered to show when clicking an Accordion Header.
 

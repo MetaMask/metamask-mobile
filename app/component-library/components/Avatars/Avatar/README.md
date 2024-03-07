@@ -1,4 +1,6 @@
-# Avatar
+# [Avatar](https://metamask-consensys.notion.site/Avatar-3c55358131914c589ed1e6d21d14a04f)
+
+![Avatar](./Avatar.png)
 
 The Avatar is a round graphic identity. It unifies [AvatarAccount](./variants/AvatarAccount/AvatarAccount.tsx), [AvatarFavicon](./variants/AvatarFavicon/AvatarFavicon.tsx), [AvatarIcon](./variants/AvatarIcon/AvatarIcon.tsx), [AvatarNetwork](./variants/AvatarNetwork/AvatarNetwork.tsx) and [AvatarToken](./variants/AvatarToken/AvatarToken.tsx).
 

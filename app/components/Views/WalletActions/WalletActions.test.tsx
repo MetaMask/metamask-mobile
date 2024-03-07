@@ -5,6 +5,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 import WalletActions from './WalletActions';
 import {
+  WALLET_BRIDGE,
   WALLET_BUY,
   WALLET_RECEIVE,
   WALLET_SEND,
@@ -16,7 +17,7 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 const mockEngine = Engine;
 
 const mockInitialState = {
-  swaps: { '1': { isLive: true }, hasOnboarded: false, isLive: true },
+  swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   fiatOrders: {
     networks: [
       {
@@ -31,7 +32,7 @@ const mockInitialState = {
     backgroundState: {
       ...initialBackgroundState,
       NetworkController: {
-        providerConfig: { type: 'mainnet', chainId: '1', ticker: 'ETH' },
+        providerConfig: { type: 'mainnet', chainId: '0x1', ticker: 'ETH' },
       },
     },
   },
@@ -87,11 +88,12 @@ describe('WalletActions', () => {
     expect(getByTestId(WALLET_SEND)).toBeDefined();
     expect(getByTestId(WALLET_RECEIVE)).toBeDefined();
     expect(getByTestId(WALLET_SWAP)).toBeDefined();
+    expect(getByTestId(WALLET_BRIDGE)).toBeDefined();
   });
 
   it('should not show the buy button and swap button if the chain does not allow buying', () => {
     const mockState = {
-      swaps: { '1': { isLive: false }, hasOnboarded: false, isLive: true },
+      swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: true },
       fiatOrders: {
         networks: [
           {
@@ -129,6 +131,7 @@ describe('WalletActions', () => {
 
     expect(queryByTestId(WALLET_BUY)).toBeNull();
     expect(queryByTestId(WALLET_SWAP)).toBeNull();
+    expect(queryByTestId(WALLET_BRIDGE)).toBeNull();
   });
 
   it('should call the onBuy function when the Buy button is pressed', () => {
@@ -147,12 +150,21 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalled();
   });
-  it('should call the goToSwaps function when the Send button is pressed', () => {
+  it('should call the goToSwaps function when the Swap button is pressed', () => {
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
     });
 
     fireEvent.press(getByTestId(WALLET_SWAP));
+
+    expect(mockNavigate).toHaveBeenCalled();
+  });
+  it('should call the goToBridge function when the Bridge button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(getByTestId(WALLET_BRIDGE));
 
     expect(mockNavigate).toHaveBeenCalled();
   });

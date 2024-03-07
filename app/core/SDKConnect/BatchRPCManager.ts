@@ -1,4 +1,6 @@
-interface RPCMethod {
+import DevLogger from './utils/DevLogger';
+
+export interface RPCMethod {
   id: string;
   method: string;
   params: unknown;
@@ -26,6 +28,7 @@ export class BatchRPCManager {
   }
 
   add({ id, rpcs }: { id: string; rpcs: RPCMethod[] }) {
+    DevLogger.log(`BatchRPCManager::add id=${id} rpcs=`, rpcs);
     this.rpcChain[id] = rpcs;
   }
 

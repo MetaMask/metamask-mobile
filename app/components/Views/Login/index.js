@@ -3,13 +3,13 @@ import PropTypes from 'prop-types';
 import {
   Alert,
   ActivityIndicator,
+  Keyboard,
   View,
   SafeAreaView,
   StyleSheet,
   Image,
   InteractionManager,
   BackHandler,
-  Platform,
 } from 'react-native';
 import Text, {
   TextColor,
@@ -17,7 +17,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button from 'react-native-button';
+import Button from '@metamask/react-native-button';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -42,10 +42,6 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { passwordRequirementsMet } from '../../../util/password';
 import ErrorBoundary from '../ErrorBoundary';
-import {
-  trackErrorAsAnalytics,
-  trackEventV2 as trackEvent,
-} from '../../../util/analyticsV2';
 import { toLowerCaseEquals } from '../../../util/general';
 import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';
@@ -53,12 +49,6 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  LOGIN_VIEW_PASSWORD_INPUT_ID,
-  LOGIN_VIEW_TITLE_ID,
-  LOGIN_VIEW_UNLOCK_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -67,6 +57,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -228,6 +220,10 @@ class Login extends PureComponent {
      * Action to set if the user is using remember me
      */
     setAllowLoginWithRememberMe: PropTypes.func,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -249,7 +245,7 @@ class Login extends PureComponent {
   fieldRef = React.createRef();
 
   async componentDidMount() {
-    trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
+    this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
     const authData = await Authentication.getType();
@@ -372,11 +368,20 @@ class Login extends PureComponent {
     );
 
     try {
+      // Log to provide insights into bug research.
+      // Check https://github.com/MetaMask/mobile-planning/issues/1507
+      const { selectedAddress } = this.props;
+      if (typeof selectedAddress !== 'string') {
+        Logger.error('Login error', 'selectedAddress is not a string');
+      }
+
       await Authentication.userEntryAuth(
         password,
         authType,
         this.props.selectedAddress,
       );
+
+      Keyboard.dismiss();
 
       // Get onboarding wizard state
       const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
@@ -439,6 +444,12 @@ class Login extends PureComponent {
     const { current: field } = this.fieldRef;
     field?.blur();
     try {
+      // Log to provide insights into bug research.
+      // Check https://github.com/MetaMask/mobile-planning/issues/1507
+      const { selectedAddress } = this.props;
+      if (typeof selectedAddress !== 'string') {
+        Logger.error('unlockKeychain error', 'selectedAddress is not a string');
+      }
       await Authentication.appTriggeredAuth({
         selectedAddress: this.props.selectedAddress,
       });
@@ -514,13 +525,11 @@ class Login extends PureComponent {
       <ErrorBoundary navigation={this.props.navigation} view="Login">
         <SafeAreaView style={styles.mainWrapper}>
           <KeyboardAwareScrollView
-            style={styles.wrapper}
+            keyboardShouldPersistTaps="handled"
             resetScrollToCoords={{ x: 0, y: 0 }}
+            style={styles.wrapper}
           >
-            <View
-              testID={LoginViewSelectors.CONTAINER}
-              {...generateTestId(Platform, LoginViewSelectors.CONTAINER)}
-            >
+            <View testID={LoginViewSelectors.CONTAINER}>
               <View style={styles.foxWrapper}>
                 {Device.isAndroid() ? (
                   <Image
@@ -534,7 +543,7 @@ class Login extends PureComponent {
               </View>
               <Text
                 style={styles.title}
-                {...generateTestId(Platform, LOGIN_VIEW_TITLE_ID)}
+                testID={LoginViewSelectors.LOGIN_VIEW_TITLE_ID}
               >
                 {strings('login.title')}
               </Text>
@@ -550,7 +559,6 @@ class Login extends PureComponent {
                   placeholder={strings('login.password')}
                   placeholderTextColor={colors.text.muted}
                   testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT}
-                  {...generateTestId(Platform, LOGIN_VIEW_PASSWORD_INPUT_ID)}
                   returnKeyType={'done'}
                   autoCapitalize="none"
                   secureTextEntry
@@ -583,8 +591,7 @@ class Login extends PureComponent {
               )}
               <View
                 style={styles.ctaWrapper}
-                testID={'log-in-button'}
-                {...generateTestId(Platform, LOGIN_VIEW_UNLOCK_BUTTON_ID)}
+                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
               >
                 <StyledButton type={'confirm'} onPress={this.triggerLogIn}>
                   {this.state.loading ? (
@@ -608,7 +615,7 @@ class Login extends PureComponent {
                 <Button
                   style={styles.goBack}
                   onPress={this.toggleWarningModal}
-                  {...generateTestId(Platform, LoginViewSelectors.RESET_WALLET)}
+                  testID={LoginViewSelectors.RESET_WALLET}
                 >
                   {strings('login.reset_wallet')}
                 </Button>
@@ -635,4 +642,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setAllowLoginWithRememberMe(enabled)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Login);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Login));

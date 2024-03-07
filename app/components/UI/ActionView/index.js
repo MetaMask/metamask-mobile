@@ -13,23 +13,38 @@ import { strings } from '../../../../locales/i18n';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTheme } from '../../../util/theme';
 
-const styles = StyleSheet.create({
-  actionContainer: {
-    flex: 0,
-    flexDirection: 'row',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-  },
-  button: {
-    flex: 1,
-  },
-  cancel: {
-    marginRight: 8,
-  },
-  confirm: {
-    marginLeft: 8,
-  },
-});
+export const ConfirmButtonState = {
+  Error: 'error',
+  Warning: 'warning',
+  Normal: 'normal',
+};
+
+const getStyles = (colors) =>
+  StyleSheet.create({
+    actionContainer: {
+      flex: 0,
+      flexDirection: 'row',
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+    },
+    button: {
+      flex: 1,
+    },
+    cancel: {
+      marginRight: 8,
+    },
+    confirm: {
+      marginLeft: 8,
+    },
+    confirmButtonError: {
+      backgroundColor: colors.error.default,
+      borderColor: colors.error.default,
+    },
+    confirmButtonWarning: {
+      backgroundColor: colors.warning.default,
+      borderColor: colors.warning.default,
+    },
+  });
 
 /**
  * PureComponent that renders scrollable content above configurable buttons
@@ -51,10 +66,12 @@ export default function ActionView({
   loading = false,
   keyboardShouldPersistTaps = 'never',
   style = undefined,
+  confirmButtonState = ConfirmButtonState.Normal,
 }) {
   const { colors } = useTheme();
   confirmText = confirmText || strings('action_view.confirm');
   cancelText = cancelText || strings('action_view.cancel');
+  const styles = getStyles(colors);
 
   return (
     <View style={baseStyles.flexGrow}>
@@ -93,7 +110,16 @@ export default function ActionView({
               testID={confirmTestID}
               type={confirmButtonMode}
               onPress={onConfirmPress}
-              containerStyle={[styles.button, styles.confirm]}
+              containerStyle={[
+                styles.button,
+                styles.confirm,
+                confirmButtonState === ConfirmButtonState.Error
+                  ? styles.confirmButtonError
+                  : {},
+                confirmButtonState === ConfirmButtonState.Warning
+                  ? styles.confirmButtonWarning
+                  : {},
+              ]}
               disabled={confirmed || confirmDisabled || loading}
             >
               {confirmed || loading ? (
@@ -189,4 +215,8 @@ ActionView.propTypes = {
    * Optional View styles. Applies to scroll view
    */
   style: PropTypes.object,
+  /**
+   * Optional Confirm button state - this can be Error/Warning/Normal.
+   */
+  confirmButtonState: PropTypes.string,
 };

@@ -1,4 +1,6 @@
-# BadgeStatus
+# [BadgeStatus](https://metamask-consensys.notion.site/Badge-Status-5caf000de32549f8ad67c0b89469ce4d)
+
+![BadgeStatus](./BadgeStatus.png)
 
 BadgeStatus is used on top of an element to display status information. **This component is not meant to be used by itself**. It is used by [BadgeWrapper](../BadgeWrapper/BadgeWrapper.tsx), which can render this component as a badge.
 

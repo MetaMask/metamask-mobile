@@ -10,16 +10,24 @@ For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or
 
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
 
-## MetaMask Mobile
+## Documentation
+- [Architecture](./docs/readme/architecture.md)
+- [Development Environment Setup](./docs/readme/environment.md)
+- [Build Troubleshooting](./docs/readme/troubleshooting.md)
+- [Testing](./docs/readme/testing.md)
+- [Debugging](./docs/readme/debugging.md)
+- [Storybook](./docs/readme/storybook.md)
+- [Miscellaneous](./docs/readme/miscellaneous.md)
 
+## Getting started
 
-### Environment Setup
+### Environment setup
 
-The code is built using React-Native and running code locally requires a Mac or Linux OS.
+Before running the app, make sure your development environment has all the required tools. Several of these tools (ie Node and Ruby) may require specific versions in order to successfully build the app.
 
--   Install [sentry-cli](https://github.com/getsentry/sentry-cli) tools: `brew install getsentry/tools/sentry-cli`
+[Setup your development environment](./docs/readme/environment.md)
 
--   Install [Node.js](https://nodejs.org) **version 18**
+### Building the app
 
     -   If you are using [nvm](https://github.com/creationix/nvm#installation) (recommended) running `nvm use` will automatically choose the right node version for you.
 
@@ -97,21 +105,11 @@ The code is built using React-Native and running code locally requires a Mac or 
 
 -   Clone this repo:
 ```bash
-git clone ...
+git clone git@github.com:MetaMask/metamask-mobile.git && \
 cd metamask-mobile
 ```
 
--   _MetaMask Only:_ Rename the `.*.env.example` files (remove the `.example`) in the root of the project and fill in the appropriate values for each key. Get the values from another MetaMask Mobile developer.
--   _Non-MetaMask Only:_ In the project root folder run
-- If you intend to use WalletConnect v2 during your development, you should register to get a projectId from WalletConnect website and set the `WALLET_CONNECT_PROJECT_ID` value accordingly in .js.env file.
-```
-  cp .ios.env.example .ios.env && \
-  cp .android.env.example .android.env && \
-  cp .js.env.example .js.env
-```
--   _Non-MetaMask Only:_ Create an account and generate your own API key at [Infura](https://infura.io) in order to connect to main and test nets. Fill `MM_INFURA_PROJECT_ID` in `.js.env`. (App will run without it, but will not be able to connect to actual network.)
-- _Non-MetaMask Only:_ Fill `MM_SENTRY_DSN` in `.js.env` if you want the app to emit logs to your own Sentry project.
-- Note: after updating env vars, make sure to run `source .js.env` on the root of the project
+**Install dependencies**
 
 -   Choose your Build Type
 Metamask has currently two build types: `main` and `flask`. The `main` build type is the _default_ one and is used for production builds. The `flask` build type is used for a canary release, mainly used for development and testing of new/beta features purposes. To change the build type, set the `METAMASK_BUILD_TYPE` environment variable to either `main` or `flask`. For example:
@@ -120,23 +118,39 @@ Metamask has currently two build types: `main` and `flask`. The `main` build typ
 export METAMASK_BUILD_TYPE="main"
 ```
 
--   Install the app:
-```
-yarn setup # not the usual install command, this will run a lengthy postinstall flow
+-   Choose your Environment Type
+Metamask has currently three environment types: `production`, `prerelease`, and `local`. The 'production' is used for a production release, 'prerelease' for a pre-release, or 'local' otherwise. To change the environment type, set the `METAMASK_ENVIRONMENT` environment variable to either `production`, `prerelease`, or `local`. For example:
+
+```bash
+export METAMASK_ENVIRONMENT="main"
+
 ```
 
--   Then, in one terminal, run:
+-   Install the app:
+```
+_Not the usual install command, this will run scripts and a lengthy postinstall flow_
+
+**Setup environment variables**
+```bash
+cp .ios.env.example .ios.env && \
+cp .android.env.example .android.env && \
+cp .js.env.example .js.env
+```
+
+### Running the app
+
+**Run Metro bundler**
 ```bash
 yarn watch
 ```
+_Like a local server for the app_
 
-- You can change the default port (8081) from metro using the WATCHER_PORT environment variable. For example:
+**Run on a iOS device**
 ```bash
-WATCHER_PORT=8082 yarn watch
-# This value can also be set directly inside .js.env file
+yarn start:ios 
 ```
 
-#### Android
+**Run on an Android device**
 ```bash
 yarn start:android
 ```

@@ -1323,14 +1323,6 @@
     "wyre_total_label": "Wyre (thông qua MetaMask)",
     "buy_with": "Mua qua",
     "plus_fee": "Cộng thêm phí {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Giao dịch mua {{currency}} không thành công! Vui lòng thử lại, xin lỗi bạn vì sự bất tiện!",
-      "purchase_cancelled_title": "Đã hủy giao dịch mua của bạn",
-      "purchase_completed_title": "Bạn đã mua thành công {{amount}} {{currency}}!",
-      "purchase_completed_description": "{{currency}} hiện đã có thể sử dụng",
-      "purchase_pending_title": "Đang xử lý giao dịch mua {{currency}} của bạn",
-      "purchase_pending_description": "Quá trình này chỉ mất vài phút…"
-    },
     "date": "Ngày",
     "from": "Từ",
     "to": "Đến",
@@ -1364,6 +1356,16 @@
         "subtitle_5": "để xem phí gas là bao nhiêu.",
         "cta": "Tiếp tục mua {{ticker}}"
       }
+    }
+  },
+  "fiat_on_ramp_aggregator": {
+    "notifications": {
+      "purchase_failed_title": "Giao dịch mua {{currency}} không thành công! Vui lòng thử lại, xin lỗi bạn vì sự bất tiện!",
+      "purchase_cancelled_title": "Đã hủy giao dịch mua của bạn",
+      "purchase_completed_title": "Bạn đã mua thành công {{amount}} {{currency}}!",
+      "purchase_completed_description": "{{currency}} hiện đã có thể sử dụng",
+      "purchase_pending_title": "Đang xử lý giao dịch mua {{currency}} của bạn",
+      "purchase_pending_description": "Quá trình này chỉ mất vài phút…"
     }
   },
   "swaps": {
@@ -1436,7 +1438,6 @@
     "i_understand": "Tôi đã hiểu",
     "quotes_expire_in": "Báo giá sẽ hết hạn sau",
     "saving": "Đang lưu",
-    "using_best_quote": "Sử dụng báo giá tốt nhất",
     "view_details": "Xem chi tiết",
     "estimated_gas_fee": "Phí gas ước tính",
     "max_gas_fee": "Phí gas tối đa",
@@ -1449,10 +1450,6 @@
     "completed_swap": "Hoán đổi!",
     "metamask_swap_fee": "Phí hoán đổi của MetaMask",
     "fee_text": {
-      "get_the": "Tận hưởng",
-      "best_price": "giá tốt nhất",
-      "from_the": "từ",
-      "top_liquidity": "các nguồn thanh khoản hàng đầu.",
       "fee_is_applied": "Khoản phí {{fee}} tự động được tính vào mỗi báo giá để hỗ trợ sự phát triển liên tục và giúp MetaMask hoàn thiện hơn nữa."
     },
     "enable": {

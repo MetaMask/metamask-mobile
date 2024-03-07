@@ -32,7 +32,7 @@ const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
 };
 
 /**
- * V2 Analytics Tracking Events
+ * Analytics Tracking Events
  */
 enum EVENT_NAME {
   // Error
@@ -84,6 +84,9 @@ enum EVENT_NAME {
 
   // Portfolio
   PORTFOLIO_LINK_CLICKED = 'Portfolio Link Clicked',
+
+  // Link redirects
+  LINK_CLICKED = 'Link Clicked',
 
   // On-ramp [LEGACY]
   ONRAMP_OPENED = 'On-ramp Opened',
@@ -148,6 +151,7 @@ enum EVENT_NAME {
   BROWSER_RELOAD = 'Reload Browser',
   BROWSER_ADD_FAVORITES = 'Added Site To Favorites',
   BROWSER_SWITCH_TAB = 'Switched tab within Browser',
+  DAPP_VIEWED = 'Dapp Viewed',
 
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
@@ -191,6 +195,7 @@ enum EVENT_NAME {
   TOKEN_IMPORT_CLICKED = 'Token Import Clicked',
   TOKEN_IMPORT_CANCELED = 'Token Import Canceled',
   TOKENS_HIDDEN = 'Tokens Hidden',
+  EXTERNAL_LINK_CLICKED = 'External Link Clicked',
 
   // On Ramp
   BUY_BUTTON_CLICKED = 'Buy Button Clicked',
@@ -201,6 +206,7 @@ enum EVENT_NAME {
   ONRAMP_QUOTES_REQUESTED = 'On-ramp Quotes Requested',
   ONRAMP_CANCELED = 'On-ramp Canceled',
   ONRAMP_QUOTES_RECEIVED = 'On-ramp Quotes Received',
+  ONRAMP_QUOTES_EXPANDED = 'On-ramp Quotes Expanded',
   ONRAMP_PROVIDER_SELECTED = 'On-ramp Provider Selected',
   ONRAMP_PROVIDER_DETAILS_VIEWED = 'On-ramp Provider Details Viewed',
   ONRAMP_DIRECT_PROVIDER_CLICKED = 'On-ramp Provider Custom Action Clicked',
@@ -223,6 +229,7 @@ enum EVENT_NAME {
   OFFRAMP_QUOTES_REQUESTED = 'Off-ramp Quotes Requested',
   OFFRAMP_CANCELED = 'Off-ramp Canceled',
   OFFRAMP_QUOTES_RECEIVED = 'Off-ramp Quotes Received',
+  OFFRAMP_QUOTES_EXPANDED = 'Off-ramp Quotes Expanded',
   OFFRAMP_PROVIDER_SELECTED = 'Off-ramp Provider Selected',
   OFFRAMP_PROVIDER_DETAILS_VIEWED = 'Off-ramp Provider Details Viewed',
   OFFRAMP_DIRECT_PROVIDER_CLICKED = 'Off-ramp Provider Custom Action Clicked',
@@ -252,7 +259,6 @@ enum EVENT_NAME {
   RECEIVE_OPTIONS = 'Receive Options',
   SEND_FLOW = 'Send Flow',
   DAPP_INTERACTIONS = 'Dapp Interactions',
-  WALLET = 'Wallet',
   PAYMENTS = 'Payments',
 
   // Swaps
@@ -270,6 +276,9 @@ enum EVENT_NAME {
   GAS_FEES_CHANGED = 'Gas Fees Changed',
   EDIT_SPEND_LIMIT_OPENED = 'Edit Spend Limit Opened',
   TOKEN_IMPORTED = 'Custom Token Imported',
+
+  // Bridge
+  BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
 
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
@@ -332,6 +341,14 @@ enum EVENT_NAME {
 
   // Edit account name
   ACCOUNT_RENAMED = 'Account Renamed',
+
+  //Ledger
+  CONNECT_LEDGER = 'Clicked Connect Ledger',
+  CONTINUE_LEDGER_HARDWARE_WALLET = 'Clicked Continue Ledger Hardware Wallet',
+  CONNECT_LEDGER_SUCCESS = 'Connected Account with hardware wallet',
+  LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
+  LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
+  LEDGER_HARDWARE_WALLET_FORGOTTEN = 'Ledger hardware wallet forgotten',
 }
 
 enum ACTIONS {
@@ -340,7 +357,6 @@ enum ACTIONS {
   IMPORT_OR_CREATE = 'Import or Create',
   IMPORT_OR_SYNC = 'Import or Sync',
   ONBOARDING_NEXT = 'Onboarding Next',
-  ONBOARDING_SKIP = 'Onboarding Skip',
   // Navigation Drawer
   NAVIGATION_DRAWER = 'Navigation Drawer',
   // Common Navigation
@@ -373,6 +389,7 @@ enum ACTIONS {
   // Swaps
   QUOTE = 'Quote',
   SWAP = 'Swap',
+  BRIDGE = 'Bridge',
   PERMISSION_NEW_ACCOUNT = 'Connected new account(s)',
   PERMISSION_REVOKE_ACCOUNT = 'Revoked account(s)',
   ADVANCED_SETTINGS_ETH_SIGN_FRICTION_FIRST_STEP = 'eth_sign_checkbox_seen',
@@ -422,6 +439,7 @@ const events = {
   SEND_TRANSACTION_COMPLETED: generateOpt(
     EVENT_NAME.SEND_TRANSACTION_COMPLETED,
   ),
+  EXTERNAL_LINK_CLICKED: generateOpt(EVENT_NAME.EXTERNAL_LINK_CLICKED),
   ONRAMP_OPENED: generateOpt(EVENT_NAME.ONRAMP_OPENED),
   ONRAMP_CLOSED: generateOpt(EVENT_NAME.ONRAMP_CLOSED),
   ONRAMP_PURCHASE_EXITED: generateOpt(EVENT_NAME.ONRAMP_PURCHASE_EXITED),
@@ -443,6 +461,7 @@ const events = {
   ),
 
   PORTFOLIO_LINK_CLICKED: generateOpt(EVENT_NAME.PORTFOLIO_LINK_CLICKED),
+  LINK_CLICKED: generateOpt(EVENT_NAME.LINK_CLICKED),
   WALLET_SECURITY_STARTED: generateOpt(EVENT_NAME.WALLET_SECURITY_STARTED),
   WALLET_SECURITY_MANUAL_BACKUP_INITIATED: generateOpt(
     EVENT_NAME.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
@@ -515,6 +534,7 @@ const events = {
   BROWSER_SHARE_SITE: generateOpt(EVENT_NAME.BROWSER_SHARE_SITE),
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
+  DAPP_VIEWED: generateOpt(EVENT_NAME.DAPP_VIEWED),
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
   // Reveal SRP
@@ -574,6 +594,7 @@ const events = {
   ONRAMP_QUOTES_REQUESTED: generateOpt(EVENT_NAME.ONRAMP_QUOTES_REQUESTED),
   ONRAMP_CANCELED: generateOpt(EVENT_NAME.ONRAMP_CANCELED),
   ONRAMP_QUOTES_RECEIVED: generateOpt(EVENT_NAME.ONRAMP_QUOTES_RECEIVED),
+  ONRAMP_QUOTES_EXPANDED: generateOpt(EVENT_NAME.ONRAMP_QUOTES_EXPANDED),
   ONRAMP_PROVIDER_SELECTED: generateOpt(EVENT_NAME.ONRAMP_PROVIDER_SELECTED),
   ONRAMP_PROVIDER_DETAILS_VIEWED: generateOpt(
     EVENT_NAME.ONRAMP_PROVIDER_DETAILS_VIEWED,
@@ -610,6 +631,7 @@ const events = {
   OFFRAMP_QUOTES_REQUESTED: generateOpt(EVENT_NAME.OFFRAMP_QUOTES_REQUESTED),
   OFFRAMP_CANCELED: generateOpt(EVENT_NAME.OFFRAMP_CANCELED),
   OFFRAMP_QUOTES_RECEIVED: generateOpt(EVENT_NAME.OFFRAMP_QUOTES_RECEIVED),
+  OFFRAMP_QUOTES_EXPANDED: generateOpt(EVENT_NAME.OFFRAMP_QUOTES_EXPANDED),
   OFFRAMP_PROVIDER_SELECTED: generateOpt(EVENT_NAME.OFFRAMP_PROVIDER_SELECTED),
   OFFRAMP_PROVIDER_DETAILS_VIEWED: generateOpt(
     EVENT_NAME.OFFRAMP_PROVIDER_DETAILS_VIEWED,
@@ -782,8 +804,22 @@ const events = {
   ),
 
   // Experimental Settings
-  SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED: generateOpt(
-    EVENT_NAME.SETTINGS_UPDATED,
+  SETTINGS_SECURITY_ALERTS_ENABLED: generateOpt(EVENT_NAME.SETTINGS_UPDATED),
+
+  // Ledger
+  CONNECT_LEDGER: generateOpt(EVENT_NAME.CONNECT_LEDGER),
+  CONTINUE_LEDGER_HARDWARE_WALLET: generateOpt(
+    EVENT_NAME.CONTINUE_LEDGER_HARDWARE_WALLET,
+  ),
+  CONNECT_LEDGER_SUCCESS: generateOpt(EVENT_NAME.CONNECT_LEDGER_SUCCESS),
+  LEDGER_HARDWARE_TRANSACTION_CANCELLED: generateOpt(
+    EVENT_NAME.LEDGER_HARDWARE_TRANSACTION_CANCELLED,
+  ),
+  LEDGER_HARDWARE_WALLET_ERROR: generateOpt(
+    EVENT_NAME.LEDGER_HARDWARE_WALLET_ERROR,
+  ),
+  LEDGER_HARDWARE_WALLET_FORGOTTEN: generateOpt(
+    EVENT_NAME.LEDGER_HARDWARE_WALLET_FORGOTTEN,
   ),
 };
 
@@ -802,7 +838,6 @@ enum DESCRIPTION {
   ONBOARDING_SELECTED_WITH_SEEDPHRASE = 'Selected Import with Seedphrase',
   ONBOARDING_SELECTED_TAKE_THE_TOUR = `Onboarding wizard 'Take the tour'`,
   ONBOARDING_SELECTED_NO_THANKS = `Onboarding wizard 'No thanks'`,
-  ONBOARDING_SELECTED_SKIP = 'Onboarding wizard Skip',
   ONBOARDING_SELECTED_SKIP_TUTORIAL = 'Onboarding wizard Skip',
   // Navigation Drawer
   NAVIGATION_TAPS_ACCOUNT_NAME = 'Tapped Account Name / Profile',
@@ -881,6 +916,7 @@ enum DESCRIPTION {
   PAYMENTS_SELECTS_DEBIT_OR_ACH = 'Selects debit card or bank account as payment method',
   PAYMENTS_SELECTS_APPLE_PAY = 'Selects Apple Pay as payment method',
   SWAPS = 'Swaps',
+  BRIDGE = 'Bridge',
 }
 
 const legacyMetaMetricsEvents = {
@@ -1337,6 +1373,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.TOKEN_IMPORTED,
     ACTIONS.SWAP,
     DESCRIPTION.SWAPS,
+  ),
+  BRIDGE_LINK_CLICKED: generateOpt(
+    EVENT_NAME.BRIDGE_LINK_CLICKED,
+    ACTIONS.BRIDGE,
+    DESCRIPTION.BRIDGE,
   ),
 };
 

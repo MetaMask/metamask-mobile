@@ -1,7 +1,10 @@
+import { NetworkController } from '@metamask/network-controller';
 import { EventEmitter2 } from 'eventemitter2';
 import { NativeModules } from 'react-native';
 import Engine from '../../Engine';
 import { Minimizer } from '../../NativeModules';
+import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
+import { RPCQueueManager } from '../RPCQueueManager';
 
 import {
   EventType,
@@ -14,33 +17,41 @@ import AppConstants from '../../AppConstants';
 import {
   wait,
   waitForAndroidServiceBinding,
-  waitForEmptyRPCQueue,
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
 
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
-import {
-  DEFAULT_SESSION_TIMEOUT_MS,
-  METHODS_TO_DELAY,
-  METHODS_TO_REDIRECT,
-  SDKConnect,
-} from '../SDKConnect';
+import { SDKConnect } from '../SDKConnect';
 
 import { KeyringController } from '@metamask/keyring-controller';
 
+import { PermissionController } from '@metamask/permission-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
 import { PROTOCOLS } from '../../../constants/deeplinks';
-import RPCQueueManager from '../RPCQueueManager';
+import BatchRPCManager from '../BatchRPCManager';
+import {
+  DEFAULT_SESSION_TIMEOUT_MS,
+  METHODS_TO_DELAY,
+  RPC_METHODS,
+} from '../SDKConnectConstants';
+import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
+import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
 import { AndroidClient } from './android-sdk-types';
 
+export interface AndroidConnections {
+  [clientId: string]: AndroidClient;
+}
 export default class AndroidService extends EventEmitter2 {
   private communicationClient = NativeModules.CommunicationClient;
-  private connectedClients: { [clientId: string]: AndroidClient } = {};
+  private connections: AndroidConnections = {};
   private rpcQueueManager = new RPCQueueManager();
   private bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
   private eventHandler: AndroidSDKEventHandler;
+  private batchRPCManager: BatchRPCManager = new BatchRPCManager('android');
+  // To keep track in order to get the associated bridge to handle batch rpc calls
+  private currentClientId?: string;
 
   constructor() {
     super();
@@ -77,9 +88,11 @@ export default class AndroidService extends EventEmitter2 {
           DevLogger.log(
             `AndroidService::setupEventListeners recover client: ${connection.id}`,
           );
-          this.connectedClients[connection.id] = {
+          this.connections[connection.id] = {
+            connected: false,
             clientId: connection.id,
             originatorInfo: connection.originatorInfo as OriginatorInfo,
+            validUntil: connection.validUntil,
           };
         });
       } else {
@@ -88,15 +101,26 @@ export default class AndroidService extends EventEmitter2 {
         );
       }
     } catch (err) {
-      // Ignore
+      console.error(`AndroidService::setupEventListeners error`, err);
     }
+
+    this.restorePreviousConnections();
 
     this.setupOnClientsConnectedListener();
     this.setupOnMessageReceivedListener();
 
     // Bind native module to client
     await SDKConnect.getInstance().bindAndroidSDK();
-    this.restorePreviousConnections();
+  }
+
+  public getConnections() {
+    DevLogger.log(
+      `AndroidService::getConnections`,
+      JSON.stringify(this.connections, null, 2),
+    );
+    return Object.values(this.connections).filter(
+      (connection) => connection?.clientId?.length > 0,
+    );
   }
 
   private setupOnClientsConnectedListener() {
@@ -104,11 +128,17 @@ export default class AndroidService extends EventEmitter2 {
       const clientInfo: AndroidClient = JSON.parse(sClientInfo);
 
       DevLogger.log(`AndroidService::clients_connected`, clientInfo);
-      if (this.connectedClients?.[clientInfo.clientId]) {
+      if (this.connections?.[clientInfo.clientId]) {
         // Skip existing client -- bridge has been setup
         Logger.log(
           `AndroidService::clients_connected - existing client, sending ready`,
         );
+
+        // Update connected state
+        this.connections[clientInfo.clientId] = {
+          ...this.connections[clientInfo.clientId],
+          connected: true,
+        };
 
         this.sendMessage(
           {
@@ -138,9 +168,26 @@ export default class AndroidService extends EventEmitter2 {
         });
 
         try {
-          if (!this.connectedClients?.[clientInfo.clientId]) {
+          if (!this.connections?.[clientInfo.clientId]) {
+            DevLogger.log(
+              `AndroidService::clients_connected - new client ${clientInfo.clientId}}`,
+              this.connections,
+            );
+            // Ask for account permissions
+            await this.checkPermission({
+              originatorInfo: clientInfo.originatorInfo,
+              channelId: clientInfo.clientId,
+            });
+
             this.setupBridge(clientInfo);
             // Save session to SDKConnect
+            // Save to local connections
+            this.connections[clientInfo.clientId] = {
+              connected: true,
+              clientId: clientInfo.clientId,
+              originatorInfo: clientInfo.originatorInfo,
+              validUntil: clientInfo.validUntil,
+            };
             await SDKConnect.getInstance().addAndroidConnection({
               id: clientInfo.clientId,
               lastAuthorized: Date.now(),
@@ -198,6 +245,23 @@ export default class AndroidService extends EventEmitter2 {
     });
   }
 
+  private async checkPermission({
+    channelId,
+  }: {
+    originatorInfo: OriginatorInfo;
+    channelId: string;
+  }): Promise<unknown> {
+    const permissionsController = (
+      Engine.context as { PermissionController: PermissionController<any, any> }
+    ).PermissionController;
+
+    return permissionsController.requestPermissions(
+      { origin: channelId },
+      { eth_accounts: {} },
+      { id: channelId },
+    );
+  }
+
   private setupOnMessageReceivedListener() {
     this.eventHandler.onMessageReceived((jsonMessage: string) => {
       const handleEventAsync = async () => {
@@ -230,6 +294,12 @@ export default class AndroidService extends EventEmitter2 {
           sessionId = parsedMsg.id;
           message = parsedMsg.message;
           data = JSON.parse(message);
+
+          // Update connected state
+          this.connections[sessionId] = {
+            ...this.connections[sessionId],
+            connected: true,
+          };
         } catch (error) {
           Logger.log(
             error,
@@ -250,21 +320,67 @@ export default class AndroidService extends EventEmitter2 {
           return;
         }
 
-        const bridge = this.bridgeByClientId[sessionId];
+        let bridge = this.bridgeByClientId[sessionId];
 
         if (!bridge) {
           console.warn(
             `AndroidService:: Bridge not found for client`,
             `sessionId=${sessionId} data.id=${data.id}`,
           );
-          return;
+
+          try {
+            // Ask users permissions again - it probably means the channel was removed
+            await this.checkPermission({
+              originatorInfo: this.connections[sessionId]?.originatorInfo ?? {},
+              channelId: sessionId,
+            });
+
+            // Create new bridge
+            this.setupBridge(this.connections[sessionId]);
+            bridge = this.bridgeByClientId[sessionId];
+          } catch (err) {
+            Logger.log(
+              err,
+              `AndroidService::onMessageReceived error checking permissions`,
+            );
+            return;
+          }
         }
 
-        this.rpcQueueManager.add({
-          id: data.id,
-          method: data.method,
+        const preferencesController = (
+          Engine.context as {
+            PreferencesController: PreferencesController;
+          }
+        ).PreferencesController;
+        const selectedAddress = preferencesController.state.selectedAddress;
+
+        const networkController = (
+          Engine.context as {
+            NetworkController: NetworkController;
+          }
+        ).NetworkController;
+        const networkId = networkController.state.networkId ?? 1; // default to mainnet;
+        // transform networkId to 0x value
+        const hexChainId = `0x${networkId.toString(16)}`;
+
+        this.currentClientId = sessionId;
+        // Handle custom rpc method
+        const processedRpc = await handleCustomRpcCalls({
+          batchRPCManager: this.batchRPCManager,
+          selectedChainId: hexChainId,
+          selectedAddress,
+          rpc: { id: data.id, method: data.method, params: data.params },
         });
-        bridge.onMessage({ name: 'metamask-provider', data });
+
+        DevLogger.log(
+          `AndroidService::onMessageReceived processedRpc`,
+          processedRpc,
+        );
+        this.rpcQueueManager.add({
+          id: processedRpc?.id ?? data.id,
+          method: processedRpc?.method ?? data.method,
+        });
+        bridge.onMessage({ name: 'metamask-provider', data: processedRpc });
       };
       handleEventAsync().catch((err) => {
         Logger.log(
@@ -276,8 +392,8 @@ export default class AndroidService extends EventEmitter2 {
   }
 
   private restorePreviousConnections() {
-    if (Object.keys(this.connectedClients ?? {}).length) {
-      Object.values(this.connectedClients).forEach((clientInfo) => {
+    if (Object.keys(this.connections ?? {}).length) {
+      Object.values(this.connections).forEach((clientInfo) => {
         try {
           this.setupBridge(clientInfo);
           this.sendMessage(
@@ -316,6 +432,7 @@ export default class AndroidService extends EventEmitter2 {
 
     const bridge = new BackgroundBridge({
       webview: null,
+      channelId: clientInfo.clientId,
       isMMSDK: true,
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
@@ -334,6 +451,7 @@ export default class AndroidService extends EventEmitter2 {
         getRpcMethodMiddleware({
           hostname:
             clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
+          channelId: clientInfo.clientId,
           getProviderState,
           isMMSDK: true,
           navigation: null, //props.navigation,
@@ -349,7 +467,9 @@ export default class AndroidService extends EventEmitter2 {
           title: {
             current: clientInfo.originatorInfo?.title,
           },
-          icon: { current: undefined },
+          icon: {
+            current: clientInfo.originatorInfo?.icon,
+          },
           // Bookmarks
           isHomepage: () => false,
           // Show autocomplete
@@ -375,31 +495,85 @@ export default class AndroidService extends EventEmitter2 {
     this.bridgeByClientId[clientInfo.clientId] = bridge;
   }
 
+  async removeConnection(channelId: string) {
+    try {
+      if (this.connections[channelId]) {
+        DevLogger.log(
+          `AndroidService::remove client ${channelId} exists --- remove bridge`,
+        );
+        delete this.bridgeByClientId[channelId];
+      }
+      delete this.connections[channelId];
+    } catch (err) {
+      Logger.log(err, `AndroidService::remove error`);
+    }
+  }
+
   async sendMessage(message: any, forceRedirect?: boolean) {
     const id = message?.data?.id;
     this.communicationClient.sendMessage(JSON.stringify(message));
-    const rpcMethod = this.rpcQueueManager.getId(id);
+    let rpcMethod = this.rpcQueueManager.getId(id);
 
-    if (!rpcMethod && forceRedirect !== true) {
-      return;
+    DevLogger.log(`AndroidService::sendMessage method=${rpcMethod}`, message);
+    // handle multichain rpc call responses separately
+    const chainRPCs = this.batchRPCManager.getById(id);
+    if (chainRPCs) {
+      const isLastRpcOrError = await handleBatchRpcResponse({
+        chainRpcs: chainRPCs,
+        msg: message,
+        backgroundBridge: this.bridgeByClientId[this.currentClientId ?? ''],
+        batchRPCManager: this.batchRPCManager,
+        sendMessage: ({ msg }) => this.sendMessage(msg),
+      });
+      DevLogger.log(
+        `AndroidService::sendMessage isLastRpc=${isLastRpcOrError}`,
+        chainRPCs,
+      );
+
+      if (!isLastRpcOrError) {
+        DevLogger.log(
+          `AndroidService::sendMessage NOT last rpc --- skip goBack()`,
+          chainRPCs,
+        );
+        this.rpcQueueManager.remove(id);
+        // Only continue processing the message and goback if all rpcs in the batch have been handled
+        return;
+      }
+
+      // Always set the method to metamask_batch otherwise it may not have been set correctly because of the batch rpc flow.
+      rpcMethod = RPC_METHODS.METAMASK_BATCH;
+      DevLogger.log(
+        `AndroidService::sendMessage chainRPCs=${chainRPCs} COMPLETED!`,
+      );
     }
-    const needsRedirect = METHODS_TO_REDIRECT[rpcMethod];
 
     this.rpcQueueManager.remove(id);
 
-    if (needsRedirect || forceRedirect === true) {
-      try {
-        if (METHODS_TO_DELAY[rpcMethod]) {
-          // Add delay to see the feedback modal
-          await wait(1000);
-        }
-        // Make sure we have replied to all messages before redirecting
-        await waitForEmptyRPCQueue(this.rpcQueueManager);
+    if (!rpcMethod && forceRedirect !== true) {
+      DevLogger.log(
+        `AndroidService::sendMessage no rpc method --- rpcMethod=${rpcMethod} forceRedirect=${forceRedirect} --- skip goBack()`,
+      );
+      return;
+    }
 
-        Minimizer.goBack();
-      } catch (error) {
-        Logger.log(error, `AndroidService:: error waiting for empty rpc queue`);
+    try {
+      if (METHODS_TO_DELAY[rpcMethod]) {
+        // Add delay to see the feedback modal
+        await wait(1000);
       }
+
+      if (!this.rpcQueueManager.isEmpty()) {
+        DevLogger.log(
+          `AndroidService::sendMessage NOT empty --- skip goBack()`,
+          this.rpcQueueManager.get(),
+        );
+        return;
+      }
+
+      DevLogger.log(`AndroidService::sendMessage empty --- goBack()`);
+      Minimizer.goBack();
+    } catch (error) {
+      Logger.log(error, `AndroidService:: error waiting for empty rpc queue`);
     }
   }
 }

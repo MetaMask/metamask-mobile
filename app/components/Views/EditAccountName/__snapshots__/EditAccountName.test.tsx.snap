@@ -179,6 +179,8 @@ exports[`EditAccountName should render correctly 1`] = `
     }
   >
     <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
       activeOpacity={1}
       onPress={[MockFunction]}
       onPressIn={[Function]}
@@ -218,6 +220,8 @@ exports[`EditAccountName should render correctly 1`] = `
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
       activeOpacity={1}
       disabled={false}
       onPress={[Function]}
@@ -244,7 +248,7 @@ exports[`EditAccountName should render correctly 1`] = `
         accessibilityRole="text"
         style={
           Object {
-            "color": "#FCFCFC",
+            "color": "#FFFFFF",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
             "fontWeight": "400",

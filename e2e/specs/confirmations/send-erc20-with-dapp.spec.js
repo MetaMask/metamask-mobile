@@ -1,5 +1,5 @@
 'use strict';
-import { Regression } from '../../tags';
+import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -16,7 +16,7 @@ const HST_CONTRACT = SMART_CONTRACTS.HST;
 const SENT_TOKENS_MESSAGE_TEXT = root.transactions.sent_tokens;
 const WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID = 'transferTokens';
 
-describe(Regression('ERC20 tokens'), () => {
+describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();

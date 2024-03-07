@@ -12,13 +12,12 @@ import { isEqual } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import UntypedEngine from '../../../core/Engine';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { SelectedAccount } from '../../../components/UI/AccountSelectorList/AccountSelectorList.types';
 import {
@@ -33,8 +32,11 @@ import { getActiveTabUrl } from '../../../util/transactions';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { safeToChecksumAddress } from '../../../util/address';
-import USER_INTENT from '../../../constants/permissions';
+import {
+  getAddressAccountType,
+  safeToChecksumAddress,
+} from '../../../util/address';
+import { USER_INTENT } from '../../../constants/permissions';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectIdentities,
@@ -51,17 +53,23 @@ import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import AppConstants from '../../../../app/core/AppConstants';
+import { trackDappViewedEvent } from '../../../util/metrics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import { RootState } from '../../../../app/reducers';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
   const selectedWalletAddress = useSelector(selectSelectedAddress);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
     selectedWalletAddress,
   ]);
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
   );
@@ -79,22 +87,52 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-  const origin: string = useSelector(getActiveTabUrl, isEqual);
 
+  const { id: channelId, origin: metadataOrigin } = hostInfo.metadata as {
+    id: string;
+    origin: string;
+  };
+
+  const origin: string = useSelector(getActiveTabUrl, isEqual);
+  const accountsLength = useSelector(selectAccountsLength);
+
+  const [hostname, setHostname] = useState<string>(origin);
+  const urlWithProtocol = prefixUrlWithProtocol(hostname);
+  const sdkConnection = SDKConnect.getInstance().getConnection({ channelId });
+  // Last wallet connect session metadata
+  const wc2Metadata = useSelector((state: RootState) => state.sdk.wc2Metadata);
+
+  const dappIconUrl = sdkConnection.originatorInfo?.icon;
   const faviconSource = useFavicon(origin);
 
-  const hostname = hostInfo.metadata.origin;
-  const urlWithProtocol = prefixUrlWithProtocol(hostname);
+  const actualIcon = useMemo(
+    () => (dappIconUrl ? { uri: dappIconUrl } : faviconSource),
+    [dappIconUrl, faviconSource],
+  );
 
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(origin) as URLParse<string>).protocol === 'https:'
+      (getUrlObj(hostname) as URLParse<string>).protocol === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
-    [origin],
+    [hostname],
   );
 
-  const accountsLength = useSelector(selectAccountsLength);
+  const loadHostname = useCallback(async () => {
+    if (sdkConnection) {
+      const _hostname = (
+        sdkConnection?.originatorInfo?.url ?? metadataOrigin
+      ).replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+      return _hostname;
+    }
+
+    return wc2Metadata?.url ?? channelId;
+  }, [channelId, metadataOrigin, sdkConnection, wc2Metadata]);
+
+  // Retrieve hostname info based on channelId
+  useEffect(() => {
+    loadHostname().then(setHostname);
+  }, [hostname, setHostname, loadHostname]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -112,13 +150,32 @@ const AccountConnect = (props: AccountConnectProps) => {
   const cancelPermissionRequest = useCallback(
     (requestId) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
+      if (channelId && accountsLength === 0) {
+        // Remove Potential SDK connection
+        SDKConnect.getInstance().removeChannel({
+          channelId,
+          sendTerminate: true,
+        });
+      }
 
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
+      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
         number_of_accounts: accountsLength,
         source: 'permission system',
       });
     },
-    [Engine.context.PermissionController, accountsLength],
+    [
+      Engine.context.PermissionController,
+      accountsLength,
+      channelId,
+      trackEvent,
+    ],
+  );
+
+  const triggerDappViewedEvent = useCallback(
+    (numberOfConnectedAccounts: number) =>
+      // Track dapp viewed event
+      trackDappViewedEvent({ hostname, numberOfConnectedAccounts }),
+    [hostname],
   );
 
   const handleConnect = useCallback(async () => {
@@ -129,10 +186,11 @@ const AccountConnect = (props: AccountConnectProps) => {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
-        origin: hostname,
+        origin: metadataOrigin,
       },
       approvedAccounts: selectedAccounts,
     };
+
     const connectedAccountLength = selectedAccounts.length;
     const activeAddress = selectedAccounts[0].address;
     const activeAccountName = getAccountNameWithENS({
@@ -146,9 +204,13 @@ const AccountConnect = (props: AccountConnectProps) => {
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
+
+      triggerDappViewedEvent(connectedAccountLength);
+
+      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
+        account_type: getAddressAccountType(activeAddress),
         source: 'in-app browser',
       });
       let labelOptions: ToastOptions['labelOptions'] = [];
@@ -183,11 +245,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     hostInfo,
     accounts,
     ensByAccountAddress,
-    hostname,
     accountAvatarType,
     Engine.context.PermissionController,
     toastRef,
     accountsLength,
+    metadataOrigin,
+    triggerDappViewedEvent,
+    trackEvent,
   ]);
 
   const handleCreateAccount = useCallback(
@@ -200,21 +264,18 @@ const AccountConnect = (props: AccountConnectProps) => {
           addedAccountAddress,
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
-          {},
-        );
+        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
       } catch (e: any) {
         Logger.error(e, 'error while trying to add a new account');
       } finally {
         setIsLoading(false);
       }
     },
-    [Engine.context],
+    [Engine.context, trackEvent],
   );
 
   const hideSheet = (callback?: () => void) =>
-    sheetRef?.current?.hide?.(callback);
+    sheetRef?.current?.onCloseBottomSheet?.(callback);
 
   /**
    * User intent is set on AccountConnectSingle,
@@ -250,16 +311,13 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-            {},
-          );
+          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-          AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
 
           break;
         }
@@ -277,6 +335,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     permissionRequestId,
     handleCreateAccount,
     handleConnect,
+    trackEvent,
   ]);
 
   const handleSheetDismiss = () => {
@@ -305,11 +364,12 @@ const AccountConnect = (props: AccountConnectProps) => {
     return (
       <AccountConnectSingle
         onSetSelectedAddresses={setSelectedAddresses}
+        connection={sdkConnection}
         onSetScreen={setScreen}
         onUserAction={setUserIntent}
         defaultSelectedAccount={defaultSelectedAccount}
         isLoading={isLoading}
-        favicon={faviconSource}
+        favicon={actualIcon}
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
       />
@@ -321,8 +381,9 @@ const AccountConnect = (props: AccountConnectProps) => {
     isLoading,
     setScreen,
     setSelectedAddresses,
-    faviconSource,
+    actualIcon,
     secureIcon,
+    sdkConnection,
     urlWithProtocol,
     setUserIntent,
   ]);
@@ -363,6 +424,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+        connection={sdkConnection}
       />
     ),
     [
@@ -375,6 +437,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       faviconSource,
       urlWithProtocol,
       secureIcon,
+      sdkConnection,
     ],
   );
 
@@ -395,13 +458,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   return (
-    <SheetBottom
-      onDismissed={handleSheetDismiss}
-      reservedMinOverlayHeight={0}
-      ref={sheetRef}
-    >
+    <BottomSheet onClose={handleSheetDismiss} ref={sheetRef}>
       {renderConnectScreens()}
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 

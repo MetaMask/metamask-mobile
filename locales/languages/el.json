@@ -1,21 +1,38 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ένας τρίτος που είναι γνωστός για απάτες μπορεί να πάρει όλα τα περιουσιακά σας στοιχεία.",
-    "attribution": "Συμβουλές ασφαλείας από",
+    "attribution": "Με την υποστήριξη του",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, κάποιος μπορεί να κλέψει τα περιουσιακά σας στοιχεία που είναι καταχωρημένα στο Blur.",
     "deceptive_request_title": "Πρόκειται για παραπλανητικό αίτημα",
     "failed_title": "Το αίτημα μπορεί να μην είναι ασφαλές",
     "failed_description": "Λόγω σφάλματος, αυτό το αίτημα δεν επαληθεύτηκε από τον πάροχο ασφαλείας. Προχωρήστε με προσοχή.",
+    "loading_title": "Έλεγχος για ειδοποιήσεις ασφαλείας...",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "Αλληλεπιδράτε με έναν κακόβουλο τομέα. Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
     "other_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
     "raw_signature_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
     "seaport_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, κάποιος μπορεί να κλέψει τα περιουσιακά σας στοιχεία που είναι καταχωρημένα στο OpenSea.",
     "see_details": "Δείτε λεπτομέρειες",
     "does_not_look_right": "Κάτι δεν φαίνεται σωστό;",
+    "report_an_issue": "Αναφέρετε ένα πρόβλημα",
     "suspicious_request_title": "Πρόκειται για ύποπτο αίτημα",
     "trade_order_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
-    "transfer_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ένας τρίτος που είναι γνωστός για απάτες θα πάρει όλα τα περιουσιακά σας στοιχεία."
+    "transfer_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ένας τρίτος που είναι γνωστός για απάτες θα πάρει όλα τα περιουσιακά σας στοιχεία.",
+    "before_you_proceed": "Προτού προχωρήσετε",
+    "enable_blockaid_alerts": "Για να ενεργοποιήσουμε αυτή τη λειτουργία πρέπει να ρυθμίσουμε κάποια ειδοποίηση ασφαλείας. Αυτή η σελίδα θα πρέπει να παραμείνει ανοιχτή όσο θα κάνουμε ρυθμίσεις. Η διαδικασία θα διαρκέσει λιγότερο από ένα λεπτό.",
+    "enable_blockaid_alerts_description": "Αυτή η σελίδα θα πρέπει να παραμένει ανοιχτή όσο διαρκεί η ρύθμιση των ειδοποιήσεων ασφαλείας. Η διαδικασία αυτή θα διαρκέσει λιγότερο από ένα λεπτό.",
+    "setting_up_alerts": "Ρυθμίσεις ειδοποιήσεων ασφαλείας",
+    "setting_up_alerts_description": "Κάνουμε όσο πιο γρήγορα μπορούμε για να ρυθμίσουμε τις ειδοποιήσεις ασφαλείας. Κάντε υπομονή, σχεδόν τελειώσαμε.",
+    "setup_complete": "Ολοκλήρωση ρυθμίσεων",
+    "setup_failed": "Δεν μπορέσαμε να ολοκληρώσουμε τη ρύθμιση των ειδοποιήσεων ασφαλείας. Ελέγξτε τη σύνδεσή σας στο διαδίκτυο και προσπαθήστε ξανά.",
+    "setup_multiple_failures": "Η σύνδεσή σας στο διαδίκτυο δεν είναι σταθερή αυτή τη στιγμή, οπότε δεν μπορέσαμε να ρυθμίσουμε τις ειδοποιήσεις ασφαλείας. Προσπαθήστε ξανά όταν αποκατασταθεί η σύνδεσή σας.",
+    "setup_complete_description": "Οι ειδοποιήσεις ασφαλείας είναι έτοιμες. Μπορείτε να κλείσετε αυτή τη σελίδα και να αρχίσετε να εξερευνάτε το πορτοφόλι σας",
+    "continue": "Συνέχεια",
+    "cancel": "Ακύρωση",
+    "got_it": "Εντάξει",
+    "try_again": "Προσπαθήστε ξανά",
+    "failed": "Κάτι πήγε στραβά"
   },
   "date": {
     "months": {
@@ -199,6 +216,10 @@
     "security_alert_title": "Ειδοποίηση Ασφαλείας",
     "security_alert_desc": "Για να συνεχίσετε, πρέπει να ενεργοποιήσετε τον κωδικό πρόσβασης ή κάποια βιομετρική μέθοδο επαλήθευσης που υποστηρίζει η συσκευή σας (FaceID, TouchID ή Δακτυλικό αποτύπωμα)"
   },
+  "connect_hardware": {
+    "title_select_hardware": "Συνδέστε ένα πορτοφόλι υλικού",
+    "select_hardware": "Επιλέξτε ένα πορτοφόλι υλικού που θέλετε να χρησιμοποιήσετε"
+  },
   "enter_password": {
     "title": "Εισάγετε τον κωδικό πρόσβασής σας",
     "desc": "Εισάγετε τον κωδικό πρόσβασής σας για να συνεχίσετε",
@@ -260,7 +281,7 @@
     "successfully_changed": "Ο κωδικός πρόσβασής σας άλλαξε με επιτυχία"
   },
   "import_from_seed": {
-    "title": "Εισαγωγή από μυστική φράση (seed)",
+    "title": "Εισαγωγή από Μυστική Φράση Ανάκτησης",
     "seed_phrase_placeholder": "Εισαγάγετε την Μυστική Φράση Ανάκτησης",
     "new_password": "Νέος κωδικός πρόσβασης",
     "confirm_password": "Επιβεβαίωση κωδικού πρόσβασης",
@@ -355,6 +376,15 @@
     "no_nfts_yet": "Δεν έχετε ακόμη NFT",
     "nfts_autodetection_title": "Εντοπισμός NFT",
     "nfts_autodetection_desc": "Επιτρέψτε στο MetaMask να εντοπίζει αυτόματα NFT από το OpenSea και να τα εμφανίζει στο πορτοφόλι σας στο MetaMask.",
+    "network_details_check": "Ο έλεγχος λεπτομερειών δικτύου",
+    "network_with_chain_id": "Το δίκτυο με αναγνωριστικό αλυσίδας",
+    "potential_scam": "Πρόκειται για πιθανή απάτη",
+    "network_not_matching": "Αυτό το δίκτυο δεν ταιριάζει με το αναγνωριστικό ή το όνομα της σχετικής αλυσίδας. Πολλά δημοφιλή tokens χρησιμοποιούν το όνομα",
+    "target_scam_network": "καθιστώντας το στόχο για απάτες. Οι απατεώνες μπορεί να σας ξεγελάσουν για να τους στείλετε πιο πολύτιμα νομίσματα σε αντάλλαγμα. Επαληθεύστε τα πάντα προτού συνεχίσετε.",
+    "use_the_currency_symbol": "χρησιμοποιεί το σύμβολο νομίσματος",
+    "use_correct_symbol": "Βεβαιωθείτε ότι χρησιμοποιείτε το σωστό σύμβολο προτού συνεχίσετε",
+    "chain_id_currently_used": "Αυτό το αναγνωριστικό αλυσίδας χρησιμοποιείται προς το παρόν από το",
+    "network_check_validation_desc": "μειώνει τις πιθανότητες σύνδεσης σε κακόβουλο ή λανθασμένο δίκτυο.",
     "nfts_autodetection_cta": "Ενεργοποιήστε τον εντοπισμό NFT στις Ρυθμίσεις",
     "learn_more": "Μάθετε περισσότερα",
     "add_collectibles": "Εισαγωγή NFT",
@@ -379,11 +409,13 @@
     "logout_to_import_seed": "Πρέπει να αποσυνδεθείτε πρώτα για να εισαγάγετε μια Μυστική Φράση Ανάκτησης.",
     "ready_to_explore": "Έτοιμοι να εξερευνήσετε τις εφαρμογές του blockchain;",
     "unable_to_load": "Δεν είναι δυνατή η φόρτωση του υπολοίπου",
+    "unable_to_find_conversion_rate": "δεν είναι δυνατή η εύρεση της τιμής μετατροπής",
     "display_nft_media_desc": "Για να εισαγάγετε ένα NFT, ενεργοποιήστε την επιλογή «Προβολή μέσων των NFT» στις Ρυθμίσεις > Ασφάλεια και απόρρητο.",
     "display_nft_media_cta": "Ενεργοποιήστε την «Προβολή μέσων των NFT»",
     "display_media_nft_warning": "Η εμφάνιση μέσων και δεδομένων των NFT ενδέχεται να εκθέσει τη διεύθυνση IP σας σε κεντρικούς διακομιστές. Εισαγάγετε ένα NFT μόνο αν κατανοείτε τους κινδύνους που συνεπάγονται.",
     "nfts_autodetect_title": "Αυτόματος εντοπισμός των NFT",
     "nfts_autodetect_cta": "Ενεργοποιήστε τον «Αυτόματο εντοπισμό των NFT» στις Ρυθμίσεις",
+    "turn_on_network_check_cta": "Ενεργοποίηση του ελέγχου λεπτομερειών δικτύου",
     "display_nft_media_cta_new_1": "Για να δείτε ένα NFT, ενεργοποιήστε την επιλογή «Προβολή μέσων NFT» στο",
     "display_nft_media_cta_new_2": "Ρυθμίσεις > Ασφάλεια και απόρρητο."
   },
@@ -511,6 +543,7 @@
   },
   "accounts": {
     "create_new_account": "Δημιουργία νέου λογαριασμού",
+    "qr_hardware": "Υλικό QR",
     "import_account": "Εισαγωγή λογαριασμού",
     "connect_hardware": "Σύνδεση πορτοφολιού υλικού",
     "imported": "Έγινε εισαγωγή",
@@ -533,11 +566,20 @@
     "permissions": "Άδειες",
     "revoke": "Ανάκληση",
     "revoke_all": "Ανάκληση όλων",
+    "ledger": "Ledger",
     "site_permission_to": "Αυτός ο ιστότοπος έχει άδεια για:",
     "address_balance_activity_permission": "Προβολή διεύθυνσης, υπολοίπου λογαριασμού και δραστηριότητας",
     "suggest_transactions": "Προτείνει συναλλαγές προς έγκριση",
     "disconnect": "Αποσύνδεση",
-    "disconnect_all_accounts": "Αποσύνδεση όλων των λογαριασμών"
+    "disconnect_all_accounts": "Αποσύνδεση όλων των λογαριασμών",
+    "deceptive_site_ahead": "Παραπλανητικός ιστότοπος εν όψει",
+    "deceptive_site_desc": "Ο ιστότοπος που προσπαθείτε να επισκεφθείτε δεν είναι ασφαλής. Οι εισβολείς μπορεί να σας εξαπατήσουν για να κάνουν κάτι επικίνδυνο.",
+    "learn_more": "Μάθετε περισσότερα",
+    "advisory_by": "Συμβουλές που παρέχονται από το Ethereum Phishing Detector και PhishFort",
+    "potential_threat": "Πιθανές απειλές περιλαμβάνουν",
+    "fake_metamask": "Ψεύτικες εκδόσεις του MetaMask",
+    "srp_theft": "Μυστική φράση ανάκτησης ή κλοπή κωδικού πρόσβασης",
+    "malicious_transactions": "Κακόβουλες συναλλαγές που οδηγούν σε απώλεια περιουσιακών στοιχείων"
   },
   "toast": {
     "connected_and_active": "συνδεδεμένοι και ενεργοί.",
@@ -558,17 +600,19 @@
     "tutorial": "Εκμάθηση",
     "description4": "Keystone (εκμάθηση)",
     "description5": "1. Ξεκλειδώστε το Keystone σας",
-    "description6": "2. Πατήστε στο ··· Μενού και στη συνέχεια μεταβείτε στην επιλογή Συγχρονισμός >",
+    "description6": "2. Πατήστε στο --- Μενού και, στη συνέχεια, μεταβείτε στην επιλογή Συγχρονισμός",
     "button_continue": "Συνέχεια",
     "hint_text": "Σαρώστε το Keystone πορτοφόλι σας για να ",
     "purpose_connect": "συνδεθείτε",
     "purpose_sign": "επιβεβαιώσετε τη συναλλαγή",
     "select_accounts": "Επιλέξτε Λογαριασμό",
-    "prev": "ΠΡΟΗΓ",
-    "next": "ΕΠΌΜΕΝΟ",
-    "unlock": "Ξεκλειδωμα",
-    "forget": "Διαγραφή αυτής της συσκευής",
     "please_wait": "Παρακαλούμε περιμένετε"
+  },
+  "account_selector": {
+    "prev": "ΠΡΟΗΓΟΥΜΕΝΟ",
+    "next": "ΕΠΟΜΕΝΟ",
+    "unlock": "Ξεκλειδώστε",
+    "forget": "Αγνοήστε αυτή τη συσκευή"
   },
   "app_settings": {
     "title": "Ρυθμίσεις",
@@ -591,9 +635,9 @@
     "autolock_after_minutes": "Μετά από {{time}} λεπτά",
     "reveal_seed_words": "ΑΠΟΚΑΛΥΨΗ ΤΗΣ ΜΥΣΤΙΚΗΣ ΦΡΑΣΗΣ",
     "reset_account": "Επαναφορά λογαριασμού",
-    "state_logs_button": "ΛΗΨΗ ΑΡΧΕΙΩΝ ΚΑΤΑΓΡΑΦΗΣ ΚΑΤΑΣΤΑΣΗΣ",
+    "state_logs_button": "Λήψη αρχείων καταγραφής",
     "reveal_seed_words_button": "ΑΠΟΚΑΛΥΨΗ ΤΗΣ ΜΥΣΤΙΚΗΣ ΦΡΑΣΗΣ",
-    "reset_account_button": "ΕΠΑΝΑΦΟΡΑ ΛΟΓΑΡΙΑΣΜΟΎ",
+    "reset_account_button": "Επαναφορά λογαριασμού",
     "reset_account_confirm_button": "Ναι, επαναφορά",
     "reset_account_cancel_button": "Άκυρο",
     "reset_account_modal_title": "Επαναφορά Λογαριασμού;",
@@ -647,8 +691,8 @@
     "toggleEthSignModalTitle": "Χρησιμοποιήστε το με δική σας ευθύνη",
     "toggleEthSignModalEnable": "Ενεργοποίηση",
     "toggleEthSignModalLearnMore": "Μάθετε περισσότερα.",
-    "toggleEthSignOff": "ΑΝΕΝΕΡΓΟ (συνιστάται)",
-    "toggleEthSignOn": "ΕΝΕΡΓΟ (δεν συνιστάται)",
+    "toggleEthSignOff": "(Συνιστάται)",
+    "toggleEthSignOn": "(Δεν συνιστάται)",
     "toggleEthSignContinueButton": "Συνέχεια",
     "toggleEthSignEnableButton": "Ενεργοποίηση",
     "show_custom_nonce": "Προσαρμογή συναλλαγής nonce",
@@ -677,7 +721,6 @@
     "network_chain_id_label": "Αναγνωριστικό αλυσίδας",
     "network_chain_id_placeholder": "Αναγνωριστικό αλυσίδας",
     "network_symbol_label": "Σύμβολο",
-    "network_symbol_placeholder": "Σύμβολο (προαιρετικά)",
     "network_block_explorer_label": "Αποκλεισμός διεύθυνσης URL του Explorer",
     "network_block_explorer_placeholder": "Αποκλεισμός διεύθυνσης URL του Explorer (προαιρετικά)",
     "network_chain_id_warning": "Μη έγκυρο Αναγνωριστικό αλυσίδας",
@@ -690,6 +733,7 @@
     "remove_network": "Αφαίρεση",
     "cancel_remove_network": "Άκυρο",
     "info_title": "Σχετικά με το MetaMask",
+    "info_title_flask": "Σχετικά με το MetaMask Flask",
     "experimental_title": "Πειραματικά",
     "experimental_desc": "WalletConnect και άλλα...",
     "legal_title": "Νομικές πληροφορίες",
@@ -720,6 +764,9 @@
     "invalid_password": "Μη έγκυρος κωδικός πρόσβασης",
     "invalid_password_message": "Ο κωδικός πρόσβασης δεν ήταν σωστός. Προσπαθήστε ξανά.",
     "security_heading": "Ασφάλεια",
+    "ses_heading": "Κλείδωμα κωδικού",
+    "ses_description": "Πρόκειται για μια δοκιμαστική λειτουργία που εμποδίζει οποιαδήποτε αλλαγή στον κώδικα JavaScript της εφαρμογής χωρίς άδεια.",
+    "ses_link": "Μάθετε περισσότερα",
     "privacy_heading": "Απόρρητο",
     "failed_to_fetch_chain_id": "Δεν ήταν δυνατή η λήψη του αναγνωριστικού αλυσίδας. Είναι σωστή η διευθύνση URL του RPC;",
     "endpoint_returned_different_chain_id": "Το τελικό σημείο επέστρεψε ένα διαφορετικό αναγνωριστικό αλυσίδας: %{chainIdReturned}",
@@ -770,7 +817,7 @@
     "manage_sdk_connections_title": "Διαχείριση συνδέσεων",
     "manage_sdk_connections_text": "Αφαιρέστε τις συνδέσεις σε ιστότοπους ή/και το MetaMask SDK.",
     "fiat_on_ramp": {
-      "title": "Αγοράστε Κρυπτονομίσματα",
+      "title": "Αγορά & πώληση κρυπτονομισμάτων",
       "description": "Περιοχή & άλλα...",
       "current_region": "Τρέχουσα Περιοχή",
       "reset_region": "Επαναφορά Περιοχής",
@@ -789,21 +836,97 @@
     "autodetect_nft_desc": "Επιτρέψτε στο MetaMask να προσθέτει NFT που σας ανήκουν χρησιμοποιώντας υπηρεσίες τρίτων (όπως το OpenSea). Ο αυτόματος εντοπισμός των NFT εκθέτει τη διεύθυνση IP και τον λογαριασμό σας σε αυτές τις υπηρεσίες. Η ενεργοποίηση αυτής της λειτουργίας θα μπορούσε να συσχετίσει τη διεύθυνση IP σας με τη διεύθυνση σας στο Ethereum και να εμφανίζει ψεύτικα NFT που διοχετεύουν οι απατεώνες. Μπορείτε να προσθέσετε χειροκίνητα tokens για να αποφύγετε αυτόν τον κίνδυνο.",
     "incoming_transactions_title": "Εμφάνιση εισερχόμενων συναλλαγών",
     "incoming_transactions_content": "Αυτό εξαρτάται από το δίκτυο που επιλέγετε, το οποίο θα εκθέσει τη διεύθυνση Ethereum και τη διεύθυνση IP σας.",
-    "display_nft_media_desc_new": "Η προβολή μέσων και δεδομένων NFT εκθέτει τη διεύθυνση IP σας στο OpenSea ή σε άλλα τρίτα μέρη. Η αυτόματη ανίχνευση NFT βασίζεται σε αυτή τη λειτουργία και δεν θα είναι διαθέσιμη όταν είναι απενεργοποιημένη. Εάν τα μέσα NFT βρίσκονται πλήρως στο IPFS, μπορούν να εμφανιστούν ακόμα και όταν αυτή η λειτουργία είναι απενεργοποιημένη."
+    "display_nft_media_desc_new": "Η προβολή μέσων και δεδομένων NFT εκθέτει τη διεύθυνση IP σας στο OpenSea ή σε άλλα τρίτα μέρη. Η αυτόματη ανίχνευση NFT βασίζεται σε αυτή τη λειτουργία και δεν θα είναι διαθέσιμη όταν είναι απενεργοποιημένη. Εάν τα μέσα NFT βρίσκονται πλήρως στο IPFS, μπορούν να εμφανιστούν ακόμα και όταν αυτή η λειτουργία είναι απενεργοποιημένη.",
+    "use_safe_chains_list_validation_desc_1": "Το MetaMask χρησιμοποιεί μια υπηρεσία τρίτων που ονομάζεται ",
+    "use_safe_chains_list_validation_desc_2": "για να εμφανίζει ακριβείς και τυποποιημένες λεπτομέρειες του δικτύου. Αυτό μειώνει τις πιθανότητες σύνδεσης σε κακόβουλο ή λανθασμένο δίκτυο. Όταν χρησιμοποιείτε αυτή τη λειτουργία, η διεύθυνση IP σας εκτίθεται σε  ",
+    "snaps": {
+      "title": "Snaps",
+      "description": "Επισκόπηση και διαχείριση των snaps σας",
+      "snap_settings": {
+        "remove_snap_section_title": "Αφαίρεση του snap",
+        "remove_snap_section_description": "Αυτή η ενέργεια θα διαγράψει το snap, τα δεδομένα του και τις άδειες που του έχουν χορηγηθεί.",
+        "remove_button_label": "Αφαίρεση του {{snapName}}"
+      },
+      "snap_details": {
+        "install_date": "Εγκαταστάθηκε στις {{date}}",
+        "install_origin": "Εγκατάσταση του Origin",
+        "enabled": "Ενεργοποιημένο",
+        "version": "Έκδοση"
+      },
+      "snap_permissions": {
+        "approved_date": "Εγκρίθηκε στις {{date}}",
+        "permission_section_title": "Άδειες",
+        "permission_requested_now": "Αιτείται τώρα",
+        "human_readable_permission_titles": {
+          "endowment:long-running": "Εκτέλεση επ' αόριστον",
+          "endowment:network-access": "Πρόσβαση στο διαδίκτυο",
+          "endowment:transaction-insight": "Εμφάνιση πληροφοριών συναλλαγών",
+          "endowment:cronjob": "Προγραμματισμός και εκτέλεση περιοδικών ενεργειών",
+          "endowment:rpc": {
+            "snaps": "Επιτρέψτε σε άλλα snaps να επικοινωνούν απευθείας με αυτό το snap",
+            "dapps": "Επιτρέψτε στις αποκεντρωμένες εφαρμογές να επικοινωνούν απευθείας με αυτό το snap"
+          },
+          "snap_confirm": "Εμφάνιση προσαρμοσμένων διαλόγων",
+          "snap_manageState": "Αποθήκευση και διαχείριση δεδομένων στη συσκευή σας",
+          "snap_notify": "Εμφάνιση ειδοποιήσεων",
+          "snap_getBip32Entropy": "Ελέγξτε λογαριασμούς {{protocol}} και τα περιουσιακά σας στοιχεία",
+          "snap_getBip32PublicKey": "Δείτε το δημόσιο κλειδί σας για {{protocol}}",
+          "snap_getBip44Entropy": "Ελέγξτε τους λογαριασμούς {{protocol}} και τα περιουσιακά σας στοιχεία",
+          "snap_getEntropy": "Παραγωγή τυχαίων κλειδιών μοναδικών σε αυτό το snap",
+          "endowment:keyring": "endowment:keyring",
+          "wallet_snap": "Σύνδεση με {{otherSnapName}}",
+          "endowment:webassembly": "Υποστήριξη για WebAssembly",
+          "endowment:ethereum-provider": "Πρόσβαση στον πάροχο Ethereum",
+          "endowment:unknown": "Άγνωστη άδεια",
+          "snap_getLocale": "Δείτε την προτιμώμενη γλώσσα σας",
+          "endowment:caveat:transaction-origin": "Δείτε την προέλευση των ιστότοπων που προτείνουν συναλλαγές",
+          "endowment:extend-runtime": "Επέκταση του χρόνου εκτέλεσης",
+          "snap_dialog": "Εμφάνιση προσαρμοσμένων διαλόγων"
+        }
+      }
+    },
+    "privacy_browser_subheading": "Εκκαθάριση δεδομένων απορρήτου ή προγράμματος περιήγησης",
+    "analytics_subheading": "Αναλυτικά στοιχεία",
+    "transactions_subheading": "Συναλλαγές",
+    "network_provider": "Πάροχος δικτύου",
+    "token_nft_ens_subheading": "Αυτόματος εντοπισμός Tokens, NFS και ENS",
+    "security_check_subheading": "Έλεγχοι ασφαλείας",
+    "symbol_required": "Απαιτείται το σύμβολο.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Διαφύλαξη της ιδιωτικής ζωής - δεν κοινοποιούνται δεδομενα σε τρίτους. Διατίθεται στα Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism και Polygon.",
+    "security_alerts": "Ειδοποιήσεις ασφαλείας",
+    "security_alerts_desc": "Αυτή η λειτουργία σας προειδοποιεί για κακόβουλη δραστηριότητα, καθώς ελέγχει τοπικά τα αιτήματα συναλλαγών και υπογραφών σας. Πάντα να κάνετε τη δική σας επιμελή έρευνα προτού εγκρίνετε οποιαδήποτε αιτήματα. Δεν υπάρχει καμία εγγύηση ότι αυτή η λειτουργία θα εντοπίσει όλες τις κακόβουλες δραστηριότητες. Ενεργοποιώντας αυτή τη λειτουργία, συμφωνείτε με τους όρους χρήσης του παρόχου."
   },
   "sdk": {
     "disconnect_title": "Αποσύνδεση όλων των ιστότοπων;",
     "disconnect_all_info": "Εάν αφαιρέσετε τις συνδέσεις σας σε όλους τους ιστότοπους, θα πρέπει να δώσετε άδεια για να συνδεθείτε ξανά.",
     "disconnect": "Αποσύνδεση",
     "disconnect_all": "Αποσύνδεση όλων",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
+    "manage": "Manage",
     "cancel": "Άκυρο",
     "loading": "Σύνδεση στο MetaMask...",
     "unkown_dapp": "Το όνομα DAPP δεν είναι διαθέσιμο",
-    "no_connections": "Δεν βρέθηκαν συνδέσεις"
+    "no_connections": "No connections",
+    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
   },
-  "sdk_return_to_app_modal":{
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} account(s) connected."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Disconnect from all sites?",
+    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
+    "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_confirm": "Disconnect",
+    "cancel": "Cancel"
+  },
+  "sdk_return_to_app_modal": {
     "title": "Επιστροφή στην εφαρμογή",
-    "description": "Παρακαλώ επιστρέψτε στην εφαρμογή για να συνεχίσετε τη χρήση των υπηρεσιών της."
+    "description": "Επιστρέψτε στην εφαρμογή για να συνεχίσετε να χρησιμοποιείτε τις υπηρεσίες τους."
   },
   "sdk_feedback_modal": {
     "ok": "Εντάξει",
@@ -892,11 +1015,13 @@
   "asset_overview": {
     "send_button": "Αποστολή",
     "buy_button": "Αγορά",
+    "sell_button": "Πώληση",
     "receive_button": "Λήψη",
     "portfolio_button": "Χαρτοφυλάκιο",
     "add_collectible_button": "Προσθήκη",
     "info": "Πληροφορίες",
     "swap": "Ανταλλαγή",
+    "bridge": "Διασύνδεση",
     "description": "Περιγραφή",
     "totalSupply": "Συνολική Προμήθεια",
     "address": "Διεύθυνση",
@@ -906,7 +1031,9 @@
     "for_help": "για βοήθεια.",
     "troubleshoot": "Αντιμετώπιση Προβλημάτων",
     "buy_description": "Αγοράστε κρυπτονομίσματα με μετρητά",
+    "sell_description": "Πουλήστε κρυπτονομίσματα για μετρητά",
     "swap_description": "Ανταλλαγή μεταξύ tokens",
+    "bridge_description": "Μεταφορά token μεταξύ δικτύων",
     "send_description": "Στείλτε κρυπτονομίσματα σε οποιονδήποτε λογαριασμό",
     "receive_description": "Λάβετε κρυπτονομίσματα",
     "chart_time_period": {
@@ -995,7 +1122,6 @@
     "confirm": "Επιβεβαιωση"
   },
   "transaction": {
-    "hardware": "Υλικό",
     "alert": "ΕΙΔΟΠΟΙΗΣΗ",
     "amount": "Ποσό",
     "next": "Επόμενο",
@@ -1007,6 +1133,7 @@
     "save": "Αποθήκευση",
     "speedup": "Επιτάχυνση",
     "sign_with_keystone": "Υπογραφή με το Keystone",
+    "sign_with_ledger": "Είσοδος με το Ledger",
     "from": "Από",
     "gas_fee": "Τέλος Συναλλαγής",
     "gas_fee_fast": "ΓΡΗΓΟΡΑ",
@@ -1080,6 +1207,7 @@
     "not_enough_for_gas": "Έχετε 0 {{ticker}} στον λογαριασμό σας για να πληρώσετε τα τέλη συναλλαγής. Αγοράστε μερικά {{ticker}} ή καταθέστε από άλλον λογαριασμό.",
     "send": "Αποστολή",
     "confirm_with_qr_hardware": "Επιβεβαίωση με το Keystone",
+    "confirm_with_ledger_hardware": "Επιβεβαίωση με το Ledger",
     "confirmed": "Επιβεβαιωμένο",
     "pending": "Εκκρεμεί",
     "submitted": "Σε υποβολή",
@@ -1115,7 +1243,8 @@
     "fiat_conversion_not_available": "Οι μετατροπές σε παραστατικά χρήματα δεν είναι διαθέσιμες αυτή τη στιγμή",
     "hex_data_copied": "Τα δεκαεξαδικά δεδομένα αντιγράφηκαν στο πρόχειρο",
     "invalid_recipient": "Μη έγκυρος παραλήπτης",
-    "invalid_recipient_description": "Ελέγξτε τη διεύθυνση και βεβαιωθείτε ότι είναι έγκυρη"
+    "invalid_recipient_description": "Ελέγξτε τη διεύθυνση και βεβαιωθείτε ότι είναι έγκυρη",
+    "swap_tokens": "Ανταλλαγή tokens"
   },
   "custom_gas": {
     "total": "Σύνολο",
@@ -1340,6 +1469,7 @@
     "status_ok": "Όλα τα Συστήματα Λειτουργούν",
     "status_not_ok": "Το δίκτυο έχει κάποια προβλήματα",
     "want_to_add_network": "Θέλετε να προσθέσετε αυτό το δίκτυο;",
+    "add_custom_network": "Προσθήκη προσαρμοσμένου δικτύου",
     "network_infomation": "Αυτό επιτρέπει στο δίκτυο να χρησιμοποιηθεί εντός του MetaMask",
     "network_endorsement": "Το MetaMask δεν υποστηρίζει τα προσαρμοσμένα δίκτυα ή την ασφάλειά τους.",
     "learn_about": "Μάθετε σχετικά με",
@@ -1349,12 +1479,15 @@
     "network_rpc_url": "Διεύθυνση URL του Δικτύου",
     "view_details": "Προβολή λεπτομερειών",
     "network_details": "Λεπτομέρειες δικτύου",
+    "network_select_confirm_use_safe_check": "Η επιλογή \"Επιβεβαίωση\" ενεργοποιεί τον έλεγχο λεπτομερειών δικτύου. Μπορείτε να απενεργοποιήσετε τον έλεγχο λεπτομερειών δικτύου στις ",
+    "network_settings_security_privacy": "Ρυθμίσεις > Ασφάλεια και απόρρητο",
     "network_currency_symbol": "Σύμβολο Νομίσματος",
     "network_block_explorer_url": "Διεύθυνση URL του Block Explorer",
     "search": "Αναζήτηση για δίκτυο που έχει ήδη προστεθεί",
     "add": "Προσθήκη",
     "cancel": "Άκυρο",
     "approve": "Έγκριση",
+    "edit_network_details": "Επεξεργασία λεπτομερειών δικτύου",
     "malicious_network_warning": "Ένας κακόβουλος πάροχος δικτύου μπορεί να πει ψέματα για την κατάσταση του blockchain και να καταγράψει τη δραστηριότητα του δικτύου σας. Να προσθέτετε μόνο προσαρμοσμένα δίκτυα που εμπιστεύεστε.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Πληροφορίες Δικτύου",
@@ -1373,7 +1506,10 @@
     "you_can": "Ή μπορείτε",
     "add_network": "να προσθέσετε περισσότερα δίκτυα χειροκίνητα.",
     "select_network": "Επιλέξτε ένα δίκτυο",
-    "show_test_networks": "Εμφάνιση δοκιμαστικών δικτύων"
+    "show_test_networks": "Εμφάνιση δοκιμαστικών δικτύων",
+    "deprecated_goerli": "Λόγω των αλλαγών στο πρωτόκολλο του δοκιμαστικού δίκτυου Ethereum: Goerli μπορεί να μην λειτουργεί τόσο αξιόπιστα και θα καταργηθεί σύντομα.",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
   },
   "select": {
     "cancel": "Άκυρο",
@@ -1592,7 +1728,7 @@
   },
   "manual_backup_step_1": {
     "action": "Καταγράψτε τη Μυστική Φράση Ανάκτησης",
-    "info": "Αυτή είναι η Μυστική σας Φράση Ανάκτησης. Γράψτε την σε ένα χαρτί και φυλάξτε την σε ασφαλές μέρος. Θα σας ζητηθεί να καταχωρίσετε εκ νέου αυτή τη φράση (με τη σειρά) στο επόμενο βήμα.",
+    "info": "Αυτή είναι η Μυστική σας Φράση Ανάκτησης. Γράψτε την σε χαρτί και φυλάξτε την σε ασφαλές μέρος. Θα σας ζητηθεί να ξαναδώσετε αυτή τη φράση (με τη σειρά) στο επόμενο βήμα.",
     "continue": "Συνέχεια",
     "reveal": "Πατήστε για να αποκαλυφθεί η Μυστική Φράση Ανάκτησης",
     "watching": "Βεβαιωθείτε ότι κανείς δεν παρακολουθεί την οθόνη σας.",
@@ -1729,10 +1865,9 @@
   "experimental_settings": {
     "wallet_connect_dapps": "Συνεδρίες WalletConnect",
     "wallet_connect_dapps_desc": "Προβολή της λίστας των ενεργών συνεδριών στο WalletConnect",
-    "wallet_connect_dapps_cta": "ΠΡΟΒΟΛΗ ΣΥΝΕΔΡΙΩΝ",
+    "wallet_connect_dapps_cta": "Προβολή συνεδριών",
     "network_not_supported": "Το τρέχον δίκτυο δεν υποστηρίζεται",
-    "security_alerts": "Ειδοποιήσεις ασφαλείας",
-    "blockaid": "Blockaid",
+    "select_provider": "Επιλέξτε τον πάροχο που προτιμάτε",
     "switch_network": "Παρακαλούμε μεταβείτε στο mainnet ή το sepolia"
   },
   "walletconnect_sessions": {
@@ -1828,16 +1963,6 @@
     "apple_pay_provider_total_label": "{{provider}} (μέσω MetaMask)",
     "buy_with": "Αγορά με",
     "plus_fee": "Συν μια χρέωση {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Η αγορά του {{currency}} απέτυχε! Προσπαθήστε ξανά, συγγνώμη για την ταλαιπωρία!",
-      "purchase_failed_description": "Επαληθεύστε τη μέθοδο πληρωμής και την υποστήριξη της κάρτας σας",
-      "purchase_cancelled_title": "Η αγορά σας ακυρώθηκε",
-      "purchase_cancelled_description": "Επαληθεύστε τη μέθοδο πληρωμής και την υποστήριξη της κάρτας σας",
-      "purchase_completed_title": "Η αγορά σας των {{amount}} {{currency}} ήταν επιτυχής!",
-      "purchase_completed_description": "Τα {{currency}} σας είναι τώρα διαθέσιμα",
-      "purchase_pending_title": "Επεξεργασία της αγοράς σας των {{currency}}",
-      "purchase_pending_description": "Θα πάρει μόνο λίγα λεπτά..."
-    },
     "date": "Ημερομηνία",
     "from": "Από",
     "to": "Προς",
@@ -1874,14 +1999,39 @@
     }
   },
   "fiat_on_ramp_aggregator": {
+    "buy": "αγορά",
+    "sell": "πώληση",
+    "orders": "Εντολές",
+    "All": "Όλα",
+    "Buy": "Αγορά",
+    "Sell": "Πώληση",
+    "Purchased": "Αγοράστηκαν",
+    "Sold": "Πουλήθηκαν",
+    "empty_buy_orders_list": "Δεν έχετε εντολές αγοράς",
+    "empty_sell_orders_list": "Δεν έχετε εντολές πώλησης",
+    "purchased_currency": "Αγοράσατε {{currency}}",
+    "sold_currency": "Πουλήσατε {{currency}}",
+    "order_status_pending": "Εκκρεμεί",
+    "order_status_processing": "Επεξεργασία",
+    "order_status_completed": "Ολοκληρώθηκε",
+    "order_status_failed": "Απέτυχε",
+    "order_status_cancelled": "Ακυρώθηκε",
+    "network_switcher": {
+      "title": "Μη υποστηριζόμενο δίκτυο για {{rampType}}",
+      "description": "Για {{rampType}} κρυπτονομισμάτων, θα πρέπει να μεταβείτε σε ένα υποστηριζόμενο δίκτυο",
+      "no_networks_found": "Δεν βρέθηκαν υποστηριζόμενα δίκτυα"
+    },
     "onboarding": {
       "what_to_expect": "Τι να Αναμένετε",
       "quotes": "Η λειτουργία μας αγοράς κρυπτονομισμάτων συγκεντρώνει προσφορές από ενταγμένους προμηθευτές, παρέχοντας προσφορές από αυτές τις πηγές για να λάβετε τα κρυπτονομίσματα απευθείας στο πορτοφόλι σας χωρίς περίοδο αναμονής.",
+      "quotes_sell": "Τώρα μπορείτε να εξαργυρώσετε απευθείας στο MetaMask! Λάβετε ενημερωμένες προσφορές από αξιόπιστους παρόχους, ενώ εμείς θα σας καθοδηγούμε σε κάθε βήμα.",
       "benefits": "Λιγότερα τέλη συναλλαγών για πληρωμή και υποστήριξη πολυάριθμων δικτύων, tokens και μεθόδων πληρωμής",
+      "benefits_sell": "Η μετάβαση από το κρυπτονόμισμα στο τοπικό σας νόμισμα είναι τώρα ευκολότερη από ποτέ.",
       "get_started": "Ξεκινήστε"
     },
     "payment_method": {
       "payment_method": "Μέθοδος Πληρωμής",
+      "cash_destination": "Προορισμός μετρητών",
       "instant": "Άμεσα",
       "less_than": "Λιγότερο από",
       "minute": "λεπτό",
@@ -1893,9 +2043,14 @@
       "lowest_limit": "χαμηλότερο όριο αγοράς",
       "medium_limit": "μέσο όριο αγοράς",
       "highest_limit": "υψηλότερο όριο αγοράς",
+      "lowest_sell_limit": "κατώτατο όριο πώλησης",
+      "medium_sell_limit": "μέτριο όριο πώλησης",
+      "highest_sell_limit": "ανώτατο όριο πώλησης",
       "continue_to_amount": "Συνέχεια στο ποσό",
       "no_payment_methods_title": "Δεν Υπάρχουν Μέθοδοι Πληρωμής στην {{regionName}}",
+      "no_cash_destinations_title": "Προορισμοί χωρίς μετρητά στην {{regionName}}",
       "no_payment_methods_description": "Προς το παρόν δεν υποστηρίζονται μέθοδοι πληρωμής στην περιοχή σας. Παρακαλούμε ελέγξτε τις πάλι σύντομα, επεκτείνουμε συχνά την υποστήριξη σε νέες περιοχές.\n\nΕάν επιλέξατε την {{regionName}} κατά λάθος, κάντε κλικ στο παρακάτω κουμπί για να επαναφέρετε την περιοχή σας.",
+      "no_cash_destinations_description": "Προς το παρόν δεν υπάρχουν υποστηριζόμενοι προορισμοί μετρητών στην περιοχή σας. Ελέγξτε πάλι σύντομα - επεκτείνουμε συχνά την υποστήριξη σε νέες περιοχές.\n\nΕάν επιλέξατε την {{regionName}} κατά λάθος, κάντε κλικ στο παρακάτω κουμπί για να επαναφέρετε την περιοχή σας.",
       "reset_region": "Επαναφορά Περιοχής"
     },
     "continue": "Συνέχεια",
@@ -1905,9 +2060,14 @@
     "get_new_quotes": "Λάβετε νέες προσφορές",
     "quotes_timeout": "Λήξη προσφοράς",
     "request_new_quotes": "Ζητήστε νέες προσφορές για να πάρετε την πιο πρόσφατη καλύτερη τιμή.",
-    "amount_to_buy": "Ποσό για Αγορά",
+    "terms_of_service": "Όροι Χρήσης",
+    "amount_to_buy": "Ποσό προς αγορά",
+    "amount_to_sell": "Ποσό προς πώληση",
     "want_to_buy": "Θέλετε να αγοράσετε",
+    "want_to_sell": "Θέλετε να πουλήσετε",
+    "current_balance": "Τρέχον υπόλοιπο",
     "amount": "Ποσό",
+    "send_cash_to": "Στείλτε μετρητά σε",
     "get_quotes": "Λάβετε προσφορές",
     "done": "Ολοκληρώθηκε",
     "fetching_quotes": "Λήψη προσφορών",
@@ -1918,6 +2078,7 @@
     "search_by_currency": "Αναζητήστε ένα νόμισμα",
     "update_payment_method": "Ενημέρώστε την μέθοδο πληρωμής",
     "select_payment_method": "Επιλέξτε μέθοδο πληρωμής",
+    "select_cash_destination": "Επιλέξτε πού θα στείλετε μετρητά",
     "select_region_currency": "Επιλέξτε Νόμισμα Περιοχής",
     "no_tokens_match": "Δεν υπάρχουν tokens που να ταιριάζουν με το “{{searchString}}”",
     "no_currency_match": "Δεν υπάρχουν νομίσματα που να ταιριάζουν με το “{{searchString}}”",
@@ -1926,23 +2087,33 @@
     "continue_with": "Συνεχίστε με το {{provider}}",
     "minimum": "Η ελάχιστη κατάθεση είναι",
     "maximum": "Η μέγιστη κατάθεση είναι",
+    "insufficient_balance": "Το ποσό αυτό είναι μεγαλύτερο από το υπόλοιπό σας",
+    "enter_larger_amount": "Πληκτρολογήστε μεγαλύτερο ποσό για να συνεχίσετε",
+    "enter_smaller_amount": "Πληκτρολογήστε μικρότερο ποσό για να συνεχίσετε",
+    "enter_lower_gas_fees": "Πληκτρολογήστε ένα χαμηλότερο ποσό για την καταβολή των τελών συναλλαγών",
+    "max": "ΜΕΓΙΣΤΟ",
     "try_again": "Προσπαθήστε ξανά",
     "error": "Σφάλμα",
     "something_went_wrong": "Ωχ, κάτι πήγε στραβά",
     "report_this_issue": "Αναφέρετε το πρόβλημα",
     "no_providers_available": "Δεν υπάρχουν διαθέσιμοι πάροχοι",
     "try_different_amount_to_buy_input": "Δοκιμάστε να επιλέξετε διαφορετική μέθοδο πληρωμής ή προσπαθήστε να αυξήσετε ή να μειώσετε το ποσό που θέλετε να αγοράσετε!",
+    "try_different_amount_to_sell_input": "Δοκιμάστε να επιλέξετε έναν διαφορετικό προορισμό για εξαργύρωση ή προσπαθήστε να αυξήσετε ή να μειώσετε το ποσό που θέλετε να πουλήσετε!",
     "webview_received_error": "Το WebView έλαβε έναν κωδικό κατάστασης σφάλματος: {{code}}",
     "no_tokens_available_title": "Δεν υπάρχουν διαθέσιμα Tokens",
     "no_tokens_available": "Δεν υπάρχουν προς το παρόν διαθέσιμα tokens για αγορά στο {{network}} με την επιλεγμένη μέθοδο πληρωμής.",
+    "no_sell_tokens_available": "Προς το παρόν δεν υπάρχουν διαθέσιμα tokens για πώληση στο {{network}} με τον επιλεγμένο προορισμό μετρητών.",
     "this_network": "αυτό το δίκτυο",
     "change_payment_method": "Αλλάξτε μέθοδο πληρωμής",
+    "change_cash_destination": "Αλλαγή προορισμού μετρητών",
     "try_different_region": "Δοκιμάστε μια άλλη περιοχή",
     "return_home": "Επιστροφή στην αρχική οθόνη",
     "region": {
       "buy_crypto_tokens": "Αγορά Κρυπτονομισμάτων Tokens",
+      "sell_crypto_tokens": "Πουλήστε tokens για κρυπτονομίσματα",
       "title": "Επιλέξτε την Περιοχή σας",
       "description": "Οι μέθοδοι πληρωμής και τα tokens που έχετε στη διάθεσή σας καθορίζονται από τις ενσωματώσεις τρίτων και ενδέχεται να διαφέρουν ανάλογα με την περιοχή σας και την υποστήριξη από τις ενσωματώσεις μας.",
+      "sell_description": "Οι επιλογές προορισμού μετρητών και τα tokens ενδέχεται να διαφέρουν ανάλογα με την περιοχή σας.",
       "search_by_country": "Αναζήτηση ανά χώρα",
       "search_by_state": "Αναζήτηση ανά πολιτεία",
       "no_region_results": "Δεν βρέθηκαν περιοχές που να ταιριάζουν",
@@ -1951,18 +2122,23 @@
       "select_region_title": "Επιλέξτε την Περιοχή σας",
       "select_country_registered": "Επιλέξτε τη χώρα στην οποία είναι καταχωρημένη η κάρτα σας (ανεξάρτητα από το πού βρίσκεστε).",
       "unsupported": "Δεν Υποστηρίζεται η Περιοχή",
-      "unsupported_description": "Εργαζόμαστε σκληρά για να επεκτείνουμε την κάλυψη στην περιοχή σας το συντομότερο δυνατό. Στο μεταξύ, ανατρέξτε στο άρθρο υποστήριξης για άλλους τρόπους με τους οποίους μπορείτε να αγοράσετε κρυπτονομίσματα.",
-      "unsupported_link": "Επισκεφτείτε το Άρθρο Υποστήριξης"
+      "unsupported_description": "Εργαζόμαστε σκληρά για να επεκτείνουμε την κάλυψη στην περιοχή σας το συντομότερο δυνατό. Εν τω μεταξύ, ανατρέξτε στο άρθρο μας για υποστήριξη σχετικά με άλλους τρόπους που μπορείτε για {{rampType}}κρυπτονομισμάτων.",
+      "unsupported_link": "Επισκεφτείτε το Άρθρο Υποστήριξης",
+      "popular_regions": "Δημοφιλείς περιοχές",
+      "regions": "Περιοχές"
     },
     "order_details": {
       "details_main": "Λεπτομέρειες Αγοράς",
       "successful": "Η εντολή ήταν επιτυχής!",
       "your": "Το",
       "available_in_account": "είναι τώρα διαθέσιμο στον λογαριασμό σας",
+      "delayed_bank_transfer": "Θα χρειαστούν λίγες ημέρες για να δείτε τα μετρητά στον τραπεζικό σας λογαριασμό.",
       "crypto": "κρυπτονομίσματα",
       "failed": "Η εντολή απέτυχε",
       "cancelled": "Η εντολή ακυρώθηκε",
+      "pending": "Εκκρεμής εντολή",
       "failed_description": "Κάτι δεν πήγε καλά και ο {{provider}} δεν μπόρεσε να ολοκληρώσει την εντολή σας. Παρακαλούμε δοκιμάστε ξανά ή με άλλον πάροχο.",
+      "continue_order_description": "Για να συνεχίσετε με την εντολή, θα πρέπει να επιλέξετε το κουμπί στο κάτω μέρος αυτής της σελίδας.",
       "the_provider": "ο πάροχος",
       "processing": "Επεξεργασία Εντολής",
       "processing_card_description": "Οι αγορές με πιστωτική/χρεωστική κάρτα διαρκούν συνήθως λίγα λεπτά.",
@@ -1970,8 +2146,10 @@
       "details": "Λεπτομέρειες εντολής",
       "via": "μέσω",
       "purchase_amount": "Συνολικό Ποσό Αγοράς",
+      "amount_received_total": "Συνολικό εισπραχθέν ποσό",
       "etherscan": "Δείτε όλες τις λεπτομέρειες στο",
-      "another_purchase": "Κάντε άλλη μια αγορά",
+      "start_new_order": "Ξεκινήστε μια νέα εντολή",
+      "continue_order": "Συνέχιση αυτής της εντολής",
       "questions": "Ερωτήσεις;",
       "contact_support": "Επικοινωνία με την Υποστήριξη",
       "support": "Υποστήριξη",
@@ -1979,11 +2157,40 @@
       "id": "Αναγνωριστικό Εντολής",
       "date_and_time": "Ημερομηνία και Ώρα",
       "payment_method": "Μέθοδος Πληρωμής",
+      "destination": "Προορισμός",
       "token_amount": "Ποσό Token",
+      "token_quantity_sold": "Ποσότητα tokens που πωλήθηκαν",
       "exchange_rate": "Συναλλαγματική Ισοτιμία",
       "total_fees": "Συνολικά Τέλη",
       "amount": "Ποσό",
+      "value": "Αξία",
       "a_block_explorer": "ένας block explorer"
+    },
+    "send_transaction": {
+      "sell_crypto": "Πώληση κρυπτονομισμάτων",
+      "send_description": "Θα στείλετε {{cryptocurrency}} στο {{provider}}, που στη συνέχεια θα στείλει τα μετρητά σας σε {{paymentMethod}}",
+      "next": "Επόμενο",
+      "hold_to_send": "Αναμονή για αποστολή",
+      "send": "Αποστολή",
+      "sent": "Εστάλη!"
+    },
+    "notifications": {
+      "purchase_failed_title": "Η αγορά των {{currency}} απέτυχε! Προσπαθήστε ξανά, συγγνώμη για την αναστάτωση!",
+      "purchase_failed_description": "Επαληθεύστε τη μέθοδο πληρωμής και την υποστήριξη της κάρτας σας",
+      "purchase_cancelled_title": "Η αγορά σας ακυρώθηκε",
+      "purchase_cancelled_description": "Επαληθεύστε τη μέθοδο πληρωμής και την υποστήριξη της κάρτας σας",
+      "purchase_completed_title": "Η αγορά {{amount}} {{currency}} ήταν επιτυχής!",
+      "purchase_completed_description": "Τα {{currency}} είναι τώρα διαθέσιμα",
+      "purchase_pending_title": "Επεξεργασία της αγοράς σας των {{currency}}",
+      "purchase_pending_description": "Αυτό θα διαρκέσει μόνο λίγα λεπτά...",
+      "sale_failed_title": "Η παραγγελία απέτυχε",
+      "sale_failed_description": "Η παραγγελία σας δεν μπόρεσε να ολοκληρωθεί.",
+      "sale_cancelled_title": "Ακύρωση παραγγελίας",
+      "sale_cancelled_description": "Η παραγγελία σας δεν μπόρεσε να ολοκληρωθεί.",
+      "sale_completed_title": "Ολοκλήρωση παραγγελίας",
+      "sale_completed_description": "Η παραγγελία σας ήταν επιτυχής!.",
+      "sale_pending_title": "Επεξεργασία πώλησης {{currency}}",
+      "sale_pending_description": "Η παραγγελία σας βρίσκεται τώρα υπό επεξεργασία."
     }
   },
   "swaps": {
@@ -2076,7 +2283,7 @@
     "i_understand": "Κατανοώ",
     "quotes_expire_in": "Οι προσφορές λήγουν σε",
     "saving": "Αποθήκευση",
-    "using_best_quote": "Χρήση της καλύτερης προσφοράς",
+    "n_quotes": "{{numberOfQuotes}} προσφορές",
     "view_details": "Δείτε λεπτομέρειες",
     "estimated_gas_fee": "Εκτιμώμενο τέλος συναλλαγής",
     "max_gas_fee": "Μέγιστο τέλος συναλλαγής",
@@ -2089,10 +2296,6 @@
     "completed_swap": "Ανταλλαγή!",
     "metamask_swap_fee": "Χρέωση ανταλλαγής στο MetaMask",
     "fee_text": {
-      "get_the": "Πάρτε την",
-      "best_price": "καλύτερη τιμή",
-      "from_the": "από τις",
-      "top_liquidity": "κορυφαίες πηγές ρευστότητας κάθε φορά.",
       "fee_is_applied": "Μια χρέωση {{fee}} συνυπολογίζεται αυτόματα σε αυτή την προσφορά. Την καταβάλλετε ως αντάλλαγμα για την άδεια χρήσης του λογισμικού συγκέντρωσης πληροφοριών για τους παρόχους ρευστότητας του MetaMask.",
       "fee_is_not_applied": "Το MetaMask δεν περιλαμβάνει πρόσθετη χρέωση για αυτήν την προσφορά."
     },
@@ -2125,7 +2328,7 @@
     "quote_source_agg": {
       "1": "Αυτή η προσφορά προέρχεται από έναν",
       "2": "φορέα συγκέντρωσης οικονομικών πληροφοριών (aggregator)",
-      "3": "ο οποίος βρίσκει τις καλύτερες τιμές μοιράζοντας την εντολή σας μεταξύ διαφορετικών αποκεντρωμένων ανταλλακτηρίων."
+      "3": "το οποίο συγκρίνει τις τιμές και κατανέμει τις εντολές σας μεταξύ διαφορετικών αποκεντρωμένων ανταλλακτηρίων."
     },
     "quote_source_cnt": {
       "1": "Αυτή η προσφορά προέρχεται απευθείας από ένα",
@@ -2151,7 +2354,7 @@
       "approve_pending": "Έγκριση {{sourceToken}} για ανταλλαγές",
       "approve_confirmed": "{{sourceToken}} εγκρίθηκαν για ανταλλαγές"
     },
-    "medium_selected_warning": "Οι ανταλλαγές είναι ευαίσθητες στον χρόνο. Το «Μεσαίο» επίπεδο δεν συστήνεται.",
+    "medium_selected_warning": "Οι ανταλλαγές είναι χρονικά ευαίσθητες. H επιλογή \"Μέτριο\" δεν συνιστάται.",
     "high_recommendation": "Οι ανταλλαγές είναι συνήθως ευαίσθητες στον χρόνο. Το «Υψηλό» επίπεδο θα βοηθήσει στην αποφυγή πιθανών ζημιών λόγω αλλαγών στις συνθήκες της αγοράς.",
     "recommended": "Προτεινόμενο",
     "recommended_gas": "Προτεινόμενο τέλος συναλλαγής",
@@ -2197,13 +2400,18 @@
     "ok": "Εντάξει"
   },
   "whats_new": {
-    "title": "Δείτε τι νέο υπάρχει",
+    "title": "Τι νέο υπάρχει",
     "blockaid": {
       "title": "Μείνετε ασφαλείς με ειδοποιήσεις ασφαλείας",
-      "description_1": "Αποφύγετε τις γνωστές απάτες, διατηρώντας παράλληλα το απόρρητό σας με τις ειδοποιήσεις ασφαλείας της Blockaid.",
+      "description_1": "Αποφύγετε τις γνωστές απάτες, προστατεύοντας παράλληλα το απόρρητό σας με τις ειδοποιήσεις ασφαλείας που παρέχονται από το Blockaid. Αυτή η λειτουργία είναι πλέον ενεργοποιημένη από προεπιλογή για όλους τους χρήστες του MetaMask.",
       "description_2": "Πάντα να προβαίνετε σε δικό σας επιμελή έλεγχο προτού εγκρίνετε τα αιτήματα.",
-      "description_3": "Εάν ενεργοποιήσατε τις ειδοποιήσεις ασφαλείας από το OpenSea, σας μεταφέρουμε σε αυτή τη λειτουργία.",
-      "action_text": "Ενεργοποίηση ειδοποιήσεων ασφαλείας"
+      "description_3": "Διατίθεται στα Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism και Polygon.",
+      "got_it": "Κατανοητό"
+    },
+    "sell": {
+      "title": "Εύκολη ανάληψη μετρητών",
+      "description": "Πουλήστε τα κρυπτονομίσματά σας απευθείας στο MetaMask! Θα σας βοηθήσουμε να βρείτε προσφορές από αξιόπιστους παρόχους, ώστε να μπορείτε να πουλήσετε τα κρυπτονομίσματά σας με προσιτό, γρήγορο και ασφαλή τρόπο, κάθε φορά.",
+      "action_text": "Δοκιμάστε το"
     }
   },
   "invalid_network": {
@@ -2216,7 +2424,7 @@
   "switch_custom_network": {
     "title_existing_network": "Αυτός ο ιστότοπος θα ήθελε να αλλάξει το δίκτυο",
     "title_new_network": "Προστέθηκε νέο δίκτυο",
-    "switch_warning": "Αυτό θα αλλάξει το επιλεγμένο δίκτυο στο MetaMask σε ένα δίκτυο που προστέθηκε εκ των προτέρων:",
+    "switch_warning": "Αυτό θα αλλάξει το επιλεγμένο δίκτυο στο MetaMask σε ένα δίκτυο που έχει προστεθεί προηγουμένως:",
     "available": "είναι τώρα διαθέσιμο στην επιλογή δικτύου.",
     "cancel": "Άκυρο",
     "switch": "Αλλαγή Δικτύου"
@@ -2238,7 +2446,16 @@
     "unrecognized_chain": "Αυτό το προσαρμοσμένο δίκτυο δεν αναγνωρίζεται",
     "invalid_chain": "Το %{rpcUrl} για αυτό το αναγνωριστικό αλυσίδας δεν ταιριάζει με την καταχώριση chainid.network",
     "alert_recommend": "Σας συστήνουμε",
-    "alert_verify": "να επαληθεύσετε το αναγνωριστικό αλυσίδας"
+    "alert_verify": "να επαληθεύσετε το αναγνωριστικό αλυσίδας",
+    "warning_subtext_new": {
+      "1": "Το MetaMask δεν επαληθεύει προσαρμοσμένα δίκτυα, επομένως εγκρίνετε μόνο δίκτυα που εμπιστεύεστε.",
+      "2": "Μάθετε περισσότερα σχετικά με τους κινδύνους και τις απάτες για την ασφάλεια δικτύου."
+    },
+    "invalid_rpc_url": "Αυτή η διεύθυνση δικτύου URL δεν αντιστοιχεί σε γνωστό πάροχο για αυτό το αναγνωριστικό αλυσίδας.",
+    "invalid_chain_token_decimals": "Φαίνεται ότι το δεκαδικό αυτού του δικτύου δεν ταιριάζει με το αναγνωριστικό αλυσίδας του.",
+    "unrecognized_chain_name": "Φαίνεται ότι το εμφανιζόμενο όνομα αυτού του δικτύου δεν ταιριάζει με το αναγνωριστικό αλυσίδας του.",
+    "unrecognized_chain_ticker": "Φαίνεται ότι το σύμβολο αυτού του δικτύου δεν ταιριάζει με αυτό το αναγνωριστικό αλυσίδας.",
+    "unrecognized_chain_id": "Δεν αναγνωρίζουμε αυτό το δίκτυο. Βεβαιωθείτε ότι το αναγνωριστικό αλυσίδας είναι σωστό προτού συνεχίσετε."
   },
   "media_player": {
     "loading": "Φόρτωση...",
@@ -2251,12 +2468,12 @@
     "max_fee": "Μέγιστο τέλος",
     "estimate": "Εκτιμώμενο",
     "recommended_gas_fee": "Προτεινόμενο τέλος συναλλαγής",
-    "swaps_warning": "Οι ανταλλαγές είναι πολύ ευαίσθητες στον χρόνο. Το «Υψηλό» επίπεδο θα σας βοηθήσει να αποφύγετε πιθανές απώλειες λόγω αλλαγών στις συνθήκες της αγοράς.",
+    "swaps_warning": "Οι ανταλλαγές είναι πολύ ευαίσθητες στον χρόνο. Η επιλογή \"Υψηλό\" θα σας βοηθήσει να αποφύγετε πιθανές απώλειες λόγω αλλαγών στις συνθήκες της αγοράς.",
     "priority_fee_at_least_0_error": "Το τέλος προτεραιότητας πρέπει να είναι τουλάχιστον 1 GWEI",
     "learn_more": {
       "title": "Πώς να διαλέξω;",
       "intro": "Η επιλογή του κατάλληλου τέλους συναλλαγής εξαρτάται από τον τύπο συναλλαγής και το πόσο σημαντική είναι για εσάς.",
-      "aggressive_label": "Επιθετικά",
+      "aggressive_label": "Επιθετικό",
       "aggressive_text": "Μεγάλη πιθανότητα, ακόμα και σε ασταθείς αγορές. Χρησιμοποιήστε το «Επιθετικά» για να καλύψετε απότομες αυξήσεις της κίνησης στο δίκτυο που οφείλονται σε καταστάσεις όπως απότομες πτώσεις δημοφιλών NFT.",
       "market_label": "Αγορά",
       "market_text": "Χρησιμοποιήστε το «Αγορά» για γρήγορη επεξεργασία στην τρέχουσα τιμή αγοράς.",
@@ -2268,12 +2485,12 @@
     "submit": "Υποβολή",
     "max_priority_fee_low": "Το Τέλος Μέγιστης Προτεραιότητας είναι χαμηλό για τις τρέχουσες συνθήκες του δικτύου",
     "max_priority_fee_high": "Το Τέλος Μέγιστης Προτεραιότητας είναι υψηλότερο από όσο χρειάζεται",
-    "max_priority_fee_speed_up_low": "Το Τέλος Μέγιστης Προτεραιότητας πρέπει να είναι τουλάχιστον {{speed_up_floor_value}} GWEI (10% υψηλότερο από την αρχική συναλλαγή)",
-    "max_priority_fee_cancel_low": "Το Τέλος Μέγιστης Προτεραιότητας πρέπει να είναι τουλάχιστον {{cancel_value}} GWEI (50% υψηλότερο από την αρχική συναλλαγή)",
+    "max_priority_fee_speed_up_low": "Τα μέγιστα τέλη για την παροχή προτεραιότητας πρέπει να είναι τουλάχιστον {{speed_up_floor_value}} GWEI (10% υψηλότερη από την αρχική συναλλαγή)",
+    "max_priority_fee_cancel_low": "Τα μέγιστα τέλη για την παροχή προτεραιότητας πρέπει να είναι τουλάχιστον {{cancel_value}} GWEI (50% υψηλότερη από την αρχική συναλλαγή)",
     "max_fee_low": "Το Μέγιστο Τέλος είναι χαμηλό για τις τρέχουσες συνθήκες του δικτύου",
     "max_fee_high": "Το Μέγιστο Τέλος είναι υψηλότερο από όσο χρειάζεται",
-    "max_fee_speed_up_low": "Το Μέγιστο Τέλος πρέπει να είναι τουλάχιστον {{speed_up_floor_value}} GWEI (10% υψηλότερο από την αρχική συναλλαγή)",
-    "max_fee_cancel_low": "Το Μέγιστο Τέλος πρέπει να είναι τουλάχιστον {{cancel_value}} GWEI (50% υψηλότερο από την αρχική συναλλαγή)",
+    "max_fee_speed_up_low": "Τα μέγιστα τέλη πρέπει να είναι τουλάχιστον {{speed_up_floor_value}} GWEI (10% υψηλότερη από την αρχική συναλλαγή)",
+    "max_fee_cancel_low": "Τα μέγιστα τέλη πρέπει να είναι τουλάχιστον {{cancel_value}} GWEI (50% υψηλότερη από την αρχική συναλλαγή)",
     "learn_more_gas_limit": "Το όριο τέλους συναλλαγής είναι οι μέγιστες μονάδες τελών που είστε διατεθειμένοι να χρησιμοποιήσετε. Οι μονάδες τελών είναι ένας πολλαπλασιαστής στο «Τέλος Μέγιστης Προτεραιότητας» και το «Μέγιστο Τέλος».",
     "learn_more_max_priority_fee": "Το μέγιστο τέλος προτεραιότητας (ή αλλιώς «φιλοδώρημα του αναλυτή») πηγαίνει απευθείας στους αναλυτές και τους παρακινεί να δώσουν προτεραιότητα στη συναλλαγή σας. Τις περισσότερες φορές θα πληρώσετε τη μέγιστη ρύθμιση.",
     "learn_more_max_fee": "Το μέγιστο τέλος είναι το μέγιστο που θα πληρώσετε (βασικό τέλος + τέλος προτεραιότητας).",
@@ -2535,7 +2752,7 @@
     "ledger_disconnected": "Η συσκευή σας αποσυνδέθηκε",
     "ledger_disconnected_error": "Η σύνδεση με τη συσκευή σας έχει χαθεί. Προσπαθήστε ξανά.",
     "unknown_error": "Προέκυψε απροσδόκητο σφάλμα.",
-    "unknown_error_message": "Προέκυψε ένα απροσδόκητο σφάλμα. Προσπαθήστε ξανά.",
+    "unknown_error_message": "Προέκυψε ένα μη αναμενόμενο σφάλμα. Προσπαθήστε ξανά.",
     "error_occured": "Προέκυψε ένα σφάλμα",
     "how_to_install_eth_app": "Πώς να εγκαταστήσετε την εφαρμογή Ethereum σε μια συσκευή Ledger",
     "ledger_account_count": "Χρησιμοποιείτε 1 λογαριασμό από το Ledger σας με το MetaMask Mobile.",
@@ -2551,9 +2768,11 @@
     "ledger_pending_confirmation_error": "Υπάρχει μια εκκρεμής ενέργεια στο Ledger. Ακυρώστε πρώτα την ενέργεια και μετά προσπαθήστε ξανά.",
     "not_supported": "Η λειτουργία δεν υποστηρίζεται",
     "not_supported_error": "Υποστηρίζεται μόνο η έκδοση 4 της υπογραφής τυπωμένων δεδομένων.",
-    "error_during_connection": "Προέκυψε ένα άγνωστο σφάλμα",
+    "error_during_connection": "Παρουσιάστηκε ένα άγνωστο σφάλμα",
     "error_during_connection_message": "Υπήρξε ένα μικρό πρόβλημα στη σύνδεση του Ledger Nano X, πατήστε «Επανάληψη» παρακάτω για να προσπαθήσετε ξανά. Μερικές φορές αυτό συμβαίνει επειδή η εφαρμογή ETH στο Ledger Nano X είναι ανοιχτή κατά την έναρξη της διαδικασίας ζεύξης με το MetaMask Mobile.",
-    "how_to_install_eth_webview_title": "Πώς να εγκαταστήσετε την εφαρμογή Ethereum"
+    "how_to_install_eth_webview_title": "Πώς να εγκαταστήσετε την εφαρμογή Ethereum",
+    "nonce_too_low": "Πολύ χαμηλό nonce",
+    "nonce_too_low_error": "Το καθορισμένο nonce είναι πολύ χαμηλό"
   },
   "account_actions": {
     "edit_name": "Επεξεργασία ονόματος λογαριασμού",
@@ -2593,5 +2812,17 @@
     "ipfs_gateway_content2": "Μπορείτε να απενεργοποιήσετε την ανάλυση IPFS στις",
     "ipfs_gateway_content3": "Ρυθμίσεις > Ασφάλεια και απόρρητο",
     "ipfs_gateway_content4": "ανά πάσα στιγμή"
+  },
+  "install_snap": {
+    "title": "Αίτημα σύνδεσης",
+    "description": "Το {{origin}} θέλει να κατεβάσει και να συνδεθεί με το {{snap}}. Βεβαιωθείτε ότι εμπιστεύεστε τους συντάκτες πριν προχωρήσετε.",
+    "permissions_request_title": "Αίτημα αδειών",
+    "permissions_request_description": "Το {{origin}} θέλει να εγκαταστήσει το {{snap}}, το οποίο ζητά τις ακόλουθες άδειες.",
+    "approve_permissions": "Έγκριση",
+    "installed": "Εγκατεστημένο",
+    "install_successful": "Το {{snap}} εγκαταστάθηκε με επιτυχία.",
+    "okay_action": "Εντάξει",
+    "error_title": "Η εγκατάσταση απέτυχε",
+    "error_description": "Η εγκατάσταση του {{snap}} απέτυχε."
   }
 }

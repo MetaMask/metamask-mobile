@@ -1,42 +1,83 @@
-import TestHelpers from '../../helpers';
 import {
   ContractApprovalModalSelectorsIDs,
   ContractApprovalModalSelectorsText,
 } from '../../selectors/Modals/ContractApprovalModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class ContractApprovalModal {
-  static async tapAddNickName() {
-    await TestHelpers.tapByText(
+class ContractApprovalModal {
+  get container() {
+    return Matchers.getElementByID(ContractApprovalModalSelectorsIDs.CONTAINER);
+  }
+
+  get addNickName() {
+    return Matchers.getElementByText(
       ContractApprovalModalSelectorsText.ADD_NICKNAME,
     );
   }
-  static async tapEditNickName() {
-    await TestHelpers.tapByText(
+
+  get editNickName() {
+    return Matchers.getElementByText(
       ContractApprovalModalSelectorsText.EDIT_NICKNAME,
     );
   }
 
-  static async tapRejectButton() {
-    await TestHelpers.tapByText(ContractApprovalModalSelectorsText.REJECT);
+  get rejectButton() {
+    return Matchers.getElementByText(ContractApprovalModalSelectorsText.REJECT);
   }
-  static async tapApproveButton() {
-    await TestHelpers.tapByText(ContractApprovalModalSelectorsText.APPROVE);
-  }
-  static async tapToCopyContractAddress() {
-    await TestHelpers.tap(ContractApprovalModalSelectorsIDs.CONTRACT_ADDRESS);
-  }
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(
-      ContractApprovalModalSelectorsIDs.CONTAINER,
-    );
-  }
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(
-      ContractApprovalModalSelectorsIDs.CONTAINER,
+
+  get approveButton() {
+    return Matchers.getElementByText(
+      ContractApprovalModalSelectorsText.APPROVE,
     );
   }
 
-  static async isContractNickNameVisible(nickName) {
-    await TestHelpers.checkIfElementWithTextIsVisible(nickName);
+  get contractAddress() {
+    return Matchers.getElementByID(
+      ContractApprovalModalSelectorsIDs.CONTRACT_ADDRESS,
+    );
+  }
+
+  get nextButton() {
+    return Matchers.getElementByText(ContractApprovalModalSelectorsText.NEXT);
+  }
+
+  get approveTokenAmount() {
+    return Matchers.getElementByID(
+      ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
+    );
+  }
+
+  async tapAddNickName() {
+    await Gestures.waitAndTap(this.addNickName);
+  }
+  async tapEditNickName() {
+    await Gestures.waitAndTap(this.editNickName);
+  }
+
+  async tapRejectButton() {
+    await Gestures.waitAndTap(this.rejectButton);
+  }
+
+  async tapApproveButton() {
+    await Gestures.waitAndTap(this.approveButton);
+  }
+
+  async tapToCopyContractAddress() {
+    await Gestures.waitAndTap(this.contractAddress);
+  }
+
+  async tapNextButton() {
+    await Gestures.waitAndTap(this.nextButton);
+  }
+
+  async inputCustomAmount(amount) {
+    await Gestures.typeTextAndHideKeyboard(this.approveTokenAmount, amount);
+  }
+
+  async clearInput() {
+    await Gestures.clearField(this.approveTokenAmount);
   }
 }
+
+export default new ContractApprovalModal();

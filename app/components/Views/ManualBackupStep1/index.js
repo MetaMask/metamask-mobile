@@ -4,7 +4,6 @@ import {
   View,
   SafeAreaView,
   ActivityIndicator,
-  InteractionManager,
   TextInput,
   KeyboardAvoidingView,
   Appearance,
@@ -15,6 +14,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import FeatherIcons from 'react-native-vector-icons/Feather';
 import { BlurView } from '@react-native-community/blur';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -34,9 +34,9 @@ import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
-import { ManualBackUpStep1SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep1.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 /**
  * View that's shown during the second step of
@@ -70,6 +70,10 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
+  const track = (event, properties) => {
+    trackOnboarding(event, properties);
+  };
+
   useEffect(() => {
     const getSeedphrase = async () => {
       if (!words.length) {
@@ -81,6 +85,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
             setView(CONFIRM_PASSWORD);
           }
         } catch (e) {
+          Logger.error('Error trying to recover SRP from keyring-controller');
           setView(CONFIRM_PASSWORD);
         }
       }
@@ -109,9 +114,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
   };
 
   const tryUnlockWithPassword = async (password) => {
@@ -170,8 +173,8 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
           <View style={styles.viewButtonWrapper}>
             <StyledButton
               type={'onOverlay'}
-              testID={'view-button'}
               onPress={revealSeedPhrase}
+              testID={ManualBackUpStepsSelectorsIDs.VIEW_BUTTON}
               containerStyle={styles.viewButtonContainer}
             >
               {strings('manual_backup_step_1.view')}
@@ -205,7 +208,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               onChangeText={onPasswordChange}
               secureTextEntry
               onSubmitEditing={tryUnlock}
-              testID={ManualBackUpStep1SelectorsIDs.CONFIRM_PASSWORD_INPUT}
+              testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {warningIncorrectPassword && (
@@ -219,7 +222,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               containerStyle={styles.button}
               type={'confirm'}
               onPress={tryUnlock}
-              testID={'submit-button'}
+              testID={ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON}
             >
               {strings('manual_backup_step_1.confirm')}
             </StyledButton>
@@ -235,14 +238,17 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
     return (
       <ActionView
-        confirmTestID={'manual-backup-step-1-continue-button'}
+        confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
         confirmText={strings('manual_backup_step_1.continue')}
         onConfirmPress={goNext}
         confirmDisabled={seedPhraseHidden}
         showCancelButton={false}
         confirmButtonMode={'confirm'}
       >
-        <View style={styles.wrapper} testID={'manual_backup_step_1-screen'}>
+        <View
+          style={styles.wrapper}
+          testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
+        >
           <Text style={styles.action}>
             {strings('manual_backup_step_1.action')}
           </Text>

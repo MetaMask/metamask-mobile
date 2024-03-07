@@ -18,11 +18,12 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
+import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Multiple Swaps from Actions'), () => {
-  let swapOnboarded = false;
+  let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -78,7 +79,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         await QuoteView.checkMaxSlippage('Max slippage 0%');
       }
       await QuoteView.tapOnGetQuotes();
-      await SwapView.isVisible();
       await SwapView.tapIUnderstandPriceWarning();
       await SwapView.swipeToSwap();
       await SwapView.waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol);
@@ -88,8 +88,12 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         sourceTokenSymbol,
         destTokenSymbol,
       );
-      await DetailsModal.isTitleVisible(sourceTokenSymbol, destTokenSymbol);
-      await DetailsModal.isStatusCorrect('Confirmed');
+      await Assertions.checkIfVisible(DetailsModal.title);
+      await Assertions.checkIfElementToHaveText(
+        DetailsModal.title,
+        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+      );
+      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
       await DetailsModal.tapOnCloseIcon();
     },
   );

@@ -31,7 +31,8 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokensByAddress } from '../../../selectors/tokensController';
 import { baseStyles, fontStyles } from '../../../styles/common';
-import { isQRHardwareAccount } from '../../../util/address';
+import { isHardwareAccount } from '../../../util/address';
+import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
 import {
@@ -46,7 +47,7 @@ import { validateTransactionActionBalance } from '../../../util/transactions';
 import withQRHardwareAwareness from '../QRHardware/withQRHardwareAwareness';
 import TransactionActionModal from '../TransactionActionModal';
 import TransactionElement from '../TransactionElement';
-import UpdateEIP1559Tx from '../UpdateEIP1559Tx';
+import UpdateEIP1559Tx from '../../Views/confirmations/components/UpdateEIP1559Tx';
 import RetryModal from './RetryModal';
 import PriceChartContext, {
   PriceChartProvider,
@@ -65,6 +66,14 @@ import {
   CancelTransactionError,
   SpeedupTransactionError,
 } from '../../../core/Transaction/TransactionError';
+import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { TOKEN_OVERVIEW_TXN_SCREEN } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import {
+  speedUpTransaction,
+  updateIncomingTransactions,
+} from '../../../util/transaction-controller';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -215,6 +224,7 @@ class Transactions extends PureComponent {
     rpcBlockExplorer: undefined,
     errorMsg: undefined,
     isQRHardwareAccount: false,
+    isLedgerAccount: false,
   };
 
   existingGas = null;
@@ -233,7 +243,7 @@ class Transactions extends PureComponent {
       this.props.onRefSet && this.props.onRefSet(this.flatList);
     }, 100);
     this.setState({
-      isQRHardwareAccount: isQRHardwareAccount(this.props.selectedAddress),
+      isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress),
     });
   };
 
@@ -243,17 +253,25 @@ class Transactions extends PureComponent {
 
   updateBlockExplorer = () => {
     const {
-      providerConfig: { type, rpcTarget },
+      providerConfig: { type, rpcUrl },
       networkConfigurations,
     } = this.props;
     let blockExplorer;
     if (type === RPC) {
       blockExplorer =
-        findBlockExplorerForRpc(rpcTarget, networkConfigurations) ||
+        findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
         NO_RPC_BLOCK_EXPLORER;
     }
 
     this.setState({ rpcBlockExplorer: blockExplorer });
+    this.setState({
+      isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.qr,
+      ]),
+      isLedgerAccount: isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.ledger,
+      ]),
+    });
   };
 
   componentDidUpdate() {
@@ -313,11 +331,9 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
-    const { TransactionController } = Engine.context;
-
     this.setState({ refreshing: true });
 
-    await TransactionController.updateIncomingTransactions();
+    await updateIncomingTransactions();
 
     this.setState({ refreshing: false });
   };
@@ -500,13 +516,30 @@ class Transactions extends PureComponent {
         throw new SpeedupTransactionError(transactionObject.error);
       }
 
-      await Engine.context.TransactionController.speedUpTransaction(
-        this.speedUpTxId,
-        transactionObject?.suggestedMaxFeePerGasHex && {
-          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-        },
-      );
+      const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        await this.signLedgerTransaction({
+          id: this.speedUpTxId,
+          replacementParams: {
+            type: 'speedUp',
+            eip1559GasFee: {
+              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+            },
+          },
+        });
+      } else {
+        await speedUpTransaction(
+          this.speedUpTxId,
+          transactionObject?.suggestedMaxFeePerGasHex && {
+            maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+            maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+          },
+        );
+      }
       this.onSpeedUpCompleted();
     } catch (e) {
       this.handleSpeedUpTransactionFailure(e);
@@ -517,6 +550,29 @@ class Transactions extends PureComponent {
     const { KeyringController, ApprovalController } = Engine.context;
     await KeyringController.resetQRKeyringState();
     await ApprovalController.accept(tx.id, undefined, { waitForResult: true });
+  };
+
+  signLedgerTransaction = async (transaction) => {
+    const ledgerKeyring = await getLedgerKeyring();
+
+    const onConfirmation = (isComplete) => {
+      if (isComplete) {
+        transaction.speedUpParams &&
+        transaction.speedUpParams?.type === 'SpeedUp'
+          ? this.onSpeedUpCompleted()
+          : this.onCancelCompleted();
+      }
+    };
+
+    this.props.navigation.navigate(
+      ...createLedgerTransactionModalNavDetails({
+        transactionId: transaction.id,
+        deviceId: ledgerKeyring.deviceId,
+        onConfirmationComplete: onConfirmation,
+        type: 'signTransaction',
+        replacementParams: transaction?.replacementParams,
+      }),
+    );
   };
 
   cancelUnsignedQRTransaction = async (tx) => {
@@ -532,13 +588,30 @@ class Transactions extends PureComponent {
         throw new CancelTransactionError(transactionObject.error);
       }
 
-      await Engine.context.TransactionController.stopTransaction(
-        this.cancelTxId,
-        transactionObject?.suggestedMaxFeePerGasHex && {
-          maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-          maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-        },
-      );
+      const isLedgerAccount = isHardwareAccount(this.props.selectedAddress, [
+        ExtendedKeyringTypes.ledger,
+      ]);
+
+      if (isLedgerAccount) {
+        await this.signLedgerTransaction({
+          id: this.cancelTxId,
+          replacementParams: {
+            type: 'cancel',
+            eip1559GasFee: {
+              maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+              maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+            },
+          },
+        });
+      } else {
+        await Engine.context.TransactionController.stopTransaction(
+          this.cancelTxId,
+          transactionObject?.suggestedMaxFeePerGasHex && {
+            maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
+            maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
+          },
+        );
+      }
       this.onCancelCompleted();
     } catch (e) {
       this.handleCancelTransactionFailure(e);
@@ -552,10 +625,11 @@ class Transactions extends PureComponent {
       assetSymbol={this.props.assetSymbol}
       onSpeedUpAction={this.onSpeedUpAction}
       isQRHardwareAccount={this.state.isQRHardwareAccount}
+      isLedgerAccount={this.state.isLedgerAccount}
       signQRTransaction={this.signQRTransaction}
+      signLedgerTransaction={this.signLedgerTransaction}
       cancelUnsignedQRTransaction={this.cancelUnsignedQRTransaction}
       onCancelAction={this.onCancelAction}
-      testID={'txn-item'}
       onPressItem={this.toggleDetailsView}
       selectedAddress={this.props.selectedAddress}
       tokens={this.props.tokens}
@@ -691,7 +765,7 @@ class Transactions extends PureComponent {
     };
 
     return (
-      <View style={styles.wrapper} testID={'transactions-screen'}>
+      <View style={styles.wrapper}>
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlatList
@@ -771,7 +845,7 @@ class Transactions extends PureComponent {
 
     return (
       <PriceChartProvider>
-        <View style={styles.wrapper} testID={'txn-screen'}>
+        <View style={styles.wrapper} testID={TOKEN_OVERVIEW_TXN_SCREEN}>
           {!this.state.ready || this.props.loading
             ? this.renderLoader()
             : this.renderList()}
@@ -794,8 +868,7 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  gasFeeEstimates: selectGasFeeEstimates(state),
   primaryCurrency: state.settings.primaryCurrency,
   tokens: selectTokensByAddress(state),
   gasEstimateType:

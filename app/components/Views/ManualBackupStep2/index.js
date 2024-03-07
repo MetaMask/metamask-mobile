@@ -18,10 +18,10 @@ import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { shuffle, compareMnemonics } from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
-import { ManualBackUpStep2SelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpStep2.selectors';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();
@@ -44,6 +44,10 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       dict[`${word},${i}`] = { currentPosition: undefined };
     });
     setWordsDict(dict);
+  };
+
+  const track = (event, properties) => {
+    trackOnboarding(event, properties);
   };
 
   const updateNavBar = useCallback(() => {
@@ -123,15 +127,13 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const goNext = () => {
     if (validateWords()) {
       seedphraseBackedUp();
-      InteractionManager.runAfterInteractions(() => {
+      InteractionManager.runAfterInteractions(async () => {
         const words = route.params?.words;
         navigation.navigate('ManualBackupStep3', {
           steps: route.params?.steps,
           words,
         });
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
-        );
+        track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED);
       });
     } else {
       Alert.alert(
@@ -228,7 +230,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         />
       </View>
       <ActionView
-        confirmTestID={ManualBackUpStep2SelectorsIDs.CONTINUE_BUTTON}
+        confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
         confirmText={strings('manual_backup_step_2.complete')}
         onConfirmPress={goNext}
         confirmDisabled={!seedPhraseReady || !validateWords()}
@@ -237,7 +239,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       >
         <View
           style={styles.wrapper}
-          testID={ManualBackUpStep2SelectorsIDs.CONTAINER}
+          testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
         >
           <Text style={styles.action}>
             {strings('manual_backup_step_2.action')}

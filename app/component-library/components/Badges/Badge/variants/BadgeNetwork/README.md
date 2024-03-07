@@ -1,4 +1,6 @@
-# BadgeNetwork
+# [BadgeNetwork](https://metamask-consensys.notion.site/Badge-Network-94a679c50cb446f4844dc624b4f74946)
+
+![BadgeNetwork](./BadgeNetwork.png)
 
 BadgeNetwork is used on top of an element to display network information. **This component is not meant to be used by itself**. It is used by [BadgeWrapper](../BadgeWrapper/BadgeWrapper.tsx), which can render this component as a badge.
 

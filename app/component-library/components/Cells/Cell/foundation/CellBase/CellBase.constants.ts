@@ -16,9 +16,6 @@ export const DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT =
 export const DEFAULT_CELLBASE_AVATAR_TERTIARYTEXT_TEXTVARIANT =
   TextVariant.BodyMD;
 
-// Test IDs
-export const CELLBASE_AVATAR_TEST_ID = 'cellbase-avatar';
-
 // Sample consts
 export const SAMPLE_CELLBASE_TITLE = 'Orangefox.eth';
 export const SAMPLE_CELLBASE_SECONDARYTEXT =

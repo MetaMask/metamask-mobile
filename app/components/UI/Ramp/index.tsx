@@ -7,8 +7,6 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import WebView from 'react-native-webview';
 import AppConstants from '../../../core/AppConstants';
 import NotificationManager from '../../../core/NotificationManager';
-import { strings } from '../../../../locales/i18n';
-import { renderNumber } from '../../../util/number';
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
 import {
   FiatOrder,
@@ -24,23 +22,18 @@ import {
 } from '../../../reducers/fiatOrders';
 import useInterval from '../../hooks/useInterval';
 import useThunkDispatch, { ThunkAction } from '../../hooks/useThunkDispatch';
-import processOrder from './common/orderProcessor';
-import processCustomOrderIdData from './common/orderProcessor/customOrderId';
-import { aggregatorOrderToFiatOrder } from './common/orderProcessor/aggregator';
-import { trackEvent } from './common/hooks/useAnalytics';
-import { AnalyticsEvents } from './common/types';
+import processOrder from './orderProcessor';
+import processCustomOrderIdData from './orderProcessor/customOrderId';
+import { aggregatorOrderToFiatOrder } from './orderProcessor/aggregator';
+import { trackEvent } from './hooks/useAnalytics';
+import { AnalyticsEvents } from './types';
 import { CustomIdData } from '../../../reducers/fiatOrders/types';
-import { callbackBaseUrl } from './common/sdk';
-import useFetchRampNetworks from './common/hooks/useFetchRampNetworks';
-import { stateHasOrder } from './common/utils';
+import { callbackBaseUrl } from './sdk';
+import useFetchRampNetworks from './hooks/useFetchRampNetworks';
+import { getNotificationDetails, stateHasOrder } from './utils';
 import Routes from '../../../constants/navigation/Routes';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
-const NOTIFICATION_DURATION = 5000;
-
-const baseNotificationDetails = {
-  duration: NOTIFICATION_DURATION,
-};
 
 /**
  * @param {FiatOrder} fiatOrder
@@ -143,67 +136,6 @@ export const getAggregatorAnalyticsPayload = (
     }
   }
 };
-/**
- * @param {FiatOrder} fiatOrder
- */
-export const getNotificationDetails = (fiatOrder: FiatOrder) => {
-  switch (fiatOrder.state) {
-    case FIAT_ORDER_STATES.FAILED: {
-      return {
-        ...baseNotificationDetails,
-        title: strings('fiat_on_ramp.notifications.purchase_failed_title', {
-          currency: fiatOrder.cryptocurrency,
-        }),
-        description: strings(
-          'fiat_on_ramp.notifications.purchase_failed_description',
-        ),
-        status: 'error',
-      };
-    }
-    case FIAT_ORDER_STATES.CANCELLED: {
-      return {
-        ...baseNotificationDetails,
-        title: strings('fiat_on_ramp.notifications.purchase_cancelled_title'),
-        description: strings(
-          'fiat_on_ramp.notifications.purchase_cancelled_description',
-        ),
-        status: 'cancelled',
-      };
-    }
-    case FIAT_ORDER_STATES.COMPLETED: {
-      return {
-        ...baseNotificationDetails,
-        title: strings('fiat_on_ramp.notifications.purchase_completed_title', {
-          amount: renderNumber(String(fiatOrder.cryptoAmount)),
-          currency: fiatOrder.cryptocurrency,
-        }),
-        description: strings(
-          'fiat_on_ramp.notifications.purchase_completed_description',
-          {
-            currency: fiatOrder.cryptocurrency,
-          },
-        ),
-        status: 'success',
-      };
-    }
-    case FIAT_ORDER_STATES.CREATED: {
-      return null;
-    }
-    case FIAT_ORDER_STATES.PENDING:
-    default: {
-      return {
-        ...baseNotificationDetails,
-        title: strings('fiat_on_ramp.notifications.purchase_pending_title', {
-          currency: fiatOrder.cryptocurrency,
-        }),
-        description: strings(
-          'fiat_on_ramp.notifications.purchase_pending_description',
-        ),
-        status: 'pending',
-      };
-    }
-  }
-};
 
 export interface ProcessorOptions {
   forced?: boolean;
@@ -294,19 +226,25 @@ function FiatOrders() {
 
   const dispatchAddFiatOrder = useCallback(
     (order: FiatOrder) => {
-      dispatch(addFiatOrder(order));
-      if (order.orderType === OrderOrderTypeEnum.Sell) {
-        navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-          screen: Routes.RAMP.ORDER_DETAILS,
-          initial: false,
-          params: {
-            orderId: order.id,
-            redirectToSendTransaction: true,
-          },
-        });
-      }
+      dispatchThunk((_dispatch, getState) => {
+        const state = getState();
+        if (stateHasOrder(state, order)) {
+          return;
+        }
+        _dispatch(addFiatOrder(order));
+        if (order.orderType === OrderOrderTypeEnum.Sell) {
+          navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+            screen: Routes.RAMP.ORDER_DETAILS,
+            initial: false,
+            params: {
+              orderId: order.id,
+              redirectToSendTransaction: true,
+            },
+          });
+        }
+      });
     },
-    [dispatch, navigation],
+    [dispatchThunk, navigation],
   );
   const dispatchUpdateFiatOrder = useCallback(
     (order: FiatOrder) => dispatch(updateFiatOrder(order)),

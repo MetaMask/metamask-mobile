@@ -75,6 +75,9 @@ export default {
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
   },
+  BRIDGE: {
+    ACTIVE: true,
+  },
   MAX_SAFE_CHAIN_ID: 4503599627370476,
   URLS: {
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
@@ -150,6 +153,7 @@ export default {
   SPEED_UP_RATE: 'Transactions (Speed Up)',
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
   KEYRING_STATE_CHANGE_EVENT: 'KeyringController:stateChange',
+  TOKEN_LIST_STATE_CHANGE_EVENT: 'TokenListController:stateChange',
   ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
   TERMS_OF_USE: {
     TERMS_DISPLAYED: 'ToU Displayed',
@@ -158,4 +162,6 @@ export default {
       'https://legal.consensys.io/plain/terms-of-use/',
   },
   FAVICON_CACHE_MAX_SIZE: 100,
+  PPOM_INITIALISATION_STATE_CHANGE_EVENT:
+    'PPOMController:initialisationStateChangeEvent',
 } as const;

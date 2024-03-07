@@ -1,4 +1,6 @@
-# TextField
+# [TextField](https://metamask-consensys.notion.site/Text-Field-73e2b9b748404901ab2c9fba13eb7785)
+
+![TextField](./TextField.png)
 
 TextField is an input component that lets user enter a text data into a boxed field. It can sometimes contain related information or controls.
 

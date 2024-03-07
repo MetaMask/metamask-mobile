@@ -2,6 +2,45 @@ import Engine from './Engine';
 import Logger from '../util/Logger';
 import { syncPrefs, syncAccounts } from '../util/sync';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { getLedgerKeyring } from './Ledger/Ledger';
+
+/**
+ * Restores the QR keyring if it exists.
+ */
+export const restoreQRKeyring = async (qrKeyring) => {
+  const { KeyringController } = Engine.context;
+
+  if (qrKeyring) {
+    try {
+      const serializedQRKeyring = await qrKeyring.serialize();
+      await KeyringController.restoreQRKeyring(serializedQRKeyring);
+    } catch (e) {
+      Logger.error(
+        e,
+        'error while trying to get qr accounts on recreate vault',
+      );
+    }
+  }
+};
+
+/**
+ * Restores the Ledger keyring if it exists.
+ */
+export const restoreLedgerKeyring = async () => {
+  const { KeyringController } = Engine.context;
+  const keyring = await getLedgerKeyring();
+  if (keyring) {
+    try {
+      await KeyringController.persistAllKeyrings();
+      KeyringController.updateIdentities(await KeyringController.getAccounts());
+    } catch (e) {
+      Logger.error(
+        e,
+        'error while trying to restore Ledger accounts on recreate vault',
+      );
+    }
+  }
+};
 
 /**
  * Returns current vault seed phrase
@@ -20,7 +59,6 @@ export const getSeedPhrase = async (password = '') => {
  * @param newPassword - new password
  * @param selectedAddress
  */
-
 export const recreateVaultWithNewPassword = async (
   password,
   newPassword,
@@ -54,17 +92,19 @@ export const recreateVaultWithNewPassword = async (
     );
   }
 
-  const qrKeyring = await KeyringController.getOrAddQRKeyring();
-  const serializedQRKeyring = await qrKeyring.serialize();
-
   // Get props to restore vault
   const hdKeyring = KeyringController.state.keyrings[0];
   const existingAccountCount = hdKeyring.accounts.length;
 
+  const qrKeyring = (
+    await KeyringController.getKeyringsByType(KeyringTypes.qr)
+  )[0];
+
   // Recreate keyring with password given to this method
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
-  await KeyringController.restoreQRKeyring(serializedQRKeyring);
+  await restoreQRKeyring(qrKeyring);
+  await restoreLedgerKeyring();
 
   // Create previous accounts again
   for (let i = 0; i < existingAccountCount - 1; i++) {

@@ -1,18 +1,22 @@
-import Logger from '../../util/Logger';
-import Engine from '../../core/Engine';
-import { isBlockaidFeatureEnabled } from '../../util/blockaid';
-import { isMainnetByChainId } from '../../util/networks';
+import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
+import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
+import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
 import {
   Reason,
   ResultType,
-} from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+import Engine from '../../core/Engine';
 import { store } from '../../store';
-import setSignatureRequestSecurityAlertResponse from '../../actions/signatureRequest';
-import { setTransactionSecurityAlertResponse } from '../../actions/transaction';
+import { isBlockaidFeatureEnabled } from '../../util/blockaid';
+import Logger from '../../util/Logger';
+import { updateSecurityAlertResponse } from '../../util/transaction-controller';
+import { normalizeTransactionParams } from '@metamask/transaction-controller';
+
+const TRANSACTION_METHOD = 'eth_sendTransaction';
 
 const ConfirmationMethods = Object.freeze([
   'eth_sendRawTransaction',
-  'eth_sendTransaction',
+  TRANSACTION_METHOD,
   'eth_sign',
   'eth_signTypedData',
   'eth_signTypedData_v1',
@@ -46,7 +50,7 @@ const validateRequest = async (req: any, transactionId?: string) => {
     !isBlockaidFeatureEnabled() ||
     !PreferencesController.state.securityAlertsEnabled ||
     !ConfirmationMethods.includes(req.method) ||
-    !isMainnetByChainId(currentChainId)
+    !BLOCKAID_SUPPORTED_CHAIN_IDS.includes(currentChainId)
   ) {
     return;
   }
@@ -70,9 +74,15 @@ const validateRequest = async (req: any, transactionId?: string) => {
           setSignatureRequestSecurityAlertResponse(RequestInProgress),
         );
       }
+      const normalizedRequest = normalizeRequest(req);
       securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
-        ppom.validateJsonRpc(req),
+        ppom.validateJsonRpc(normalizedRequest),
       );
+      securityAlertResponse = {
+        ...securityAlertResponse,
+        req,
+        chainId: currentChainId,
+      };
     }
   } catch (e) {
     Logger.log(`Error validating JSON RPC using PPOM: ${e}`);
@@ -90,10 +100,10 @@ const validateRequest = async (req: any, transactionId?: string) => {
           securityAlertResponse,
         ),
       );
-      const { TransactionController } = Engine.context;
-      TransactionController.updateSecurityAlertResponse(transactionId, {
+      updateSecurityAlertResponse(
+        transactionId as string,
         securityAlertResponse,
-      });
+      );
     } else {
       store.dispatch(
         setSignatureRequestSecurityAlertResponse(securityAlertResponse),
@@ -103,5 +113,19 @@ const validateRequest = async (req: any, transactionId?: string) => {
   // todo: once all call to validateRequest are async we may not return any result
   return securityAlertResponse;
 };
+
+function normalizeRequest(request: any) {
+  if (request.method !== TRANSACTION_METHOD) {
+    return request;
+  }
+
+  const transactionParams = request.params?.[0] || {};
+  const normalizedParams = normalizeTransactionParams(transactionParams);
+
+  return {
+    ...request,
+    params: [normalizedParams],
+  };
+}
 
 export default { validateRequest };

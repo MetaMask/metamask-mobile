@@ -21,7 +21,6 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
         "flex": 1,
       }
     }
-    testID="first-incoming-transaction-screen"
   >
     <View
       style={
@@ -66,7 +65,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
       >
         <Icon
           allowFontScaling={false}
-          color="#28A745"
+          color="#1C8234"
           name="ios-checkmark-circle-outline"
           size={12}
           style={

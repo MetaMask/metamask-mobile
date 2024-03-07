@@ -41,13 +41,33 @@ describe('Engine', () => {
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
-    const backgroundState = engine.datamodel.state;
-    // Replace phishing controller fallback config, as it bloats the test fixture too much
-    backgroundState.PhishingController.phishingLists[0].allowlist = [];
-    backgroundState.PhishingController.phishingLists[0].blocklist = [];
-    backgroundState.PhishingController.phishingLists[0].fuzzylist = [];
-    delete backgroundState.PPOMController.chainStatus['0x1'].lastVisited;
+    let backgroundState = engine.datamodel.state;
 
-    expect(engine.datamodel.state).toStrictEqual(initialState);
+    // deleting lastVisited from chainStatus, since its timestamp it makes the test case fail
+    const { chainId, versionInfo } =
+      backgroundState.PPOMController.chainStatus['0x1'];
+    backgroundState = {
+      ...backgroundState,
+      PPOMController: {
+        ...backgroundState.PPOMController,
+        chainStatus: {
+          ...backgroundState.PPOMController.chainStatus,
+          '0x1': {
+            chainId,
+            versionInfo,
+          },
+        },
+      },
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        vault: {
+          cipher: 'mock-cipher',
+          iv: 'mock-iv',
+          lib: 'original',
+        },
+      },
+    };
+
+    expect(backgroundState).toStrictEqual(initialState);
   });
 });

@@ -1,4 +1,6 @@
-# ListItemSelect
+# [ListItemSelect](https://metamask-consensys.notion.site/List-Item-Select-e9173552eb1c4723b9549a021624c536)
+
+![ListItemSelect](./ListItemSelect.png)
 
 ListItemSelect is a wrapper component typically used for item selection scenarios.
 

@@ -6,7 +6,6 @@ import AccountRightButton from '../AccountRightButton';
 import {
   Alert,
   Image,
-  InteractionManager,
   Platform,
   StyleSheet,
   Text,
@@ -20,24 +19,21 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import DeeplinkManager from '../../../core/DeeplinkManager';
-import Analytics from '../../../core/Analytics/Analytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { importAccountFromPrivateKey } from '../../../util/address';
 import Device from '../../../util/device';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import BrowserUrlBar from '../BrowserUrlBar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { NAVBAR_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import {
-  NAV_ANDROID_BACK_BUTTON,
-  NETWORK_BACK_ARROW_BUTTON_ID,
-  NETWORK_SCREEN_CLOSE_ICON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
+import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { SEND_CANCEL_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SendScreen.testIds';
 import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
+import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+
 import ButtonIcon, {
   ButtonIconSizes,
   ButtonIconVariants,
@@ -46,20 +42,17 @@ import {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
-import Icon from '../../../component-library/components/Icons/Icon/Icon';
+import {
+  default as MorphText,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
+import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
 
-const trackEvent = (event) => {
-  InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEvent(event);
-  });
-};
-
-const trackEventWithParameters = (event, params) => {
-  InteractionManager.runAfterInteractions(() => {
-    Analytics.trackEventWithParameters(event, params);
-  });
+const trackEvent = (event, params = {}) => {
+  MetaMetrics.getInstance().trackEvent(event, params);
 };
 
 const styles = StyleSheet.create({
@@ -115,8 +108,9 @@ const styles = StyleSheet.create({
     marginLeft: Device.isAndroid() ? 20 : 0,
   },
   fox: {
+    width: 24,
+    height: 24,
     marginLeft: 16,
-    marginTop: 8,
   },
 });
 
@@ -175,6 +169,9 @@ export function getTransactionsNavbarOptions(
  *
  * @param {string} title - Title in string format
  * @param {Object} navigation - Navigation object required to push new views
+ * @param isFullScreenModal
+ * @param themeColors
+ * @param {IMetaMetricsEvent} navigationPopEvent
  * @returns {Object} - Corresponding navbar options containing title and headerTitleStyle
  */
 export function getNavigationOptionsTitle(
@@ -182,21 +179,16 @@ export function getNavigationOptionsTitle(
   navigation,
   isFullScreenModal,
   themeColors,
-  navigationPopEvent,
+  navigationPopEvent = null,
 ) {
   const innerStyles = StyleSheet.create({
-    headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      ...fontStyles.normal,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
     headerStyle: {
       backgroundColor: themeColors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
+    },
+    accessories: {
+      marginHorizontal: 16,
     },
   });
 
@@ -207,34 +199,29 @@ export function getNavigationOptionsTitle(
 
   return {
     title,
-    headerTitleStyle: innerStyles.headerTitleStyle,
+    headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
     headerRight: () =>
       isFullScreenModal ? (
-        <TouchableOpacity onPress={navigationPop} style={styles.closeButton}>
-          <IonicIcon
-            name={'ios-close'}
-            size={38}
-            style={[innerStyles.headerIcon, styles.backIconIOS]}
-            {...generateTestId(Platform, NETWORK_SCREEN_CLOSE_ICON)}
-          />
-        </TouchableOpacity>
+        <ButtonIcon
+          size={ButtonIconSizes.Lg}
+          iconName={IconName.Close}
+          onPress={navigationPop}
+          style={innerStyles.accessories}
+          testID={NetworksViewSelectorsIDs.CLOSE_ICON}
+        />
       ) : null,
     headerLeft: () =>
       isFullScreenModal ? null : (
-        <TouchableOpacity
+        <ButtonIcon
+          size={ButtonIconSizes.Lg}
+          iconName={IconName.ArrowLeft}
           onPress={navigationPop}
-          style={styles.backButton}
-          {...generateTestId(Platform, NETWORK_BACK_ARROW_BUTTON_ID)}
-        >
-          <IonicIcon
-            name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
-            size={Device.isAndroid() ? 24 : 28}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
+          style={innerStyles.accessories}
+          testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
+        />
       ),
-    headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
+    ...innerStyles,
   };
 }
 
@@ -282,7 +269,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
       <TouchableOpacity
         onPress={navigationPop}
         style={styles.backButton}
-        testID={'edit-contact-back-button'}
+        testID={CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON}
       >
         <IonicIcon
           name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
@@ -471,7 +458,7 @@ export function getTransactionOptionsTitle(
           // eslint-disable-next-line react/jsx-no-bind
           onPress={leftAction}
           style={styles.closeButton}
-          testID={'confirm-txn-edit-button'}
+          testID={CommonSelectorsIDs.CONFIRM_TXN_EDIT_BUTTON}
         >
           <Text
             style={
@@ -492,7 +479,7 @@ export function getTransactionOptionsTitle(
         <TouchableOpacity
           onPress={rightAction}
           style={styles.closeButton}
-          testID={'send-back-button'}
+          testID={CommonSelectorsIDs.SEND_BACK_BUTTON}
         >
           <Text style={innerStyles.headerButtonText}>{rightText}</Text>
         </TouchableOpacity>
@@ -540,7 +527,7 @@ export function getSendFlowTitle(
   });
   const rightAction = () => {
     const providerType = route?.params?.providerType ?? '';
-    trackEventWithParameters(MetaMetricsEvents.SEND_FLOW_CANCEL, {
+    trackEvent(MetaMetricsEvents.SEND_FLOW_CANCEL, {
       view: title.split('.')[1],
       network: providerType,
     });
@@ -854,7 +841,7 @@ export function getClosableNavigationOptions(
         <TouchableOpacity
           onPress={navigationPop}
           style={styles.closeButton}
-          testID={'nav-ios-back'}
+          testID={CommonSelectorsIDs.NAV_IOS_BACK}
         >
           <Text style={innerStyles.headerButtonText}>{backButtonText}</Text>
         </TouchableOpacity>
@@ -980,11 +967,11 @@ export function getWalletNavbarOptions(
       </View>
     ),
     headerLeft: () => (
-      <Icon
-        name={IconName.Fox}
-        IconSize={IconSize.Xl}
+      <Image
+        source={metamask_fox}
         style={styles.fox}
-        testID="fox-icon"
+        resizeMethod={'auto'}
+        testID={CommonSelectorsIDs.FOX_ICON}
       />
     ),
     headerRight: () => (
@@ -994,7 +981,7 @@ export function getWalletNavbarOptions(
         iconName={IconName.Scan}
         style={styles.infoButton}
         size={IconSize.Xl}
-        testID="wallet-scan-button"
+        testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
       />
     ),
     headerStyle: innerStyles.headerStyle,
@@ -1393,14 +1380,9 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+      trackEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+        ...trade,
+        responseTime: new Date().getTime() - quoteBegin,
       });
     }
     navigation.pop();
@@ -1411,14 +1393,9 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
-          {
-            ...trade,
-            responseTime: new Date().getTime() - quoteBegin,
-          },
-        );
+      trackEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
+        ...trade,
+        responseTime: new Date().getTime() - quoteBegin,
       });
     }
     navigation.dangerouslyGetParent()?.pop();
@@ -1578,15 +1555,10 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
-    headerTitleStyle: {
-      fontSize: 20,
-      color: themeColors.text.default,
-      ...fontStyles.normal,
-    },
   });
   return {
     headerLeft: null,
-    headerTitle: <Text>{title}</Text>,
+    headerTitle: <MorphText variant={TextVariant.HeadingMD}>{title}</MorphText>,
     ...innerStyles,
   };
 };

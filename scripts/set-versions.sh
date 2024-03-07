@@ -44,6 +44,9 @@ perform_updates () {
   # update bitrise.yml
   sed -i -e 's/VERSION_NAME: .*/VERSION_NAME: '"$SEMVER_VERSION"'/' bitrise.yml
   sed -i -e 's/VERSION_NUMBER: [0-9]\+/VERSION_NUMBER: '"$VERSION_NUMBER"'/' bitrise.yml
+  # update flask version numbers in bitrise.yml
+  sed -i -e 's/FLASK_VERSION_NAME: .*/FLASK_VERSION_NAME: '"$SEMVER_VERSION"'/' bitrise.yml
+  sed -i -e 's/FLASK_VERSION_NUMBER: [0-9]\+/FLASK_VERSION_NUMBER: '"$VERSION_NUMBER"'/' bitrise.yml
 
   # update ios/MetaMask.xcodeproj/project.pbxproj
   sed -i -e 's/MARKETING_VERSION = .*/MARKETING_VERSION = '"$SEMVER_VERSION;"'/' ios/MetaMask.xcodeproj/project.pbxproj

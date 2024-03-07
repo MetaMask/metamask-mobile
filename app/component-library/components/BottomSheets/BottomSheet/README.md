@@ -1,4 +1,6 @@
-# BottomSheet
+# [BottomSheet](https://metamask-consensys.notion.site/Bottom-Sheet-302164aff8a74b6eb721f49586f88ecd)
+
+![BottomSheet](./BottomSheet.png)
 
 BottomSheet is a sheet component typically used when we need content that slides up from the bottom. This is a wrapper component that your screens utilize and **is meant to be used with [React Navigation](https://reactnavigation.org/)** as an action sheet.
 
@@ -19,6 +21,7 @@ Boolean that indicates if sheet is swippable. This affects whether or not tappin
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                      | true                                                   |
+
 
 ### `children`
 

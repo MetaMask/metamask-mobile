@@ -1,4 +1,5 @@
-# BottomSheetFooter
+# [BottomSheetFooter](https://metamask-consensys.notion.site/Footer-b0eacc3951bf4962b75f6c4f95a8c2df)
+![BottomSheetFooter](./BottomSheetFooter.png)
 
 BottomSheetFooter is a Footer component specifically used for BottomSheets.
 

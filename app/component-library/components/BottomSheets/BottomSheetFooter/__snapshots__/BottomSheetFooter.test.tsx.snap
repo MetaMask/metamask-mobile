@@ -13,6 +13,8 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
   testID="bottomsheetfooter"
 >
   <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
     activeOpacity={1}
     onPress={[Function]}
     onPressIn={[Function]}
@@ -52,6 +54,8 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
     </Text>
   </TouchableOpacity>
   <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
     activeOpacity={1}
     onPress={[Function]}
     onPressIn={[Function]}
@@ -78,7 +82,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       accessibilityRole="text"
       style={
         Object {
-          "color": "#FCFCFC",
+          "color": "#FFFFFF",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
           "fontWeight": "400",

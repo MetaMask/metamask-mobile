@@ -13,6 +13,7 @@ import {
 } from '../../../../../constants/storage';
 import { View } from 'react-native';
 import { LOGIN_OPTIONS } from '../SecuritySettings.constants';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 interface BiometricOptionSectionProps {
   onSignWithBiometricsOptionUpdated: (enabled: boolean) => Promise<void>;
@@ -83,7 +84,7 @@ const LoginOptionsSettings = ({
           title={strings(`biometrics.enable_${biometryType.toLowerCase()}`)}
           value={biometryChoice}
           onOptionUpdated={onBiometricsOptionUpdated}
-          testId={'biometrics-option'}
+          testId={SecurityPrivacyViewSelectorsIDs.BIOMETRICS_TOGGLE}
         />
       ) : null}
       {biometryType && !biometryChoice ? (
@@ -95,7 +96,7 @@ const LoginOptionsSettings = ({
           }
           value={passcodeChoice}
           onOptionUpdated={onPasscodeOptionUpdated}
-          testId={'DevicePasscodeOption'}
+          testId={SecurityPrivacyViewSelectorsIDs.DEVICE_PASSCODE_TOGGLE}
         />
       ) : null}
     </View>

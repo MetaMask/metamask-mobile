@@ -6,20 +6,21 @@ import ConnectModal from '../../pages/modals/ConnectModal';
 import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
 
-import Browser from '../../pages/Drawer/Browser';
-import NetworkView from '../../pages/Drawer/Settings/NetworksView';
-import SettingsView from '../../pages/Drawer/Settings/SettingsView';
+import Browser from '../../pages/Browser';
+import NetworkView from '../../pages/Settings/NetworksView';
+import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/LoginView';
 import TransactionConfirmationView from '../../pages/TransactionConfirmView';
 
-import SecurityAndPrivacy from '../../pages/Drawer/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 
 import WalletView from '../../pages/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Accounts from '../../../wdio/helpers/Accounts';
 import TabBarComponent from '../../pages/TabBarComponent';
+import Assertions from '../../utils/Assertions';
 
-const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
+//const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
 
 const BINANCE_DEEPLINK_URL =
   'https://metamask.app.link/send/0xB8B4EE5B1b693971eB60bDa15211570df2dB228A@56?value=1e14';
@@ -58,11 +59,9 @@ describe(Regression('Deep linking Tests'), () => {
   });
 
   it('should enable remember me', async () => {
-    await SecurityAndPrivacy.isRememberMeToggleOff();
+    await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.rememberMeToggle);
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
-    await SecurityAndPrivacy.isRememberMeToggleOn();
-
-    await TestHelpers.delay(1500);
+    await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.rememberMeToggle);
   });
 
   it('should relaunch the app then enable remember me', async () => {
@@ -99,30 +98,31 @@ describe(Regression('Deep linking Tests'), () => {
     await NetworkView.isRpcViewVisible();
     await NetworkView.tapPopularNetworkByName('BNB Smart Chain');
 
-    await NetworkApprovalModal.isVisible();
-    await NetworkApprovalModal.isDisplayNameVisible('BNB Smart Chain');
-    await NetworkApprovalModal.isNetworkURLVisible(BINANCE_RPC_URL);
-    await NetworkApprovalModal.isChainIDVisible('56');
+    await Assertions.checkIfVisible(NetworkApprovalModal.container);
+    await Assertions.checkIfElementToHaveText(
+      NetworkApprovalModal.displayName,
+      'BNB Smart Chain',
+    );
     await NetworkApprovalModal.tapApproveButton();
 
-    await NetworkAddedModal.isVisible();
+    await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
     await NetworkAddedModal.tapCloseButton();
     await NetworkView.isRpcViewVisible();
-
-    //await WalletView.isVisible();
   });
 
   it('should add polygon network', async () => {
     await NetworkView.tapPopularNetworkByName('Polygon Mainnet');
 
-    await NetworkApprovalModal.isVisible();
-    await NetworkApprovalModal.isDisplayNameVisible('Polygon Mainnet');
-    await NetworkApprovalModal.isChainIDVisible('137');
+    await Assertions.checkIfVisible(NetworkApprovalModal.container);
+    await Assertions.checkIfElementToHaveText(
+      NetworkApprovalModal.displayName,
+      'Polygon Mainnet',
+    );
 
     await NetworkApprovalModal.tapApproveButton();
     await TestHelpers.delay(1000);
 
-    await NetworkAddedModal.isVisible();
+    await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
     await NetworkAddedModal.tapSwitchToNetwork();
 
     await WalletView.isVisible();
@@ -176,12 +176,12 @@ describe(Regression('Deep linking Tests'), () => {
     await TestHelpers.openDeepLink(DAPP_DEEPLINK_URL);
     await TestHelpers.delay(4500);
 
-    await ConnectModal.isVisible();
+    await Assertions.checkIfVisible(ConnectModal.container);
     await ConnectModal.tapConnectButton();
 
     await TestHelpers.checkIfElementWithTextIsVisible('app.sushi.com', 0);
 
     await Browser.isVisible();
-    await ConnectModal.isNotVisible();
+    await Assertions.checkIfNotVisible(ConnectModal.container);
   });
 });

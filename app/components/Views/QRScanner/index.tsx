@@ -2,42 +2,42 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import React, { useRef, useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { parse } from 'eth-url-parser';
+import { isValidAddress } from 'ethereumjs-util';
+import React, { useCallback, useRef } from 'react';
 import {
+  Alert,
+  Image,
   InteractionManager,
   SafeAreaView,
-  Image,
   Text,
   TouchableOpacity,
   View,
-  Alert,
 } from 'react-native';
-import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import { RNCamera } from 'react-native-camera';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { parse } from 'eth-url-parser';
-import { colors as importedColors } from '../../../styles/common';
-import { isValidAddress } from 'ethereumjs-util';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import SharedDeeplinkManager from '../../../core/DeeplinkManager';
+import { PROTOCOLS } from '../../../constants/deeplinks';
+import Routes from '../../../constants/navigation/Routes';
+import { MM_SDK_DEEPLINK } from '../../../constants/urls';
 import AppConstants from '../../../core/AppConstants';
-import {
-  failedSeedPhraseRequirements,
-  isValidMnemonic,
-} from '../../../util/validators';
+import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import Engine from '../../../core/Engine';
+import { selectChainId } from '../../../selectors/networkController';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
 import { getURLProtocol } from '../../../util/general';
-import Engine from '../../../core/Engine';
-import Routes from '../../../constants/navigation/Routes';
-import { PROTOCOLS } from '../../../constants/deeplinks';
-import { MM_SDK_DEEPLINK } from '../../../constants/urls';
-import styles from './styles';
 import {
   createNavigationDetails,
   useParams,
 } from '../../../util/navigation/navUtils';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  failedSeedPhraseRequirements,
+  isValidMnemonic,
+} from '../../../util/validators';
+import createStyles from './styles';
+import { useTheme } from '../../../util/theme';
 
 const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -63,6 +63,8 @@ const QRScanner = () => {
   const shouldReadBarCodeRef = useRef<boolean>(true);
 
   const currentChainId = useSelector(selectChainId);
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
   const goBack = useCallback(() => {
     navigation.goBack();
@@ -305,7 +307,7 @@ const QRScanner = () => {
       >
         <SafeAreaView style={styles.innerView}>
           <TouchableOpacity style={styles.closeIcon} onPress={goBack}>
-            <Icon name={'ios-close'} size={50} color={importedColors.white} />
+            <Icon name={'ios-close'} size={50} color={styles.closeIcon.color} />
           </TouchableOpacity>
           <Image source={frameImage} style={styles.frame} />
           <Text style={styles.text}>{strings('qr_scanner.scanning')}</Text>

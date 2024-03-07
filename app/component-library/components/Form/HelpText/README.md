@@ -1,4 +1,6 @@
-# HelpText
+# [HelpText](https://metamask-consensys.notion.site/Help-Text-d3c5f6284df84d598e2c2d586083eef0)
+
+![HelpText](./HelpText.png)
 
 HelpText is a [Text](../../Texts/Text/Text.tsx) component, used as feedback text under a form field including error, success, warning or info messages.
 

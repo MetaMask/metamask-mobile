@@ -1,4 +1,6 @@
-# Button
+# [Button](https://metamask-consensys.notion.site/Button-88af1ddc075b40e3bb38a6d0c098d9b6)
+
+![Button](./Button.png)
 
 Buttons allow users to take actions, and make choices, with a single tap.
 This component is a union component, which consists of [ButtonLink](./variants/ButtonLink/ButtonLink.tsx), [ButtonPrimary](./variants/ButtonPrimary/ButtonPrimary.tsx), and [ButtonSecondary](./variants/ButtonSecondary/ButtonSecondary.tsx).

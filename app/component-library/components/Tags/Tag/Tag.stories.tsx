@@ -1,17 +1,28 @@
+/* eslint-disable react/display-name */
 /* eslint-disable react-native/no-inline-styles */
-
-// Third party dependencies.
+// External dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
 
 // Internal dependencies.
-import Tag from './Tag';
+import { default as TagComponent } from './Tag';
 
-storiesOf('Component Library / Tag', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => (
+const TagMeta = {
+  title: 'Component Library / Tags',
+  component: TagComponent,
+  argTypes: {
+    label: {
+      control: { type: 'text' },
+      defaultValue: 'Imported',
+    },
+  },
+};
+export default TagMeta;
+
+export const Tag = {
+  render: ({ label }: any) => (
     <View style={{ alignItems: 'flex-start' }}>
-      <Tag label={'Imported'} />
+      <TagComponent label={label} />
     </View>
-  ));
+  ),
+};

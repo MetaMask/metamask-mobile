@@ -1,6 +1,5 @@
 import Engine from '../../core/Engine';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../analyticsV2';
+import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
 import { getAddressAccountType } from '../address';
 import NotificationManager from '../../core/NotificationManager';
 import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
@@ -10,6 +9,8 @@ import { strings } from '../../../locales/i18n';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { getBlockaidMetricsParams } from '../blockaid';
+import Device from '../device';
+import { getDecimalChainId } from '../networks';
 
 export const typedSign = {
   V1: 'eth_signTypedData',
@@ -17,7 +18,11 @@ export const typedSign = {
   V4: 'eth_signTypedData_v4',
 };
 
-export const getAnalyticsParams = (messageParams, signType) => {
+export const getAnalyticsParams = (
+  messageParams,
+  signType,
+  securityAlertResponse,
+) => {
   try {
     const { currentPageInformation, meta } = messageParams;
     const pageInfo = meta || currentPageInformation || {};
@@ -26,14 +31,15 @@ export const getAnalyticsParams = (messageParams, signType) => {
 
     const url = pageInfo.url && new URL(pageInfo?.url);
 
-    const blockaidParams = getBlockaidMetricsParams(
-      messageParams.securityAlertResponse,
-    );
+    let blockaidParams = {};
+    if (securityAlertResponse) {
+      blockaidParams = getBlockaidMetricsParams(securityAlertResponse);
+    }
 
     return {
       account_type: getAddressAccountType(messageParams.from),
       dapp_host_name: url && url?.host,
-      chain_id: chainId,
+      chain_id: getDecimalChainId(chainId),
       signature_type: signType,
       version: messageParams?.version,
       ...pageInfo?.analytics,
@@ -83,15 +89,16 @@ export const handleSignatureAction = async (
   onAction,
   messageParams,
   signType,
+  securityAlertResponse,
   confirmation,
 ) => {
   await onAction();
   showWalletConnectNotification(messageParams, confirmation);
-  AnalyticsV2.trackEvent(
+  MetaMetrics.getInstance().trackEvent(
     confirmation
       ? MetaMetricsEvents.SIGNATURE_APPROVED
       : MetaMetricsEvents.SIGNATURE_REJECTED,
-    getAnalyticsParams(messageParams, signType),
+    getAnalyticsParams(messageParams, signType, securityAlertResponse),
   );
 };
 
@@ -107,4 +114,15 @@ export const removeSignatureErrorListener = (metamaskId, onSignatureError) => {
     `${metamaskId}:signError`,
     onSignatureError,
   );
+};
+
+export const shouldTruncateMessage = (e) => {
+  if (
+    (Device.isIos() && e.nativeEvent.layout.height > 70) ||
+    (Device.isAndroid() && e.nativeEvent.layout.height > 100)
+  ) {
+    return true;
+  }
+
+  return false;
 };
