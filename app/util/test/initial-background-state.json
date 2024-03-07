@@ -75,17 +75,7 @@
     "networkStatus": "unknown"
   },
   "PhishingController": {
-    "phishingLists": [
-      {
-        "allowlist": [],
-        "blocklist": [],
-        "fuzzylist": [],
-        "tolerance": 2,
-        "version": 2,
-        "name": "MetaMask",
-        "lastUpdated": 0
-      }
-    ],
+    "phishingLists": [],
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0
@@ -113,7 +103,7 @@
       "0x61": true,
       "0xa": true,
       "0xa869": true,
-      "0x1a4": true,
+      "0xaa37dc": true,
       "0x89": true,
       "0x13881": true,
       "0xa86a": true,

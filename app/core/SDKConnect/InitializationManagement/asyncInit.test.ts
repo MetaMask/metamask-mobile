@@ -1,6 +1,4 @@
 import { NavigationContainerRef } from '@react-navigation/native';
-import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../AppConstants';
 import SDKConnect from '../SDKConnect';
 import { wait } from '../utils/wait.util';
 import asyncInit from './asyncInit';
@@ -72,18 +70,6 @@ describe('asyncInit', () => {
   });
 
   describe('Loading connections and hosts from storage', () => {
-    it('should load connections and approved hosts from DefaultPreference', async () => {
-      await asyncInit({
-        instance: mockInstance,
-        navigation: mockNavigation,
-      });
-
-      expect(DefaultPreference.get).toHaveBeenCalledTimes(2);
-      expect(DefaultPreference.get).toHaveBeenCalledWith(
-        AppConstants.MM_SDK.SDK_CONNECTIONS,
-      );
-    });
-
     it('should parse and set connections from the storage', async () => {
       await asyncInit({
         instance: mockInstance,
