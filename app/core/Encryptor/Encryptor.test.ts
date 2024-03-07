@@ -168,7 +168,7 @@ describe('Encryptor', () => {
       );
     });
 
-    it('does not update a vault if algorithm is PBKDF2 the number of iterations is 900000', async () => {
+    it('does not update a vault if algorithm is PBKDF2 and the number of iterations is 900000', async () => {
       const mockVault = {
         cipher: 'mockedCipher',
         iv: 'mockedIV',
