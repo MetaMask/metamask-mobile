@@ -30,9 +30,7 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
 
   it('should not edit default network with invalid RPC', async () => {
     await MetaMetricsOptIn.tapEditDefaultNetworkHere();
-    await DefaultNetworkView.typeRpcURL(
-      networks['Ethereum Main Custom'].providerConfig.invalidUrl,
-    );
+    await DefaultNetworkView.typeRpcURL('https//rpc.mevblocker.io');
     await Assertions.checkIfVisible(NetworksView.rpcWarningBanner);
   });
 

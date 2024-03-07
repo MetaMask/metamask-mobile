@@ -77,7 +77,6 @@
       "type": "rpc",
       "chainId": "1",
       "rpcUrl": "https://eth.llamarpc.com",
-      "invalidUrl": "https//rpc.mevblocker.io",
       "nickname": "Custom Mainnet",
       "ticker": "ETH"
     }
