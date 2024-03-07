@@ -30,17 +30,18 @@ import { strings } from '../../../../../../locales/i18n';
 import ApplePayButton from '../../containers/ApplePayButton';
 import RemoteImage from '../../../../Base/RemoteImage';
 
+import TagColored from '../../../../../component-library/components-temp/TagColored';
 import Row from '../Row';
 import styleSheet from './Quote.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import { isBuyQuote } from '../../utils';
 import { RampType } from '../../types';
-
 // TODO: Convert into typescript and correctly type optionals
 const ListItem = BaseListItem as any;
 
 interface Props {
   quote: QuoteResponse | SellQuoteResponse;
+  previouslyUsedProvider?: boolean;
   onPress?: () => void;
   onPressCTA?: () => void;
   highlighted?: boolean;
@@ -56,6 +57,7 @@ const animationConfig: WithTimingConfig = {
 
 const Quote: React.FC<Props> = ({
   quote,
+  previouslyUsedProvider,
   onPress,
   onPressCTA,
   showInfo,
@@ -118,6 +120,13 @@ const Quote: React.FC<Props> = ({
         accessible={!highlighted}
         accessibilityLabel={quote.provider?.name}
       >
+        {previouslyUsedProvider ? (
+          <ListItem.Date>
+            <TagColored>
+              {strings('fiat_on_ramp_aggregator.previously_used')}
+            </TagColored>
+          </ListItem.Date>
+        ) : null}
         <ListItem.Content>
           <ListItem.Body>
             <TouchableOpacity

@@ -31,7 +31,6 @@ import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { routingInstrumentation } from '../../../util/sentry/utils';
-import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
@@ -370,13 +369,12 @@ const App = ({ userLoggedIn }) => {
   }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
-    const initAnalytics = async () => {
+    const initMetrics = async () => {
       await MetaMetrics.getInstance().configure();
-      await Analytics.init();
     };
 
-    initAnalytics().catch((err) => {
-      Logger.error(err, 'Error initializing analytics');
+    initMetrics().catch((err) => {
+      Logger.error(err, 'Error initializing MetaMetrics');
     });
   }, []);
 

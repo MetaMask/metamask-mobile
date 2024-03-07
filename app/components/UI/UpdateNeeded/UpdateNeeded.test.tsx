@@ -1,19 +1,19 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import { renderScreen } from '../../..//util/test/renderWithProvider';
 import { UpdateNeeded } from './';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 
-const mockStore = configureMockStore();
-const store = mockStore({});
+jest.mock('react-native-device-info', () => ({
+  getBrand: () => 'some brand',
+  getBuildNumber: () => 'some build number',
+  getVersion: () => 'some version',
+}));
 
 describe('UpdateNeeded', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <UpdateNeeded />
-      </Provider>,
+    const { toJSON } = renderScreen(
+      UpdateNeeded,
+      { name: 'UpdateNeeded' },
+      { state: {} },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -155,7 +155,11 @@ class NetworksSettings extends PureComponent {
     this.updateNavBar();
   };
 
-  componentDidUpdate = () => {
+  componentDidUpdate = (prevProps) => {
+    if (this.props.networkConfigurations !== prevProps.networkConfigurations) {
+      this.handleSearchTextChange(this.state.searchString);
+    }
+
     this.updateNavBar();
   };
 
@@ -163,7 +167,10 @@ class NetworksSettings extends PureComponent {
 
   onNetworkPress = (networkTypeOrRpcUrl) => {
     const { navigation } = this.props;
-    navigation.navigate(Routes.ADD_NETWORK, { network: networkTypeOrRpcUrl });
+    navigation.navigate(Routes.ADD_NETWORK, {
+      network: networkTypeOrRpcUrl,
+      isEdit: true,
+    });
   };
 
   onAddNetwork = () => {
