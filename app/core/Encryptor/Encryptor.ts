@@ -5,6 +5,7 @@ import {
   SHA256_DIGEST_LENGTH,
   ENCRYPTION_LIBRARY,
   DEFAULT_DERIVATION_PARAMS,
+  OLD_ITERATIONS_NUMBER,
 } from './constants';
 import type {
   EncryptionResult,
@@ -193,7 +194,8 @@ class Encryptor implements GenericEncryptor {
     const key = await this.keyFromPassword({
       password,
       salt: payload.salt,
-      iterations: DEFAULT_DERIVATION_PARAMS.params.iterations,
+      iterations:
+        payload.keyMetadata?.params.iterations || OLD_ITERATIONS_NUMBER,
       lib: payload.lib,
     });
     const data = await this.decryptWithKey({
@@ -222,10 +224,12 @@ class Encryptor implements GenericEncryptor {
     password: string,
     targetDerivationParams = DEFAULT_DERIVATION_PARAMS,
   ): Promise<string> => {
+    console.log('should update vault');
     if (this.isVaultUpdated(vault, targetDerivationParams)) {
       return vault;
     }
 
+    console.log('try to update vault');
     return this.encrypt(password, await this.decrypt(password, vault));
   };
 }
