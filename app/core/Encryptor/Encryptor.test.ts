@@ -35,26 +35,67 @@ describe('Encryptor', () => {
   });
 
   describe('decrypt', () => {
+    let decryptAesSpy: jest.SpyInstance,
+      pbkdf2AesSpy: jest.SpyInstance,
+      decryptAesForkedSpy: jest.SpyInstance,
+      pbkdf2AeForkedSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      decryptAesSpy = jest
+        .spyOn(Aes, 'decrypt')
+        .mockResolvedValue('{"mockData": "mockedPlainText"}');
+      pbkdf2AesSpy = jest
+        .spyOn(Aes, 'pbkdf2')
+        .mockResolvedValue('mockedAesKey');
+      decryptAesForkedSpy = jest
+        .spyOn(AesForked, 'decrypt')
+        .mockResolvedValue('{"mockData": "mockedPlainText"}');
+      pbkdf2AeForkedSpy = jest
+        .spyOn(AesForked, 'pbkdf2')
+        .mockResolvedValue('mockedAesForkedKey');
+    });
+
     afterEach(() => {
-      jest.clearAllMocks();
+      decryptAesSpy.mockRestore();
+      pbkdf2AesSpy.mockRestore();
+      decryptAesForkedSpy.mockRestore();
+      pbkdf2AeForkedSpy.mockRestore();
     });
 
     it.each([
       {
         lib: ENCRYPTION_LIBRARY.original,
-        expectedDecryptFunction: 'decrypt',
-        expectedKey: 'mockedKey',
-        description: 'with original library',
+        expectedKey: 'mockedAesKey',
+        expectedPBKDF2Args: ['testPassword', 'mockedSalt', 900000, 256],
+        description:
+          'with original library and default iterations number for key generation',
+        keyMetadata: DEFAULT_DERIVATION_PARAMS,
+      },
+      {
+        lib: ENCRYPTION_LIBRARY.original,
+        expectedKey: 'mockedAesKey',
+        expectedPBKDF2Args: ['testPassword', 'mockedSalt', 5000, 256],
+        description:
+          'with original library and old iterations number for key generation',
       },
       {
         lib: 'random-lib', // Assuming not using "original" should lead to AesForked
-        expectedDecryptFunction: 'decrypt',
-        expectedKey: 'mockedKeyForked',
-        description: 'with library different to "original"',
+        expectedKey: 'mockedAesForkedKey',
+        expectedPBKDF2Args: ['testPassword', 'mockedSalt'],
+        description:
+          'with library different to "original" and default iterations number for key generation',
+        keyMetadata: DEFAULT_DERIVATION_PARAMS,
+      },
+      {
+        lib: 'random-lib', // Assuming not using "original" should lead to AesForked
+        expectedKey: 'mockedAesForkedKey',
+        expectedPBKDF2Args: ['testPassword', 'mockedSalt'],
+        description:
+          'with library different to "original" and old iterations number for key generation',
       },
     ])(
       'decrypts a string correctly $description',
-      async ({ lib, expectedDecryptFunction, expectedKey }) => {
+      async ({ lib, expectedKey, expectedPBKDF2Args, keyMetadata }) => {
         const password = 'testPassword';
         const mockVault = {
           cipher: 'mockedCipher',
@@ -63,27 +104,26 @@ describe('Encryptor', () => {
           lib,
         };
 
-        // Determine which AES module to spy on based on the lib value
-        const aesModuleToSpyOn =
-          lib === ENCRYPTION_LIBRARY.original ? Aes : AesForked;
-        const decryptSpy = jest.spyOn(
-          aesModuleToSpyOn,
-          expectedDecryptFunction,
-        );
-
         const decryptedObject = await encryptor.decrypt(
           password,
-          JSON.stringify(mockVault),
+          JSON.stringify(
+            keyMetadata !== undefined
+              ? { ...mockVault, keyMetadata }
+              : mockVault,
+          ),
         );
 
         expect(decryptedObject).toEqual(expect.any(Object));
-        expect(decryptSpy).toHaveBeenCalledWith(
-          mockVault.cipher,
-          expectedKey,
-          mockVault.iv,
-        );
-
-        decryptSpy.mockRestore();
+        expect(
+          lib === ENCRYPTION_LIBRARY.original
+            ? decryptAesSpy
+            : decryptAesForkedSpy,
+        ).toHaveBeenCalledWith(mockVault.cipher, expectedKey, mockVault.iv);
+        expect(
+          lib === ENCRYPTION_LIBRARY.original
+            ? pbkdf2AesSpy
+            : pbkdf2AeForkedSpy,
+        ).toHaveBeenCalledWith(...expectedPBKDF2Args);
       },
     );
   });
