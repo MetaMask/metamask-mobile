@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { createEnableAutomaticSecurityChecksModalNavDetails } from '../../UI/EnableAutomaticSecurityChecksModal/EnableAutomaticSecurityChecksModal';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -9,10 +9,11 @@ const useEnableAutomaticSecurityChecks = () => {
     (state: any) => state.security.hasUserSelectedAutomaticSecurityCheckOption,
   );
 
+  const ref = useRef();
   const navigation = useNavigation();
 
   useEffect(() => {
-    if (hasUserSelectedAutomaticSecurityCheckOption === false) {
+    if (hasUserSelectedAutomaticSecurityCheckOption === false && !ref.current) {
       InteractionManager.runAfterInteractions(() => {
         navigation.navigate(
           ...createEnableAutomaticSecurityChecksModalNavDetails(),
