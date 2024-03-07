@@ -378,6 +378,7 @@ describe('SendTransaction View', () => {
           "fiat_out": 0,
           "order_id": "test-id-1",
           "payment_method_id": "/payments/instant-bank-transfer",
+          "provider_offramp": "Test (Staging)",
         },
       ]
     `);
@@ -432,6 +433,7 @@ describe('SendTransaction View', () => {
           "fiat_out": 0,
           "order_id": "test-id-1",
           "payment_method_id": "/payments/instant-bank-transfer",
+          "provider_offramp": "Test (Staging)",
         },
       ]
     `);
@@ -479,6 +481,7 @@ describe('SendTransaction View', () => {
           "fiat_out": 0,
           "order_id": "test-id-1",
           "payment_method_id": "/payments/instant-bank-transfer",
+          "provider_offramp": "Test (Staging)",
         },
       ]
     `);
@@ -529,6 +532,7 @@ describe('SendTransaction View', () => {
           "fiat_out": 0,
           "order_id": "test-id-1",
           "payment_method_id": "/payments/instant-bank-transfer",
+          "provider_offramp": "Test (Staging)",
         },
       ]
     `);
