@@ -124,11 +124,28 @@ remapEnvVariable() {
     echo "Successfully remapped $old_var_name to $new_var_name."
 }
 
+remapEnvVariableQA() {
+  	echo "Remapping QA env variable names to match QA values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+}
+
+remapEnvVariableRelease() {
+  	echo "Remapping release env variable names to match production values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+}
+
 remapFlaskEnvVariables() {
-	echo "Remapping flask env variable names to match app common names"
-	# .js.env variables
-	remapEnvVariable "MM_FLASK_SEGMENT_WRITE_KEY" "SEGMENT_WRITE_KEY"
-	remapEnvVariable "MM_FLASK_SEGMENT_PROXY_URL" "SEGMENT_PROXY_URL"
+  	echo "Remapping Flask env variable names to match Flask values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_FLASK" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_FLASK" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_FLASK" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_FLASK" "SEGMENT_REGULATIONS_ENDPOINT"
 }
 
 loadJSEnv(){
@@ -265,6 +282,9 @@ generateArchivePackages() {
 }
 
 buildIosRelease(){
+
+  remapEnvVariableRelease
+
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD="false"
 	prebuild_ios
@@ -328,6 +348,7 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
+  remapEnvVariableQA
 	prebuild_ios
 
   	echo "Start QA build..."
@@ -351,6 +372,8 @@ buildIosQA(){
 
 
 buildAndroidQA(){
+  remapEnvVariableQA
+  
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.qa
 	fi
@@ -376,6 +399,9 @@ buildAndroidQA(){
 }
 
 buildAndroidRelease(){
+
+  remapEnvVariableRelease
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
 	fi
