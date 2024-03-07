@@ -256,10 +256,11 @@ const App = ({ userLoggedIn }) => {
     }
   };
 
+  // TODO remove this useEffect before merging
   useEffect(() => {
     console.log(
       'Accounts/ AccountController',
-      JSON.stringify(Engine.context.AccountsController, null, 2),
+      JSON.stringify(Engine.context.AccountsController.state, null, 2),
     );
     console.log(
       'Accounts/ PreferencesController',

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
 import {
   AccountTrackerController,
@@ -610,15 +609,16 @@ class Engine {
       ],
     });
 
-    const defaultAccountControllerState: AccountsControllerState = {
+    const defaultAccountsControllerState: AccountsControllerState = {
       internalAccounts: {
         accounts: {},
         selectedAccount: '',
       },
     };
+
     const accountsController = new AccountsController({
       messenger: accountsControllerMessenger,
-      state: initialState.AccountsController ?? defaultAccountControllerState,
+      state: initialState.AccountsController ?? defaultAccountsControllerState,
     });
 
     const qrKeyringBuilder = () => new QRHardwareKeyring();
@@ -1677,6 +1677,7 @@ export default {
       PermissionController,
       ApprovalController,
       LoggingController,
+      AccountsController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -1716,6 +1717,7 @@ export default {
       PermissionController,
       ApprovalController,
       LoggingController,
+      AccountsController,
     };
   },
   get datamodel() {
