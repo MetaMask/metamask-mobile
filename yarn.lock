@@ -3605,7 +3605,7 @@
     "@metamask/controller-utils" "^6.0.0"
     "@metamask/utils" "^8.2.0"
 
-"@metamask/approval-controller@3.4.0", "@metamask/approval-controller@^3.3.0", "@metamask/approval-controller@^3.4.0", "@metamask/approval-controller@^3.5.0", "@metamask/approval-controller@^5.1.2":
+"@metamask/approval-controller@3.4.0", "@metamask/approval-controller@^3.4.0", "@metamask/approval-controller@^3.5.0", "@metamask/approval-controller@^5.1.2":
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-3.4.0.tgz#282900361d42f785578728b45014ff8cb5e557ea"
   integrity sha512-DjqrhiX9+W/Fh6Crr7FPJ87Y/uhPWzBvfXGtekv1LHZNmEtUxkrA7aelddUM0fpTdURIGT4aNGBoQudFidc+Lw==
@@ -3616,23 +3616,23 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^9.0.0":
-  version "9.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-9.2.0.tgz#1f9659672ec9c2bc978e22c305316bbf2cc73bb7"
-  integrity sha512-hlX8zR1CC4O6wL23dB1GojI/N7k6yOMaHoRcBETODSF4HUiyu1JILxnannB0OWc4rLojj8ZJKjsc+kRkavLY9Q==
+"@metamask/assets-controllers@^10.0.0":
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-10.0.0.tgz#6f4831d263442a581d7be7fc3a388c1423327c5f"
+  integrity sha512-03hWxE8YqC024BiBV8AlYBZWPqr80micToZzz9nWcRZ0MAyRSRgE/eWZbsL5pKO9N0L+ZWT2mntK1FXAKd1ydg==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^1.2.0"
-    "@metamask/approval-controller" "^3.3.0"
-    "@metamask/base-controller" "^3.0.0"
+    "@metamask/approval-controller" "^3.4.0"
+    "@metamask/base-controller" "^3.1.0"
     "@metamask/contract-metadata" "^2.3.1"
-    "@metamask/controller-utils" "^4.0.1"
+    "@metamask/controller-utils" "^4.1.0"
     "@metamask/metamask-eth-abis" "3.0.0"
-    "@metamask/network-controller" "^10.2.0"
-    "@metamask/preferences-controller" "^4.1.0"
+    "@metamask/network-controller" "^10.3.0"
+    "@metamask/preferences-controller" "^4.2.0"
     "@metamask/rpc-errors" "^5.1.1"
     "@metamask/utils" "^5.0.2"
     "@types/uuid" "^8.3.0"
@@ -3689,7 +3689,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.2.0.tgz#277764d0d56e37180ae7644a9d11eb96295b36fc"
   integrity sha512-SM6A4C7vXNbVpgMTX67kfW8QWvu3eSXxMZlY5PqZBTkvri1s9zgQ0uwRkK5r2VXNEoVmXCDnnEX/tX5EzzgNUQ==
 
-"@metamask/controller-utils@^4.0.0", "@metamask/controller-utils@^4.0.1", "@metamask/controller-utils@^4.2.0", "@metamask/controller-utils@^4.3.0", "@metamask/controller-utils@^4.3.2":
+"@metamask/controller-utils@^4.0.0", "@metamask/controller-utils@^4.1.0", "@metamask/controller-utils@^4.2.0", "@metamask/controller-utils@^4.3.0", "@metamask/controller-utils@^4.3.2":
   version "4.3.2"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-4.3.2.tgz#e11fda4b2d38b96925891410665b57efcf41e07d"
   integrity sha512-QlBUfUbexB+7IXHtZzFVYqKUvQEvktCHoDrzkXN8pjCbjm4sZtB6Lh47O0QSyoPR3dT77mphTz3GktjmfzskbA==
@@ -3807,7 +3807,7 @@
     "@metamask/scure-bip39" "^2.0.3"
     ethereum-cryptography "^1.1.2"
 
-"@metamask/eth-json-rpc-infura@^8.0.0", "@metamask/eth-json-rpc-infura@^8.1.0":
+"@metamask/eth-json-rpc-infura@^8.1.0", "@metamask/eth-json-rpc-infura@^8.1.1":
   version "8.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-infura/-/eth-json-rpc-infura-8.1.1.tgz#e877284634fb0727b347575115c74dc9ddd4400c"
   integrity sha512-Ey05VRIMqvF845+pbJeptPm4RrzwHSfmT3QiJfQGWLG4yKdkhvlgOJ7xxYxqbdvPIywA5qCLI7Kszk0gAbWiKA==
@@ -3985,17 +3985,16 @@
     "@metamask/number-to-bn" "^1.7.1"
     bn.js "^5.2.1"
 
-"@metamask/gas-fee-controller@6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-6.0.0.tgz#a0fc8233284708cd7924517ca7b4a7624dfe5c42"
-  integrity sha512-B01j41B89hWAGUhJBQAvojuYre10Ef7nlMGrd8dxjW+6BE82hR6BkwOHDWd2evonVUQQuhyekbBl3BjCgzzOUg==
+"@metamask/gas-fee-controller@6.1.0":
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-6.1.0.tgz#97021b2ffa0a7faa68b3847226bf9cea6a1e395d"
+  integrity sha512-pFooCqBjw2wKFsgMSN1Rsnw3xDMqkkeLhx2OCMOoGx4IHTaxK+KpoUWrKX9J4yLQNsj0jYs584jT1ekoa1kknQ==
   dependencies:
-    "@metamask/base-controller" "^3.0.0"
-    "@metamask/controller-utils" "^4.0.0"
-    "@metamask/network-controller" "^9.0.0"
-    "@metamask/utils" "^5.0.2"
+    "@metamask/base-controller" "^3.2.0"
+    "@metamask/controller-utils" "^4.3.0"
+    "@metamask/network-controller" "^11.0.0"
+    "@metamask/utils" "^6.2.0"
     "@types/uuid" "^8.3.0"
-    babel-runtime "^6.26.0"
     eth-query "^2.1.2"
     ethereumjs-util "^7.0.10"
     ethjs-unit "^0.1.6"
@@ -4072,7 +4071,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/network-controller@^10.0.0", "@metamask/network-controller@^10.2.0", "@metamask/network-controller@^10.3.1":
+"@metamask/network-controller@^10.3.0", "@metamask/network-controller@^10.3.1":
   version "10.3.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-10.3.1.tgz#ca0e9134b2600bd834c5193ce0f06e973ec3b152"
   integrity sha512-ohx9DnVI0a07yrYqxtMD460oBlXqsy+fcORRI5foiTLk3LudM4fdjLUG8u5JvYHUeEoIl8bkMZuwWxOFrqHB2g==
@@ -4086,6 +4085,26 @@
     "@metamask/utils" "^5.0.2"
     async-mutex "^0.2.6"
     babel-runtime "^6.26.0"
+    eth-block-tracker "^7.0.1"
+    eth-query "^2.1.2"
+    eth-rpc-errors "^4.0.2"
+    immer "^9.0.6"
+    json-rpc-engine "^6.1.0"
+    uuid "^8.3.2"
+
+"@metamask/network-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-11.0.0.tgz#c128e3aae9e3c1c721aa52ad85cb42e003e847c3"
+  integrity sha512-wgxZo7BVpJrS3WOZwqQBNisoLGrUYMBIZ5IIWUTMkTfzvLJ9LtDHQFriEP/fHpubj6Nfsr6aKs4fCCs8nsVFPQ==
+  dependencies:
+    "@metamask/base-controller" "^3.2.0"
+    "@metamask/controller-utils" "^4.3.0"
+    "@metamask/eth-json-rpc-infura" "^8.1.1"
+    "@metamask/eth-json-rpc-middleware" "^11.0.0"
+    "@metamask/eth-json-rpc-provider" "^1.0.0"
+    "@metamask/swappable-obj-proxy" "^2.1.0"
+    "@metamask/utils" "^6.2.0"
+    async-mutex "^0.2.6"
     eth-block-tracker "^7.0.1"
     eth-query "^2.1.2"
     eth-rpc-errors "^4.0.2"
@@ -4111,27 +4130,6 @@
     async-mutex "^0.2.6"
     eth-block-tracker "^8.0.0"
     immer "^9.0.6"
-    uuid "^8.3.2"
-
-"@metamask/network-controller@^9.0.0":
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-9.0.0.tgz#f27300ef8fd0bf633de9199d613ad1bef1ed704d"
-  integrity sha512-6JhHVohUWQPV+hpRYtiM8Bc2rFXRhwJONPEwXQElI3f7YtYKdwmCl59KjY6gpytr5yr4+uMt2zNXMpGlJuZYuw==
-  dependencies:
-    "@metamask/base-controller" "^3.0.0"
-    "@metamask/controller-utils" "^4.0.0"
-    "@metamask/eth-json-rpc-infura" "^8.0.0"
-    "@metamask/eth-json-rpc-middleware" "^11.0.0"
-    "@metamask/eth-json-rpc-provider" "^1.0.0"
-    "@metamask/swappable-obj-proxy" "^2.1.0"
-    "@metamask/utils" "^5.0.2"
-    async-mutex "^0.2.6"
-    babel-runtime "^6.26.0"
-    eth-block-tracker "^7.0.1"
-    eth-query "^2.1.2"
-    eth-rpc-errors "^4.0.2"
-    immer "^9.0.6"
-    json-rpc-engine "^6.1.0"
     uuid "^8.3.2"
 
 "@metamask/number-to-bn@^1.7.1":
@@ -4215,13 +4213,13 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/phishing-controller@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-5.0.0.tgz#f2d1006c4063d13f62f1926d2d3c7ffac5736fec"
-  integrity sha512-mY9g3RV0lxak6YzOD7Ki5WRDIfXbkyn/cpI6BmFMY2Iz/eY0WmDs++NorsWyty3yjLEyTLpMklPA1JsssEylhA==
+"@metamask/phishing-controller@6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-6.0.0.tgz#4086ddb0abf263933146b296fea98ee2a17c9484"
+  integrity sha512-dlAxoWAU+k31jdkBESCvY2bwfC7jOE2pSxDwSWHdEmuLs4S2niSs4boQ67azONRiLvF20lF71bKthEhTf/RGdQ==
   dependencies:
-    "@metamask/base-controller" "^3.0.0"
-    "@metamask/controller-utils" "^4.0.0"
+    "@metamask/base-controller" "^3.2.0"
+    "@metamask/controller-utils" "^4.3.0"
     "@types/punycode" "^2.1.0"
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
@@ -4259,7 +4257,7 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^4.0.0", "@metamask/preferences-controller@^4.1.0", "@metamask/preferences-controller@^4.4.3":
+"@metamask/preferences-controller@^4.0.0", "@metamask/preferences-controller@^4.2.0", "@metamask/preferences-controller@^4.4.3":
   version "4.4.3"
   resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-4.4.3.tgz#f0f05793370892d2d7bc9b07e685583a1f4d80c9"
   integrity sha512-ftDRfOEgRrQqFyfZEQk9AVD1YMdP54NvtiBCrlqAG4hiFgBXQbQTcyl0i/jR/cfki8hYMuH1gPdId14CCAJbDQ==

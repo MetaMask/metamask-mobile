@@ -278,6 +278,7 @@ function setupSignature() {
     providerConfig: {
       chainId: '0x1',
       type: RPC,
+      ticker: 'ETH',
     },
     selectedAddress: addressMock,
     permittedAccounts: { [hostMock]: [addressMock] },
@@ -522,6 +523,7 @@ describe('getRpcMethodMiddleware', () => {
           providerConfig: {
             chainId: '0x1',
             type: RPC,
+            ticker: 'ETH',
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -556,6 +558,7 @@ describe('getRpcMethodMiddleware', () => {
           providerConfig: {
             chainId: '0x1',
             type: RPC,
+            ticker: 'ETH',
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -592,6 +595,7 @@ describe('getRpcMethodMiddleware', () => {
           providerConfig: {
             chainId: '0x1',
             type: RPC,
+            ticker: 'ETH',
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -629,6 +633,7 @@ describe('getRpcMethodMiddleware', () => {
           providerConfig: {
             chainId: '0x1',
             type: RPC,
+            ticker: 'ETH',
           },
           selectedAddress: mockAddress,
         });
@@ -657,9 +662,11 @@ describe('getRpcMethodMiddleware', () => {
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
+          permittedAccounts: { 'example.metamask.io': [] },
           providerConfig: {
             chainId: '0x1',
             type: RPC,
+            ticker: 'ETH',
           },
           selectedAddress: differentMockAddress,
         });
@@ -699,6 +706,7 @@ describe('getRpcMethodMiddleware', () => {
           providerConfig: {
             chainId: '0x1',
             type: RPC,
+            ticker: 'ETH',
           },
           selectedAddress: mockAddress,
         });
@@ -731,6 +739,7 @@ describe('getRpcMethodMiddleware', () => {
           providerConfig: {
             chainId: '0x1',
             type: RPC,
+            ticker: 'ETH',
           },
           selectedAddress: differentMockAddress,
         });
@@ -766,6 +775,7 @@ describe('getRpcMethodMiddleware', () => {
         providerConfig: {
           chainId: '0x1',
           type: RPC,
+          ticker: 'ETH',
         },
       });
       const middleware = getRpcMethodMiddleware({
