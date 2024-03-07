@@ -72,12 +72,12 @@
       "ticker": "xDAI"
     }
   },
-  "Ethereum Main Custom": {
+  "EthereumMainCustom": {
     "providerConfig": {
       "type": "rpc",
       "chainId": "1",
       "rpcUrl": "https://eth.llamarpc.com",
-      "nickname": "Custom Mainnet",
+      "nickname": "Ethereum Main Custom",
       "ticker": "ETH"
     }
   }

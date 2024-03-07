@@ -13,7 +13,7 @@ import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView'
 import NetworksView from '../../pages/Settings/NetworksView';
 import Accounts from '../../../wdio/helpers/Accounts';
 import { DEFAULT_MAINNET_CUSTOM_NAME } from '../../../app/constants/network';
-import networks from '../../resources/networks.json';
+import Networks from '../../resources/networks.json';
 
 const validAccount = Accounts.getValidAccount();
 
@@ -36,7 +36,7 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
 
   it('should edit default ETH Mainnet with valid RPC', async () => {
     await DefaultNetworkView.typeRpcURL(
-      networks['Ethereum Main Custom'].providerConfig.rpcUrl,
+      Networks.EthereumMainCustom.providerConfig.rpcUrl,
     );
     await DefaultNetworkView.tapUseThisNetworkButton();
     await Assertions.checkIfVisible(MetaMetricsOptIn.container);
