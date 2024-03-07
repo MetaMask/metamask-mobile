@@ -3616,18 +3616,7 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/approval-controller@^3.4.0":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-3.4.0.tgz#282900361d42f785578728b45014ff8cb5e557ea"
-  integrity sha512-DjqrhiX9+W/Fh6Crr7FPJ87Y/uhPWzBvfXGtekv1LHZNmEtUxkrA7aelddUM0fpTdURIGT4aNGBoQudFidc+Lw==
-  dependencies:
-    "@metamask/base-controller" "^3.0.0"
-    "@metamask/utils" "^5.0.2"
-    eth-rpc-errors "^4.0.2"
-    immer "^9.0.6"
-    nanoid "^3.1.31"
-
-"@metamask/approval-controller@^3.5.0":
+"@metamask/approval-controller@^3.4.0", "@metamask/approval-controller@^3.5.0":
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-3.5.2.tgz#c8ca4578f053d719bff82b0c9fa1939d21978d46"
   integrity sha512-5jYMtPexeeNL8m+5Mzhayr1l367MbbBs0Wf+FBeL/xLv6nSNqvvNs/CXfvkqxLDZJKIgBCBPKg7eIu1U6MJ6ag==
