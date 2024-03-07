@@ -19,7 +19,6 @@ import Logger from '../../../../util/Logger';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { setLockTime } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
-import Analytics from '../../../../core/Analytics/Analytics';
 import { passwordSet } from '../../../../actions/user';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
@@ -47,6 +46,7 @@ import {
   ChangePassword,
   AutoLock,
   ClearPrivacy,
+  BlockaidSettings,
 } from './Sections';
 import {
   selectProviderType,
@@ -118,7 +118,8 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { trackErrorAsAnalytics } from '../../../../util/analyticsV2';
+import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
+import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -448,8 +449,6 @@ const Settings: React.FC = () => {
 
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
     if (metricsEnabled) {
-      Analytics.enable();
-
       const consolidatedTraits = {
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
@@ -458,13 +457,7 @@ const Settings: React.FC = () => {
       setAnalyticsEnabled(true);
 
       InteractionManager.runAfterInteractions(async () => {
-        // Segment metrics optin tracking
         await addTraitsToUser(consolidatedTraits);
-        trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-          analytics_option_selected: 'Metrics Opt in',
-          updated_after_onboarding: true,
-        });
-        // Legacy metrics optin tracking
         trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
           analytics_option_selected: 'Metrics Opt in',
           updated_after_onboarding: true,
@@ -472,7 +465,6 @@ const Settings: React.FC = () => {
       });
     } else {
       await enable(false);
-      Analytics.disable();
       setAnalyticsEnabled(false);
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
@@ -990,6 +982,7 @@ const Settings: React.FC = () => {
           <RememberMeOptionSection />
         </View>
         <RevealPrivateKey />
+        {isBlockaidFeatureEnabled() && <BlockaidSettings />}
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
         <Text
           variant={TextVariant.BodyLGMedium}
