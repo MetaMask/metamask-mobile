@@ -1,12 +1,9 @@
 import { NetworkController } from '@metamask/network-controller';
-import { Json } from '@metamask/utils';
 import { EventEmitter2 } from 'eventemitter2';
 import { NativeModules } from 'react-native';
 import Engine from '../../Engine';
 import { Minimizer } from '../../NativeModules';
-import getRpcMethodMiddleware, {
-  ApprovalTypes,
-} from '../../RPCMethods/RPCMethodMiddleware';
+import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import { RPCQueueManager } from '../RPCQueueManager';
 
 import {
@@ -28,14 +25,14 @@ import { SDKConnect } from '../SDKConnect';
 
 import { KeyringController } from '@metamask/keyring-controller';
 
-import { ApprovalController } from '@metamask/approval-controller';
+import { PermissionController } from '@metamask/permission-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import BatchRPCManager from '../BatchRPCManager';
 import {
-  RPC_METHODS,
   DEFAULT_SESSION_TIMEOUT_MS,
   METHODS_TO_DELAY,
+  RPC_METHODS,
 } from '../SDKConnectConstants';
 import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
@@ -43,9 +40,12 @@ import DevLogger from '../utils/DevLogger';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
 import { AndroidClient } from './android-sdk-types';
 
+export interface AndroidConnections {
+  [clientId: string]: AndroidClient;
+}
 export default class AndroidService extends EventEmitter2 {
   private communicationClient = NativeModules.CommunicationClient;
-  private connections: { [clientId: string]: AndroidClient } = {};
+  private connections: AndroidConnections = {};
   private rpcQueueManager = new RPCQueueManager();
   private bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
   private eventHandler: AndroidSDKEventHandler;
@@ -246,39 +246,20 @@ export default class AndroidService extends EventEmitter2 {
   }
 
   private async checkPermission({
-    originatorInfo,
     channelId,
   }: {
     originatorInfo: OriginatorInfo;
     channelId: string;
   }): Promise<unknown> {
-    const approvalController = (
-      Engine.context as { ApprovalController: ApprovalController }
-    ).ApprovalController;
+    const permissionsController = (
+      Engine.context as { PermissionController: PermissionController<any, any> }
+    ).PermissionController;
 
-    const approvalRequest = {
-      origin: AppConstants.MM_SDK.ANDROID_SDK,
-      type: ApprovalTypes.CONNECT_ACCOUNTS,
-      requestData: {
-        hostname: originatorInfo?.title ?? '',
-        pageMeta: {
-          channelId,
-          reconnect: false,
-          origin: AppConstants.MM_SDK.ANDROID_SDK,
-          url: originatorInfo?.url ?? '',
-          title: originatorInfo?.title ?? '',
-          icon: originatorInfo?.icon ?? '',
-          otps: [],
-          analytics: {
-            request_source: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
-            request_platform:
-              originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
-          },
-        } as Json,
-      },
-      id: channelId,
-    };
-    return approvalController.add(approvalRequest);
+    return permissionsController.requestPermissions(
+      { origin: channelId },
+      { eth_accounts: {} },
+      { id: channelId },
+    );
   }
 
   private setupOnMessageReceivedListener() {
@@ -451,6 +432,7 @@ export default class AndroidService extends EventEmitter2 {
 
     const bridge = new BackgroundBridge({
       webview: null,
+      channelId: clientInfo.clientId,
       isMMSDK: true,
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
@@ -469,6 +451,7 @@ export default class AndroidService extends EventEmitter2 {
         getRpcMethodMiddleware({
           hostname:
             clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
+          channelId: clientInfo.clientId,
           getProviderState,
           isMMSDK: true,
           navigation: null, //props.navigation,
@@ -560,7 +543,7 @@ export default class AndroidService extends EventEmitter2 {
       // Always set the method to metamask_batch otherwise it may not have been set correctly because of the batch rpc flow.
       rpcMethod = RPC_METHODS.METAMASK_BATCH;
       DevLogger.log(
-        `Connection::sendMessage chainRPCs=${chainRPCs} COMPLETED!`,
+        `AndroidService::sendMessage chainRPCs=${chainRPCs} COMPLETED!`,
       );
     }
 
@@ -568,7 +551,7 @@ export default class AndroidService extends EventEmitter2 {
 
     if (!rpcMethod && forceRedirect !== true) {
       DevLogger.log(
-        `Connection::sendMessage no rpc method --- rpcMethod=${rpcMethod} forceRedirect=${forceRedirect} --- skip goBack()`,
+        `AndroidService::sendMessage no rpc method --- rpcMethod=${rpcMethod} forceRedirect=${forceRedirect} --- skip goBack()`,
       );
       return;
     }
@@ -581,12 +564,13 @@ export default class AndroidService extends EventEmitter2 {
 
       if (!this.rpcQueueManager.isEmpty()) {
         DevLogger.log(
-          `Connection::sendMessage NOT empty --- skip goBack()`,
+          `AndroidService::sendMessage NOT empty --- skip goBack()`,
           this.rpcQueueManager.get(),
         );
         return;
       }
 
+      DevLogger.log(`AndroidService::sendMessage empty --- goBack()`);
       Minimizer.goBack();
     } catch (error) {
       Logger.log(error, `AndroidService:: error waiting for empty rpc queue`);

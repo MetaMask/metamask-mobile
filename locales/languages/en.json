@@ -8,7 +8,7 @@
     "failed_title": "Request may not be safe",
     "failed_description": "Because of an error, this request was not verified by the security provider. Proceed with caution.",
     "loading_title": "Checking for security alerts...",
-    "loading_complete_title": "No alerts received",
+    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
     "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
     "other_description": "If you approve this request, you might lose your assets.",
     "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
@@ -377,6 +377,13 @@
     "nfts_autodetection_title": "NFT detection",
     "nfts_autodetection_desc": "Allow MetaMask to automatically detect NFTs from OpenSea and display in your MetaMask wallet.",
     "network_details_check": "Network details check",
+    "network_with_chain_id": "The network with chain ID",
+    "potential_scam": "This is a potential scam",
+    "network_not_matching": "This network doesn't match its associated chain ID or name. Many popular tokens use the name",
+    "target_scam_network": "making it a target for scams. Scammers may trick you into sending them more valuable currency in return. Verify everything before you continue.",
+    "use_the_currency_symbol": "uses the currency symbol",
+    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
+    "chain_id_currently_used": "This Chain ID is currently used by the",
     "network_check_validation_desc": "reduces your chances of connecting to a malicious or incorrect network.",
     "nfts_autodetection_cta": "Turn on NFT detection in Settings",
     "learn_more": "Learn more",
@@ -885,17 +892,38 @@
     "network_provider": "Network provider",
     "token_nft_ens_subheading": "Token, NFT, and ENS autodetection",
     "security_check_subheading": "Security checks",
-    "symbol_required": "Symbol is required."
+    "symbol_required": "Symbol is required.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
+    "security_alerts": "Security alerts",
+    "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use."
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
     "disconnect_all_info": "If you remove your connections to all sites, you’ll need to give permission to connect again.",
     "disconnect": "Disconnect",
     "disconnect_all": "Disconnect all",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "manage_connections": "Manage Connections",
+    "manage": "Manage",
     "cancel": "Cancel",
     "loading": "Connecting to MetaMask...",
     "unkown_dapp": "DAPP name not available",
-    "no_connections": "No connections found"
+    "no_connections": "No connections",
+    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} account(s) connected."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Disconnect from all sites?",
+    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
+    "disconnect_account": "Disconnect account?",
+    "disconnect_all_accounts": "Disconnect all Accounts",
+    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
+    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
+    "disconnect_confirm": "Disconnect",
+    "cancel": "Cancel"
   },
   "sdk_return_to_app_modal": {
     "title": "Return to app",
@@ -1460,6 +1488,7 @@
     "add": "Add",
     "cancel": "Cancel",
     "approve": "Approve",
+    "edit_network_details":"Edit network details",
     "malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Network Information",
@@ -1479,7 +1508,10 @@
     "add_network": "add more networks manually.",
     "select_network": "Select a network",
     "show_test_networks": "Show test networks",
-    "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon."
+    "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
+    "network_deprecated_title": "This network is deprecated",
+    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+
   },
   "select": {
     "cancel": "Cancel",
@@ -1837,11 +1869,7 @@
     "wallet_connect_dapps_desc": "View the list of active WalletConnect sessions",
     "wallet_connect_dapps_cta": "View sessions",
     "network_not_supported": "Current network not supported",
-    "security_alerts": "Security alerts",
-    "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
     "select_provider": "Select your preferred provider",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
     "switch_network": "Please switch to mainnet or sepolia"
   },
   "walletconnect_sessions": {
@@ -2032,8 +2060,13 @@
     "fetching_new_quotes": "Fetching new quotes...",
     "quotes_expire_in": "Quotes expire in",
     "get_new_quotes": "Get new quotes",
+    "explore_more_options": "Explore more options",
+    "one_more_option": "1 more option",
+    "more_options": "{{count}} more options",
+    "previously_used": "Previously used",
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
+    "terms_of_service": "Terms of Service",
     "amount_to_buy": "Amount to buy",
     "amount_to_sell": "Amount to sell",
     "want_to_buy": "You want to buy",

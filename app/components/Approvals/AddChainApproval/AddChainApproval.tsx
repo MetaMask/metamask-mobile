@@ -1,5 +1,5 @@
 import React from 'react';
-import useApprovalRequest from '../../hooks/useApprovalRequest';
+import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import NetworkVerificationInfo from '../../UI/NetworkVerificationInfo';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';

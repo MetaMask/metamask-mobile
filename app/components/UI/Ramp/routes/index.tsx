@@ -10,7 +10,7 @@ import BuildQuote from '../Views/BuildQuote';
 import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../constants/navigation/Routes';
-
+import { colors } from './../../../../styles/common';
 const Stack = createStackNavigator();
 
 const RampRoutes = ({ rampType }: { rampType: RampType }) => (
@@ -37,7 +37,17 @@ const RampRoutes = ({ rampType }: { rampType: RampType }) => (
         component={BuildQuote}
         options={{ animationEnabled: false }}
       />
-      <Stack.Screen name={Routes.RAMP.QUOTES} component={Quotes} />
+      <Stack.Screen
+        name={Routes.RAMP.QUOTES}
+        component={Quotes}
+        options={{
+          headerShown: false,
+          cardStyle: { backgroundColor: colors.transparent },
+          animationEnabled: false,
+          gestureEnabled: false,
+          detachPreviousScreen: false,
+        }}
+      />
       <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
       <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />
       <Stack.Screen

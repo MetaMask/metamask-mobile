@@ -13,10 +13,15 @@ import { useRampSDK } from '../sdk';
 
 type IconType = 'error' | 'info' | 'expired';
 
-const createStyles = (colors: Colors) =>
+const createStyles = (
+  colors: Colors,
+  options?: {
+    asScreen: boolean;
+  },
+) =>
   StyleSheet.create({
     screen: {
-      flex: 1,
+      flex: options?.asScreen ? 1 : undefined,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: colors.background.default,
@@ -24,7 +29,7 @@ const createStyles = (colors: Colors) =>
     content: {
       width: '100%',
       paddingHorizontal: 60,
-      marginTop: -100,
+      marginVertical: 60,
     },
     ctaContainer: {
       marginTop: 30,
@@ -51,6 +56,7 @@ interface Props {
   ctaLabel?: string; // The CTA button label, default will be "Try again" (Optional)
   ctaOnPress?: () => any; // The optional callback to be invoked when pressing the CTA button (Optional)
   icon?: IconType;
+  asScreen?: boolean; // Whether this component should be rendered as a screen or not (Optional)
   location: ScreenLocation;
 }
 
@@ -86,10 +92,13 @@ function ErrorView({
   ctaLabel,
   ctaOnPress,
   location,
+  asScreen = true,
   icon = 'error',
 }: Props) {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, {
+    asScreen,
+  });
   const trackEvent = useAnalytics();
   const {
     selectedPaymentMethodId,

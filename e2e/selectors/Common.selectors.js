@@ -14,6 +14,7 @@ export const CommonSelectorsIDs = {
   NAV_IOS_BACK: 'nav-ios-back',
   FOX_SCREEN: 'fox-screen',
   NAVBAR_TITLE_NETWORKS_TEXT: 'navbar-title-networks',
+  STATUS_CONFIRMED: 'status-confirmed-text',
 };
 
 export const CommonSelectorsText = {
@@ -21,4 +22,5 @@ export const CommonSelectorsText = {
   CANCEL_BUTTON: messages.template_confirmation.cancel,
   TOAST_REVOKE_ACCOUNTS: messages.toast.revoked_all,
   TOAST_CONNECTED_ACCOUNTS: messages.toast.connected_and_active,
+  YES_ALERT_BUTTON: messages.drawer.lock_ok,
 };

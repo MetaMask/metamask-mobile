@@ -1,5 +1,3 @@
-import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../AppConstants';
 import { Connection, ConnectionProps } from '../Connection';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import { SDKConnect } from './../SDKConnect';
@@ -201,6 +199,7 @@ describe('connectToChannel', () => {
 
       expect(mockInstance.state.connections[id]).toEqual({
         id,
+        initialConnection: true,
         otherPublicKey,
         origin,
         validUntil,
@@ -222,24 +221,6 @@ describe('connectToChannel', () => {
 
       expect(mockWatchConnection).toHaveBeenCalledWith(
         mockInstance.state.connected[id],
-      );
-    });
-
-    it('should save the new connection to DefaultPreference', async () => {
-      mockConnection.isReady = false;
-
-      await connectToChannel({
-        instance: mockInstance,
-        id,
-        trigger,
-        otherPublicKey,
-        origin,
-        validUntil,
-      });
-
-      expect(DefaultPreference.set).toHaveBeenCalledWith(
-        AppConstants.MM_SDK.SDK_CONNECTIONS,
-        JSON.stringify(mockInstance.state.connections),
       );
     });
 
@@ -273,20 +254,6 @@ describe('connectToChannel', () => {
       });
 
       expect(mockInstance.state.connecting[id]).toBe(false);
-    });
-
-    it('should emit a refresh event', async () => {
-      mockConnection.isReady = false;
-
-      await connectToChannel({
-        instance: mockInstance,
-        id,
-        trigger,
-        otherPublicKey,
-        origin,
-        validUntil,
-      });
-      expect(mockEmit).toHaveBeenCalledWith('refresh');
     });
   });
 });

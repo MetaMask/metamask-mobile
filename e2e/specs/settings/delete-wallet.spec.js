@@ -60,7 +60,7 @@ describe(
         // should tap reset wallet button
         await LoginView.tapResetWalletButton();
 
-        await DeleteWalletModal.isVisible();
+        await Assertions.checkIfVisible(DeleteWalletModal.container);
 
         // should delete wallet
         await DeleteWalletModal.tapIUnderstandButton();

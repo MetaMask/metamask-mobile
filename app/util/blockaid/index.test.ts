@@ -2,7 +2,7 @@ import {
   Reason,
   ResultType,
   SecurityAlertResponse,
-} from '../../components/UI/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 // eslint-disable-next-line import/no-namespace
 import * as NetworkControllerMock from '../../selectors/networkController';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
@@ -102,7 +102,7 @@ describe('Blockaid util', () => {
     it('return false if blockaid is not on current network', () => {
       jest
         .spyOn(NetworkControllerMock, 'selectChainId')
-        .mockReturnValue(NETWORKS_CHAIN_ID.GOERLI);
+        .mockReturnValue(NETWORKS_CHAIN_ID.SEPOLIA);
       const result = isBlockaidSupportedOnCurrentChain();
       expect(result).toEqual(false);
     });
