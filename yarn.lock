@@ -4071,7 +4071,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/network-controller@^10.0.0", "@metamask/network-controller@^10.2.0", "@metamask/network-controller@^10.3.0":
+"@metamask/network-controller@^10.2.0", "@metamask/network-controller@^10.3.0":
   version "10.3.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-10.3.1.tgz#ca0e9134b2600bd834c5193ce0f06e973ec3b152"
   integrity sha512-ohx9DnVI0a07yrYqxtMD460oBlXqsy+fcORRI5foiTLk3LudM4fdjLUG8u5JvYHUeEoIl8bkMZuwWxOFrqHB2g==
