@@ -20,21 +20,21 @@ export const shouldShowSmartTransactionOptInModal = async () => {
   const versionSeen = await AsyncStorage.getItem(
     SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN,
   );
+  const currentAppVersion = await AsyncStorage.getItem(CURRENT_APP_VERSION);
 
   const seen =
     !!versionSeen &&
     compareVersions.compare(versionSeen, STX_OPT_IN_MIN_APP_VERSION, '>=');
 
-  Logger.log(
-    'STX shouldShowSmartTransactionOptInModal',
-    'versionSeen',
-    versionSeen,
-    'seen',
-    seen,
+  if (seen) return false;
+
+  const versionCorrect = compareVersions.compare(
+    currentAppVersion as string,
+    STX_OPT_IN_MIN_APP_VERSION,
+    '>=',
   );
 
-  return true;
-  if (seen) return false;
+  if (!versionCorrect) return false;
 
   return true;
 };
@@ -45,7 +45,6 @@ export const shouldShowSmartTransactionOptInModal = async () => {
  * @returns Boolean indicating whether or not to show whats new modal
  */
 export const shouldShowWhatsNewModal = async () => {
-  return true;
   const whatsNewAppVersionSeen = await AsyncStorage.getItem(
     WHATS_NEW_APP_VERSION_SEEN,
   );
