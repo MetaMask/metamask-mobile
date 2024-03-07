@@ -1,18 +1,18 @@
 import { store } from '../../../store';
 import { selectIdentities } from '../../../selectors/preferencesController';
-import { addToVisitedDapp } from '../../../actions/browser';
+import { addToViewedDapp } from '../../../actions/browser';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 
 /**
- * Tracks Dapp visited event
+ * Tracks Dapp viewed event
  *
- * This is used to track when a user visits a Dapp in the in-app browser
+ * This is used to track when a user viewed a Dapp in the in-app browser
  *
  * @param params - The parameter object for the tracking function
  * @param params.hostname - Hostname of the Dapp
  * @param params.numberOfConnectedAccounts - Number of connected accounts that are connected to the Dapp
  */
-const trackDappVisitedEvent = ({
+const trackDappViewedEvent = ({
   hostname,
   numberOfConnectedAccounts,
 }: {
@@ -25,10 +25,10 @@ const trackDappVisitedEvent = ({
   const accountByAddress = selectIdentities(store.getState());
   const numberOfWalletAccounts = Object.keys(accountByAddress).length;
 
-  // Add Dapp hostname to visited dapps
-  store.dispatch(addToVisitedDapp(hostname));
+  // Add Dapp hostname to viewed dapps
+  store.dispatch(addToViewedDapp(hostname));
 
-  MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.DAPP_VISITED, {
+  MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.DAPP_VIEWED, {
     is_first_visit: isFirstVisit,
     number_of_accounts: numberOfWalletAccounts,
     number_of_accounts_connected: numberOfConnectedAccounts,
@@ -36,4 +36,4 @@ const trackDappVisitedEvent = ({
   });
 };
 
-export default trackDappVisitedEvent;
+export default trackDappViewedEvent;
