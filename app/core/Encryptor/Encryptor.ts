@@ -44,6 +44,7 @@ class Encryptor implements GenericEncryptor {
    */
   private generateSalt(byteCount = BYTE_COUNT) {
     const view = new Uint8Array(byteCount);
+    // @ts-expect-error - globalThis is not recognized by TypeScript
     global.crypto.getRandomValues(view);
     const b64encoded = btoa(String.fromCharCode.apply(null, Array.from(view)));
     return b64encoded;
