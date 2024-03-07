@@ -258,10 +258,12 @@ const App = ({ userLoggedIn }) => {
 
   // TODO remove this useEffect before merging
   useEffect(() => {
+    // eslint-disable-next-line no-console
     console.log(
       'Accounts/ AccountController',
       JSON.stringify(Engine.context.AccountsController.state, null, 2),
     );
+    // eslint-disable-next-line no-console
     console.log(
       'Accounts/ PreferencesController',
       JSON.stringify(Engine.context.PreferencesController, null, 2),
