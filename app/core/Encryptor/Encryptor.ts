@@ -224,12 +224,10 @@ class Encryptor implements GenericEncryptor {
     password: string,
     targetDerivationParams = DEFAULT_DERIVATION_PARAMS,
   ): Promise<string> => {
-    console.log('should update vault');
     if (this.isVaultUpdated(vault, targetDerivationParams)) {
       return vault;
     }
 
-    console.log('try to update vault');
     return this.encrypt(password, await this.decrypt(password, vault));
   };
 }
