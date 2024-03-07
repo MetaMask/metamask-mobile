@@ -68,7 +68,7 @@ export const swapsLivenessSelector = createSelector(
 /**
  * Returns if smart transactions are enabled in feature flags
  */
-export const swapsSmartTxEnabled = createSelector(
+export const swapsSmartTxFlagEnabled = createSelector(
   swapsStateSelector,
   chainIdSelector,
   (swapsState, chainId) =>

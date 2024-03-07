@@ -32,6 +32,7 @@ import Device from '../../../../util/device';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
+  getSmartTransactionsEnabled,
   selectDisabledRpcMethodPreferences,
   selectSmartTransactionsOptInStatus,
   selectUseTokenDetection,
@@ -54,7 +55,6 @@ import Banner, {
   BannerVariant,
 } from '../../../../component-library/components/Banners/Banner';
 import AppConstants from '../../../../../app/core/AppConstants';
-import { swapsSmartTxEnabled } from '../../../../../app/reducers/swaps';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -195,7 +195,7 @@ class AdvancedSettings extends PureComponent {
     /**
      * Boolean that checks if smart transactions feature flag is enabled
      */
-    smartTransactionsFeatureFlag: PropTypes.bool,
+    smartTransactionsEnabled: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -371,7 +371,7 @@ class AdvancedSettings extends PureComponent {
       setShowCustomNonce,
       enableEthSign,
       smartTransactionsOptInStatus,
-      smartTransactionsFeatureFlag,
+      smartTransactionsEnabled,
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
@@ -553,46 +553,45 @@ class AdvancedSettings extends PureComponent {
               />
             </View>
 
-            {smartTransactionsFeatureFlag && (
-              <View style={styles.setting}>
-                <View style={styles.titleContainer}>
-                  <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-                    {strings('app_settings.smart_transactions_opt_in_heading')}
-                  </Text>
-                  <View style={styles.toggle}>
-                    <Switch
-                      value={smartTransactionsOptInStatus}
-                      onValueChange={this.toggleSmartTransactionsOptInStatus}
-                      trackColor={{
-                        true: colors.primary.default,
-                        false: colors.border.muted,
-                      }}
-                      thumbColor={theme.brandColors.white['000']}
-                      style={styles.switch}
-                      ios_backgroundColor={colors.border.muted}
-                      accessibilityLabel={strings(
-                        'app_settings.smart_transactions_opt_in_heading',
-                      )}
-                    />
-                  </View>
-                </View>
-
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                  style={styles.desc}
-                >
-                  {strings('app_settings.smart_transactions_opt_in_desc')}{' '}
-                  <Text
-                    color={TextColor.Primary}
-                    link
-                    onPress={this.openLinkAboutStx}
-                  >
-                    {strings('app_settings.smart_transactions_learn_more')}
-                  </Text>
+            <View style={styles.setting}>
+              <View style={styles.titleContainer}>
+                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                  {strings('app_settings.smart_transactions_opt_in_heading')}
                 </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    disabled={!smartTransactionsEnabled}
+                    value={smartTransactionsOptInStatus}
+                    onValueChange={this.toggleSmartTransactionsOptInStatus}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={theme.brandColors.white['000']}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                    accessibilityLabel={strings(
+                      'app_settings.smart_transactions_opt_in_heading',
+                    )}
+                  />
+                </View>
               </View>
-            )}
+
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.smart_transactions_opt_in_desc')}{' '}
+                <Text
+                  color={TextColor.Primary}
+                  link
+                  onPress={this.openLinkAboutStx}
+                >
+                  {strings('app_settings.smart_transactions_learn_more')}
+                </Text>
+              </Text>
+            </View>
           </View>
         </KeyboardAwareScrollView>
       </SafeAreaView>
@@ -610,7 +609,7 @@ const mapStateToProps = (state) => ({
   isTokenDetectionEnabled: selectUseTokenDetection(state),
   chainId: selectChainId(state),
   smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
-  smartTransactionsFeatureFlag: swapsSmartTxEnabled(state),
+  smartTransactionsEnabled: getSmartTransactionsEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

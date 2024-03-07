@@ -891,7 +891,7 @@
     "security_check_subheading": "Security checks",
     "symbol_required": "Symbol is required.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
-    "smart_transactions_opt_in_desc": "Turn on Smart Transactions for more reliable and secure transactions, and adjustable fees.",
+    "smart_transactions_opt_in_desc": "Turn on Smart Transactions for more reliable and secure transactions, and adjustable fees on ETH Mainnet.",
     "smart_transactions_learn_more": "Learn more."
   },
   "sdk": {
