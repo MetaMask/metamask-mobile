@@ -8,7 +8,6 @@ import {
 } from '../../constants/storage';
 import { whatsNewList } from '../../components/UI/WhatsNewModal';
 import AsyncStorage from '../../store/async-storage-wrapper';
-import Logger from '../Logger';
 
 /**
  *
