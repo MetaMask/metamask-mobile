@@ -28,7 +28,10 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import { shouldShowWhatsNewModal } from '../../../util/onboarding';
+import {
+  shouldShowSmartTransactionOptInModal,
+  shouldShowWhatsNewModal,
+} from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -160,13 +163,14 @@ const Wallet = ({ navigation }: any) => {
   const { colors: themeColors } = useTheme();
 
   /**
-   * Check to see if we need to show What's New modal
+   * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
    */
   useEffect(() => {
     if (wizardStep > 0) {
       // Do not check since it will conflict with the onboarding wizard
       return;
     }
+
     const checkWhatsNewModal = async () => {
       try {
         const shouldShowWhatsNew = await shouldShowWhatsNewModal();
@@ -179,7 +183,28 @@ const Wallet = ({ navigation }: any) => {
         Logger.log(error, "Error while checking What's New modal!");
       }
     };
-    checkWhatsNewModal();
+
+    // Show STX opt in modal before What's New modal
+    const checkSmartTransactionsOptInModal = async () => {
+      try {
+        const showShowStxOptInModal =
+          await shouldShowSmartTransactionOptInModal();
+        if (showShowStxOptInModal) {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
+          });
+        } else {
+          await checkWhatsNewModal();
+        }
+      } catch (error) {
+        Logger.log(
+          error,
+          'Error while checking Smart Tranasctions Opt In modal!',
+        );
+      }
+    };
+
+    checkSmartTransactionsOptInModal();
   }, [wizardStep, navigation]);
 
   useEffect(
