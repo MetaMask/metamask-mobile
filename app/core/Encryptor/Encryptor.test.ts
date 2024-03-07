@@ -38,7 +38,7 @@ describe('Encryptor', () => {
     let decryptAesSpy: jest.SpyInstance,
       pbkdf2AesSpy: jest.SpyInstance,
       decryptAesForkedSpy: jest.SpyInstance,
-      pbkdf2AeForkedSpy: jest.SpyInstance;
+      pbkdf2AesForkedSpy: jest.SpyInstance;
 
     beforeEach(() => {
       decryptAesSpy = jest
@@ -50,7 +50,7 @@ describe('Encryptor', () => {
       decryptAesForkedSpy = jest
         .spyOn(AesForked, 'decrypt')
         .mockResolvedValue('{"mockData": "mockedPlainText"}');
-      pbkdf2AeForkedSpy = jest
+      pbkdf2AesForkedSpy = jest
         .spyOn(AesForked, 'pbkdf2')
         .mockResolvedValue('mockedAesForkedKey');
     });
@@ -59,7 +59,7 @@ describe('Encryptor', () => {
       decryptAesSpy.mockRestore();
       pbkdf2AesSpy.mockRestore();
       decryptAesForkedSpy.mockRestore();
-      pbkdf2AeForkedSpy.mockRestore();
+      pbkdf2AesForkedSpy.mockRestore();
     });
 
     it.each([
@@ -122,7 +122,7 @@ describe('Encryptor', () => {
         expect(
           lib === ENCRYPTION_LIBRARY.original
             ? pbkdf2AesSpy
-            : pbkdf2AeForkedSpy,
+            : pbkdf2AesForkedSpy,
         ).toHaveBeenCalledWith(...expectedPBKDF2Args);
       },
     );
