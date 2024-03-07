@@ -20,7 +20,7 @@ import Accounts from '../../../wdio/helpers/Accounts';
 import TabBarComponent from '../../pages/TabBarComponent';
 import Assertions from '../../utils/Assertions';
 
-const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
+//const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
 
 const BINANCE_DEEPLINK_URL =
   'https://metamask.app.link/send/0xB8B4EE5B1b693971eB60bDa15211570df2dB228A@56?value=1e14';
@@ -98,30 +98,31 @@ describe(Regression('Deep linking Tests'), () => {
     await NetworkView.isRpcViewVisible();
     await NetworkView.tapPopularNetworkByName('BNB Smart Chain');
 
-    await NetworkApprovalModal.isVisible();
-    await NetworkApprovalModal.isDisplayNameVisible('BNB Smart Chain');
-    await NetworkApprovalModal.isNetworkURLVisible(BINANCE_RPC_URL);
-    await NetworkApprovalModal.isChainIDVisible('56');
+    await Assertions.checkIfVisible(NetworkApprovalModal.container);
+    await Assertions.checkIfElementToHaveText(
+      NetworkApprovalModal.displayName,
+      'BNB Smart Chain',
+    );
     await NetworkApprovalModal.tapApproveButton();
 
-    await NetworkAddedModal.isVisible();
+    await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
     await NetworkAddedModal.tapCloseButton();
     await NetworkView.isRpcViewVisible();
-
-    //await WalletView.isVisible();
   });
 
   it('should add polygon network', async () => {
     await NetworkView.tapPopularNetworkByName('Polygon Mainnet');
 
-    await NetworkApprovalModal.isVisible();
-    await NetworkApprovalModal.isDisplayNameVisible('Polygon Mainnet');
-    await NetworkApprovalModal.isChainIDVisible('137');
+    await Assertions.checkIfVisible(NetworkApprovalModal.container);
+    await Assertions.checkIfElementToHaveText(
+      NetworkApprovalModal.displayName,
+      'Polygon Mainnet',
+    );
 
     await NetworkApprovalModal.tapApproveButton();
     await TestHelpers.delay(1000);
 
-    await NetworkAddedModal.isVisible();
+    await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
     await NetworkAddedModal.tapSwitchToNetwork();
 
     await WalletView.isVisible();

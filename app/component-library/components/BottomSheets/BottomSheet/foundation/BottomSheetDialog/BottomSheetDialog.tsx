@@ -41,7 +41,6 @@ import {
   DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
   DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD,
   DEFAULT_BOTTOMSHEETDIALOG_SWIPETHRESHOLD_DURATION,
-  DEFAULT_BOTTOMSHEETDIALOG_MARGINTOP,
 } from './BottomSheetDialog.constants';
 import styleSheet from './BottomSheetDialog.styles';
 import {
@@ -68,9 +67,7 @@ const BottomSheetDialog = forwardRef<
       useSafeAreaInsets();
     const { y: frameY } = useSafeAreaFrame();
     const { height: screenHeight } = useWindowDimensions();
-    const maxSheetHeight = isFullscreen
-      ? screenHeight - screenTopPadding
-      : screenHeight - screenTopPadding - DEFAULT_BOTTOMSHEETDIALOG_MARGINTOP;
+    const maxSheetHeight = screenHeight - screenTopPadding;
     const { styles } = useStyles(styleSheet, {
       maxSheetHeight,
       screenBottomPadding,

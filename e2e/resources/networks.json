@@ -1,11 +1,11 @@
 {
-  "Goerli": {
+  "Sepolia": {
     "providerConfig": {
       "type": "mainnet",
-      "chainId": "0x5",
-      "rpcUrl": "https://goerli.infura.io/v3/",
-      "nickname": "Goerli Test Network",
-      "ticker": "GoerliETH"
+      "chainId": "11155111",
+      "rpcTarget": "https://sepolia.infura.io/v3/",
+      "nickname": "Sepolia Test Network",
+      "ticker": "SepoliaETH"
     }
   },
   "Avalanche": {
@@ -61,6 +61,15 @@
       "rpcUrl": "https://rpc.tenderly.co/fork/e3a0948b-a9df-46be-a45b-afa572ea62ee",
       "nickname": "Tenderly",
       "ticker": "ETH"
+    }
+  },
+  "Gnosis": {
+    "providerConfig": {
+      "type": "rpc",
+      "chainId": "100",
+      "rpcUrl": "https://rpc.gnosischain.com",
+      "nickname": "Gnosis",
+      "ticker": "xDAI"
     }
   }
 }

@@ -3,7 +3,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import InstallSnapApproval from '../InstallSnapApproval';
 import { ApprovalRequest } from '@metamask/approval-controller';
-import useApprovalRequest from '../../../hooks/useApprovalRequest';
+import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import {
   SNAP_INSTALL_CANCEL,
   SNAP_INSTALL_CONNECTION_REQUEST,
@@ -15,7 +15,7 @@ import {
 import SNAP_INSTALL_SUCCESS from '../components/InstallSnapSuccess/InstallSnapSuccess.constants';
 import SNAP_INSTALL_ERROR from '../components/InstallSnapError/InstallSnapError.constants';
 
-jest.mock('../../../hooks/useApprovalRequest');
+jest.mock('../../../Views/confirmations/hooks/useApprovalRequest');
 
 const onConfirm = jest.fn();
 const onReject = jest.fn();
