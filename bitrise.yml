@@ -751,7 +751,7 @@ workflows:
                 #!/usr/bin/env bash
                 if [ -n "$TEST_SUITE_FOLDER" ]; then
                   echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi                
+                fi
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -1303,13 +1303,13 @@ app:
       VERSION_NAME: 7.18.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1268
+      VERSION_NUMBER: 1272
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.18.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1268
+      FLASK_VERSION_NUMBER: 1272
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
