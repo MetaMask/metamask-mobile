@@ -2,7 +2,7 @@ import { Appearance } from 'react-native';
 import { store } from '../../../store';
 import {
   UserProfileMetaData,
-  UserProfilePropery,
+  UserProfileProperty,
 } from './UserProfileAnalyticsMetaData.types';
 
 /**
@@ -19,24 +19,24 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
     appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
 
   return {
-    [UserProfilePropery.ENABLE_OPENSEA_API]:
+    [UserProfileProperty.ENABLE_OPENSEA_API]:
       preferencesController?.displayNftMedia
-        ? UserProfilePropery.ON
-        : UserProfilePropery.OFF,
-    [UserProfilePropery.NFT_AUTODETECTION]:
+        ? UserProfileProperty.ON
+        : UserProfileProperty.OFF,
+    [UserProfileProperty.NFT_AUTODETECTION]:
       preferencesController?.useNftDetection
-        ? UserProfilePropery.ON
-        : UserProfilePropery.OFF,
-    [UserProfilePropery.THEME]: appThemeStyle,
-    [UserProfilePropery.TOKEN_DETECTION]:
+        ? UserProfileProperty.ON
+        : UserProfileProperty.OFF,
+    [UserProfileProperty.THEME]: appThemeStyle,
+    [UserProfileProperty.TOKEN_DETECTION]:
       preferencesController.useTokenDetection
-        ? UserProfilePropery.ON
-        : UserProfilePropery.OFF,
-    [UserProfilePropery.MULTI_ACCOUNT_BALANCE]:
+        ? UserProfileProperty.ON
+        : UserProfileProperty.OFF,
+    [UserProfileProperty.MULTI_ACCOUNT_BALANCE]:
       preferencesController.isMultiAccountBalancesEnabled
-        ? UserProfilePropery.ON
-        : UserProfilePropery.OFF,
-    [UserProfilePropery.SECURITY_PROVIDERS]:
+        ? UserProfileProperty.ON
+        : UserProfileProperty.OFF,
+    [UserProfileProperty.SECURITY_PROVIDERS]:
       preferencesController?.securityAlertsEnabled ? 'blockaid' : '',
   };
 };
