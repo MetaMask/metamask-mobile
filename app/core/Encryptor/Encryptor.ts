@@ -33,8 +33,6 @@ const isKeyDerivationOptions = (
  * password and salt, and performing the encryption and decryption processes.
  */
 class Encryptor implements GenericEncryptor {
-  key: string | null = null;
-
   /**
    * Generates a random base64-encoded salt string.
    * @param byteCount - The number of bytes for the salt. Defaults to 32.
