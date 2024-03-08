@@ -35,38 +35,23 @@ const isKeyDerivationOptions = (
 class Encryptor implements GenericEncryptor {
   /**
    * Generates a random base64-encoded salt string.
-   * @param byteCount - The number of bytes for the salt. Defaults to 32.
+   * @param byteCount - The number of bytes for the salt. Defaults to `constant.SALT_BYTES_COUNT`.
    * @returns The base64-encoded salt string.
    */
-  private generateSalt(byteCount = SALT_BYTES_COUNT) {
-    const salt = new Uint8Array(byteCount);
+  private generateSalt = (saltBytesCount = SALT_BYTES_COUNT) => {
+    const salt = new Uint8Array(saltBytesCount);
     // @ts-expect-error - globalThis is not recognized by TypeScript
     global.crypto.getRandomValues(salt);
-    const b64encoded = btoa(String.fromCharCode.apply(null, Array.from(salt)));
-    return b64encoded;
-  }
+    return salt;
+  };
 
   /**
-   * Generates an encryption key based on the provided password, salt, and library choice.
-   * @param params.password - The password used for key derivation.
-   * @param params.salt - The salt used for key derivation.
-   * @param params.lib - The library to use ('original' or forked version).
-   * @returns A promise that resolves to the derived encryption key.
+   * Encodes a byte array to a base64 string.
+   * @param byteArray The byte array to encode.
+   * @returns The base64-encoded string.
    */
-  private generateKey = ({
-    password,
-    salt,
-    iterations,
-    lib,
-  }: {
-    password: string;
-    salt: string;
-    iterations: number;
-    lib: string;
-  }) =>
-    lib === ENCRYPTION_LIBRARY.original
-      ? Aes.pbkdf2(password, salt, iterations, SHA256_DIGEST_LENGTH)
-      : AesForked.pbkdf2(password, salt);
+  private encodeByteArrayToBase64 = (byteArray: Uint8Array): string =>
+    btoa(String.fromCharCode.apply(null, Array.from(byteArray)));
 
   /**
    * Wrapper method for key generation from a password.
@@ -75,7 +60,7 @@ class Encryptor implements GenericEncryptor {
    * @param params.lib - The library to use ('original' or forked version).
    * @returns A promise that resolves to the derived encryption key.
    */
-  private keyFromPassword = ({
+  private generateKeyFromPassword = ({
     password,
     salt,
     iterations,
@@ -85,7 +70,10 @@ class Encryptor implements GenericEncryptor {
     salt: string;
     iterations: number;
     lib: string;
-  }): Promise<string> => this.generateKey({ password, salt, iterations, lib });
+  }): Promise<string> =>
+    lib === ENCRYPTION_LIBRARY.original
+      ? Aes.pbkdf2(password, salt, iterations, SHA256_DIGEST_LENGTH)
+      : AesForked.pbkdf2(password, salt);
 
   /**
    * Encrypts a text string using the provided key.
@@ -158,9 +146,10 @@ class Encryptor implements GenericEncryptor {
    */
   encrypt = async (password: string, object: Json): Promise<string> => {
     const salt = this.generateSalt(16);
-    const key = await this.keyFromPassword({
+    const base64salt = this.encodeByteArrayToBase64(salt);
+    const key = await this.generateKeyFromPassword({
       password,
-      salt,
+      salt: base64salt,
       iterations: DEFAULT_DERIVATION_PARAMS.params.iterations,
       lib: ENCRYPTION_LIBRARY.original,
     });
@@ -168,7 +157,7 @@ class Encryptor implements GenericEncryptor {
       text: JSON.stringify(object),
       keyBase64: key,
     });
-    result.salt = salt;
+    result.salt = base64salt;
     result.lib = ENCRYPTION_LIBRARY.original;
     result.keyMetadata = DEFAULT_DERIVATION_PARAMS;
     return JSON.stringify(result);
@@ -187,7 +176,7 @@ class Encryptor implements GenericEncryptor {
     encryptedString: string,
   ): Promise<Json> => {
     const payload = JSON.parse(encryptedString);
-    const key = await this.keyFromPassword({
+    const key = await this.generateKeyFromPassword({
       password,
       salt: payload.salt,
       iterations:
