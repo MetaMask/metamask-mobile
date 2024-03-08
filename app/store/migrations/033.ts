@@ -16,7 +16,8 @@ import { isHexString } from 'ethereumjs-util';
  * @param state
  * @returns
  */
-export default function migrate(state: unknown) {
+export default async function migrate(stateAsync: unknown) {
+  const state = await stateAsync;
   if (!isObject(state)) {
     captureException(
       new Error(`Migration 33: Invalid state: '${typeof state}'`),

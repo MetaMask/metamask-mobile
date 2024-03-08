@@ -74,8 +74,8 @@ describe('Migration #32', () => {
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, () => {
-      const newState = migrate(state);
+    it(`should capture exception if ${scenario}`, async () => {
+      const newState = await migrate(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
@@ -85,7 +85,7 @@ describe('Migration #32', () => {
     });
   }
 
-  it('should not change ticker if ticker was defined', () => {
+  it('should not change ticker if ticker was defined', async () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -101,11 +101,11 @@ describe('Migration #32', () => {
       },
     };
 
-    const migratedState = migrate(oldState);
+    const migratedState = await migrate(oldState);
     expect(migratedState).toStrictEqual(oldState);
   });
 
-  it('should add ticker when no ticker is defined', () => {
+  it('should add ticker when no ticker is defined', async () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -119,7 +119,7 @@ describe('Migration #32', () => {
         },
       },
     };
-    const migratedState = migrate(oldState);
+    const migratedState = await migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
   });
 });

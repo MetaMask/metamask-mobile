@@ -35,7 +35,9 @@ import {
  * @param {any} state - Redux state.
  * @returns Migrated Redux state.
  */
-export default function migrate(state: unknown) {
+export default async function migrate(stateAsync: unknown) {
+  const state = await stateAsync;
+
   // Chaning chain id to hexadecimal chain Id on the networks already on the local state
   if (!isObject(state)) {
     captureException(
@@ -682,6 +684,5 @@ export default function migrate(state: unknown) {
       }
     });
   }
-
   return state;
 }

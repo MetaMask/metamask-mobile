@@ -183,7 +183,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #32', () => {
+describe('Migration #33', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -214,8 +214,8 @@ describe('Migration #32', () => {
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, () => {
-      const newState = migration(state);
+    it(`should capture exception if ${scenario}`, async () => {
+      const newState = await migration(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
@@ -225,14 +225,14 @@ describe('Migration #32', () => {
     });
   }
 
-  it('should convert to hexadecimal all the chain id values that are on decimal format to hexadecimal format if that hexadecimal value do not exist', () => {
-    const newState = migration(oldState2);
+  it('should convert to hexadecimal all the chain id values that are on decimal format to hexadecimal format if that hexadecimal value do not exist', async () => {
+    const newState = await migration(oldState2);
 
     expect(newState).toStrictEqual(expectedState2);
   });
 
-  it('should delete object that have decimal keys on their data, if the hexadecimal key of that decimal key already exists', () => {
-    const newState = migration(oldState1);
+  it('should delete object that have decimal keys on their data, if the hexadecimal key of that decimal key already exists', async () => {
+    const newState = await migration(oldState1);
 
     expect(newState).toStrictEqual(expectedState1);
   });

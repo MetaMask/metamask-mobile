@@ -5,7 +5,8 @@ import { isObject } from '@metamask/utils';
 import { NetworkState } from '@metamask/network-controller';
 import NetworkList from '../../../app/util/networks';
 
-export default function migrate(state: unknown) {
+export default async function migrate(stateAsync: unknown) {
+  const state = await stateAsync;
   if (!isObject(state)) {
     captureException(
       new Error(`Migration 30: Invalid state error: '${typeof state}'`),

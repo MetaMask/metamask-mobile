@@ -50,8 +50,8 @@ describe('Migration #31', () => {
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, () => {
-      const newState = migrate(state);
+    it(`should capture exception if ${scenario}`, async () => {
+      const newState = await migrate(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
@@ -61,7 +61,7 @@ describe('Migration #31', () => {
     });
   }
 
-  it('should not change anything if security alert is already enabled', () => {
+  it('should not change anything if security alert is already enabled', async () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -72,11 +72,11 @@ describe('Migration #31', () => {
       },
     };
 
-    const migratedState = migrate(oldState);
+    const migratedState = await migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('should enable security alert if it is not enabled', () => {
+  it('should enable security alert if it is not enabled', async () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -86,7 +86,7 @@ describe('Migration #31', () => {
         },
       },
     };
-    const migratedState = migrate(oldState);
+    const migratedState = await migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
   });
 });

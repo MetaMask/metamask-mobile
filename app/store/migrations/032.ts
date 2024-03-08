@@ -8,7 +8,8 @@ import type { NetworkState } from '@metamask/network-controller';
  * @param {unknown} state - Redux state.
  * @returns Migrated Redux state.
  */
-export default function migrate(state: unknown) {
+export default async function migrate(stateAsync: unknown) {
+  const state = await stateAsync;
   if (!isObject(state)) {
     captureException(
       new Error(`Migration 32: Invalid root state: '${typeof state}'`),

@@ -101,8 +101,8 @@ describe('Migration #30', () => {
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, () => {
-      const newState = migration(state);
+    it(`should capture exception if ${scenario}`, async () => {
+      const newState = await migration(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
@@ -112,8 +112,8 @@ describe('Migration #30', () => {
     });
   }
 
-  it('All states changing as expected', () => {
-    const newState = migration(oldState);
+  it('All states changing as expected', async () => {
+    const newState = await migration(oldState);
     expect(newState).toStrictEqual(expectedNewState);
   });
 });
