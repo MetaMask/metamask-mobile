@@ -1,5 +1,6 @@
 import { NativeModules } from 'react-native';
 import { hasProperty, isPlainObject, Json } from '@metamask/utils';
+import type { GenericEncryptor } from '@metamask/eth-keyring-controller/dist/types';
 import {
   SALT_BYTES_COUNT,
   SHA256_DIGEST_LENGTH,
@@ -7,11 +8,7 @@ import {
   DEFAULT_DERIVATION_PARAMS,
   OLD_ITERATIONS_NUMBER,
 } from './constants';
-import type {
-  EncryptionResult,
-  KeyDerivationOptions,
-  GenericEncryptor,
-} from './types';
+import type { EncryptionResult, KeyDerivationOptions } from './types';
 
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
