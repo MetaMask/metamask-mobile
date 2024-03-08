@@ -255,7 +255,6 @@ export async function publishHook(request: Request) {
     Logger.log('STX - Received UUID', uuid);
 
     // For MM Swaps, the user just confirms the ERC20 approval tx, then the actual swap tx is auto confirmed, so 2 stx's are sent through in quick succession
-    // '[MetaMask DEBUG]:', 'STX - publish hook Error', { [Error: Request of type 'smart_transaction_status' already pending for origin EXAMPLE_FOX_CODE. Please wait.] code: -32002 }
     if (shouldStartFlow) {
       // Do not await on this, since it will not progress any further if so
       approvalController.addAndShowApprovalRequest({
