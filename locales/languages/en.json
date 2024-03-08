@@ -2422,8 +2422,8 @@
       "title": "Introducing smart transactions",
       "description_1": "Smart transactions make MetaMask even more reliable, private, and cost-effective than ever before.",
       "description_2": "They are automatically enabled for your convenience, but you can turn them off in Settings whenever you want.",
-      "settings": "Manage in settings",
-      "action_text": "Continue"
+      "secondary_button": "Not right now",
+      "primary_button": "Continue"
     }
   },
   "invalid_network": {

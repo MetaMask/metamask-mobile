@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { StyleSheet, View, TouchableOpacity, Image } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import AsyncStorage from '../../../store/async-storage-wrapper';
@@ -20,48 +20,27 @@ import Icon, {
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { Colors } from '../../../util/theme/models';
 import { WhatsNewModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WhatsNewModal.selectors';
-import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Routes from '../../../constants/navigation/Routes';
+import img from '../../../images/metamask-smart-transactions.png';
+import StyledButton from '../../UI/StyledButton';
+import Engine from '../../../core/Engine';
 
 const modalMargin = 24;
 const modalPadding = 24;
 const screenWidth = Device.getDeviceWidth();
 const screenHeight = Device.getDeviceHeight();
-const slideItemWidth = screenWidth - modalMargin * 2;
-const maxSlideItemHeight = screenHeight - 200;
-const slideImageWidth = slideItemWidth - modalPadding * 2;
+const itemWidth = screenWidth - modalMargin * 2;
+const maxItemHeight = screenHeight - 200;
+const imageWidth = itemWidth - modalPadding * 2;
 const imageAspectRatio = 128 / 264;
-const slideImageHeight = slideImageWidth * imageAspectRatio;
+const imageHeight = imageWidth * imageAspectRatio;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    slideContent: {
-      maxHeight: maxSlideItemHeight,
-    },
-    slideItemContainer: {
-      flex: 1,
-      width: slideItemWidth,
-      paddingHorizontal: modalPadding,
-      paddingBottom: 16,
-    },
-    progessContainer: {
-      flexDirection: 'row',
-      alignSelf: 'center',
-      marginTop: 16,
-      marginBottom: 8,
-    },
-    slideCircle: {
-      width: 8,
-      height: 8,
-      borderRadius: 8 / 2,
-      backgroundColor: colors.icon.default,
-      opacity: 0.4,
-      marginHorizontal: 8,
-    },
-    slideSolidCircle: {
-      opacity: 1,
+    content: {
+      maxHeight: maxItemHeight,
     },
     button: {
       marginTop: 8,
@@ -77,21 +56,21 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       alignItems: 'flex-end',
     },
-    slideImageContainer: {
+    imageContainer: {
       flexDirection: 'row',
       borderRadius: 10,
       marginBottom: 24,
     },
-    slideImage: {
+    image: {
       flex: 1,
       borderRadius: 10,
-      width: slideImageWidth,
-      height: slideImageHeight,
+      width: imageWidth,
+      height: imageHeight,
     },
-    slideTitle: {
+    title: {
       marginBottom: 12,
     },
-    slideDescription: {
+    description: {
       lineHeight: 20,
       marginBottom: 24,
     },
@@ -102,19 +81,43 @@ const createStyles = (colors: Colors) =>
       marginHorizontal: modalMargin,
     },
     bodyContainer: {
+      width: itemWidth,
+      paddingHorizontal: modalPadding,
       paddingVertical: 32,
+      paddingBottom: 16,
     },
-    horizontalScrollView: { flexGrow: 0 },
   });
 
 const SmartTransactionsOptInModal = () => {
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
-  const scrollViewRef = useRef<ScrollView>(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const hasOptedIn = useRef<boolean | null>(null);
+
+  const dismissModal = async () => {
+    modalRef.current?.dismissModal();
+  };
+
+  const optIn = () => {
+    Engine.context.PreferencesController.setSmartTransactionsOptInStatus(true);
+    hasOptedIn.current = true;
+    dismissModal();
+  };
+
+  const optOut = () => {
+    Engine.context.PreferencesController.setSmartTransactionsOptInStatus(false);
+    hasOptedIn.current = false;
+    dismissModal();
+  };
+
   const onDismiss = async () => {
+    // Opt out of STX if no prior decision made
+    if (hasOptedIn.current === null) {
+      optOut();
+    }
+
     // Save the current app version as the last app version seen
     const version = await AsyncStorage.getItem(CURRENT_APP_VERSION);
     await AsyncStorage.setItem(
@@ -129,10 +132,6 @@ const SmartTransactionsOptInModal = () => {
         screen: Routes.MODAL.WHATS_NEW,
       });
     }
-  };
-
-  const dismissModal = async () => {
-    modalRef.current?.dismissModal();
   };
 
   return (
@@ -160,17 +159,45 @@ const SmartTransactionsOptInModal = () => {
           </View>
 
           {/* Content */}
-          <View style={styles.slideContent}>
-            <ScrollView
-              ref={scrollViewRef}
-              style={styles.horizontalScrollView}
-              showsHorizontalScrollIndicator={false}
-              horizontal
-              pagingEnabled
-              scrollEnabled
+          <View style={styles.content}>
+            <View style={styles.imageContainer}>
+              <Image source={img} style={styles.image} resizeMode={'contain'} />
+            </View>
+
+            <Text
+              color={TextColor.Default}
+              variant={TextVariant.BodyLGMedium}
+              style={styles.title}
             >
-              <Text>HELLO this is STX opt in modal</Text>
-            </ScrollView>
+              {strings('whats_new.stx.title')}
+            </Text>
+
+            <Text
+              color={TextColor.Default}
+              variant={TextVariant.HeadingSMRegular}
+              style={styles.description}
+            >
+              {strings('whats_new.stx.description_1')}
+            </Text>
+            <Text
+              color={TextColor.Default}
+              variant={TextVariant.HeadingSMRegular}
+              style={styles.description}
+            >
+              {strings('whats_new.stx.description_2')}
+            </Text>
+
+            <View style={styles.button}>
+              <StyledButton type={'transparent-blue'} onPress={optOut}>
+                {strings('whats_new.stx.secondary_button')}
+              </StyledButton>
+            </View>
+
+            <View style={styles.button}>
+              <StyledButton type={'blue'} onPress={optIn}>
+                {strings('whats_new.stx.primary_button')}
+              </StyledButton>
+            </View>
           </View>
         </View>
       </View>
