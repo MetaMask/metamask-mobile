@@ -116,25 +116,6 @@ class Encryptor implements GenericEncryptor {
       : AesForked.decrypt(encryptedData.cipher, key, encryptedData.iv);
 
   /**
-   * Checks if the provided vault is an updated encryption format.
-   *
-   * @param vault - The vault to check.
-   * @param targetDerivationParams - The options to use for key derivation.
-   * @returns Whether or not the vault is an updated encryption format.
-   */
-  isVaultUpdated = (
-    vault: string,
-    targetDerivationParams = DEFAULT_DERIVATION_PARAMS,
-  ): boolean => {
-    const { keyMetadata } = JSON.parse(vault);
-    return (
-      isKeyDerivationOptions(keyMetadata) &&
-      keyMetadata.algorithm === targetDerivationParams.algorithm &&
-      keyMetadata.params.iterations === targetDerivationParams.params.iterations
-    );
-  };
-
-  /**
    * Asynchronously encrypts a given object using AES encryption.
    * The encryption process involves generating a salt, deriving a key from the provided password and salt,
    * and then using the key to encrypt the object. The result includes the encrypted data, the salt used,
@@ -190,6 +171,25 @@ class Encryptor implements GenericEncryptor {
     });
 
     return JSON.parse(data);
+  };
+
+  /**
+   * Checks if the provided vault is an updated encryption format.
+   *
+   * @param vault - The vault to check.
+   * @param targetDerivationParams - The options to use for key derivation.
+   * @returns Whether or not the vault is an updated encryption format.
+   */
+  isVaultUpdated = (
+    vault: string,
+    targetDerivationParams = DEFAULT_DERIVATION_PARAMS,
+  ): boolean => {
+    const { keyMetadata } = JSON.parse(vault);
+    return (
+      isKeyDerivationOptions(keyMetadata) &&
+      keyMetadata.algorithm === targetDerivationParams.algorithm &&
+      keyMetadata.params.iterations === targetDerivationParams.params.iterations
+    );
   };
 
   /**
