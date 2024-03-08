@@ -75,9 +75,9 @@ const wallet_addEthereumChain = async ({
     : null;
   // Remove trailing slashes
   const firstValidRPCUrl = dirtyFirstValidRPCUrl
-    // This slightly roundabout regex prevents a ReDos attack
-    // See https://github.com/MetaMask/mobile-planning/issues/1589
-    ? dirtyFirstValidRPCUrl.replace(/([^\/])\/+$/g, '$1')
+    ? // This slightly roundabout regex prevents a ReDos attack
+      // See https://github.com/MetaMask/mobile-planning/issues/1589
+      dirtyFirstValidRPCUrl.replace(/([^\/])\/+$/g, '$1')
     : dirtyFirstValidRPCUrl;
 
   const firstValidBlockExplorerUrl =
