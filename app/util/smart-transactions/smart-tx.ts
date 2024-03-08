@@ -90,6 +90,8 @@ interface Request {
   approvalController: ApprovalController;
 }
 
+const LOG_PREFIX = 'STX publishHook';
+
 export async function publishHook(request: Request) {
   const {
     transactionMeta,
@@ -101,13 +103,17 @@ export async function publishHook(request: Request) {
   const { chainId, transaction: txParams, origin } = transactionMeta;
 
   if (!isSmartTransaction) {
-    Logger.log('STX - Skipping hook as not enabled for chain', chainId);
+    Logger.log(LOG_PREFIX, 'Skipping hook as not enabled for chain', chainId);
 
     // Will cause TransactionController to publish to the RPC provider as normal.
     return { transactionHash: undefined };
   }
 
-  Logger.log('STX - Executing publish hook', transactionMeta);
+  Logger.log(
+    LOG_PREFIX,
+    'Executing publish hook with transactionMeta:',
+    transactionMeta,
+  );
 
   // Determine tx type
   // If it isn't a dapp tx, check if it's MM Swaps or Send
@@ -154,7 +160,7 @@ export async function publishHook(request: Request) {
   const shouldEndFlow = isDapp || isSend || isSwapTransaction;
 
   Logger.log(
-    'STX type',
+    LOG_PREFIX,
     'isDapp',
     isDapp,
     'isInSwapFlow',
@@ -182,7 +188,8 @@ export async function publishHook(request: Request) {
     // read approve tx approvalId in swaps reducer
 
     Logger.log(
-      'STX - Reading approvalController.state',
+      LOG_PREFIX,
+      'approvalController.state',
       approvalController.state,
     );
 
@@ -198,22 +205,29 @@ export async function publishHook(request: Request) {
     );
 
     if (pendingApprovals.length !== 1) {
-      throw new Error('No pending approval found for swap approve tx');
+      throw new Error(
+        `${LOG_PREFIX} - No pending approval found for swap approve tx`,
+      );
     }
 
     smartTransactionStatusApprovalId = pendingApprovals[0].id;
   }
 
-  Logger.log('STX - Started approval flow', smartTransactionStatusApprovalId);
+  Logger.log(
+    LOG_PREFIX,
+    'Started approval flow',
+    'smartTransactionStatusApprovalId',
+    smartTransactionStatusApprovalId,
+  );
 
   try {
-    Logger.log('STX - Fetching fees', txParams, chainId);
+    Logger.log(LOG_PREFIX, 'Fetching fees', txParams, chainId);
     const feesResponse = await smartTransactionsController.getFees(
       { ...txParams, chainId },
       undefined,
     );
 
-    Logger.log('STX - Retrieved fees', feesResponse);
+    Logger.log(LOG_PREFIX, 'Retrieved fees', feesResponse);
 
     const signedTransactions = (await createSignedTransactions(
       txParams,
@@ -229,12 +243,12 @@ export async function publishHook(request: Request) {
       transactionController,
     )) as string[];
 
-    Logger.log('STX - Generated signed transactions', {
+    Logger.log(LOG_PREFIX, 'Generated signed transactions', {
       signedTransactions,
       signedCanceledTransactions,
     });
 
-    Logger.log('STX - Submitting signed transactions');
+    Logger.log(LOG_PREFIX, 'Submitting signed transactions');
 
     const response = await smartTransactionsController.submitSignedTransactions(
       {
@@ -249,10 +263,10 @@ export async function publishHook(request: Request) {
     const uuid = response?.uuid;
 
     if (!uuid) {
-      throw new Error('No smart transaction UUID');
+      throw new Error(`${LOG_PREFIX} - No smart transaction UUID`);
     }
 
-    Logger.log('STX - Received UUID', uuid);
+    Logger.log(LOG_PREFIX, 'Received UUID', uuid);
 
     // For MM Swaps, the user just confirms the ERC20 approval tx, then the actual swap tx is auto confirmed, so 2 stx's are sent through in quick succession
     if (shouldStartFlow) {
@@ -274,7 +288,11 @@ export async function publishHook(request: Request) {
           isSwapTransaction,
         },
       });
-      Logger.log('STX - Added approval', smartTransactionStatusApprovalId);
+      Logger.log(
+        LOG_PREFIX,
+        'Added approval',
+        smartTransactionStatusApprovalId,
+      );
     }
 
     // undefined for init state
@@ -289,7 +307,7 @@ export async function publishHook(request: Request) {
       smartTransactionsController.eventEmitter.on(
         `${uuid}:smartTransaction`,
         async (smartTransaction: SmartTransaction) => {
-          Logger.log('STX - smartTransaction event', smartTransaction);
+          Logger.log(LOG_PREFIX, 'smartTransaction event', smartTransaction);
 
           const { status, statusMetadata } = smartTransaction;
           if (!status || status === 'pending') {
@@ -311,11 +329,15 @@ export async function publishHook(request: Request) {
             }
           } catch (e) {
             // Could get here if user closes the status modal
-            Logger.log('STX - Error updating approval request state', e);
+            Logger.log(LOG_PREFIX, 'Error updating approval request state', e);
           }
 
           if (statusMetadata?.minedHash) {
-            Logger.log('STX - Received tx hash: ', statusMetadata?.minedHash);
+            Logger.log(
+              LOG_PREFIX,
+              'Received tx hash',
+              statusMetadata?.minedHash,
+            );
             transactionHash = statusMetadata.minedHash;
           } else {
             transactionHash = null;
@@ -341,15 +363,15 @@ export async function publishHook(request: Request) {
 
     if (transactionHash === null) {
       throw new Error(
-        'Transaction does not have a transaction hash, there was a problem',
+        `${LOG_PREFIX} - Transaction does not have a transaction hash, there was a problem`,
       );
     }
 
-    Logger.log('STX - Received hash', transactionHash);
+    Logger.log(LOG_PREFIX, 'Returning tx hash', transactionHash);
 
     return { transactionHash };
   } catch (error) {
-    Logger.log('STX - publish hook Error', error);
+    Logger.log(LOG_PREFIX, 'publish hook error', error);
     Logger.error(error, '');
 
     // TODO
@@ -364,12 +386,13 @@ export async function publishHook(request: Request) {
           id: smartTransactionStatusApprovalId,
         });
         Logger.log(
-          'STX - Ended approval flow',
+          LOG_PREFIX,
+          'Ended approval flow',
           smartTransactionStatusApprovalId,
         );
       }
     } catch (e) {
-      Logger.log('STX - publish hook Error 2', e);
+      Logger.log(LOG_PREFIX, 'publish hook error 2', e);
     }
   }
 }
