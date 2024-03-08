@@ -6,7 +6,7 @@ import {
   SHA256_DIGEST_LENGTH,
   ENCRYPTION_LIBRARY,
   DEFAULT_DERIVATION_PARAMS,
-  OLD_ITERATIONS_NUMBER,
+  KeyDerivationIteration,
 } from './constants';
 import type { EncryptionResult, KeyDerivationOptions } from './types';
 
@@ -191,7 +191,7 @@ class Encryptor implements GenericEncryptor {
       password,
       salt: payload.salt,
       iterations:
-        payload.keyMetadata?.params.iterations || OLD_ITERATIONS_NUMBER,
+        payload.keyMetadata?.params.iterations || KeyDerivationIteration.Legacy,
       lib: payload.lib,
     });
     const data = await this.decryptWithKey({
