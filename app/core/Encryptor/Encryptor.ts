@@ -146,6 +146,7 @@ class Encryptor implements GenericEncryptor {
     const { keyMetadata } = JSON.parse(vault);
     return (
       isKeyDerivationOptions(keyMetadata) &&
+      keyMetadata.algorithm === targetDerivationParams.algorithm &&
       keyMetadata.params.iterations === targetDerivationParams.params.iterations
     );
   };
