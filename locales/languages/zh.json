@@ -8,7 +8,7 @@
     "failed_title": "此请求可能不安全",
     "failed_description": "由于出现错误，安全服务提供商未验证此请求。请谨慎操作。",
     "loading_title": "正在检查安全提醒......",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "未收到提醒。在批准请求之前，请务必自行作出审慎调查。",
     "malicious_domain_description": "您正在与恶意网域交互。如果您批准此请求，可能会遭受资产损失。",
     "other_description": "如果您批准此请求，可能会遭受资产损失。",
     "raw_signature_farming_description": "如果您批准此请求，可能会有资产损失。",
@@ -902,27 +902,27 @@
     "disconnect_all_info": "如果您移除了与所有网站的连接，需要授予权限才能重新连接。",
     "disconnect": "断开连接",
     "disconnect_all": "断开所有连接",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "断开所有账户的连接",
+    "manage_connections": "管理连接",
+    "manage": "管理",
     "cancel": "取消",
     "loading": "正在连接MetaMask…...",
     "unkown_dapp": "去中心化应用（DAPP）名称不可用",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "无连接",
+    "no_connections_desc": "如果您将账户连接到网站或应用程序，您可在此处查看。"
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "{{accountsLength}} 账户已连接。"
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "要断开所有网站的连接吗？",
+    "disconnect_all_desc": "如果您断开账户与所有网站的连接，则需要授予许可才能重新连接。",
+    "disconnect_account": "断开账户的连接？",
+    "disconnect_all_accounts": "断开所有账户的连接",
+    "disconnect_all_accounts_desc": "如果断开所有账户与 {{dapp}} 的连接，则需要授予许可才能重新连接。",
+    "disconnect_account_desc": "如果断开 {{account}} 与 {{dapp}} 的连接，则需要授予许可才能重新连接。",
+    "disconnect_confirm": "断开连接",
+    "cancel": "取消"
   },
   "sdk_return_to_app_modal": {
     "title": "返回应用程序",
@@ -1508,8 +1508,8 @@
     "select_network": "选择网络",
     "show_test_networks": "显示测试网络",
     "deprecated_goerli": "由于以太坊协议的变化：Goerli 测试网络可能无法可靠工作，很快就会弃用。",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "该网络已弃用",
+    "network_deprecated_description": "您尝试连接的网络在 Metamask 上不再受支持。"
   },
   "select": {
     "cancel": "取消",
@@ -2058,6 +2058,10 @@
     "fetching_new_quotes": "正在获取新报价……",
     "quotes_expire_in": "报价将在以下时间过期：",
     "get_new_quotes": "获取新报价",
+    "explore_more_options": "探索更多选项",
+    "one_more_option": "还有 1 个选项",
+    "more_options": "还有 {{count}} 个选项",
+    "previously_used": "先前使用的",
     "quotes_timeout": "报价超时",
     "request_new_quotes": "请重新请求报价，以获得最新的最佳价格。",
     "terms_of_service": "服务条款",
