@@ -1,3 +1,5 @@
+import { KeyDerivationOptions } from './types';
+
 export const BYTE_COUNT = 32;
 export const SHA256_DIGEST_LENGTH = 256;
 export const OLD_ITERATIONS_NUMBER = 5_000;
@@ -7,7 +9,7 @@ export const ENCRYPTION_LIBRARY = {
   original: 'original',
 };
 
-export const DEFAULT_DERIVATION_PARAMS = {
+export const DEFAULT_DERIVATION_PARAMS: KeyDerivationOptions = {
   algorithm: 'PBKDF2',
   params: {
     iterations: DEFAULT_ITERATIONS_NUMBER,
