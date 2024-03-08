@@ -48,4 +48,4 @@ main() {
   fi
 }
 
-main "${@}"
+main "$@"
