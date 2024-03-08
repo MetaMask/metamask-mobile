@@ -74,6 +74,19 @@ const oldState = {
           },
         ],
       },
+      TokensController: {
+        allTokens: { '1': { '0x123': { address: '0x123' } } },
+        allIgnoredTokens: { '1': { '0x123': { address: '0x123' } } },
+        allDetectedTokens: { '1': { '0x123': { address: '0x123' } } },
+      },
+      TokenRatesController: {
+        contractExchangeRatesByChainId: { '1': { ETH: { '0x123': 0.0001 } } },
+      },
+      TokenListController: {
+        tokensChainsCache: {
+          '1': { timeStamp: 1, data: { '0x123': { address: '0x123' } } },
+        },
+      },
     },
   },
   networkOnboarded: {
@@ -159,6 +172,19 @@ const expectedNewState = {
             verifiedOnBlockchain: true,
           },
         ],
+      },
+      TokensController: {
+        allTokens: { '0x1': { '0x123': { address: '0x123' } } },
+        allIgnoredTokens: { '0x1': { '0x123': { address: '0x123' } } },
+        allDetectedTokens: { '0x1': { '0x123': { address: '0x123' } } },
+      },
+      TokenRatesController: {
+        contractExchangeRatesByChainId: { '0x1': { ETH: { '0x123': 0.0001 } } },
+      },
+      TokenListController: {
+        tokensChainsCache: {
+          '0x1': { timeStamp: 1, data: { '0x123': { address: '0x123' } } },
+        },
       },
     },
   },
@@ -359,6 +385,63 @@ describe('Migration #29', () => {
       }),
       errorMessage: "Migration 29: Invalid TransactionController state: 'null'",
       scenario: 'TransactionController state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            ...initialBackgroundState,
+            NetworkController: {
+              ...initialBackgroundState.NetworkController,
+              networkDetails: {
+                isEIP1559Compatible: true,
+              },
+              networkConfigurations: {},
+            },
+            TokensController: null,
+          },
+        },
+      }),
+      errorMessage: "Migration 29: Invalid TokensController state: 'null'",
+      scenario: 'TokensController state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            ...initialBackgroundState,
+            NetworkController: {
+              ...initialBackgroundState.NetworkController,
+              networkDetails: {
+                isEIP1559Compatible: true,
+              },
+              networkConfigurations: {},
+            },
+            TokenRatesController: null,
+          },
+        },
+      }),
+      errorMessage: "Migration 29: Invalid TokenRatesController state: 'null'",
+      scenario: 'TokenRatesController state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            ...initialBackgroundState,
+            NetworkController: {
+              ...initialBackgroundState.NetworkController,
+              networkDetails: {
+                isEIP1559Compatible: true,
+              },
+              networkConfigurations: {},
+            },
+            TokenListController: null,
+          },
+        },
+      }),
+      errorMessage: "Migration 29: Invalid TokenListController state: 'null'",
+      scenario: 'TokenListController state is invalid',
     },
   ];
 
