@@ -14,7 +14,7 @@ describe('shouldShowSmartTransactionOptInModal', () => {
     [NETWORKS_CHAIN_ID.MAINNET, 'http://mainnet-url.example.com'],
     [NETWORKS_CHAIN_ID.ARBITRUM, 'http://arbitrum-url.example.com'],
   ])(
-    'should return false if chainId is %p and providerConfigRpcUrl is defined',
+    `should return false if chainId not ${NETWORKS_CHAIN_ID.MAINNET} or providerConfigRpcUrl is defined`,
     async (chainId, rpcUrl) => {
       const result = await shouldShowSmartTransactionsOptInModal(
         chainId,
