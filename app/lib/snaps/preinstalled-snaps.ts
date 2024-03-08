@@ -4,25 +4,29 @@ import fs from 'fs';
 import path from 'path';
 import Logger from '../../util/Logger';
 
+const EMBEDDED_SNAPS_PATH = path.join(__dirname, './embedded');
+const snapName = 'bip32-example-snap';
+const manifestFile = path.join(
+  __dirname,
+  `./${EMBEDDED_SNAPS_PATH}/${snapName}/snap.manifest.json`,
+);
+
 export const PREINSTALLED_SNAPS = Object([
   'npm:@metamask/bip32-example-snap',
   getPreinstalledSnap(
     '@metamask/bip32-example-snap',
-    fs.readFileSync(
-      path.resolve('@metamask/bip32-example-snap/snap.manifest.json'),
-      'utf-8',
-    ),
+    fs.readFileSync(manifestFile, 'utf-8'),
     [
       {
         path: 'images/icon.svg',
         value: fs.readFileSync(
-          path.resolve('@metamask/bip32-example-snap/images/icon.svg'),
+          `${EMBEDDED_SNAPS_PATH}/bip32-example-snap/images/icon.svg`,
         ),
       },
       {
         path: 'dist/bundle.js',
         value: fs.readFileSync(
-          path.resolve('@metamask/bip32-example-snap/dist/bundle.js'),
+          `${EMBEDDED_SNAPS_PATH}/bip32-example-snap/dist/bundle.js`,
         ),
       },
     ],
