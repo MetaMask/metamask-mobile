@@ -164,6 +164,7 @@ describe('Encryptor', () => {
 
   describe('updateVault', () => {
     let encryptSpy: jest.SpyInstance, decryptSpy: jest.SpyInstance;
+    const expectedKeyMetadata = DEFAULT_DERIVATION_PARAMS;
 
     beforeEach(() => {
       encryptSpy = jest
@@ -197,15 +198,7 @@ describe('Encryptor', () => {
       expect(encryptSpy).toBeCalledTimes(1);
       expect(decryptSpy).toBeCalledTimes(1);
       expect(vault).toHaveProperty('keyMetadata');
-      expect(vault.keyMetadata).toHaveProperty('algorithm');
-      expect(vault.keyMetadata).toHaveProperty('params');
-      expect(vault.keyMetadata.params).toHaveProperty('iterations');
-      expect(vault.keyMetadata.params.iterations).toBe(
-        DEFAULT_DERIVATION_PARAMS.params.iterations,
-      );
-      expect(vault.keyMetadata.algorithm).toBe(
-        DEFAULT_DERIVATION_PARAMS.algorithm,
-      );
+      expect(vault.keyMetadata).toStrictEqual(expectedKeyMetadata);
     });
 
     it('does not update a vault if algorithm is PBKDF2 and the number of iterations is 900000', async () => {
@@ -232,15 +225,7 @@ describe('Encryptor', () => {
       expect(encryptSpy).toBeCalledTimes(0);
       expect(decryptSpy).toBeCalledTimes(0);
       expect(vault).toHaveProperty('keyMetadata');
-      expect(vault.keyMetadata).toHaveProperty('algorithm');
-      expect(vault.keyMetadata).toHaveProperty('params');
-      expect(vault.keyMetadata.params).toHaveProperty('iterations');
-      expect(vault.keyMetadata.params.iterations).toBe(
-        DEFAULT_DERIVATION_PARAMS.params.iterations,
-      );
-      expect(vault.keyMetadata.algorithm).toBe(
-        DEFAULT_DERIVATION_PARAMS.algorithm,
-      );
+      expect(vault.keyMetadata).toStrictEqual(expectedKeyMetadata);
     });
   });
 });
