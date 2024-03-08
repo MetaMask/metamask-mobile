@@ -8,6 +8,7 @@ import {
 } from '../../constants/storage';
 import { whatsNewList } from '../../components/UI/WhatsNewModal';
 import AsyncStorage from '../../store/async-storage-wrapper';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
 /**
  *
@@ -15,7 +16,19 @@ import AsyncStorage from '../../store/async-storage-wrapper';
  */
 const STX_OPT_IN_MIN_APP_VERSION = '7.16.0';
 
-export const shouldShowSmartTransactionOptInModal = async () => {
+export const shouldShowSmartTransactionOptInModal = async (
+  chainId: string,
+  providerConfigRpcUrl: string | undefined,
+) => {
+  // Check chain and RPC
+  if (
+    chainId !== NETWORKS_CHAIN_ID.MAINNET ||
+    providerConfigRpcUrl !== undefined
+  ) {
+    return false;
+  }
+
+  // Check if user has seen
   const versionSeen = await AsyncStorage.getItem(
     SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN,
   );
@@ -27,6 +40,7 @@ export const shouldShowSmartTransactionOptInModal = async () => {
 
   if (seen) return false;
 
+  // Check version
   const versionCorrect = compareVersions.compare(
     currentAppVersion as string,
     STX_OPT_IN_MIN_APP_VERSION,

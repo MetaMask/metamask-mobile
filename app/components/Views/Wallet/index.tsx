@@ -185,10 +185,14 @@ const Wallet = ({ navigation }: any) => {
     };
 
     // Show STX opt in modal before What's New modal
+    // Fired on the first load of the wallet and also on network switch
     const checkSmartTransactionsOptInModal = async () => {
       try {
         const showShowStxOptInModal =
-          await shouldShowSmartTransactionOptInModal();
+          await shouldShowSmartTransactionOptInModal(
+            providerConfig.chainId,
+            providerConfig.rpcUrl,
+          );
         if (showShowStxOptInModal) {
           navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
@@ -205,7 +209,7 @@ const Wallet = ({ navigation }: any) => {
     };
 
     checkSmartTransactionsOptInModal();
-  }, [wizardStep, navigation]);
+  }, [wizardStep, navigation, providerConfig.chainId, providerConfig.rpcUrl]);
 
   useEffect(
     () => {
