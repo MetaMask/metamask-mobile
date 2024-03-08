@@ -44,10 +44,10 @@ class Encryptor implements GenericEncryptor {
    * @returns The base64-encoded salt string.
    */
   private generateSalt(byteCount = BYTE_COUNT) {
-    const view = new Uint8Array(byteCount);
+    const salt = new Uint8Array(byteCount);
     // @ts-expect-error - globalThis is not recognized by TypeScript
-    global.crypto.getRandomValues(view);
-    const b64encoded = btoa(String.fromCharCode.apply(null, Array.from(view)));
+    global.crypto.getRandomValues(salt);
+    const b64encoded = btoa(String.fromCharCode.apply(null, Array.from(salt)));
     return b64encoded;
   }
 
