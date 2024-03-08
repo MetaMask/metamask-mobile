@@ -19,7 +19,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { Colors } from '../../../util/theme/models';
-import { WhatsNewModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WhatsNewModal.selectors';
+import { SmartTransactionsOptInModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SmartTransactionsOptInModal.selectors';
 import { useNavigation } from '@react-navigation/native';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Routes from '../../../constants/navigation/Routes';
@@ -136,18 +136,21 @@ const SmartTransactionsOptInModal = () => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen} onDismiss={onDismiss}>
-      <View style={styles.modal} testID={WhatsNewModalSelectorsIDs.CONTAINER}>
+      <View
+        style={styles.modal}
+        testID={SmartTransactionsOptInModalSelectorsIDs.CONTAINER}
+      >
         <View style={styles.bodyContainer}>
           {/* Header */}
           <View style={styles.header}>
-            <Text color={TextColor.Default} variant={TextVariant.HeadingMD}>
-              {strings('whats_new.title')}
+            <Text color={TextColor.Default} variant={TextVariant.HeadingSM}>
+              {strings('whats_new.stx.header')}
             </Text>
             <View style={styles.headerClose}>
               <TouchableOpacity
                 onPress={() => dismissModal()}
                 hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-                testID={WhatsNewModalSelectorsIDs.CLOSE_BUTTON}
+                testID={SmartTransactionsOptInModalSelectorsIDs.CLOSE_BUTTON}
               >
                 <Icon
                   name={IconName.Close}
@@ -166,7 +169,7 @@ const SmartTransactionsOptInModal = () => {
 
             <Text
               color={TextColor.Default}
-              variant={TextVariant.BodyLGMedium}
+              variant={TextVariant.BodyMDBold}
               style={styles.title}
             >
               {strings('whats_new.stx.title')}

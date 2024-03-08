@@ -2419,9 +2419,10 @@
       "action_text": "Try it out"
     },
     "stx": {
-      "title": "Introducing smart transactions",
-      "description_1": "Smart transactions make MetaMask even more reliable, private, and cost-effective than ever before.",
-      "description_2": "They are automatically enabled for your convenience, but you can turn them off in Settings whenever you want.",
+      "header": "Introducing smart transactions",
+      "title": "What are smart transactions?",
+      "description_1": "Smart transactions enhance the reliability, privacy, and cost-effectiveness of MetaMask.",
+      "description_2": "Right now, smart transactions are only available on ETH Mainnet. You can turn them off at any time in settings.",
       "secondary_button": "Not right now",
       "primary_button": "Continue"
     }
