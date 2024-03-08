@@ -20,39 +20,6 @@ export const whatsNew: WhatsNew = {
     [
       {
         type: 'image',
-        image: require('../../../images/metamask-smart-transactions.png'),
-      },
-      {
-        type: 'title',
-        title: strings('whats_new.stx.title'),
-      },
-      {
-        type: 'description',
-        description: strings('whats_new.stx.description_1'),
-      },
-      {
-        type: 'description',
-        description: strings('whats_new.stx.description_2'),
-      },
-      {
-        type: 'button',
-        buttonText: strings('whats_new.stx.settings'),
-        buttonType: 'transparent-blue',
-        onPress: (props) =>
-          props.navigation.navigate(Routes.SETTINGS_VIEW, {
-            screen: Routes.SETTINGS.ADVANCED_SETTINGS,
-          }),
-      },
-      {
-        type: 'button',
-        buttonText: strings('whats_new.stx.action_text'),
-        buttonType: 'blue',
-        onPress: (props) => props.navigation.navigate(Routes.WALLET_VIEW),
-      },
-    ],
-    [
-      {
-        type: 'image',
         image: require('../../../images/whats_new_sell.png'),
       },
       {
