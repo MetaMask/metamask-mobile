@@ -310,6 +310,7 @@ export async function publishHook(request: Request) {
               });
             }
           } catch (e) {
+            // Could get here if user closes the status modal
             Logger.log('STX - Error updating approval request state', e);
           }
 
