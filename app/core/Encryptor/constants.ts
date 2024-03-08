@@ -1,6 +1,6 @@
 import { KeyDerivationOptions } from './types';
 
-export const BYTE_COUNT = 32;
+export const SALT_BYTES_COUNT = 32;
 export const SHA256_DIGEST_LENGTH = 256;
 export const OLD_ITERATIONS_NUMBER = 5_000;
 export const MINIMUM_ITERATIONS_NUMBER = 600_000;

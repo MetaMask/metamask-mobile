@@ -1,7 +1,7 @@
 import { NativeModules } from 'react-native';
 import { hasProperty, isPlainObject, Json } from '@metamask/utils';
 import {
-  BYTE_COUNT,
+  SALT_BYTES_COUNT,
   SHA256_DIGEST_LENGTH,
   ENCRYPTION_LIBRARY,
   DEFAULT_DERIVATION_PARAMS,
@@ -43,7 +43,7 @@ class Encryptor implements GenericEncryptor {
    * @param byteCount - The number of bytes for the salt. Defaults to 32.
    * @returns The base64-encoded salt string.
    */
-  private generateSalt(byteCount = BYTE_COUNT) {
+  private generateSalt(byteCount = SALT_BYTES_COUNT) {
     const salt = new Uint8Array(byteCount);
     // @ts-expect-error - globalThis is not recognized by TypeScript
     global.crypto.getRandomValues(salt);
