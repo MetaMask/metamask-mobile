@@ -29,7 +29,7 @@ import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
 import {
-  shouldShowSmartTransactionOptInModal,
+  shouldShowSmartTransactionsOptInModal,
   shouldShowWhatsNewModal,
 } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
@@ -189,7 +189,7 @@ const Wallet = ({ navigation }: any) => {
     const checkSmartTransactionsOptInModal = async () => {
       try {
         const showShowStxOptInModal =
-          await shouldShowSmartTransactionOptInModal(
+          await shouldShowSmartTransactionsOptInModal(
             providerConfig.chainId,
             providerConfig.rpcUrl,
           );
