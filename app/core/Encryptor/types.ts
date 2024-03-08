@@ -1,3 +1,5 @@
+import type { Json } from '@metamask/utils';
+
 /**
  * Parameters used for key derivation.
  * @interface KeyParams
