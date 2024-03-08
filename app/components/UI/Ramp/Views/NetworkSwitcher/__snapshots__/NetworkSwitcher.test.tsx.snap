@@ -1253,7 +1253,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                         }
                                                       }
                                                     >
-                                                      https:/
+                                                      https://evm.cronos.org
                                                     </Text>
                                                     <TouchableOpacity
                                                       activeOpacity={0.5}
