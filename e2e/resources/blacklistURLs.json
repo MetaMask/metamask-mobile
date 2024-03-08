@@ -8,6 +8,8 @@
     ".*rpc.tenderly.co/.*",
     ".*api-goerli.etherscan.io/.*",
     ".*cloudflare-ipfs.com/.*",
-    ".*stale.*"
+    ".*stale.*",
+    ".*phishing-detection.metafi.codefi.network/.*",
+    ".*token-api.metaswap.codefi.network/.*"
   ]
 }
