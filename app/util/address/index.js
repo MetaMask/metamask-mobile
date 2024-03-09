@@ -58,7 +58,11 @@ export function renderFullAddress(address) {
 export const formatAddress = (rawAddress, type) => {
   let formattedAddress = rawAddress;
 
-  if (!isValidAddress(rawAddress)) {
+  try {
+    if (!isValidAddress(rawAddress)) {
+      return rawAddress;
+    }
+  } catch (e) {
     return rawAddress;
   }
 
