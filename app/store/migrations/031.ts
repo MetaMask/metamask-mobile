@@ -18,18 +18,21 @@ import { isHexString } from 'ethereumjs-util';
  */
 export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
+  
   if (!isObject(state)) {
     captureException(
       new Error(`Migration 31: Invalid state: '${typeof state}'`),
     );
-    return state;
+    // Force vault corruption if state is completely corrupt
+    return {}
   }
 
   if (!isObject(state.engine)) {
     captureException(
       new Error(`Migration 31: Invalid engine state: '${typeof state.engine}'`),
     );
-    return state;
+    // Force vault corruption if state is completely corrupt
+    return {}
   }
 
   if (!isObject(state.engine.backgroundState)) {
