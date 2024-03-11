@@ -40,9 +40,12 @@ import DevLogger from '../utils/DevLogger';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
 import { AndroidClient } from './android-sdk-types';
 
+export interface AndroidConnections {
+  [clientId: string]: AndroidClient;
+}
 export default class AndroidService extends EventEmitter2 {
   private communicationClient = NativeModules.CommunicationClient;
-  private connections: { [clientId: string]: AndroidClient } = {};
+  private connections: AndroidConnections = {};
   private rpcQueueManager = new RPCQueueManager();
   private bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
   private eventHandler: AndroidSDKEventHandler;
