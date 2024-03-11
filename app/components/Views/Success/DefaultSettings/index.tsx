@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Switch } from 'react-native';
+import { View, ScrollView, StyleSheet, Switch } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../util/theme';
-// import { strings } from '../../../../locales/i18n';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../app/constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
+import BasicFunctionalityComponent from '../../../../components/UI/BasicFunctionality/BasicFunctionality';
 
 const styles = StyleSheet.create({
   root: {
@@ -34,54 +37,31 @@ const styles = StyleSheet.create({
   },
 });
 
-const strings = (key: string) =>
-  ({
-    title: 'Your Wallet is ready',
-    description:
-      'MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy. Learn more about privacy best practices.',
-    defaultSettings: 'Default Settings',
-    done: 'Done',
-    basicFunctionality: 'Basic functionality',
-    manageNetworks: 'Manage Networks',
-    functionalityBody:
-      'Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.',
-  }[key]);
-
 const DefaultSettings = () => {
-  const { colors } = useTheme();
   const theme = useTheme();
+  const { colors } = theme;
   const [isEnabled, setIsEnabled] = useState(true);
+  const navigation = useNavigation();
+  const handleSwitchToggle = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+      params: { isEnabled },
+    });
+  };
+
   return (
-    <View style={styles.root}>
-      <Text variant={TextVariant.BodyMD}>{strings('description')}</Text>
+    <ScrollView style={styles.root}>
+      <Text variant={TextVariant.BodyMD}>
+        {strings('default_settings.description')}
+      </Text>
+      <BasicFunctionalityComponent
+        handleSwitchToggle={handleSwitchToggle}
+        isEnabled={isEnabled}
+      />
       <View style={styles.setting}>
         <View style={styles.heading}>
           <Text variant={TextVariant.HeadingMD}>
-            {strings('basicFunctionality')}
-          </Text>
-          <Switch
-            value={isEnabled}
-            onValueChange={setIsEnabled}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white['000']}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.description}
-        >
-          {strings('functionalityBody')}
-        </Text>
-      </View>
-      <View style={styles.setting}>
-        <View style={styles.heading}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('manageNetworks')}
+            {strings('default_settings.manage_networks')}
           </Text>
         </View>
         <Text
@@ -89,7 +69,7 @@ const DefaultSettings = () => {
           color={TextColor.Alternative}
           style={styles.description}
         >
-          {strings('functionalityBody')}
+          {strings('default_settings.manage_networks_body')}
         </Text>
         <Switch
           value={isEnabled}
@@ -102,7 +82,7 @@ const DefaultSettings = () => {
           ios_backgroundColor={colors.border.muted}
         />
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
