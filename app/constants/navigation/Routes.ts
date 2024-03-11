@@ -80,6 +80,7 @@ const Routes = {
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
+    BASIC_FUNCTIONALITY: 'BasicFunctionality',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',

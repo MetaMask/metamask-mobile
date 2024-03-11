@@ -108,6 +108,7 @@ import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import OnboardingSuccess from '../../Views/Success';
 import DefaultSettings from '../../Views/Success/DefaultSettings';
+import BasicFunctionality from '../../Views/Success/DefaultSettings/BasicFunctionalitySheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -580,6 +581,10 @@ const App = ({ userLoggedIn }) => {
         component={NetworkSelector}
       />
       <Stack.Screen
+        name={Routes.SHEET.BASIC_FUNCTIONALITY}
+        component={BasicFunctionality}
+      />
+      <Stack.Screen
         name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
         component={ReturnToAppModal}
       />
@@ -697,7 +702,7 @@ const App = ({ userLoggedIn }) => {
 
   // eslint-disable-next-line react/prop-types
   const OnboardingSuccessFlow = ({ route, navigation }) => (
-    <Stack.Navigator>
+    <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS}
         component={OnboardingSuccess}
