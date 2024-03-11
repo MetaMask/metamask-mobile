@@ -80,6 +80,15 @@ const PopularNetworksList = {
 };
 
 const CustomNetworks = {
+  EthereumMainCustom: {
+    providerConfig: {
+      type: 'rpc',
+      chainId: '0x1',
+      rpcUrl: 'https://eth.llamarpc.com',
+      nickname: 'Ethereum Main Custom',
+      ticker: 'ETH',
+    },
+  },
   Sepolia: {
     providerConfig: {
       type: 'mainnet',
