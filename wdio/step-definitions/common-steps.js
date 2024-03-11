@@ -14,6 +14,7 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
+import Gestures from "../helpers/Gestures";
 
 Then(/^the Welcome screen is displayed$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
@@ -263,4 +264,23 @@ When(/^I tap on the Settings tab option$/, async () => {
 
 When(/^I tap on the Activity tab option$/, async () => {
   await TabBarModal.tapActivityButton();
+});
+
+When(/^I install upgrade the app$/, async () => {
+  await driver.installApp('./app-qa-release-current.apk')
+});
+
+When(/^I scroll up$/, async () => {
+  await Gestures.swipeUp(0.5);
+});
+
+Then(/^removed test app$/, async () => {
+  const platform = await driver.getPlatform();
+  if (platform === 'iOS') {
+    await driver.removeApp('io.metamask.MetaMask-QA');
+  }
+
+  if (platform === 'Android') {
+    await driver.removeApp('io.metamask.qa');
+  }
 });
