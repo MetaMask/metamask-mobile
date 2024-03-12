@@ -5,6 +5,7 @@
 ## 7.17.1 - Mar 2, 2024
 ## Fixed
 - [#8870](https://github.com/MetaMask/metamask-mobile/pull/8870): fix: update PPOM to v1.4.4
+- [#8892](https://github.com/MetaMask/metamask-mobile/pull/8892): fix: Tokens disappearing
 
 ## 7.17.0 - Feb 16, 2024
 ### Added
