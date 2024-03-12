@@ -1,56 +1,43 @@
-/* eslint-disable import/prefer-default-export */
-/* eslint-disable import/no-commonjs, import/no-nodejs-modules, import/no-nodejs-modules, no-console */
-import fs from 'fs';
-import path from 'path';
-import Logger from '../../util/Logger';
+//@ts-ignore
+import bundleJs from './embedded/bip32-example-snap/dist/bundle.js';
+import manifestJson from './embedded/bip32-example-snap/snap.manifest.json';
 
-const EMBEDDED_SNAPS_PATH = path.join(__dirname, './embedded');
-const snapName = 'bip32-example-snap';
-const manifestFile = path.join(
-  __dirname,
-  `./${EMBEDDED_SNAPS_PATH}/${snapName}/snap.manifest.json`,
-);
+let icon;
+try {
+  icon = require('./embedded/bip32-example-snap/images/icon.svg');
+} catch (error) {
+  console.error('Module not found, using default icon', error);
+  icon = '';
+}
 
 export const PREINSTALLED_SNAPS = Object([
-  'npm:@metamask/bip32-example-snap',
   getPreinstalledSnap(
     '@metamask/bip32-example-snap',
-    fs.readFileSync(manifestFile, 'utf-8'),
+    JSON.stringify(manifestJson),
     [
       {
         path: 'images/icon.svg',
-        value: fs.readFileSync(
-          `${EMBEDDED_SNAPS_PATH}/bip32-example-snap/images/icon.svg`,
-        ),
+        value: icon, //TODO: we could use a default icon in case the snap doesn't have one.
       },
       {
         path: 'dist/bundle.js',
-        value: fs.readFileSync(
-          `${EMBEDDED_SNAPS_PATH}/bip32-example-snap/dist/bundle.js`,
-        ),
+        value: JSON.stringify(bundleJs),
       },
     ],
   ),
 ]);
 
-async function getPreinstalledSnap(
+function getPreinstalledSnap(
   npmPackage: string,
   manifest: string,
-  files: { path: string; value: Buffer }[],
+  files: { path: string; value: string }[],
 ) {
-  try {
-    if (!manifest.includes(npmPackage)) {
-      return;
-    }
-
-    return {
-      snapId: `npm:${npmPackage}`,
-      manifest: JSON.parse(manifest),
-      files,
-      removable: false,
-    };
-  } catch (error) {
-    Logger.log('getPreinstalledSnap error', error);
-    return;
-  }
+  return {
+    snapId: `npm:${npmPackage}`,
+    manifest: JSON.parse(manifest),
+    files,
+    removable: false,
+  };
 }
+
+export default PREINSTALLED_SNAPS;
