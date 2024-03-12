@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Switch } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { useTheme } from '../../../../util/theme';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../app/constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import BasicFunctionalityComponent from '../../../../components/UI/BasicFunctionality/BasicFunctionality';
+import ManageNetworksComponent from '../../../../components/UI/ManageNetworks/ManageNetworks';
 
 const styles = StyleSheet.create({
   root: {
@@ -35,12 +34,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  networkPicker: {
+    marginVertical: 16,
+    alignSelf: 'flex-start',
+  },
 });
 
 const DefaultSettings = () => {
-  const theme = useTheme();
-  const { colors } = theme;
-  const [isEnabled, setIsEnabled] = useState(true);
+  const [isEnabled] = useState(true);
   const navigation = useNavigation();
   const handleSwitchToggle = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -58,30 +59,7 @@ const DefaultSettings = () => {
         handleSwitchToggle={handleSwitchToggle}
         isEnabled={isEnabled}
       />
-      <View style={styles.setting}>
-        <View style={styles.heading}>
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('default_settings.manage_networks')}
-          </Text>
-        </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.description}
-        >
-          {strings('default_settings.manage_networks_body')}
-        </Text>
-        <Switch
-          value={isEnabled}
-          onValueChange={setIsEnabled}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={theme.brandColors.white['000']}
-          ios_backgroundColor={colors.border.muted}
-        />
-      </View>
+      <ManageNetworksComponent />
     </ScrollView>
   );
 };
