@@ -21,7 +21,7 @@ export enum StatusCheckStatusType {
  * Conclusion for status checks that we use in our scripts
  * Expose more types as needed
  */
-export enum ConclusionType {
+export enum CompletedConclusionType {
   Success = 'success',
   Failure = 'failure',
   Skipped = 'skipped',
