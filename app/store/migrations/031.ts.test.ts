@@ -194,15 +194,15 @@ describe('Migration #33', () => {
       state: null,
       errorMessage: "Migration 31: Invalid state: 'object'",
       scenario: 'state is invalid',
-      returnedState: {}
+      returnedState: {},
     },
     {
       state: {
-        engine: null
+        engine: null,
       },
       errorMessage: "Migration 31: Invalid engine state: 'object'",
       scenario: 'engine state is invalid',
-      returnedState: {}
+      returnedState: {},
     },
     {
       state: merge({}, initialRootState, {
@@ -215,7 +215,12 @@ describe('Migration #33', () => {
     },
   ];
 
-  for (const { errorMessage, scenario, state, returnedState } of invalidStates) {
+  for (const {
+    errorMessage,
+    scenario,
+    state,
+    returnedState,
+  } of invalidStates) {
     it(`should capture exception if ${scenario}`, async () => {
       const newState = await migration(state);
       expect(newState).toStrictEqual(returnedState || state);
