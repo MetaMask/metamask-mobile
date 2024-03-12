@@ -225,9 +225,9 @@ describe('network-utils', () => {
       );
 
       expect(url).toBe(
-        `https://explorer.sepolia.linea.build/address/${mockEthereumAddress}`,
+        `https://sepolia.lineascan.build/address/${mockEthereumAddress}`,
       );
-      expect(title).toBe(`explorer.sepolia.linea.build`);
+      expect(title).toBe(`sepolia.lineascan.build`);
     });
 
     it('should return custom block explorer address url when network type === "linea-mainnet"', () => {
@@ -296,9 +296,9 @@ describe('network-utils', () => {
       );
 
       expect(url).toBe(
-        `https://explorer.sepolia.linea.build/tx/${mockTransactionHash}`,
+        `https://sepolia.lineascan.build/tx/${mockTransactionHash}`,
       );
-      expect(title).toBe(`explorer.sepolia.linea.build`);
+      expect(title).toBe(`sepolia.lineascan.build`);
     });
 
     it('should return custom block explorer tx url when network type === "linea-mainnet"', () => {

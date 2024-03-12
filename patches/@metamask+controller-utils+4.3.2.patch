@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/controller-utils/dist/constants.d.ts b/node_modules/@metamask/controller-utils/dist/constants.d.ts
-index dd0be20..aa06e51 100644
+index dd0be20..56cfc46 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.d.ts
 +++ b/node_modules/@metamask/controller-utils/dist/constants.d.ts
 @@ -61,6 +61,13 @@ export declare const BUILT_IN_NETWORKS: {
@@ -10,7 +10,7 @@ index dd0be20..aa06e51 100644
 +        readonly chainId: "0xe705";
 +        readonly ticker: typeof NetworksTicker["linea-sepolia"];
 +        readonly rpcPrefs: {
-+            readonly blockExplorerUrl: "https://explorer.sepolia.linea.build";
++            readonly blockExplorerUrl: "https://sepolia.lineascan.build";
 +        };
 +    };
      readonly "linea-mainnet": {
@@ -29,7 +29,7 @@ index dd0be20..aa06e51 100644
  /**
   * Approval request types for various operations.
 diff --git a/node_modules/@metamask/controller-utils/dist/constants.js b/node_modules/@metamask/controller-utils/dist/constants.js
-index 90ede0b..fb96c4a 100644
+index 90ede0b..d5f7202 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.js
 +++ b/node_modules/@metamask/controller-utils/dist/constants.js
 @@ -38,6 +38,7 @@ exports.TESTNET_TICKER_SYMBOLS = {
@@ -48,7 +48,7 @@ index 90ede0b..fb96c4a 100644
 +        chainId: types_1.ChainId['linea-sepolia'],
 +        ticker: types_1.NetworksTicker['linea-sepolia'],
 +        rpcPrefs: {
-+            blockExplorerUrl: 'https://explorer.sepolia.linea.build',
++            blockExplorerUrl: 'https://sepolia.lineascan.build',
 +        },
 +    },
      [types_1.NetworkType['linea-mainnet']]: {
