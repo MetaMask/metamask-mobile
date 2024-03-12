@@ -50,7 +50,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #32', () => {
+describe('Migration #33', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -61,7 +61,7 @@ describe('Migration #32', () => {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 32: Invalid engine state error: 'object'",
+      errorMessage: "Migration 33: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -71,7 +71,7 @@ describe('Migration #32', () => {
         },
       }),
       errorMessage:
-        "Migration 32: Invalid engine backgroundState error: 'object'",
+        "Migration 33: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -83,7 +83,7 @@ describe('Migration #32', () => {
         },
       }),
       errorMessage:
-        "Migration 32: Invalid NetworkController state error: 'object'",
+        "Migration 33: Invalid NetworkController state error: 'object'",
       scenario: 'NetworkController state is invalid',
     },
     {
@@ -95,7 +95,7 @@ describe('Migration #32', () => {
         },
       }),
       errorMessage:
-        "Migration 32: NetworkController providerConfig chainId not found: 'null'",
+        "Migration 33: NetworkController providerConfig chainId not found: 'null'",
       scenario: 'chainId is invalid',
     },
   ];
