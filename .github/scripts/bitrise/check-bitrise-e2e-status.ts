@@ -58,7 +58,7 @@ async function main(): Promise<void> {
       repo,
       name: 'Bitrise E2E Status', // Name of the check
       head_sha: latestCommitHash,
-      status: StatusCheckStatusType.Skipped, // Mark the check as pending
+      status: StatusCheckStatusType.Success, // Mark the check as pending
       started_at: new Date().toISOString(),
       output: {
         title: 'Skipping E2E smoke test runs',

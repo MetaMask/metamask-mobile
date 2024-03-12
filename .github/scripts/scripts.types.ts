@@ -14,5 +14,4 @@ export enum PullRequestTriggerType {
 export enum StatusCheckStatusType {
   Success = 'success',
   Failure = 'failure',
-  Skipped = 'skipped',
 }
