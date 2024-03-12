@@ -2,18 +2,18 @@
  * Browser actions for Redux
  */
 export const BrowserActionTypes = {
-  ADD_TO_VISITED_DAPP: 'ADD_TO_VISITED_DAPP',
+  ADD_TO_VIEWED_DAPP: 'ADD_TO_VIEWED_DAPP',
 };
 
 /**
- * Adds a new entry to visited dapps
+ * Adds a new entry to viewed dapps
  *
  * @param {string} hostname - Dapp hostname
  * @returns
  */
-export function addToVisitedDapp(hostname) {
+export function addToViewedDapp(hostname) {
   return {
-    type: BrowserActionTypes.ADD_TO_VISITED_DAPP,
+    type: BrowserActionTypes.ADD_TO_VIEWED_DAPP,
     hostname,
   };
 }

@@ -99,7 +99,7 @@ import { regex } from '../../../../app/util/regex';
 import { selectChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import trackDappVisitedEvent from '../../../util/metrics/trackDappVisited';
+import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
@@ -531,7 +531,7 @@ export const BrowserTab = (props) => {
     [goBack, props.ipfsGateway, setIpfsBannerVisible, props.chainId],
   );
 
-  const triggerDappVisitedEvent = (url) => {
+  const triggerDappViewedEvent = (url) => {
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const hostname = new URL(url).hostname;
@@ -545,8 +545,8 @@ export const BrowserTab = (props) => {
       return;
     }
 
-    // Track dapp visited event
-    trackDappVisitedEvent({
+    // Track dapp viewed event
+    trackDappViewedEvent({
       hostname,
       numberOfConnectedAccounts: connectedAccounts.length,
     });
@@ -596,7 +596,7 @@ export const BrowserTab = (props) => {
 
         // Skip tracking on initial open
         if (!initialCall) {
-          triggerDappVisitedEvent(urlToGo);
+          triggerDappViewedEvent(urlToGo);
         }
 
         setProgress(0);
@@ -627,7 +627,7 @@ export const BrowserTab = (props) => {
     const { current } = webviewRef;
 
     current && current.reload();
-    triggerDappVisitedEvent(url.current);
+    triggerDappViewedEvent(url.current);
   }, []);
 
   /**
