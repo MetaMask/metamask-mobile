@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 import { PullRequestTriggerType } from '../scripts.types';
+import axios from 'axios';
 
 main().catch((error: Error): void => {
   console.error(error);
@@ -11,9 +12,14 @@ main().catch((error: Error): void => {
 async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
   const e2eLabel = process.env.E2E_LABEL;
+  const e2ePipeline = process.env.E2E_PIPELINE;
+  const workflowName = process.env.WORKFLOW_NAME;
   const triggerAction = context.payload.action as PullRequestTriggerType;
+  const { owner, repo, number: pullRequestNumber } = context.issue;
+  let shouldTriggerE2E = false;
   const removeAndApplyInstructions = `Remove and re-apply the "${e2eLabel}" label to trigger a E2E smoke test on Bitrise.`;
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
+  const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
 
   if (!githubToken) {
     core.setFailed('GITHUB_TOKEN not found');
@@ -25,15 +31,15 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const { owner, repo, number: issue_number } = context.issue;
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
-  // Get PR information
+  // Get the latest commit hash
   const { data: prData } = await octokit.rest.pulls.get({
     owner,
     repo,
-    pull_number: issue_number,
+    pull_number: pullRequestNumber,
   });
+  const latestCommitHash = prData.head.sha;
 
   // Check if the e2e smoke label is applied
   const labels = prData.labels;
@@ -44,8 +50,81 @@ async function main(): Promise<void> {
     console.log(
       `"${e2eLabel}" label not applied. Skipping Bitrise status check.`,
     );
+    const createStatusCheckResponse = await octokit.rest.checks.create({
+      owner,
+      repo,
+      name: 'Bitrise E2E Status', // Name of the check
+      head_sha: latestCommitHash,
+      status: 'in_progress', // Mark the check as pending
+      started_at: new Date().toISOString(),
+      output: {
+        title: 'E2E smoke test runs',
+        summary: 'The tests are currently running...',
+      },
+    });
+
+    if (createStatusCheckResponse.status === 201) {
+      console.log(
+        `Created 'Bitrise E2E Status' check for commit ${latestCommitHash}`,
+      );
+    } else {
+      core.setFailed(
+        `Failed to create 'Bitrise E2E Status' check for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
+      );
+      process.exit(1);
+    }
     return;
   }
+
+  // Check if E2E build should be kicked off
+  if (
+    triggerAction === PullRequestTriggerType.Labeled &&
+    context.payload?.label?.name === e2eLabel
+  ) {
+    shouldTriggerE2E = true;
+    // Configure Bitrise configuration for API call
+    const data = {
+      build_params: {
+        branch: process.env.GITHUB_HEAD_REF,
+        pipeline_id: e2ePipeline,
+        environments: [
+          {
+            mapped_to: 'GITHUB_PR_NUMBER',
+            value: `${pullRequestNumber}`,
+            is_expand: true,
+          },
+          {
+            mapped_to: 'TRIGGERED_BY_PR_LABEL',
+            value: `true`,
+            is_expand: true,
+          },
+          {
+            mapped_to: 'GITHUB_PR_HASH',
+            value: `${latestCommitHash}`,
+            is_expand: true,
+          },
+        ],
+        commit_message: `Triggered by (${workflowName}) workflow in ${pullRequestLink}`,
+      },
+      hook_info: {
+        type: 'bitrise',
+        build_trigger_token: process.env.BITRISE_BUILD_TRIGGER_TOKEN,
+      },
+      triggered_by: workflowName,
+    };
+
+    const bitriseProjectUrl = `https://app.bitrise.io/app/${process.env.BITRISE_APP_ID}`;
+    const bitriseBuildStartUrl = `${bitriseProjectUrl}/build/start.json`;
+
+    // Start Bitrise build.
+    const bitriseBuildResponse = await axios.post(bitriseBuildStartUrl, data, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  return;
 
   // Define Bitrise comment tags
   const bitriseTag = '<!-- BITRISE_TAG -->';
@@ -62,7 +141,7 @@ async function main(): Promise<void> {
   const { data: latestCommentBatch } = await octokit.rest.issues.listComments({
     owner,
     repo,
-    issue_number: issue_number,
+    issue_number: pullRequestNumber,
     page: lastCommentPage,
     per_page: numberOfCommentsToCheck,
   });
@@ -76,7 +155,7 @@ async function main(): Promise<void> {
       await octokit.rest.issues.listComments({
         owner,
         repo,
-        issue_number: issue_number,
+        issue_number: pullRequestNumber,
         page: lastCommentPage - 1,
         per_page: numberOfCommentsToCheck,
       });
@@ -110,7 +189,7 @@ async function main(): Promise<void> {
   const { data: latestCommitBatch } = await octokit.rest.pulls.listCommits({
     owner,
     repo,
-    pull_number: issue_number,
+    pull_number: pullRequestNumber,
     page: lastCommitPage,
     per_page: numberOfCommitsToCheck,
   });
@@ -123,7 +202,7 @@ async function main(): Promise<void> {
     const { data: previousCommitBatch } = await octokit.rest.pulls.listCommits({
       owner,
       repo,
-      pull_number: issue_number,
+      pull_number: pullRequestNumber,
       page: lastCommitPage - 1,
       per_page: numberOfCommitsToCheck,
     });
