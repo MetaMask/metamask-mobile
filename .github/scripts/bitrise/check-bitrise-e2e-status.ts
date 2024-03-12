@@ -60,10 +60,10 @@ async function main(): Promise<void> {
       name: 'Bitrise E2E Status',
       head_sha: latestCommitHash,
       status: StatusCheckStatusType.Completed,
-      conclusion: CompletedConclusionType.Skipped,
+      conclusion: CompletedConclusionType.Success,
       started_at: new Date().toISOString(),
       output: {
-        title: 'Skipping E2E smoke test runs',
+        title: 'Bitrise e2e smoke test run',
         summary: 'Skip run since no E2E smoke label is applied', //'The tests are currently running...',
       },
     });
