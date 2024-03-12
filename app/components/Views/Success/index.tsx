@@ -7,7 +7,8 @@ import {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button/Button.types';
 import { useNavigation } from '@react-navigation/native';
-// import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
   root: {
@@ -49,46 +50,42 @@ const styles = StyleSheet.create({
   },
 });
 
-const strings = (key: string) =>
-  ({
-    title: 'Your Wallet is ready',
-    description:
-      "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. Learn how to keep this set of words safe so you can always access your funds.\n\nWe've turned on default settings to make MetaMask easier and safer to use, but you can change this at anytime.",
-    defaultSettings: 'Default Settings',
-    done: 'Done',
-  }[key]);
-
 const OnboardingSuccess = () => {
   const navigation = useNavigation();
+
+  const startApp = () => {
+    // FRANK: fix this
+    navigation.navigate(Routes.ONBOARDING.HOME_NAV, {
+      screen: Routes.WALLET_VIEW,
+    });
+  };
   return (
     <View style={styles.root}>
       <View style={styles.topWrapper}>
         <Text style={styles.emoji}>🎉</Text>
-        <Text style={styles.title}>{strings('title')}</Text>
+        <Text style={styles.title}>{strings('onboarding_success.title')}</Text>
         <View style={styles.descriptionWrapper}>
-          <Text style={styles.description}>{strings('description')}</Text>
+          <Text style={styles.description}>
+            {strings('onboarding_success.description')}
+          </Text>
         </View>
       </View>
       <View style={styles.buttonWrapper}>
         <Button
-          label={strings('defaultSettings')}
+          label={strings('onboarding_success.default_settings')}
           variant={ButtonVariants.Secondary}
           style={styles.button}
           onPress={() => navigation.navigate('DefaultSettings')}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
-        >
-          {strings('account_backup_step_1B.cta_text')}
-        </Button>
+        />
         <Button
-          label={strings('done')}
+          label={strings('onboarding_success.done')}
           variant={ButtonVariants.Primary}
-          onPress={() => window.alert('Done --> GO to WalletView')}
+          onPress={startApp}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
-        >
-          {strings('account_backup_step_1B.cta_text')}
-        </Button>
+        />
       </View>
     </View>
   );

@@ -96,6 +96,12 @@
     "your_wallet": "Your wallet was successfully erased",
     "delete_current": "Deleting current wallet"
   },
+  "onboarding_success": {
+    "title": "Your Wallet is ready",
+    "description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. Learn how to keep this set of words safe so you can always access your funds.\n\nWe've turned on default settings to make MetaMask easier and safer to use, but you can change this at anytime.",
+    "default_settings": "Default Settings",
+    "done": "Done"
+  },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",
     "title2": "Manage your digital assets",
