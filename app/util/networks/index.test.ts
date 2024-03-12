@@ -16,6 +16,7 @@ import {
   SEPOLIA,
   LINEA_GOERLI,
   LINEA_MAINNET,
+  LINEA_SEPOLIA,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { getNonceLock } from '../../util/transaction-controller';
@@ -53,6 +54,7 @@ describe('network-utils', () => {
       expect(allNetworks.includes(MAINNET)).toEqual(true);
       expect(allNetworks.includes(SEPOLIA)).toEqual(true);
       expect(allNetworks.includes(LINEA_GOERLI)).toEqual(true);
+      expect(allNetworks.includes(LINEA_SEPOLIA)).toEqual(true);
       expect(allNetworks.includes(LINEA_MAINNET)).toEqual(true);
     });
     it('should exclude rpc', () => {
@@ -70,7 +72,11 @@ describe('network-utils', () => {
   });
 
   describe('isTestNet', () => {
-    const testnets = [NetworkType.sepolia, NetworkType['linea-goerli']];
+    const testnets = [
+      NetworkType.sepolia,
+      NetworkType['linea-goerli'],
+      NetworkType['linea-sepolia'],
+    ];
 
     for (const networkType of testnets) {
       it(`should return true if the given chain ID is for '${networkType}'`, () => {
@@ -212,6 +218,18 @@ describe('network-utils', () => {
       expect(title).toBe(`goerli.lineascan.build`);
     });
 
+    it('should return custom block explorer address url when network type === "linea-sepolia"', () => {
+      const { url, title } = getBlockExplorerAddressUrl(
+        LINEA_SEPOLIA,
+        mockEthereumAddress,
+      );
+
+      expect(url).toBe(
+        `https://explorer.sepolia.linea.build/address/${mockEthereumAddress}`,
+      );
+      expect(title).toBe(`explorer.sepolia.linea.build`);
+    });
+
     it('should return custom block explorer address url when network type === "linea-mainnet"', () => {
       const { url, title } = getBlockExplorerAddressUrl(
         LINEA_MAINNET,
@@ -269,6 +287,18 @@ describe('network-utils', () => {
         `https://goerli.lineascan.build/tx/${mockTransactionHash}`,
       );
       expect(title).toBe(`goerli.lineascan.build`);
+    });
+
+    it('should return custom block explorer tx url when network type === "linea-sepolia"', () => {
+      const { url, title } = getBlockExplorerTxUrl(
+        LINEA_SEPOLIA,
+        mockTransactionHash,
+      );
+
+      expect(url).toBe(
+        `https://explorer.sepolia.linea.build/tx/${mockTransactionHash}`,
+      );
+      expect(title).toBe(`explorer.sepolia.linea.build`);
     });
 
     it('should return custom block explorer tx url when network type === "linea-mainnet"', () => {

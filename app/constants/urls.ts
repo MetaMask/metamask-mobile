@@ -40,6 +40,8 @@ export const MIXPANEL_PROXY_ENDPOINT_BASE_URL =
 export const CHAINLIST_URL = 'https://chainlist.wtf';
 export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
 export const LINEA_GOERLI_BLOCK_EXPLORER = 'https://goerli.lineascan.build';
+export const LINEA_SEPOLIA_BLOCK_EXPLORER =
+  'https://explorer.sepolia.linea.build';
 export const LINEA_MAINNET_BLOCK_EXPLORER = 'https://lineascan.build';
 
 // Phishing

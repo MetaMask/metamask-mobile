@@ -366,11 +366,12 @@ class NetworkSettings extends PureComponent {
         chainId = networkInformation.chainId.toString();
         editable = false;
         rpcUrl = allNetworksblockExplorerUrl(networkTypeOrRpcUrl);
-        ticker =
-          networkInformation.chainId.toString() !==
-          NETWORKS_CHAIN_ID.LINEA_GOERLI
-            ? strings('unit.eth')
-            : 'LineaETH';
+        ticker = ![
+          NETWORKS_CHAIN_ID.LINEA_GOERLI,
+          NETWORKS_CHAIN_ID.LINEA_SEPOLIA,
+        ].includes(networkInformation.chainId.toString())
+          ? strings('unit.eth')
+          : 'LineaETH';
         // Override values if UI is updating custom mainnet RPC URL.
         if (isCustomMainnet) {
           nickname = DEFAULT_MAINNET_CUSTOM_NAME;
