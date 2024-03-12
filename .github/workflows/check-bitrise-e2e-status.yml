@@ -34,5 +34,7 @@ jobs:
 
       - name: Check Bitrise E2E Status
         env:
+          BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
+          BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn run check-bitrise-e2e-status
