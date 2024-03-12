@@ -255,8 +255,6 @@ export async function publishHook(request: Request) {
         signedTransactions,
         signedCanceledTransactions,
         txParams,
-        // Patched into controller to skip unnecessary call to confirmExternalTransaction.
-        skipConfirm: true,
       },
     );
 
