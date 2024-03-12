@@ -183,7 +183,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #33', () => {
+describe('Migration #31', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
