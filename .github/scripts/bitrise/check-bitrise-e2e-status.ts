@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 import {
+  CompletedConclusionType,
   PullRequestTriggerType,
   StatusCheckStatusType,
 } from '../scripts.types';
@@ -56,9 +57,10 @@ async function main(): Promise<void> {
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
       repo,
-      name: 'Bitrise E2E Status', // Name of the check
+      name: 'Bitrise E2E Status',
       head_sha: latestCommitHash,
-      status: StatusCheckStatusType.Success, // Mark the check as pending
+      status: StatusCheckStatusType.Completed,
+      conclusion: CompletedConclusionType.Skipped,
       started_at: new Date().toISOString(),
       output: {
         title: 'Skipping E2E smoke test runs',

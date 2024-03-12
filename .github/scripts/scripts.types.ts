@@ -12,6 +12,17 @@ export enum PullRequestTriggerType {
  * Expose more types as needed
  */
 export enum StatusCheckStatusType {
+  InProgress = 'in_progress',
+  Completed = 'completed',
+  Failure = 'failure',
+}
+
+/**
+ * Conclusion for status checks that we use in our scripts
+ * Expose more types as needed
+ */
+export enum ConclusionType {
   Success = 'success',
   Failure = 'failure',
+  Skipped = 'skipped',
 }
