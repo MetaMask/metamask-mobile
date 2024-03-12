@@ -29,11 +29,11 @@ import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
 import Alert, { AlertType } from '../../Base/Alert';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 interface IQRSigningDetails {
   QRState: IQRState;
@@ -128,6 +128,7 @@ const QRSigningDetails = ({
   fromAddress,
 }: IQRSigningDetails) => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const KeyringController = useMemo(() => {
@@ -230,7 +231,7 @@ const QRSigningDetails = ({
         setSentOrCanceled(true);
         successCallback?.();
       } else {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+        trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
           error:
             'received signature request id is not matched with origin request',
         });
@@ -243,6 +244,7 @@ const QRSigningDetails = ({
       QRState.sign.request?.requestId,
       failureCallback,
       successCallback,
+      trackEvent,
     ],
   );
   const onScanError = useCallback(

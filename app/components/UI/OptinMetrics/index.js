@@ -8,7 +8,6 @@ import {
   BackHandler,
   Alert,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -17,34 +16,25 @@ import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
-import Analytics from '../../../core/Analytics/Analytics';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
-import {
-  ONBOARDING_WIZARD,
-  METRICS_OPT_IN,
-  DENIED,
-  AGREED,
-} from '../../../constants/storage';
+import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
+import {
+  MetaMetricsEvents,
+  withMetricsAwareness,
+} from '../../hooks/useMetrics';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  OPTIN_METRICS_I_AGREE_BUTTON_ID,
-  OPTIN_METRICS_NO_THANKS_BUTTON_ID,
-  OPTIN_METRICS_TITLE_ID,
-  METAMETRICS_OPT_IN_CONTAINER_ID,
-  OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/OptinMetricsScreen.testIds';
+import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
 import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { MAINNET } from '../../../constants/network';
 import Routes from '../../../constants/navigation/Routes';
+import generateDeviceAnalyticsMetaData, {
+  UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
+} from '../../../util/metrics';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -144,6 +134,10 @@ class OptinMetrics extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -261,32 +255,16 @@ class OptinMetrics extends PureComponent {
   };
 
   /**
-   * Track the event of opt in or opt out.
-   * @param AnalyticsOptionSelected - User selected option regarding the tracking of events
-   */
-  trackOptInEvent = (AnalyticsOptionSelected) => {
-    InteractionManager.runAfterInteractions(async () => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        analytics_option_selected: AnalyticsOptionSelected,
-        updated_after_onboarding: false,
-      });
-    });
-  };
-
-  /**
    * Callback on press cancel
    */
   onCancel = async () => {
-    const { events } = this.props;
-    const metricsOptionSelected = 'Metrics Opt Out';
     setTimeout(async () => {
-      if (events && events.length) {
-        events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));
-      }
-      this.trackOptInEvent(metricsOptionSelected);
-      this.props.clearOnboardingEvents();
-      await DefaultPreference.set(METRICS_OPT_IN, DENIED);
-      Analytics.disableInstance();
+      const { clearOnboardingEvents, metrics } = this.props;
+      // if users refuses tracking, get rid of the stored events
+      // and never send them to Segment
+      // and disable analytics
+      clearOnboardingEvents();
+      await metrics.enable(false);
     }, 200);
     this.continue();
   };
@@ -295,17 +273,44 @@ class OptinMetrics extends PureComponent {
    * Callback on press confirm
    */
   onConfirm = async () => {
-    const { events } = this.props;
-    const metricsOptionSelected = 'Metrics Opt In';
-    Analytics.enable();
-    setTimeout(async () => {
+    const { events, metrics } = this.props;
+    await metrics.enable();
+    InteractionManager.runAfterInteractions(async () => {
+      // add traits to user for identification
+      // consolidate device and user settings traits
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      await metrics.addTraitsToUser(consolidatedTraits);
+
+      // track onboarding events that were stored before user opted in
+      // only if the user eventually opts in.
       if (events && events.length) {
-        events.forEach((eventArgs) => AnalyticsV2.trackEvent(...eventArgs));
+        let delay = 0; // Initialize delay
+        const eventTrackingDelay = 200; // ms delay between each event
+        events.forEach((eventArgs) => {
+          // delay each event to prevent them from
+          // being tracked with the same timestamp
+          // which would cause them to be grouped together
+          // by sentAt time in the Segment dashboard
+          // as precision is only to the milisecond
+          // and loop seems to runs faster than that
+          setTimeout(() => {
+            metrics.trackEvent(...eventArgs);
+          }, delay);
+          delay += eventTrackingDelay;
+        });
       }
-      this.trackOptInEvent(metricsOptionSelected);
+
       this.props.clearOnboardingEvents();
-      await DefaultPreference.set(METRICS_OPT_IN, AGREED);
-    }, 200);
+
+      // track event for user opting in
+      metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
+        analytics_option_selected: 'Metrics Opt In',
+        updated_after_onboarding: false,
+      });
+    });
     this.continue();
   };
 
@@ -402,7 +407,9 @@ class OptinMetrics extends PureComponent {
         <Button
           variant={ButtonVariants.Secondary}
           onPress={this.onCancel}
-          {...generateTestId(Platform, OPTIN_METRICS_NO_THANKS_BUTTON_ID)}
+          testID={
+            MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID
+          }
           style={styles.button}
           label={strings('privacy_policy.cta_no_thanks')}
           size={ButtonSize.Lg}
@@ -412,7 +419,7 @@ class OptinMetrics extends PureComponent {
         <Button
           variant={ButtonVariants.Primary}
           onPress={this.onConfirm}
-          {...generateTestId(Platform, OPTIN_METRICS_I_AGREE_BUTTON_ID)}
+          testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID}
           style={styles.button}
           label={strings('privacy_policy.cta_i_agree')}
           size={ButtonSize.Lg}
@@ -474,7 +481,7 @@ class OptinMetrics extends PureComponent {
     return (
       <SafeAreaView
         style={styles.root}
-        {...generateTestId(Platform, METAMETRICS_OPT_IN_CONTAINER_ID)}
+        testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
       >
         <ScrollView
           style={styles.root}
@@ -486,16 +493,15 @@ class OptinMetrics extends PureComponent {
           <View style={styles.wrapper}>
             <Text
               style={styles.title}
-              {...generateTestId(Platform, OPTIN_METRICS_TITLE_ID)}
+              testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
             >
               {strings('privacy_policy.description_title')}
             </Text>
             <Text
               style={styles.content}
-              {...generateTestId(
-                Platform,
-                OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
-              )}
+              testID={
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
+              }
             >
               {strings('privacy_policy.description_content_1')}
             </Text>
@@ -523,4 +529,7 @@ const mapDispatchToProps = (dispatch) => ({
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(OptinMetrics);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(OptinMetrics));

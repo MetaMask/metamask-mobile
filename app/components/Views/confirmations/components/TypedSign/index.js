@@ -7,7 +7,6 @@ import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../../../util/device';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import sanitizeString from '../../../../../util/string';
@@ -24,6 +23,7 @@ import {
 import { isExternalHardwareAccount } from '../../../../../util/address';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
 import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -87,6 +87,10 @@ class TypedSign extends PureComponent {
      * Security alert response object
      */
     securityAlertResponse: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -97,9 +101,10 @@ class TypedSign extends PureComponent {
     const {
       messageParams: { metamaskId },
       messageParams,
+      metrics,
     } = this.props;
 
-    AnalyticsV2.trackEvent(
+    metrics.trackEvent(
       MetaMetricsEvents.SIGNATURE_REQUESTED,
       getAnalyticsParams(messageParams, 'typed_sign'),
     );
@@ -114,8 +119,9 @@ class TypedSign extends PureComponent {
   };
 
   onSignatureError = ({ error }) => {
+    const { metrics } = this.props;
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-      AnalyticsV2.trackEvent(
+      metrics.trackEvent(
         MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
         getAnalyticsParams(),
       );
@@ -282,4 +288,4 @@ const mapStateToProps = (state) => ({
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });
 
-export default connect(mapStateToProps)(TypedSign);
+export default connect(mapStateToProps)(withMetricsAwareness(TypedSign));

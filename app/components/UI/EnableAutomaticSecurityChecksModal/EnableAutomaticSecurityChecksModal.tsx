@@ -21,7 +21,6 @@ import {
   userSelectedAutomaticSecurityChecksOptions,
 } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -31,6 +30,7 @@ import {
 
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const onboardingDeviceImage = require('../../../images/swaps_onboard_device.png');
@@ -43,6 +43,7 @@ export const createEnableAutomaticSecurityChecksModalNavDetails =
 
 const EnableAutomaticSecurityChecksModal = () => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const modalRef = useRef<ReusableModalRef | null>(null);
   const dispatch = useDispatch();
@@ -51,11 +52,10 @@ const EnableAutomaticSecurityChecksModal = () => {
     modalRef?.current?.dismissModal(cb);
 
   useEffect(() => {
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED,
-      generateDeviceAnalyticsMetaData(),
-    );
-  }, []);
+    trackEvent(MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED, {
+      ...generateDeviceAnalyticsMetaData(),
+    });
+  }, [trackEvent]);
 
   useEffect(() => {
     dispatch(setAutomaticSecurityChecksModalOpen(true));
@@ -67,25 +67,25 @@ const EnableAutomaticSecurityChecksModal = () => {
   const triggerCloseAndDisableAutomaticSecurityChecks = useCallback(
     () =>
       dismissModal(() => {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
-          generateDeviceAnalyticsMetaData(),
+          { ...generateDeviceAnalyticsMetaData() },
         );
         dispatch(userSelectedAutomaticSecurityChecksOptions());
       }),
-    [dispatch],
+    [dispatch, trackEvent],
   );
 
   const enableAutomaticSecurityChecks = useCallback(() => {
     dismissModal(() => {
-      AnalyticsV2.trackEvent(
+      trackEvent(
         MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT,
-        generateDeviceAnalyticsMetaData(),
+        { ...generateDeviceAnalyticsMetaData() },
       );
       dispatch(userSelectedAutomaticSecurityChecksOptions());
       dispatch(setAutomaticSecurityChecks(true));
     });
-  }, [dispatch]);
+  }, [dispatch, trackEvent]);
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
