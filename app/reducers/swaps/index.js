@@ -14,8 +14,6 @@ import Logger from '../../util/Logger';
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
 export const SWAPS_SET_HAS_ONBOARDED = 'SWAPS_SET_HAS_ONBOARDED';
 export const SWAPS_SET_SMART_TX_FEATURE_FLAG = 'SWAPS_SET_SMART_TX';
-export const SWAPS_SET_APPROVE_TX_APPROVAL_ID =
-  'SWAPS_SET_APPROVE_TX_APPROVAL_ID';
 const MAX_TOKENS_WITH_BALANCE = 5;
 
 // * Action Creator
@@ -26,10 +24,6 @@ export const setSwapsLiveness = (chainId, featureFlags) => ({
 export const setSwapsHasOnboarded = (hasOnboarded) => ({
   type: SWAPS_SET_HAS_ONBOARDED,
   payload: hasOnboarded,
-});
-export const setSwapsApproveTxApprovalId = (chainId, approveTxApprovalId) => ({
-  type: SWAPS_SET_APPROVE_TX_APPROVAL_ID,
-  payload: { chainId, approveTxApprovalId },
 });
 
 // * Functions
@@ -274,17 +268,6 @@ function swapsReducer(state = initialState, action) {
       return {
         ...state,
         hasOnboarded: Boolean(action.payload),
-      };
-    }
-    case SWAPS_SET_APPROVE_TX_APPROVAL_ID: {
-      const { chainId, approveTxApprovalId } = action.payload;
-      const data = state[chainId];
-      return {
-        ...state,
-        [chainId]: {
-          ...data,
-          approveTxApprovalId,
-        },
       };
     }
     default: {
