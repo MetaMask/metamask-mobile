@@ -53,7 +53,7 @@ async function main(): Promise<void> {
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
       repo,
-      name: 'Bitrise E2E Status', // Name of the check
+      name: 'Random Check', // Name of the check
       head_sha: latestCommitHash,
       status: 'in_progress', // Mark the check as pending
       started_at: new Date().toISOString(),
