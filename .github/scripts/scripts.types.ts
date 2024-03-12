@@ -6,3 +6,13 @@ export enum PullRequestTriggerType {
   ReadyForReview = 'ready_for_review',
   Labeled = 'labeled',
 }
+
+/**
+ * Status for status checks that we use in our scripts
+ * Expose more types as needed
+ */
+export enum StatusCheckStatusType {
+  Success = 'success',
+  Failure = 'failure',
+  Skipped = 'skipped',
+}

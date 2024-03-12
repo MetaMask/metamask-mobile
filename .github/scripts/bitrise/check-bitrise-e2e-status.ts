@@ -1,7 +1,10 @@
 import * as core from '@actions/core';
 import { context, getOctokit } from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
-import { PullRequestTriggerType } from '../scripts.types';
+import {
+  PullRequestTriggerType,
+  StatusCheckStatusType,
+} from '../scripts.types';
 import axios from 'axios';
 
 main().catch((error: Error): void => {
@@ -53,13 +56,13 @@ async function main(): Promise<void> {
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
       repo,
-      name: 'Random Check', // Name of the check
+      name: 'Bitrise E2E Status', // Name of the check
       head_sha: latestCommitHash,
-      status: 'in_progress', // Mark the check as pending
+      status: StatusCheckStatusType.Skipped, // Mark the check as pending
       started_at: new Date().toISOString(),
       output: {
-        title: 'E2E smoke test runs',
-        summary: 'The tests are currently running...',
+        title: 'Skipping E2E smoke test runs',
+        summary: 'Skip run since no E2E smoke label is applied', //'The tests are currently running...',
       },
     });
 
