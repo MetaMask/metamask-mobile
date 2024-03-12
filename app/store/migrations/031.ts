@@ -32,7 +32,8 @@ export default async function migrate(stateAsync: unknown) {
       new Error(`Migration 31: Invalid engine state: '${typeof state.engine}'`),
     );
     // Force vault corruption if state is completely corrupt
-    return {};
+    const { engine, ...restState } = state;
+    return restState;
   }
 
   if (!isObject(state.engine.backgroundState)) {
@@ -42,7 +43,8 @@ export default async function migrate(stateAsync: unknown) {
           .backgroundState}'`,
       ),
     );
-    return state;
+    const { engine, ...restState } = state;
+    return restState;
   }
 
   const tokenListControllerState =

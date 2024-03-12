@@ -194,15 +194,18 @@ describe('Migration #31', () => {
       state: null,
       errorMessage: "Migration 31: Invalid state: 'object'",
       scenario: 'state is invalid',
-      returnedState: {},
+      returnedState: () => ({}),
     },
     {
       state: {
         engine: null,
+        mockData: {},
       },
       errorMessage: "Migration 31: Invalid engine state: 'object'",
       scenario: 'engine state is invalid',
-      returnedState: {},
+      returnedState: () => ({
+        mockData: {},
+      }),
     },
     {
       state: merge({}, initialRootState, {
@@ -212,6 +215,10 @@ describe('Migration #31', () => {
       }),
       errorMessage: "Migration 31: Invalid engine backgroundState: 'object'",
       scenario: 'backgroundState is invalid',
+      returnedState: () => {
+        const { engine, ...restState } = initialRootState;
+        return restState;
+      },
     },
   ];
 
@@ -223,7 +230,7 @@ describe('Migration #31', () => {
   } of invalidStates) {
     it(`should capture exception if ${scenario}`, async () => {
       const newState = await migration(state);
-      expect(newState).toStrictEqual(returnedState || state);
+      expect(newState).toStrictEqual(returnedState());
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         errorMessage,
