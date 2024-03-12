@@ -37,8 +37,6 @@ describe('TemplateConfirmation', () => {
       content: [CONTENT_MOCK],
       cancelText: CANCEL_TEXT_MOCK,
       confirmText: CONFIRM_TEXT_MOCK,
-      hideSubmitButton: true,
-      hideCancelButton: true,
     });
     const wrapper = render(<TemplateConfirmation {...mockProps} />);
 
