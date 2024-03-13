@@ -1,39 +1,104 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Asset should render correctly 1`] = `
-<ContextProvider
-  value={
+<View
+  style={
     Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
     }
   }
 >
-  <Component
-    transactions={Array []}
-  />
-</ContextProvider>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+    testID="txn-screen"
+  >
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          Object {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "elevation": 2,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "paddingBottom": 32,
+        "paddingHorizontal": 16,
+        "paddingTop": 16,
+        "shadowColor": "#00000099",
+        "shadowOffset": Object {
+          "height": 4,
+          "width": 0,
+        },
+        "shadowOpacity": 0.3,
+        "shadowRadius": 8,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#0376C9",
+          "borderRadius": 24,
+          "flexBasis": "50%",
+          "flexDirection": "row",
+          "flexGrow": 1,
+          "flexShrink": 1,
+          "height": 48,
+          "justifyContent": "center",
+          "marginLeft": 8,
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="token-swap-button"
+      variant="Primary"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#FFFFFF",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Swap
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
 `;
