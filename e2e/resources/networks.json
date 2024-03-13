@@ -71,5 +71,14 @@
       "nickname": "Gnosis",
       "ticker": "xDAI"
     }
+  },
+  "EthereumMainCustom": {
+    "providerConfig": {
+      "type": "rpc",
+      "chainId": "1",
+      "rpcUrl": "https://eth.llamarpc.com",
+      "nickname": "Ethereum Main Custom",
+      "ticker": "ETH"
+    }
   }
 }

@@ -1,18 +1,18 @@
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import Card from './Card';
 
 describe('Card - Snapshot', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <Card>
         <View />
       </Card>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
