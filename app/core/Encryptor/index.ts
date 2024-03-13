@@ -1,3 +1,4 @@
 import { Encryptor } from './Encryptor';
+import { DEFAULT_DERIVATION_PARAMS } from './constants';
 
-export default Encryptor;
+export { Encryptor, DEFAULT_DERIVATION_PARAMS };

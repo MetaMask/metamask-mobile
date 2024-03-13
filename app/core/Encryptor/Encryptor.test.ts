@@ -1,6 +1,10 @@
 import { NativeModules } from 'react-native';
 import { Encryptor } from './Encryptor';
-import { ENCRYPTION_LIBRARY, DEFAULT_DERIVATION_PARAMS } from './constants';
+import {
+  ENCRYPTION_LIBRARY,
+  DEFAULT_DERIVATION_PARAMS,
+  KeyDerivationIteration,
+} from './constants';
 
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
@@ -9,7 +13,25 @@ describe('Encryptor', () => {
   let encryptor: Encryptor;
 
   beforeEach(() => {
-    encryptor = new Encryptor();
+    encryptor = new Encryptor({ derivationParams: DEFAULT_DERIVATION_PARAMS });
+  });
+
+  describe('constructor', () => {
+    it('throws an error if the provided iterations do not meet the minimum required', () => {
+      expect(
+        () =>
+          new Encryptor({
+            derivationParams: {
+              algorithm: 'PBKDF2',
+              params: {
+                iterations: 100,
+              },
+            },
+          }),
+      ).toThrowError(
+        `Invalid key derivation iterations: 100. The minimum required iterations is ${KeyDerivationIteration.Minimum}.`,
+      );
+    });
   });
 
   describe('encrypt', () => {

@@ -4,7 +4,6 @@ import {
   SALT_BYTES_COUNT,
   SHA256_DIGEST_LENGTH,
   ENCRYPTION_LIBRARY,
-  DEFAULT_DERIVATION_PARAMS,
   KeyDerivationIteration,
 } from './constants';
 import type {
@@ -36,6 +35,51 @@ const isKeyDerivationOptions = (
  * password and salt, and performing the encryption and decryption processes.
  */
 class Encryptor implements GenericEncryptor {
+  /**
+   * The key derivation parameters used for encryption and decryption operations.
+   * These parameters include the algorithm and its specific parameters, for example, number of iterations for key derivation.
+   * They are set during the construction of the Encryptor instance and used for generating encryption keys.
+   * @property derivationParams - The key derivation options.
+   */
+  private derivationParams: KeyDerivationOptions;
+
+  /**
+   * Constructs an instance of the Encryptor class.
+   * @param params - An object containing key derivation parameters.
+   * @param params.derivationParams - The key derivation options to use for encryption and decryption operations.
+   * @throws Error if the provided iterations in `derivationParams` do not meet the minimum required.
+   */
+  constructor({
+    derivationParams,
+  }: {
+    derivationParams: KeyDerivationOptions;
+  }) {
+    this.checkMinimalRequiredIterations(derivationParams.params.iterations);
+    this.derivationParams = derivationParams;
+  }
+
+  /**
+   * Throws an error if the provided number of iterations does not meet the minimum required for key derivation.
+   * This method ensures that the key derivation process is secure by enforcing a minimum number of iterations.
+   * @param iterations - The number of iterations to check.
+   * @throws Error if the number of iterations is less than the minimum required.
+   */
+  private checkMinimalRequiredIterations = (iterations: number): void => {
+    if (!this.isMinimalRequiredIterationsMet(iterations)) {
+      throw new Error(
+        `Invalid key derivation iterations: ${iterations}. The minimum required is ${KeyDerivationIteration.Minimum}.`,
+      );
+    }
+  };
+
+  /**
+   * Checks if the provided number of iterations meets the minimum required for key derivation.
+   * @param iterations - The number of iterations to check.
+   * @returns A boolean indicating whether the minimum required iterations are met.
+   */
+  private isMinimalRequiredIterationsMet = (iterations: number): boolean =>
+    iterations >= KeyDerivationIteration.Minimum;
+
   /**
    * Generates a random base64-encoded salt string.
    * @param byteCount - The number of bytes for the salt. Defaults to `constant.SALT_BYTES_COUNT`.
@@ -134,7 +178,7 @@ class Encryptor implements GenericEncryptor {
     const key = await this.generateKeyFromPassword({
       password,
       salt: base64salt,
-      iterations: DEFAULT_DERIVATION_PARAMS.params.iterations,
+      iterations: this.derivationParams.params.iterations,
       lib: ENCRYPTION_LIBRARY.original,
     });
     const result = await this.encryptWithKey({
@@ -143,7 +187,7 @@ class Encryptor implements GenericEncryptor {
     });
     result.salt = base64salt;
     result.lib = ENCRYPTION_LIBRARY.original;
-    result.keyMetadata = DEFAULT_DERIVATION_PARAMS;
+    result.keyMetadata = this.derivationParams;
     return JSON.stringify(result);
   };
 
@@ -185,7 +229,7 @@ class Encryptor implements GenericEncryptor {
    */
   isVaultUpdated = (
     vault: string,
-    targetDerivationParams = DEFAULT_DERIVATION_PARAMS,
+    targetDerivationParams = this.derivationParams,
   ): boolean => {
     const { keyMetadata } = JSON.parse(vault);
     return (
@@ -210,7 +254,7 @@ class Encryptor implements GenericEncryptor {
   updateVault = async (
     vault: string,
     password: string,
-    targetDerivationParams = DEFAULT_DERIVATION_PARAMS,
+    targetDerivationParams = this.derivationParams,
   ): Promise<string> => {
     if (this.isVaultUpdated(vault, targetDerivationParams)) {
       return vault;
