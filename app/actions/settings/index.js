@@ -33,7 +33,7 @@ export function setLockTime(lockTime) {
   };
 }
 
-export function setPrimaryCurrency(primaryCurrency) {
+export function sectPrimaryCurrency(primaryCurrency) {
   return {
     type: 'SET_PRIMARY_CURRENCY',
     primaryCurrency,
@@ -44,5 +44,12 @@ export function setUseBlockieIcon(useBlockieIcon) {
   return {
     type: 'SET_USE_BLOCKIE_ICON',
     useBlockieIcon,
+  };
+}
+
+export function toggleBasicFunctionality(basicFunctionalityEnabled) {
+  return {
+    type: 'TOGGLE_BASIC_FUNCTIONALITY',
+    basicFunctionalityEnabled,
   };
 }

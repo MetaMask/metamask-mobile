@@ -120,6 +120,8 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
 import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
+import Routes from '../../../../constants/navigation/Routes';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -951,6 +953,12 @@ const Settings: React.FC = () => {
     );
   };
 
+  const handlePrivacyToggle = () => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
+    });
+  };
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -984,6 +992,14 @@ const Settings: React.FC = () => {
         <RevealPrivateKey />
         {isBlockaidFeatureEnabled() && <BlockaidSettings />}
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
+        <Text
+          variant={TextVariant.BodyLGMedium}
+          color={TextColor.Alternative}
+          style={{ ...styles.subHeading, ...styles.firstSetting }}
+        >
+          General
+        </Text>
+        <BasicFunctionalityComponent handleSwitchToggle={handlePrivacyToggle} />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

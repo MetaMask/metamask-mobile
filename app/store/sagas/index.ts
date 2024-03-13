@@ -14,6 +14,9 @@ import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
+import { isObject } from '@metamask/utils';
+
+const originalFetch = window.fetch; // Never touch this!
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -105,7 +108,46 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
   }
 }
 
+export function* basicFunctionalityToggle() {
+  while (true) {
+    const { basicFunctionalityEnabled } = yield take(
+      'TOGGLE_BASIC_FUNCTIONALITY',
+    );
+    console.log('TOGGLE_BASIC_FUNCTIONALITY SAGA', basicFunctionalityEnabled);
+    if (!basicFunctionalityEnabled) {
+      const list = ['infura', 'etherscan', 'api2', 'api3'];
+      window.fetch = function (fetchProp) {
+        let url = '';
+        if (typeof fetchProp === 'string') {
+          url = fetchProp;
+        } else if (isObject(fetchProp)) {
+          url = fetchProp.url as string;
+        }
+
+        if (!url) {
+          Promise.reject(new Error('No URL')).catch((error) => {
+            console.error(error);
+          });
+        }
+
+        if (!basicFunctionalityEnabled) {
+          const disallowed = list.find((api) => url.includes(api));
+          if (disallowed) {
+            Promise.reject(new Error(`Disallowed URL: ${url}`)).catch(
+              (error) => {
+                console.error(error);
+              },
+            );
+          }
+        }
+        return originalFetch.apply(this, [url]);
+      };
+    }
+  }
+}
+
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
   yield fork(authStateMachine);
+  yield fork(basicFunctionalityToggle);
 }

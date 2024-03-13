@@ -15,7 +15,7 @@ interface BasicFunctionalityComponentProps {
 
 const styles = StyleSheet.create({
   setting: {
-    marginTop: 32,
+    marginVertical: 16,
   },
   heading: {
     flexDirection: 'row',
