@@ -55,7 +55,7 @@ import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import AppConstants from '../../../../app/core/AppConstants';
-import { trackDappVisitedEvent } from '../../../util/metrics';
+import { trackDappViewedEvent } from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../../app/reducers';
 
@@ -102,7 +102,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   // Last wallet connect session metadata
   const wc2Metadata = useSelector((state: RootState) => state.sdk.wc2Metadata);
 
-  const dappIconUrl = sdkConnection.originatorInfo?.icon;
+  const dappIconUrl = sdkConnection?.originatorInfo?.icon;
+
   const faviconSource = useFavicon(origin);
 
   const actualIcon = useMemo(
@@ -171,10 +172,10 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
-  const triggerDappVisitedEvent = useCallback(
+  const triggerDappViewedEvent = useCallback(
     (numberOfConnectedAccounts: number) =>
-      // Track dapp visited event
-      trackDappVisitedEvent({ hostname, numberOfConnectedAccounts }),
+      // Track dapp viewed event
+      trackDappViewedEvent({ hostname, numberOfConnectedAccounts }),
     [hostname],
   );
 
@@ -205,7 +206,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         request,
       );
 
-      triggerDappVisitedEvent(connectedAccountLength);
+      triggerDappViewedEvent(connectedAccountLength);
 
       trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
@@ -250,7 +251,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     toastRef,
     accountsLength,
     metadataOrigin,
-    triggerDappVisitedEvent,
+    triggerDappViewedEvent,
     trackEvent,
   ]);
 

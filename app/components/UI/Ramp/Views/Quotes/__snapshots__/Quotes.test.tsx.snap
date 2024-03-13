@@ -1247,6 +1247,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                 pointerEvents="none"
                                 style={
                                   Object {
+                                    "alignSelf": "center",
                                     "height": 260,
                                     "width": 260,
                                   }
