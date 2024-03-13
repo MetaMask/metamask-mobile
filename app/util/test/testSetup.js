@@ -177,11 +177,11 @@ NativeModules.PlatformConstants = {
 };
 
 NativeModules.Aes = {
-  sha256: jest
-    .fn()
-    .mockImplementation((_address) =>
-      Promise.resolve('01234567898765432'),
-    ),
+  sha256: jest.fn().mockImplementation((address) => {
+    const uniqueAddressChar = address[2]; // Assuming 0x prefix is present, so actual third character is at index 2
+    const hashBase = '012345678987654';
+    return Promise.resolve(hashBase + uniqueAddressChar);
+  }),
 };
 
 jest.mock(
