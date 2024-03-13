@@ -3562,7 +3562,7 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-6.12.0.tgz#ad903528bf3687a44da435d7b2479d724d374f5d"
   integrity sha512-ExDoj1QV5eC6TEbMdLUMMk9cfvNKhhv5gXol4SmULRVCx/3iyCPhJ74nsb3S0Vb+/f+XujBEj3vQn5+cwS0fNA==
 
-"@ledgerhq/react-native-hw-transport-ble@^6.32.3":
+"@ledgerhq/react-native-hw-transport-ble@^6.29.5":
   version "6.32.3"
   resolved "https://registry.yarnpkg.com/@ledgerhq/react-native-hw-transport-ble/-/react-native-hw-transport-ble-6.32.3.tgz#d4a99dc8505dc1df03235d0119a61cb3c4956f0e"
   integrity sha512-yXNmoTpkWpFqVkGk/swZa2aMTGUDVSbTRdl2xhb3VEA6HjQL/Wb/O2eMb5jsjVjV8EHOi+SoHNgfD4nCNd+Shg==
