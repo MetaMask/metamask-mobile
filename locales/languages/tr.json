@@ -8,7 +8,7 @@
     "failed_title": "Talep güvenli olmayabilir",
     "failed_description": "Bu talep bir hatadan dolayı güvenlik sağlayıcısı tarafından doğrulanmadı. Dikkatli bir şekilde ilerleyin.",
     "loading_title": "Güvenlik uyarıları kontrol ediliyor...",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "Herhangi bir uyarı alınmadı. Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin.",
     "malicious_domain_description": "Kötü niyetli bir alanla etkileşimde bulunuyorsunuz. Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
     "other_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
     "raw_signature_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
@@ -902,27 +902,27 @@
     "disconnect_all_info": "Tüm sitelerin bağlantılarını kaldırırsanız tekrar bağlanmak için izin vermeniz gerekecektir.",
     "disconnect": "Bağlantıyı kes",
     "disconnect_all": "Tümünün bağlantısını kes",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "Tüm Hesapların bağlantısını kes",
+    "manage_connections": "Bağlantıları Yönet",
+    "manage": "Yönet",
     "cancel": "İptal",
     "loading": "MetaMask'a bağlanılıyor...",
     "unkown_dapp": "Merkeziyetsiz uygulama adı kullanılamıyor",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "Bağlantı yok",
+    "no_connections_desc": "Bir siteye veya bir uygulamaya bağladığınız hesabı burada göreceksiniz."
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "{{accountsLength}} hesap bağlandı."
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "Tüm sitelerden bağlantı kesilsin mi?",
+    "disconnect_all_desc": "Tüm sitelerden hesaplarınızın bağlantısını keserseniz onları tekrar bağlamak için izin vermeniz gerekecektir.",
+    "disconnect_account": "Hesabın bağlantısı kesilsin mi?",
+    "disconnect_all_accounts": "Tüm Hesapların bağlantısını kes",
+    "disconnect_all_accounts_desc": "{{dapp}} uygulamasından tüm hesaplarınızın bağlantısını keserseniz onları tekrar bağlamak için izin vermeniz gerekecektir.",
+    "disconnect_account_desc": "{{dapp}} uygulamasından {{account}} bağlantısını keserseniz onu tekrar bağlamak için izin vermeniz gerekecektir.",
+    "disconnect_confirm": "Bağlantıyı kes",
+    "cancel": "İptal"
   },
   "sdk_return_to_app_modal": {
     "title": "Uygulamaya geri dön",
@@ -1508,8 +1508,8 @@
     "select_network": "Bir ağ seçin",
     "show_test_networks": "Test ağlarını göster",
     "deprecated_goerli": "Ethereum'da yaşanan protokol değişikliklerinden dolayı: Goerli test ağı güvenilir bir şekilde çalışmayabilir ve yakında kullanım dışı olacak.",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "Bu ağ artık kullanılmıyor",
+    "network_deprecated_description": "Bağlanmaya çalıştığınız ağ artık Metamask'te desteklenmiyor."
   },
   "select": {
     "cancel": "İptal",
@@ -2058,6 +2058,10 @@
     "fetching_new_quotes": "Yeni teklifler alınıyor...",
     "quotes_expire_in": "Tekliflerin süresinin dolmasına kalan süre",
     "get_new_quotes": "Yeni teklifler al",
+    "explore_more_options": "Daha fazla seçenek keşfedin",
+    "one_more_option": "1 seçenek daha var",
+    "more_options": "{{count}} seçenek daha var",
+    "previously_used": "Daha önce kullanılan",
     "quotes_timeout": "Teklifler için zaman aşımı",
     "request_new_quotes": "En yeni en iyi oranı almak için lütfen yeni teklifler talep et.",
     "terms_of_service": "Hizmet Şartları",
