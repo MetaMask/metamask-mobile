@@ -16,23 +16,28 @@ import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../component-library/components/Checkbox/Checkbox';
-import { useRoute } from '@react-navigation/native';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleBasicFunctionality } from '../../../../actions/settings';
 import createStyles from './BasicFunctionalitySheet.styles';
+import { RootState } from 'app/reducers';
 
 const BasicFunctionalitySheet = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const { params } = useRoute<any>();
   const [isChecked, setIsChecked] = React.useState(false);
+  const dispatch = useDispatch();
+  const isEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
 
   const closeBottomSheet = () => {
-    bottomSheetRef.current?.onCloseBottomSheet();
+    bottomSheetRef.current?.onCloseBottomSheet(() =>
+      dispatch(toggleBasicFunctionality(!isEnabled)),
+    );
   };
 
   const handleSwitchToggle = () => {
-    console.log('Switch Toggled');
     closeBottomSheet();
   };
 
@@ -130,7 +135,7 @@ const BasicFunctionalitySheet = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      {!params.isEnabled ? renderTurnOffContent() : renderTurnOnContent()}
+      {isEnabled ? renderTurnOffContent() : renderTurnOnContent()}
     </BottomSheet>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import Text, {
   TextVariant,
@@ -41,12 +41,10 @@ const styles = StyleSheet.create({
 });
 
 const DefaultSettings = () => {
-  const [isEnabled] = useState(true);
   const navigation = useNavigation();
   const handleSwitchToggle = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-      params: { isEnabled },
     });
   };
 
@@ -55,10 +53,7 @@ const DefaultSettings = () => {
       <Text variant={TextVariant.BodyMD}>
         {strings('default_settings.description')}
       </Text>
-      <BasicFunctionalityComponent
-        handleSwitchToggle={handleSwitchToggle}
-        isEnabled={isEnabled}
-      />
+      <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
       <ManageNetworksComponent />
     </ScrollView>
   );

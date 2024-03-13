@@ -6,9 +6,10 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../app/util/theme';
 import { strings } from '../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../app/reducers';
 
 interface BasicFunctionalityComponentProps {
-  isEnabled: boolean;
   handleSwitchToggle: () => void;
 }
 
@@ -24,15 +25,18 @@ const styles = StyleSheet.create({
 });
 
 export default function BasicFunctionalityComponent({
-  isEnabled,
   handleSwitchToggle,
 }: BasicFunctionalityComponentProps) {
   const theme = useTheme();
   const { colors } = theme;
+  const isEnabled = useSelector(
+    (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
+
   return (
     <View style={styles.setting}>
       <View style={styles.heading}>
-        <Text variant={TextVariant.HeadingMD}>
+        <Text variant={TextVariant.HeadingSM}>
           {strings('default_settings.basic_functionality')}
         </Text>
         <Switch
@@ -46,11 +50,7 @@ export default function BasicFunctionalityComponent({
           ios_backgroundColor={colors.border.muted}
         />
       </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.description}
-      >
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
         {strings('default_settings.functionality_body')}
       </Text>
     </View>
