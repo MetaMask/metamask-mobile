@@ -7,7 +7,6 @@ import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
-import { sha256FromAddress } from "../../store/migrations/033";
 
 interface InitializeEngineResult {
   success: boolean;
