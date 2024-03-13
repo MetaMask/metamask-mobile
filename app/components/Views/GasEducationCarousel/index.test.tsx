@@ -1,19 +1,14 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import GasEducationCarousel from '.';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
-
-const mockStore = configureMockStore();
-const store = mockStore({});
 
 describe('GasEducationCarousel', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <GasEducationCarousel navigation={{ getParam: () => false }} />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <GasEducationCarousel
+        navigation={{ getParam: () => false, setOptions: () => null }}
+      />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

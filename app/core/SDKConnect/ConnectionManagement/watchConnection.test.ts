@@ -68,7 +68,6 @@ describe('watchConnection', () => {
 
       expect(mockRemoveChannel).toHaveBeenCalledWith({
         channelId: mockConnection.channelId,
-        emitRefresh: true,
         sendTerminate: false,
       });
     });
