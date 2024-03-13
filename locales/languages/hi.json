@@ -8,7 +8,7 @@
     "failed_title": "हो सकता है कि अनुरोध सुरक्षित न हो",
     "failed_description": "कोई समस्या होने के कारण, इस अनुरोध को सिक्यूरिटी प्रोवाइडर द्वारा सत्यापित नहीं किया गया। सावधानी से आगे बढ़ें।",
     "loading_title": "सुरक्षा अलर्ट की जाँच की जा रही है...",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "कोई एलर्ट प्राप्त नहीं हुआ। किसी भी अनुरोध को एप्रूव करने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें।",
     "malicious_domain_description": "आप एक बुरी नीयत वाले डोमेन से इंटरैक्ट कर रहे हैं। यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
     "other_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
     "raw_signature_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
@@ -902,27 +902,27 @@
     "disconnect_all_info": "यदि आप सभी साइटों के लिए अपने कनेक्शन्स हटाते हैं, तो फिर से कनेक्ट करने के लिए आपको अनुमति देनी होगी।",
     "disconnect": "डिसकनेक्ट करें",
     "disconnect_all": "सभी को डिस्कनेक्ट करें",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "सभी अकाउंट डिस्कनेक्ट करें",
+    "manage_connections": "कनेक्शन मैनेज करें",
+    "manage": "मैनेज करें",
     "cancel": "रद्द करें",
     "loading": "MetaMask से कनेक्ट हो रहा है...",
     "unkown_dapp": "DAPP नाम उपलब्ध नहीं है",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "कोई कनेक्शन नहीं",
+    "no_connections_desc": "यदि आप किसी अकाउंट को किसी साइट या ऐप से कनेक्ट करते हैं, तो वह आपको यहां दिखेगा।"
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "{{accountsLength}} अकाउंट कनेक्टेड हैं।"
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "सभी साइटों से डिसकनेक्ट करें?",
+    "disconnect_all_desc": "यदि आप सभी साइटों से अपने एकाउंट्स को डिसकनेक्ट करते हैं, तो उन्हें फिर से कनेक्ट करने के लिए आपको अनुमति देनी होगी।",
+    "disconnect_account": "अकाउंट डिस्कनेक्ट करें?",
+    "disconnect_all_accounts": "सभी अकाउंट डिस्कनेक्ट करें",
+    "disconnect_all_accounts_desc": "यदि आप {{dapp}} से सभी एकाउंट्स को डिसकनेक्ट करते हैं, तो उन्हें फिर से कनेक्ट करने के लिए आपको अनुमति देनी होगी।",
+    "disconnect_account_desc": "यदि आप {{dapp}} से {{account}} को डिसकनेक्ट करते हैं, तो उसे फिर से कनेक्ट करने के लिए आपको अनुमति देनी होगी।",
+    "disconnect_confirm": "डिसकनेक्ट करें",
+    "cancel": "कैंसिल करें"
   },
   "sdk_return_to_app_modal": {
     "title": "ऐप पर लौटें",
@@ -1508,8 +1508,8 @@
     "select_network": "एक नेटवर्क चुनें",
     "show_test_networks": "परीक्षण नेटवर्क दिखाएं",
     "deprecated_goerli": "Ethereum के प्रोटोकॉल परिवर्तनों के कारण: Goerli परीक्षण नेटवर्क विश्वसनीय रूप से काम नहीं कर सकता है और जल्द ही बंद हो जाएगा।",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "इस नेटवर्क को हटा दिया गया है",
+    "network_deprecated_description": "जिस नेटवर्क से आप कनेक्ट करने का प्रयास कर रहे हैं उसे अब MetaMask सपोर्ट नहीं करता।"
   },
   "select": {
     "cancel": "रद्द करें",
@@ -2058,6 +2058,10 @@
     "fetching_new_quotes": "नए उद्धरण प्राप्त कर रहे हैं...",
     "quotes_expire_in": "उद्धरण वैधता अवधि समाप्ति",
     "get_new_quotes": "नए उद्धरण प्राप्त करें",
+    "explore_more_options": "ज़्यादा विकल्प देखें",
+    "one_more_option": "1 और विकल्प",
+    "more_options": "{{count}} ज़्यादा विकल्प",
+    "previously_used": "पहले इस्तेमाल किया गया",
     "quotes_timeout": "उद्धरण समयबाह्य",
     "request_new_quotes": "नवीनतम सर्वोत्तम दर प्राप्त करने के लिए कृपया नए उद्धरणों का रिक्वेस्ट करें।",
     "terms_of_service": "सेवा की शर्तें",
