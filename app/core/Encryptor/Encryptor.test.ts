@@ -159,12 +159,7 @@ describe('Encryptor', () => {
             iv: 'mockedIV',
             salt: 'mockedSalt',
             lib: 'original',
-            keyMetadata: {
-              algorithm: 'PBKDF2',
-              params: {
-                iterations: 900000,
-              },
-            },
+            keyMetadata: DEFAULT_DERIVATION_PARAMS,
           }),
         ),
       ).toBe(true);
@@ -229,12 +224,7 @@ describe('Encryptor', () => {
         iv: 'mockedIV',
         salt: 'mockedSalt',
         lib: 'original',
-        keyMetadata: {
-          algorithm: 'PBKDF2',
-          params: {
-            iterations: 900000,
-          },
-        },
+        keyMetadata: DEFAULT_DERIVATION_PARAMS,
       };
 
       const updatedVault = await encryptor.updateVault(
