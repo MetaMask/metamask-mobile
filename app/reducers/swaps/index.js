@@ -65,8 +65,11 @@ export const swapsLivenessSelector = createSelector(
 export const swapsSmartTxFlagEnabled = createSelector(
   swapsStateSelector,
   chainIdSelector,
-  (swapsState, chainId) =>
-    Object.keys(swapsState[chainId]?.smartTransactions).length > 0,
+  (swapsState, chainId) => {
+    if (!swapsState[chainId]?.smartTransactions) return false;
+
+    return Object.keys(swapsState[chainId]?.smartTransactions).length > 0;
+  },
 );
 
 /**
