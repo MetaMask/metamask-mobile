@@ -2,6 +2,14 @@ import trackDappViewedEvent from './index';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
+jest.mock(
+  '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
+  () => {
+    return jest.fn(() => ({
+      // Return fixed metadata values for testing
+    }));
+  },
+);
 
 const mockMetrics = {
   trackEvent: jest.fn(),
