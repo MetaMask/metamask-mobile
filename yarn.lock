@@ -1848,10 +1848,22 @@
     "@ethereumjs/util" "^8.1.0"
     crc-32 "^1.2.0"
 
+"@ethereumjs/common@^4.2.0":
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-4.2.0.tgz#c5ccaeb71f5a9833c66ab35c22f9f965ce462ace"
+  integrity sha512-UWqovZQksxEY9cU+s1cF3JwFyJdKrJsURM+ORHpZZLQfsqQf+1uGbD3N0AvQ7M+Jz/LxkiVY98+Cd3OMzsrOcA==
+  dependencies:
+    "@ethereumjs/util" "^9.0.2"
+
 "@ethereumjs/rlp@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-4.0.1.tgz#626fabfd9081baab3d0a3074b0c7ecaf674aaa41"
   integrity sha512-tqsQiBQDQdmPWE1xkkBq4rlSW5QZpLOUJ5RJh2/9fug+q9tnUhuZoVLk7s0scUIKTOzEtR72DFBXI4WiZcMpvw==
+
+"@ethereumjs/rlp@^5.0.2":
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-5.0.2.tgz#c89bd82f2f3bec248ab2d517ae25f5bbc4aac842"
+  integrity sha512-DziebCdg4JpGlEqEdGgXmjqcFoJi+JGulUXwEjsZGAscAQ7MyD/7LE/GVCP29vEQxKc7AAwjT3A2ywHp2xfoCA==
 
 "@ethereumjs/tx@3.0.0":
   version "3.0.0"
@@ -1879,6 +1891,16 @@
     "@ethereumjs/util" "^8.1.0"
     ethereum-cryptography "^2.0.0"
 
+"@ethereumjs/tx@^5.2.1":
+  version "5.2.1"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-5.2.1.tgz#c9965374eafebd3421bdd23b4f23f402e9a41037"
+  integrity sha512-BzdtUaa7KtP8T5NxJWRxo/RBoJzxYeCdx2n2C4zZLuWJBYVccfcyMiyDgr6W78Utmu/jIfGXknfh2t06+rTkiw==
+  dependencies:
+    "@ethereumjs/common" "^4.2.0"
+    "@ethereumjs/rlp" "^5.0.2"
+    "@ethereumjs/util" "^9.0.2"
+    ethereum-cryptography "^2.1.3"
+
 "@ethereumjs/util@^8.0.0", "@ethereumjs/util@^8.0.2", "@ethereumjs/util@^8.0.6", "@ethereumjs/util@^8.1.0":
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-8.1.0.tgz#299df97fb6b034e0577ce9f94c7d9d1004409ed4"
@@ -1887,6 +1909,14 @@
     "@ethereumjs/rlp" "^4.0.1"
     ethereum-cryptography "^2.0.0"
     micro-ftch "^0.3.1"
+
+"@ethereumjs/util@^9.0.2":
+  version "9.0.2"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-9.0.2.tgz#2719337cd43d70941491c41e3367d7b87078f847"
+  integrity sha512-dasKCj6Vb5spVPnNmRDFHmbfBySvokE440F0RDroPLzO4Mb4hyDqeoOMUxlbLz/BscK2pOpWUendGA+AOvGpNQ==
+  dependencies:
+    "@ethereumjs/rlp" "^5.0.2"
+    ethereum-cryptography "^2.1.3"
 
 "@ethersproject/abi@5.7.0", "@ethersproject/abi@^5.5.0", "@ethersproject/abi@^5.7.0":
   version "5.7.0"
@@ -4396,8 +4426,10 @@
   integrity sha512-bFlJ8jhTYJ4iQ0zgh2WMO2615UJ4Ne5J831EjsqKYaZs3qd6UTw/cy76hAmSxhnBluNAH5S6zZzxESLrTitCmQ==
 
 "@metamask/smart-transactions-controller@file:.yalc/@metamask/smart-transactions-controller":
-  version "6.2.2"
+  version "6.2.2-3"
   dependencies:
+    "@ethereumjs/tx" "^5.2.1"
+    "@ethereumjs/util" "^9.0.2"
     "@ethersproject/bytes" "^5.7.0"
     "@metamask/base-controller" "^4.0.0"
     "@metamask/controller-utils" "^8.0.2"
@@ -4642,6 +4674,13 @@
   dependencies:
     "@noble/hashes" "1.3.1"
 
+"@noble/curves@1.3.0", "@noble/curves@~1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.3.0.tgz#01be46da4fd195822dab821e72f71bf4aeec635e"
+  integrity sha512-t01iSXPuN+Eqzb4eBX0S5oubSqXbK/xXa1Ne18Hj8f9pStxztHCE2gfboSp/dZRLSqfuLpRK2nDXDK+W9puocA==
+  dependencies:
+    "@noble/hashes" "1.3.3"
+
 "@noble/ed25519@^1.6.0":
   version "1.7.3"
   resolved "https://registry.yarnpkg.com/@noble/ed25519/-/ed25519-1.7.3.tgz#57e1677bf6885354b466c38e2b620c62f45a7123"
@@ -4656,6 +4695,11 @@
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.1.tgz#8831ef002114670c603c458ab8b11328406953a9"
   integrity sha512-EbqwksQwz9xDRGfDST86whPBgM65E0OH/pCgqW0GBVzO22bNE+NuIbeTb714+IfSjU3aRk47EUvXIb5bTsenKA==
+
+"@noble/hashes@1.3.3", "@noble/hashes@~1.3.2":
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.3.tgz#39908da56a4adc270147bb07968bf3b16cfe1699"
+  integrity sha512-V7/fPHgl+jsVPXqqeOzT8egNj2iBIVt+ECeMMG8TdcnTikP3oaBtUVqpT/gYCR68aEBJSF+XbYUxStjbFMqIIA==
 
 "@noble/hashes@^1.0.0", "@noble/hashes@^1.3.1", "@noble/hashes@~1.3.0", "@noble/hashes@~1.3.1":
   version "1.3.2"
@@ -5613,6 +5657,11 @@
   resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.1.3.tgz#8584115565228290a6c6c4961973e0903bb3df2f"
   integrity sha512-/+SgoRjLq7Xlf0CWuLHq2LUZeL/w65kfzAPG5NH9pcmBhs+nunQTn4gvdwgMTIXnt9b2C/1SeL2XiysZEyIC9Q==
 
+"@scure/base@~1.1.4":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.1.5.tgz#1d85d17269fe97694b9c592552dd9e5e33552157"
+  integrity sha512-Brj9FiG2W1MRQSTB212YVPRrcbjkv48FoZi/u4l/zds/ieRrqsh7aUf6CLwkAq61oKXr/ZlTzlY66gLIj3TFTQ==
+
 "@scure/bip32@1.1.5":
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/@scure/bip32/-/bip32-1.1.5.tgz#d2ccae16dcc2e75bc1d75f5ef3c66a338d1ba300"
@@ -5631,6 +5680,15 @@
     "@noble/hashes" "~1.3.1"
     "@scure/base" "~1.1.0"
 
+"@scure/bip32@1.3.3":
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/@scure/bip32/-/bip32-1.3.3.tgz#a9624991dc8767087c57999a5d79488f48eae6c8"
+  integrity sha512-LJaN3HwRbfQK0X1xFSi0Q9amqOgzQnnDngIt+ZlsBC3Bm7/nE7K0kwshZHyaru79yIVRv/e1mQAjZyuZG6jOFQ==
+  dependencies:
+    "@noble/curves" "~1.3.0"
+    "@noble/hashes" "~1.3.2"
+    "@scure/base" "~1.1.4"
+
 "@scure/bip39@1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@scure/bip39/-/bip39-1.1.1.tgz#b54557b2e86214319405db819c4b6a370cf340c5"
@@ -5646,6 +5704,14 @@
   dependencies:
     "@noble/hashes" "~1.3.0"
     "@scure/base" "~1.1.0"
+
+"@scure/bip39@1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@scure/bip39/-/bip39-1.2.2.tgz#f3426813f4ced11a47489cbcf7294aa963966527"
+  integrity sha512-HYf9TUXG80beW+hGAt3TRM8wU6pQoYur9iNypTROm42dorCGmLnFe3eWjz3gOq6G62H2WRh0FCzAR1PI+29zIA==
+  dependencies:
+    "@noble/hashes" "~1.3.2"
+    "@scure/base" "~1.1.4"
 
 "@segment/analytics-react-native@2.13.0":
   version "2.13.0"
@@ -14738,6 +14804,16 @@ ethereum-cryptography@^2.0.0, ethereum-cryptography@^2.1.2:
     "@noble/hashes" "1.3.1"
     "@scure/bip32" "1.3.1"
     "@scure/bip39" "1.2.1"
+
+ethereum-cryptography@^2.1.3:
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/ethereum-cryptography/-/ethereum-cryptography-2.1.3.tgz#1352270ed3b339fe25af5ceeadcf1b9c8e30768a"
+  integrity sha512-BlwbIL7/P45W8FGW2r7LGuvoEZ+7PWsniMvQ4p5s2xCyw9tmaDlpfsN9HjAucbF+t/qpVHwZUisgfK24TCW8aA==
+  dependencies:
+    "@noble/curves" "1.3.0"
+    "@noble/hashes" "1.3.3"
+    "@scure/bip32" "1.3.3"
+    "@scure/bip39" "1.2.2"
 
 ethereum-ens-network-map@^1.0.0:
   version "1.0.2"
