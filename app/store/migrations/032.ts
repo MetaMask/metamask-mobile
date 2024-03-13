@@ -13,14 +13,14 @@ export default async function migrate(stateAsync: unknown) {
 
   if (!isObject(state)) {
     captureException(
-      new Error(`Migration 33: Invalid state: '${typeof state}'`),
+      new Error(`Migration 32: Invalid state: '${typeof state}'`),
     );
     return {};
   }
 
   if (!isObject(state.engine)) {
     captureException(
-      new Error(`Migration 33: Invalid engine state: '${typeof state.engine}'`),
+      new Error(`Migration 32: Invalid engine state: '${typeof state.engine}'`),
     );
     const { engine, ...restState } = state;
     return restState;
@@ -29,7 +29,7 @@ export default async function migrate(stateAsync: unknown) {
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
-        `Migration 33: Invalid engine backgroundState: '${typeof state.engine
+        `Migration 32: Invalid engine backgroundState: '${typeof state.engine
           .backgroundState}'`,
       ),
     );
@@ -42,7 +42,7 @@ export default async function migrate(stateAsync: unknown) {
   if (!isObject(networkControllerState)) {
     captureException(
       new Error(
-        `Migration 33: Invalid NetworkController state: '${typeof networkControllerState}'`,
+        `Migration 32: Invalid NetworkController state: '${typeof networkControllerState}'`,
       ),
     );
     return state;
@@ -54,7 +54,7 @@ export default async function migrate(stateAsync: unknown) {
   ) {
     captureException(
       new Error(
-        `Migration 33: Invalid NetworkController providerConfig: '${typeof networkControllerState.providerConfig}'`,
+        `Migration 32: Invalid NetworkController providerConfig: '${typeof networkControllerState.providerConfig}'`,
       ),
     );
     return state;

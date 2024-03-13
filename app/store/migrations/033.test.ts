@@ -1,4 +1,4 @@
-import migration from './032';
+import migration from './033';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
