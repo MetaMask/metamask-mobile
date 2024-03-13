@@ -61,6 +61,7 @@ const createStyles = (
     foxContainer: {
       width: STAGE_SIZE,
       height: STAGE_SIZE,
+      alignSelf: 'center',
     },
   });
 
@@ -161,9 +162,7 @@ function LoadingAnimation({
   return (
     <View style={styles.screen}>
       <View style={styles.content}>
-        <>
-          <Title centered>{title}</Title>
-        </>
+        <Title centered>{title}</Title>
 
         <View style={styles.progressWrapper}>
           <Animated.View style={[styles.progressBar, progressStyle]} />
