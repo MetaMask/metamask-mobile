@@ -13,7 +13,6 @@ import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { Authentication } from '../../../core';
 import {
   getAssetFromTheme,
@@ -23,6 +22,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { CommonActions } from '@react-navigation/native';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -133,8 +133,15 @@ class LockScreen extends PureComponent {
   async unlockKeychain() {
     const { bioStateMachineId } = this.props;
     try {
-      // Retreive the credentials
+      // Retrieve the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
+
+      // Log to provide insights into bug research.
+      // Check https://github.com/MetaMask/mobile-planning/issues/1507
+      const { selectedAddress } = this.props;
+      if (typeof selectedAddress !== 'string') {
+        Logger.error('unlockKeychain error', 'selectedAddress is not a string');
+      }
       await Authentication.appTriggeredAuth({
         selectedAddress: this.props.selectedAddress,
         bioStateMachineId,

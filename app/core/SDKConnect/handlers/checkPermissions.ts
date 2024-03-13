@@ -1,13 +1,12 @@
+import { PermissionController } from '@metamask/permission-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
+import { getPermittedAccounts } from '../../../core/Permissions';
+import AppConstants from '../../AppConstants';
+import Engine from '../../Engine';
 import { Connection } from '../Connection';
 import { HOUR_IN_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
-import AppConstants from '../../AppConstants';
-import { ApprovalTypes } from '../../RPCMethods/RPCMethodMiddleware';
-import { PreferencesController } from '@metamask/preferences-controller';
-import { ApprovalController } from '@metamask/approval-controller';
-import { Json } from '@metamask/utils';
-import Engine from '../../Engine';
 
 // TODO: should be more generic and be used in wallet connect and android service as well
 export const checkPermissions = async ({
@@ -27,8 +26,10 @@ export const checkPermissions = async ({
     !!lastAuthorized && Date.now() - lastAuthorized < OTPExpirationDuration;
 
   DevLogger.log(
-    `SDKConnect checkPermissions initialConnection=${connection.initialConnection} lastAuthorized=${lastAuthorized} OTPExpirationDuration ${OTPExpirationDuration} channelWasActiveRecently ${channelWasActiveRecently}`,
+    `checkPermissions initialConnection=${connection.initialConnection} lastAuthorized=${lastAuthorized} OTPExpirationDuration ${OTPExpirationDuration} channelWasActiveRecently ${channelWasActiveRecently}`,
+    connection.originatorInfo,
   );
+
   // only ask approval if needed
   const approved = connection.isApproved({
     channelId: connection.channelId,
@@ -44,11 +45,15 @@ export const checkPermissions = async ({
     return true;
   }
 
-  const approvalController = (
-    engine.context as { ApprovalController: ApprovalController }
-  ).ApprovalController;
+  const permissionsController = (
+    engine.context as { PermissionController: PermissionController<any, any> }
+  ).PermissionController;
 
   if (connection.approvalPromise) {
+    DevLogger.log(`checkPermissions approvalPromise exists`);
+    // Make sure the window is displayed.
+    const match = permissionsController.hasPermissions(connection.channelId);
+    DevLogger.log(`checkPermissions match`, match);
     // Wait for result and clean the promise afterwards.
     await connection.approvalPromise;
     connection.approvalPromise = undefined;
@@ -63,37 +68,33 @@ export const checkPermissions = async ({
     return true;
   }
 
-  const approvalRequest = {
-    origin: connection.origin,
-    type: ApprovalTypes.CONNECT_ACCOUNTS,
-    requestData: {
-      hostname: connection.originatorInfo?.title ?? '',
-      pageMeta: {
-        channelId: connection.channelId,
-        reconnect: !connection.initialConnection,
-        origin: connection.origin,
-        url: connection.originatorInfo?.url ?? '',
-        title: connection.originatorInfo?.title ?? '',
-        icon: connection.originatorInfo?.icon ?? '',
-        otps: connection.otps ?? [],
-        apiVersion: connection.originatorInfo?.apiVersion,
-        analytics: {
-          request_source: AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN,
-          request_platform:
-            connection.originatorInfo?.platform ??
-            AppConstants.MM_SDK.UNKNOWN_PARAM,
-        },
-      } as Json,
-    },
-    id: connection.channelId,
-  };
-  connection.approvalPromise = approvalController.add(approvalRequest);
+  const origin = connection.channelId;
+  const acc = await getPermittedAccounts(origin);
+  if (acc.length > 0) {
+    DevLogger.log(
+      `checkPermissions acc founds length=${acc.length} -- APPROVED`,
+    );
+    return true;
+  }
 
-  await connection.approvalPromise;
-  // Clear previous permissions if already approved.
-  connection.revalidate({ channelId: connection.channelId });
-  connection.approvalPromise = undefined;
-  return true;
+  DevLogger.log(`checkPermissions request permissions`, acc);
+  connection.approvalPromise = permissionsController.requestPermissions(
+    { origin },
+    { eth_accounts: {} },
+    { id: connection.channelId },
+  );
+
+  try {
+    await connection.approvalPromise;
+    // Clear previous permissions if already approved.
+    connection.revalidate({ channelId: connection.channelId });
+    connection.approvalPromise = undefined;
+    return true;
+  } catch (err) {
+    DevLogger.log(`checkPermissions error`, err);
+    connection.approvalPromise = undefined;
+    throw err;
+  }
 };
 
 export default checkPermissions;

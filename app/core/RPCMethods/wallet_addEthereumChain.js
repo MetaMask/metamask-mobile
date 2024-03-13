@@ -8,8 +8,7 @@ import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
 } from '../../util/networks';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import AnalyticsV2 from '../../util/analyticsV2';
+import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
 import {
   selectChainId,
   selectNetworkConfigurations,
@@ -76,7 +75,8 @@ const wallet_addEthereumChain = async ({
     : null;
   // Remove trailing slashes
   const firstValidRPCUrl = dirtyFirstValidRPCUrl
-    ? dirtyFirstValidRPCUrl.replace(/\/+$/, '')
+    ? // https://github.com/MetaMask/mobile-planning/issues/1589
+      dirtyFirstValidRPCUrl.replace(/([^/])\/+$/g, '$1')
     : dirtyFirstValidRPCUrl;
 
   const firstValidBlockExplorerUrl =
@@ -150,7 +150,7 @@ const wallet_addEthereumChain = async ({
         },
       });
     } catch (e) {
-      AnalyticsV2.trackEvent(
+      MetaMetrics.getInstance().trackEvent(
         MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
         analyticsParams,
       );
@@ -160,7 +160,10 @@ const wallet_addEthereumChain = async ({
     CurrencyRateController.setNativeCurrency(networkConfiguration.ticker);
     NetworkController.setActiveNetwork(networkConfigurationId);
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, analyticsParams);
+    MetaMetrics.getInstance().trackEvent(
+      MetaMetricsEvents.NETWORK_SWITCHED,
+      analyticsParams,
+    );
 
     res.result = null;
     return;
@@ -242,7 +245,7 @@ const wallet_addEthereumChain = async ({
     ...analytics,
   };
 
-  AnalyticsV2.trackEvent(
+  MetaMetrics.getInstance().trackEvent(
     MetaMetricsEvents.NETWORK_REQUESTED,
     analyticsParamsAdd,
   );
@@ -263,7 +266,7 @@ const wallet_addEthereumChain = async ({
         requestData,
       });
     } catch (e) {
-      AnalyticsV2.trackEvent(
+      MetaMetrics.getInstance().trackEvent(
         MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
         analyticsParamsAdd,
       );
@@ -288,7 +291,10 @@ const wallet_addEthereumChain = async ({
         },
       );
 
-    AnalyticsV2.trackEvent(MetaMetricsEvents.NETWORK_ADDED, analyticsParamsAdd);
+    MetaMetrics.getInstance().trackEvent(
+      MetaMetricsEvents.NETWORK_ADDED,
+      analyticsParamsAdd,
+    );
 
     await waitForInteraction();
 

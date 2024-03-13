@@ -6017,7 +6017,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }
@@ -6722,7 +6722,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }
@@ -7427,7 +7427,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }
@@ -11675,7 +11675,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }

@@ -1,9 +1,0 @@
-{
-    "id": 1,
-    "experiment_id": 2,
-    "actions":[
-        {"path": "/UIView/UILabel[text == \"Old Text\"]", "args": [["New Text","NSString"]], "original": [["Old Text","NSString"]], "selector": "setText:", "swizzle":true, "swizzleClass":"UILabel", "swizzleSelector":"didMoveToWindow", "name":"XXXX-XXXX-XXXX"},
-        {"path": "/UIView/UILabel[text == \"Old Text 2\"]", "args": [["New Text","NSString"]], "original": [["Old Text 2","NSString"]], "selector": "setText:", "name":"YYYY-YYYY-YYYY"}
-    ],
-    "tweaks":[]
-}

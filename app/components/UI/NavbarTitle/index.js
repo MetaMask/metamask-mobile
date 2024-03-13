@@ -11,9 +11,9 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
 import { withNavigation } from '@react-navigation/compat';
 import { selectProviderConfig } from '../../../selectors/networkController';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -75,6 +75,10 @@ class NavbarTitle extends PureComponent {
      * Object that represents the navigator
      */
     navigation: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   static defaultProps = {
@@ -91,7 +95,7 @@ class NavbarTitle extends PureComponent {
           screen: Routes.SHEET.NETWORK_SELECTOR,
         });
 
-        Analytics.trackEventWithParameters(
+        this.props.metrics.trackEvent(
           MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
           {
             chain_id: getDecimalChainId(this.props.providerConfig.chainId),
@@ -160,4 +164,6 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
 });
 
-export default withNavigation(connect(mapStateToProps)(NavbarTitle));
+export default withNavigation(
+  connect(mapStateToProps)(withMetricsAwareness(NavbarTitle)),
+);
