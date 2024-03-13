@@ -29,7 +29,7 @@ describe('Encryptor', () => {
             },
           }),
       ).toThrowError(
-        `Invalid key derivation iterations: 100. The minimum required iterations is ${KeyDerivationIteration.Minimum}.`,
+        `Invalid key derivation iterations: 100. The minimum required is ${KeyDerivationIteration.Minimum}.`,
       );
     });
   });
