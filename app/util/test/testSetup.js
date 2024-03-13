@@ -179,8 +179,8 @@ NativeModules.PlatformConstants = {
 NativeModules.Aes = {
   sha256: jest
     .fn()
-    .mockImplementation((_) =>
-      Promise.resolve('mockedSha256'),
+    .mockImplementation((_address) =>
+      Promise.resolve('01234567898765432'),
     ),
 };
 
