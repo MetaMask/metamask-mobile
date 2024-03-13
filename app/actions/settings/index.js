@@ -33,7 +33,7 @@ export function setLockTime(lockTime) {
   };
 }
 
-export function sectPrimaryCurrency(primaryCurrency) {
+export function setPrimaryCurrency(primaryCurrency) {
   return {
     type: 'SET_PRIMARY_CURRENCY',
     primaryCurrency,
