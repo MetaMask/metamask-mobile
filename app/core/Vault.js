@@ -109,7 +109,7 @@ export const recreateVaultWithNewPassword = async (
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
   await restoreQRKeyring(qrKeyring);
-  await restoreLedgerKeyring(oldLedgerKeyring);
+  await restoreLedgerKeyring(ledgerKeyring);
 
   // Create previous accounts again
   for (let i = 0; i < existingAccountCount - 1; i++) {
