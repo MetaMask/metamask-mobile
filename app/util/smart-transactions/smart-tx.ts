@@ -88,6 +88,24 @@ interface Request {
   transactionController: TransactionController;
   isSmartTransaction: boolean;
   approvalController: ApprovalController;
+  featureFlags: {
+    isLive: boolean;
+    mobile_active: boolean;
+    extension_active: boolean;
+    fallback_to_v1: boolean;
+    fallbackToV1: boolean;
+    mobileActive: boolean;
+    extensionActive: boolean;
+    mobileActiveIOS: boolean;
+    mobileActiveAndroid: boolean;
+    smartTransactions:
+      | {
+          expectedDeadline: number;
+          maxDeadline: number;
+          returnTxHashAsap: boolean;
+        }
+      | Record<string, never>;
+  };
 }
 
 const LOG_PREFIX = 'STX publishHook';
@@ -99,8 +117,11 @@ export async function publishHook(request: Request) {
     transactionController,
     isSmartTransaction,
     approvalController,
+    featureFlags,
   } = request;
   const { chainId, transaction: txParams, origin } = transactionMeta;
+
+  Logger.log('STX featureflags', featureFlags);
 
   if (!isSmartTransaction) {
     Logger.log(LOG_PREFIX, 'Skipping hook as not enabled for chain', chainId);
@@ -250,21 +271,28 @@ export async function publishHook(request: Request) {
 
     Logger.log(LOG_PREFIX, 'Submitting signed transactions');
 
-    const response = await smartTransactionsController.submitSignedTransactions(
-      {
+    const submitTransactionResponse =
+      await smartTransactionsController.submitSignedTransactions({
         signedTransactions,
         signedCanceledTransactions,
         txParams,
-      },
-    );
+        transactionMeta,
+      });
 
-    const uuid = response?.uuid;
+    const uuid = submitTransactionResponse?.uuid;
+    const returnTxHashAsap = featureFlags?.smartTransactions.returnTxHashAsap;
 
     if (!uuid) {
       throw new Error(`${LOG_PREFIX} - No smart transaction UUID`);
     }
 
     Logger.log(LOG_PREFIX, 'Received UUID', uuid);
+    Logger.log(
+      LOG_PREFIX,
+      'returnTxHashAsap',
+      returnTxHashAsap,
+      submitTransactionResponse.txHash,
+    );
 
     // For MM Swaps, the user just confirms the ERC20 approval tx, then the actual swap tx is auto confirmed, so 2 stx's are sent through in quick succession
     if (shouldStartFlow) {
@@ -297,11 +325,12 @@ export async function publishHook(request: Request) {
     // null for error
     // string for success
     let transactionHash: string | null | undefined;
+    if (returnTxHashAsap && submitTransactionResponse?.txHash) {
+      transactionHash = submitTransactionResponse.txHash;
+    }
 
     // All tx types must eventually return a transaction hash, TransactionController is expecting it
     if (smartTransactionStatusApprovalId) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore-next-line
       smartTransactionsController.eventEmitter.on(
         `${uuid}:smartTransaction`,
         async (smartTransaction: SmartTransaction) => {
