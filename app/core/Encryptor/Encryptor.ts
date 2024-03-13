@@ -67,7 +67,7 @@ class Encryptor implements GenericEncryptor {
   private checkMinimalRequiredIterations = (iterations: number): void => {
     if (!this.isMinimalRequiredIterationsMet(iterations)) {
       throw new Error(
-        `Invalid key derivation iterations: ${iterations}. The minimum required is ${KeyDerivationIteration.Minimum}.`,
+        `Invalid key derivation iterations: ${iterations}. Recommended number of iterations is ${KeyDerivationIteration.Default}. Minimum required is ${KeyDerivationIteration.Minimum}.`,
       );
     }
   };
