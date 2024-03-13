@@ -5,6 +5,7 @@ import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
+import { sha256 } from 'ethereumjs-util';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -173,6 +174,14 @@ NativeModules.RNCNetInfo = {
 
 NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
+};
+
+NativeModules.Aes = {
+  sha256: jest
+    .fn()
+    .mockImplementation((_) =>
+      Promise.resolve('mockedSha256'),
+    ),
 };
 
 jest.mock(
