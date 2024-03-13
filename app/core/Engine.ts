@@ -925,6 +925,7 @@ class Engine {
         supportedChainIds: [
           NETWORKS_CHAIN_ID.MAINNET,
           NETWORKS_CHAIN_ID.GOERLI,
+          NETWORKS_CHAIN_ID.SEPOLIA,
         ],
       },
       initialState.SmartTransactionsController,
