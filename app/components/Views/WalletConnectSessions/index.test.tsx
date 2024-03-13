@@ -1,13 +1,13 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import WalletConnectSessions from './';
 
 describe('WalletConnectSessions', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = renderWithProvider(
       <WalletConnectSessions navigation={{ setOptions: () => null }} />,
     );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
