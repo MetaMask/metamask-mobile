@@ -659,17 +659,12 @@ class FixtureBuilder {
     const networkIDs = {}; // Object to store network configurations
 
     // Loop through each network in PopularNetworkList
-    Object.values(PopularNetworksList).forEach((network) => {
+    for (const key in PopularNetworksList) {
+      const network = PopularNetworksList[key];
       const { rpcUrl, chainId, ticker, nickname } = network.providerConfig;
 
-      // Store network configuration in the networkIDs object
-      networkIDs[nickname] = {
-        rpcUrl,
-        chainId,
-        ticker,
-        nickname,
-      };
-    });
+      networkIDs[nickname] = { rpcUrl, chainId, ticker, nickname };
+    }
 
     // Assign networkIDs object to NetworkController in fixtures
     fixtures.NetworkController = {
