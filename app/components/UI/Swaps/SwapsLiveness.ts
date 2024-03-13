@@ -12,7 +12,6 @@ import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';
 import { isSwapsAllowed } from './utils';
 import { EngineState } from '../../../selectors/types';
-import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
 function SwapLiveness() {
@@ -27,14 +26,8 @@ function SwapLiveness() {
   );
   const checkLiveness = useCallback(async () => {
     try {
-      // Swaps API doesn't return feature flags for Goerli and Sepolia
-      // In dev just use mainnet's feature flags
       const featureFlags = await swapsUtils.fetchSwapsFeatureLiveness(
-        __DEV__ &&
-          (chainId === NETWORKS_CHAIN_ID.GOERLI ||
-            chainId === NETWORKS_CHAIN_ID.SEPOLIA)
-          ? NETWORKS_CHAIN_ID.MAINNET
-          : chainId,
+        chainId,
         AppConstants.SWAPS.CLIENT_ID,
       );
 
