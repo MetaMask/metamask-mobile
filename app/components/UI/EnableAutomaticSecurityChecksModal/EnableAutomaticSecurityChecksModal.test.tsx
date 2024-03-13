@@ -1,19 +1,24 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import { EnableAutomaticSecurityChecksModal } from './';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 
-const mockStore = configureMockStore();
-const store = mockStore({});
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => jest.fn(),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getBrand: () => 'some brand',
+  getBuildNumber: () => 'some build number',
+  getVersion: () => 'some version',
+}));
 
 describe('EnableAutomaticSecurityChecksModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <EnableAutomaticSecurityChecksModal />
-      </Provider>,
+    const { toJSON } = renderScreen(
+      EnableAutomaticSecurityChecksModal,
+      { name: 'EnableAutomaticSecurityChecksModal' },
+      { state: {} },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

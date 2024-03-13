@@ -73,6 +73,7 @@ describe('Migration #24', () => {
       networkStatus: 'unknown',
       providerConfig: {
         chainId: '0x1',
+        ticker: 'ETH',
         type: 'mainnet',
       },
     });
@@ -101,6 +102,7 @@ describe('Migration #24', () => {
       providerConfig: {
         chainId: '0x1',
         type: 'mainnet',
+        ticker: 'ETH',
       },
     });
   });

@@ -140,6 +140,7 @@ class FixtureBuilder {
               providerConfig: {
                 type: 'mainnet',
                 chainId: '0x1',
+                ticker: 'ETH',
               },
               networkDetails: {
                 EIPS: {},
