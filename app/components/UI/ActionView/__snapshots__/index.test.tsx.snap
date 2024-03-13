@@ -74,7 +74,7 @@ exports[`ActionView should render correctly 1`] = `
         onStartShouldSetResponder={[Function]}
       >
         <Text>
-          Hello
+          Confirm
         </Text>
       </View>
       <View
