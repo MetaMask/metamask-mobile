@@ -144,12 +144,13 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   useEffect(() => {
-    const isAllowed = isAllowedUrl(dappUrl);
+    const isAllowed = isAllowedUrl(dappUrl || wc2Metadata?.url || '');
+
     if (!isAllowed) {
       setBlockedUrl(dappUrl);
       setShowPhishingModal(true);
     }
-  }, [isAllowedUrl, dappUrl]);
+  }, [isAllowedUrl, dappUrl, wc2Metadata?.url]);
 
   const faviconSource = useFavicon(origin);
 
