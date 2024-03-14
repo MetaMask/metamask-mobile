@@ -102,6 +102,8 @@ import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectMo
 import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
+import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -370,7 +372,15 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     const initMetrics = async () => {
-      await MetaMetrics.getInstance().configure();
+      const metrics = MetaMetrics.getInstance();
+      await metrics.configure();
+      // identify user with the latest traits
+      // run only after the MetaMetrics is configured
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      await metrics.addTraitsToUser(consolidatedTraits);
     };
 
     initMetrics().catch((err) => {
