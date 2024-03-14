@@ -27,6 +27,10 @@ const allowedChainIds = [
   LINEA_CHAIN_ID,
   SWAPS_TESTNET_CHAIN_ID,
 ];
+if (__DEV__) {
+  allowedChainIds.push(NETWORKS_CHAIN_ID.GOERLI);
+  allowedChainIds.push(NETWORKS_CHAIN_ID.SEPOLIA);
+}
 
 export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ACTIVE) {
