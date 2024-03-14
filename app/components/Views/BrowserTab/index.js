@@ -99,7 +99,7 @@ import { regex } from '../../../../app/util/regex';
 import { selectChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/BrowserView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import trackDappVisitedEvent from '../../../util/metrics/trackDappVisited';
+import trackDappVisitedEvent from '../../../util/metrics/trackDappVisitedEvent';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
