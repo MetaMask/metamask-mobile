@@ -34,6 +34,8 @@ const config = {
     '\\.svg': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
   },
+  // Disable jest cache
+  cache: false,
 };
 
 // eslint-disable-next-line import/no-commonjs
