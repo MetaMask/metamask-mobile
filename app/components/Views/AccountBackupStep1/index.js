@@ -7,7 +7,6 @@ import {
   SafeAreaView,
   StyleSheet,
   BackHandler,
-  InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
@@ -27,12 +26,11 @@ import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
-
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -128,6 +126,10 @@ const AccountBackupStep1 = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const track = (event, properties) => {
+    trackOnboarding(event, properties);
+  };
+
   useEffect(() => {
     navigation.setOptions({
       ...getOnboardingNavbarOptions(
@@ -161,18 +163,14 @@ const AccountBackupStep1 = (props) => {
 
   const goNext = () => {
     props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
   const showRemindLater = () => {
     if (hasFunds) return;
 
     setRemindLaterModal(true);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
   };
 
   const toggleSkipCheckbox = () =>
@@ -190,9 +188,7 @@ const AccountBackupStep1 = (props) => {
 
   const skip = async () => {
     hideRemindLaterModal();
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
     const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
     if (onboardingWizard) {

@@ -15,12 +15,11 @@ import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import AppConstants from '../../../core/AppConstants';
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import WarningMessage from '../../Views/SendFlow/WarningMessage';
+import WarningMessage from '../../Views/confirmations/SendFlow/WarningMessage';
 import NotificationManager from '../../../core/NotificationManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -35,6 +34,8 @@ import {
 import { NFT_IDENTIFIER_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { regex } from '../../../../app/util/regex';
 import { AddCustomTokenViewSelectorsIDs } from '../../../../e2e/selectors/AddCustomTokenView.selectors';
+import { getDecimalChainId } from '../../../util/networks';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -78,7 +79,7 @@ const createStyles = (colors) =>
 /**
  * Copmonent that provides ability to add custom tokens.
  */
-export default class AddCustomToken extends PureComponent {
+class AddCustomToken extends PureComponent {
   state = {
     address: '',
     symbol: '',
@@ -103,6 +104,10 @@ export default class AddCustomToken extends PureComponent {
      * Checks if token detection is supported
      */
     isTokenDetectionSupported: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   getAnalyticsParams = () => {
@@ -112,7 +117,7 @@ export default class AddCustomToken extends PureComponent {
       return {
         token_address: address,
         token_symbol: symbol,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         source: 'Custom token',
       };
     } catch (error) {
@@ -126,7 +131,7 @@ export default class AddCustomToken extends PureComponent {
     const { address, symbol, decimals, name } = this.state;
     await TokensController.addToken(address, symbol, decimals, { name });
 
-    AnalyticsV2.trackEvent(
+    this.props.metrics.trackEvent(
       MetaMetricsEvents.TOKEN_ADDED,
       this.getAnalyticsParams(),
     );
@@ -478,3 +483,5 @@ export default class AddCustomToken extends PureComponent {
 }
 
 AddCustomToken.contextType = ThemeContext;
+
+export default withMetricsAwareness(AddCustomToken);

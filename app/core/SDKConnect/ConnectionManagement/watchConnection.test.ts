@@ -37,6 +37,9 @@ describe('watchConnection', () => {
     mockInstance = {
       state: {
         disabledHosts: {},
+        connections: {
+          [mockConnection.channelId]: {},
+        },
       },
       removeChannel: mockRemoveChannel,
       emit: jest.fn(),
@@ -65,7 +68,6 @@ describe('watchConnection', () => {
 
       expect(mockRemoveChannel).toHaveBeenCalledWith({
         channelId: mockConnection.channelId,
-        emitRefresh: true,
         sendTerminate: false,
       });
     });

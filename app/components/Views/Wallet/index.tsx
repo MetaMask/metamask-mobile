@@ -1,12 +1,6 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import {
-  InteractionManager,
-  ActivityIndicator,
-  StyleSheet,
-  View,
-  TextStyle,
-} from 'react-native';
-import { Theme } from '@metamask/design-tokens';
+import { ActivityIndicator, StyleSheet, View, TextStyle } from 'react-native';
+import type { Theme } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -14,10 +8,14 @@ import { baseStyles } from '../../../styles/common';
 import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import { renderFromWei, weiToFiat, hexToBN } from '../../../util/number';
+import {
+  renderFromWei,
+  weiToFiat,
+  hexToBN,
+  toHexadecimal,
+} from '../../../util/number';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
-import Analytics from '../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -27,6 +25,7 @@ import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
+  getDecimalChainId,
   getNetworkImageSource,
   getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
@@ -42,8 +41,10 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAccounts } from '../../hooks/useAccounts';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -86,12 +87,15 @@ const Wallet = ({ navigation }: any) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
+
   /**
-   * Map of accounts to information objects including balances
+   * Map of accountsByChainId to information objects including balances
    */
-  const accounts = useSelector(selectAccounts);
+  const accountsByChainId = useSelector(selectAccountsByChainId);
+
   /**
    * ETH to current currency conversion rate
    */
@@ -121,6 +125,32 @@ const Wallet = ({ navigation }: any) => {
    */
   const providerConfig = useSelector(selectProviderConfig);
 
+  /**
+   * A list of all the user accounts and a mapping of ENS name to account address if they exist
+   */
+  const { accounts, ensByAccountAddress } = useAccounts();
+
+  /**
+   * An object representing the currently selected account.
+   */
+  const selectedAccount = useMemo(() => {
+    if (accounts.length > 0) {
+      return accounts.find((account) => account.isSelected);
+    }
+    return undefined;
+  }, [accounts]);
+
+  /**
+   * ENS name for the currently selected account.
+   * This value may be undefined if there is no corresponding ENS name for the account.
+   */
+  const ensForSelectedAccount = useMemo(() => {
+    if (ensByAccountAddress && selectedAccount) {
+      return ensByAccountAddress[selectedAccount.address];
+    }
+    return undefined;
+  }, [ensByAccountAddress, selectedAccount]);
+
   const networkName = useMemo(
     () => getNetworkNameFromProviderConfig(providerConfig),
     [providerConfig],
@@ -142,13 +172,10 @@ const Wallet = ({ navigation }: any) => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
-    Analytics.trackEventWithParameters(
-      MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
-      {
-        chain_id: providerConfig.chainId,
-      },
-    );
-  }, [navigate, providerConfig.chainId]);
+    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
+      chain_id: getDecimalChainId(providerConfig.chainId),
+    });
+  }, [navigate, providerConfig.chainId, trackEvent]);
   const { colors: themeColors } = useTheme();
 
   /**
@@ -188,7 +215,7 @@ const Wallet = ({ navigation }: any) => {
       });
     },
     /* eslint-disable-next-line */
-    [navigation],
+    [navigation, providerConfig.chainId],
   );
 
   useEffect(() => {
@@ -223,21 +250,31 @@ const Wallet = ({ navigation }: any) => {
     [styles, colors],
   );
 
-  const onChangeTab = useCallback((obj) => {
-    InteractionManager.runAfterInteractions(() => {
+  const onChangeTab = useCallback(
+    (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
-        Analytics.trackEvent(MetaMetricsEvents.WALLET_TOKENS);
+        trackEvent(MetaMetricsEvents.WALLET_TOKENS);
       } else {
-        Analytics.trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
+        trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
       }
-    });
-  }, []);
+    },
+    [trackEvent],
+  );
 
   const renderContent = useCallback(() => {
     let balance: any = 0;
     let assets = tokens;
-    if (accounts[selectedAddress]) {
-      balance = renderFromWei(accounts[selectedAddress].balance);
+
+    if (
+      accountsByChainId?.[toHexadecimal(providerConfig.chainId)]?.[
+        selectedAddress
+      ]
+    ) {
+      balance = renderFromWei(
+        accountsByChainId[toHexadecimal(providerConfig.chainId)][
+          selectedAddress
+        ].balance,
+      );
 
       assets = [
         {
@@ -247,7 +284,11 @@ const Wallet = ({ navigation }: any) => {
           isETH: true,
           balance,
           balanceFiat: weiToFiat(
-            hexToBN(accounts[selectedAddress].balance) as any,
+            hexToBN(
+              accountsByChainId[toHexadecimal(providerConfig.chainId)][
+                selectedAddress
+              ].balance,
+            ) as any,
             conversionRate,
             currentCurrency,
           ),
@@ -260,8 +301,14 @@ const Wallet = ({ navigation }: any) => {
     }
     return (
       <View style={styles.wrapper}>
-        <WalletAccount style={styles.walletAccount} ref={walletRef} />
-
+        {selectedAccount ? (
+          <WalletAccount
+            account={selectedAccount}
+            ens={ensForSelectedAccount}
+            style={styles.walletAccount}
+            ref={walletRef}
+          />
+        ) : null}
         <ScrollableTabView
           renderTabBar={renderTabBar}
           // eslint-disable-next-line react/jsx-no-bind
@@ -290,16 +337,20 @@ const Wallet = ({ navigation }: any) => {
       </View>
     );
   }, [
+    tokens,
+    accountsByChainId,
+    providerConfig.chainId,
+    selectedAddress,
+    styles.wrapper,
+    styles.walletAccount,
+    selectedAccount,
+    ensForSelectedAccount,
     renderTabBar,
-    accounts,
+    onChangeTab,
+    navigation,
+    ticker,
     conversionRate,
     currentCurrency,
-    navigation,
-    onChangeTab,
-    selectedAddress,
-    ticker,
-    tokens,
-    styles,
   ]);
   const renderLoader = useCallback(
     () => (

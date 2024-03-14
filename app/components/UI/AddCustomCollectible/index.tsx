@@ -16,7 +16,6 @@ import ActionView from '../ActionView';
 import { isSmartContractAddress } from '../../../util/transactions';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
 import { CUSTOM_TOKEN_CONTAINER_ID } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
@@ -29,6 +28,8 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { selectChainId } from '../../../selectors/networkController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -81,6 +82,7 @@ const AddCustomCollectible = ({
   const [loading, setLoading] = useState(false);
   const assetTokenIdInput = React.createRef() as any;
   const { colors, themeAppearance } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
   const selectedAddress = useSelector(selectSelectedAddress);
@@ -102,7 +104,7 @@ const AddCustomCollectible = ({
   const getAnalyticsParams = () => {
     try {
       return {
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
       };
     } catch (error) {
       return {};
@@ -189,10 +191,7 @@ const AddCustomCollectible = ({
     const { NftController } = Engine.context as any;
     NftController.addNft(address, tokenId);
 
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.COLLECTIBLE_ADDED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_ADDED, getAnalyticsParams());
     setLoading(false);
     navigation.goBack();
   };

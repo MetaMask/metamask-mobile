@@ -7,19 +7,21 @@
     "deceptive_request_title": "Essa solicitação é enganosa",
     "failed_title": "A solicitação pode não ser segura",
     "failed_description": "Em razão de um erro, essa solicitação não foi confirmada pelo provedor de segurança. Prossiga com cautela.",
-    "loading_title": "Essa solicitação ainda está em simulação. Recomendamos aguardar sua conclusão.",
-    "loading_complete_title": "Simulação concluída. Revise a solicitação antes de prosseguir.",
+    "loading_title": "Verificando se há alertas de segurança...",
+    "loading_complete_title": "Nenhum alerta recebido. Sempre faça sua própria devida diligência antes de aprovar solicitações.",
     "malicious_domain_description": "Você está interagindo com um domínio mal-intencionado. Se você aprovar essa solicitação, poderá perder seus ativos.",
     "other_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
     "raw_signature_farming_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
     "seaport_farming_description": "Se você aprovar essa solicitação, alguém poderá roubar seus ativos listados na OpenSea.",
     "see_details": "Ver detalhes",
     "does_not_look_right": "Alguma coisa não parece certa?",
+    "report_an_issue": "Comunicar um problema",
     "suspicious_request_title": "Essa solicitação é suspeita",
     "trade_order_farming_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
     "transfer_farming_description": "Se você aprovar essa solicitação, algum terceiro conhecido por aplicar golpes tomará todos os seus ativos.",
     "before_you_proceed": "Antes de continuar",
     "enable_blockaid_alerts": "Para ativar esse recurso, precisamos configurar alguns alertas de segurança. Esta página precisa continuar aberta enquanto é configurada. Isso levará menos de um minuto para terminar.",
+    "enable_blockaid_alerts_description": "Esta página precisa permanecer aberta enquanto os alertas de segurança são configurados. Esse processo levará menos de um minuto para terminar.",
     "setting_up_alerts": "Configurando alertas de segurança",
     "setting_up_alerts_description": "Estamos indo o mais rápido possível para configurar os alertas de segurança. Aguente firme, estamos quase terminando.",
     "setup_complete": "Configuração concluída",
@@ -374,6 +376,15 @@
     "no_nfts_yet": "Nenhum NFT até agora",
     "nfts_autodetection_title": "Detecção de NFTs",
     "nfts_autodetection_desc": "Permita que a MetaMask detecte NFTs automaticamente da OpenSea e os exiba na sua carteira MetaMask.",
+    "network_details_check": "A verificação dos dados da rede",
+    "network_with_chain_id": "A rede com a ID de cadeia",
+    "potential_scam": "Isto é um possível golpe",
+    "network_not_matching": "Esta rede não corresponde ao nome ou ID de cadeia associados a ela. Muitos tokens populares usam o nome",
+    "target_scam_network": "o que o torna alvo de golpes. Os golpistas podem tentar enganar você para que envie a eles moedas mais valiosas em troca. Verifique tudo antes de continuar.",
+    "use_the_currency_symbol": "usa o símbolo de moeda",
+    "use_correct_symbol": "Certifique-se de usar o símbolo correto antes de continuar",
+    "chain_id_currently_used": "Esta ID de cadeia está sendo usada pela",
+    "network_check_validation_desc": "reduz suas chances de se conectar a uma rede mal-intencionada ou incorreta.",
     "nfts_autodetection_cta": "Ative a detecção de NFTs nas Configurações",
     "learn_more": "Saiba mais",
     "add_collectibles": "Importar NFTs",
@@ -404,6 +415,7 @@
     "display_media_nft_warning": "Exibir mídias e dados de NFTs pode expor seu endereço IP a servidores centralizados. Importe NFTs somente se você entende os riscos envolvidos.",
     "nfts_autodetect_title": "Detecção automática de NFTs",
     "nfts_autodetect_cta": "Ative a Detecção automática de NFTs nas Configurações",
+    "turn_on_network_check_cta": "Ativar verificação de dados da rede",
     "display_nft_media_cta_new_1": "Para ver um NFT, ative Exibir mídias de NFTs em",
     "display_nft_media_cta_new_2": "Configurações > Segurança e Privacidade."
   },
@@ -535,7 +547,6 @@
     "import_account": "Importar uma conta",
     "connect_hardware": "Conectar carteira de hardware",
     "imported": "Importadas",
-    "qr_hardware": "Hardware com QR",
     "remove_account_title": "Remoção da conta",
     "remove_account_message": "Tem certeza de que deseja remover esta conta?",
     "no": "Não",
@@ -577,7 +588,7 @@
     "revoked_all": "Todas as contas revogadas.",
     "accounts_connected": "contas conectadas.",
     "disconnected": "desconectada.",
-    "disconnected_all": "Todas as contas desconectadas."
+    "disconnected_all": "Todas as contas estão desconectadas."
   },
   "connect_qr_hardware": {
     "title": "Conecte uma carteira de hardware baseada em QR",
@@ -598,8 +609,8 @@
     "please_wait": "Aguarde"
   },
   "account_selector": {
-    "prev": "VOLTAR",
-    "next": "AVANÇAR",
+    "prev": "ANT",
+    "next": "PRÓX",
     "unlock": "Desbloquear",
     "forget": "Esquecer este dispositivo"
   },
@@ -710,7 +721,6 @@
     "network_chain_id_label": "ID da cadeia",
     "network_chain_id_placeholder": "ID da cadeia",
     "network_symbol_label": "Símbolo",
-    "network_symbol_placeholder": "Símbolo (opcional)",
     "network_block_explorer_label": "URL do explorador de blocos",
     "network_block_explorer_placeholder": "URL do explorador de blocos (opcional)",
     "network_chain_id_warning": "ID de cadeia inválido",
@@ -754,6 +764,9 @@
     "invalid_password": "Senha inválida",
     "invalid_password_message": "A senha está incorreta. Tente novamente.",
     "security_heading": "Segurança",
+    "ses_heading": "Bloqueio de código",
+    "ses_description": "Trata-se de um recurso experimental que bloqueia qualquer alteração no código JavaScript do app feita sem permissão.",
+    "ses_link": "Saiba mais",
     "privacy_heading": "Privacidade",
     "failed_to_fetch_chain_id": "Não foi possível buscar o ID da cadeia. Seu URL da RPC está correto?",
     "endpoint_returned_different_chain_id": "O terminal retornou um ID de cadeia diferente: %{chainIdReturned}",
@@ -824,6 +837,8 @@
     "incoming_transactions_title": "Exibir transações recebidas",
     "incoming_transactions_content": "Isso depende da rede que você selecionar. Seu endereço Ethereum e seu endereço IP ficarão expostos.",
     "display_nft_media_desc_new": "Exibir arquivos de mídia e dados de NFTs expõe seu endereço IP à OpenSea ou a outros terceiros. A detecção automática de NFTs depende desse recurso e não estará disponível quando ele estiver desativado. Se o arquivo de mídia do NFT estiver integralmente localizado no IPFS, ele ainda poderá ser exibido, mesmo quando esse recurso estiver desativado.",
+    "use_safe_chains_list_validation_desc_1": "A MetaMask usa um serviço terceirizado chamado ",
+    "use_safe_chains_list_validation_desc_2": "para exibir dados precisos e padronizados sobre as redes. Isso reduz suas chances de se conectar a uma rede mal-intencionada ou incorreta. Ao usar esse recurso, seu endereço IP é exposto ao  ",
     "snaps": {
       "title": "Snaps",
       "description": "Visualize e gerencie seus Snaps",
@@ -873,18 +888,41 @@
     "privacy_browser_subheading": "Limpar dados de privacidade ou do navegador",
     "analytics_subheading": "Análises",
     "transactions_subheading": "Transações",
+    "network_provider": "Provedor de rede",
     "token_nft_ens_subheading": "Detecção automática de tokens, NFTs e ENS",
-    "security_check_subheading": "Verificações de segurança"
+    "security_check_subheading": "Verificações de segurança",
+    "symbol_required": "O símbolo é obrigatório.",
+    "blockaid": "Blockaid",
+    "blockaid_desc": "Privacidade resguardada: nenhum dado é compartilhado com terceiros. Disponível na Arbitrum, Avalanche, BNB Chain, Mainnet da Ethereum, Optimism e Polygon.",
+    "security_alerts": "Alertas de segurança",
+    "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor."
   },
   "sdk": {
     "disconnect_title": "Desconectar todos os sites?",
     "disconnect_all_info": "Se você remover suas conexões com todos os sites, precisará dar permissão para se reconectar.",
     "disconnect": "Desconectar",
     "disconnect_all": "Desconectar todos",
+    "disconnect_all_accounts": "Desconectar todas as contas",
+    "manage_connections": "Gerenciar conexões",
+    "manage": "Gerenciar",
     "cancel": "Cancelar",
     "loading": "Conectando à MetaMask...",
     "unkown_dapp": "Nome do dapp indisponível",
-    "no_connections": "Nenhuma conexão encontrada"
+    "no_connections": "Nenhuma conexão",
+    "no_connections_desc": "Se conectar uma conta a um site ou app, você os verá aqui."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} conta(s) conectada(s)."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Desconectar de todos os sites?",
+    "disconnect_all_desc": "Se desconectar suas contas de todos os sites, você precisará dar permissões para reconectá-las.",
+    "disconnect_account": "Deconectar conta?",
+    "disconnect_all_accounts": "Desconectar todas as contas",
+    "disconnect_all_accounts_desc": "Se desconectar todas as contas de {{dapp}}, você precisará dar permissões para reconectá-las.",
+    "disconnect_account_desc": "Se desconectar {{account}} de {{dapp}}, você precisará dar permissões para reconectá-la.",
+    "disconnect_confirm": "Desconectar",
+    "cancel": "Cancelar"
   },
   "sdk_return_to_app_modal": {
     "title": "Voltar ao app",
@@ -1186,7 +1224,7 @@
     "gas_education_2_ethereum": "rede Ethereum.",
     "gas_education_2": "rede.",
     "gas_education_3": "A MetaMask não lucra com as taxas de gás.",
-    "gas_education_4": "As taxas de gás oscilam com base no tráfego da rede e na complexidade da transação.",
+    "gas_education_4": "As taxas de gás variam com base no tráfego da rede e na complexidade da transação.",
     "gas_education_learn_more": "Saiba mais sobre as taxas de gás",
     "confusable_title": "Verifique o endereço do destinatário",
     "confusable_msg": "Detectamos um caractere ambíguo no nome ENS. Verifique o nome ENS para evitar um possível golpe.",
@@ -1431,6 +1469,7 @@
     "status_ok": "Todos os sistemas em operação",
     "status_not_ok": "A rede está com alguns problemas",
     "want_to_add_network": "Deseja adicionar essa rede?",
+    "add_custom_network": "Adicionar rede personalizada",
     "network_infomation": "Isso permite que a rede seja usada na MetaMask",
     "network_endorsement": "A MetaMask não endossa redes personalizadas nem sua segurança.",
     "learn_about": "Saiba mais sobre",
@@ -1440,12 +1479,15 @@
     "network_rpc_url": "URL da rede",
     "view_details": "Ver detalhes",
     "network_details": "Detalhes da rede",
+    "network_select_confirm_use_safe_check": "Ao selecionar \"confirmar\", a verificação de dados da rede é ativada. Você pode desativar a verificação de dados da rede em ",
+    "network_settings_security_privacy": "Configurações > Segurança e privacidade",
     "network_currency_symbol": "Símbolo da moeda",
     "network_block_explorer_url": "URL do explorador de blocos",
     "search": "Pesquisar rede adicionada anteriormente",
     "add": "Adicionar",
     "cancel": "Cancelar",
     "approve": "Aprovar",
+    "edit_network_details": "Editar os dados da rede",
     "malicious_network_warning": "Um provedor de rede mal-intencionado pode mentir sobre o estado da blockchain e registrar sua atividade na rede. Adicione apenas redes personalizadas em que você confia.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Informações da rede",
@@ -1465,7 +1507,9 @@
     "add_network": "adicionar mais redes manualmente.",
     "select_network": "Selecione uma rede",
     "show_test_networks": "Exibir redes de teste",
-    "deprecated_goerli": "Devido às alterações no protocolo Ethereum, a rede de teste Goerli pode não funcionar com a mesma confiabilidade e será descontinuada."
+    "deprecated_goerli": "Devido às alterações no protocolo Ethereum, a rede de teste Goerli pode não funcionar com a mesma confiabilidade e será descontinuada.",
+    "network_deprecated_title": "Essa rede foi descontinuada",
+    "network_deprecated_description": "A rede à qual você está tentando se conectar não é mais suportada pela MetaMask."
   },
   "select": {
     "cancel": "Cancelar",
@@ -1684,7 +1728,7 @@
   },
   "manual_backup_step_1": {
     "action": "Anote sua Frase de Recuperação Secreta",
-    "info": "Esta é a sua Frase de Recuperação Secreta. Anote-a em uma folha de papel e guarde-a em um lugar seguro. Você precisará reinserir a frase (em ordem) no passo seguinte.",
+    "info": "Esta é a sua Frase de Recuperação Secreta. Anote-a em um papel e guarde-a em um lugar seguro. Você precisará reinserir a frase (em ordem) no próximo passo.",
     "continue": "Continuar",
     "reveal": "Toque para revelar sua Frase de Recuperação Secreta",
     "watching": "Certifique-se de que não há ninguém vendo sua tela.",
@@ -1823,11 +1867,7 @@
     "wallet_connect_dapps_desc": "Veja a lista de sessões WalletConnect ativas",
     "wallet_connect_dapps_cta": "Ver sessões",
     "network_not_supported": "Rede atual não compatível",
-    "security_alerts": "Alertas de segurança",
-    "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",
     "select_provider": "Selecione seu provedor de preferência",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Privacy preserving - no data is shared with third parties.",
     "switch_network": "Alterne para a Mainnet ou Sepolia"
   },
   "walletconnect_sessions": {
@@ -2018,8 +2058,13 @@
     "fetching_new_quotes": "Obtendo novas cotações...",
     "quotes_expire_in": "As cotações expiram em",
     "get_new_quotes": "Obter novas cotações",
+    "explore_more_options": "Explorar mais opções",
+    "one_more_option": "Mais 1 opção",
+    "more_options": "Outras {{count}} opções",
+    "previously_used": "Usado anteriormente",
     "quotes_timeout": "Cotações expiradas",
     "request_new_quotes": "Solicite novas cotações para obter a melhor taxa mais recente.",
+    "terms_of_service": "Termos de Serviço",
     "amount_to_buy": "Valor a comprar",
     "amount_to_sell": "Valor a vender",
     "want_to_buy": "Você deseja comprar",
@@ -2049,8 +2094,8 @@
     "insufficient_balance": "Esse valor é superior ao seu saldo",
     "enter_larger_amount": "Insira um valor maior para continuar",
     "enter_smaller_amount": "Insira um valor menor para continuar",
-    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
-    "max": "MAX",
+    "enter_lower_gas_fees": "Insira um valor menor para pagar as taxas de gás",
+    "max": "MÁX.",
     "try_again": "Tente novamente",
     "error": "Erro",
     "something_went_wrong": "Ops, algo deu errado",
@@ -2362,9 +2407,10 @@
     "title": "Novidades",
     "blockaid": {
       "title": "Fique protegido com os alertas de segurança",
-      "description_1": "Fique longe de golpes conhecidos enquanto resguarda sua privacidade com alertas de segurança com tecnologia da Blockaid na Mainnet da Ethereum.",
+      "description_1": "Fique protegido contra golpes conhecidos enquanto resguarda sua privacidade com os alertas de segurança da Blockaid. Esse recurso agora é ativado por padrão para todos os usuários da MetaMask.",
       "description_2": "Sempre faça sua própria devida diligência antes de aprovar solicitações.",
-      "action_text": "Ativar alertas de segurança"
+      "description_3": "Disponível em Arbitrum, Avalanche, BNB Chain, Mainnet da Ethereum, Linea, Optimism e Polygon.",
+      "got_it": "Entendi"
     },
     "sell": {
       "title": "Saque fácil",
@@ -2382,7 +2428,7 @@
   "switch_custom_network": {
     "title_existing_network": "Este site deseja alternar a rede",
     "title_new_network": "Nova rede adicionada",
-    "switch_warning": "Isso alternará a rede selecionada na MetaMask para uma rede adicionada anteriormente:",
+    "switch_warning": "Isso alternará a rede selecionada dentro da MetaMask para uma rede adicionada anteriormente:",
     "available": "está disponível agora no seletor de redes.",
     "cancel": "Cancelar",
     "switch": "Alternar rede"
@@ -2401,7 +2447,7 @@
     "details_title": "Detalhes da rede",
     "cancel": "Cancelar",
     "approve": "Aprovar",
-    "unrecognized_chain": "Esta rede personalizada não foi reconhecida",
+    "unrecognized_chain": "Essa rede personalizada não foi reconhecida",
     "invalid_chain": "A %{rpcUrl} deste ID de cadeia não coincide com a lista de chainid.network",
     "alert_recommend": "Recomendamos que você",
     "alert_verify": "verifique o ID da cadeia",
@@ -2730,10 +2776,7 @@
     "error_during_connection_message": "Está ocorrendo um pequeno problema ao conectar sua Ledger Nano X. Toque abaixo em \"Tentar novamente\" para tentar mais uma vez. Às vezes isso ocorre quando o app ETH em sua Ledger Nano X é aberto no início do processo de emparelhamento com o MetaMask Mobile.",
     "how_to_install_eth_webview_title": "Como instalar o app Ethereum",
     "nonce_too_low": "Nonce muito baixo",
-    "nonce_too_low_error": "O nonce definido está muito baixo",
-    "ledger_beta_alert": "Ativando integração com o Ledger",
-    "ledger_beta_alert_description": "Você descobriu um recurso experimental! Ao continuar, você aceita usar este recurso experimental por sua conta e risco.",
-    "ledger_beta_cta": "Continuar"
+    "nonce_too_low_error": "O nonce definido está muito baixo"
   },
   "account_actions": {
     "edit_name": "Editar nome da conta",
@@ -2758,7 +2801,7 @@
     "show_display_nft_media_content_2": "Exibir mídias de NFTs.",
     "show_display_nft_media_content_3": "Exibir mídias e dados de NFTs expõe seu endereço IP à OpenSea ou a outros terceiros. A detecção automática de NFTs depende desse recurso e não está disponível se ele for desativado.",
     "show_display_nft_media_content_4": "Você pode desativar Exibir mídias de NFTs em",
-    "show_display_nft_media_content_5": "Configurações > Segurança e Privacidade."
+    "show_display_nft_media_content_5": "Configurações > Segurança e privacidade."
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "Gateway de IPFS",

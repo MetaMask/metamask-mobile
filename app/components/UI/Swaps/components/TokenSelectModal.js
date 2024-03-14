@@ -8,7 +8,6 @@ import {
   View,
   TouchableWithoutFeedback,
   ActivityIndicator,
-  InteractionManager,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -55,11 +54,12 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
-import Analytics from '../../../../core/Analytics/Analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { getDecimalChainId } from '../../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -157,6 +157,8 @@ function TokenSelectModal({
   balances,
 }) {
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
+
   const searchInput = useRef(null);
   const list = useRef();
   const [searchString, setSearchString] = useState('');
@@ -301,17 +303,15 @@ function TokenSelectModal({
   const handlePressImportToken = useCallback(
     (item) => {
       const { address, symbol } = item;
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED,
-          { address, symbol, chain_id: chainId },
-          true,
-        );
+      trackEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
+        address,
+        symbol,
+        chain_id: getDecimalChainId(chainId),
       });
       hideTokenImportModal();
       onItemPress(item);
     },
-    [chainId, hideTokenImportModal, onItemPress],
+    [chainId, hideTokenImportModal, onItemPress, trackEvent],
   );
 
   const handleBlockExplorerPress = useCallback(() => {

@@ -1,11 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
-import PropTypes from 'prop-types';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Browser from '../../Views/Browser';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Settings from '../../Views/Settings';
@@ -21,8 +20,8 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
-import Send from '../../Views/Send';
-import SendTo from '../../Views/SendFlow/SendTo';
+import Send from '../../Views/confirmations/Send';
+import SendTo from '../../Views/confirmations/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -37,8 +36,8 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import Amount from '../../Views/SendFlow/Amount';
-import Confirm from '../../Views/SendFlow/Confirm';
+import Amount from '../../Views/confirmations/SendFlow/Amount';
+import Confirm from '../../Views/confirmations/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
@@ -47,17 +46,11 @@ import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import Drawer from '../../UI/Drawer';
 
-import { RampSDKProvider } from '../../UI/Ramp/sdk';
+import RampRoutes from '../../UI/Ramp/routes';
 import { RampType } from '../../UI/Ramp/types';
-import GetStarted from '../../UI/Ramp/Views/GetStarted';
-import PaymentMethods from '../../UI/Ramp/Views/PaymentMethods/PaymentMethods';
-import BuildQuote from '../../UI/Ramp/Views/BuildQuote/BuildQuote';
-import Quotes from '../../UI/Ramp/Views/Quotes';
-import CheckoutWebView from '../../UI/Ramp/Views/Checkout';
 import RampSettings from '../../UI/Ramp/Views/Settings';
-import NetworkSwitcher from '../../UI/Ramp/Views/NetworkSwitcher';
 import RampAddActivationKey from '../../UI/Ramp/Views/Settings/AddActivationKey';
-import Regions from '../../UI/Ramp/Views/Regions';
+
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
@@ -68,7 +61,6 @@ import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
@@ -80,6 +72,9 @@ import isUrl from 'is-url';
 import SDKSessionsManager from '../../Views/SDKSessionsManager/SDKSessionsManager';
 import URL from 'url-parse';
 import Logger from '../../../util/Logger';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -332,6 +327,7 @@ const SettingsFlow = () => (
 );
 
 const HomeTabs = () => {
+  const { trackEvent } = useMetrics();
   const drawerRef = useRef(null);
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
@@ -339,7 +335,7 @@ const HomeTabs = () => {
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
-    return NetworksChainId[providerConfig.type];
+    return ChainId[providerConfig.type];
   });
 
   const amountOfBrowserOpenTabs = useSelector(
@@ -371,9 +367,9 @@ const HomeTabs = () => {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_OPENED, {
+        trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
         });
       },
       rootScreenName: Routes.WALLET_VIEW,
@@ -385,9 +381,9 @@ const HomeTabs = () => {
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+        trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
-          chain_id: chainId,
+          chain_id: getDecimalChainId(chainId),
           source: 'Navigation Tab',
           active_connected_dapp: activeConnectedDapp,
           number_of_open_tabs: amountOfBrowserOpenTabs,
@@ -398,16 +394,14 @@ const HomeTabs = () => {
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
       callback: () => {
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-        );
+        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
       callback: () => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
+        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
       },
       rootScreenName: Routes.SETTINGS_VIEW,
       unmountOnBlur: true,
@@ -555,46 +549,6 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const Ramps = ({ rampType }) => (
-  <RampSDKProvider rampType={rampType}>
-    <Stack.Navigator initialRouteName={Routes.RAMP.GET_STARTED}>
-      <Stack.Screen name={Routes.RAMP.GET_STARTED} component={GetStarted} />
-      <Stack.Screen
-        name={Routes.RAMP.NETWORK_SWITCHER}
-        component={NetworkSwitcher}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen
-        name={Routes.RAMP.PAYMENT_METHOD}
-        component={PaymentMethods}
-      />
-      <Stack.Screen
-        name={Routes.RAMP.PAYMENT_METHOD_HAS_STARTED}
-        component={PaymentMethods}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen name={Routes.RAMP.BUILD_QUOTE} component={BuildQuote} />
-      <Stack.Screen
-        name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
-        component={BuildQuote}
-        options={{ animationEnabled: false }}
-      />
-      <Stack.Screen name={Routes.RAMP.QUOTES} component={Quotes} />
-      <Stack.Screen name={Routes.RAMP.CHECKOUT} component={CheckoutWebView} />
-      <Stack.Screen name={Routes.RAMP.REGION} component={Regions} />
-      <Stack.Screen
-        name={Routes.RAMP.REGION_HAS_STARTED}
-        component={Regions}
-        options={{ animationEnabled: false }}
-      />
-    </Stack.Navigator>
-  </RampSDKProvider>
-);
-
-Ramps.propTypes = {
-  rampType: PropTypes.string,
-};
-
 const Swaps = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -671,6 +625,19 @@ const MainNavigator = () => (
         }),
       }}
     />
+    <Stack.Screen
+      name={Routes.DEPRECATED_NETWORK_DETAILS}
+      component={DeprecatedNetworkDetails}
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+    />
     <Stack.Screen name="Home" component={HomeTabs} />
     <Stack.Screen name="Asset" component={AssetModalFlow} />
     <Stack.Screen name="Webview" component={Webview} />
@@ -686,10 +653,10 @@ const MainNavigator = () => (
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
-      {() => <Ramps rampType={RampType.BUY} />}
+      {() => <RampRoutes rampType={RampType.BUY} />}
     </Stack.Screen>
     <Stack.Screen name={Routes.RAMP.SELL}>
-      {() => <Ramps rampType={RampType.SELL} />}
+      {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
     <Stack.Screen

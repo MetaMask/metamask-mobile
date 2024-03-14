@@ -1,6 +1,6 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
-import engineReducer from '../redux/slices/engine';
+import engineReducer from '../core/redux/slices/engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
 import settingsReducer from './settings';
@@ -11,11 +11,11 @@ import wizardReducer from './wizard';
 import onboardingReducer from './onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
-import navigationReducer from './navigation';
 import signatureRequestReducer from './signatureRequest';
 import notificationReducer from './notification';
 import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
+import navigationReducer from './navigation';
 import networkOnboardReducer from './networkSelector';
 import securityReducer from './security';
 import { combineReducers, Reducer } from 'redux';
@@ -23,6 +23,7 @@ import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
 import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
+import sdkReducer from './sdk';
 /**
  * Infer state from a reducer
  *
@@ -60,6 +61,7 @@ export interface RootState {
   // The networkOnboarded reducer is TypeScript but not yet a valid reducer
   networkOnboarded: any;
   security: StateFromReducer<typeof securityReducer>;
+  sdk: StateFromReducer<typeof sdkReducer>;
   // The experimentalSettings reducer is TypeScript but not yet a valid reducer
   experimentalSettings: any;
   signatureRequest: any;
@@ -83,13 +85,14 @@ const rootReducer = combineReducers<RootState, any>({
   wizard: wizardReducer,
   onboarding: onboardingReducer,
   notification: notificationReducer,
-  navigation: navigationReducer,
   signatureRequest: signatureRequestReducer,
   swaps: swapsReducer,
   fiatOrders,
   infuraAvailability: infuraAvailabilityReducer,
+  navigation: navigationReducer,
   networkOnboarded: networkOnboardReducer,
   security: securityReducer,
+  sdk: sdkReducer,
   experimentalSettings: experimentalSettingsReducer,
   rpcEvents: rpcEventReducer,
   accounts: accountsReducer,

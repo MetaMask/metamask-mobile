@@ -36,7 +36,7 @@ export const regex: RegexTypes = {
   nonNumber: /[^0-9.]/g,
   number: /^(\d+(\.\d+)?)$/,
   portfolioUrl: new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`),
-  prefixedFormattedHexString: /^0x[1-9a-f]+[0-9a-f]*$/iu,
+  prefixedFormattedHexString: /^0x[1-9a-f][0-9a-f]*$/iu,
   privateCredentials: /"/g,
   protocol: /^[a-z]*:\/\//,
   replaceNetworkErrorSentry: /0x[A-Fa-f0-9]{40}/u,

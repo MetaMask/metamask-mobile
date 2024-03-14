@@ -15,6 +15,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import SDKConnect from '../../../../../../../app/core/SDKConnect/SDKConnect';
 
 const ClearPrivacy = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -24,6 +25,7 @@ const ClearPrivacy = () => {
   const clearApprovals = () => {
     const { PermissionController } = Engine.context as any;
     PermissionController?.clearState?.();
+    SDKConnect.getInstance().removeAll();
     setModalVisible(false);
   };
 

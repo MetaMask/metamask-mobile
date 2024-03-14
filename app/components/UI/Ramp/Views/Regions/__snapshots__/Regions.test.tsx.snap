@@ -737,7 +737,7 @@ exports[`Regions View renders correctly 1`] = `
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#FCFCFC",
+                                          "color": "#FFFFFF",
                                         },
                                         undefined,
                                       ],
@@ -1879,7 +1879,7 @@ exports[`Regions View renders correctly with error 1`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }
@@ -2081,7 +2081,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                           },
                                           undefined,
                                         ],
@@ -3165,7 +3165,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                             <View
                               style={
                                 Object {
-                                  "marginTop": -100,
+                                  "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
                                 }
@@ -3367,7 +3367,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                             "textAlign": "center",
                                           },
                                           Object {
-                                            "color": "#FCFCFC",
+                                            "color": "#FFFFFF",
                                           },
                                           undefined,
                                         ],
@@ -4133,7 +4133,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#FCFCFC",
+                                          "color": "#FFFFFF",
                                         },
                                         undefined,
                                       ],
@@ -4955,7 +4955,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#FCFCFC",
+                                          "color": "#FFFFFF",
                                         },
                                         undefined,
                                       ],
@@ -6153,7 +6153,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#FCFCFC",
+                                          "color": "#FFFFFF",
                                         },
                                         undefined,
                                       ],
@@ -7351,7 +7351,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                           "textAlign": "center",
                                         },
                                         Object {
-                                          "color": "#FCFCFC",
+                                          "color": "#FFFFFF",
                                         },
                                         undefined,
                                       ],
