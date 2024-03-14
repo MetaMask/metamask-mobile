@@ -1,23 +1,46 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import LedgerMessageSignModal from './LedgerMessageSignModal';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 import { RPCStageTypes } from '../../../reducers/rpcEvents';
 
-const mockStore = configureMockStore();
+jest.mock('react-native-device-info', () => ({
+  getSystemVersion: () => 'some version',
+}));
+
+jest.mock('react-native-permissions', () => ({
+  request: () => 'something',
+  check: jest.fn().mockRejectedValue('granted'),
+  checkMultiple: jest.fn().mockRejectedValue({
+    'android.permission.ACCESS_FINE_LOCATION': 'granted',
+    'android.permission.BLUETOOTH_SCAN': 'granted',
+    'android.permission.BLUETOOTH_CONNECT': 'granted',
+  }),
+  RESULTS: {
+    GRANTED: 'granted',
+  },
+  PERMISSIONS: {
+    IOS: {
+      BLUETOOTH_PERIPHERAL: 'ios.permission.BLUETOOTH_PERIPHERAL',
+    },
+    ANDROID: {
+      ACCESS_FINE_LOCATION: 'android.permission.ACCESS_FINE_LOCATION',
+      BLUETOOTH_SCAN: 'android.permission.BLUETOOTH_SCAN',
+      BLUETOOTH_CONNECT: 'android.permission.BLUETOOTH_CONNECT',
+    },
+  },
+  openSettings: jest.fn(),
+}));
+
 const initialState = {
   rpcEvents: { signingEvent: RPCStageTypes.IDLE },
 };
-const store = mockStore(initialState);
 
 describe('LedgerMessageSignModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <LedgerMessageSignModal />
-      </Provider>,
+    const { toJSON } = renderScreen(
+      LedgerMessageSignModal,
+      { name: 'LederMessageSignModal' },
+      { state: initialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

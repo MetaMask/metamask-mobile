@@ -1,24 +1,12 @@
 import React from 'react';
 import OptinMetrics from './';
-import { shallow } from 'enzyme';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
-
-const mockStore = configureMockStore();
-const initialState = {
-  onboarding: {
-    event: 'event',
-  },
-};
-const store = mockStore(initialState);
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('OptinMetrics', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <OptinMetrics />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <OptinMetrics navigation={{ setOptions: () => null }} />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON).toMatchSnapshot();
   });
 });

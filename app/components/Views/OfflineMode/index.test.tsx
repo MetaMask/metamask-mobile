@@ -1,8 +1,7 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import configureMockStore from 'redux-mock-store';
 import OfflineMode from './';
-import { Provider } from 'react-redux';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -12,13 +11,17 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
+jest.mock('@react-native-community/netinfo', () => ({
+  useNetInfo: () => {
+    return {
+      isInternetReachable: false,
+    };
+  },
+}));
+
 describe('OfflineMode', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <OfflineMode />
-      </Provider>,
-    );
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<OfflineMode />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -1,37 +1,439 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`NetworksSettings should render correctly 1`] = `
-<ContextProvider
-  value={
+<View
+  style={
     Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "marginBottom": 24,
+      "paddingHorizontal": 24,
+      "paddingVertical": 12,
     }
   }
+  testID="networks-screen"
 >
-  <Component />
-</ContextProvider>
+  <View
+    style={
+      Object {
+        "alignItems": "center",
+        "borderColor": "#BBC0C5",
+        "borderRadius": 5,
+        "borderWidth": 1,
+        "color": "#24272A",
+        "flexDirection": "row",
+        "paddingHorizontal": 10,
+        "paddingVertical": 10,
+      }
+    }
+  >
+    <Text
+      allowFontScaling={false}
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "fontSize": 20,
+          },
+          undefined,
+          Object {
+            "fontFamily": "Ionicons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          Object {},
+        ]
+      }
+    >
+      
+    </Text>
+    <TextInput
+      onChangeText={[Function]}
+      placeholder="Search for previously added network"
+      placeholderTextColor="#24272A"
+      style={
+        Object {
+          "color": "#24272A",
+          "flex": 1,
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "paddingLeft": 10,
+        }
+      }
+      value=""
+    />
+  </View>
+  <RCTScrollView>
+    <View>
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        Mainnet
+      </Text>
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "paddingVertical": 12,
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flex": 0,
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Image
+              source={
+                Object {
+                  "uri": "MockImage",
+                }
+              }
+              style={
+                Object {
+                  "borderRadius": 10,
+                  "height": 20,
+                  "marginRight": 16,
+                  "marginTop": 2,
+                  "width": 20,
+                }
+              }
+            />
+            <View>
+              <Text
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                  }
+                }
+              >
+                Ethereum Main Network
+              </Text>
+            </View>
+          </View>
+          <Text
+            allowFontScaling={false}
+            style={
+              Array [
+                Object {
+                  "color": "#24272A",
+                  "fontSize": 20,
+                },
+                Object {
+                  "marginLeft": 8,
+                },
+                Object {
+                  "fontFamily": "FontAwesome",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                Object {},
+              ]
+            }
+          >
+            
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            Object {
+              "alignItems": "center",
+              "flex": 1,
+              "flexDirection": "row",
+              "paddingVertical": 12,
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flex": 0,
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Image
+              source={
+                Object {
+                  "uri": "MockImage",
+                }
+              }
+              style={
+                Object {
+                  "borderRadius": 10,
+                  "height": 20,
+                  "marginRight": 16,
+                  "marginTop": 2,
+                  "width": 20,
+                }
+              }
+            />
+            <View>
+              <Text
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                  }
+                }
+              >
+                Linea Main Network
+              </Text>
+            </View>
+          </View>
+          <Text
+            allowFontScaling={false}
+            style={
+              Array [
+                Object {
+                  "color": "#24272A",
+                  "fontSize": 20,
+                },
+                Object {
+                  "marginLeft": 8,
+                },
+                Object {
+                  "fontFamily": "FontAwesome",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                Object {},
+              ]
+            }
+          >
+            
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <Text
+        style={
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "paddingVertical": 12,
+          }
+        }
+      >
+        Test networks
+      </Text>
+      <View>
+        <TouchableOpacity
+          onLongPress={[Function]}
+          onPress={[Function]}
+        >
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "paddingVertical": 12,
+              }
+            }
+          >
+            <Image
+              source={
+                Object {
+                  "uri": "MockImage",
+                }
+              }
+              style={
+                Object {
+                  "borderRadius": 10,
+                  "height": 20,
+                  "marginRight": 16,
+                  "marginTop": 2,
+                  "width": 20,
+                }
+              }
+            />
+            <Text
+              style={
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                }
+              }
+            >
+              Sepolia Test Network
+            </Text>
+            <Text
+              allowFontScaling={false}
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontSize": 20,
+                  },
+                  Object {
+                    "marginLeft": 8,
+                  },
+                  Object {
+                    "fontFamily": "FontAwesome",
+                    "fontStyle": "normal",
+                    "fontWeight": "normal",
+                  },
+                  Object {},
+                ]
+              }
+            >
+              
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+      <View>
+        <TouchableOpacity
+          onLongPress={[Function]}
+          onPress={[Function]}
+        >
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "paddingVertical": 12,
+              }
+            }
+          >
+            <Image
+              source={
+                Object {
+                  "uri": "MockImage",
+                }
+              }
+              style={
+                Object {
+                  "borderRadius": 10,
+                  "height": 20,
+                  "marginRight": 16,
+                  "marginTop": 2,
+                  "width": 20,
+                }
+              }
+            />
+            <Text
+              style={
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                }
+              }
+            >
+              Linea Goerli Test Network
+            </Text>
+            <Text
+              allowFontScaling={false}
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontSize": 20,
+                  },
+                  Object {
+                    "marginLeft": 8,
+                  },
+                  Object {
+                    "fontFamily": "FontAwesome",
+                    "fontStyle": "normal",
+                    "fontWeight": "normal",
+                  },
+                  Object {},
+                ]
+              }
+            >
+              
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </RCTScrollView>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={0.2}
+    onPress={[Function]}
+    style={
+      Array [
+        Array [
+          Object {
+            "borderRadius": 100,
+            "justifyContent": "center",
+            "padding": 15,
+          },
+          Object {
+            "backgroundColor": "#0376C9",
+            "minHeight": 50,
+          },
+          undefined,
+        ],
+        null,
+      ]
+    }
+    testID="add-network-button"
+  >
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#007aff",
+            "fontSize": 17,
+            "fontWeight": "500",
+            "textAlign": "center",
+          },
+          null,
+          Array [
+            Object {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 14,
+              "fontWeight": "600",
+              "textAlign": "center",
+            },
+            Object {
+              "color": "#FFFFFF",
+            },
+            undefined,
+          ],
+          null,
+        ]
+      }
+    >
+      Add Network
+    </Text>
+  </TouchableOpacity>
+</View>
 `;
