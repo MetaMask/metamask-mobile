@@ -1,7 +1,6 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, может похитить все ваши активы.",
-    "attribution": "На основе",
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Если вы одобрите этот запрос, кто-то может украсть ваши активы, зарегистрированные в Blur.",
     "deceptive_request_title": "Это запрос с целью обмана",

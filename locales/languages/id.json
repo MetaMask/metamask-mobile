@@ -1,7 +1,6 @@
 {
   "blockaid_banner": {
-    "approval_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan dapat mengambil semua aset Anda.",
-    "attribution": "Didukung oleh",
+    "approval_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan dapat mengambil semua aset Anda.",    
     "attribution_link_name": "Blockaid",
     "blur_farming_description": "Jika Anda menyetujui permintaan ini, seseorang dapat mencuri aset Anda yang terdaftar di Blur.",
     "deceptive_request_title": "Ini adalah permintaan tipuan",
