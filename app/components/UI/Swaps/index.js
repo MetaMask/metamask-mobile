@@ -262,11 +262,7 @@ function SwapsAmountView({
     (async () => {
       try {
         const featureFlags = await swapsUtils.fetchSwapsFeatureLiveness(
-          __DEV__ &&
-            (chainId === NETWORKS_CHAIN_ID.GOERLI ||
-              chainId === NETWORKS_CHAIN_ID.SEPOLIA)
-            ? NETWORKS_CHAIN_ID.MAINNET
-            : chainId,
+          chainId,
           AppConstants.SWAPS.CLIENT_ID,
         );
 
