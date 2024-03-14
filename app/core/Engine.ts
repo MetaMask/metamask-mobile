@@ -1111,10 +1111,11 @@ class Engine {
           this.txController.confirmExternalTransaction.bind(this.txController),
         provider: networkController.getProviderAndBlockTracker().provider,
 
-        // TODO stx controller will call it like this:
+        // STX controller will call it like this:
+        // Looks like this for MM swap, send
         // this.trackMetaMetricsEvent({
-        //   event: 'STX Status Updated',
-        //   category: 'swaps',
+        //   event: 'STX Confirmed',
+        //   category: 'Transactions',
         //   sensitiveProperties, // seems optional
         // });
         trackMetaMetricsEvent: (params: {
@@ -1122,8 +1123,19 @@ class Engine {
           category: string;
           sensitiveProperties: any;
         }) => {
-          const { event, ...restParams } = params;
-          AnalyticsV2.trackEvent(event, restParams);
+          Logger.log('STX trackMetaMetricsEvent', params);
+          const { event, category, ...restParams } = params;
+
+          MetaMetrics.getInstance().trackEvent(
+            {
+              category,
+              properties: {
+                name: event,
+                // action?: string;
+              },
+            },
+            restParams,
+          );
         },
       },
       {
