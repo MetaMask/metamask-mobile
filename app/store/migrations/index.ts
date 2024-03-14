@@ -32,6 +32,8 @@ import migration28 from './028';
 import migration29 from './029';
 import migration30 from './030';
 import migration31 from './031';
+import migration32 from './032';
+import migration33 from './033';
 
 // We do not keep track of the old state
 // We create this type for better readability
@@ -70,6 +72,8 @@ export const migrations: MigrationManifest = {
   29: migration29 as unknown as (state: OldState) => PersistedState,
   30: migration30 as unknown as (state: OldState) => PersistedState,
   31: migration31 as unknown as (state: OldState) => PersistedState,
+  32: migration32 as unknown as (state: OldState) => PersistedState,
+  33: migration33 as unknown as (state: OldState) => PersistedState,
 };
 
 // The latest (i.e. highest) version number.
