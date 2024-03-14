@@ -1,10 +1,16 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import SelectComponent from './';
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    colors: {},
+  },
+}));
 
 describe('SelectComponent', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = renderWithProvider(
       <SelectComponent
         options={[
           { key: 'key 1', val: 'val 1', label: 'option 1' },
@@ -14,6 +20,6 @@ describe('SelectComponent', () => {
         label={'Choose an option'}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
