@@ -141,6 +141,7 @@
     "@metamask/approval-controller": "3.5.0",
     "@metamask/assets-controllers": "^10.0.0",
     "@metamask/base-controller": "^4.1.1",
+    "@metamask/bip32-example-snap": "^2.1.1",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^4.0.0",
