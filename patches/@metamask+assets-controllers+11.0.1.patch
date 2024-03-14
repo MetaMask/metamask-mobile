@@ -4,20 +4,20 @@ index 0000000..550de56
 --- /dev/null
 +++ b/node_modules/@metamask/assets-controllers/dist/.patch.txt
 @@ -0,0 +1,14 @@
-+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-assets-controllers-v10
++PATCH GENERATED FROM MetaMask/core branch: patch/mobile-assets-controllers-v-11-0-1
 +This patch backports various assets controllers features from the main branch of MetaMask/core
 +Steps to update patch:
-+* Create a new core branch from: patch/mobile-assets-controllers-v10
++* Create a new core branch from: patch/mobile-assets-controllers-v-11-0-1
 +* Run "yarn build" in the core monorepo
 +* Run "yarn patch:assets <core-directory>" in the mobile repo
-+* If you have changes also add them to the branch: patch/mobile-assets-controllers-v10
++* If you have changes also add them to the branch: patch/mobile-assets-controllers-v-11-0-1
 +* Steps to update the assets-controllers version
 +* Create a new core branch from the next assets-controllers version
-+* Merge the branch patch/mobile-assets-controllers-v10
++* Merge the branch patch/mobile-assets-controllers-v-11-0-1
 +* Solve the conflicts and review changes accordingly the changelog
 +* Run "yarn build" in the core monorepo
 +* Run "yarn patch:assets <core-directory>" in the mobile repo
-+* If you have changes also add them to the branch: patch/mobile-assets-controllers-v10
++* If you have changes also add them to the branch: patch/mobile-assets-controllers-v-11-0-1
 diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
 index 41bf5fe..7b4be39 100644
 --- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.d.ts
