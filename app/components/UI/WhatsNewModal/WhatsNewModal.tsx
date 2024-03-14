@@ -166,7 +166,7 @@ const WhatsNewModal = () => {
             <Image
               source={elementInfo.image}
               style={styles.slideImage}
-              resizeMode={'contain'}
+              resizeMode={'stretch'}
             />
           </View>
         );
