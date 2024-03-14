@@ -67,9 +67,17 @@ describe('Vault', () => {
   describe('restoreLedgerKeyring', () => {
     it('should restore ledger keyring if it exists', async () => {
       const { KeyringController } = Engine.context;
-      (getLedgerKeyring as jest.Mock).mockResolvedValue('foo');
-      await restoreLedgerKeyring();
+
+      const mockSerialisedKeyring = jest.fn();
+      const mockDeserializedKeyring = jest.fn();
+      (getLedgerKeyring as jest.Mock).mockResolvedValue({
+        deserialize: mockDeserializedKeyring,
+      });
+      await restoreLedgerKeyring({ serialize: mockSerialisedKeyring });
+
+      expect(mockSerialisedKeyring).toHaveBeenCalled();
       expect(getLedgerKeyring).toHaveBeenCalled();
+      expect(mockDeserializedKeyring).toHaveBeenCalled();
       expect(KeyringController.persistAllKeyrings).toHaveBeenCalled();
       expect(KeyringController.updateIdentities).toHaveBeenCalled();
       expect(KeyringController.getAccounts).toHaveBeenCalled();
@@ -77,7 +85,7 @@ describe('Vault', () => {
 
     it('should not restore ledger keyring if it does not exist', async () => {
       const { KeyringController } = Engine.context;
-      (getLedgerKeyring as jest.Mock).mockResolvedValue('');
+
       await restoreLedgerKeyring();
       expect(KeyringController.persistAllKeyrings).not.toHaveBeenCalled();
       expect(KeyringController.updateIdentities).not.toHaveBeenCalled();
@@ -86,10 +94,16 @@ describe('Vault', () => {
 
     it('should log error if an exception is thrown', async () => {
       const { KeyringController } = Engine.context;
-      (getLedgerKeyring as jest.Mock).mockResolvedValue('foo');
+
+      (getLedgerKeyring as jest.Mock).mockResolvedValue({
+        deserialize: jest.fn(),
+      });
+
       const error = new Error('Test error');
       KeyringController.persistAllKeyrings.mockRejectedValue(error);
-      await restoreLedgerKeyring();
+
+      await restoreLedgerKeyring({ serialize: jest.fn() });
+
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         'error while trying to restore Ledger accounts on recreate vault',
