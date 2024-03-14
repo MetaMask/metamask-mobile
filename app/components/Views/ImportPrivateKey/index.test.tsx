@@ -1,15 +1,13 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportPrivateKey from './';
-import { NavigationContainer } from '@react-navigation/native';
 
 describe('ImportPrivateKey', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <NavigationContainer>
-        <ImportPrivateKey />
-      </NavigationContainer>,
+    const { toJSON } = renderScreen(
+      ImportPrivateKey,
+      { name: 'ImportPrivateKey' },
+      { state: {} },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
