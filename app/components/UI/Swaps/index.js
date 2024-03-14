@@ -88,7 +88,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { NETWORKS_CHAIN_ID } from '../../../constants/network';
+import { getFeatureFlagChainId } from './SwapsLiveness';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -262,7 +262,7 @@ function SwapsAmountView({
     (async () => {
       try {
         const featureFlags = await swapsUtils.fetchSwapsFeatureLiveness(
-          chainId,
+          getFeatureFlagChainId(chainId),
           AppConstants.SWAPS.CLIENT_ID,
         );
 
