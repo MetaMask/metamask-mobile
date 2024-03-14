@@ -1,15 +1,12 @@
-import React from 'react';
-import { render } from '@testing-library/react-native';
 import AmbiguousAddressSheet from './AmbiguousAddressSheet';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
 
 describe('AmbiguousAddressSheet', () => {
   it('should render correctly', () => {
-    const { toJSON } = render(
-      <SafeAreaProvider>
-        <AmbiguousAddressSheet />
-      </SafeAreaProvider>,
-    );
+    const { toJSON } = renderScreen(AmbiguousAddressSheet, {
+      name: Routes.SHEET.AMBIGUOUS_ADDRESS,
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 });
