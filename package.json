@@ -85,6 +85,7 @@
     "run-bitrise-e2e-tests": "ts-node ./.github/scripts/bitrise/run-bitrise-e2e-tests.ts",
     "detect-e2e-label": "ts-node ./.github/scripts/bitrise/detect-e2e-label.ts",
     "check-bitrise-e2e-status": "ts-node ./.github/scripts/bitrise/check-bitrise-e2e-status.ts",
+    "fitness-functions": "ts-node ./.github/scripts/fitness-functions/index.ts",
     "check-pr-has-required-labels": "ts-node ./.github/scripts/check-pr-has-required-labels.ts",
     "close-release-bug-report-issue": "ts-node ./.github/scripts/close-release-bug-report-issue.ts",
     "check-template-and-add-labels": "ts-node ./.github/scripts/check-template-and-add-labels.ts",
