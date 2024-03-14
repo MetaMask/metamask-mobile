@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 //@ts-ignore
-import bundleJs from './embedded/bip32-example-snap/dist/bundle.js';
-import manifestJson from './embedded/bip32-example-snap/snap.manifest.json';
+import bundleJs from '@metamask/bip32-example-snap/dist/bundle.js';
+import manifestJson from '@metamask/bip32-example-snap/snap.manifest.json';
 
 let icon;
 try {
-  icon = require('./embedded/bip32-example-snap/images/icon.svg');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  icon = require('@metamask/bip32-example-snap/images/icon.svg');
 } catch (error) {
   console.error('Module not found, using default icon', error);
   icon = '';
