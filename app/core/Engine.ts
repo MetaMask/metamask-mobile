@@ -414,6 +414,7 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
@@ -426,6 +427,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -470,6 +472,7 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
           listener,
         ),
       onTokenListStateChange: (listener) =>
@@ -502,6 +505,7 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
           listener,
         ),
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -929,6 +933,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
         onTokenListStateChange: (listener) =>
@@ -952,6 +957,7 @@ class Engine {
         },
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
+        // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
         getNetworkState: () => networkController.state,
         getPreferencesState: () => preferencesController.state,
         getBalancesInSingleCall:
@@ -966,6 +972,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
         chainId: networkController.state.providerConfig.chainId,
@@ -994,6 +1001,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
         onPreferencesStateChange: (listener) =>
@@ -1009,7 +1017,7 @@ class Engine {
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-        // @ts-expect-error network controller will be updated on this PR: https://github.com/MetaMask/metamask-mobile/pull/8812 and this type error will be addressed
+        // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
         // This is not a blocker because gas fee controller does not need ticker to be defined
         getNetworkState: () => networkController.state,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
@@ -1038,7 +1046,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated on this PR: https://github.com/MetaMask/metamask-mobile/pull/8812 and this type error will be addressed
+            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             // This is not a blocker because gas fee controller does not need ticker to be defined
             listener,
           ),
