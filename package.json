@@ -125,7 +125,7 @@
     "react-native-ble-plx": "3.1.1"
   },
   "dependencies": {
-    "@consensys/ledgerhq-metamask-keyring": "^0.0.9",
+    "@consensys/ledgerhq-metamask-keyring": "^0.0.10",
     "@consensys/on-ramp-sdk": "1.26.2",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
@@ -549,7 +549,8 @@
       "husky": false,
       "react-native-inappbrowser-reborn": false,
       "react-native-svg-asset-plugin>sharp": true,
-      "ts-node>@swc/core": false
+      "ts-node>@swc/core": false,
+      "@consensys/ledgerhq-metamask-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false
     }
   }
 }
