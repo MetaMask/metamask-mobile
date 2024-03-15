@@ -61,6 +61,13 @@ describe('Settings', () => {
     const advancedSettings = getByTestId(SettingsViewSelectorsIDs.ADVANCED);
     expect(advancedSettings).toBeDefined();
   });
+  it('should render notifications settings button', () => {
+    const { getByTestId } = renderWithProvider(<Settings />);
+    const advancedSettings = getByTestId(
+      SettingsViewSelectorsIDs.NOTIFICATIONS,
+    );
+    expect(advancedSettings).toBeDefined();
+  });
   it('should render contacts settings button', () => {
     const { getByTestId } = renderWithProvider(<Settings />);
     const contactsSettings = getByTestId(SettingsViewSelectorsIDs.CONTACTS);
