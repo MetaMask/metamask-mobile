@@ -20,10 +20,12 @@ async function main(): Promise<void> {
   const workflowName = process.env.WORKFLOW_NAME;
   const triggerAction = context.payload.action as PullRequestTriggerType;
   const { owner, repo, number: pullRequestNumber } = context.issue;
-  let shouldTriggerE2E = false;
   const removeAndApplyInstructions = `Remove and re-apply the "${e2eLabel}" label to trigger a E2E smoke test on Bitrise.`;
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
+  const statusCheckName = 'Bitrise E2E Status'
+  const statusCheckTitle = 'Bitrise e2e smoke test run';
+
   // Define Bitrise comment tags
   const bitriseTag = '<!-- BITRISE_TAG -->';
   const bitrisePendingTag = '<!-- BITRISE_PENDING_TAG -->';
@@ -42,12 +44,13 @@ async function main(): Promise<void> {
 
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
-  // Get the latest commit hash
   const { data: prData } = await octokit.rest.pulls.get({
     owner,
     repo,
     pull_number: pullRequestNumber,
   });
+
+  // Get the latest commit hash
   const latestCommitHash = prData.head.sha;
 
   // Check if the e2e smoke label is applied
@@ -63,36 +66,51 @@ async function main(): Promise<void> {
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
       repo,
-      name: 'Bitrise E2E Status',
+      name: statusCheckName,
       head_sha: latestCommitHash,
       status: StatusCheckStatusType.Completed,
       conclusion: CompletedConclusionType.Success,
       started_at: new Date().toISOString(),
       output: {
-        title: 'Bitrise e2e smoke test run',
+        title: statusCheckTitle,
         summary: 'Skip run since no E2E smoke label is applied',
       },
     });
 
     if (createStatusCheckResponse.status === 201) {
       console.log(
-        `Created 'Bitrise E2E Status' check for commit ${latestCommitHash}`,
+        `Created '${statusCheckName}' check with skipped status for commit ${latestCommitHash}`,
       );
     } else {
       core.setFailed(
-        `Failed to create 'Bitrise E2E Status' check for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
+        `Failed to create '${statusCheckName}' check with skipped status for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
       );
       process.exit(1);
     }
     return;
   }
 
-  // Kick off E2E smoke tests
+  // Reopen conversation in case it's locked
+  const unlockConvoResponse = await octokit.rest.issues.unlock({
+    owner,
+    repo,
+    issue_number: pullRequestNumber,
+  });
+
+  if (unlockConvoResponse.status === 204) {
+    console.log(`Unlocked conversation for PR ${pullRequestLink}`);
+  } else {
+    core.setFailed(
+      `Unlock conversation request returned with status code ${unlockConvoResponse.status}`,
+    );
+    process.exit(1);
+  }
+
+  // Kick off E2E smoke tests if E2E smoke label is applied
   if (
     triggerAction === PullRequestTriggerType.Labeled &&
     context.payload?.label?.name === e2eLabel
   ) {
-    shouldTriggerE2E = true;
     // Configure Bitrise configuration for API call
     const data = {
       build_params: {
@@ -144,26 +162,10 @@ async function main(): Promise<void> {
     const message = `## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${buildLink}) **Bitrise**\n\n🔄🔄🔄 \`${e2ePipeline}\` started on Bitrise...🔄🔄🔄\n\nCommit hash: ${latestCommitHash}\nBuild link: ${buildLink}\n\n>[!NOTE]\n>- This comment will auto-update when build completes\n>- You can kick off another \`${e2ePipeline}\` on Bitrise by removing and re-applying the \`${e2eLabel}\` label on the pull request\n${bitriseTag}\n${bitrisePendingTag}\n\n${latestCommitTag}`;
 
     if (bitriseBuildResponse.status === 201) {
-      console.log(`Started Bitrise build at ${buildLink}`);
+      console.log(`Started Bitrise build for commit ${latestCommitHash} at ${buildLink}`);
     } else {
       core.setFailed(
         `Bitrise build request returned with status code ${bitriseBuildResponse.status}`,
-      );
-      process.exit(1);
-    }
-
-    // Reopen conversation in case it's locked
-    const unlockConvoResponse = await octokit.rest.issues.unlock({
-      owner,
-      repo,
-      issue_number: pullRequestNumber,
-    });
-
-    if (unlockConvoResponse.status === 204) {
-      console.log(`Unlocked conversation for PR ${pullRequestLink}`);
-    } else {
-      core.setFailed(
-        `Unlock conversation request returned with status code ${unlockConvoResponse.status}`,
       );
       process.exit(1);
     }
@@ -221,23 +223,23 @@ async function main(): Promise<void> {
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
       repo,
-      name: 'Bitrise E2E Status',
+      name: statusCheckName,
       head_sha: latestCommitHash,
       status: StatusCheckStatusType.InProgress,
       started_at: new Date().toISOString(),
       output: {
-        title: 'Bitrise e2e smoke test run',
+        title: statusCheckTitle,
         summary: 'Test runs in progress...',
       },
     });
 
     if (createStatusCheckResponse.status === 201) {
       console.log(
-        `Created 'Bitrise E2E Status' check for commit ${latestCommitHash}`,
+        `Created '${statusCheckName}' check for commit ${latestCommitHash}`,
       );
     } else {
       core.setFailed(
-        `Failed to create 'Bitrise E2E Status' check for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
+        `Failed to create '${statusCheckName}' check for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
       );
       process.exit(1);
     }
@@ -279,36 +281,37 @@ async function main(): Promise<void> {
     .reverse()
     .find(({ body }) => body?.includes(bitriseTag));
 
-  // Bitrise comment doesn't exist
+  // Bitrise comment doesn't exist, post fail status
   if (!bitriseComment) {
     // Post fail status
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
       repo,
-      name: 'Bitrise E2E Status',
+      name: statusCheckName,
       head_sha: latestCommitHash,
       status: StatusCheckStatusType.Completed,
       conclusion: CompletedConclusionType.Failure,
       started_at: new Date().toISOString(),
       output: {
-        title: 'Bitrise e2e smoke test run',
+        title: statusCheckTitle,
         summary: `No Bitrise comment found for commit ${latestCommitHash}. Try re-applying the '${e2eLabel}'.`,
       },
     });
 
     if (createStatusCheckResponse.status === 201) {
       console.log(
-        `Created 'Bitrise E2E Status' check for commit ${latestCommitHash}`,
+        `Created '${statusCheckName}' check for commit ${latestCommitHash}`,
       );
     } else {
       core.setFailed(
-        `Failed to create 'Bitrise E2E Status' check for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
+        `Failed to create '${statusCheckName}' check for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
       );
       process.exit(1);
     }
     return;
   }
 
+  // Bitrise comment does exist, update status check based on Bitrise comment status
   // This regex matches a 40-character hexadecimal string enclosed within <!-- and -->
   let bitriseCommentBody = bitriseComment.body || '';
   const commitTagRegex = /<!--\s*([0-9a-f]{40})\s*-->/i;
@@ -333,7 +336,7 @@ async function main(): Promise<void> {
     numberOfTotalCommits % numberOfCommitsToCheck !== 0 &&
     lastCommitPage > 1
   ) {
-    // Also fetch previous 10 commits
+    // Last page's commits will be less than 10, fetch second last page as well to ensure there is at least 10 commits.
     const { data: previousCommitBatch } = await octokit.rest.pulls.listCommits({
       owner,
       repo,
@@ -354,12 +357,6 @@ async function main(): Promise<void> {
     }
   }
 
-  // if (triggerAction === PullRequestTriggerType.Labeled) {
-  //   // A Bitrise build was triggered for the last commit
-  //   bitriseCommentCommitHash = relevantCommitHashes[0];
-  //   bitriseCommentBody = bitrisePendingTag;
-  // }
-
   let checkStatus: {
     status: StatusCheckStatusType;
     conclusion?: CompletedConclusionType;
@@ -375,29 +372,21 @@ async function main(): Promise<void> {
     if (bitriseCommentBody.includes(bitrisePendingTag)) {
       checkStatus.status = StatusCheckStatusType.InProgress;
       statusMessage = `${bitriseCommentPrefix} is pending.`;
-      // core.setFailed(`${bitriseCommentPrefix} is pending.`);
-      // process.exit(1);
     } else if (bitriseCommentBody.includes(bitriseFailTag)) {
       checkStatus = {
         status: StatusCheckStatusType.Completed,
         conclusion: CompletedConclusionType.Failure,
       };
       statusMessage = `${bitriseCommentPrefix} has failed.`;
-      // core.setFailed(`${bitriseCommentPrefix} has failed.`);
-      // process.exit(1);
     } else if (bitriseCommentBody.includes(bitriseSuccessTag)) {
       checkStatus.conclusion = CompletedConclusionType.Success;
       statusMessage = `${bitriseCommentPrefix} has passed.`;
-      // console.log(`${bitriseCommentPrefix} has passed.`);
     } else {
       checkStatus = {
         status: StatusCheckStatusType.Completed,
         conclusion: CompletedConclusionType.Failure,
       };
       statusMessage = `${bitriseCommentPrefix} does not contain any build status. Please verify that the build status tag exists in the comment body.`;
-      // core.setFailed(
-      //   `${bitriseCommentPrefix} does not contain any build status. Please verify that the build status tag exists in the comment body.`,
-      // );
     }
   } else {
     // No build comment found for relevant commits
@@ -406,20 +395,17 @@ async function main(): Promise<void> {
       conclusion: CompletedConclusionType.Failure,
     };
     statusMessage = `No Bitrise build comment exists for latest commits. ${removeAndApplyInstructions}`;
-    // core.setFailed(
-    //   `No Bitrise build comment exists for latest commits. ${removeAndApplyInstructions}`,
-    // );
   }
 
   // Post status check
   const createStatusCheckResponse = await octokit.rest.checks.create({
     owner,
     repo,
-    name: 'Bitrise E2E Status',
+    name: statusCheckName,
     head_sha: latestCommitHash,
     started_at: new Date().toISOString(),
     output: {
-      title: 'Bitrise e2e smoke test run',
+      title: statusCheckTitle,
       summary: statusMessage,
     },
     ...checkStatus,
@@ -427,11 +413,11 @@ async function main(): Promise<void> {
 
   if (createStatusCheckResponse.status === 201) {
     console.log(
-      `Created 'Bitrise E2E Status' check for commit ${latestCommitHash}`,
+      `Created '${statusCheckName}' check for commit ${latestCommitHash}`,
     );
   } else {
     core.setFailed(
-      `Failed to create 'Bitrise E2E Status' check for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
+      `Failed to create '${statusCheckName}' check for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
     );
     process.exit(1);
   }
