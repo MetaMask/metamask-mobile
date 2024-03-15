@@ -1,10 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`WebviewProgressBar should render correctly 1`] = `
-<FadeView
+<View
+  collapsable={false}
+  style={
+    Object {
+      "opacity": 1,
+    }
+  }
   visible={true}
 >
-  <ProgressBar
+  <View
     animated={true}
     animationConfig={
       Object {
@@ -12,14 +18,44 @@ exports[`WebviewProgressBar should render correctly 1`] = `
       }
     }
     animationType="spring"
-    borderRadius={0}
-    borderWidth={0}
-    color="#0376C9"
-    height={3}
     indeterminate={false}
+    onLayout={[Function]}
     progress={0}
+    style={
+      Array [
+        Object {
+          "backgroundColor": undefined,
+          "borderColor": "#0376C9",
+          "borderRadius": 0,
+          "borderWidth": 0,
+          "overflow": "hidden",
+          "width": null,
+        },
+        undefined,
+      ]
+    }
     useNativeDriver={true}
-    width={null}
-  />
-</FadeView>
+  >
+    <View
+      collapsable={false}
+      style={
+        Object {
+          "backgroundColor": "#0376C9",
+          "height": 3,
+          "transform": Array [
+            Object {
+              "translateX": -0,
+            },
+            Object {
+              "translateX": -0,
+            },
+            Object {
+              "scaleX": 0.0001,
+            },
+          ],
+        }
+      }
+    />
+  </View>
+</View>
 `;
