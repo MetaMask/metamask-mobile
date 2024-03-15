@@ -36,6 +36,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.sel
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { TransactionType } from '@metamask/transaction-controller';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -236,7 +237,7 @@ const mapStateToProps = (state) => {
       ...stx,
       id: stx.uuid,
       transaction: stx.txParams, // Expected field
-      transactionType: 'smart', // TODO get these types from TransactionType.smart from tx-controller
+      transactionType: TransactionType.smart,
       status: stx.status?.startsWith('cancelled')
         ? SmartTransactionStatuses.cancelled
         : stx.status,
