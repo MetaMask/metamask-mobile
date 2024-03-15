@@ -33,6 +33,7 @@ import migration29 from './029';
 import migration30 from './030';
 import migration31 from './031';
 import migration32 from './032';
+import migration33 from './033';
 
 // We do not keep track of the old state
 // We create this type for better readability
