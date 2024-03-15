@@ -4,7 +4,10 @@ import {
   Fee,
   SmartTransaction,
 } from '@metamask/smart-transactions-controller/dist/types';
-import { TransactionController } from '@metamask/transaction-controller';
+import {
+  TransactionController,
+  TransactionMeta,
+} from '@metamask/transaction-controller';
 import Logger from '../Logger';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
@@ -79,11 +82,7 @@ export const createSignedTransactions = async (
 };
 
 interface Request {
-  transactionMeta: {
-    chainId: string;
-    transaction: TransactionParams;
-    origin: string;
-  };
+  transactionMeta: TransactionMeta;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
   isSmartTransaction: boolean;
@@ -295,6 +294,7 @@ export async function publishHook(request: Request) {
     );
 
     // For MM Swaps, the user just confirms the ERC20 approval tx, then the actual swap tx is auto confirmed, so 2 stx's are sent through in quick succession
+    if (!origin) throw new Error('Origin is required');
     if (shouldStartFlow) {
       // Do not await on this, since it will not progress any further if so
       approvalController.addAndShowApprovalRequest({
