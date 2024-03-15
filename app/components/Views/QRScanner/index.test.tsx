@@ -8,24 +8,7 @@ const initialState = {
   },
 };
 
-// create mock for react-native-camera
-jest.mock('react-native-camera', () => {
-  const reactNativeCamera = jest.requireActual('react-native-camera');
-
-  return {
-    ...reactNativeCamera,
-    RNCamera: {
-      Constants: {
-        FlashMode: {
-          auto: 'auto',
-        },
-        Type: {
-          back: 'back',
-        },
-      },
-    },
-  };
-});
+// create mock for react-native-permissions
 
 describe('QrScanner', () => {
   it('should render correctly', () => {

@@ -311,21 +311,7 @@ exports[`QrScanner should render correctly 1`] = `
                           "flex": 1,
                         }
                       }
-                    >
-                      <View
-                        style={
-                          Object {
-                            "alignItems": "center",
-                            "flex": 1,
-                            "justifyContent": "center",
-                          }
-                        }
-                      >
-                        <ActivityIndicator
-                          size="small"
-                        />
-                      </View>
-                    </View>
+                    />
                   </View>
                 </View>
               </View>
