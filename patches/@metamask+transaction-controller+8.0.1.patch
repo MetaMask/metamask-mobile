@@ -179,7 +179,7 @@ index 048e002..0000000
 -{"version":3,"file":"IncomingTransactionHelper.d.ts","sourceRoot":"","sources":["../src/IncomingTransactionHelper.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,QAAQ,MAAM,qBAAqB,CAAC;AAChD,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,8BAA8B,CAAC;AAGjE,OAAO,KAAK,EACV,uBAAuB,EAEvB,eAAe,EAEhB,MAAM,SAAS,CAAC;AAQjB,qBAAa,yBAAyB;;gBASxB,EACV,eAAe,EACf,WAAW,EACX,gBAAgB,EAChB,uBAAuB,GACxB,EAAE;QACD,eAAe,EAAE,MAAM,YAAY,CAAC;QACpC,WAAW,EAAE,MAAM,QAAQ,CAAC;QAC5B,gBAAgB,EAAE,MAAM,CAAC;QACzB,uBAAuB,EAAE,uBAAuB,CAAC;KAClD;IAOK,SAAS,CAAC,EACd,OAAO,EACP,iBAAiB,EACjB,SAAS,EACT,MAAM,GACP,EAAE;QACD,OAAO,EAAE,MAAM,CAAC;QAChB,iBAAiB,EAAE,eAAe,EAAE,CAAC;QACrC,SAAS,CAAC,EAAE,MAAM,CAAC;QACnB,MAAM,CAAC,EAAE,MAAM,CAAC;KACjB,GAAG,OAAO,CAAC;QACV,cAAc,EAAE,OAAO,CAAC;QACxB,YAAY,EAAE,eAAe,EAAE,CAAC;QAChC,iBAAiB,CAAC,EAAE,MAAM,CAAC;KAC5B,CAAC;CAmMH"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js
-index 6a27aeb..e18a2b7 100644
+index 6a27aeb..5f34686 100644
 --- a/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js
 +++ b/node_modules/@metamask/transaction-controller/dist/IncomingTransactionHelper.js
 @@ -19,126 +19,173 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -423,7 +423,7 @@ index 6a27aeb..e18a2b7 100644
 +    const lastFetchedKey = __classPrivateFieldGet(this, _IncomingTransactionHelper_instances, "m", _IncomingTransactionHelper_getBlockNumberKey).call(this);
 +    const lastFetchedBlockNumbers = __classPrivateFieldGet(this, _IncomingTransactionHelper_getLastFetchedBlockNumbers, "f").call(this);
 +    const previousValue = lastFetchedBlockNumbers[lastFetchedKey];
-+    if (previousValue === lastFetchedBlockNumber) {
++    if (previousValue >= lastFetchedBlockNumber) {
 +        return;
 +    }
 +    lastFetchedBlockNumbers[lastFetchedKey] = lastFetchedBlockNumber;
