@@ -171,6 +171,7 @@ export async function publishHook(request: Request) {
   const isSend = !isDapp && !isInSwapFlow;
 
   // Status modal start, update, and close conditions
+  // Swap txs are the 2nd in the swap flow, so we don't want to show another status page for that
   const shouldStartFlow =
     isDapp ||
     isSend ||
@@ -200,13 +201,10 @@ export async function publishHook(request: Request) {
   );
 
   let smartTransactionStatusApprovalId: string | undefined;
-  // Swap txs are the 2nd in the swap flow, so we don't want to show another status page for that
   if (shouldStartFlow) {
     const { id } = approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
     smartTransactionStatusApprovalId = id;
   } else {
-    // read approve tx approvalId in swaps reducer
-
     Logger.log(
       LOG_PREFIX,
       'approvalController.state',
