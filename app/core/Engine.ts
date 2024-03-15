@@ -475,6 +475,9 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
       },
     );
+
+    const internalAccounts = initialState.AccountsController?.internalAccounts;
+
     const tokensController = new TokensController({
       // TODO: The tokens controller currently does not support internalAccounts. This is done to match the behavior of the previous tokens controller subscription.
       onPreferencesStateChange: (listener) =>
@@ -504,9 +507,8 @@ class Engine {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
         selectedAddress:
-          initialState.AccountsController?.internalAccounts?.accounts[
-            initialState.AccountsController?.internalAccounts?.selectedAccount
-          ]?.address ?? '',
+          internalAccounts?.accounts[internalAccounts?.selectedAccount]
+            ?.address ?? '',
       },
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
@@ -832,7 +834,7 @@ class Engine {
 
             captureException(
               new Error(
-                `Attempt to get permission specifications failed because their were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
+                `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
               ),
             );
           },

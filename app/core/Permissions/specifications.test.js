@@ -8,6 +8,11 @@ import { EthAccountType, EthMethod } from '@metamask/keyring-api';
 import { SnapCaveatType } from '@metamask/snaps-utils';
 
 describe('PermissionController specifications', () => {
+  const baseEoaAccount = {
+    type: EthAccountType.Eoa,
+    options: {},
+    methods: [...Object.values(EthMethod)],
+  };
   describe('caveat specifications', () => {
     it('getCaveatSpecifications returns the expected specifications object', () => {
       const caveatSpecifications = getCaveatSpecifications({});
@@ -151,9 +156,7 @@ describe('PermissionController specifications', () => {
                   type: 'HD Key Tree',
                 },
               },
-              options: {},
-              methods: [...Object.values(EthMethod)],
-              type: EthAccountType.Eoa,
+              ...baseEoaAccount,
             },
             {
               address: '0x3',
@@ -165,9 +168,7 @@ describe('PermissionController specifications', () => {
                   type: 'HD Key Tree',
                 },
               },
-              options: {},
-              methods: [...Object.values(EthMethod)],
-              type: EthAccountType.Eoa,
+              ...baseEoaAccount,
             },
           ]);
           const caveatValues = [
@@ -275,9 +276,7 @@ describe('PermissionController specifications', () => {
                   type: 'HD Key Tree',
                 },
               },
-              options: {},
-              methods: [...Object.values(EthMethod)],
-              type: EthAccountType.Eoa,
+              ...baseEoaAccount,
             },
             {
               address: '0x2',
@@ -288,9 +287,7 @@ describe('PermissionController specifications', () => {
                   type: 'HD Key Tree',
                 },
               },
-              options: {},
-              methods: [...Object.values(EthMethod)],
-              type: EthAccountType.Eoa,
+              ...baseEoaAccount,
             },
             {
               address: '0x3',
@@ -302,9 +299,7 @@ describe('PermissionController specifications', () => {
                 },
                 lastSelected: 3,
               },
-              options: {},
-              methods: [...Object.values(EthMethod)],
-              type: EthAccountType.Eoa,
+              ...baseEoaAccount,
             },
             {
               address: '0x4',
@@ -316,9 +311,7 @@ describe('PermissionController specifications', () => {
                   type: 'HD Key Tree',
                 },
               },
-              options: {},
-              methods: [...Object.values(EthMethod)],
-              type: EthAccountType.Eoa,
+              ...baseEoaAccount,
             },
           ]);
           const getAllAccounts = jest
@@ -350,9 +343,7 @@ describe('PermissionController specifications', () => {
                   type: 'HD Key Tree',
                 },
               },
-              options: {},
-              methods: [...Object.values(EthMethod)],
-              type: EthAccountType.Eoa,
+              ...baseEoaAccount,
             },
             {
               address: '0x3',
@@ -364,9 +355,7 @@ describe('PermissionController specifications', () => {
                   type: 'HD Key Tree',
                 },
               },
-              options: {},
-              methods: [...Object.values(EthMethod)],
-              type: EthAccountType.Eoa,
+              ...baseEoaAccount,
             },
           ]);
           const getAllAccounts = jest
@@ -396,9 +385,7 @@ describe('PermissionController specifications', () => {
                   type: 'HD Key Tree',
                 },
               },
-              options: {},
-              methods: [...Object.values(EthMethod)],
-              type: EthAccountType.Eoa,
+              ...baseEoaAccount,
             },
             {
               address: '0x3',
@@ -410,9 +397,7 @@ describe('PermissionController specifications', () => {
                   type: 'HD Key Tree',
                 },
               },
-              options: {},
-              methods: [...Object.values(EthMethod)],
-              type: EthAccountType.Eoa,
+              ...baseEoaAccount,
             },
           ]);
           const getAllAccounts = jest
