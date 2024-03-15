@@ -10,6 +10,7 @@ import SimpleWebview from '../../Views/SimpleWebview';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
+import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
@@ -236,6 +237,11 @@ const SettingsFlow = () => (
       name="AdvancedSettings"
       component={AdvancedSettings}
       options={AdvancedSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name="NotificationsSettings"
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
     />
     <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
     <Stack.Screen
