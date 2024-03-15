@@ -1622,6 +1622,18 @@ class Engine {
       }
     }
   }
+
+  // This should be used instead of directly calling PreferencesController.setSelectedAddress or AccountsController.setSelectedAccount
+  setSelectedAccount(address: string) {
+    const { AccountsController, PreferencesController } = this.context;
+    const account = AccountsController.getAccountByAddress(address);
+    if (account) {
+      AccountsController.setSelectedAccount(account.id);
+      PreferencesController.setSelectedAddress(address);
+    } else {
+      throw new Error(`No account found for address: ${address}`);
+    }
+  }
 }
 
 /**
@@ -1758,4 +1770,8 @@ export default {
       logErrors?: boolean;
     } = {},
   ) => instance?.rejectPendingApproval(id, reason, opts),
+  setSelectedAddress: (address: string) => {
+    assertEngineExists(instance);
+    instance.setSelectedAccount(address);
+  },
 };
