@@ -19,4 +19,5 @@ export const SettingsViewSelectorsIDs = {
   REQUEST: 'request-settings',
   CONTACT: 'contact-settings',
   LOCK: 'lock-settings',
+  NOTIFICATIONS: 'notifications-settings',
 };
