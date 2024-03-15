@@ -10,7 +10,7 @@ import { IconName } from '../../../../Icons/Icon';
 import ButtonPrimary from './ButtonPrimary';
 
 describe('ButtonPrimary', () => {
-  it('should render correctly', () => {
+  it('render matches latest snapshot', () => {
     const { toJSON } = render(
       <ButtonPrimary
         startIconName={IconName.Bank}
