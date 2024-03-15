@@ -8,7 +8,6 @@ import NotificationManager from '../../../../../core/NotificationManager';
 import { strings } from '../../../../../../locales/i18n';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AnalyticsV2 from '../../../../../util/analyticsV2';
 import {
   getAddressAccountType,
   isExternalHardwareAccount,
@@ -30,6 +29,7 @@ import { SecurityAlertResponse } from '../BlockaidBanner/BlockaidBanner.types';
 import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
 import { getDecimalChainId } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 /**
  * Converts a hexadecimal string to a utf8 string.
@@ -61,6 +61,7 @@ const PersonalSign = ({
   showExpandedMessage,
 }: PersonalSignProps) => {
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
   const { securityAlertResponse } = useSelector(
     (reduxState: any) => reduxState.signatureRequest,
@@ -107,7 +108,7 @@ const PersonalSign = ({
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
-        AnalyticsV2.trackEvent(
+        trackEvent(
           MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
           getAnalyticsParams(),
         );
@@ -123,7 +124,7 @@ const PersonalSign = ({
         onSignatureError,
       );
     };
-  }, [getAnalyticsParams, messageParams.metamaskId]);
+  }, [getAnalyticsParams, messageParams.metamaskId, trackEvent]);
 
   const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {
@@ -146,20 +147,14 @@ const PersonalSign = ({
   const rejectSignature = async () => {
     await onReject();
     showWalletConnectNotification(false);
-    AnalyticsV2.trackEvent(
-      MetaMetricsEvents.SIGNATURE_REJECTED,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.SIGNATURE_REJECTED, getAnalyticsParams());
   };
 
   const confirmSignature = async () => {
     if (!isExternalHardwareAccount(messageParams.from)) {
       await onConfirm();
       showWalletConnectNotification(true);
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SIGNATURE_APPROVED,
-        getAnalyticsParams(),
-      );
+      trackEvent(MetaMetricsEvents.SIGNATURE_APPROVED, getAnalyticsParams());
     } else {
       navigation.navigate(
         ...(await createExternalSignModelNav(

@@ -12,14 +12,13 @@ import {
 } from '.';
 import {
   MAINNET,
-  GOERLI,
   RPC,
   SEPOLIA,
   LINEA_GOERLI,
   LINEA_MAINNET,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import Engine from '../../core/Engine';
+import { getNonceLock } from '../../util/transaction-controller';
 
 jest.mock('./../../core/Engine', () => ({
   context: {
@@ -39,10 +38,12 @@ jest.mock('./../../core/Engine', () => ({
     PreferencesController: {
       state: {},
     },
-    TransactionController: {
-      getNonceLock: jest.fn(),
-    },
   },
+}));
+
+jest.mock('../../util/transaction-controller', () => ({
+  __esModule: true,
+  getNonceLock: jest.fn(),
 }));
 
 describe('network-utils', () => {
@@ -51,7 +52,6 @@ describe('network-utils', () => {
     it('should get all networks', () => {
       expect(allNetworks.includes(MAINNET)).toEqual(true);
       expect(allNetworks.includes(SEPOLIA)).toEqual(true);
-      expect(allNetworks.includes(GOERLI)).toEqual(true);
       expect(allNetworks.includes(LINEA_GOERLI)).toEqual(true);
       expect(allNetworks.includes(LINEA_MAINNET)).toEqual(true);
     });
@@ -70,11 +70,7 @@ describe('network-utils', () => {
   });
 
   describe('isTestNet', () => {
-    const testnets = [
-      NetworkType.goerli,
-      NetworkType.sepolia,
-      NetworkType['linea-goerli'],
-    ];
+    const testnets = [NetworkType.sepolia, NetworkType['linea-goerli']];
 
     for (const networkType of testnets) {
       it(`should return true if the given chain ID is for '${networkType}'`, () => {
@@ -194,14 +190,14 @@ describe('network-utils', () => {
 
     it('should return etherscan block explorer address url when network type !== "rpc"', () => {
       const { url, title } = getBlockExplorerAddressUrl(
-        GOERLI,
+        SEPOLIA,
         mockEthereumAddress,
       );
 
       expect(url).toBe(
-        `https://goerli.etherscan.io/address/${mockEthereumAddress}`,
+        `https://sepolia.etherscan.io/address/${mockEthereumAddress}`,
       );
-      expect(title).toBe(`goerli.etherscan.io`);
+      expect(title).toBe(`sepolia.etherscan.io`);
     });
 
     it('should return custom block explorer address url when network type === "linea-goerli"', () => {
@@ -252,10 +248,15 @@ describe('network-utils', () => {
     });
 
     it('should return etherscan block explorer tx url when network type !== "rpc"', () => {
-      const { url, title } = getBlockExplorerTxUrl(GOERLI, mockTransactionHash);
+      const { url, title } = getBlockExplorerTxUrl(
+        SEPOLIA,
+        mockTransactionHash,
+      );
 
-      expect(url).toBe(`https://goerli.etherscan.io/tx/${mockTransactionHash}`);
-      expect(title).toBe(`goerli.etherscan.io`);
+      expect(url).toBe(
+        `https://sepolia.etherscan.io/tx/${mockTransactionHash}`,
+      );
+      expect(title).toBe(`sepolia.etherscan.io`);
     });
 
     it('should return custom block explorer tx url when network type === "linea-goerli"', () => {
@@ -286,22 +287,20 @@ describe('network-utils', () => {
     const fromMock = '0x123';
 
     it('returns value from TransactionController', async () => {
-      Engine.context.TransactionController.getNonceLock.mockReturnValueOnce({
+      getNonceLock.mockReturnValueOnce({
         nextNonce: nonceMock,
         releaseLock: jest.fn(),
       });
 
       expect(await getNetworkNonce({ from: fromMock })).toBe(nonceMock);
 
-      expect(
-        Engine.context.TransactionController.getNonceLock,
-      ).toHaveBeenCalledWith(fromMock);
+      expect(getNonceLock).toHaveBeenCalledWith(fromMock);
     });
 
     it('releases nonce lock', async () => {
       const releaseLockMock = jest.fn();
 
-      Engine.context.TransactionController.getNonceLock.mockReturnValueOnce({
+      getNonceLock.mockReturnValueOnce({
         releaseLock: releaseLockMock,
       });
 

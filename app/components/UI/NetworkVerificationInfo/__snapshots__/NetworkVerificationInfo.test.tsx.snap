@@ -384,7 +384,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               }
             }
           >
-            http:/
+            http://test.com
           </Text>
           <TouchableOpacity
             activeOpacity={0.5}
@@ -463,6 +463,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     testID="bottomsheetfooter"
   >
     <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
       activeOpacity={1}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -501,6 +503,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
       activeOpacity={1}
       onPressIn={[Function]}
       onPressOut={[Function]}

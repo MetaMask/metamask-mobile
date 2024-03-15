@@ -8,7 +8,7 @@
     "failed_title": "Το αίτημα μπορεί να μην είναι ασφαλές",
     "failed_description": "Λόγω σφάλματος, αυτό το αίτημα δεν επαληθεύτηκε από τον πάροχο ασφαλείας. Προχωρήστε με προσοχή.",
     "loading_title": "Έλεγχος για ειδοποιήσεις ασφαλείας...",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "Δεν λαβαμε ειδοποιήσεις. Κάνετε πάντα τη δική σας ενδελεχή έρευνα προτού εγκρίνετε τα αιτήματα.",
     "malicious_domain_description": "Αλληλεπιδράτε με έναν κακόβουλο τομέα. Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
     "other_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
     "raw_signature_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
@@ -21,7 +21,7 @@
     "transfer_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ένας τρίτος που είναι γνωστός για απάτες θα πάρει όλα τα περιουσιακά σας στοιχεία.",
     "before_you_proceed": "Προτού προχωρήσετε",
     "enable_blockaid_alerts": "Για να ενεργοποιήσουμε αυτή τη λειτουργία πρέπει να ρυθμίσουμε κάποια ειδοποίηση ασφαλείας. Αυτή η σελίδα θα πρέπει να παραμείνει ανοιχτή όσο θα κάνουμε ρυθμίσεις. Η διαδικασία θα διαρκέσει λιγότερο από ένα λεπτό.",
-    "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
+    "enable_blockaid_alerts_description": "Αυτή η σελίδα θα πρέπει να παραμένει ανοιχτή όσο διαρκεί η ρύθμιση των ειδοποιήσεων ασφαλείας. Η διαδικασία αυτή θα διαρκέσει λιγότερο από ένα λεπτό.",
     "setting_up_alerts": "Ρυθμίσεις ειδοποιήσεων ασφαλείας",
     "setting_up_alerts_description": "Κάνουμε όσο πιο γρήγορα μπορούμε για να ρυθμίσουμε τις ειδοποιήσεις ασφαλείας. Κάντε υπομονή, σχεδόν τελειώσαμε.",
     "setup_complete": "Ολοκλήρωση ρυθμίσεων",
@@ -415,7 +415,7 @@
     "display_media_nft_warning": "Η εμφάνιση μέσων και δεδομένων των NFT ενδέχεται να εκθέσει τη διεύθυνση IP σας σε κεντρικούς διακομιστές. Εισαγάγετε ένα NFT μόνο αν κατανοείτε τους κινδύνους που συνεπάγονται.",
     "nfts_autodetect_title": "Αυτόματος εντοπισμός των NFT",
     "nfts_autodetect_cta": "Ενεργοποιήστε τον «Αυτόματο εντοπισμό των NFT» στις Ρυθμίσεις",
-    "turn_on_network_check_cta": "Turn on network details check",
+    "turn_on_network_check_cta": "Ενεργοποίηση του ελέγχου λεπτομερειών δικτύου",
     "display_nft_media_cta_new_1": "Για να δείτε ένα NFT, ενεργοποιήστε την επιλογή «Προβολή μέσων NFT» στο",
     "display_nft_media_cta_new_2": "Ρυθμίσεις > Ασφάλεια και απόρρητο."
   },
@@ -609,10 +609,10 @@
     "please_wait": "Παρακαλούμε περιμένετε"
   },
   "account_selector": {
-    "prev": "PREV",
-    "next": "NEXT",
-    "unlock": "Unlock",
-    "forget": "Forget this device"
+    "prev": "ΠΡΟΗΓΟΥΜΕΝΟ",
+    "next": "ΕΠΟΜΕΝΟ",
+    "unlock": "Ξεκλειδώστε",
+    "forget": "Αγνοήστε αυτή τη συσκευή"
   },
   "app_settings": {
     "title": "Ρυθμίσεις",
@@ -721,7 +721,6 @@
     "network_chain_id_label": "Αναγνωριστικό αλυσίδας",
     "network_chain_id_placeholder": "Αναγνωριστικό αλυσίδας",
     "network_symbol_label": "Σύμβολο",
-    "network_symbol_placeholder": "Σύμβολο (προαιρετικά)",
     "network_block_explorer_label": "Αποκλεισμός διεύθυνσης URL του Explorer",
     "network_block_explorer_placeholder": "Αποκλεισμός διεύθυνσης URL του Explorer (προαιρετικά)",
     "network_chain_id_warning": "Μη έγκυρο Αναγνωριστικό αλυσίδας",
@@ -765,6 +764,9 @@
     "invalid_password": "Μη έγκυρος κωδικός πρόσβασης",
     "invalid_password_message": "Ο κωδικός πρόσβασης δεν ήταν σωστός. Προσπαθήστε ξανά.",
     "security_heading": "Ασφάλεια",
+    "ses_heading": "Κλείδωμα κωδικού",
+    "ses_description": "Πρόκειται για μια δοκιμαστική λειτουργία που εμποδίζει οποιαδήποτε αλλαγή στον κώδικα JavaScript της εφαρμογής χωρίς άδεια.",
+    "ses_link": "Μάθετε περισσότερα",
     "privacy_heading": "Απόρρητο",
     "failed_to_fetch_chain_id": "Δεν ήταν δυνατή η λήψη του αναγνωριστικού αλυσίδας. Είναι σωστή η διευθύνση URL του RPC;",
     "endpoint_returned_different_chain_id": "Το τελικό σημείο επέστρεψε ένα διαφορετικό αναγνωριστικό αλυσίδας: %{chainIdReturned}",
@@ -835,8 +837,8 @@
     "incoming_transactions_title": "Εμφάνιση εισερχόμενων συναλλαγών",
     "incoming_transactions_content": "Αυτό εξαρτάται από το δίκτυο που επιλέγετε, το οποίο θα εκθέσει τη διεύθυνση Ethereum και τη διεύθυνση IP σας.",
     "display_nft_media_desc_new": "Η προβολή μέσων και δεδομένων NFT εκθέτει τη διεύθυνση IP σας στο OpenSea ή σε άλλα τρίτα μέρη. Η αυτόματη ανίχνευση NFT βασίζεται σε αυτή τη λειτουργία και δεν θα είναι διαθέσιμη όταν είναι απενεργοποιημένη. Εάν τα μέσα NFT βρίσκονται πλήρως στο IPFS, μπορούν να εμφανιστούν ακόμα και όταν αυτή η λειτουργία είναι απενεργοποιημένη.",
-    "use_safe_chains_list_validation_desc_1": "MetaMask uses a third-party service called ",
-    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  ",
+    "use_safe_chains_list_validation_desc_1": "Το MetaMask χρησιμοποιεί μια υπηρεσία τρίτων που ονομάζεται ",
+    "use_safe_chains_list_validation_desc_2": "για να εμφανίζει ακριβείς και τυποποιημένες λεπτομέρειες του δικτύου. Αυτό μειώνει τις πιθανότητες σύνδεσης σε κακόβουλο ή λανθασμένο δίκτυο. Όταν χρησιμοποιείτε αυτή τη λειτουργία, η διεύθυνση IP σας εκτίθεται σε  ",
     "snaps": {
       "title": "Snaps",
       "description": "Επισκόπηση και διαχείριση των snaps σας",
@@ -886,7 +888,7 @@
     "privacy_browser_subheading": "Εκκαθάριση δεδομένων απορρήτου ή προγράμματος περιήγησης",
     "analytics_subheading": "Αναλυτικά στοιχεία",
     "transactions_subheading": "Συναλλαγές",
-    "network_provider": "Network provider",
+    "network_provider": "Πάροχος δικτύου",
     "token_nft_ens_subheading": "Αυτόματος εντοπισμός Tokens, NFS και ENS",
     "security_check_subheading": "Έλεγχοι ασφαλείας",
     "symbol_required": "Απαιτείται το σύμβολο.",
@@ -900,27 +902,27 @@
     "disconnect_all_info": "Εάν αφαιρέσετε τις συνδέσεις σας σε όλους τους ιστότοπους, θα πρέπει να δώσετε άδεια για να συνδεθείτε ξανά.",
     "disconnect": "Αποσύνδεση",
     "disconnect_all": "Αποσύνδεση όλων",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "Αποσύνδεση όλων των λογαριασμών",
+    "manage_connections": "Διαχείριση συνδέσεων",
+    "manage": "Διαχείριση",
     "cancel": "Άκυρο",
     "loading": "Σύνδεση στο MetaMask...",
     "unkown_dapp": "Το όνομα DAPP δεν είναι διαθέσιμο",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "Χωρίς συνδέσεις",
+    "no_connections_desc": "Εάν συνδέσετε έναν λογαριασμό σε έναν ιστότοπο ή μια εφαρμογή, θα τον δείτε εδώ."
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "{{accountsLength}} συνδεδεμένοι λογαριασμοί."
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "Αποσύνδεση από όλους τους ιστότοπους;",
+    "disconnect_all_desc": "Εάν αποσυνδέσετε τους λογαριασμούς σας από όλους τους ιστότοπους, θα πρέπει να δώσετε άδεια για να συνδεθείτε ξανά.",
+    "disconnect_account": "Αποσύνδεση λογαριασμού; ",
+    "disconnect_all_accounts": "Αποσύνδεση όλων των λογαριασμών",
+    "disconnect_all_accounts_desc": "Εάν αποσυνδέσετε όλους τους λογαριασμούς από το {{dapp}}, θα πρέπει να δώσετε άδεια για να συνδεθείτε ξανά.",
+    "disconnect_account_desc": "Εάν αποσυνδέσετε {{account}} από το {{dapp}}, θα πρέπει να δώσετε άδεια για να συνδεθείτε ξανά.",
+    "disconnect_confirm": "Αποσύνδεση",
+    "cancel": "Άκυρο"
   },
   "sdk_return_to_app_modal": {
     "title": "Επιστροφή στην εφαρμογή",
@@ -1467,7 +1469,7 @@
     "status_ok": "Όλα τα Συστήματα Λειτουργούν",
     "status_not_ok": "Το δίκτυο έχει κάποια προβλήματα",
     "want_to_add_network": "Θέλετε να προσθέσετε αυτό το δίκτυο;",
-    "add_custom_network": "Add custom network",
+    "add_custom_network": "Προσθήκη προσαρμοσμένου δικτύου",
     "network_infomation": "Αυτό επιτρέπει στο δίκτυο να χρησιμοποιηθεί εντός του MetaMask",
     "network_endorsement": "Το MetaMask δεν υποστηρίζει τα προσαρμοσμένα δίκτυα ή την ασφάλειά τους.",
     "learn_about": "Μάθετε σχετικά με",
@@ -1477,8 +1479,8 @@
     "network_rpc_url": "Διεύθυνση URL του Δικτύου",
     "view_details": "Προβολή λεπτομερειών",
     "network_details": "Λεπτομέρειες δικτύου",
-    "network_select_confirm_use_safe_check": "Selecting Confirm turns on Network details check. You can turn off Network details check in ",
-    "network_settings_security_privacy": "Settings > Security and privacy",
+    "network_select_confirm_use_safe_check": "Η επιλογή \"Επιβεβαίωση\" ενεργοποιεί τον έλεγχο λεπτομερειών δικτύου. Μπορείτε να απενεργοποιήσετε τον έλεγχο λεπτομερειών δικτύου στις ",
+    "network_settings_security_privacy": "Ρυθμίσεις > Ασφάλεια και απόρρητο",
     "network_currency_symbol": "Σύμβολο Νομίσματος",
     "network_block_explorer_url": "Διεύθυνση URL του Block Explorer",
     "search": "Αναζήτηση για δίκτυο που έχει ήδη προστεθεί",
@@ -1506,8 +1508,8 @@
     "select_network": "Επιλέξτε ένα δίκτυο",
     "show_test_networks": "Εμφάνιση δοκιμαστικών δικτύων",
     "deprecated_goerli": "Λόγω των αλλαγών στο πρωτόκολλο του δοκιμαστικού δίκτυου Ethereum: Goerli μπορεί να μην λειτουργεί τόσο αξιόπιστα και θα καταργηθεί σύντομα.",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "Αυτό το δίκτυο έχει καταργηθεί",
+    "network_deprecated_description": "Το δίκτυο στο οποίο προσπαθείτε να συνδεθείτε δεν υποστηρίζεται πλέον από το Metamask."
   },
   "select": {
     "cancel": "Άκυρο",
@@ -1726,7 +1728,7 @@
   },
   "manual_backup_step_1": {
     "action": "Καταγράψτε τη Μυστική Φράση Ανάκτησης",
-    "info": "Αυτή είναι η Μυστική σας Φράση Ανάκτησης. Γράψτε την σε ένα χαρτί και φυλάξτε την σε ασφαλές μέρος. Θα σας ζητηθεί να καταχωρίσετε εκ νέου αυτή τη φράση (με τη σειρά) στο επόμενο βήμα.",
+    "info": "Αυτή είναι η Μυστική σας Φράση Ανάκτησης. Γράψτε την σε χαρτί και φυλάξτε την σε ασφαλές μέρος. Θα σας ζητηθεί να ξαναδώσετε αυτή τη φράση (με τη σειρά) στο επόμενο βήμα.",
     "continue": "Συνέχεια",
     "reveal": "Πατήστε για να αποκαλυφθεί η Μυστική Φράση Ανάκτησης",
     "watching": "Βεβαιωθείτε ότι κανείς δεν παρακολουθεί την οθόνη σας.",
@@ -1865,11 +1867,7 @@
     "wallet_connect_dapps_desc": "Προβολή της λίστας των ενεργών συνεδριών στο WalletConnect",
     "wallet_connect_dapps_cta": "Προβολή συνεδριών",
     "network_not_supported": "Το τρέχον δίκτυο δεν υποστηρίζεται",
-    "security_alerts": "Ειδοποιήσεις ασφαλείας",
-    "security_alerts_desc": "Αυτή η λειτουργία σας ειδοποιεί για κακόβουλη δραστηριότητα, ελέγχοντας τοπικά τα αιτήματα συναλλαγών και υπογραφών σας. Κάνετε πάντα τη δική σας ενδελεχή έρευνα πριν εγκρίνετε οποιαδήποτε αιτήματα. Δεν υπάρχει καμία εγγύηση ότι αυτή η λειτουργία θα ανιχνεύσει όλες τις κακόβουλες δραστηριότητες. Ενεργοποιώντας αυτή τη λειτουργία, συμφωνείτε με τους όρους χρήσης του παρόχου.",
     "select_provider": "Επιλέξτε τον πάροχο που προτιμάτε",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
     "switch_network": "Παρακαλούμε μεταβείτε στο mainnet ή το sepolia"
   },
   "walletconnect_sessions": {
@@ -2060,6 +2058,10 @@
     "fetching_new_quotes": "Λήψη νέων προσφορών...",
     "quotes_expire_in": "Οι προσφορές λήγουν σε",
     "get_new_quotes": "Λάβετε νέες προσφορές",
+    "explore_more_options": "Εξερευνήστε περισσότερες επιλογές",
+    "one_more_option": "1 ακόμα επιλογή",
+    "more_options": "{{count}} ακόμα επιλογές",
+    "previously_used": "Χρησιμοποιήθηκε στο παρελθόν",
     "quotes_timeout": "Λήξη προσφοράς",
     "request_new_quotes": "Ζητήστε νέες προσφορές για να πάρετε την πιο πρόσφατη καλύτερη τιμή.",
     "terms_of_service": "Όροι Χρήσης",
@@ -2356,7 +2358,7 @@
       "approve_pending": "Έγκριση {{sourceToken}} για ανταλλαγές",
       "approve_confirmed": "{{sourceToken}} εγκρίθηκαν για ανταλλαγές"
     },
-    "medium_selected_warning": "Οι ανταλλαγές είναι ευαίσθητες στον χρόνο. Το «Μεσαίο» επίπεδο δεν συστήνεται.",
+    "medium_selected_warning": "Οι ανταλλαγές είναι χρονικά ευαίσθητες. H επιλογή \"Μέτριο\" δεν συνιστάται.",
     "high_recommendation": "Οι ανταλλαγές είναι συνήθως ευαίσθητες στον χρόνο. Το «Υψηλό» επίπεδο θα βοηθήσει στην αποφυγή πιθανών ζημιών λόγω αλλαγών στις συνθήκες της αγοράς.",
     "recommended": "Προτεινόμενο",
     "recommended_gas": "Προτεινόμενο τέλος συναλλαγής",
@@ -2405,8 +2407,10 @@
     "title": "Τι νέο υπάρχει",
     "blockaid": {
       "title": "Μείνετε ασφαλείς με ειδοποιήσεις ασφαλείας",
-      "description_1": "Steer clear of known scams while still preserving your privacy with security alerts powered by Blockaid. This feature is available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
-      "description_2": "Πάντα να προβαίνετε σε δικό σας επιμελή έλεγχο προτού εγκρίνετε τα αιτήματα."
+      "description_1": "Αποφύγετε τις γνωστές απάτες, προστατεύοντας παράλληλα το απόρρητό σας με τις ειδοποιήσεις ασφαλείας που παρέχονται από το Blockaid. Αυτή η λειτουργία είναι πλέον ενεργοποιημένη από προεπιλογή για όλους τους χρήστες του MetaMask.",
+      "description_2": "Πάντα να προβαίνετε σε δικό σας επιμελή έλεγχο προτού εγκρίνετε τα αιτήματα.",
+      "description_3": "Διατίθεται στα Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism και Polygon.",
+      "got_it": "Κατανοητό"
     },
     "sell": {
       "title": "Εύκολη ανάληψη μετρητών",
@@ -2424,7 +2428,7 @@
   "switch_custom_network": {
     "title_existing_network": "Αυτός ο ιστότοπος θα ήθελε να αλλάξει το δίκτυο",
     "title_new_network": "Προστέθηκε νέο δίκτυο",
-    "switch_warning": "Αυτό θα αλλάξει το επιλεγμένο δίκτυο στο MetaMask σε ένα δίκτυο που προστέθηκε εκ των προτέρων:",
+    "switch_warning": "Αυτό θα αλλάξει το επιλεγμένο δίκτυο στο MetaMask σε ένα δίκτυο που έχει προστεθεί προηγουμένως:",
     "available": "είναι τώρα διαθέσιμο στην επιλογή δικτύου.",
     "cancel": "Άκυρο",
     "switch": "Αλλαγή Δικτύου"
@@ -2468,12 +2472,12 @@
     "max_fee": "Μέγιστο τέλος",
     "estimate": "Εκτιμώμενο",
     "recommended_gas_fee": "Προτεινόμενο τέλος συναλλαγής",
-    "swaps_warning": "Οι ανταλλαγές είναι πολύ ευαίσθητες στον χρόνο. Το «Υψηλό» επίπεδο θα σας βοηθήσει να αποφύγετε πιθανές απώλειες λόγω αλλαγών στις συνθήκες της αγοράς.",
+    "swaps_warning": "Οι ανταλλαγές είναι πολύ ευαίσθητες στον χρόνο. Η επιλογή \"Υψηλό\" θα σας βοηθήσει να αποφύγετε πιθανές απώλειες λόγω αλλαγών στις συνθήκες της αγοράς.",
     "priority_fee_at_least_0_error": "Το τέλος προτεραιότητας πρέπει να είναι τουλάχιστον 1 GWEI",
     "learn_more": {
       "title": "Πώς να διαλέξω;",
       "intro": "Η επιλογή του κατάλληλου τέλους συναλλαγής εξαρτάται από τον τύπο συναλλαγής και το πόσο σημαντική είναι για εσάς.",
-      "aggressive_label": "Επιθετικά",
+      "aggressive_label": "Επιθετικό",
       "aggressive_text": "Μεγάλη πιθανότητα, ακόμα και σε ασταθείς αγορές. Χρησιμοποιήστε το «Επιθετικά» για να καλύψετε απότομες αυξήσεις της κίνησης στο δίκτυο που οφείλονται σε καταστάσεις όπως απότομες πτώσεις δημοφιλών NFT.",
       "market_label": "Αγορά",
       "market_text": "Χρησιμοποιήστε το «Αγορά» για γρήγορη επεξεργασία στην τρέχουσα τιμή αγοράς.",
@@ -2485,12 +2489,12 @@
     "submit": "Υποβολή",
     "max_priority_fee_low": "Το Τέλος Μέγιστης Προτεραιότητας είναι χαμηλό για τις τρέχουσες συνθήκες του δικτύου",
     "max_priority_fee_high": "Το Τέλος Μέγιστης Προτεραιότητας είναι υψηλότερο από όσο χρειάζεται",
-    "max_priority_fee_speed_up_low": "Το Τέλος Μέγιστης Προτεραιότητας πρέπει να είναι τουλάχιστον {{speed_up_floor_value}} GWEI (10% υψηλότερο από την αρχική συναλλαγή)",
-    "max_priority_fee_cancel_low": "Το Τέλος Μέγιστης Προτεραιότητας πρέπει να είναι τουλάχιστον {{cancel_value}} GWEI (50% υψηλότερο από την αρχική συναλλαγή)",
+    "max_priority_fee_speed_up_low": "Τα μέγιστα τέλη για την παροχή προτεραιότητας πρέπει να είναι τουλάχιστον {{speed_up_floor_value}} GWEI (10% υψηλότερη από την αρχική συναλλαγή)",
+    "max_priority_fee_cancel_low": "Τα μέγιστα τέλη για την παροχή προτεραιότητας πρέπει να είναι τουλάχιστον {{cancel_value}} GWEI (50% υψηλότερη από την αρχική συναλλαγή)",
     "max_fee_low": "Το Μέγιστο Τέλος είναι χαμηλό για τις τρέχουσες συνθήκες του δικτύου",
     "max_fee_high": "Το Μέγιστο Τέλος είναι υψηλότερο από όσο χρειάζεται",
-    "max_fee_speed_up_low": "Το Μέγιστο Τέλος πρέπει να είναι τουλάχιστον {{speed_up_floor_value}} GWEI (10% υψηλότερο από την αρχική συναλλαγή)",
-    "max_fee_cancel_low": "Το Μέγιστο Τέλος πρέπει να είναι τουλάχιστον {{cancel_value}} GWEI (50% υψηλότερο από την αρχική συναλλαγή)",
+    "max_fee_speed_up_low": "Τα μέγιστα τέλη πρέπει να είναι τουλάχιστον {{speed_up_floor_value}} GWEI (10% υψηλότερη από την αρχική συναλλαγή)",
+    "max_fee_cancel_low": "Τα μέγιστα τέλη πρέπει να είναι τουλάχιστον {{cancel_value}} GWEI (50% υψηλότερη από την αρχική συναλλαγή)",
     "learn_more_gas_limit": "Το όριο τέλους συναλλαγής είναι οι μέγιστες μονάδες τελών που είστε διατεθειμένοι να χρησιμοποιήσετε. Οι μονάδες τελών είναι ένας πολλαπλασιαστής στο «Τέλος Μέγιστης Προτεραιότητας» και το «Μέγιστο Τέλος».",
     "learn_more_max_priority_fee": "Το μέγιστο τέλος προτεραιότητας (ή αλλιώς «φιλοδώρημα του αναλυτή») πηγαίνει απευθείας στους αναλυτές και τους παρακινεί να δώσουν προτεραιότητα στη συναλλαγή σας. Τις περισσότερες φορές θα πληρώσετε τη μέγιστη ρύθμιση.",
     "learn_more_max_fee": "Το μέγιστο τέλος είναι το μέγιστο που θα πληρώσετε (βασικό τέλος + τέλος προτεραιότητας).",
@@ -2752,7 +2756,7 @@
     "ledger_disconnected": "Η συσκευή σας αποσυνδέθηκε",
     "ledger_disconnected_error": "Η σύνδεση με τη συσκευή σας έχει χαθεί. Προσπαθήστε ξανά.",
     "unknown_error": "Προέκυψε απροσδόκητο σφάλμα.",
-    "unknown_error_message": "Προέκυψε ένα απροσδόκητο σφάλμα. Προσπαθήστε ξανά.",
+    "unknown_error_message": "Προέκυψε ένα μη αναμενόμενο σφάλμα. Προσπαθήστε ξανά.",
     "error_occured": "Προέκυψε ένα σφάλμα",
     "how_to_install_eth_app": "Πώς να εγκαταστήσετε την εφαρμογή Ethereum σε μια συσκευή Ledger",
     "ledger_account_count": "Χρησιμοποιείτε 1 λογαριασμό από το Ledger σας με το MetaMask Mobile.",
@@ -2768,14 +2772,11 @@
     "ledger_pending_confirmation_error": "Υπάρχει μια εκκρεμής ενέργεια στο Ledger. Ακυρώστε πρώτα την ενέργεια και μετά προσπαθήστε ξανά.",
     "not_supported": "Η λειτουργία δεν υποστηρίζεται",
     "not_supported_error": "Υποστηρίζεται μόνο η έκδοση 4 της υπογραφής τυπωμένων δεδομένων.",
-    "error_during_connection": "Προέκυψε ένα άγνωστο σφάλμα",
+    "error_during_connection": "Παρουσιάστηκε ένα άγνωστο σφάλμα",
     "error_during_connection_message": "Υπήρξε ένα μικρό πρόβλημα στη σύνδεση του Ledger Nano X, πατήστε «Επανάληψη» παρακάτω για να προσπαθήσετε ξανά. Μερικές φορές αυτό συμβαίνει επειδή η εφαρμογή ETH στο Ledger Nano X είναι ανοιχτή κατά την έναρξη της διαδικασίας ζεύξης με το MetaMask Mobile.",
     "how_to_install_eth_webview_title": "Πώς να εγκαταστήσετε την εφαρμογή Ethereum",
     "nonce_too_low": "Πολύ χαμηλό nonce",
-    "nonce_too_low_error": "Το καθορισμένο nonce είναι πολύ χαμηλό",
-    "ledger_beta_alert": "Ενεργοποίηση της ενσωμάτωσης του Ledger",
-    "ledger_beta_alert_description": "Βρήκατε μια πειραματική λειτουργία! Συνεχίζοντας αποδέχεστε ότι χρησιμοποιείτε αυτή την πειραματική λειτουργία με δική σας ευθύνη.",
-    "ledger_beta_cta": "Συνεχίστε"
+    "nonce_too_low_error": "Το καθορισμένο nonce είναι πολύ χαμηλό"
   },
   "account_actions": {
     "edit_name": "Επεξεργασία ονόματος λογαριασμού",

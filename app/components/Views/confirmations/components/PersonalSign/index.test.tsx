@@ -11,8 +11,9 @@ import { InteractionManager } from 'react-native';
 import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
-import analyticsV2 from '../../../../../util/analyticsV2';
+import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
+jest.mock('../../../../../components/hooks/useMetrics');
 jest.mock('../../../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
   rejectPendingApproval: jest.fn(),
@@ -69,12 +70,15 @@ jest.mock('react-redux', () => ({
     }),
 }));
 
-jest.mock('../../../../../util/analyticsV2');
-
 jest.mock('../../../../../util/address', () => ({
   getAddressAccountType: jest.fn().mockReturnValue('Metamask'),
   isExternalHardwareAccount: jest.fn().mockReturnValue(false),
 }));
+
+const mockTrackEvent = jest.fn();
+(useMetrics as jest.Mock).mockReturnValue({
+  trackEvent: mockTrackEvent,
+});
 
 function createWrapper({
   origin = messageParamsMock.origin,
@@ -178,9 +182,9 @@ describe('PersonalSign', () => {
       const wrapper = createWrapper().dive();
       await (wrapper.find(SignatureRequest).props() as any).onReject();
 
-      const rejectedMocks = (
-        analyticsV2.trackEvent as jest.Mock
-      ).mock.calls.filter((call) => call[0].category === 'Signature Rejected');
+      const rejectedMocks = (mockTrackEvent as jest.Mock).mock.calls.filter(
+        (call) => call[0].category === 'Signature Rejected',
+      );
 
       const mockCallsLength = rejectedMocks.length;
 
@@ -202,9 +206,9 @@ describe('PersonalSign', () => {
       const wrapper = createWrapper().dive();
       await (wrapper.find(SignatureRequest).props() as any).onConfirm();
 
-      const signedMocks = (
-        analyticsV2.trackEvent as jest.Mock
-      ).mock.calls.filter((call) => call[0].category === 'Signature Approved');
+      const signedMocks = (mockTrackEvent as jest.Mock).mock.calls.filter(
+        (call) => call[0].category === 'Signature Approved',
+      );
 
       const mockCallsLength = signedMocks.length;
 

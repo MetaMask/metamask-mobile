@@ -425,7 +425,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                         }
                       }
                     >
-                      https:/
+                      https://localhost:8545
                     </Text>
                     <TouchableOpacity
                       activeOpacity={0.5}
@@ -504,6 +504,8 @@ exports[`NetworkDetails renders correctly 1`] = `
               testID="bottomsheetfooter"
             >
               <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
                 activeOpacity={1}
                 onPress={[Function]}
                 onPressIn={[Function]}
@@ -543,6 +545,8 @@ exports[`NetworkDetails renders correctly 1`] = `
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
                 activeOpacity={1}
                 onPress={[Function]}
                 onPressIn={[Function]}

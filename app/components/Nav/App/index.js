@@ -30,9 +30,7 @@ import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentry/utils';
-import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
@@ -88,7 +86,7 @@ import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
-import BlockaidIndicator from '../../Views/Settings/ExperimentalSettings/BlockaidIndicator';
+import BlockaidIndicator from '../../Views/Settings/SecuritySettings/BlockaidIndicator';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
@@ -100,6 +98,12 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
+import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectModal/SDKDisconnectModal';
+import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
+import { MetaMetrics } from '../../../core/Analytics';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
+import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -367,12 +371,20 @@ const App = ({ userLoggedIn }) => {
   }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
-    const initAnalytics = async () => {
-      await Analytics.init();
+    const initMetrics = async () => {
+      const metrics = MetaMetrics.getInstance();
+      await metrics.configure();
+      // identify user with the latest traits
+      // run only after the MetaMetrics is configured
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      await metrics.addTraitsToUser(consolidatedTraits);
     };
 
-    initAnalytics().catch((err) => {
-      Logger.error(err, 'Error initializing analytics');
+    initMetrics().catch((err) => {
+      Logger.error(err, 'Error initializing MetaMetrics');
     });
   }, []);
 
@@ -549,6 +561,14 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.SDK_FEEDBACK}
         component={SDKFeedbackModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
+        component={SDKSessionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_DISCONNECT}
+        component={SDKDisconnectModal}
       />
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_CONNECT}

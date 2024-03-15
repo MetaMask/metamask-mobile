@@ -30,8 +30,8 @@ import AccountDetails from '../../../components/UI/HardwareWallet/AccountDetails
 
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -79,6 +79,7 @@ const createStyles = (colors: any) =>
 const LedgerAccountInfo = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
   const [account, setAccount] = useState('');
   const [accountBalance, setAccountBalance] = useState<string>('0');
   const { colors } = useAppThemeFromContext() ?? mockTheme;
@@ -118,7 +119,7 @@ const LedgerAccountInfo = () => {
   const onForgetDevice = async () => {
     await forgetLedger();
     dispatch(setReloadAccounts(true));
-    AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
+    trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN, {
       device_type: 'Ledger',
     });
     navigation.dispatch(StackActions.pop(2));
@@ -180,7 +181,7 @@ const LedgerAccountInfo = () => {
           index={1}
           address={account}
           balance={accountBalance}
-          ticker={provider.ticker || 'ETH'}
+          ticker={provider.ticker}
           toBlockExplorer={toBlockExplorer}
         />
       </View>
