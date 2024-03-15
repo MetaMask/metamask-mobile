@@ -520,6 +520,7 @@ class MetaMetrics implements IMetaMetrics {
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
       this.#isConfigured = true;
+
       if (__DEV__)
         Logger.log(`MetaMetrics configured with ID: ${this.metametricsId}`);
     } catch (error: any) {

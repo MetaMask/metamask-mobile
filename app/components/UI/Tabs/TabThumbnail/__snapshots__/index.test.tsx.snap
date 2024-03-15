@@ -1,13 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TabThumbnail should render correctly 1`] = `
-<ElevatedView
-  elevation={8}
+<View
   style={
-    Object {
-      "backgroundColor": "transparent",
-      "overflow": "hidden",
-    }
+    Array [
+      Object {
+        "shadowOffset": Object {
+          "height": 4.8,
+        },
+        "shadowOpacity": 0.192,
+        "shadowRadius": 4.32,
+      },
+      Object {
+        "backgroundColor": "transparent",
+        "overflow": "hidden",
+      },
+    ]
   }
 >
   <TouchableOpacity
@@ -54,21 +62,48 @@ exports[`TabThumbnail should render correctly 1`] = `
           }
         }
       >
-        <Component
-          style={
-            Object {
-              "alignSelf": "flex-start",
-              "height": 22,
-              "marginLeft": 2,
-              "marginRight": 5,
-              "marginTop": 1,
-              "width": 22,
+        <View>
+          <View
+            style={
+              Array [
+                Object {
+                  "alignContent": "center",
+                  "backgroundColor": "#FFFFFF",
+                  "borderRadius": 27,
+                  "height": 54,
+                  "justifyContent": "center",
+                  "width": 54,
+                },
+                Object {
+                  "alignSelf": "flex-start",
+                  "height": 22,
+                  "marginLeft": 2,
+                  "marginRight": 5,
+                  "marginTop": 1,
+                  "width": 22,
+                },
+              ]
             }
-          }
-          title="about:blank"
-          transparent={true}
-          url="about:blank"
-        />
+          >
+            <Text
+              style={
+                Array [
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 24,
+                    "fontWeight": "400",
+                    "textAlign": "center",
+                    "textTransform": "uppercase",
+                  },
+                  undefined,
+                ]
+              }
+            >
+              a
+            </Text>
+          </View>
+        </View>
         <Text
           numberOfLines={1}
           style={
@@ -97,22 +132,34 @@ exports[`TabThumbnail should render correctly 1`] = `
           }
         }
       >
-        <Icon
+        <Text
           allowFontScaling={false}
-          name="ios-close"
-          size={12}
           style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 32,
-              "marginTop": -7,
-              "paddingHorizontal": 10,
-              "paddingTop": 3,
-              "position": "absolute",
-              "right": 0,
-            }
+            Array [
+              Object {
+                "color": undefined,
+                "fontSize": 12,
+              },
+              Object {
+                "color": "#24272A",
+                "fontSize": 32,
+                "marginTop": -7,
+                "paddingHorizontal": 10,
+                "paddingTop": 3,
+                "position": "absolute",
+                "right": 0,
+              },
+              Object {
+                "fontFamily": "Ionicons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              Object {},
+            ]
           }
-        />
+        >
+          
+        </Text>
       </TouchableOpacity>
     </View>
     <View
@@ -147,5 +194,5 @@ exports[`TabThumbnail should render correctly 1`] = `
       />
     </View>
   </TouchableOpacity>
-</ElevatedView>
+</View>
 `;

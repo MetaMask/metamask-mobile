@@ -8,7 +8,6 @@ import {
   BackHandler,
   Alert,
   InteractionManager,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -24,17 +23,9 @@ import {
   MetaMetricsEvents,
   withMetricsAwareness,
 } from '../../hooks/useMetrics';
-
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  OPTIN_METRICS_I_AGREE_BUTTON_ID,
-  OPTIN_METRICS_NO_THANKS_BUTTON_ID,
-  OPTIN_METRICS_TITLE_ID,
-  METAMETRICS_OPT_IN_CONTAINER_ID,
-  OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/OptinMetricsScreen.testIds';
+import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -416,7 +407,9 @@ class OptinMetrics extends PureComponent {
         <Button
           variant={ButtonVariants.Secondary}
           onPress={this.onCancel}
-          {...generateTestId(Platform, OPTIN_METRICS_NO_THANKS_BUTTON_ID)}
+          testID={
+            MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID
+          }
           style={styles.button}
           label={strings('privacy_policy.cta_no_thanks')}
           size={ButtonSize.Lg}
@@ -426,7 +419,7 @@ class OptinMetrics extends PureComponent {
         <Button
           variant={ButtonVariants.Primary}
           onPress={this.onConfirm}
-          {...generateTestId(Platform, OPTIN_METRICS_I_AGREE_BUTTON_ID)}
+          testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID}
           style={styles.button}
           label={strings('privacy_policy.cta_i_agree')}
           size={ButtonSize.Lg}
@@ -488,7 +481,7 @@ class OptinMetrics extends PureComponent {
     return (
       <SafeAreaView
         style={styles.root}
-        {...generateTestId(Platform, METAMETRICS_OPT_IN_CONTAINER_ID)}
+        testID={MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID}
       >
         <ScrollView
           style={styles.root}
@@ -500,16 +493,15 @@ class OptinMetrics extends PureComponent {
           <View style={styles.wrapper}>
             <Text
               style={styles.title}
-              {...generateTestId(Platform, OPTIN_METRICS_TITLE_ID)}
+              testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
             >
               {strings('privacy_policy.description_title')}
             </Text>
             <Text
               style={styles.content}
-              {...generateTestId(
-                Platform,
-                OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
-              )}
+              testID={
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
+              }
             >
               {strings('privacy_policy.description_content_1')}
             </Text>
