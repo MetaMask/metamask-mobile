@@ -1,3 +1,591 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`OptinMetrics should render correctly 1`] = `[Function]`;
+exports[`OptinMetrics should render correctly 1`] = `
+<RCTSafeAreaView
+  style={
+    Object {
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+    }
+  }
+  testID="meta-metrics-container"
+>
+  <RCTScrollView
+    onContentSizeChange={[Function]}
+    onLayout={[Function]}
+    onScroll={[Function]}
+    scrollEventThrottle={150}
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+  >
+    <View>
+      <View
+        style={
+          Object {
+            "marginHorizontal": 20,
+          }
+        }
+      >
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 22,
+              "fontWeight": "600",
+            }
+          }
+          testID="optin-metrics-title-id"
+        >
+          Help us improve MetaMask
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "paddingVertical": 10,
+            }
+          }
+          testID="optin-metrics-privacy-policy-description"
+        >
+          MetaMask would like to gather usage data to better understand how our users interact with MetaMask. This data will be used to provide the service, which includes improving the service based on your use.
+        </Text>
+        <Text
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "paddingVertical": 10,
+            }
+          }
+        >
+          MetaMask will...
+        </Text>
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "flex": 0,
+              "flexDirection": "row",
+              "paddingVertical": 10,
+            }
+          }
+        >
+          <Text
+            allowFontScaling={false}
+            style={
+              Array [
+                Object {
+                  "color": undefined,
+                  "fontSize": 20,
+                },
+                Array [
+                  Object {
+                    "marginRight": 5,
+                  },
+                  Object {
+                    "color": "#1C8234",
+                  },
+                ],
+                Object {
+                  "fontFamily": "Entypo",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                Object {},
+              ]
+            }
+          >
+            
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontWeight": "400",
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontWeight": "600",
+                }
+              }
+            />
+            Always allow you to opt-out via Settings
+          </Text>
+        </View>
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "flex": 0,
+              "flexDirection": "row",
+              "paddingVertical": 10,
+            }
+          }
+        >
+          <Text
+            allowFontScaling={false}
+            style={
+              Array [
+                Object {
+                  "color": undefined,
+                  "fontSize": 20,
+                },
+                Array [
+                  Object {
+                    "marginRight": 5,
+                  },
+                  Object {
+                    "color": "#1C8234",
+                  },
+                ],
+                Object {
+                  "fontFamily": "Entypo",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                Object {},
+              ]
+            }
+          >
+            
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontWeight": "400",
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontWeight": "600",
+                }
+              }
+            />
+            Send anonymized click & pageview events
+          </Text>
+        </View>
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "flex": 0,
+              "flexDirection": "row",
+              "paddingVertical": 10,
+            }
+          }
+        >
+          <Text
+            allowFontScaling={false}
+            style={
+              Array [
+                Object {
+                  "color": undefined,
+                  "fontSize": 24,
+                },
+                Array [
+                  Object {
+                    "marginRight": 5,
+                  },
+                  Object {
+                    "color": "#D73847",
+                  },
+                ],
+                Object {
+                  "fontFamily": "Entypo",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                Object {},
+              ]
+            }
+          >
+            
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontWeight": "400",
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontWeight": "600",
+                }
+              }
+            >
+              Never 
+            </Text>
+            collect information we don’t need to provide the service (such as keys, addresses, transaction hashes, or balances)
+          </Text>
+        </View>
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "flex": 0,
+              "flexDirection": "row",
+              "paddingVertical": 10,
+            }
+          }
+        >
+          <Text
+            allowFontScaling={false}
+            style={
+              Array [
+                Object {
+                  "color": undefined,
+                  "fontSize": 24,
+                },
+                Array [
+                  Object {
+                    "marginRight": 5,
+                  },
+                  Object {
+                    "color": "#D73847",
+                  },
+                ],
+                Object {
+                  "fontFamily": "Entypo",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                Object {},
+              ]
+            }
+          >
+            
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontWeight": "400",
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontWeight": "600",
+                }
+              }
+            >
+              Never 
+            </Text>
+            collect your full IP address*
+          </Text>
+        </View>
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "flex": 0,
+              "flexDirection": "row",
+              "paddingVertical": 10,
+            }
+          }
+        >
+          <Text
+            allowFontScaling={false}
+            style={
+              Array [
+                Object {
+                  "color": undefined,
+                  "fontSize": 24,
+                },
+                Array [
+                  Object {
+                    "marginRight": 5,
+                  },
+                  Object {
+                    "color": "#D73847",
+                  },
+                ],
+                Object {
+                  "fontFamily": "Entypo",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                Object {},
+              ]
+            }
+          >
+            
+          </Text>
+          <Text
+            style={
+              Object {
+                "color": "#24272A",
+                "flex": 1,
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontWeight": "400",
+              }
+            }
+          >
+            <Text
+              style={
+                Object {
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontWeight": "600",
+                }
+              }
+            >
+              Never 
+            </Text>
+            sell data. Ever!
+          </Text>
+        </View>
+        <View>
+          <Text
+            style={
+              Object {
+                "color": "#BBC0C5",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "marginTop": 10,
+              }
+            }
+          >
+            <Text>
+              This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679.
+            </Text>
+            
+
+
+            *When you use Infura as your default RPC provider in MetaMask, Infura will collect your IP address and your Ethereum wallet address when you send a transaction. We don’t store this information in a way that allows our systems to associate those two pieces of data. You can configure your RPC provider 
+            <Text
+              accessibilityRole="link"
+              accessible={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                Object {
+                  "backgroundColor": "transparent",
+                  "color": "#24272A",
+                }
+              }
+              suppressHighlighting={true}
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  Object {
+                    "color": "#0376C9",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                here
+              </Text>
+            </Text>
+             before proceeding.
+For more information on how MetaMask and Infura interact from a data collection perspective, see our update 
+            <Text
+              accessibilityRole="link"
+              accessible={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                Object {
+                  "backgroundColor": "transparent",
+                  "color": "#24272A",
+                }
+              }
+              suppressHighlighting={true}
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  Object {
+                    "color": "#0376C9",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                here
+              </Text>
+            </Text>
+            . For more information on our privacy practices in general, see our Privacy Policy 
+            <Text
+              accessibilityRole="link"
+              accessible={true}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                Object {
+                  "backgroundColor": "transparent",
+                  "color": "#24272A",
+                }
+              }
+              suppressHighlighting={true}
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  Object {
+                    "color": "#0376C9",
+                    "fontFamily": "Euclid Circular B",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                here
+              </Text>
+            </Text>
+            .
+          </Text>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+  <View
+    style={
+      Array [
+        Object {
+          "flexDirection": "row",
+          "padding": 16,
+        },
+        Object {
+          "opacity": 0.3,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={true}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#0376C9",
+          "borderRadius": 24,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="optin-metrics-no-thanks-button-id"
+      variant="Secondary"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        No thanks
+      </Text>
+    </TouchableOpacity>
+    <View
+      style={
+        Object {
+          "width": 16,
+        }
+      }
+    />
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={true}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#0376C9",
+          "borderRadius": 24,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="optin-metrics-i-agree-button-id"
+      variant="Primary"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#FFFFFF",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        I agree
+      </Text>
+    </TouchableOpacity>
+  </View>
+</RCTSafeAreaView>
+`;

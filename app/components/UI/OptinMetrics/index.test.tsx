@@ -7,6 +7,6 @@ describe('OptinMetrics', () => {
     const { toJSON } = renderWithProvider(
       <OptinMetrics navigation={{ setOptions: () => null }} />,
     );
-    expect(toJSON).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
