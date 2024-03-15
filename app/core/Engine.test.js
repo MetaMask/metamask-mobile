@@ -71,118 +71,12 @@ describe('Engine', () => {
     expect(backgroundState).toStrictEqual(initialState);
   });
 
-  describe('setSelectedAccount', () => {
-    // it('sets the selected account given a valid address', () => {
-    //   const MOCK_ADDRESS = '0x0';
-    //   const MOCK_ADDRESS_2 = '0x1';
-    //
-    //   const accountUUID1 = '30313233-3435-4637-b839-383736353430';
-    //   const accountUUID2 = '30313233-3435-4637-b839-383736353431';
-    //   const accountsControllerInitialState = {
-    //     AccountsController: {
-    //       internalAccounts: {
-    //         accounts: {
-    //           [accountUUID1]: {
-    //             address: MOCK_ADDRESS,
-    //             id: accountUUID1,
-    //             options: {},
-    //             metadata: {
-    //               name: 'Account 1',
-    //               keyring: {
-    //                 type: 'HD Key Tree',
-    //               },
-    //             },
-    //             methods: [
-    //               'personal_sign',
-    //               'eth_sign',
-    //               'eth_signTransaction',
-    //               'eth_signTypedData_v1',
-    //               'eth_signTypedData_v3',
-    //               'eth_signTypedData_v4',
-    //               'eth_prepareUserOperation',
-    //               'eth_patchUserOperation',
-    //               'eth_signUserOperation',
-    //             ],
-    //             type: 'eip155:eoa',
-    //           },
-    //           [accountUUID2]: {
-    //             address: MOCK_ADDRESS_2,
-    //             id: accountUUID2,
-    //             options: {},
-    //             metadata: {
-    //               name: 'Account 2',
-    //               keyring: {
-    //                 type: 'HD Key Tree',
-    //               },
-    //             },
-    //             methods: [
-    //               'personal_sign',
-    //               'eth_sign',
-    //               'eth_signTransaction',
-    //               'eth_signTypedData_v1',
-    //               'eth_signTypedData_v3',
-    //               'eth_signTypedData_v4',
-    //               'eth_prepareUserOperation',
-    //               'eth_patchUserOperation',
-    //               'eth_signUserOperation',
-    //             ],
-    //             type: 'eip155:eoa',
-    //           },
-    //         },
-    //         selectedAccount: accountUUID1,
-    //       },
-    //     },
-    //   };
-    //
-    //   const preferencesControllerInitialState = {
-    //     PreferencesController: {
-    //       identities: {
-    //         '0x0': {
-    //           name: 'Account 1',
-    //           address: '0x0',
-    //         },
-    //         '0x1': {
-    //           name: 'Account 2',
-    //           address: '0x1',
-    //         },
-    //       },
-    //       selectedAddress: '0x0',
-    //     },
-    //   };
-    //
-    //   const customInitialState = {
-    //     ...initialState,
-    //     ...accountsControllerInitialState, // Override or add AccountsController state
-    //     ...preferencesControllerInitialState, // Override or add PreferencesController state
-    //   };
-    //
-    //   // Assuming the customInitialState is correctly merged and applied:
-    //   const engine = Engine.init(customInitialState);
-    //
-    //   // Initially, the selectedAddress should match the default from the custom initial state
-    //   expect(engine.context.PreferencesController.state.selectedAddress).toBe(
-    //     MOCK_ADDRESS,
-    //   );
-    //
-    //   expect(() => engine.setSelectedAccount(MOCK_ADDRESS_2)).not.toThrow();
-    //
-    //   // Assertions after setSelectedAccount should verify the update took place
-    //   const selectedAccount =
-    //     engine.context.PreferencesController.state.selectedAddress;
-    //   expect(selectedAccount).toBe(MOCK_ADDRESS_2);
-    //
-    //   const selectedInternalAccount =
-    //     engine.context.AccountsController.getSelectedAccount();
-    //   expect(selectedInternalAccount.address).toBe(MOCK_ADDRESS_2);
-    // });
+  it('setSelectedAccount throws an error if no account exists for the given address', () => {
+    const engine = Engine.init(initialState);
+    const invalidAddress = '0xInvalidAddress';
 
-    it('throws an error if no account exists for the given address', () => {
-      const engine = Engine.init(initialState);
-      const invalidAddress = '0xInvalidAddress';
-
-      expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
-        `No account found for address: ${invalidAddress}`,
-      );
-    });
+    expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
+      `No account found for address: ${invalidAddress}`,
+    );
   });
 });
