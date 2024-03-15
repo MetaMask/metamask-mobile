@@ -36,6 +36,7 @@ import {
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import Logger from '../../../util/Logger';
+import { TransactionType } from '@metamask/transaction-controller';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -236,7 +237,7 @@ const mapStateToProps = (state) => {
       ...stx,
       id: stx.uuid,
       transaction: stx.txParams, // Expected field
-      transactionType: 'smart', // TODO get these types from TransactionType.smart from tx-controller
+      transactionType: TransactionType.smart,
       status: stx.status?.startsWith('cancelled')
         ? SmartTransactionStatuses.cancelled
         : stx.status,
