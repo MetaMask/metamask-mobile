@@ -1,4 +1,4 @@
-import migrate from './032';
+import migrate from './034';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
@@ -23,7 +23,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #32', () => {
+describe('Migration #34', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -32,14 +32,14 @@ describe('Migration #32', () => {
   const invalidStates = [
     {
       state: null,
-      errorMessage: "Migration 32: Invalid root state: 'object'",
+      errorMessage: "Migration 34: Invalid root state: 'object'",
       scenario: 'state is invalid',
     },
     {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 32: Invalid root engine state: 'object'",
+      errorMessage: "Migration 34: Invalid root engine state: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -49,7 +49,7 @@ describe('Migration #32', () => {
         },
       }),
       errorMessage:
-        "Migration 32: Invalid root engine backgroundState: 'object'",
+        "Migration 34: Invalid root engine backgroundState: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -58,7 +58,7 @@ describe('Migration #32', () => {
           backgroundState: { NetworkController: null },
         },
       }),
-      errorMessage: "Migration 32: Invalid NetworkController state: 'object'",
+      errorMessage: "Migration 34: Invalid NetworkController state: 'object'",
       scenario: 'NetworkController is invalid',
     },
     {
@@ -68,7 +68,7 @@ describe('Migration #32', () => {
         },
       }),
       errorMessage:
-        "Migration 32: Invalid NetworkController providerConfig: 'object'",
+        "Migration 34: Invalid NetworkController providerConfig: 'object'",
       scenario: 'providerConfig is invalid',
     },
   ];
