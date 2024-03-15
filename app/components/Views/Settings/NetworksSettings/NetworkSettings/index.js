@@ -9,8 +9,6 @@ import {
   Linking,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { isSafeChainId, toHex } from '@metamask/controller-utils';
-
 import { typography } from '@metamask/design-tokens';
 import {
   fontStyles,
@@ -66,6 +64,8 @@ import {
 } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
+import { isSafeChainId, toHex } from '@metamask/controller-utils';
+import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
@@ -1250,6 +1250,7 @@ class NetworkSettings extends PureComponent {
               size={ButtonSize.Lg}
               disabled={isActionDisabled}
               width={ButtonWidthTypes.Full}
+              testID={CustomDefaultNetworkIDs.USE_THIS_NETWORK_BUTTON_ID}
             />
           ) : (
             (addMode || editable) && (
