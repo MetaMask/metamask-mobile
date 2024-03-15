@@ -13,6 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 15,
       flexDirection: 'row',
       alignItems: 'center',
+      alignSelf: 'center',
     },
     timer: {
       fontVariant: ['tabular-nums'],

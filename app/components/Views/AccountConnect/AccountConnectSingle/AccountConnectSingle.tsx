@@ -22,7 +22,9 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import Text from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { formatAddress, getLabelTextByAddress } from '../../../../util/address';
 import { AccountConnectScreens } from '../AccountConnect.types';
@@ -45,6 +47,7 @@ const AccountConnectSingle = ({
   favicon,
   secureIcon,
   urlWithProtocol,
+  connection,
 }: AccountConnectSingleProps) => {
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector((state: any) =>
@@ -72,6 +75,16 @@ const AccountConnectSingle = ({
             },
           ]}
         />
+
+        {connection?.originatorInfo?.apiVersion && (
+          <View style={styles.sdkInfoContainer}>
+            <View style={styles.sdkInfoDivier} />
+            <Text color={TextColor.Muted}>
+              SDK {connection?.originatorInfo?.platform} v
+              {connection?.originatorInfo?.apiVersion}
+            </Text>
+          </View>
+        )}
       </View>
     ),
     [
@@ -80,6 +93,7 @@ const AccountConnectSingle = ({
       isLoading,
       styles,
       defaultSelectedAccount?.address,
+      connection,
     ],
   );
 

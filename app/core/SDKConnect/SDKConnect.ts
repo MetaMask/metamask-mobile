@@ -4,7 +4,7 @@ import AppConstants from '../AppConstants';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
-import { EventEmitter2 } from 'eventemitter2';
+import Engine from '../../core/Engine';
 import AndroidService from './AndroidSDK/AndroidService';
 import addAndroidConnection from './AndroidSDK/addAndroidConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
@@ -31,6 +31,7 @@ import {
   updateOriginatorInfos,
   updateSDKLoadingState,
 } from './StateManagement';
+import DevLogger from './utils/DevLogger';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -83,7 +84,7 @@ export interface SDKConnectState {
 
 export type SDKEventListener = (event: string) => void;
 
-export class SDKConnect extends EventEmitter2 {
+export class SDKConnect {
   private static instance: SDKConnect;
 
   public state: SDKConnectState = {
@@ -121,6 +122,7 @@ export class SDKConnect extends EventEmitter2 {
     trigger,
     otherPublicKey,
     origin,
+    initialConnection,
     validUntil = Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
   }: ConnectionProps) {
     return connectToChannel({
@@ -129,6 +131,7 @@ export class SDKConnect extends EventEmitter2 {
       otherPublicKey,
       origin,
       validUntil,
+      initialConnection,
       instance: this,
     });
   }
@@ -225,6 +228,17 @@ export class SDKConnect extends EventEmitter2 {
     return addAndroidConnection(connection, this);
   }
 
+  public async refreshChannel({ channelId }: { channelId: string }) {
+    const session = this.state.connected[channelId];
+    if (!session) {
+      DevLogger.log(`SDKConnect::refreshChannel - session not found`);
+      return;
+    }
+    DevLogger.log(`SDKConnect::refreshChannel channelId=${channelId}`);
+    // Force enitting updated accounts
+    session.backgroundBridge?.notifySelectedAddressChanged();
+  }
+
   /**
    * Invalidate a channel/session by preventing future connection to be established.
    * Instead of removing the channel, it sets the session to timeout on next
@@ -239,22 +253,23 @@ export class SDKConnect extends EventEmitter2 {
   public removeChannel({
     channelId,
     sendTerminate,
-    emitRefresh,
   }: {
     channelId: string;
     sendTerminate?: boolean;
-    emitRefresh?: boolean;
   }) {
     return removeChannel({
       channelId,
+      engine: Engine,
       sendTerminate,
       instance: this,
-      emitRefresh,
     });
   }
 
   public async removeAll() {
-    return removeAll(this);
+    const removeAllPromise = removeAll(this);
+    // Force close loading status
+    removeAllPromise.finally(() => this.hideLoadingState());
+    return removeAllPromise;
   }
 
   public getConnected() {
@@ -263,6 +278,13 @@ export class SDKConnect extends EventEmitter2 {
 
   public getConnections() {
     return this.state.connections;
+  }
+
+  public getConnection({ channelId }: { channelId: string }) {
+    return (
+      this.state.connections[channelId] ??
+      this.state.androidConnections[channelId]
+    );
   }
 
   public getApprovedHosts(_context?: string) {
