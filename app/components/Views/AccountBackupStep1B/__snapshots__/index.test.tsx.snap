@@ -1,541 +1,1189 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AccountBackupStep1B should render correctly 1`] = `
-<RCTSafeAreaView
+<View
   style={
     Object {
-      "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
   }
 >
-  <ScrollView
-    contentContainerStyle={
-      Object {
-        "flexGrow": 1,
-      }
-    }
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
     style={
-      Object {
-        "backgroundColor": "#FFFFFF",
-        "flex": 1,
-      }
+      Array [
+        Object {
+          "flex": 1,
+        },
+        undefined,
+      ]
     }
   >
     <View
+      collapsable={false}
+      pointerEvents="box-none"
       style={
         Object {
-          "flex": 1,
-          "padding": 20,
-          "paddingBottom": 0,
-          "paddingTop": 0,
+          "zIndex": 1,
         }
       }
-      testID="protect-your-account-screen"
     >
-      <OnboardingProgress
-        currentStep={1}
-        steps={
-          Array [
-            "Create password",
-            "Secure wallet",
-            "Confirm Secret Recovery Phrase",
-          ]
-        }
-      />
       <View
-        style={
-          Object {
-            "alignItems": "center",
-            "paddingBottom": 16,
-          }
-        }
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
       >
-        <Text
-          style={
-            Object {
-              "fontSize": 32,
-            }
-          }
-        >
-          🔒
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 24,
-              "fontWeight": "600",
-              "justifyContent": "center",
-              "marginBottom": 16,
-              "marginLeft": 0,
-              "marginTop": 16,
-            }
-          }
-        >
-          Secure your wallet
-        </Text>
         <View
+          collapsable={false}
+          pointerEvents="box-none"
           style={
             Object {
-              "justifyContent": "center",
-              "marginBottom": 16,
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 0,
             }
           }
         >
-          <Text
+          <View
+            collapsable={false}
             style={
               Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 16,
-                "fontWeight": "400",
-                "lineHeight": 20,
-                "textAlign": "left",
+                "backgroundColor": "#FFFFFF",
+                "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
+                "flex": 1,
+                "shadowColor": "transparent",
+                "shadowOffset": Object {
+                  "height": 0.5,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.85,
+                "shadowRadius": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            Object {
+              "height": 64,
+              "maxHeight": undefined,
+              "minHeight": undefined,
+              "opacity": undefined,
+              "transform": undefined,
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              Object {
+                "height": 20,
+              }
+            }
+          />
+          <View
+            pointerEvents="box-none"
+            style={
+              Object {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "center",
               }
             }
           >
-            Secure your wallet's
-             
-            <Text
-              onPress={[Function]}
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
               style={
                 Object {
-                  "color": "#0376C9",
+                  "marginHorizontal": 16,
+                  "opacity": 1,
                 }
               }
             >
-              Secret Recovery Phrase.
-            </Text>
-          </Text>
+              <View
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <Image
+                  resizeMethod="auto"
+                  source={
+                    Object {
+                      "default": Object {
+                        "uri": "MockImage",
+                      },
+                    }
+                  }
+                  style={
+                    Object {
+                      "height": 15,
+                      "tintColor": "#24272A",
+                      "width": 122,
+                    }
+                  }
+                />
+              </View>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                Object {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+          </View>
         </View>
-        <TouchableOpacity
-          onPress={[Function]}
-          style={
-            Object {
-              "alignItems": "center",
-              "flexDirection": "row",
-              "justifyContent": "center",
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            color="#0376C9"
-            name="info-circle"
-            size={12}
-            style={
-              Object {
-                "fontSize": 15,
-                "marginRight": 6,
-              }
-            }
-          />
-          <Text
-            style={
-              Object {
-                "color": "#0376C9",
-                "fontSize": 14,
-              }
-            }
-          >
-            Why is it important?
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <View
-        style={
-          Object {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
-            "borderRadius": 10,
-            "borderWidth": 1,
-            "elevation": 4,
-            "marginBottom": 20,
-            "padding": 16,
-          }
-        }
-      >
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 16,
-              "fontWeight": "600",
-              "lineHeight": 17,
-              "marginBottom": 8,
-            }
-          }
-        >
-          Manual
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 12,
-              "lineHeight": 17,
-              "marginBottom": 20,
-            }
-          }
-        >
-          Write down your Secret Recovery Phrase on a piece of paper and store in a safe place.
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 12,
-              "lineHeight": 17,
-              "marginBottom": 8,
-            }
-          }
-        >
-          Security level: Very strong
-        </Text>
-        <View
-          style={
-            Object {
-              "flexDirection": "row",
-              "lineHeight": 17,
-              "marginBottom": 20,
-            }
-          }
-        >
-          <View
-            style={
-              Object {
-                "backgroundColor": "#0376C9",
-                "height": 6,
-                "lineHeight": 17,
-                "marginRight": 2,
-                "width": 32,
-              }
-            }
-          />
-          <View
-            style={
-              Object {
-                "backgroundColor": "#0376C9",
-                "height": 6,
-                "lineHeight": 17,
-                "marginRight": 2,
-                "width": 32,
-              }
-            }
-          />
-          <View
-            style={
-              Object {
-                "backgroundColor": "#0376C9",
-                "height": 6,
-                "lineHeight": 17,
-                "marginRight": 2,
-                "width": 32,
-              }
-            }
-          />
-        </View>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 12,
-              "lineHeight": 17,
-            }
-          }
-        >
-          Risks are:
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 12,
-              "lineHeight": 17,
-            }
-          }
-        >
-          • 
-          You lose it
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 12,
-              "lineHeight": 17,
-            }
-          }
-        >
-          • 
-          You forget where you put it
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 12,
-              "lineHeight": 17,
-              "marginBottom": 20,
-            }
-          }
-        >
-          • 
-          Someone else finds it
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 12,
-              "lineHeight": 17,
-              "marginBottom": 20,
-            }
-          }
-        >
-          Other options: Doesn’t have to be paper!
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 12,
-              "lineHeight": 17,
-            }
-          }
-        >
-          Tips:
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 12,
-              "lineHeight": 17,
-            }
-          }
-        >
-          • 
-          Store in bank vault
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 12,
-              "lineHeight": 17,
-            }
-          }
-        >
-          • 
-          Store in a safe
-        </Text>
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "fontSize": 12,
-              "lineHeight": 17,
-              "marginBottom": 20,
-            }
-          }
-        >
-          • 
-          Store in multiple secret places
-        </Text>
-        <StyledButton
-          disabledContainerStyle={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          onPress={[Function]}
-          styleDisabled={
-            Object {
-              "opacity": 0.6,
-            }
-          }
-          type="confirm"
-        >
-          Start
-        </StyledButton>
       </View>
     </View>
-  </ScrollView>
-  <ActionModal
-    actionContainerStyle={
-      Object {
-        "borderTopWidth": 0,
-      }
-    }
-    cancelButtonDisabled={false}
-    cancelButtonMode="neutral"
-    cancelTestID=""
-    cancelText="Cancel"
-    confirmButtonMode="warning"
-    confirmDisabled={false}
-    confirmTestID=""
-    confirmText="Confirm"
-    displayCancelButton={false}
-    displayConfirmButton={false}
-    modalVisible={false}
-    onRequestClose={[Function]}
-  >
-    <View
+    <RNSScreenContainer
+      onLayout={[Function]}
       style={
         Object {
           "flex": 1,
-          "flexDirection": "column",
-          "padding": 27,
         }
       }
     >
-      <View
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        forwardedRef={[Function]}
+        gestureResponseDistance={
+          Object {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        pointerEvents="box-none"
         style={
           Object {
-            "alignItems": "center",
-            "flexDirection": "row",
-            "justifyContent": "center",
-            "marginBottom": 16,
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
           }
         }
       >
         <View
+          collapsable={false}
           style={
             Object {
-              "width": 26,
+              "opacity": 1,
             }
           }
         />
-        <Text
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
           style={
-            Object {
-              "color": "#24272A",
-              "flex": 1,
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 18,
-              "fontWeight": "600",
-              "textAlign": "center",
-            }
-          }
-        >
-          Protect your wallet
-        </Text>
-        <TouchableOpacity
-          hitSlop={
-            Object {
-              "bottom": 10,
-              "left": 10,
-              "right": 10,
-              "top": 10,
-            }
-          }
-          onPress={[Function]}
-          style={
-            Object {
-              "alignItems": "flex-end",
-              "padding": 5,
-            }
-          }
-        >
-          <Icon
-            allowFontScaling={false}
-            name="times"
-            size={12}
-            style={
+            Array [
               Object {
-                "color": "#24272A",
-                "fontSize": 16,
-              }
-            }
-          />
-        </TouchableOpacity>
-      </View>
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "flexDirection": "column",
+                "overflow": undefined,
+              },
+              Object {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
           }
-        }
-      >
-        <Image
-          resizeMethod="auto"
-          source={
+          transitionSpec={
             Object {
-              "default": Object {
-                "uri": "MockImage",
+              "close": Object {
+                "animation": "spring",
+                "config": Object {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": Object {
+                "animation": "spring",
+                "config": Object {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
               },
             }
           }
-          style={
-            Object {
-              "height": 766.8115942028985,
-              "marginBottom": 8,
-              "marginTop": 14,
-              "width": 650,
-            }
-          }
-          testID="carousel-one-image"
-        />
-        <Text
-          style={
-            Object {
-              "color": "#24272A",
-              "lineHeight": 20,
-              "textAlign": "center",
-            }
-          }
         >
-          Don’t risk losing your funds. Protect your wallet by saving your Secret Recovery Phrase in a place you trust.
-          <Text
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
             style={
               Object {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontWeight": "600",
-                "lineHeight": 25,
+                "flex": 1,
               }
             }
           >
-             It’s the only way to recover your wallet if you get locked out of the app or get a new device.
-          </Text>
-        </Text>
-        <TouchableOpacity
-          hitSlop={
-            Object {
-              "bottom": 10,
-              "left": 10,
-              "right": 10,
-              "top": 10,
-            }
-          }
-          onPress={[Function]}
-        >
-          <Text
-            style={
-              Object {
-                "color": "#0376C9",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 15,
-                "fontWeight": "400",
-                "lineHeight": 20,
-                "marginTop": 21,
-                "textAlign": "center",
+            <View
+              collapsable={false}
+              forwardedRef={[Function]}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                Object {
+                  "flex": 1,
+                  "transform": Array [
+                    Object {
+                      "translateX": 0,
+                    },
+                    Object {
+                      "translateX": 0,
+                    },
+                  ],
+                }
               }
-            }
-          >
-            Learn More
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </ActionModal>
-  <SeedphraseModal
-    hideWhatIsSeedphrase={[Function]}
-    showWhatIsSeedphraseModal={false}
-  />
-</RCTSafeAreaView>
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  Object {
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": Object {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
+                  }
+                }
+              />
+              <View
+                style={
+                  Array [
+                    Object {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    Array [
+                      Object {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    Object {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      Object {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <RCTSafeAreaView
+                      style={
+                        Object {
+                          "backgroundColor": "#FFFFFF",
+                          "flex": 1,
+                        }
+                      }
+                    >
+                      <RCTScrollView
+                        contentContainerStyle={
+                          Object {
+                            "flexGrow": 1,
+                          }
+                        }
+                        style={
+                          Object {
+                            "backgroundColor": "#FFFFFF",
+                            "flex": 1,
+                          }
+                        }
+                      >
+                        <View>
+                          <View
+                            style={
+                              Object {
+                                "flex": 1,
+                                "padding": 20,
+                                "paddingBottom": 0,
+                                "paddingTop": 0,
+                              }
+                            }
+                            testID="protect-your-account-screen"
+                          >
+                            <View
+                              style={
+                                Array [
+                                  Object {
+                                    "backgroundColor": "rgba(1,0,0,0)",
+                                  },
+                                  Object {
+                                    "flexDirection": "column",
+                                  },
+                                ]
+                              }
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  Array [
+                                    Object {
+                                      "alignItems": "center",
+                                      "backgroundColor": "rgba(1,0,0,0)",
+                                      "flexDirection": "row",
+                                      "justifyContent": "space-around",
+                                    },
+                                    Object {
+                                      "flexDirection": "row",
+                                      "height": 20,
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    Object {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    Array [
+                                      Object {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                      },
+                                      Object {
+                                        "flexDirection": "row",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#0376C9",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 10,
+                                        "borderWidth": 2,
+                                        "height": 20,
+                                        "justifyContent": "center",
+                                        "overflow": "hidden",
+                                        "width": 20,
+                                        "zIndex": 2,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      style={
+                                        Object {
+                                          "color": "#FFFFFF",
+                                          "fontSize": 9,
+                                          "overflow": "hidden",
+                                        }
+                                      }
+                                    >
+                                      1
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
+                                  accessibilityState={
+                                    Object {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    Array [
+                                      Object {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                      },
+                                      Object {
+                                        "flexDirection": "row",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderColor": "#0376C9",
+                                        "borderRadius": 10,
+                                        "borderWidth": 2,
+                                        "height": 20,
+                                        "justifyContent": "center",
+                                        "overflow": "hidden",
+                                        "width": 20,
+                                        "zIndex": 2,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontSize": 9,
+                                          "overflow": "hidden",
+                                        }
+                                      }
+                                    >
+                                      2
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
+                                  accessibilityState={
+                                    Object {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    Array [
+                                      Object {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                      },
+                                      Object {
+                                        "flexDirection": "row",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#FFFFFF",
+                                        "borderColor": "#BBC0C5",
+                                        "borderRadius": 10,
+                                        "borderWidth": 2,
+                                        "height": 20,
+                                        "justifyContent": "center",
+                                        "overflow": "hidden",
+                                        "width": 20,
+                                        "zIndex": 2,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      style={
+                                        Object {
+                                          "color": "#BBC0C5",
+                                          "fontSize": 9,
+                                          "overflow": "hidden",
+                                        }
+                                      }
+                                    >
+                                      3
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  Array [
+                                    Object {
+                                      "justifyContent": "space-around",
+                                    },
+                                    Object {
+                                      "flexDirection": "row",
+                                      "paddingVertical": 4,
+                                    },
+                                    Object {
+                                      "alignItems": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    Object {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "flex": 1,
+                                      "justifyContent": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      Array [
+                                        Object {
+                                          "fontSize": 12,
+                                          "fontWeight": "500",
+                                          "textAlign": "center",
+                                        },
+                                        Object {
+                                          "color": "#BBC0C5",
+                                        },
+                                        Object {
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 10,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    Create password
+                                  </Text>
+                                </View>
+                                <View
+                                  accessibilityState={
+                                    Object {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "flex": 1,
+                                      "justifyContent": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      Array [
+                                        Object {
+                                          "fontSize": 12,
+                                          "fontWeight": "500",
+                                          "textAlign": "center",
+                                        },
+                                        Object {
+                                          "color": "#0376C9",
+                                        },
+                                        Object {
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 10,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    Secure wallet
+                                  </Text>
+                                </View>
+                                <View
+                                  accessibilityState={
+                                    Object {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    Object {
+                                      "alignItems": "center",
+                                      "flex": 1,
+                                      "justifyContent": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      Array [
+                                        Object {
+                                          "fontSize": 12,
+                                          "fontWeight": "500",
+                                          "textAlign": "center",
+                                        },
+                                        Object {
+                                          "color": "#BBC0C5",
+                                        },
+                                        Object {
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 10,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    Confirm Secret Recovery Phrase
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                Object {
+                                  "alignItems": "center",
+                                  "paddingBottom": 16,
+                                }
+                              }
+                            >
+                              <Text
+                                style={
+                                  Object {
+                                    "fontSize": 32,
+                                  }
+                                }
+                              >
+                                🔒
+                              </Text>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontSize": 24,
+                                    "fontWeight": "600",
+                                    "justifyContent": "center",
+                                    "marginBottom": 16,
+                                    "marginLeft": 0,
+                                    "marginTop": 16,
+                                  }
+                                }
+                              >
+                                Secure your wallet
+                              </Text>
+                              <View
+                                style={
+                                  Object {
+                                    "justifyContent": "center",
+                                    "marginBottom": 16,
+                                  }
+                                }
+                              >
+                                <Text
+                                  style={
+                                    Object {
+                                      "color": "#24272A",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "lineHeight": 20,
+                                      "textAlign": "left",
+                                    }
+                                  }
+                                >
+                                  Secure your wallet's
+                                   
+                                  <Text
+                                    onPress={[Function]}
+                                    style={
+                                      Object {
+                                        "color": "#0376C9",
+                                      }
+                                    }
+                                  >
+                                    Secret Recovery Phrase.
+                                  </Text>
+                                </Text>
+                              </View>
+                              <TouchableOpacity
+                                onPress={[Function]}
+                                style={
+                                  Object {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                  }
+                                }
+                              >
+                                <Text
+                                  allowFontScaling={false}
+                                  style={
+                                    Array [
+                                      Object {
+                                        "color": "#0376C9",
+                                        "fontSize": 12,
+                                      },
+                                      Object {
+                                        "fontSize": 15,
+                                        "marginRight": 6,
+                                      },
+                                      Object {
+                                        "fontFamily": "FontAwesome",
+                                        "fontStyle": "normal",
+                                        "fontWeight": "normal",
+                                      },
+                                      Object {},
+                                    ]
+                                  }
+                                >
+                                  
+                                </Text>
+                                <Text
+                                  style={
+                                    Object {
+                                      "color": "#0376C9",
+                                      "fontSize": 14,
+                                    }
+                                  }
+                                >
+                                  Why is it important?
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                            <View
+                              style={
+                                Object {
+                                  "backgroundColor": "#FFFFFF",
+                                  "borderColor": "#BBC0C5",
+                                  "borderRadius": 10,
+                                  "borderWidth": 1,
+                                  "elevation": 4,
+                                  "marginBottom": 20,
+                                  "padding": 16,
+                                }
+                              }
+                            >
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontSize": 16,
+                                    "fontWeight": "600",
+                                    "lineHeight": 17,
+                                    "marginBottom": 8,
+                                  }
+                                }
+                              >
+                                Manual
+                              </Text>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontSize": 12,
+                                    "lineHeight": 17,
+                                    "marginBottom": 20,
+                                  }
+                                }
+                              >
+                                Write down your Secret Recovery Phrase on a piece of paper and store in a safe place.
+                              </Text>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontSize": 12,
+                                    "lineHeight": 17,
+                                    "marginBottom": 8,
+                                  }
+                                }
+                              >
+                                Security level: Very strong
+                              </Text>
+                              <View
+                                style={
+                                  Object {
+                                    "flexDirection": "row",
+                                    "lineHeight": 17,
+                                    "marginBottom": 20,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    Object {
+                                      "backgroundColor": "#0376C9",
+                                      "height": 6,
+                                      "lineHeight": 17,
+                                      "marginRight": 2,
+                                      "width": 32,
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    Object {
+                                      "backgroundColor": "#0376C9",
+                                      "height": 6,
+                                      "lineHeight": 17,
+                                      "marginRight": 2,
+                                      "width": 32,
+                                    }
+                                  }
+                                />
+                                <View
+                                  style={
+                                    Object {
+                                      "backgroundColor": "#0376C9",
+                                      "height": 6,
+                                      "lineHeight": 17,
+                                      "marginRight": 2,
+                                      "width": 32,
+                                    }
+                                  }
+                                />
+                              </View>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontSize": 12,
+                                    "lineHeight": 17,
+                                  }
+                                }
+                              >
+                                Risks are:
+                              </Text>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontSize": 12,
+                                    "lineHeight": 17,
+                                  }
+                                }
+                              >
+                                • 
+                                You lose it
+                              </Text>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontSize": 12,
+                                    "lineHeight": 17,
+                                  }
+                                }
+                              >
+                                • 
+                                You forget where you put it
+                              </Text>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontSize": 12,
+                                    "lineHeight": 17,
+                                    "marginBottom": 20,
+                                  }
+                                }
+                              >
+                                • 
+                                Someone else finds it
+                              </Text>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontSize": 12,
+                                    "lineHeight": 17,
+                                    "marginBottom": 20,
+                                  }
+                                }
+                              >
+                                Other options: Doesn’t have to be paper!
+                              </Text>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontSize": 12,
+                                    "lineHeight": 17,
+                                  }
+                                }
+                              >
+                                Tips:
+                              </Text>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontSize": 12,
+                                    "lineHeight": 17,
+                                  }
+                                }
+                              >
+                                • 
+                                Store in bank vault
+                              </Text>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontSize": 12,
+                                    "lineHeight": 17,
+                                  }
+                                }
+                              >
+                                • 
+                                Store in a safe
+                              </Text>
+                              <Text
+                                style={
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontSize": 12,
+                                    "lineHeight": 17,
+                                    "marginBottom": 20,
+                                  }
+                                }
+                              >
+                                • 
+                                Store in multiple secret places
+                              </Text>
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={0.2}
+                                onPress={[Function]}
+                                style={
+                                  Array [
+                                    Array [
+                                      Object {
+                                        "borderRadius": 100,
+                                        "justifyContent": "center",
+                                        "padding": 15,
+                                      },
+                                      Object {
+                                        "backgroundColor": "#0376C9",
+                                        "minHeight": 50,
+                                      },
+                                      undefined,
+                                    ],
+                                    null,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  style={
+                                    Array [
+                                      Object {
+                                        "color": "#007aff",
+                                        "fontSize": 17,
+                                        "fontWeight": "500",
+                                        "textAlign": "center",
+                                      },
+                                      null,
+                                      Array [
+                                        Object {
+                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontSize": 14,
+                                          "fontWeight": "600",
+                                          "textAlign": "center",
+                                        },
+                                        Object {
+                                          "color": "#FFFFFF",
+                                        },
+                                        undefined,
+                                      ],
+                                      null,
+                                    ]
+                                  }
+                                >
+                                  Start
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                      </RCTScrollView>
+                      <Modal
+                        animationType="none"
+                        deviceHeight={null}
+                        deviceWidth={null}
+                        hardwareAccelerated={false}
+                        hideModalContentWhileAnimating={false}
+                        onBackdropPress={[Function]}
+                        onModalHide={[Function]}
+                        onModalWillHide={[Function]}
+                        onModalWillShow={[Function]}
+                        onRequestClose={[Function]}
+                        onSwipeComplete={[Function]}
+                        panResponderThreshold={4}
+                        scrollHorizontal={false}
+                        scrollOffset={0}
+                        scrollOffsetMax={0}
+                        scrollTo={null}
+                        statusBarTranslucent={false}
+                        supportedOrientations={
+                          Array [
+                            "portrait",
+                            "landscape",
+                          ]
+                        }
+                        swipeDirection="down"
+                        swipeThreshold={100}
+                        transparent={true}
+                        visible={false}
+                      />
+                      <Modal
+                        animationType="none"
+                        deviceHeight={null}
+                        deviceWidth={null}
+                        hardwareAccelerated={false}
+                        hideModalContentWhileAnimating={false}
+                        onBackdropPress={[Function]}
+                        onModalHide={[Function]}
+                        onModalWillHide={[Function]}
+                        onModalWillShow={[Function]}
+                        onRequestClose={[Function]}
+                        onSwipeComplete={[Function]}
+                        panResponderThreshold={4}
+                        scrollHorizontal={false}
+                        scrollOffset={0}
+                        scrollOffsetMax={0}
+                        scrollTo={null}
+                        statusBarTranslucent={false}
+                        supportedOrientations={
+                          Array [
+                            "portrait",
+                            "landscape",
+                          ]
+                        }
+                        swipeDirection="down"
+                        swipeThreshold={100}
+                        transparent={true}
+                        visible={false}
+                      />
+                    </RCTSafeAreaView>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
+  </RNCSafeAreaProvider>
+</View>
 `;
