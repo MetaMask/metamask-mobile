@@ -16,6 +16,7 @@ import { useSelector } from 'react-redux';
 import { ProviderConfig } from '@metamask/network-controller';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { strings } from '../../../../locales/i18n';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/ImportTokenView.selectors';
 
 interface Props {
   /**
@@ -84,6 +85,7 @@ const MultiAssetListItems = ({
             style={styles.base}
             key={i}
             onPress={() => handleSelectAsset(searchResults[i])}
+            testID={ImportTokenViewSelectorsIDs.CONTAINER}
           >
             <View style={styles.Icon}>
               <BadgeWrapper
