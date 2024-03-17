@@ -42,6 +42,37 @@ import {
   ADD_CONFIRM_CUSTOM_ASSET,
 } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
 
+const RenderBalance = (asset: {
+  symbol: string;
+  address: string;
+  iconUrl: string;
+  name: string;
+  decimals: number;
+}) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
+  const { balanceFiat } = useBalance(
+    asset
+      ? {
+          address: asset.address,
+          decimals: asset.decimals,
+        }
+      : undefined,
+  );
+  return (
+    <View style={styles.balanceSection}>
+      <Text variant={TextVariant.BodyLGMedium} style={styles.balanceFiat}>
+        {balanceFiat === TOKEN_BALANCE_LOADING ? (
+          <SkeletonText thin style={styles.skeleton} />
+        ) : (
+          balanceFiat ?? '$0.00'
+        )}
+      </Text>
+    </View>
+  );
+};
+
 const ConfirmAddAsset = () => {
   const { selectedAsset, networkName, chainId, ticker, addTokenList } =
     useParams<any>();
@@ -100,7 +131,9 @@ const ConfirmAddAsset = () => {
         <SheetHeader title={strings('wallet.are_you_sure_exit')} />
 
         <Box style={styles.boxContent}>
-          <Text>{strings('wallet.search_information_not_saved')}</Text>
+          <Text style={styles.title}>
+            {strings('wallet.search_information_not_saved')}
+          </Text>
         </Box>
         <Box style={styles.boxContent}>
           <BottomSheetFooter
@@ -124,35 +157,6 @@ const ConfirmAddAsset = () => {
       </View>
     </Modal>
   );
-
-  const renderBalance = (asset: {
-    symbol: string;
-    address: string;
-    iconUrl: string;
-    name: string;
-    decimals: number;
-  }) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { balanceFiat } = useBalance(
-      asset
-        ? {
-            address: asset.address,
-            decimals: asset.decimals,
-          }
-        : undefined,
-    );
-    return (
-      <View style={styles.balanceSection}>
-        <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
-          {balanceFiat === TOKEN_BALANCE_LOADING ? (
-            <SkeletonText thin style={styles.skeleton} />
-          ) : (
-            balanceFiat ?? '$0.00'
-          )}
-        </Text>
-      </View>
-    );
-  };
 
   const NetworkBadgeSource = () => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -205,11 +209,11 @@ const ConfirmAddAsset = () => {
 
               <View>
                 <Text variant={TextVariant.BodyLGMedium}>{asset.name}</Text>
-                <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
+                <Text variant={TextVariant.BodyMD} style={styles.symbolText}>
                   {asset.symbol}
                 </Text>
               </View>
-              {renderBalance(asset)}
+              <RenderBalance {...asset} />
             </View>
           ),
         )}
@@ -228,12 +232,13 @@ const ConfirmAddAsset = () => {
               onPress: () => {
                 addTokenList();
               },
-              label: strings('confirmation_modal.confirm_cta'),
+              label: strings('swaps.Import'),
               variant: ButtonVariants.Primary,
               size: ButtonSize.Lg,
             },
           ]}
           buttonsAlignment={ButtonsAlignment.Horizontal}
+          style={styles.button}
         />
       </View>
       {renderImportModal()}

@@ -5,13 +5,13 @@ import { Colors } from 'app/util/theme/models';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     rowWrapper: {
-      padding: 20,
-      gap: 26,
+      paddingVertical: 16,
     },
     root: {
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
-      height: '80%',
+      paddingVertical: 16,
+      height: '85%',
     },
     bottomModal: {
       justifyContent: 'flex-end',
@@ -30,9 +30,10 @@ const createStyles = (colors: Colors) =>
     },
     boxContent: {
       backgroundColor: colors.background.default,
-      paddingBottom: 21,
+      paddingVertical: 24,
       paddingTop: 0,
       borderWidth: 0,
+      paddingHorizontal: 16,
     },
     box: {
       backgroundColor: colors.background.default,
@@ -40,6 +41,7 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 20,
       borderWidth: 0,
       padding: 0,
+      borderRadius: 8,
     },
     title: {
       textAlign: 'center',
@@ -57,15 +59,21 @@ const createStyles = (colors: Colors) =>
     },
     bottomContainer: {
       flex: 1,
-      paddingVertical: 16,
+      paddingTop: 32,
       bottom: 20,
     },
     assetIcon: {
-      width: 40,
-      height: 40,
+      width: 32,
+      height: 32,
     },
 
     balanceFiat: {
+      color: colors.text.default,
+      ...fontStyles.normal,
+      textTransform: 'uppercase',
+      justifyContent: 'flex-end',
+    },
+    symbolText: {
       color: colors.text.alternative,
       ...fontStyles.normal,
       textTransform: 'uppercase',
@@ -74,6 +82,10 @@ const createStyles = (colors: Colors) =>
     balanceSection: {
       position: 'absolute',
       right: 0,
+    },
+    button: {
+      paddingHorizontal: 16,
+      top: 16,
     },
   });
 

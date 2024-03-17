@@ -7,7 +7,6 @@ import {
   LayoutAnimation,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import ActionView from '../ActionView';
 import AssetSearch from '../AssetSearch';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -32,12 +31,17 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { EngineState } from '../../../selectors/types';
 import Routes from '../../../constants/navigation/Routes';
 import MultiAssetListItems from '../MultiAssetListItems/MultiAssetListItems';
+import { ScrollView } from 'react-native-gesture-handler';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
+      height: '85%',
     },
     tokenDetectionBanner: {
       marginHorizontal: 20,
@@ -53,6 +57,12 @@ const createStyles = (colors: any) =>
     alertBar: {
       width: '100%',
       marginBottom: 15,
+    },
+    button: {
+      padding: 16,
+    },
+    searchInput: {
+      paddingBottom: 16,
     },
   });
 
@@ -72,13 +82,6 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAsset, setSelectedAsset] = useState<any[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-
-  const enableImport =
-    selectedAsset.length > 0 &&
-    selectedAsset.every(
-      (asset) =>
-        asset.address && asset.symbol && typeof asset.decimals === 'number',
-    );
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -107,10 +110,6 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       return {};
     }
   }, [selectedAsset, chainId]);
-
-  const cancelAddToken = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
 
   const handleSearch = useCallback(
     (opts: any) => {
@@ -182,9 +181,12 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         status: `import_success`,
         duration: 5000,
         title: strings('wallet.token_toast.token_imported_title'),
-        description: strings('wallet.token_toast.token_imported_desc_1', {
-          tokensNumber: selectedAsset.length,
-        }),
+        description:
+          selectedAsset.length > 1
+            ? strings('wallet.token_toast.token_imported_desc_2', {
+                tokensNumber: selectedAsset.length,
+              })
+            : strings('wallet.token_toast.token_imported_desc_1'),
       });
     });
   }, [addToken, selectedAsset, goToWalletPage]);
@@ -259,23 +261,20 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   ]);
 
   return (
-    <View style={styles.wrapper}>
-      <ActionView
-        cancelText={strings('add_asset.tokens.cancel_add_token')}
-        confirmText={strings('add_asset.tokens.add_token')}
-        onCancelPress={cancelAddToken}
-        onConfirmPress={goToConfirmAddToken}
-        confirmDisabled={!enableImport}
-      >
+    <View>
+      <ScrollView style={styles.wrapper}>
         <View>
           {renderTokenDetectionBanner()}
-          <AssetSearch
-            onSearch={handleSearch}
-            onFocus={() => {
-              setFocusState(true);
-            }}
-            onBlur={() => setFocusState(false)}
-          />
+
+          <View style={styles.searchInput}>
+            <AssetSearch
+              onSearch={handleSearch}
+              onFocus={() => {
+                setFocusState(true);
+              }}
+              onBlur={() => setFocusState(false)}
+            />
+          </View>
           <MultiAssetListItems
             searchResults={searchResults}
             handleSelectAsset={handleSelectAsset}
@@ -285,7 +284,17 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
             networkName={networkName}
           />
         </View>
-      </ActionView>
+      </ScrollView>
+      <View style={styles.button}>
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('transaction.next')}
+          onPress={goToConfirmAddToken}
+          isDisabled={selectedAsset.length < 1}
+        />
+      </View>
     </View>
   );
 };

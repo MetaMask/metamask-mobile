@@ -4,7 +4,7 @@ exports[`MultiAssetListItems should render correctly 1`] = `
 <View
   style={
     Object {
-      "padding": 20,
+      "padding": 0,
     }
   }
 >

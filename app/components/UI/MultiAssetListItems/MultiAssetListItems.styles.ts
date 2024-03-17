@@ -18,22 +18,22 @@ const styleSheet = () =>
       flex: 1,
     },
     rowWrapper: {
-      padding: 20,
+      padding: 0,
     },
     tokens: {
       flex: 1,
       justifyContent: 'center',
-      marginLeft: 20,
+      paddingHorizontal: 4,
     },
     Icon: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
-      gap: 10,
+      paddingHorizontal: 2,
     },
     assetIcon: {
-      width: 40,
-      height: 40,
+      width: 32,
+      height: 32,
     },
     normalText: {
       ...fontStyles.normal,
