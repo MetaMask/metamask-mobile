@@ -60,7 +60,7 @@ const createStyles = (colors) =>
     },
   });
 
-const getIcon = (status, colors, styles) => {
+export const getIcon = (status, colors, styles) => {
   switch (status) {
     case 'pending':
     case 'pending_withdrawal':
@@ -75,6 +75,15 @@ const getIcon = (status, colors, styles) => {
       return (
         <IonicIcon
           color={colors.success.default}
+          size={36}
+          name="md-checkmark"
+          style={styles.checkIcon}
+        />
+      );
+    case 'import_success':
+      return (
+        <IonicIcon
+          color={colors.background.default}
           size={36}
           name="md-checkmark"
           style={styles.checkIcon}

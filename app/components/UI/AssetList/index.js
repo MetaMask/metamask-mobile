@@ -2,22 +2,10 @@ import React, { PureComponent } from 'react';
 import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
+import StyledButton from '../StyledButton'; // eslint-disable-line  import/no-unresolved
 import AssetIcon from '../AssetIcon';
 import { fontStyles } from '../../../styles/common';
-import Checkbox from '../../../component-library/components/Checkbox';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper';
-import Badge from '../../../component-library/components/Badges/Badge/Badge';
-import { BadgeVariant } from '../../../component-library/components/Badges/Badge/Badge.types';
-import {
-  getTestNetImageByChainId,
-  isLineaMainnet,
-  isMainNet,
-  isTestNet,
-} from '../../../util/networks';
-import images from 'images/image-icons';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import Text from '../../Base/Text';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/ImportTokenView.selectors';
 
 const styles = StyleSheet.create({
@@ -39,41 +27,6 @@ const styles = StyleSheet.create({
   normalText: {
     ...fontStyles.normal,
   },
-  assetIcon: {
-    width: 40,
-    height: 40,
-  },
-  checkBox: {
-    display: 'flex',
-    padding: 2,
-    alignItems: 'flex-start',
-    gap: 10,
-  },
-  assetElement: {
-    flex: 1,
-    flexDirection: 'row',
-    padding: 16,
-    alignItems: 'center',
-    // justifyContent: 'space-between',
-    gap: 8,
-    alignSelf: 'stretch',
-  },
-  Icon: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    gap: 10,
-  },
-  badgeWrapper: {
-    marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tokens: {
-    flex: 1,
-    justifyContent: 'center',
-    marginLeft: 20,
-  },
 });
 
 /**
@@ -92,23 +45,11 @@ export default class AssetList extends PureComponent {
     /**
      * Object of the currently-selected token
      */
-    selectedAsset: PropTypes.array,
+    selectedAsset: PropTypes.object,
     /**
      * Search query that generated "searchResults"
      */
     searchQuery: PropTypes.string,
-    /**
-     * ChainID of the network
-     */
-    chainId: PropTypes.string,
-    /**
-     * Symbol of the network
-     */
-    ticker: PropTypes.string,
-    /**
-     * Name of the network
-     */
-    networkName: PropTypes.string,
   };
 
   onToggleAsset = (key) => {
@@ -116,25 +57,8 @@ export default class AssetList extends PureComponent {
     handleSelectAsset(searchResults[key]);
   };
 
-  NetworkBadgeSource = () => {
-    const { chainId, ticker } = this.props;
-
-    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-
-    if (isMainNet) return images.ETHEREUM;
-
-    if (isLineaMainnet) return images['LINEA-MAINNET'];
-
-    return ticker ? images[ticker] : undefined;
-  };
-
   render = () => {
-    const {
-      searchResults = [],
-      handleSelectAsset,
-      selectedAsset,
-      networkName,
-    } = this.props;
+    const { searchResults = [], handleSelectAsset, selectedAsset } = this.props;
 
     return (
       <View style={styles.rowWrapper}>
@@ -148,46 +72,23 @@ export default class AssetList extends PureComponent {
         ) : null}
         {searchResults.slice(0, 6).map((_, i) => {
           const { symbol, name, address, iconUrl } = searchResults[i] || {};
-          const isOnSelected = selectedAsset.some(
-            (token) => token.address === address,
-          );
-          const isSelected = selectedAsset && isOnSelected;
+          const isSelected = selectedAsset && selectedAsset.address === address;
 
           return (
-            <View style={styles.assetElement} key={i}>
-              <View style={styles.checkBox}>
-                <Checkbox
-                  isChecked={isSelected}
-                  accessibilityRole={'checkbox'}
-                  accessible
-                  // onPress={() => handleSelectAsset(searchResults[i])}
-                  testID={ImportTokenViewSelectorsIDs.CONTAINER}
-                />
-              </View>
-              <View style={styles.Icon}>
-                <BadgeWrapper
-                  badgeElement={
-                    <Badge
-                      variant={BadgeVariant.Network}
-                      imageSource={this.NetworkBadgeSource()}
-                      name={networkName}
-                    />
-                  }
-                >
-                  <AssetIcon
-                    address={address}
-                    logo={iconUrl}
-                    customStyle={styles.assetIcon}
-                  />
-                </BadgeWrapper>
-              </View>
-              <View style={styles.tokens}>
-                <Text variant={TextVariant.BodyLGMedium}>{name}</Text>
-                <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
-                  {symbol}
+            <StyledButton
+              type={isSelected ? 'normal' : 'transparent'}
+              containerStyle={styles.item}
+              onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
+              key={i}
+              testID={ImportTokenViewSelectorsIDs.CONTAINER}
+            >
+              <View style={styles.assetListElement}>
+                <AssetIcon address={address} logo={iconUrl} />
+                <Text style={styles.text}>
+                  {name} ({symbol})
                 </Text>
               </View>
-            </View>
+            </StyledButton>
           );
         })}
       </View>

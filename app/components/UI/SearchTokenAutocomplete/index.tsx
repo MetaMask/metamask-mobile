@@ -9,7 +9,6 @@ import {
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../ActionView';
 import AssetSearch from '../AssetSearch';
-import AssetList from '../AssetList';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
@@ -32,6 +31,7 @@ import {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { EngineState } from '../../../selectors/types';
 import Routes from '../../../constants/navigation/Routes';
+import MultiAssetListItems from '../MultiAssetListItems/MultiAssetListItems';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -49,6 +49,10 @@ const createStyles = (colors: any) =>
     tokenDetectionIcon: {
       paddingTop: 4,
       paddingRight: 8,
+    },
+    alertBar: {
+      width: '100%',
+      marginBottom: 15,
     },
   });
 
@@ -154,14 +158,14 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   /**
    * Go to wallet page
    */
-  const goToWalletPage = () => {
+  const goToWalletPage = useCallback(() => {
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
       params: {
         screen: Routes.WALLET_VIEW,
       },
     });
-  };
+  }, [navigation]);
 
   const addTokenList = useCallback(async () => {
     for (const asset of selectedAsset) {
@@ -175,10 +179,12 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     InteractionManager.runAfterInteractions(() => {
       goToWalletPage();
       NotificationManager.showSimpleNotification({
-        status: `simple_notification`,
+        status: `import_success`,
         duration: 5000,
         title: strings('wallet.token_toast.token_imported_title'),
-        description: strings('wallet.token_toast.token_imported_desc_1'),
+        description: strings('wallet.token_toast.token_imported_desc_1', {
+          tokensNumber: selectedAsset.length,
+        }),
       });
     });
   }, [addToken, selectedAsset, goToWalletPage]);
@@ -270,13 +276,12 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
             }}
             onBlur={() => setFocusState(false)}
           />
-          <AssetList
+          <MultiAssetListItems
             searchResults={searchResults}
             handleSelectAsset={handleSelectAsset}
             selectedAsset={selectedAsset}
             searchQuery={searchQuery}
             chainId={chainId}
-            ticker={ticker}
             networkName={networkName}
           />
         </View>
