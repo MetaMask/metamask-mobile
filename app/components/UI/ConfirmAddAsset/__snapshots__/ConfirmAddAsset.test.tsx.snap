@@ -1,0 +1,336 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConfirmAddAsset should render correctly 1`] = `
+<View
+  style={
+    Object {
+      "gap": 26,
+      "padding": 20,
+    }
+  }
+  testID="add-confirm-custom-asset"
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      Object {
+        "color": "#24272A",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "textAlign": "center",
+      }
+    }
+  >
+    Would you like to import this token?
+  </Text>
+  <RCTScrollView
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "height": "80%",
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <View>
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 20,
+            "marginRight": 10,
+            "paddingVertical": 20,
+          }
+        }
+      >
+        <View>
+          <View
+            onLayout={[Function]}
+            style={
+              Object {
+                "alignSelf": "flex-start",
+                "position": "relative",
+              }
+            }
+            testID="badge-wrapper-badge"
+          >
+            <View />
+            <View
+              style={
+                Object {
+                  "alignItems": "center",
+                  "aspectRatio": 1,
+                  "height": 0,
+                  "justifyContent": "center",
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                  "transform": Array [
+                    Object {
+                      "translateX": 0,
+                    },
+                    Object {
+                      "translateY": -0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  Object {
+                    "alignItems": "center",
+                    "aspectRatio": 1,
+                    "height": "50%",
+                    "justifyContent": "center",
+                    "minHeight": 16,
+                    "opacity": 0,
+                  }
+                }
+                testID="badge-network"
+              >
+                <View
+                  style={
+                    Object {
+                      "alignItems": "center",
+                      "backgroundColor": "#F2F4F6",
+                      "borderRadius": 16,
+                      "borderWidth": 1,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
+                      "transform": Array [
+                        Object {
+                          "scale": 1,
+                        },
+                      ],
+                      "width": 32,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      Object {
+                        "color": "#24272A",
+                        "fontFamily": "Euclid Circular B",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    E
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Ethereum
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#535A61",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "justifyContent": "flex-end",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "textTransform": "uppercase",
+              }
+            }
+          >
+            ETH
+          </Text>
+        </View>
+        <View
+          style={
+            Object {
+              "position": "absolute",
+              "right": 0,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#535A61",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "justifyContent": "flex-end",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "textTransform": "uppercase",
+              }
+            }
+          >
+            $27.02
+          </Text>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+  <View
+    style={
+      Object {
+        "bottom": 20,
+        "flex": 1,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View
+      style={
+        Object {
+          "backgroundColor": "#FFFFFF",
+          "flexDirection": "row",
+          "paddingHorizontal": 8,
+          "paddingVertical": 4,
+        }
+      }
+      testID="bottomsheetfooter"
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#0376C9",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="bottomsheetfooter-button"
+        variant="Secondary"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#0376C9",
+            "borderRadius": 24,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginLeft": 16,
+            "marginTop": 0,
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="bottomsheetfooter-button-subsequent"
+        variant="Primary"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#FFFFFF",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Confirm
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      Array [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
+  />
+</View>
+`;
