@@ -6,7 +6,7 @@ import {
 } from 'redux-persist';
 const defaultNodeEnv = process.env.NODE_ENV;
 jest.unmock('redux-persist');
-jest.mock('../../store', () => {});
+jest.mock('../../store', () => jest.fn());
 
 // Only test migrations 25 and up
 const migrationNumberToTestFrom = 25;
@@ -69,9 +69,11 @@ describe('asyncifyMigrations', () => {
 
 describe('migrations', () => {
   beforeAll(() => {
+    // Used by redux-persist library to function properly
     process.env.NODE_ENV = 'production';
   });
   afterAll(() => {
+    // Reset to default value
     process.env.NODE_ENV = defaultNodeEnv;
   });
 
