@@ -113,7 +113,6 @@ export function* basicFunctionalityToggle() {
     const { basicFunctionalityEnabled } = yield take(
       'TOGGLE_BASIC_FUNCTIONALITY',
     );
-    console.log('TOGGLE_BASIC_FUNCTIONALITY SAGA', basicFunctionalityEnabled);
     if (!basicFunctionalityEnabled) {
       const list = ['infura', 'etherscan', 'api2', 'api3'];
       window.fetch = function (fetchProp) {

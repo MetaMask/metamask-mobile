@@ -6,12 +6,8 @@ import React, {
   useState,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
-import { Animated, Linking, TouchableOpacity } from 'react-native';
+import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import Icon, {
-  IconSize,
-  IconName,
-} from '../../../../app/component-library/components/Icons/Icon';
 import Login from '../../Views/Login';
 import QRScanner from '../../Views/QRScanner';
 import Onboarding from '../../Views/Onboarding';

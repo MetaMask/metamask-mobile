@@ -953,7 +953,7 @@ const Settings: React.FC = () => {
     );
   };
 
-  const handlePrivacyToggle = () => {
+  const toggleBasicFunctionality = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
@@ -1001,7 +1001,7 @@ const Settings: React.FC = () => {
         </Text>
         {process.env.BASIC_FUNCTIONALITY ? (
           <BasicFunctionalityComponent
-            handleSwitchToggle={handlePrivacyToggle}
+            handleSwitchToggle={toggleBasicFunctionality}
           />
         ) : null}
         <Text
