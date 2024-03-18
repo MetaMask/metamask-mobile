@@ -37,6 +37,9 @@ import migration33 from './033';
 import migration34 from './034';
 
 type MigrationFunction = (state: PersistedState) => PersistedState;
+type AsyncMigrationFunction = (
+  state: Promise<PersistedState> | PersistedState,
+) => Promise<PersistedState>;
 
 export const migrationList: MigrationManifest = {
   0: migration00,
@@ -90,16 +93,13 @@ export const asyncifyMigrations = (inputMigrations: MigrationManifest) =>
       newMigrations[migrationNumber] = asyncMigration;
       return newMigrations;
     },
-    {} as Record<
-      string,
-      (
-        state: Promise<PersistedState> | PersistedState,
-      ) => Promise<PersistedState>
-    >,
+    {} as Record<string, AsyncMigrationFunction>,
   );
 
 // Convert all migrations to async
-export const migrations = asyncifyMigrations(migrationList);
+export const migrations = asyncifyMigrations(
+  migrationList,
+) as unknown as MigrationManifest;
 
 // The latest (i.e. highest) version number.
 export const version = Object.keys(migrations).length - 1;
