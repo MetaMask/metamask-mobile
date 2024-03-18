@@ -147,11 +147,7 @@ async function filterCommitsByTeam(branchA, branchB) {
 
       // Extract PR number from the commit message using regex
       const prMatch = message.match(/\(#(\d{4})\)$/u);
-      console.log('Match', prMatch)
-      const prLink = prMatch
-        ? `https://github.com/MetaMask/metamask-mobile/pull/${prMatch[1]}`
-        : '';
-      console.log('Match', prLink)
+      const prLink = prMatch ? `https://github.com/MetaMask/metamask-mobile/pull/${prMatch[1]}` : '';
 
       // Check if the commit message is unique
       if (!seenMessages.has(message)) {
@@ -214,8 +210,8 @@ function assignChangeType(field) {
     return 'Changed';
   else if (field.includes('fix'))
     return 'Fixed';
-  else
-    return 'Unknown';
+
+  return 'Unknown';
 }
 
 async function main() {
