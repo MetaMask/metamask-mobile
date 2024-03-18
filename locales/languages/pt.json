@@ -1,8 +1,6 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Se você aprovar essa solicitação, algum terceiro conhecido por aplicar golpes poderá tomar todos os seus ativos.",
-    "attribution": "Com tecnologia da",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Se você aprovar essa solicitação, alguém poderá roubar seus ativos listados na Blur.",
     "deceptive_request_title": "Essa solicitação é enganosa",
     "failed_title": "A solicitação pode não ser segura",
