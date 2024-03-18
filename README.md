@@ -44,6 +44,13 @@ yarn setup
 
 _Not the usual install command, this will run scripts and a lengthy postinstall flow_
 
+**Setup environment variables**
+```bash
+cp .ios.env.example .ios.env && \
+cp .android.env.example .android.env && \
+cp .js.env.example .js.env
+```
+
 ### Running the app
 
 **Run Metro bundler**
