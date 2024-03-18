@@ -1,8 +1,6 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Dritte, die für Betrügereien bekannt sind, alle Ihre Assets an sich reißen.",
-    "attribution": "Unterstützt durch",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Wenn Sie diese Anfrage genehmigen, kann jemand Ihre auf Blur aufgeführten Assets stehlen.",
     "deceptive_request_title": "Dies ist eine betrügerische Anfrage.",
     "failed_title": "Anfrage ist möglicherweise nicht sicher",

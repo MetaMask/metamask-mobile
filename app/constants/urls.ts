@@ -64,7 +64,6 @@ export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS
 // SDK
 export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
 
-export const BLOCKAID_ATTRIBUTION_LINK = 'https://blockaid.io';
 export const FALSE_POSITIVE_REPORT_BASE_URL =
   'https://blockaid-false-positive-portal.metamask.io';
 export const UTM_SOURCE = 'metamask-ppom';
