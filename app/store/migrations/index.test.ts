@@ -90,7 +90,7 @@ describe('migrations', () => {
 
     // Resolve migration
     const migratedState = await migratedStatePromise(
-      initialStates,
+      initialState,
       numberOfMigrations,
     );
 
