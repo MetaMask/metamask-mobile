@@ -2,12 +2,25 @@ import axios from 'axios';
 import { BannerAlertSeverity } from '../../component-library/components/Banners/Banner';
 import { strings } from '../../../locales/i18n';
 import PopularList from '../../util/networks/customNetworks';
+import { toHex } from '@metamask/controller-utils';
 
-const findPopularNetwork = (rpcUrl: string) =>
+const findPopularNetwork = (rpcUrl: string, chainId: string) =>
   PopularList.some((network) => {
     const { origin } = new URL(network.rpcUrl);
-    return origin === rpcUrl;
+    return origin === rpcUrl && network.chainId === chainId;
   });
+
+const findPopularNetworkName = (name: string, chainId: string) =>
+  PopularList.some(
+    (network) =>
+      network.nickname.toLowerCase() === name.toLowerCase() &&
+      network.chainId === chainId,
+  );
+
+const findPopularNetworkSymbol = (symbol: string, chainId: string) =>
+  PopularList.some(
+    (network) => network.ticker === symbol && network.chainId === chainId,
+  );
 
 const checkSafeNetwork = async (
   chainIdDecimal: string,
@@ -31,7 +44,7 @@ const checkSafeNetwork = async (
       !matchedChain.rpc
         ?.map((rpc: string) => new URL(rpc).origin)
         .includes(origin) &&
-      !findPopularNetwork(origin)
+      !findPopularNetwork(origin, toHex(chainIdDecimal))
     ) {
       alerts.push({
         alertError: strings('add_custom_network.invalid_rpc_url'),
@@ -46,14 +59,20 @@ const checkSafeNetwork = async (
         alertOrigin: 'decimals',
       });
     }
-    if (matchedChain.name?.toLowerCase() !== nickname?.toLowerCase()) {
+    if (
+      matchedChain.name?.toLowerCase() !== nickname?.toLowerCase() &&
+      !findPopularNetworkName(nickname, toHex(chainIdDecimal))
+    ) {
       alerts.push({
         alertError: strings('add_custom_network.unrecognized_chain_name'),
         alertSeverity: BannerAlertSeverity.Warning,
         alertOrigin: 'chain_name',
       });
     }
-    if (matchedChain.nativeCurrency?.symbol !== ticker) {
+    if (
+      matchedChain.nativeCurrency?.symbol !== ticker &&
+      !findPopularNetworkSymbol(ticker, toHex(chainIdDecimal))
+    ) {
       alerts.push({
         alertError: strings('add_custom_network.unrecognized_chain_ticker'),
         alertSeverity: BannerAlertSeverity.Warning,

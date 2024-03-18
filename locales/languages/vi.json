@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo có thể lấy hết tài sản của bạn.",
-    "attribution": "Được cung cấp bởi",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Nếu bạn chấp thuận yêu cầu này, người khác có thể đánh cắp tài sản của bạn được niêm yết trên Blur.",
     "deceptive_request_title": "Đây là một yêu cầu lừa đảo",
     "failed_title": "Yêu cầu có thể không an toàn",
     "failed_description": "Do có lỗi, yêu cầu này đã không được nhà cung cấp dịch vụ bảo mật xác minh. Hãy thực hiện cẩn thận.",
     "loading_title": "Đang kiểm tra cảnh báo bảo mật...",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "Không nhận được cảnh báo nào. Luôn tự thẩm định trước khi chấp thuận các yêu cầu.",
     "malicious_domain_description": "Bạn đang tương tác với một tên miền độc hại. Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "other_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "raw_signature_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
@@ -902,27 +900,27 @@
     "disconnect_all_info": "Nếu bạn xóa kết nối với tất cả các trang web, bạn sẽ cần cấp quyền để kết nối lại.",
     "disconnect": "Ngắt kết nối",
     "disconnect_all": "Ngắt kết nối tất cả",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "Ngắt kết nối tất cả Tài khoản",
+    "manage_connections": "Quản lý Kết nối",
+    "manage": "Quản lý",
     "cancel": "Hủy",
     "loading": "Đang kết nối với MetaMask...",
     "unkown_dapp": "Tên DAPP không khả dụng",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "Không có kết nối",
+    "no_connections_desc": "Nếu bạn kết nối tài khoản với một trang web hoặc một ứng dụng, bạn sẽ thấy tài khoản đó ở đây."
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "{{accountsLength}} tài khoản được kết nối."
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "Ngắt kết nối khỏi tất cả các trang web?",
+    "disconnect_all_desc": "Nếu bạn ngắt kết nối tài khoản khỏi tất cả các trang web, bạn sẽ cần cấp quyền để kết nối lại.",
+    "disconnect_account": "Ngắt kết nối tài khoản?",
+    "disconnect_all_accounts": "Ngắt kết nối tất cả Tài khoản",
+    "disconnect_all_accounts_desc": "Nếu bạn ngắt kết nối tất cả các tài khoản khỏi {{dapp}}, bạn sẽ cần cấp quyền để kết nối lại.",
+    "disconnect_account_desc": "Nếu bạn ngắt kết nối {{account}} khỏi {{dapp}}, bạn sẽ cần cấp quyền để kết nối lại.",
+    "disconnect_confirm": "Ngắt kết nối",
+    "cancel": "Hủy"
   },
   "sdk_return_to_app_modal": {
     "title": "Quay lại ứng dụng",
@@ -1508,8 +1506,8 @@
     "select_network": "Chọn mạng",
     "show_test_networks": "Hiển thị các mạng thử nghiệm",
     "deprecated_goerli": "Do những thay đổi trong giao thức của Ethereum: Mạng thử nghiệm Goerli có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng.",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "Mạng này đã ngừng sử dụng",
+    "network_deprecated_description": "Mạng bạn đang cố gắng kết nối không còn được hỗ trợ trên MetaMask."
   },
   "select": {
     "cancel": "Hủy",
@@ -2058,6 +2056,10 @@
     "fetching_new_quotes": "Đang tìm nạp báo giá mới...",
     "quotes_expire_in": "Báo giá hết hạn sau",
     "get_new_quotes": "Nhận báo giá mới",
+    "explore_more_options": "Khám phá thêm tùy chọn",
+    "one_more_option": "Thêm 1 tùy chọn",
+    "more_options": "Thêm {{count}} tùy chọn",
+    "previously_used": "Đã sử dụng trước đây",
     "quotes_timeout": "Hết thời gian chờ báo giá",
     "request_new_quotes": "Vui lòng yêu cầu báo giá mới để nhận tỷ giá tốt nhất và mới nhất.",
     "terms_of_service": "Điều khoản dịch vụ",

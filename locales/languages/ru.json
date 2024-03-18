@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, может похитить все ваши активы.",
-    "attribution": "На основе",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Если вы одобрите этот запрос, кто-то может украсть ваши активы, зарегистрированные в Blur.",
     "deceptive_request_title": "Это запрос с целью обмана",
     "failed_title": "Запрос может быть небезопасным",
     "failed_description": "Из-за ошибки этот запрос не был подтвержден поставщиком услуг безопасности. Действуйте осторожно.",
     "loading_title": "Проверка оповещений безопасности...",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "Оповещения не получены. Всегда проводите собственную комплексную проверку перед утверждением запросов.",
     "malicious_domain_description": "Вы взаимодействуете с вредоносным доменом. Если вы одобрите этот запрос, вы можете потерять свои активы.",
     "other_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
     "raw_signature_farming_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
@@ -902,27 +900,27 @@
     "disconnect_all_info": "Если вы удалите свои подключения ко всем сайтам, вам потребуется снова предоставить разрешение на подключение.",
     "disconnect": "Отключить",
     "disconnect_all": "Отключить все",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "Отключить все счета",
+    "manage_connections": "Управление подключениями",
+    "manage": "Управление",
     "cancel": "Отмена",
     "loading": "Подключение к MetaMask...",
     "unkown_dapp": "Имя DAPP недоступно",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "Нет подключений",
+    "no_connections_desc": "Если вы подключите счет к сайту или приложению, вы увидите его здесь."
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "Подключен(-ы) {{accountsLength}} счет(-а/ов)."
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "Отключиться от всех сайтов?",
+    "disconnect_all_desc": "Если вы отключите свои счета от всех сайтов, вам потребуется предоставить разрешения на их повторное подключение.",
+    "disconnect_account": "Отключить счет?",
+    "disconnect_all_accounts": "Отключить все счета",
+    "disconnect_all_accounts_desc": "Если вы отключите все счета от {{dapp}}, вам потребуется предоставить разрешения на их повторное подключение.",
+    "disconnect_account_desc": "Если вы отключите {{account}} от {{dapp}}, вам потребуется предоставить разрешения на его повторное подключение.",
+    "disconnect_confirm": "Отключить",
+    "cancel": "Отмена"
   },
   "sdk_return_to_app_modal": {
     "title": "Назад в приложение",
@@ -1508,8 +1506,8 @@
     "select_network": "Выбрать сеть",
     "show_test_networks": "Показать тестнеты",
     "deprecated_goerli": "Из-за изменений протокола Ethereum: тестовая сеть Goerli может работать ненадежно и скоро будет выведена из эксплуатации.",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "Эта сеть устарела",
+    "network_deprecated_description": "Сеть, к которой вы пытаетесь подключиться, больше не поддерживается в Metamask."
   },
   "select": {
     "cancel": "Отмена",
@@ -2058,6 +2056,10 @@
     "fetching_new_quotes": "Получение новых котировок...",
     "quotes_expire_in": "Срок котировок истекает через",
     "get_new_quotes": "Получить новые котировки",
+    "explore_more_options": "Изучить другие варианты",
+    "one_more_option": "Еще 1 вариант",
+    "more_options": "Еще {{count}} варианта(-ов)",
+    "previously_used": "Ранее использовались",
     "quotes_timeout": "Таймаут котировок",
     "request_new_quotes": "Запросите новые котировки, чтобы получить последний лучший курс.",
     "terms_of_service": "Условия обслуживания",
