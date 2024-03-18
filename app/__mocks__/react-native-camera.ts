@@ -21,4 +21,5 @@ class RNCamera extends React.Component {
   }
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export { RNCamera };

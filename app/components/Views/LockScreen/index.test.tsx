@@ -3,12 +3,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import LockScreen from './';
 
-const initialState = {
-  user: {
-    passwordSet: false,
-  },
-};
-
 const mockInitialState = {
   settings: {},
   engine: {

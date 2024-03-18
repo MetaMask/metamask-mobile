@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import AccountRightButton from './';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';

@@ -1,7 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AssetSearch from './';
-import configureMockStore from 'redux-mock-store';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import Engine from '../../../core/Engine';
 const mockedEngine = Engine;
