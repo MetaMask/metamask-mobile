@@ -16,11 +16,9 @@ const authorTeams = {
     'Gustavo Antunes',
     'Monte Lai',
     'Daniel Rocha',
-    'Howard Braham',
     'Kate Johnson',
-    'Brian Bergeron',
   ],
-  'Extension UX': ['David Walsh', 'vthomas13', 'Nidhi Kumari', 'Victor Thomas'],
+  'Wallet UX': ['David Walsh', 'vthomas13', 'Nidhi Kumari', 'Victor Thomas'],
   'Extension Platform': [
     'chloeYue',
     'Pedro Figueiredo',
@@ -32,6 +30,7 @@ const authorTeams = {
     'Harika Jetpoluru',
     'Marina Boboc',
     'Gauthier Petetin',
+    'Howard Braham',
     'Dan Miller',
     'Dan J Miller',
     'Gudahtt',
@@ -53,6 +52,7 @@ const authorTeams = {
     'cryptotavares',
     'Vinicius Stevam',
     'Derek Brans',
+    'sleepytanya',
   ],
   'Design Systems': ['georgewrmarshall', 'Garrett Bear', 'George Marshall', 'Brian August Nguyen'],
   Snaps: [
