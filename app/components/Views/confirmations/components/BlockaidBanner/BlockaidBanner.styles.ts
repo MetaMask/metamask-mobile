@@ -29,7 +29,6 @@ const styleSheet = (_params: {
       marginBottom: 4,
     },
     details: { marginLeft: 10, marginBottom: 10 },
-    securityTickIcon: { marginTop: 4 },
     bannerWrapperMargined: {
       marginTop: 10,
       marginLeft: 10,

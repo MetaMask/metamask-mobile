@@ -1,8 +1,6 @@
 {
   "blockaid_banner": {
-    "approval_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われる可能性があります。",
-    "attribution": "提供元:",
-    "attribution_link_name": "Blockaid",
+    "approval_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われる可能性があります。",    
     "blur_farming_description": "このリクエストを承認すると、Blurに登録されている資産を誰かに盗まれる可能性があります。",
     "deceptive_request_title": "これは虚偽のリクエストです",
     "failed_title": "リクエストが安全でない可能性があります",
