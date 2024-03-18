@@ -2,8 +2,8 @@
 # Each line is a file pattern followed by one or more owners.
 
 *                                    @MetaMask/mobile-devs
-app/component-library/               @MetaMask/design-system-engineers, @MetaMask/mobile-platform
+app/component-library/               @MetaMask/design-system-engineers @MetaMask/mobile-platform
 patches/                             @MetaMask/mobile-platform
 bitrise.yml                          @MetaMask/mobile-platform
-app/components/UI/Ramp/              @MetaMask/ramp, @MetaMask/mobile-platform
-app/reducers/fiatOrders/             @MetaMask/ramp, @MetaMask/mobile-platform
+app/components/UI/Ramp/              @MetaMask/ramp @MetaMask/mobile-platform
+app/reducers/fiatOrders/             @MetaMask/ramp @MetaMask/mobile-platform
