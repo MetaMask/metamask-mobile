@@ -835,6 +835,8 @@ class Confirm extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
+      await this.persistTransactionParameters(transaction);
+
       if (isLedgerAccount) {
         const ledgerKeyring = await getLedgerKeyring();
         this.setState({ transactionConfirmed: false });
