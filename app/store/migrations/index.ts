@@ -36,13 +36,9 @@ import migration32 from './032';
 import migration33 from './033';
 import migration34 from './034';
 
-// We do not keep track of the old state
-// We create this type for better readability
-type OldState = PersistedState;
+type MigrationFunction = (state: PersistedState) => PersistedState;
 
-type AsyncMigration = (state: OldState) => PersistedState;
-
-export const migrations: MigrationManifest = {
+export const migrationList: MigrationManifest = {
   0: migration00,
   1: migration01,
   2: migration02,
@@ -71,14 +67,39 @@ export const migrations: MigrationManifest = {
   25: migration25,
   26: migration26,
   27: migration27,
-  28: migration28 as unknown as AsyncMigration,
-  29: migration29 as unknown as AsyncMigration,
-  30: migration30 as unknown as AsyncMigration,
-  31: migration31 as unknown as AsyncMigration,
-  32: migration32 as unknown as AsyncMigration,
-  33: migration33 as unknown as AsyncMigration,
-  34: migration34 as unknown as AsyncMigration,
+  28: migration28 as unknown as MigrationFunction,
+  29: migration29 as unknown as MigrationFunction,
+  30: migration30 as unknown as MigrationFunction,
+  31: migration31 as unknown as MigrationFunction,
+  32: migration32 as unknown as MigrationFunction,
+  33: migration33 as unknown as MigrationFunction,
+  34: migration34 as unknown as MigrationFunction,
 };
+
+// Enable both synchronous and asynchronous migrations
+export const asyncifyMigrations = (inputMigrations: MigrationManifest) =>
+  Object.entries(inputMigrations).reduce(
+    (newMigrations, [migrationNumber, migrationFunction]) => {
+      // Handle migrations as async
+      const asyncMigration = async (
+        stateAsync: Promise<PersistedState> | PersistedState,
+      ) => {
+        const state = await stateAsync;
+        return migrationFunction(state as PersistedState);
+      };
+      newMigrations[migrationNumber] = asyncMigration;
+      return newMigrations;
+    },
+    {} as Record<
+      string,
+      (
+        state: Promise<PersistedState> | PersistedState,
+      ) => Promise<PersistedState>
+    >,
+  );
+
+// Convert all migrations to async
+export const migrations = asyncifyMigrations(migrationList);
 
 // The latest (i.e. highest) version number.
 export const version = Object.keys(migrations).length - 1;
