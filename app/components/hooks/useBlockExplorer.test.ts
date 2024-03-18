@@ -16,7 +16,7 @@ const mockInitialState = {
           type: LINEA_GOERLI,
           rpcTarget: 'https://mainnet.infura.io/v3/1234567890abcdef',
         },
-      } as NetworkController['state'],
+      } as unknown as NetworkController['state'],
     },
   },
 };

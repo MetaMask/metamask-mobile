@@ -11,6 +11,7 @@ For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
 
 ## Documentation
+
 - [Architecture](./docs/readme/architecture.md)
 - [Development Environment Setup](./docs/readme/environment.md)
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
@@ -40,14 +41,8 @@ cd metamask-mobile
 ```bash
 yarn setup
 ```
-_Not the usual install command, this will run scripts and a lengthy postinstall flow_
 
-**Setup environment variables**
-```bash
-cp .ios.env.example .ios.env && \
-cp .android.env.example .android.env && \
-cp .js.env.example .js.env
-```
+_Not the usual install command, this will run scripts and a lengthy postinstall flow_
 
 ### Running the app
 

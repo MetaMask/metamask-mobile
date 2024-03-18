@@ -3,3 +3,5 @@
 
 *                                    @MetaMask/mobile-devs
 app/component-library/               @MetaMask/design-system-engineers
+app/components/UI/Ramp/              @MetaMask/ramp
+app/reducers/fiatOrders/             @MetaMask/ramp

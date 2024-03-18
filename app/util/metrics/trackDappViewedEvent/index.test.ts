@@ -2,6 +2,11 @@ import trackDappViewedEvent from './index';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
+// Need to mock this module since it uses store.getState, which interferes with the mocks from this test file.
+jest.mock(
+  '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
+  () => jest.fn(),
+);
 
 const mockMetrics = {
   trackEvent: jest.fn(),
