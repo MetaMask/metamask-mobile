@@ -133,7 +133,7 @@ describe('migrations', () => {
     const migratedStatePromise = createMigrate(asyncifiedMigrations as any);
 
     // Resolve migration
-    const migratedState: PersistedState = await migratedStatePromise(
+    const migratedState = await migratedStatePromise(
       initialState,
       numberOfMigrations + 3,
     );
