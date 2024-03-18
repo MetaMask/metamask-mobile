@@ -66,9 +66,6 @@ describe('Migration #24', () => {
 
     expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
       networkConfigurations: {},
-      networkDetails: {
-        EIPS: {},
-      },
       networkId: null,
       networkStatus: 'unknown',
       providerConfig: {
@@ -76,6 +73,13 @@ describe('Migration #24', () => {
         ticker: 'ETH',
         type: 'mainnet',
       },
+      networksMetadata: {
+        mainnet: {
+          EIPS: {},
+          status: 'unknown',
+        },
+      },
+      selectedNetworkClientId: 'mainnet',
     });
   });
 
@@ -94,9 +98,6 @@ describe('Migration #24', () => {
 
     expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
       networkConfigurations: {},
-      networkDetails: {
-        EIPS: {},
-      },
       networkId: '1',
       networkStatus: 'available',
       providerConfig: {
@@ -104,6 +105,13 @@ describe('Migration #24', () => {
         type: 'mainnet',
         ticker: 'ETH',
       },
+      networksMetadata: {
+        mainnet: {
+          EIPS: {},
+          status: 'unknown',
+        },
+      },
+      selectedNetworkClientId: 'mainnet',
     });
   });
 });
