@@ -5,6 +5,7 @@ export const WalletViewSelectorsIDs = {
   NETWORK_NAME: 'network-name',
   NFT_CONTAINER: 'collectible-name',
   WALLET_SCAN_BUTTON: 'wallet-scan-button',
+  WALLET_NOTIFICATIONS_BUTTON: 'wallet-notifications-button',
 };
 
 export const WalletViewSelectorsText = {
