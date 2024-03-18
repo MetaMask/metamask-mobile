@@ -1,18 +1,15 @@
 import AppConstants from '../AppConstants';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import { Minimizer } from '../NativeModules';
-import getRpcMethodMiddleware, {
-  ApprovalTypes,
-} from '../RPCMethods/RPCMethodMiddleware';
+import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
 
-import { ApprovalController } from '@metamask/approval-controller';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import Logger from '../../util/Logger';
 
 import { WalletDevice } from '@metamask/transaction-controller';
 
-import AsyncStorage from '../../store/async-storage-wrapper';
+import { PermissionController } from '@metamask/permission-controller';
 import { Core } from '@walletconnect/core';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import Client, {
@@ -21,7 +18,15 @@ import Client, {
 } from '@walletconnect/se-sdk';
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
+import ppomUtil from '../../../app/lib/ppom/ppom-util';
+import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
+import { selectChainId } from '../../selectors/networkController';
+import { store } from '../../store';
+import AsyncStorage from '../../store/async-storage-wrapper';
+import { addTransaction } from '../../util/transaction-controller';
 import Engine from '../Engine';
+import { getPermittedAccounts } from '../Permissions';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import WalletConnect from './WalletConnect';
@@ -29,11 +34,7 @@ import METHODS_TO_REDIRECT from './wc-config';
 import parseWalletConnectUri, {
   waitForNetworkModalOnboarding,
 } from './wc-utils';
-import { selectChainId } from '../../selectors/networkController';
-import { store } from '../../store';
-import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
-import ppomUtil from '../../../app/lib/ppom/ppom-util';
-import { addTransaction } from '../../util/transaction-controller';
+import { updateWC2Metadata } from '../../../app/actions/sdk';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -67,9 +68,11 @@ class WalletConnect2Session {
   constructor({
     web3Wallet,
     session,
+    channelId,
     deeplink,
   }: {
     web3Wallet: Client;
+    channelId: string;
     session: SessionTypes.Struct;
     deeplink: boolean;
   }) {
@@ -81,11 +84,14 @@ class WalletConnect2Session {
     const name = session.self.metadata.name;
     const icons = session.self.metadata.icons;
 
+    DevLogger.log(
+      `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic}`,
+    );
     this.backgroundBridge = new BackgroundBridge({
       webview: null,
-      channelId: session.pairingTopic,
       url,
       isWalletConnect: true,
+      channelId,
       wcRequestActions: {
         approveRequest: this.approveRequest.bind(this),
         rejectRequest: this.rejectRequest.bind(this),
@@ -100,6 +106,7 @@ class WalletConnect2Session {
         getRpcMethodMiddleware({
           hostname: url,
           getProviderState,
+          channelId,
           setApprovedHosts: () => false,
           getApprovedHosts: () => false,
           analytics: {},
@@ -387,6 +394,7 @@ export class WC2Manager {
 
         this.sessions[sessionKey] = new WalletConnect2Session({
           web3Wallet,
+          channelId: sessionKey,
           deeplink:
             typeof deeplinkSessions[session.pairingTopic] !== 'undefined',
           session,
@@ -550,41 +558,32 @@ export class WC2Manager {
   async onSessionProposal(proposal: SingleEthereumTypes.SessionProposal) {
     //  Open session proposal modal for confirmation / rejection
     const { id, params } = proposal;
-    const {
-      proposer,
-      // requiredNamespaces,
-      // optionalNamespaces,
-      // sessionProperties,
-      // relays,
-    } = params;
 
-    Logger.log(`WC2::session_proposal id=${id}`, params);
-    const url = proposer.metadata.url ?? '';
-    const name = proposer.metadata.description ?? '';
-    const icons = proposer.metadata.icons;
+    const pairingTopic = proposal.params.pairingTopic;
+    DevLogger.log(
+      `WC2::session_proposal id=${id} pairingTopic=${pairingTopic}`,
+      params,
+    );
 
-    const approvalController = (
-      Engine.context as { ApprovalController: ApprovalController }
-    ).ApprovalController;
+    const permissionsController = (
+      Engine.context as { PermissionController: PermissionController<any, any> }
+    ).PermissionController;
+
+    const { proposer } = params;
+    const { metadata } = proposer;
+    const url = metadata.url ?? '';
+    const name = metadata.description ?? '';
+    const icons = metadata.icons;
+    const icon = icons?.[0] ?? '';
+    // Save Connection info to redux store to be retrieved in ui.
+    store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
 
     try {
-      await approvalController.add({
-        id: `${id}`,
-        origin: url,
-        requestData: {
-          hostname: url,
-          peerMeta: {
-            url,
-            name,
-            icons,
-            analytics: {
-              request_source: AppConstants.REQUEST_SOURCES.WC2,
-              request_platform: '', // FIXME use mobile for deeplink or QRCODE
-            },
-          },
-        },
-        type: ApprovalTypes.WALLET_CONNECT,
-      });
+      await permissionsController.requestPermissions(
+        { origin: `${id}` },
+        { eth_accounts: {} },
+        { id: `${id}` },
+      );
       // Permissions approved.
     } catch (err) {
       // Failed permissions request - reject session
@@ -595,18 +594,16 @@ export class WC2Manager {
     }
 
     try {
-      const preferencesController = (
-        Engine.context as { PreferencesController: PreferencesController }
-      ).PreferencesController;
+      // use Permission controller
+      const approvedAccounts = await getPermittedAccounts(proposal.id + '');
 
-      const selectedAddress = preferencesController.state.selectedAddress;
       // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
       const chainId = selectChainId(store.getState());
 
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,
         chainId: parseInt(chainId),
-        accounts: [selectedAddress],
+        accounts: approvedAccounts,
       });
 
       const deeplink =
@@ -614,6 +611,7 @@ export class WC2Manager {
         'undefined';
       const session = new WalletConnect2Session({
         session: activeSession,
+        channelId: '' + proposal.id,
         deeplink,
         web3Wallet: this.web3Wallet,
       });

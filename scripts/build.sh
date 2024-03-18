@@ -124,12 +124,28 @@ remapEnvVariable() {
     echo "Successfully remapped $old_var_name to $new_var_name."
 }
 
-remapFlaskEnvVariables() {
-	# remap flask env variables to match what the app expects
+remapEnvVariableQA() {
+  	echo "Remapping QA env variable names to match QA values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_QA" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+}
 
-	echo "Remapping flask env variable names to match production"
-	# ios.env/android.env variables
-	remapEnvVariable "MM_FLASK_MIXPANEL_TOKEN" "MM_MIXPANEL_TOKEN"
+remapEnvVariableRelease() {
+  	echo "Remapping release env variable names to match production values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_PROD" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_PROD" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_PROD" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_PROD" "SEGMENT_REGULATIONS_ENDPOINT"
+}
+
+remapFlaskEnvVariables() {
+  	echo "Remapping Flask env variable names to match Flask values"
+  	remapEnvVariable "SEGMENT_WRITE_KEY_FLASK" "SEGMENT_WRITE_KEY"
+  	remapEnvVariable "SEGMENT_PROXY_URL_FLASK" "SEGMENT_PROXY_URL"
+  	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_FLASK" "SEGMENT_DELETE_API_SOURCE_ID"
+  	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_FLASK" "SEGMENT_REGULATIONS_ENDPOINT"
 }
 
 loadJSEnv(){
@@ -198,7 +214,12 @@ buildAndroidRunFlask(){
 
 buildIosSimulator(){
 	prebuild_ios
-	react-native run-ios --port=$WATCHER_PORT
+	if [ -n "$IOS_SIMULATOR" ]; then
+		SIM_OPTION="--simulator \"$IOS_SIMULATOR\""
+	else
+		SIM_OPTION=""
+	fi
+	react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
 }
 
 buildIosSimulatorQA(){
@@ -261,6 +282,9 @@ generateArchivePackages() {
 }
 
 buildIosRelease(){
+
+  remapEnvVariableRelease
+
 	# Enable Sentry to auto upload source maps and debug symbols
 	export SENTRY_DISABLE_AUTO_UPLOAD="false"
 	prebuild_ios
@@ -324,6 +348,7 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
+  remapEnvVariableQA
 	prebuild_ios
 
   	echo "Start QA build..."
@@ -347,6 +372,8 @@ buildIosQA(){
 
 
 buildAndroidQA(){
+  remapEnvVariableQA
+  
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask.qa
 	fi
@@ -372,6 +399,9 @@ buildAndroidQA(){
 }
 
 buildAndroidRelease(){
+
+  remapEnvVariableRelease
+
 	if [ "$PRE_RELEASE" = false ] ; then
 		adb uninstall io.metamask || true
 	fi
