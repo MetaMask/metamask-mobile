@@ -1,5 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { isObject, hasProperty } from '@metamask/utils';
+import { NetworkState, NetworkStatus } from '@metamask/network-controller';
+import { InfuraNetworkType } from '@metamask/controller-utils';
 
 /**
  * This migration removes networkDetails and networkStatus property
@@ -36,6 +38,8 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   const networkControllerState = state.engine.backgroundState.NetworkController;
+  const newNetworkControllerState = state.engine.backgroundState
+    .NetworkController as NetworkState;
 
   if (!isObject(networkControllerState)) {
     captureException(
@@ -64,6 +68,57 @@ export default async function migrate(stateAsync: unknown) {
   if (networkControllerState.networkStatus) {
     delete networkControllerState.networkStatus;
   }
+
+  if (
+    !isObject(networkControllerState.providerConfig) ||
+    !hasProperty(networkControllerState, 'providerConfig')
+  ) {
+    captureException(
+      new Error(
+        `Migration 35: Invalid NetworkController providerConfig state: '${typeof networkControllerState.providerConfig}'`,
+      ),
+    );
+    return state;
+  }
+
+  newNetworkControllerState.selectedNetworkClientId =
+    (networkControllerState.providerConfig.id as string | undefined) ??
+    (networkControllerState.providerConfig.type as string);
+
+  let infuraNetworksMetadata = {};
+  let customNetworksMetadata = {};
+
+  Object.values(InfuraNetworkType).forEach((network) => {
+    infuraNetworksMetadata = {
+      ...infuraNetworksMetadata,
+      [network]: { status: NetworkStatus.Unknown, EIPS: {} },
+    };
+  });
+
+  if (
+    !isObject(networkControllerState.networkConfigurations) ||
+    !hasProperty(networkControllerState, 'networkConfigurations')
+  ) {
+    captureException(
+      new Error(
+        `Migration 35: Invalid NetworkController networkConfigurations state: '${typeof networkControllerState.networkConfigurations}'`,
+      ),
+    );
+    return state;
+  }
+  Object.keys(networkControllerState.networkConfigurations).forEach(
+    (networkConfigurationId) => {
+      customNetworksMetadata = {
+        ...customNetworksMetadata,
+        [networkConfigurationId]: { status: NetworkStatus.Unknown, EIPS: {} },
+      };
+    },
+  );
+
+  newNetworkControllerState.networksMetadata = {
+    ...infuraNetworksMetadata,
+    ...customNetworksMetadata,
+  };
 
   return state;
 }

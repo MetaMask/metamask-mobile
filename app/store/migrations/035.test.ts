@@ -71,6 +71,28 @@ describe('Migration #35', () => {
         "Migration 35: Invalid NetworkController networkDetails state: 'object'",
       scenario: 'networkDetails is invalid',
     },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: { NetworkController: { providerConfig: null } },
+        },
+      }),
+      errorMessage:
+        "Migration 35: Invalid NetworkController providerConfig state: 'object'",
+      scenario: 'providerConfig is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            NetworkController: { networkConfigurations: null },
+          },
+        },
+      }),
+      errorMessage:
+        "Migration 35: Invalid NetworkController networkConfigurations state: 'object'",
+      scenario: 'networkConfigurations is invalid',
+    },
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
