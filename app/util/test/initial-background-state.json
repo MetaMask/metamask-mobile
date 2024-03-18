@@ -69,11 +69,11 @@
       "chainId": "0x1",
       "ticker": "ETH"
     },
-    "networkDetails": {
-      "EIPS": {}
+    "networksMetadata": {
+      "mainnet":{  "EIPS": {},"status": "unknown"}
     },
     "networkId": null,
-    "networkStatus": "unknown"
+    "selectedNetworkClientId": "mainnet"
   },
   "PhishingController": {
     "phishingLists": [],

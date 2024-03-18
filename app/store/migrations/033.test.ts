@@ -1,17 +1,44 @@
-import migrate from './033';
+import migration from './033';
 import { merge } from 'lodash';
-import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
+import { captureException } from '@sentry/react-native';
+import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import { GOERLI, SEPOLIA } from '../../../app/constants/network';
+import NetworkList from '../../../app/util/networks';
 
-const expectedState = {
+const oldState = {
   engine: {
     backgroundState: {
       NetworkController: {
+        isCustomNetwork: true,
+        networkConfigurations: {},
+        networkDetails: { EIPS: { '1559': true } },
+        networkId: '5',
+        networkStatus: 'available',
         providerConfig: {
-          type: 'mainnet',
-          chainId: '0x1',
-          rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-          ticker: 'ETH',
+          chainId: CHAIN_IDS.GOERLI,
+          rpcPrefs: { blockExplorerUrl: 'https://goerli.etherscan.io' },
+          ticker: 'GoerliETH',
+          type: GOERLI,
+        },
+      },
+    },
+  },
+};
+
+const expectedNewState = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        isCustomNetwork: true,
+        networkConfigurations: {},
+        networkDetails: { EIPS: { '1559': true } },
+        networkId: `${NetworkList[SEPOLIA].networkId}`,
+        networkStatus: 'available',
+        providerConfig: {
+          chainId: CHAIN_IDS.SEPOLIA,
+          ticker: 'SepoliaETH',
+          type: SEPOLIA,
         },
       },
     },
@@ -31,15 +58,10 @@ describe('Migration #33', () => {
 
   const invalidStates = [
     {
-      state: null,
-      errorMessage: "Migration 33: Invalid root state: 'object'",
-      scenario: 'state is invalid',
-    },
-    {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 33: Invalid root engine state: 'object'",
+      errorMessage: "Migration 33: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -49,33 +71,38 @@ describe('Migration #33', () => {
         },
       }),
       errorMessage:
-        "Migration 33: Invalid root engine backgroundState: 'object'",
+        "Migration 33: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
       state: merge({}, initialRootState, {
         engine: {
-          backgroundState: { NetworkController: null },
+          backgroundState: {
+            NetworkController: null,
+          },
         },
       }),
-      errorMessage: "Migration 33: Invalid NetworkController state: 'object'",
-      scenario: 'NetworkController is invalid',
+      errorMessage:
+        "Migration 33: Invalid NetworkController state error: 'object'",
+      scenario: 'NetworkController state is invalid',
     },
     {
       state: merge({}, initialRootState, {
         engine: {
-          backgroundState: { NetworkController: { networkDetails: null } },
+          backgroundState: {
+            NetworkController: { providerConfig: { chainId: null } },
+          },
         },
       }),
       errorMessage:
-        "Migration 33: Invalid NetworkController networkDetails state: 'object'",
-      scenario: 'networkDetails is invalid',
+        "Migration 33: NetworkController providerConfig chainId not found: 'null'",
+      scenario: 'chainId is invalid',
     },
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
     it(`should capture exception if ${scenario}`, async () => {
-      const newState = await migrate(state);
+      const newState = await migration(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
@@ -85,25 +112,8 @@ describe('Migration #33', () => {
     });
   }
 
-  it('should remove networkDetails and networkStatus of network controller state', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkDetails: {},
-            networkStatus: 'test',
-            providerConfig: {
-              type: 'mainnet',
-              chainId: '0x1',
-              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-              ticker: 'ETH',
-            },
-          },
-        },
-      },
-    };
-
-    const migratedState = await migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
+  it('All states changing as expected', async () => {
+    const newState = await migration(oldState);
+    expect(newState).toStrictEqual(expectedNewState);
   });
 });

@@ -1,18 +1,15 @@
+import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import { SEPOLIA } from '../../constants/network';
 import { captureException } from '@sentry/react-native';
-import { isObject, hasProperty } from '@metamask/utils';
-import type { NetworkState } from '@metamask/network-controller';
+import { isObject } from '@metamask/utils';
+import { NetworkState } from '@metamask/network-controller';
+import NetworkList from '../../util/networks';
 
-/**
- * This migration removes networkDetails and networkStatus property
- * This migration add a new property `networkMetadata` to the NetworkController (Still under investigation if it's needed)
- * @param {unknown} stateAsync - Promise Redux state.
- * @returns Migrated Redux state.
- */
 export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
   if (!isObject(state)) {
     captureException(
-      new Error(`Migration 33: Invalid root state: '${typeof state}'`),
+      new Error(`Migration 33: Invalid state error: '${typeof state}'`),
     );
     return state;
   }
@@ -20,7 +17,7 @@ export default async function migrate(stateAsync: unknown) {
   if (!isObject(state.engine)) {
     captureException(
       new Error(
-        `Migration 33: Invalid root engine state: '${typeof state.engine}'`,
+        `Migration 33: Invalid engine state error: '${typeof state.engine}'`,
       ),
     );
     return state;
@@ -29,42 +26,42 @@ export default async function migrate(stateAsync: unknown) {
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
-        `Migration 33: Invalid root engine backgroundState: '${typeof state
+        `Migration 33: Invalid engine backgroundState error: '${typeof state
           .engine.backgroundState}'`,
       ),
     );
     return state;
   }
-
-  const networkControllerState = state.engine.backgroundState.NetworkController;
-
+  const networkControllerState = state.engine.backgroundState
+    .NetworkController as NetworkState;
   if (!isObject(networkControllerState)) {
     captureException(
       new Error(
-        `Migration 33: Invalid NetworkController state: '${typeof networkControllerState}'`,
+        `Migration 33: Invalid NetworkController state error: '${typeof networkControllerState}'`,
       ),
     );
     return state;
   }
 
-  if (
-    !isObject(networkControllerState.networkDetails) ||
-    !hasProperty(networkControllerState, 'networkDetails')
-  ) {
+  if (!networkControllerState.providerConfig.chainId) {
     captureException(
       new Error(
-        `Migration 33: Invalid NetworkController networkDetails state: '${typeof networkControllerState.networkDetails}'`,
+        `Migration 33: NetworkController providerConfig chainId not found: '${JSON.stringify(
+          networkControllerState.providerConfig.chainId,
+        )}'`,
       ),
     );
     return state;
   }
-
-  if (networkControllerState.networkDetails) {
-    delete networkControllerState.networkDetails;
+  const chainId = networkControllerState.providerConfig.chainId;
+  // If user on goerli, fallback to Sepolia
+  if (chainId === CHAIN_IDS.GOERLI) {
+    networkControllerState.providerConfig = {
+      chainId: CHAIN_IDS.SEPOLIA,
+      ticker: 'SepoliaETH',
+      type: SEPOLIA,
+    };
+    networkControllerState.networkId = `${NetworkList[SEPOLIA].networkId}`;
   }
-  if (networkControllerState.networkStatus) {
-    delete networkControllerState.networkStatus;
-  }
-
   return state;
 }
