@@ -119,7 +119,7 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectTransactionGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
-import { getIsSmartTransaction } from '../../../../../selectors/preferencesController';
+import { getIsSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';

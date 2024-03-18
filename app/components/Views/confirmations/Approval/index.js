@@ -40,10 +40,8 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../../selectors/networkController';
-import {
-  getIsSmartTransaction,
-  selectSelectedAddress,
-} from '../../../../selectors/preferencesController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { getIsSmartTransaction } from 'app/selectors/smartTransactionsController';
 import { ethErrors } from 'eth-rpc-errors';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
