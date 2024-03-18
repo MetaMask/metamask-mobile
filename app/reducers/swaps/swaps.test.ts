@@ -143,6 +143,8 @@ describe('swaps reducer', () => {
         swaps: cloneDeep(initialState),
       };
 
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       rootState.swaps['0x1'].smartTransactions = {
         expectedDeadline: 45,
         maxDeadline: 150,
