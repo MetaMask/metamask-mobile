@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import Device from '../../util/device';
 import reducer, {
   initialState,
@@ -139,17 +140,13 @@ describe('swaps reducer', () => {
             },
           },
         },
-        swaps: {
-          ...initialState,
-          '0x1': {
-            ...initialState['0x1'],
-            smartTransactions: {
-              expectedDeadline: 45,
-              maxDeadline: 150,
-              returnTxHashAsap: false,
-            },
-          },
-        },
+        swaps: cloneDeep(initialState),
+      };
+
+      rootState.swaps['0x1'].smartTransactions = {
+        expectedDeadline: 45,
+        maxDeadline: 150,
+        returnTxHashAsap: false,
       };
 
       const enabled = swapsSmartTxFlagEnabled(rootState);
