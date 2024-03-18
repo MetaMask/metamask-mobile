@@ -36,7 +36,6 @@ export const restoreLedgerKeyring = async (keyring) => {
       (await getLedgerKeyring()).deserialize(serializedLedgerKeyring);
 
       await KeyringController.persistAllKeyrings();
-      KeyringController.updateIdentities(await KeyringController.getAccounts());
     } catch (e) {
       Logger.error(
         e,
