@@ -134,6 +134,11 @@
     "submitHistory": [],
     "transactions": []
   },
+  "SmartTransactionsController": {
+    "smartTransactionsState": {
+      "liveness": true
+    }
+  },
   "SnapController": {
     "snapStates": {},
     "snaps": {},
