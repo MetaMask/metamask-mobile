@@ -41,10 +41,7 @@ const asyncMigration = async (state: any) => {
 
 describe('asyncifyMigrations', () => {
   it('should convert synchronous migrations to asynchronous', async () => {
-    const testMigrationList: Record<
-      string,
-      (state: PersistedState) => PersistedState
-    > = {
+    const testMigrationList = {
       ...recentMigrations,
       [numberOfMigrations]: asyncMigration,
       [numberOfMigrations + 1]: synchronousMigration,
@@ -84,10 +81,12 @@ describe('migrations', () => {
     };
 
     // Convert all migrations to async
-    const asyncifiedMigrations = asyncifyMigrations(testMigrationList);
+    const asyncifiedMigrations = asyncifyMigrations(
+      testMigrationList,
+    ) as unknown as MigrationManifest;
 
     // Perform migration
-    const migratedStatePromise = createMigrate(asyncifiedMigrations as any);
+    const migratedStatePromise = createMigrate(asyncifiedMigrations);
 
     // Resolve migration
     const migratedState = await migratedStatePromise(
@@ -105,10 +104,12 @@ describe('migrations', () => {
     };
 
     // Convert all migrations to async
-    const asyncifiedMigrations = asyncifyMigrations(testMigrationList);
+    const asyncifiedMigrations = asyncifyMigrations(
+      testMigrationList,
+    ) as unknown as MigrationManifest;
 
     // Perform migration
-    const migratedStatePromise = createMigrate(asyncifiedMigrations as any);
+    const migratedStatePromise = createMigrate(asyncifiedMigrations);
 
     // Resolve migration
     const migratedState = await migratedStatePromise(
