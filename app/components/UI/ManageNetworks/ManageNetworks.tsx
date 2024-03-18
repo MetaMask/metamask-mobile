@@ -18,6 +18,7 @@ import Routes from '../../../constants/navigation/Routes';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
 
 const styles = StyleSheet.create({
   setting: {
@@ -82,7 +83,7 @@ export default function ManageNetworksComponent() {
         imageSource={networkImageSource()}
         onPress={switchNetwork}
         style={styles.networkPicker}
-        // testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
+        testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
       />
     </View>
   );

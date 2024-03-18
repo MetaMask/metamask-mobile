@@ -1,8 +1,12 @@
-import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import React, { useCallback, useLayoutEffect } from 'react';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconSize,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../app/constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
@@ -38,10 +42,32 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     alignSelf: 'flex-start',
   },
+  backButton: {
+    padding: 10,
+  },
 });
 
 const DefaultSettings = () => {
   const navigation = useNavigation();
+
+  const renderBackButton = useCallback(
+    () => (
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.backButton}
+      >
+        <Icon name={IconName.ArrowLeft} size={IconSize.Lg} color={'black'} />
+      </TouchableOpacity>
+    ),
+    [navigation],
+  );
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: renderBackButton,
+      headerTitle: strings('onboarding_success.default_settings'),
+    });
+  }, [navigation, renderBackButton]);
   const handleSwitchToggle = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,

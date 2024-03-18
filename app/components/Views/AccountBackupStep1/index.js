@@ -31,6 +31,7 @@ import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import Routes from '../../../../app/constants/navigation/Routes';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -191,11 +192,22 @@ const AccountBackupStep1 = (props) => {
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
     const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+    const goToSuccessFlow = () => {
+      props.navigation.reset({
+        index: 1,
+        routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+      });
+    };
+
     if (onboardingWizard) {
-      props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+      process.env.BASIC_FUNCTIONALITY
+        ? goToSuccessFlow()
+        : props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     } else {
       props.setOnboardingWizardStep(1);
-      props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+      process.env.BASIC_FUNCTIONALITY
+        ? goToSuccessFlow()
+        : props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     }
   };
 

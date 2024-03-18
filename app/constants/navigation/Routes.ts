@@ -51,6 +51,7 @@ const Routes = {
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
+    SUCCESS_FLOW: 'OnboardingSuccessFlow',
     SUCCESS: 'OnboardingSuccess',
     DEFAULT_SETTINGS: 'DefaultSettings',
     HOME_NAV: 'HomeNav',

@@ -128,7 +128,36 @@ const Stack = createStackNavigator();
  * Stack navigator responsible for the onboarding process
  * Create Wallet and Import from Secret Recovery Phrase
  */
-const OnboardingNav = () => (
+
+// eslint-disable-next-line react/prop-types
+const OnboardingSuccessComponent = ({ navigation }) => (
+  <OnboardingSuccess
+    // eslint-disable-next-line react/prop-types
+    onDone={() => navigation.replace({ routes: [{ name: 'HomeNav' }] })}
+  />
+);
+
+// eslint-disable-next-line react/prop-types
+const OnboardingSuccessFlow = ({ route, navigation }) => (
+  <Stack.Navigator
+    name={Routes.ONBOARDING.SUCCESS_FLOW}
+    initialRouteName={Routes.ONBOARDING.SUCCESS}
+  >
+    <Stack.Screen
+      name={Routes.ONBOARDING.SUCCESS}
+      component={OnboardingSuccessComponent}
+      options={OnboardingSuccess.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
+      component={DefaultSettings}
+      options={DefaultSettings.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
+// eslint-disable-next-line react/prop-types
+const OnboardingNav = ({ navigation }) => (
   <Stack.Navigator initialRouteName="OnboardingCarousel">
     <Stack.Screen
       name="Onboarding"
@@ -154,6 +183,11 @@ const OnboardingNav = () => (
       name="AccountBackupStep1B"
       component={AccountBackupStep1B}
       options={AccountBackupStep1B.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SUCCESS_FLOW}
+      component={OnboardingSuccessFlow}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="ManualBackupStep1"
@@ -438,11 +472,10 @@ const App = ({ userLoggedIn }) => {
     async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
-      // FRANK: revert this
-      // const route = !existingUser
-      //   ? Routes.ONBOARDING.ROOT_NAV
-      //   : Routes.ONBOARDING.LOGIN;
-      setRoute('OnboardingSuccessFlow'); // TODO: replace with route
+      const route = !existingUser
+        ? Routes.ONBOARDING.ROOT_NAV
+        : Routes.ONBOARDING.LOGIN;
+      setRoute(route);
     }
 
     checkExisting().catch((error) => {
@@ -700,38 +733,6 @@ const App = ({ userLoggedIn }) => {
     </Stack.Navigator>
   );
 
-  // eslint-disable-next-line react/prop-types
-  const OnboardingSuccessFlow = ({ route, navigation }) => (
-    <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
-      <Stack.Screen
-        name={Routes.ONBOARDING.SUCCESS}
-        component={OnboardingSuccess}
-      />
-      <Stack.Screen
-        name={Routes.ONBOARDING.DEFAULT_SETTINGS}
-        component={DefaultSettings}
-        options={{
-          headerTitle: 'Default settings', // FRANK: replace with string from i18n
-          // eslint-disable-next-line react/display-name, react/prop-types
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={{ padding: 10 }}
-            >
-              <Icon
-                // eslint-disable-next-line react/prop-types
-                onpress={() => navigation.goBack()}
-                name={IconName.ArrowLeft}
-                size={IconSize.Lg}
-                color={'black'}
-              />
-            </TouchableOpacity>
-          ),
-        }}
-      />
-    </Stack.Navigator>
-  );
-
   return (
     // do not render unless a route is defined
     (route && (
@@ -771,7 +772,7 @@ const App = ({ userLoggedIn }) => {
               options={{ headerShown: false }}
             />
             <Stack.Screen
-              name="OnboardingSuccessFlow"
+              name={Routes.ONBOARDING.SUCCESS_FLOW}
               component={OnboardingSuccessFlow}
               options={{ headerShown: false }}
             />

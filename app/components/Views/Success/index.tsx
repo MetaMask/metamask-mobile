@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Button from '../../../component-library/components/Buttons/Button';
 import {
@@ -7,23 +7,24 @@ import {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button/Button.types';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import Routes from '../../../../app/constants/navigation/Routes';
+import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
+import { useTheme } from '../../../util/theme';
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   topWrapper: {
-    flex: 8,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   buttonWrapper: {
-    width: '80%',
-    flex: 2,
+    width: '85%',
+    bottom: 50,
   },
   emoji: {
     fontSize: 74,
@@ -48,17 +49,25 @@ const styles = StyleSheet.create({
   button: {
     marginBottom: 16,
   },
+  backButton: {
+    padding: 10,
+  },
 });
 
-const OnboardingSuccess = () => {
+const OnboardingSuccess = ({ onDone }: { onDone: () => void }) => {
   const navigation = useNavigation();
+  const { colors } = useTheme();
 
-  const startApp = () => {
-    // FRANK: fix this
-    navigation.navigate(Routes.ONBOARDING.HOME_NAV, {
-      screen: Routes.WALLET_VIEW,
+  useLayoutEffect(() => {
+    navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
+  }, [navigation, colors]);
+
+  const goToDefaultSettings = () => {
+    navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
+      screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
     });
   };
+
   return (
     <View style={styles.root}>
       <View style={styles.topWrapper}>
@@ -75,14 +84,14 @@ const OnboardingSuccess = () => {
           label={strings('onboarding_success.default_settings')}
           variant={ButtonVariants.Secondary}
           style={styles.button}
-          onPress={() => navigation.navigate('DefaultSettings')}
+          onPress={goToDefaultSettings}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
         />
         <Button
           label={strings('onboarding_success.done')}
           variant={ButtonVariants.Primary}
-          onPress={startApp}
+          onPress={onDone}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
         />
