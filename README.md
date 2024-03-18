@@ -44,6 +44,8 @@ yarn setup
 
 _Not the usual install command, this will run scripts and a lengthy postinstall flow_
 
+_Not the usual install command, this will run scripts and a lengthy postinstall flow_
+
 ### Running the app
 
 **Run Metro bundler**
