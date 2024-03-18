@@ -476,7 +476,33 @@ class Engine {
       },
     );
 
-    const internalAccounts = initialState.AccountsController?.internalAccounts;
+    const accountsControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'AccountsController',
+      allowedEvents: [
+        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        'SnapController:stateChange',
+        ///: END:ONLY_INCLUDE_IF
+        'KeyringController:accountRemoved',
+        'KeyringController:stateChange',
+      ],
+      allowedActions: [
+        'KeyringController:getAccounts',
+        'KeyringController:getKeyringsByType',
+        'KeyringController:getKeyringForAccount',
+      ],
+    });
+
+    const defaultAccountsControllerState: AccountsControllerState = {
+      internalAccounts: {
+        accounts: {},
+        selectedAccount: '',
+      },
+    };
+
+    const accountsController = new AccountsController({
+      messenger: accountsControllerMessenger,
+      state: initialState.AccountsController ?? defaultAccountsControllerState,
+    });
 
     const tokensController = new TokensController({
       // TODO: The tokens controller currently does not support internalAccounts. This is done to match the behavior of the previous tokens controller subscription.
@@ -506,9 +532,7 @@ class Engine {
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
-        selectedAddress:
-          internalAccounts?.accounts[internalAccounts?.selectedAccount]
-            ?.address ?? '',
+        selectedAddress: accountsController.getSelectedAccount().address,
       },
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
@@ -594,34 +618,6 @@ class Engine {
 
     const phishingController = new PhishingController();
     phishingController.maybeUpdateState();
-
-    const accountsControllerMessenger = this.controllerMessenger.getRestricted({
-      name: 'AccountsController',
-      allowedEvents: [
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-        'SnapController:stateChange',
-        ///: END:ONLY_INCLUDE_IF
-        'KeyringController:accountRemoved',
-        'KeyringController:stateChange',
-      ],
-      allowedActions: [
-        'KeyringController:getAccounts',
-        'KeyringController:getKeyringsByType',
-        'KeyringController:getKeyringForAccount',
-      ],
-    });
-
-    const defaultAccountsControllerState: AccountsControllerState = {
-      internalAccounts: {
-        accounts: {},
-        selectedAccount: '',
-      },
-    };
-
-    const accountsController = new AccountsController({
-      messenger: accountsControllerMessenger,
-      state: initialState.AccountsController ?? defaultAccountsControllerState,
-    });
 
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;

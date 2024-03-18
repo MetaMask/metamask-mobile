@@ -11,7 +11,17 @@ describe('PermissionController specifications', () => {
   const baseEoaAccount = {
     type: EthAccountType.Eoa,
     options: {},
-    methods: [...Object.values(EthMethod)],
+    methods: [
+      EthMethod.PersonalSign,
+      EthMethod.Sign,
+      EthMethod.SignTransaction,
+      EthMethod.SignTypedDataV1,
+      EthMethod.SignTypedDataV3,
+      EthMethod.SignTypedDataV4,
+      EthMethod.PrepareUserOperation,
+      EthMethod.PatchUserOperation,
+      EthMethod.SignUserOperation,
+    ],
   };
   describe('caveat specifications', () => {
     it('getCaveatSpecifications returns the expected specifications object', () => {
