@@ -135,16 +135,16 @@ export const getPermissionSpecifications = ({
       const internalAccounts = getInternalAccounts();
 
       return accounts.sort((firstAddress, secondAddress) => {
+        const lowerCaseFirstAddress = firstAddress.toLowerCase();
         const firstAccount = internalAccounts.find(
           (internalAccount) =>
-            internalAccount.address.toLowerCase() ===
-            firstAddress.toLowerCase(),
+            internalAccount.address.toLowerCase() === lowerCaseFirstAddress,
         );
 
+        const lowerCaseSecondAddress = secondAddress.toLowerCase();
         const secondAccount = internalAccounts.find(
           (internalAccount) =>
-            internalAccount.address.toLowerCase() ===
-            secondAddress.toLowerCase(),
+            internalAccount.address.toLowerCase() === lowerCaseSecondAddress,
         );
 
         if (!firstAccount) {
@@ -210,11 +210,11 @@ function validateCaveatAccounts(accounts, getInternalAccounts) {
         `${PermissionKeys.eth_accounts} error: Expected an array of objects that contains an Ethereum addresses. Received: "${address}".`,
       );
     }
-
+    const lowerCaseAddress = address.toLowerCase();
     if (
       !internalAccounts.some(
         (internalAccount) =>
-          internalAccount.address.toLowerCase() === address.toLowerCase(),
+          internalAccount.address.toLowerCase() === lowerCaseAddress,
       )
     ) {
       throw new Error(

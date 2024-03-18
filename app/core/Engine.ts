@@ -189,6 +189,7 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
+import { lowerCase } from 'lodash';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -810,13 +811,12 @@ class Engine {
             internalAccounts = [],
             accounts = [],
           ) => {
-            const accountsMissingIdentities = accounts.filter(
-              (address) =>
-                !internalAccounts.some(
-                  (account) =>
-                    account.address.toLowerCase() === address.toLowerCase(),
-                ),
-            );
+            const accountsMissingIdentities = accounts.filter((address) => {
+              const lowerCaseAddress = lowerCase(address);
+              return !internalAccounts.some(
+                (account) => account.address.toLowerCase() === lowerCaseAddress,
+              );
+            });
             const keyringTypesWithMissingIdentities =
               accountsMissingIdentities.map((address) =>
                 keyringController.getAccountKeyringType(address),
