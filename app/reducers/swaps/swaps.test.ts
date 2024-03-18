@@ -3,6 +3,7 @@ import reducer, {
   initialState,
   SWAPS_SET_LIVENESS,
   SWAPS_SET_HAS_ONBOARDED,
+  swapsSmartTxFlagEnabled,
 } from './index';
 
 const emptyAction = { type: null };
@@ -125,6 +126,49 @@ describe('swaps reducer', () => {
         },
       });
       expect(liveState['0x1'].isLive).toBe(false);
+    });
+  });
+
+  describe('swapsSmartTxFlagEnabled', () => {
+    it('should return true if smart transactions are enabled', () => {
+      const rootState = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              providerConfig: { chainId: '0x1' },
+            },
+          },
+        },
+        swaps: {
+          ...initialState,
+          '0x1': {
+            ...initialState['0x1'],
+            smartTransactions: {
+              expectedDeadline: 45,
+              maxDeadline: 150,
+              returnTxHashAsap: false,
+            },
+          },
+        },
+      };
+
+      const enabled = swapsSmartTxFlagEnabled(rootState);
+      expect(enabled).toEqual(true);
+    });
+    it('should return false if smart transactions are not enabled', () => {
+      const rootState = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              providerConfig: { chainId: '0x1' },
+            },
+          },
+        },
+        swaps: initialState,
+      };
+
+      const enabled = swapsSmartTxFlagEnabled(rootState);
+      expect(enabled).toEqual(false);
     });
   });
 
