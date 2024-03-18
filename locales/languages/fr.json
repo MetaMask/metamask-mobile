@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
-    "approval_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",
-    "attribution": "Fourni par",
-    "attribution_link_name": "Blockaid",
+    "approval_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",    
     "blur_farming_description": "Si vous approuvez cette demande, quelqu’un pourrait s’emparer de vos actifs répertoriés sur Blur.",
     "deceptive_request_title": "Cette demande est trompeuse",
     "failed_title": "Cette demande peut présenter des risques",
     "failed_description": "À cause d’une erreur, cette demande n’a pas été vérifiée par le fournisseur de services de sécurité. Veuillez agir avec prudence.",
     "loading_title": "En train de vérifier s’il y a des alertes de sécurité…",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "Aucune alerte n’a été reçue. Faites toujours preuve de diligence raisonnable avant d’approuver les demandes.",
     "malicious_domain_description": "Vous interagissez avec un domaine malveillant. Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "other_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "raw_signature_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
@@ -902,27 +900,27 @@
     "disconnect_all_info": "Si vous supprimez vos connexions à tous les sites, vous devrez autoriser la connexion à nouveau.",
     "disconnect": "Déconnecter",
     "disconnect_all": "Déconnecter tous",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "Déconnecter tous les comptes",
+    "manage_connections": "Gérer les connexions",
+    "manage": "Gérer",
     "cancel": "Annuler",
     "loading": "Connexion à MetaMask...",
     "unkown_dapp": "Nom de DAPP non disponible",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "Aucune connexion",
+    "no_connections_desc": "Les comptes que vous connectez à un site ou à une application seront affichés ici."
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "{{accountsLength}} compte(s) connecté(s)."
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "Déconnecter de tous les sites ?",
+    "disconnect_all_desc": "Si vous déconnectez vos comptes de tous les sites, vous devrez accorder des autorisations pour les reconnecter.",
+    "disconnect_account": "Voulez-vous déconnecter le compte ?",
+    "disconnect_all_accounts": "Déconnecter tous les comptes",
+    "disconnect_all_accounts_desc": "Si vous déconnectez tous les comptes de {{dapp}}, vous devrez accorder des autorisations pour les reconnecter.",
+    "disconnect_account_desc": "Si vous déconnectez {{account}} de {{dapp}}, vous devrez accorder des autorisations pour le reconnecter.",
+    "disconnect_confirm": "Déconnecter",
+    "cancel": "Annuler"
   },
   "sdk_return_to_app_modal": {
     "title": "Retourner à l’application",
@@ -1508,8 +1506,8 @@
     "select_network": "Sélectionner un réseau",
     "show_test_networks": "Afficher les réseaux de test",
     "deprecated_goerli": "En raison des changements apportés au protocole d’Ethereum, le réseau de test Goerli pourra ne pas fonctionner d’une manière aussi fiable qu’auparavant et deviendra bientôt obsolète.",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "Ce réseau est obsolète",
+    "network_deprecated_description": "Le réseau auquel vous essayez de vous connecter n’est plus pris en charge par Metamask."
   },
   "select": {
     "cancel": "Annuler",
@@ -2058,6 +2056,10 @@
     "fetching_new_quotes": "Récupération des nouvelles cotations…",
     "quotes_expire_in": "Les cotations expirent dans",
     "get_new_quotes": "Obtenir de nouvelles cotations",
+    "explore_more_options": "Découvrez d’autres options",
+    "one_more_option": "1 option supplémentaire",
+    "more_options": "{{count}} options supplémentaires",
+    "previously_used": "Utilisé précédemment",
     "quotes_timeout": "Expiration des cotations",
     "request_new_quotes": "Veuillez demander de nouvelles cotations pour obtenir le meilleur taux actuellement disponible.",
     "terms_of_service": "Conditions d’utilisation",

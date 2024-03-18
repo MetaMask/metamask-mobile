@@ -384,7 +384,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               }
             }
           >
-            http:/
+            http://test.com
           </Text>
           <TouchableOpacity
             activeOpacity={0.5}
