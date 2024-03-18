@@ -189,7 +189,7 @@ import {
 } from '../core/redux/slices/inpageProvider';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
-import { getIsSmartTransaction } from '../selectors/preferencesController';
+import { getIsSmartTransaction } from '../selectors/smartTransactionsController';
 import { publishHook as smartPublishHook } from '../util/smart-transactions/smart-tx';
 import { getSwapsFeatureFlags } from '../reducers/swaps';
 

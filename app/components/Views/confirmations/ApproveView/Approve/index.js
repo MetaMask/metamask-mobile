@@ -75,7 +75,7 @@ import { updateTransaction } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
-import { getIsSmartTransaction } from '../../../../../selectors/preferencesController';
+import { getIsSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';

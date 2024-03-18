@@ -40,11 +40,9 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../../selectors/networkController';
-import {
-  selectSelectedAddress,
-  getIsSmartTransaction,
-} from '../../../../selectors/preferencesController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { providerErrors } from '@metamask/rpc-errors';
+import { getIsSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
