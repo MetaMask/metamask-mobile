@@ -40,6 +40,8 @@ function getValues(
         Logger.log('STX SmartTransactionStatus onCancel error', e);
       }
     },
+    hideCancelButton: true,
+    hideSubmitButton: true,
   };
 }
 
