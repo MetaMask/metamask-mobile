@@ -144,7 +144,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   useEffect(() => {
-    const isAllowed = isAllowedUrl(dappUrl || wc2Metadata?.url || '');
+    const url = dappUrl || wc2Metadata?.url || '';
+
+    const cleanUrl = url.replace(/^https?:\/\//, '');
+
+    const isAllowed = isAllowedUrl(cleanUrl);
 
     if (!isAllowed) {
       setBlockedUrl(dappUrl);
