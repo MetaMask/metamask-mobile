@@ -139,6 +139,8 @@ describe('Ledger core', () => {
     it('should call keyring.forgetDevice', async () => {
       await forgetLedger();
       expect(ledgerKeyring.forgetDevice).toHaveBeenCalled();
+
+      expect(mockPersistAllKeyrings).toHaveBeenCalled();
     });
   });
 
