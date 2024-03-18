@@ -66,7 +66,8 @@
     "networkConfigurations": {},
     "providerConfig": {
       "type": "mainnet",
-      "chainId": "0x1"
+      "chainId": "0x1",
+      "ticker": "ETH"
     },
     "networkDetails": {
       "EIPS": {}
@@ -75,17 +76,7 @@
     "networkStatus": "unknown"
   },
   "PhishingController": {
-    "phishingLists": [
-      {
-        "allowlist": [],
-        "blocklist": [],
-        "fuzzylist": [],
-        "tolerance": 2,
-        "version": 2,
-        "name": "MetaMask",
-        "lastUpdated": 0
-      }
-    ],
+    "phishingLists": [],
     "whitelist": [],
     "hotlistLastFetched": 0,
     "stalelistLastFetched": 0
@@ -113,7 +104,7 @@
       "0x61": true,
       "0xa": true,
       "0xa869": true,
-      "0x1a4": true,
+      "0xaa37dc": true,
       "0x89": true,
       "0x13881": true,
       "0xa86a": true,
@@ -121,6 +112,7 @@
       "0xfa2": true,
       "0xaa36a7": true,
       "0xe704": true,
+      "0xe705": true,
       "0xe708": true,
       "0x504": true,
       "0x507": true,

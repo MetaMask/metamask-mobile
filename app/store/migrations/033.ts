@@ -1,9 +1,9 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
-import { SEPOLIA } from '../../../app/constants/network';
+import { SEPOLIA } from '../../constants/network';
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { NetworkState } from '@metamask/network-controller';
-import NetworkList from '../../../app/util/networks';
+import NetworkList from '../../util/networks';
 
 export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;

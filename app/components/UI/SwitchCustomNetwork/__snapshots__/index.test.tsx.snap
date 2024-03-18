@@ -14,45 +14,227 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
   }
 >
   <Text
-    bold={true}
-    centered={true}
-    noMargin={true}
-    primary={true}
     style={
-      Object {
-        "fontSize": 24,
-        "marginBottom": 16,
-        "marginLeft": 24,
-        "marginRight": 24,
-        "marginTop": 16,
-      }
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        Object {
+          "textAlign": "center",
+        },
+        undefined,
+        Object {
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontWeight": "600",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "marginVertical": 0,
+        },
+        Object {
+          "fontSize": 24,
+          "marginBottom": 16,
+          "marginLeft": 24,
+          "marginRight": 24,
+          "marginTop": 16,
+        },
+      ]
     }
   >
     New network added
   </Text>
   <Text
-    noMargin={true}
-    primary={true}
     style={
-      Object {
-        "fontSize": 13,
-        "paddingBottom": 16,
-        "paddingHorizontal": 24,
-        "textAlign": "center",
-        "width": "100%",
-      }
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "marginVertical": 0,
+        },
+        Object {
+          "fontSize": 13,
+          "paddingBottom": 16,
+          "paddingHorizontal": 24,
+          "textAlign": "center",
+          "width": "100%",
+        },
+      ]
     }
   >
-    <Text>
+    <Text
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+        ]
+      }
+    >
       <Text
-        bold={true}
-        noMargin={true}
-        primary={true}
+        style={
+          Array [
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            Object {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontWeight": "600",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            Object {
+              "color": "#24272A",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            Object {
+              "marginVertical": 0,
+            },
+            undefined,
+          ]
+        }
       >
         ""
       </Text>
       <Text
-        noMargin={true}
+        style={
+          Array [
+            Object {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            Object {
+              "marginVertical": 0,
+            },
+            undefined,
+          ]
+        }
       >
          
         is now available in the network selector.
@@ -69,60 +251,127 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
       }
     }
   >
-    <StyledButton
-      containerStyle={
-        Array [
-          Object {
-            "flex": 1,
-          },
-          Object {
-            "marginRight": 8,
-          },
-        ]
-      }
-      disabledContainerStyle={
-        Object {
-          "opacity": 0.6,
-        }
-      }
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={0.2}
       onPress={[Function]}
-      styleDisabled={
-        Object {
-          "opacity": 0.6,
-        }
+      style={
+        Array [
+          Array [
+            Object {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            Object {
+              "backgroundColor": "#FFFFFF",
+              "borderColor": "#535A61",
+              "borderWidth": 1,
+            },
+            Array [
+              Object {
+                "flex": 1,
+              },
+              Object {
+                "marginRight": 8,
+              },
+            ],
+          ],
+          null,
+        ]
       }
       testID="cancel-button"
-      type="cancel"
     >
-      Cancel
-    </StyledButton>
-    <StyledButton
-      containerStyle={
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#007aff",
+              "fontSize": 17,
+              "fontWeight": "500",
+              "textAlign": "center",
+            },
+            null,
+            Array [
+              Object {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 14,
+                "fontWeight": "600",
+                "textAlign": "center",
+              },
+              Object {
+                "color": "#535A61",
+              },
+              undefined,
+            ],
+            null,
+          ]
+        }
+      >
+        Cancel
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
         Array [
-          Object {
-            "flex": 1,
-          },
-          Object {
-            "marginLeft": 8,
-          },
+          Array [
+            Object {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            Object {
+              "backgroundColor": "#0376C9",
+              "minHeight": 50,
+            },
+            Array [
+              Object {
+                "flex": 1,
+              },
+              Object {
+                "marginLeft": 8,
+              },
+            ],
+          ],
+          null,
         ]
       }
-      disabledContainerStyle={
-        Object {
-          "opacity": 0.6,
-        }
-      }
-      onPress={[Function]}
-      styleDisabled={
-        Object {
-          "opacity": 0.6,
-        }
-      }
       testID="connect-button"
-      type="confirm"
     >
-      Switch Network
-    </StyledButton>
+      <Text
+        style={
+          Array [
+            Object {
+              "color": "#007aff",
+              "fontSize": 17,
+              "fontWeight": "500",
+              "textAlign": "center",
+            },
+            null,
+            Array [
+              Object {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 14,
+                "fontWeight": "600",
+                "textAlign": "center",
+              },
+              Object {
+                "color": "#FFFFFF",
+              },
+              undefined,
+            ],
+            null,
+          ]
+        }
+      >
+        Switch Network
+      </Text>
+    </TouchableOpacity>
   </View>
 </View>
 `;
