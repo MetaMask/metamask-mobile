@@ -47,20 +47,11 @@ const BasicFunctionalitySheet = () => {
         {strings('default_settings.sheet.title_off')}
       </Text>
       <Text variant={TextVariant.BodyMD} style={styles.description}>
-        {strings('default_settings.sheet.description_off_subtitle')}
+        {strings('default_settings.sheet.description_off')}
       </Text>
-      <View style={styles.bullets}>
-        <Text variant={TextVariant.BodyMD} style={styles.bullet}>
-          {'• '} {strings('default_settings.sheet.description_off_1')}
-          {'\n'}
-          {'• '} {strings('default_settings.sheet.description_off_2')}
-          {'\n'}
-          {'• '} {strings('default_settings.sheet.description_off_3')}
-        </Text>
-      </View>
       <View style={styles.bottom}>
         <Checkbox
-          label="I understand the risks and want to continue"
+          label={strings('default_settings.sheet.checkbox_label')}
           isChecked={isChecked}
           onPress={() => setIsChecked(!isChecked)}
         />
@@ -71,7 +62,7 @@ const BasicFunctionalitySheet = () => {
             style={styles.button}
             accessibilityRole={'button'}
             accessible
-            label="Cancel"
+            label={strings('default_settings.sheet.buttons.cancel')}
             onPress={closeBottomSheet}
           />
           <View style={styles.spacer} />
@@ -83,7 +74,7 @@ const BasicFunctionalitySheet = () => {
             style={styles.button}
             accessibilityRole={'button'}
             accessible
-            label="Turn Off"
+            label={strings('default_settings.sheet.buttons.turn_off')}
             onPress={handleSwitchToggle}
           />
         </View>
@@ -97,17 +88,7 @@ const BasicFunctionalitySheet = () => {
         {strings('default_settings.sheet.title_on')}
       </Text>
       <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
-        {strings('default_settings.sheet.description_on_subtitle')}
-      </Text>
-      <View style={styles.bullets}>
-        <Text variant={TextVariant.BodyMD} style={styles.bullet}>
-          {'• '} {strings('default_settings.sheet.description_on_1')}
-          {'\n'}
-          {'• '} {strings('default_settings.sheet.description_on_2')}
-        </Text>
-      </View>
-      <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
-        {strings('default_settings.sheet.description_on_footer')}
+        {strings('default_settings.sheet.description_on')}
       </Text>
       <View style={styles.buttonsContainer}>
         <Button
@@ -116,7 +97,7 @@ const BasicFunctionalitySheet = () => {
           style={styles.button}
           accessibilityRole={'button'}
           accessible
-          label="Cancel"
+          label={strings('default_settings.sheet.buttons.cancel')}
           onPress={closeBottomSheet}
         />
         <View style={styles.spacer} />
@@ -126,7 +107,7 @@ const BasicFunctionalitySheet = () => {
           style={styles.button}
           accessibilityRole={'button'}
           accessible
-          label="Turn On"
+          label={strings('default_settings.sheet.buttons.turn_on')}
           onPress={handleSwitchToggle}
         />
       </View>
