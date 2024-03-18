@@ -66,9 +66,11 @@ export const swapsSmartTxFlagEnabled = createSelector(
   swapsStateSelector,
   chainIdSelector,
   (swapsState, chainId) => {
-    if (!swapsState[chainId]?.smartTransactions) return false;
+    const stxFlags = swapsState[chainId]?.smartTransactions;
 
-    return Object.keys(swapsState[chainId]?.smartTransactions).length > 0;
+    if (!stxFlags) return false;
+
+    return typeof stxFlags === 'object' && Object.keys(stxFlags).length > 0;
   },
 );
 
