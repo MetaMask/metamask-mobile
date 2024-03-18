@@ -2,7 +2,7 @@
 
 ## Current Main Branch
 
-## 7.18.0 - Mar 2, 2024
+## 7.18.0 - Mar 18, 2024
 ### Added
 - [#8729](https://github.com/MetaMask/metamask-mobile/pull/8729): feat(ramp): add event when user expands quotes
 - [#8787](https://github.com/MetaMask/metamask-mobile/pull/8787): feat: add MetaMetrics custom flush vars and log
@@ -78,7 +78,10 @@
 - [#8631](https://github.com/MetaMask/metamask-mobile/pull/8631): fix: remove inexistent style
 - [#8615](https://github.com/MetaMask/metamask-mobile/pull/8615): fix: Fix add custom rpc detox test script
 
-
+## 7.17.1 - Mar 2, 2024
+## Fixed
+- [#8870](https://github.com/MetaMask/metamask-mobile/pull/8870): fix: update PPOM to v1.4.4
+- [#8892](https://github.com/MetaMask/metamask-mobile/pull/8892): fix: Tokens disappearing
 
 ## 7.17.0 - Feb 16, 2024
 ### Added

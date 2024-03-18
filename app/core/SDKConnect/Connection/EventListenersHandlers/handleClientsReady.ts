@@ -38,7 +38,6 @@ function handleClientsReady({
           // Remove connection from SDK completely
           SDKConnect.getInstance().removeChannel({
             channelId: instance.channelId,
-            emitRefresh: true,
             sendTerminate: true,
           });
 

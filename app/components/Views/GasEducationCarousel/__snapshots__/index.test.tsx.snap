@@ -1,43 +1,476 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GasEducationCarousel should render correctly 1`] = `
-<ContextProvider
-  value={
+<View
+  style={
     Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
+      "flex": 1,
     }
   }
 >
-  <Component
-    navigation={
+  <View
+    style={
       Object {
-        "getParam": [Function],
+        "backgroundColor": "#FFFFFF",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      accessibilityIgnoresInvertColors={true}
+      style={
+        Object {
+          "borderTopWidth": 0,
+          "bottom": 0,
+          "flex": 1,
+          "height": null,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+          "width": null,
+        }
+      }
+    >
+      <Image
+        resizeMode="stretch"
+        source={null}
+        style={
+          Array [
+            Object {
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            },
+            Object {
+              "height": null,
+              "width": null,
+            },
+            undefined,
+          ]
+        }
+      />
+      <RCTScrollView
+        contentContainerStyle={
+          Object {
+            "flexGrow": 1,
+          }
+        }
+        style={
+          Object {
+            "flex": 1,
+          }
+        }
+      >
+        <View>
+          <View
+            style={
+              Object {
+                "flex": 1,
+                "paddingVertical": 30,
+              }
+            }
+          >
+            <View
+              onLayout={[Function]}
+              style={
+                Array [
+                  Object {
+                    "flex": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <View
+                activeTab={0}
+                containerWidth={750}
+                goToPage={[Function]}
+                scrollValue={0}
+                tabs={
+                  Array [
+                    undefined,
+                    undefined,
+                    undefined,
+                  ]
+                }
+              />
+              <RCTScrollView
+                alwaysBounceVertical={false}
+                automaticallyAdjustContentInsets={false}
+                collapsable={false}
+                contentOffset={
+                  Object {
+                    "x": 0,
+                  }
+                }
+                directionalLockEnabled={true}
+                forwardedRef={[Function]}
+                horizontal={true}
+                keyboardDismissMode="on-drag"
+                onMomentumScrollBegin={[Function]}
+                onMomentumScrollEnd={[Function]}
+                onScroll={[Function]}
+                pagingEnabled={true}
+                scrollEnabled={true}
+                scrollEventThrottle={16}
+                scrollsToTop={false}
+                showsHorizontalScrollIndicator={false}
+                style={Object {}}
+              >
+                <View>
+                  <View
+                    style={
+                      Object {
+                        "width": 750,
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        Object {
+                          "flex": 1,
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          Object {
+                            "flexDirection": "row",
+                            "justifyContent": "center",
+                          }
+                        }
+                      >
+                        <Image
+                          resizeMethod="auto"
+                          source={
+                            Object {
+                              "default": Object {
+                                "uri": "MockImage",
+                              },
+                            }
+                          }
+                          style={
+                            Array [
+                              Object {},
+                              Object {
+                                "height": 458.33333333333337,
+                                "width": 550,
+                              },
+                            ]
+                          }
+                        />
+                      </View>
+                      <View
+                        style={
+                          Object {
+                            "flex": 1,
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            Object {
+                              "margin": 32,
+                            }
+                          }
+                        >
+                          <Text
+                            style={
+                              Array [
+                                Object {
+                                  "color": "#24272A",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                Object {
+                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontWeight": "600",
+                                },
+                                undefined,
+                                Object {
+                                  "color": "#24272A",
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                Object {
+                                  "color": "#24272A",
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                Object {
+                                  "marginVertical": 0,
+                                },
+                                Object {
+                                  "fontSize": 24,
+                                  "justifyContent": "center",
+                                  "marginBottom": 14,
+                                  "textAlign": "center",
+                                },
+                              ]
+                            }
+                          >
+                            Before you purchase ETH, understand gas fees
+                          </Text>
+                          <Text
+                            style={
+                              Array [
+                                Object {
+                                  "color": "#24272A",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                Object {
+                                  "color": "#535A61",
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                Object {
+                                  "marginVertical": 0,
+                                },
+                                Object {
+                                  "fontSize": 14,
+                                  "justifyContent": "center",
+                                  "lineHeight": 20,
+                                  "marginBottom": 14,
+                                  "textAlign": "center",
+                                },
+                              ]
+                            }
+                          >
+                            If you plan to swap or transfer your ETH, purchase extra to cover gas fees.
+                          </Text>
+                          <Text
+                            style={
+                              Array [
+                                Object {
+                                  "color": "#24272A",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 30,
+                                  "fontWeight": "400",
+                                  "marginVertical": 2,
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                Object {
+                                  "color": "#535A61",
+                                },
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                Object {
+                                  "marginVertical": 0,
+                                },
+                                Object {
+                                  "fontSize": 14,
+                                  "justifyContent": "center",
+                                  "lineHeight": 20,
+                                  "marginBottom": 14,
+                                  "textAlign": "center",
+                                },
+                              ]
+                            }
+                          >
+                            Gas fees for transactions are separate from the cost of purchasing ETH.
+                             
+                            <Text
+                              style={
+                                Array [
+                                  Object {
+                                    "color": "#24272A",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  Object {
+                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontWeight": "600",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              MetaMask does not profit from gas fees.
+                            </Text>
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                  <View
+                    style={
+                      Object {
+                        "width": 750,
+                      }
+                    }
+                  >
+                    <View />
+                  </View>
+                  <View
+                    style={
+                      Object {
+                        "width": 750,
+                      }
+                    }
+                  >
+                    <View />
+                  </View>
+                </View>
+              </RCTScrollView>
+            </View>
+            <View
+              style={
+                Object {
+                  "alignSelf": "center",
+                  "flexDirection": "row",
+                  "marginVertical": 36,
+                }
+              }
+            >
+              <View
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#24272A",
+                      "borderRadius": 4,
+                      "height": 8,
+                      "marginHorizontal": 8,
+                      "opacity": 0.4,
+                      "width": 8,
+                    },
+                    Object {
+                      "opacity": 1,
+                    },
+                  ]
+                }
+              />
+              <View
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#24272A",
+                      "borderRadius": 4,
+                      "height": 8,
+                      "marginHorizontal": 8,
+                      "opacity": 0.4,
+                      "width": 8,
+                    },
+                    false,
+                  ]
+                }
+              />
+              <View
+                style={
+                  Array [
+                    Object {
+                      "backgroundColor": "#24272A",
+                      "borderRadius": 4,
+                      "height": 8,
+                      "marginHorizontal": 8,
+                      "opacity": 0.4,
+                      "width": 8,
+                    },
+                    false,
+                  ]
+                }
+              />
+            </View>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+  </View>
+  <View
+    collapsable={false}
+    style={
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "bottom": 0,
+        "left": 0,
+        "opacity": 1,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
       }
     }
   />
-</ContextProvider>
+</View>
 `;

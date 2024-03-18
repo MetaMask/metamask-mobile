@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Dritte, die für Betrügereien bekannt sind, alle Ihre Assets an sich reißen.",
-    "attribution": "Unterstützt durch",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Wenn Sie diese Anfrage genehmigen, kann jemand Ihre auf Blur aufgeführten Assets stehlen.",
     "deceptive_request_title": "Dies ist eine betrügerische Anfrage.",
     "failed_title": "Anfrage ist möglicherweise nicht sicher",
     "failed_description": "Aufgrund eines Fehlers wurde diese Anfrage vom Sicherheitsanbieter nicht überprüft. Gehen Sie mit Bedacht vor.",
     "loading_title": "Suche nach Sicherheitsbenachrichtigungen ...",
-    "loading_complete_title": "Keine Benachrichtigung erhalten. Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen.",
+    "loading_complete_title": "Führen Sie immer Ihre eigene Due-Diligence-Prüfung durch, bevor Sie Anfragen genehmigen.",
     "malicious_domain_description": "Sie haben es mit einer bösartigen Domain zu tun. Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "other_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "raw_signature_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
@@ -902,7 +900,11 @@
     "disconnect_all_info": "Wenn Sie Ihre Verbindungen mit allen Seiten trennen, müssen Sie die Genehmigung dazu erteilen, sich erneut zu verbinden.",
     "disconnect": "Trennen",
     "disconnect_all": "Alle trennen",
+<<<<<<< HEAD
     "disconnect_all_accounts": "Alle Konte trennen",
+=======
+    "disconnect_all_accounts": "Alle Konten trennen",
+>>>>>>> main
     "manage_connections": "Verbindungen verwalten",
     "manage": "Verwalten",
     "cancel": "Stornieren",
@@ -915,11 +917,19 @@
     "connected_accounts": "{{accountsLength}} Konto/Konten verbunden."
   },
   "sdk_disconnect_modal": {
+<<<<<<< HEAD
     "disconnect_all": "Von allen Websites trennen?",
     "disconnect_all_desc": "Wenn Sie die Ihre Konten von allen Websites trennen, müssen Sie die Genehmigung erteilen, sie wieder zu verbinden.",
     "disconnect_account": "Konto trennen?",
     "disconnect_all_accounts": "Alle Konten trennen",
     "disconnect_all_accounts_desc": "Wenn Sie alle Konten von {{dapp}} trennen, müssen Sie die Genehmigung erteilen, sie wieder zu verbinden.",
+=======
+    "disconnect_all": "Verbindung mit allen Websites trennen?",
+    "disconnect_all_desc": "Wenn Sie die Ihre Konten von allen Websites trennen, müssen Sie die Genehmigung für die erneute Verbindung erteilen.",
+    "disconnect_account": "Konto trennen?",
+    "disconnect_all_accounts": "Alle Konten trennen",
+    "disconnect_all_accounts_desc": "Wenn Sie alle Konten von {{dapp}} trennen, müssen Sie die Genehmigung für die erneute Verbindung erteilen.",
+>>>>>>> main
     "disconnect_account_desc": "Wenn Sie {{account}} von {{dapp}} trennen, müssen Sie die Genehmigung für die erneute Verbindung erteilen.",
     "disconnect_confirm": "Trennen",
     "cancel": "Abbrechen"
@@ -1509,7 +1519,11 @@
     "show_test_networks": "Testnetzwerke anzeigen",
     "deprecated_goerli": "Aufgrund der Protokolländerungen von Ethereum: Das Goerli-Testnetzwerk funktioniert möglicherweise nicht mehr so zuverlässig und wird demnächst abgeschaltet.",
     "network_deprecated_title": "Dieses Netzwerk ist veraltet",
+<<<<<<< HEAD
     "network_deprecated_description": "Das Netzwerk, zu dem Sie eine Verbindung herstellen möchten, wird bei Metamask nicht mehr unterstützt."
+=======
+    "network_deprecated_description": "Das Netzwerk, zu dem Sie eine Verbindung herstellen möchten, wird von Metamask nicht mehr unterstützt."
+>>>>>>> main
   },
   "select": {
     "cancel": "Stornieren",

@@ -1,6 +1,5 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../AppConstants';
 import SDKConnect from '../SDKConnect';
 import updateOriginatorInfos from './updateOriginatorInfos';
 
@@ -64,44 +63,5 @@ describe('updateOriginatorInfos', () => {
     expect(mockInstance.state.connections[mockChannelId].originatorInfo).toBe(
       mockOriginatorInfo,
     );
-  });
-
-  it('should update the connection in DefaultPreference', () => {
-    const mockChannelId = 'mockChannelId';
-
-    const mockOriginatorInfo = {} as OriginatorInfo;
-
-    mockInstance.state.connections[mockChannelId] = {
-      originatorInfo: {} as OriginatorInfo,
-    } as any;
-
-    updateOriginatorInfos({
-      channelId: mockChannelId,
-      originatorInfo: mockOriginatorInfo,
-      instance: mockInstance,
-    });
-
-    expect(mockDefaultPreferenceSet).toHaveBeenCalledWith(
-      AppConstants.MM_SDK.SDK_CONNECTIONS,
-      JSON.stringify(mockInstance.state.connections),
-    );
-  });
-
-  it('should emit a refresh event', () => {
-    const mockChannelId = 'mockChannelId';
-
-    const mockOriginatorInfo = {} as OriginatorInfo;
-
-    mockInstance.state.connections[mockChannelId] = {
-      originatorInfo: {} as OriginatorInfo,
-    } as any;
-
-    updateOriginatorInfos({
-      channelId: mockChannelId,
-      originatorInfo: mockOriginatorInfo,
-      instance: mockInstance,
-    });
-
-    expect(mockEmit).toHaveBeenCalledWith('refresh');
   });
 });

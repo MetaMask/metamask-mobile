@@ -34,10 +34,13 @@ import migration30 from './030';
 import migration31 from './031';
 import migration32 from './032';
 import migration33 from './033';
+import migration34 from './034';
 
 // We do not keep track of the old state
 // We create this type for better readability
 type OldState = PersistedState;
+
+type AsyncMigration = (state: OldState) => PersistedState;
 
 export const migrations: MigrationManifest = {
   0: migration00,
@@ -68,12 +71,13 @@ export const migrations: MigrationManifest = {
   25: migration25,
   26: migration26,
   27: migration27,
-  28: migration28 as unknown as (state: PersistedState) => PersistedState,
-  29: migration29 as unknown as (state: OldState) => PersistedState,
-  30: migration30 as unknown as (state: OldState) => PersistedState,
-  31: migration31 as unknown as (state: OldState) => PersistedState,
-  32: migration32 as unknown as (state: OldState) => PersistedState,
-  33: migration33 as unknown as (state: OldState) => PersistedState,
+  28: migration28 as unknown as AsyncMigration,
+  29: migration29 as unknown as AsyncMigration,
+  30: migration30 as unknown as AsyncMigration,
+  31: migration31 as unknown as AsyncMigration,
+  32: migration32 as unknown as AsyncMigration,
+  33: migration33 as unknown as AsyncMigration,
+  34: migration34 as unknown as AsyncMigration,
 };
 
 // The latest (i.e. highest) version number.
