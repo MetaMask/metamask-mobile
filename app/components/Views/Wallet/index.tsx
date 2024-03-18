@@ -332,14 +332,8 @@ const Wallet = ({ navigation }: any) => {
               severity={BannerAlertSeverity.Error}
               title={strings('wallet.banner.title')}
               description={
-                <Text variant={TextVariant.BodyMD}>
-                  {strings('wallet.banner.description')} {'\n'}
-                  <Text
-                    color={TextColor.Info}
-                    onPress={turnOnBasicFunctionality}
-                  >
-                    {strings('wallet.banner.link')}
-                  </Text>
+                <Text color={TextColor.Info} onPress={turnOnBasicFunctionality}>
+                  {strings('wallet.banner.link')}
                 </Text>
               }
             />

@@ -426,7 +426,6 @@
     "display_nft_media_cta_new_2": "Settings > Security and Privacy.",
     "banner": {
       "title": "Basic functionality is off",
-      "description": "To improve your time on MetaMask (see token details, optimal gas settings, and more) you'll need to turn on this setting.",
       "link": "Turn on basic functionality"
     }
   },

@@ -999,7 +999,11 @@ const Settings: React.FC = () => {
         >
           General
         </Text>
-        <BasicFunctionalityComponent handleSwitchToggle={handlePrivacyToggle} />
+        {process.env.BASIC_FUNCTIONALITY ? (
+          <BasicFunctionalityComponent
+            handleSwitchToggle={handlePrivacyToggle}
+          />
+        ) : null}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
