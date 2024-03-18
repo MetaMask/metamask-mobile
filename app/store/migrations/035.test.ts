@@ -2,11 +2,13 @@ import migrate from './035';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
+import { NetworkStatus } from '@metamask/network-controller';
 
 const expectedState = {
   engine: {
     backgroundState: {
       NetworkController: {
+        selectedNetworkClientId: 'mainnet',
         providerConfig: {
           type: 'mainnet',
           chainId: '0x1',
@@ -74,7 +76,9 @@ describe('Migration #35', () => {
     {
       state: merge({}, initialRootState, {
         engine: {
-          backgroundState: { NetworkController: { providerConfig: null } },
+          backgroundState: {
+            NetworkController: { networkDetails: {}, providerConfig: null },
+          },
         },
       }),
       errorMessage:
@@ -85,7 +89,10 @@ describe('Migration #35', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            NetworkController: { networkConfigurations: null },
+            NetworkController: {
+              networkDetails: {},
+              networkConfigurations: null,
+            },
           },
         },
       }),
@@ -127,5 +134,212 @@ describe('Migration #35', () => {
 
     const migratedState = await migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
+  });
+  it('should update selectedNetworkClientId with provider config id is defined', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkDetails: {},
+            networkStatus: 'test',
+            providerConfig: {
+              type: 'rpc',
+              chainId: '0x1',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+              ticker: 'AVAX',
+              id: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
+            },
+          },
+        },
+      },
+    };
+
+    const expectedStateWithIdDefined = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            providerConfig: {
+              type: 'rpc',
+              chainId: '0x1',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+              ticker: 'AVAX',
+              id: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
+            },
+            selectedNetworkClientId: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
+          },
+        },
+      },
+    };
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedStateWithIdDefined);
+  });
+  it('should update selectedNetworkClientId with provider config id is null and type is a infura network', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkDetails: {},
+            networkStatus: 'test',
+            providerConfig: {
+              type: 'mainnet',
+              chainId: '0x1',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+              ticker: 'ETH',
+            },
+          },
+        },
+      },
+    };
+    const migrateState = await migrate(oldState);
+
+    expect(migrateState).toStrictEqual(expectedState);
+  });
+  it('should create networksMetadata with networksConfigurationId and InfuraNetworks', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {
+              'cd9eb07d-5b42-40ff-8104-95126382e52c': {
+                chainId: '0xa86a',
+                id: '52b62bd0-296c-41d0-9772-2f418c9e81ef',
+                nickname: 'Avalanche Mainnet C-Chain',
+                rpcPrefs: ['Object'],
+                rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+                ticker: 'AVAX',
+              },
+            },
+            networkDetails: {},
+            networkStatus: 'test',
+            providerConfig: {
+              type: 'rpc',
+              chainId: '0x1',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+              ticker: 'AVAX',
+              id: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
+            },
+          },
+        },
+      },
+    };
+
+    const expectedStateWithNetworksMetadata = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {
+              'cd9eb07d-5b42-40ff-8104-95126382e52c': {
+                chainId: '0xa86a',
+                id: '52b62bd0-296c-41d0-9772-2f418c9e81ef',
+                nickname: 'Avalanche Mainnet C-Chain',
+                rpcPrefs: ['Object'],
+                rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+                ticker: 'AVAX',
+              },
+            },
+            providerConfig: {
+              type: 'rpc',
+              chainId: '0x1',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+              ticker: 'AVAX',
+              id: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
+            },
+            selectedNetworkClientId: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
+            networksMetadata: {
+              'cd9eb07d-5b42-40ff-8104-95126382e52c': {
+                status: NetworkStatus.Unknown,
+                EIPS: {},
+              },
+              goerli: {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
+              'linea-goerli': {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
+              'linea-mainnet': {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
+              mainnet: {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
+              sepolia: {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const migrateState = await migrate(oldState);
+
+    expect(migrateState).toStrictEqual(expectedStateWithNetworksMetadata);
+  });
+  it('should create networksMetadata with InfuraNetworks if networksConfigurations is empty', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {},
+            networkDetails: {},
+            networkStatus: 'test',
+            providerConfig: {
+              type: 'mainnet',
+              chainId: '0x1',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+              ticker: 'ETH',
+            },
+          },
+        },
+      },
+    };
+
+    const expectedStateWithNetworksMetadata = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurations: {},
+            providerConfig: {
+              type: 'mainnet',
+              chainId: '0x1',
+              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+              ticker: 'ETH',
+            },
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {
+              goerli: {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
+              'linea-goerli': {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
+              'linea-mainnet': {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
+              mainnet: {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
+              sepolia: {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const migrateState = await migrate(oldState);
+
+    expect(migrateState).toStrictEqual(expectedStateWithNetworksMetadata);
   });
 });
