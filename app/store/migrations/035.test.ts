@@ -258,6 +258,10 @@ describe('Migration #35', () => {
                 EIPS: {},
                 status: NetworkStatus.Unknown,
               },
+              'linea-sepolia': {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
               'linea-mainnet': {
                 EIPS: {},
                 status: NetworkStatus.Unknown,
@@ -317,6 +321,10 @@ describe('Migration #35', () => {
                 status: NetworkStatus.Unknown,
               },
               'linea-goerli': {
+                EIPS: {},
+                status: NetworkStatus.Unknown,
+              },
+              'linea-sepolia': {
                 EIPS: {},
                 status: NetworkStatus.Unknown,
               },

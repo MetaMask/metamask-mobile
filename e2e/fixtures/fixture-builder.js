@@ -150,6 +150,10 @@ class FixtureBuilder {
                   EIPS: {},
                   status: 'unknown',
                 },
+                'linea-sepolia': {
+                  EIPS: {},
+                  status: 'unknown',
+                },
                 'linea-mainnet': {
                   EIPS: {},
                   status: 'unknown',
