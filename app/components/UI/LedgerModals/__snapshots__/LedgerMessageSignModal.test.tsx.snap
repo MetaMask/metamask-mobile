@@ -580,7 +580,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                       ]
                                     }
                                   >
-                                    1. Unlocked
+                                    1. Unlock your Ledger Nano X
                                   </Text>
                                   <Text
                                     style={
@@ -621,7 +621,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                       ]
                                     }
                                   >
-                                    2. The Ethereum app is installed
+                                    2. Install and open the Ethereum app
                                   </Text>
                                   <Text
                                     style={
@@ -662,7 +662,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                       ]
                                     }
                                   >
-                                    3. Bluetooth is enabled
+                                    3. Enable Bluetooth
                                   </Text>
                                 </View>
                                 <TouchableOpacity
