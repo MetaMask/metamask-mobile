@@ -15,6 +15,7 @@ import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
 import { isObject } from '@metamask/utils';
+import AppConstants from '../../../app/core/AppConstants';
 
 const originalFetch = window.fetch; // Never touch this!
 
@@ -114,7 +115,7 @@ export function* basicFunctionalityToggle() {
       'TOGGLE_BASIC_FUNCTIONALITY',
     );
     if (!basicFunctionalityEnabled) {
-      const list = ['infura', 'etherscan', 'api2', 'api3'];
+      const blockList = AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST;
       window.fetch = function (fetchProp) {
         let url = '';
         if (typeof fetchProp === 'string') {
@@ -130,7 +131,7 @@ export function* basicFunctionalityToggle() {
         }
 
         if (!basicFunctionalityEnabled) {
-          const disallowed = list.find((api) => url.includes(api));
+          const disallowed = blockList.find((api) => url.includes(api));
           if (disallowed) {
             Promise.reject(new Error(`Disallowed URL: ${url}`)).catch(
               (error) => {

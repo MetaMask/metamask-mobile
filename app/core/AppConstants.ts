@@ -163,4 +163,13 @@ export default {
   FAVICON_CACHE_MAX_SIZE: 100,
   PPOM_INITIALISATION_STATE_CHANGE_EVENT:
     'PPOMController:initialisationStateChangeEvent',
+  BASIC_FUNCTIONALITY_BLOCK_LIST: [
+    'token-api',
+    'gas-api',
+    'price-api',
+    'phishing-detection',
+    'infura.io',
+    'static.metafi',
+    'config-api.metamask.io/featureFlags',
+  ],
 } as const;
