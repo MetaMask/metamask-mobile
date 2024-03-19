@@ -1,9 +1,8 @@
 import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 
-enum PrimaryCurrency {
+export enum PrimaryCurrency {
   ETH = 'ETH',
-  Fiat = 'Fiat',
 }
 
 /**
@@ -12,10 +11,11 @@ enum PrimaryCurrency {
  * @param {unknown} state - Redux state
  * @returns
  */
-export default function migrate(state: unknown) {
+export default async function migrate(stateAsync: unknown) {
+  const state = await stateAsync;
   if (!isObject(state)) {
     captureException(
-      new Error(`Migration 30: Invalid state: '${typeof state}'`),
+      new Error(`Migration 35: Invalid state: '${typeof state}'`),
     );
     return state;
   }
@@ -23,7 +23,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.settings)) {
     captureException(
       new Error(
-        `Migration 30: Invalid settings state: '${typeof state.settings}'`,
+        `Migration 35: Invalid settings state: '${typeof state.settings}'`,
       ),
     );
     return state;
@@ -32,16 +32,11 @@ export default function migrate(state: unknown) {
   if (!hasProperty(state.settings, 'primaryCurrency')) {
     captureException(
       new Error(
-        `Migration 30: Invalid state settings parameter: '${JSON.stringify(
+        `Migration 35: state.settings.primaryCurrency does not exist: '${JSON.stringify(
           state.settings,
         )}'`,
       ),
     );
-    return state;
-  }
-
-  if (!state.settings.primaryCurrency) {
-    return state;
   }
 
   state.settings.primaryCurrency = PrimaryCurrency.ETH;

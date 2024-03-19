@@ -299,7 +299,7 @@ const TransactionReviewEIP1559Update = ({
                     grey={timeEstimateColor !== 'orange'}
                     orange={timeEstimateColor === 'orange'}
                   >
-                    {renderableGasFeeMaxNative} {'\n'}{' '}
+                    {renderableGasFeeMaxNative} {'\n'}
                     {renderableGasFeeMaxConversion}
                   </Text>
                 </Text>
@@ -389,7 +389,7 @@ const TransactionReviewEIP1559Update = ({
                       {strings('transaction_review_eip1559.max_amount')}:
                     </Text>{' '}
                     <Text small noMargin>
-                      {renderableTotalMaxNative} {'\n'}{' '}
+                      {renderableTotalMaxNative} {'\n'}
                       {renderableTotalMaxConversion}
                     </Text>
                   </Text>
