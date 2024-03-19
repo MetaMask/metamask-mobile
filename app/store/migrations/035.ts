@@ -1,124 +1,44 @@
-import { captureException } from '@sentry/react-native';
 import { isObject, hasProperty } from '@metamask/utils';
-import { NetworkState, NetworkStatus } from '@metamask/network-controller';
-import { InfuraNetworkType } from '@metamask/controller-utils';
+import { captureException } from '@sentry/react-native';
+
+export enum PrimaryCurrency {
+  ETH = 'ETH',
+}
 
 /**
- * This migration removes networkDetails and networkStatus property
- * This migration add a new property `networkMetadata` to the NetworkController (Still under investigation if it's needed)
- * @param {unknown} stateAsync - Promise Redux state.
- * @returns Migrated Redux state.
+ * Migrate back to set primaryCurrency as 'ETH' by default
+ *
+ * @param {unknown} state - Redux state
+ * @returns
  */
 export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
   if (!isObject(state)) {
     captureException(
-      new Error(`Migration 35: Invalid root state: '${typeof state}'`),
+      new Error(`Migration 35: Invalid state: '${typeof state}'`),
     );
     return state;
   }
 
-  if (!isObject(state.engine)) {
+  if (!isObject(state.settings)) {
     captureException(
       new Error(
-        `Migration 35: Invalid root engine state: '${typeof state.engine}'`,
+        `Migration 35: Invalid settings state: '${typeof state.settings}'`,
       ),
     );
     return state;
   }
 
-  if (!isObject(state.engine.backgroundState)) {
+  if (!hasProperty(state.settings, 'primaryCurrency')) {
     captureException(
       new Error(
-        `Migration 35: Invalid root engine backgroundState: '${typeof state
-          .engine.backgroundState}'`,
+        `Migration 35: state.settings.primaryCurrency does not exist: '${JSON.stringify(
+          state.settings,
+        )}'`,
       ),
     );
-    return state;
   }
 
-  const networkControllerState = state.engine.backgroundState.NetworkController;
-  const newNetworkControllerState = state.engine.backgroundState
-    .NetworkController as NetworkState;
-
-  if (!isObject(networkControllerState)) {
-    captureException(
-      new Error(
-        `Migration 35: Invalid NetworkController state: '${typeof networkControllerState}'`,
-      ),
-    );
-    return state;
-  }
-
-  if (
-    !isObject(networkControllerState.networkDetails) ||
-    !hasProperty(networkControllerState, 'networkDetails')
-  ) {
-    captureException(
-      new Error(
-        `Migration 35: Invalid NetworkController networkDetails state: '${typeof networkControllerState.networkDetails}'`,
-      ),
-    );
-    return state;
-  }
-
-  if (networkControllerState.networkDetails) {
-    delete networkControllerState.networkDetails;
-  }
-  if (networkControllerState.networkStatus) {
-    delete networkControllerState.networkStatus;
-  }
-
-  if (
-    !isObject(networkControllerState.providerConfig) ||
-    !hasProperty(networkControllerState, 'providerConfig')
-  ) {
-    captureException(
-      new Error(
-        `Migration 35: Invalid NetworkController providerConfig state: '${typeof networkControllerState.providerConfig}'`,
-      ),
-    );
-    return state;
-  }
-
-  newNetworkControllerState.selectedNetworkClientId =
-    (networkControllerState.providerConfig.id as string | undefined) ??
-    (networkControllerState.providerConfig.type as string);
-
-  let infuraNetworksMetadata = {};
-  let customNetworksMetadata = {};
-
-  Object.values(InfuraNetworkType).forEach((network) => {
-    infuraNetworksMetadata = {
-      ...infuraNetworksMetadata,
-      [network]: { status: NetworkStatus.Unknown, EIPS: {} },
-    };
-  });
-
-  if (
-    !isObject(networkControllerState.networkConfigurations) ||
-    !hasProperty(networkControllerState, 'networkConfigurations')
-  ) {
-    captureException(
-      new Error(
-        `Migration 35: Invalid NetworkController networkConfigurations state: '${typeof networkControllerState.networkConfigurations}'`,
-      ),
-    );
-    return state;
-  }
-  Object.keys(networkControllerState.networkConfigurations).forEach(
-    (networkConfigurationId) => {
-      customNetworksMetadata = {
-        ...customNetworksMetadata,
-        [networkConfigurationId]: { status: NetworkStatus.Unknown, EIPS: {} },
-      };
-    },
-  );
-
-  newNetworkControllerState.networksMetadata = {
-    ...infuraNetworksMetadata,
-    ...customNetworksMetadata,
-  };
-
+  state.settings.primaryCurrency = PrimaryCurrency.ETH;
   return state;
 }
