@@ -1,8 +1,6 @@
-import React from 'react';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import NetworksSettings from './';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
-import Routes from 'app/constants/navigation/Routes';
 
 const initialState = {
   engine: {
