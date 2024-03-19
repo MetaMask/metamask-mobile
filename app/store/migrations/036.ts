@@ -5,7 +5,8 @@ import { InfuraNetworkType } from '@metamask/controller-utils';
 
 /**
  * This migration removes networkDetails and networkStatus property
- * This migration add a new property `networkMetadata` to the NetworkController (Still under investigation if it's needed)
+ * This migration add a new property `networkMetadata` to the NetworkController
+ * This migrations adds a new property called `selectedNetworkClientId` to the NetworkController
  * @param {unknown} stateAsync - Promise Redux state.
  * @returns Migrated Redux state.
  */
@@ -62,11 +63,16 @@ export default async function migrate(stateAsync: unknown) {
     return state;
   }
 
-  if (networkControllerState.networkDetails) {
-    delete networkControllerState.networkDetails;
-  }
-  if (networkControllerState.networkStatus) {
-    delete networkControllerState.networkStatus;
+  if (
+    !isObject(networkControllerState.networkConfigurations) ||
+    !hasProperty(networkControllerState, 'networkConfigurations')
+  ) {
+    captureException(
+      new Error(
+        `Migration 36: Invalid NetworkController networkConfigurations state: '${typeof networkControllerState.networkConfigurations}'`,
+      ),
+    );
+    return state;
   }
 
   if (
@@ -79,6 +85,13 @@ export default async function migrate(stateAsync: unknown) {
       ),
     );
     return state;
+  }
+
+  if (networkControllerState.networkDetails) {
+    delete networkControllerState.networkDetails;
+  }
+  if (networkControllerState.networkStatus) {
+    delete networkControllerState.networkStatus;
   }
 
   newNetworkControllerState.selectedNetworkClientId =
@@ -95,17 +108,6 @@ export default async function migrate(stateAsync: unknown) {
     };
   });
 
-  if (
-    !isObject(networkControllerState.networkConfigurations) ||
-    !hasProperty(networkControllerState, 'networkConfigurations')
-  ) {
-    captureException(
-      new Error(
-        `Migration 36: Invalid NetworkController networkConfigurations state: '${typeof networkControllerState.networkConfigurations}'`,
-      ),
-    );
-    return state;
-  }
   Object.keys(networkControllerState.networkConfigurations).forEach(
     (networkConfigurationId) => {
       customNetworksMetadata = {

@@ -8,6 +8,33 @@ const expectedState = {
   engine: {
     backgroundState: {
       NetworkController: {
+        networkConfigurations: {},
+        networksMetadata: {
+          goerli: {
+            EIPS: {},
+            status: 'unknown',
+          },
+          'linea-goerli': {
+            EIPS: {},
+            status: 'unknown',
+          },
+          'linea-mainnet': {
+            EIPS: {},
+            status: 'unknown',
+          },
+          'linea-sepolia': {
+            EIPS: {},
+            status: 'unknown',
+          },
+          mainnet: {
+            EIPS: {},
+            status: 'unknown',
+          },
+          sepolia: {
+            EIPS: {},
+            status: 'unknown',
+          },
+        },
         selectedNetworkClientId: 'mainnet',
         providerConfig: {
           type: 'mainnet',
@@ -119,6 +146,7 @@ describe('Migration #36', () => {
       engine: {
         backgroundState: {
           NetworkController: {
+            networkConfigurations: {},
             networkDetails: {},
             networkStatus: 'test',
             providerConfig: {
@@ -140,6 +168,7 @@ describe('Migration #36', () => {
       engine: {
         backgroundState: {
           NetworkController: {
+            networkConfigurations: {},
             networkDetails: {},
             networkStatus: 'test',
             providerConfig: {
@@ -158,6 +187,33 @@ describe('Migration #36', () => {
       engine: {
         backgroundState: {
           NetworkController: {
+            networkConfigurations: {},
+            networksMetadata: {
+              goerli: {
+                EIPS: {},
+                status: 'unknown',
+              },
+              'linea-goerli': {
+                EIPS: {},
+                status: 'unknown',
+              },
+              'linea-mainnet': {
+                EIPS: {},
+                status: 'unknown',
+              },
+              'linea-sepolia': {
+                EIPS: {},
+                status: 'unknown',
+              },
+              mainnet: {
+                EIPS: {},
+                status: 'unknown',
+              },
+              sepolia: {
+                EIPS: {},
+                status: 'unknown',
+              },
+            },
             providerConfig: {
               type: 'rpc',
               chainId: '0x1',
@@ -180,6 +236,7 @@ describe('Migration #36', () => {
           NetworkController: {
             networkDetails: {},
             networkStatus: 'test',
+            networkConfigurations: {},
             providerConfig: {
               type: 'mainnet',
               chainId: '0x1',
@@ -204,7 +261,7 @@ describe('Migration #36', () => {
                 chainId: '0xa86a',
                 id: '52b62bd0-296c-41d0-9772-2f418c9e81ef',
                 nickname: 'Avalanche Mainnet C-Chain',
-                rpcPrefs: ['Object'],
+                rpcPrefs: [''],
                 rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
                 ticker: 'AVAX',
               },
@@ -232,7 +289,7 @@ describe('Migration #36', () => {
                 chainId: '0xa86a',
                 id: '52b62bd0-296c-41d0-9772-2f418c9e81ef',
                 nickname: 'Avalanche Mainnet C-Chain',
-                rpcPrefs: ['Object'],
+                rpcPrefs: [''],
                 rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
                 ticker: 'AVAX',
               },
