@@ -1,6 +1,10 @@
 const { execSync } = require('child_process');
 
 const getAvailableAVDs = (() => {
+  if (process.platform === 'darwin') {
+    // If the platform is iOS, return nothing
+    return;
+  }
   try {
     // Run the command to list available AVDs
     const outputList = execSync("emulator -list-avds").toString();
