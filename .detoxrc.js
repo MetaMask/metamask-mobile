@@ -1,6 +1,6 @@
 const { execSync } = require('child_process');
 
-const getAvailableAVDs = () => {
+const getAvailableAVDs = (() => {
   try {
     // Run the command to list available AVDs
     const outputList = execSync("emulator -list-avds").toString();
@@ -21,9 +21,7 @@ const getAvailableAVDs = () => {
     console.error('Error:', error.message);
     process.exit(1);
   }
-};
-
-
+})();
 
 module.exports = {
   testRunner: {
