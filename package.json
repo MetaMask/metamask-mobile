@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.17.1",
+  "version": "7.18.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -124,7 +124,7 @@
     "react-native-ble-plx": "3.1.2"
   },
   "dependencies": {
-    "@consensys/ledgerhq-metamask-keyring": "^0.0.7",
+    "@consensys/ledgerhq-metamask-keyring": "0.0.9",
     "@consensys/on-ramp-sdk": "1.26.2",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
