@@ -236,7 +236,6 @@ const mapStateToProps = (state) => {
     .map((stx) => ({
       ...stx,
       id: stx.uuid,
-      transaction: stx.txParams, // Expected field
       transactionType: TransactionType.smart,
       status: stx.status?.startsWith('cancelled')
         ? SmartTransactionStatuses.cancelled

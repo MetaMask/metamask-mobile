@@ -118,7 +118,10 @@ export async function publishHook(request: Request) {
     approvalController,
     featureFlags,
   } = request;
-  const { chainId, transaction: txParams, origin } = transactionMeta;
+  // transaction field is used for TxController v8
+  // will become txParams in TxController v11 https://github.com/MetaMask/core/blob/main/packages/transaction-controller/CHANGELOG.md#1100
+  // TODO update once Mobile is on v11+, remove STX patch, and change all transaction to txParams
+  const { chainId, transaction, origin } = transactionMeta;
 
   Logger.log('STX featureflags', featureFlags);
 
@@ -239,23 +242,23 @@ export async function publishHook(request: Request) {
   );
 
   try {
-    Logger.log(LOG_PREFIX, 'Fetching fees', txParams, chainId);
+    Logger.log(LOG_PREFIX, 'Fetching fees', transaction, chainId);
     const feesResponse = await smartTransactionsController.getFees(
-      { ...txParams, chainId },
+      { ...transaction, chainId },
       undefined,
     );
 
     Logger.log(LOG_PREFIX, 'Retrieved fees', feesResponse);
 
     const signedTransactions = (await createSignedTransactions(
-      txParams,
+      transaction,
       feesResponse.tradeTxFees?.fees ?? [],
       false,
       transactionController,
     )) as string[];
 
     const signedCanceledTransactions = (await createSignedTransactions(
-      txParams,
+      transaction,
       feesResponse.tradeTxFees?.cancelFees || [],
       true,
       transactionController,
@@ -272,7 +275,7 @@ export async function publishHook(request: Request) {
       await smartTransactionsController.submitSignedTransactions({
         signedTransactions,
         signedCanceledTransactions,
-        txParams,
+        transaction,
         transactionMeta,
       });
 
