@@ -4005,17 +4005,17 @@
     "@metamask/number-to-bn" "^1.7.1"
     bn.js "^5.2.1"
 
-"@metamask/gas-fee-controller@6.1.0":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-6.1.0.tgz#97021b2ffa0a7faa68b3847226bf9cea6a1e395d"
-  integrity sha512-pFooCqBjw2wKFsgMSN1Rsnw3xDMqkkeLhx2OCMOoGx4IHTaxK+KpoUWrKX9J4yLQNsj0jYs584jT1ekoa1kknQ==
+"@metamask/gas-fee-controller@6.1.2":
+  version "6.1.2"
+  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-6.1.2.tgz#b7a9a611e15a8914636a05411d18686bd554ddf3"
+  integrity sha512-NN1Hlmq5u/q2jIJxuGpPwDQaCIZCnKv+v3SghXajmFSAMYC1REgfay/VITI1A0Drfv3dQ8gHlYll2hAK+lu5oQ==
   dependencies:
-    "@metamask/base-controller" "^3.2.0"
-    "@metamask/controller-utils" "^4.3.0"
-    "@metamask/network-controller" "^11.0.0"
+    "@metamask/base-controller" "^3.2.1"
+    "@metamask/controller-utils" "^4.3.2"
+    "@metamask/eth-query" "^3.0.1"
+    "@metamask/network-controller" "^12.1.2"
     "@metamask/utils" "^6.2.0"
     "@types/uuid" "^8.3.0"
-    eth-query "^2.1.2"
     ethereumjs-util "^7.0.10"
     ethjs-unit "^0.1.6"
     immer "^9.0.6"
@@ -4111,7 +4111,7 @@
     json-rpc-engine "^6.1.0"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^12.0.0":
+"@metamask/network-controller@^12.0.0", "@metamask/network-controller@^12.1.2":
   version "12.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-12.2.0.tgz#679d81e009cfd2b9fdaf884267d7a11b535f1922"
   integrity sha512-MBsEOy8htQtN46s/pbmEPsfe+UyOe3aUGTeswG0Iy0qGKyqu+uEx/nhydaLpMHFlOLbboPWtUmnPRLFE9pQDEA==
