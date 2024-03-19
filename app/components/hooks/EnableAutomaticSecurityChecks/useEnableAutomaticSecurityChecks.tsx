@@ -12,6 +12,7 @@ const useEnableAutomaticSecurityChecks = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
+    console.log('LOG === useEnableAutomaticSecurityChecks');
     if (hasUserSelectedAutomaticSecurityCheckOption === false) {
       InteractionManager.runAfterInteractions(() => {
         navigation.navigate(
