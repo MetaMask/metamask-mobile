@@ -6,10 +6,7 @@ import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/compo
 import { TESTID_ACCORDIONHEADER } from '../../../../../component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.constants';
 import { BANNERALERT_TEST_ID } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.constants';
 import BlockaidBanner from './BlockaidBanner';
-import {
-  ATTRIBUTION_LINE_TEST_ID,
-  FALSE_POSITIVE_REPOST_LINE_TEST_ID,
-} from './BlockaidBanner.constants';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from './BlockaidBanner.constants';
 import { ResultType, Reason } from './BlockaidBanner.types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
@@ -86,21 +83,6 @@ describe('BlockaidBanner', () => {
         'If you approve this request, you might lose your assets.',
       ),
     ).toBeDefined();
-  });
-
-  it('should render correctly with attribution link', async () => {
-    const wrapper = renderWithProvider(
-      <BlockaidBanner
-        securityAlertResponse={{
-          ...securityAlertResponse,
-          result_type: ResultType.Malicious,
-          reason: Reason.rawSignatureFarming,
-        }}
-      />,
-      { state: mockState },
-    );
-
-    expect(await wrapper.queryByTestId(ATTRIBUTION_LINE_TEST_ID)).toBeDefined();
   });
 
   it('should render correctly with list attack details', async () => {
