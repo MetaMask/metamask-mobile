@@ -42,10 +42,6 @@ describe('Engine', () => {
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
     let backgroundState = engine.datamodel.state;
-    // Replace phishing controller fallback config, as it bloats the test fixture too much
-    backgroundState.PhishingController.phishingLists[0].allowlist = [];
-    backgroundState.PhishingController.phishingLists[0].blocklist = [];
-    backgroundState.PhishingController.phishingLists[0].fuzzylist = [];
 
     // deleting lastVisited from chainStatus, since its timestamp it makes the test case fail
     const { chainId, versionInfo } =

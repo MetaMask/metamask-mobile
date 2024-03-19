@@ -74,6 +74,7 @@ const TransactionReviewEIP1559Update = ({
     renderableTotalMinNative,
     renderableTotalMinConversion,
     renderableTotalMaxNative,
+    renderableTotalMaxConversion,
     renderableGasFeeMaxConversion,
     timeEstimateColor,
     timeEstimate,
@@ -298,10 +299,8 @@ const TransactionReviewEIP1559Update = ({
                     grey={timeEstimateColor !== 'orange'}
                     orange={timeEstimateColor === 'orange'}
                   >
-                    {switchNativeCurrencyDisplayOptions(
-                      renderableGasFeeMaxNative,
-                      renderableGasFeeMaxConversion,
-                    )}
+                    {renderableGasFeeMaxNative} {'\n'}
+                    {renderableGasFeeMaxConversion}
                   </Text>
                 </Text>
               </FadeAnimationView>
@@ -390,10 +389,8 @@ const TransactionReviewEIP1559Update = ({
                       {strings('transaction_review_eip1559.max_amount')}:
                     </Text>{' '}
                     <Text small noMargin>
-                      {switchNativeCurrencyDisplayOptions(
-                        renderableTotalMaxNative,
-                        renderableGasFeeMaxConversion,
-                      )}
+                      {renderableTotalMaxNative} {'\n'}
+                      {renderableTotalMaxConversion}
                     </Text>
                   </Text>
                 </FadeAnimationView>
