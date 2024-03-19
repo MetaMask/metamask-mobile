@@ -24,7 +24,7 @@ async function main(): Promise<void> {
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
   const statusCheckName = 'Bitrise E2E Status'
-  const statusCheckTitle = 'Bitrise e2e smoke test run';
+  const statusCheckTitle = 'Bitrise E2E Smoke Test Run';
 
   // Define Bitrise comment tags
   const bitriseTag = '<!-- BITRISE_TAG -->';
