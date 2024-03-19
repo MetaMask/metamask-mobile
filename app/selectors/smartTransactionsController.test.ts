@@ -1,4 +1,7 @@
-import { getSmartTransactionsEnabled } from './smartTransactionsController';
+import {
+  getIsSmartTransaction,
+  getSmartTransactionsEnabled,
+} from './smartTransactionsController';
 import initialBackgroundState from '../util/test/initial-background-state.json';
 import { isHardwareAccount } from '../util/address';
 import { cloneDeep } from 'lodash';
@@ -7,6 +10,7 @@ jest.mock('../util/address', () => ({
   isHardwareAccount: jest.fn(() => false),
 }));
 
+// Default state is setup to be on mainnet, with smart transactions enabled and opted into
 const getDefaultState = () => {
   const defaultState: any = {
     engine: {
@@ -76,9 +80,24 @@ describe('SmartTransactionsController Selectors', () => {
       expect(enabled).toEqual(true);
     });
   });
-  // describe('getIsSmartTransaction', () => {
-  //   it('should return false if smart transactions are not opted into', () => {});
-  //   it('should return false if smart transactions are not enabled', () => {});
-  //   it('should return true if smart transactions are enabled and opted into', () => {});
-  // });
+  describe('getIsSmartTransaction', () => {
+    it('should return false if smart transactions are not opted into', () => {
+      const state = getDefaultState();
+      state.engine.backgroundState.PreferencesController.smartTransactionsOptInStatus =
+        false;
+      const isSmartTransaction = getIsSmartTransaction(state);
+      expect(isSmartTransaction).toEqual(false);
+    });
+    it('should return false if smart transactions are not enabled', () => {
+      const state = getDefaultState();
+      state.swaps['0x1'].smartTransactions = {};
+      const isSmartTransaction = getIsSmartTransaction(state);
+      expect(isSmartTransaction).toEqual(false);
+    });
+    it('should return true if smart transactions are enabled and opted into', () => {
+      const state = getDefaultState();
+      const isSmartTransaction = getIsSmartTransaction(state);
+      expect(isSmartTransaction).toEqual(true);
+    });
+  });
 });
