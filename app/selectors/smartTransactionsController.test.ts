@@ -31,10 +31,6 @@ defaultState.engine.backgroundState.SmartTransactionsController.smartTransaction
 
 describe('SmartTransactionsController Selectors', () => {
   describe('getSmartTransactionsEnabled', () => {
-    it('should return true if smart transactions are enabled', () => {
-      const enabled = getSmartTransactionsEnabled(defaultState);
-      expect(enabled).toEqual(true);
-    });
     it.each([
       ['an empty object', {}],
       ['undefined', undefined],
@@ -48,6 +44,13 @@ describe('SmartTransactionsController Selectors', () => {
         expect(enabled).toEqual(false);
       },
     );
+    it('should return false if smart transactions liveness is false', () => {
+      const state = cloneDeep(defaultState);
+      state.engine.backgroundState.SmartTransactionsController.smartTransactionsState.liveness =
+        false;
+      const enabled = getSmartTransactionsEnabled(state);
+      expect(enabled).toEqual(false);
+    });
     it('should return false if address is hardware account', () => {
       (isHardwareAccount as jest.Mock).mockReturnValueOnce(true);
       const enabled = getSmartTransactionsEnabled(defaultState);
@@ -60,9 +63,14 @@ describe('SmartTransactionsController Selectors', () => {
       const enabled = getSmartTransactionsEnabled(state);
       expect(enabled).toEqual(false);
     });
+    it('should return true if smart transactions are enabled', () => {
+      const enabled = getSmartTransactionsEnabled(defaultState);
+      expect(enabled).toEqual(true);
+    });
   });
   // describe('getIsSmartTransaction', () => {
-  //   it('should return true if smart transactions are enabled', () => {});
+  //   it('should return false if smart transactions are not opted into', () => {});
   //   it('should return false if smart transactions are not enabled', () => {});
+  //   it('should return true if smart transactions are enabled and opted into', () => {});
   // });
 });
