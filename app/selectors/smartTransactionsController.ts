@@ -35,32 +35,6 @@ export const getSmartTransactionsEnabled = (state: RootState) => {
     state.engine.backgroundState.SmartTransactionsController
       .smartTransactionsState?.liveness;
 
-  console.log(
-    'STX',
-    'selectedAddress',
-    selectedAddress,
-    'addrIshardwareAccount',
-    addrIshardwareAccount,
-    'chainId',
-    chainId,
-    'providerConfigRpcUrl',
-    providerConfigRpcUrl,
-    'isAllowedNetwork',
-    isAllowedNetwork,
-    'canBypassRpc',
-    canBypassRpc,
-    'smartTransactionsFeatureFlagEnabled',
-    smartTransactionsFeatureFlagEnabled,
-    'smartTransactionsLiveness',
-    smartTransactionsLiveness,
-    'RETURN',
-    isAllowedNetwork &&
-      canBypassRpc &&
-      !addrIshardwareAccount &&
-      smartTransactionsFeatureFlagEnabled &&
-      smartTransactionsLiveness,
-  );
-
   return Boolean(
     isAllowedNetwork &&
       canBypassRpc &&
