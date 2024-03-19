@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 
 const mockNetworkInfo = {
   chainName: 'Test Chain',
-  chainId: '1',
+  chainId: '0xa',
   rpcUrl: 'http://test.com',
   ticker: 'TEST',
   blockExplorerUrl: 'http://explorer.test.com',
@@ -67,5 +67,14 @@ describe('NetworkVerificationInfo', () => {
     expect(() =>
       getByText(strings('add_custom_network.unrecognized_chain_name')),
     ).toThrow('Unable to find an element with text');
+  });
+
+  it('should render chainId on decimal', () => {
+    (useSelector as jest.Mock).mockReturnValue(true);
+    const { getByText } = render(
+      <NetworkVerificationInfo customNetworkInformation={mockNetworkInfo} />,
+    );
+
+    expect(getByText('10')).toBeTruthy();
   });
 });
