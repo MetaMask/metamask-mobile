@@ -3616,7 +3616,7 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/approval-controller@^3.5.0":
+"@metamask/approval-controller@^3.5.0", "@metamask/approval-controller@^3.5.1":
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-3.5.2.tgz#c8ca4578f053d719bff82b0c9fa1939d21978d46"
   integrity sha512-5jYMtPexeeNL8m+5Mzhayr1l367MbbBs0Wf+FBeL/xLv6nSNqvvNs/CXfvkqxLDZJKIgBCBPKg7eIu1U6MJ6ag==
@@ -3637,24 +3637,24 @@
     "@metamask/utils" "^8.3.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@11.0.1":
-  version "11.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-11.0.1.tgz#3d6bfe17580bbb51919004b26a7cdded402bc7a6"
-  integrity sha512-qJPWhOzyOA7cNOxQgAsydsrAQsrDktm9siGMlCqeJSef8SrA9nsfEg1Iy2evg81cJ+99gNDxkuLj9/Z51w4BwA==
+"@metamask/assets-controllers@11.1.0":
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-11.1.0.tgz#55221c39ade424dc8e3e1202cf7469ba368710fe"
+  integrity sha512-xPgUE7OaGjpaHujNqxn/ta8hqQMH7/zrBaFj42g103EAMPoS36AwYunArjkRB+yLjtJdRnwk/6ZDSpA0M3AxVg==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.1"
-    "@metamask/approval-controller" "^3.5.0"
-    "@metamask/base-controller" "^3.2.0"
+    "@metamask/approval-controller" "^3.5.1"
+    "@metamask/base-controller" "^3.2.1"
     "@metamask/contract-metadata" "^2.3.1"
-    "@metamask/controller-utils" "^4.3.1"
+    "@metamask/controller-utils" "^4.3.2"
     "@metamask/eth-query" "^3.0.1"
     "@metamask/metamask-eth-abis" "3.0.0"
-    "@metamask/network-controller" "^12.0.0"
-    "@metamask/preferences-controller" "^4.2.0"
+    "@metamask/network-controller" "^12.1.2"
+    "@metamask/preferences-controller" "^4.4.0"
     "@metamask/rpc-errors" "^5.1.1"
     "@metamask/utils" "^6.2.0"
     "@types/uuid" "^8.3.0"
@@ -4111,7 +4111,7 @@
     json-rpc-engine "^6.1.0"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^12.0.0":
+"@metamask/network-controller@^12.0.0", "@metamask/network-controller@^12.1.2":
   version "12.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-12.2.0.tgz#679d81e009cfd2b9fdaf884267d7a11b535f1922"
   integrity sha512-MBsEOy8htQtN46s/pbmEPsfe+UyOe3aUGTeswG0Iy0qGKyqu+uEx/nhydaLpMHFlOLbboPWtUmnPRLFE9pQDEA==
@@ -4232,13 +4232,13 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/phishing-controller@6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-6.0.0.tgz#4086ddb0abf263933146b296fea98ee2a17c9484"
-  integrity sha512-dlAxoWAU+k31jdkBESCvY2bwfC7jOE2pSxDwSWHdEmuLs4S2niSs4boQ67azONRiLvF20lF71bKthEhTf/RGdQ==
+"@metamask/phishing-controller@6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-6.0.1.tgz#40f71bac980c84d31033ddc8e61e99f02dd1899c"
+  integrity sha512-wDJ0tbaRbvoCgwBgdxJPvF2XZLynq/wrgrfsKMG3+nZ6pNPLXwLq43vyaglaXWvlXgbMTgw7alftUfSRQGR/SA==
   dependencies:
-    "@metamask/base-controller" "^3.2.0"
-    "@metamask/controller-utils" "^4.3.0"
+    "@metamask/base-controller" "^3.2.1"
+    "@metamask/controller-utils" "^4.3.2"
     "@types/punycode" "^2.1.0"
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
@@ -4276,7 +4276,7 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^4.0.0", "@metamask/preferences-controller@^4.2.0", "@metamask/preferences-controller@^4.4.3":
+"@metamask/preferences-controller@^4.0.0", "@metamask/preferences-controller@^4.4.0", "@metamask/preferences-controller@^4.4.3":
   version "4.4.3"
   resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-4.4.3.tgz#f0f05793370892d2d7bc9b07e685583a1f4d80c9"
   integrity sha512-ftDRfOEgRrQqFyfZEQk9AVD1YMdP54NvtiBCrlqAG4hiFgBXQbQTcyl0i/jR/cfki8hYMuH1gPdId14CCAJbDQ==
