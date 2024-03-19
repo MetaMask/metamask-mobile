@@ -3,6 +3,7 @@ import EnableAutomaticSecurityChecksScreen from '../screen-objects/EnableSecurit
 
 When(/^I tap No Thanks on the Enable security check screen/, async () => {
   await EnableAutomaticSecurityChecksScreen.tapNoThanksButton();
+  await EnableAutomaticSecurityChecksScreen.tapNoThanksButton();
 });
 
 // Then(/^I should no longer see the security check screen"/, async () => {
