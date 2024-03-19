@@ -1,6 +1,6 @@
 {
   "blockaid_banner": {
-    "approval_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",    
+    "approval_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",
     "blur_farming_description": "Si vous approuvez cette demande, quelqu’un pourrait s’emparer de vos actifs répertoriés sur Blur.",
     "deceptive_request_title": "Cette demande est trompeuse",
     "failed_title": "Cette demande peut présenter des risques",
