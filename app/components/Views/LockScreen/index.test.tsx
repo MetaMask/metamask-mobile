@@ -1,7 +1,7 @@
-import React from 'react';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import LockScreen from './';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockInitialState = {
   settings: {},
@@ -20,9 +20,11 @@ const mockInitialState = {
 
 describe('LockScreen', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
-      <LockScreen route={{ params: {} }} />,
+    const { toJSON } = renderScreen(
+      LockScreen,
+      { name: Routes.LOCK_SCREEN },
       { state: mockInitialState },
+      { bioStateMachineId: '' },
     );
     expect(toJSON()).toMatchSnapshot();
   });

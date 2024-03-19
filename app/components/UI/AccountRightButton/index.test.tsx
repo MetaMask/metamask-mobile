@@ -9,7 +9,7 @@ const mockInitialState = {
       ...initialBackgroundState,
       NetworkController: {
         providerConfig: {
-          chainId: '1',
+          chainId: 0x1,
         },
       },
     },

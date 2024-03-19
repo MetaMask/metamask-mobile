@@ -1,6 +1,7 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import QrScanner from './';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import Routes from '../../../constants/navigation/Routes';
 
 const initialState = {
   engine: {
@@ -14,7 +15,7 @@ describe('QrScanner', () => {
   it('should render correctly', () => {
     const { toJSON } = renderScreen(
       QrScanner,
-      { name: 'QrScanner' },
+      { name: Routes.QR_SCANNER },
       { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
