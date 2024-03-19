@@ -30,7 +30,6 @@ import Routes from '../../../constants/navigation/Routes';
 interface Props {
   requestState: {
     smartTransaction: SmartTransaction;
-    creationTime: number;
     isDapp: boolean;
     isInSwapFlow: boolean;
   };
@@ -54,12 +53,12 @@ export const showRemainingTimeInMinAndSec = (
 };
 
 const SmartTransactionStatus = ({
-  requestState: { smartTransaction, creationTime, isDapp, isInSwapFlow },
+  requestState: { smartTransaction, isDapp, isInSwapFlow },
   pendingApprovalId,
   origin,
   onConfirm,
 }: Props) => {
-  const { status } = smartTransaction;
+  const { status, creationTime } = smartTransaction;
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const swapFeatureFlags = useSelector(getSwapsFeatureFlags);
@@ -138,7 +137,7 @@ const SmartTransactionStatus = ({
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
-    if (isStxPending) {
+    if (isStxPending && creationTime) {
       const calculateRemainingTime = () => {
         const secondsAfterStxSubmission = Math.round(
           (Date.now() - creationTime) / 1000,

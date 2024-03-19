@@ -307,8 +307,8 @@ export async function publishHook(request: Request) {
         requestState: {
           smartTransaction: {
             status: 'pending',
+            creationTime: Date.now(),
           },
-          creationTime: Date.now(),
           isDapp,
           isInSwapFlow,
           isSwapApproveTx,
