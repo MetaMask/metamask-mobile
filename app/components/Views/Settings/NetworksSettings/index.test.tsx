@@ -1,7 +1,8 @@
 import React from 'react';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../util/test/renderWithProvider';
 import NetworksSettings from './';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import Routes from 'app/constants/navigation/Routes';
 
 const initialState = {
   engine: {
@@ -11,8 +12,9 @@ const initialState = {
 
 describe('NetworksSettings', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(
-      <NetworksSettings navigation={{ setOptions: jest.fn() }} />,
+    const { toJSON } = renderScreen(
+      NetworksSettings,
+      { name: 'Network Settings' },
       {
         state: initialState,
       },
