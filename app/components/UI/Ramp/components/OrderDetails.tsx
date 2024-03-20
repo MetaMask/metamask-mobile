@@ -6,9 +6,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import { useSelector } from 'react-redux';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
-import type { NetworkState } from '@metamask/network-controller';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import Feather from 'react-native-vector-icons/Feather';
 import Box from './Box';
 import Text from '../../../Base/Text';
 import BaseListItem from '../../../Base/ListItem';
@@ -28,7 +29,10 @@ import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { getOrderAmount } from '../utils';
-import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../../selectors/networkController';
 
 /* eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
@@ -215,21 +219,9 @@ interface Props {
    * Object that represents the current route info like params passed to it
    */
   order: FiatOrder;
-  /**
-   * Current network provider configuration
-   */
-  providerConfig: NetworkState['providerConfig'];
-  /**
-   * Network configurations
-   */
-  networkConfigurations: NetworkState['networkConfigurations'];
 }
 
-const OrderDetails: React.FC<Props> = ({
-  order,
-  providerConfig,
-  networkConfigurations,
-}: Props) => {
+const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   const {
     data,
     state,
@@ -244,6 +236,8 @@ const OrderDetails: React.FC<Props> = ({
   } = order;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
+  const providerConfig = useSelector(selectProviderConfig);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
