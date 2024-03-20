@@ -7,14 +7,18 @@ import { ExperimentalSelectorsIDs } from '../../../../e2e/selectors/Settings/Exp
 
 describe('WalletConnectSessions', () => {
   it('does not render when not ready', () => {
-    const { toJSON } = renderScreen(WalletConnectSessions, { name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW });
+    const { toJSON } = renderScreen(WalletConnectSessions, {
+      name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
+    });
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders empty component with no active sessions', async () => {
     jest.spyOn(AsyncStorage, 'getItem').mockResolvedValue(null);
 
-    const { getByTestId, toJSON } = renderScreen(WalletConnectSessions, { name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW });
+    const { getByTestId, toJSON } = renderScreen(WalletConnectSessions, {
+      name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
+    });
 
     await waitFor(() => {
       const emptyMessage = getByTestId(ExperimentalSelectorsIDs.CONTAINER);
@@ -39,7 +43,9 @@ describe('WalletConnectSessions', () => {
       .spyOn(AsyncStorage, 'getItem')
       .mockResolvedValue(JSON.stringify(sessions));
 
-    const { getByTestId, toJSON } = renderScreen(WalletConnectSessions, { name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW });
+    const { getByTestId, toJSON } = renderScreen(WalletConnectSessions, {
+      name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
+    });
 
     await waitFor(() => {
       const viewID = getByTestId(ExperimentalSelectorsIDs.CONTAINER);
