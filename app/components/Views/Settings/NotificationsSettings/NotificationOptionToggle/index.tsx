@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Platform, Switch, View, Image } from 'react-native';
+import { Platform, Switch, View } from 'react-native';
 import { createStyles } from './styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import Text, {
@@ -14,6 +14,10 @@ import {
 } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import Avatar from '../../../../../component-library/components/Avatars/Avatar';
 import { formatAddress } from '../../../../../util/address';
+import Icon, {
+  IconColor,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 
 interface NotificationOptionsToggleProps {
   icon?: any;
@@ -54,7 +58,12 @@ const NotificationOptionToggle = ({
   return (
     <View style={styles.container}>
       {type === NotificationsToggleTypes.ACTIONS ? (
-        <Image source={icon} style={styles.icon} />
+        <Icon
+          name={icon}
+          style={styles.icon}
+          color={IconColor.Default}
+          size={icon === 'Received' ? IconSize.Md : IconSize.Lg}
+        />
       ) : (
         <Avatar
           variant={AvatarVariant.Account}

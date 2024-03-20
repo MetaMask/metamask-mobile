@@ -1,24 +1,17 @@
 import { strings } from '../../../../../locales/i18n';
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable import/no-commonjs */
-/* eslint-disable @typescript-eslint/no-require-imports */
-
-const notificationsIconAssetsReceived = require('../../../../images/notifications-icons/assets_received.png');
-const notificationsIconAssetsSent = require('../../../../images/notifications-icons/assets_sent.png');
-const notificationsIconDefi = require('../../../../images/notifications-icons/defi.png');
-const notificationsIconSnaps = require('../../../../images/notifications-icons/snaps.png');
-const notificationsIconProductsAnnoucements = require('../../../../images/notifications-icons/products_annoucements.png');
+import { NotificationActionBadgeSource } from '../../Notifications/utils';
+import { NotificationsActionsTypes } from './NotificationsSettings.constants';
 
 const notificationsOpts = [
   {
-    icon: notificationsIconAssetsSent,
+    icon: NotificationActionBadgeSource(NotificationsActionsTypes.SENT),
     title: strings(`app_settings.notifications_opts.assets_sent_title`),
     description: strings(`app_settings.notifications_opts.assets_sent_desc`),
     disabled: false,
     value: false,
   },
   {
-    icon: notificationsIconAssetsReceived,
+    icon: NotificationActionBadgeSource(NotificationsActionsTypes.RECEIVED),
     title: strings(`app_settings.notifications_opts.assets_received_title`),
     description: strings(
       `app_settings.notifications_opts.assets_received_desc`,
@@ -27,21 +20,21 @@ const notificationsOpts = [
     value: false,
   },
   {
-    icon: notificationsIconDefi,
+    icon: NotificationActionBadgeSource(NotificationsActionsTypes.DEFI),
     title: strings(`app_settings.notifications_opts.defi_title`),
     description: strings(`app_settings.notifications_opts.defi_desc`),
     disabled: false,
     value: false,
   },
   {
-    icon: notificationsIconSnaps,
+    icon: NotificationActionBadgeSource(NotificationsActionsTypes.SNAPS),
     title: strings(`app_settings.notifications_opts.snaps_title`),
     description: strings(`app_settings.notifications_opts.snaps_desc`),
     disabled: false,
     value: false,
   },
   {
-    icon: notificationsIconProductsAnnoucements,
+    icon: NotificationActionBadgeSource(NotificationsActionsTypes.FCM),
     title: strings(
       `app_settings.notifications_opts.products_announcements_title`,
     ),

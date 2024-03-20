@@ -56,15 +56,13 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       : AvatarAccountType.JazzIcon,
   );
 
-  const [notificationsEnabled, setNotificationsEnabled] = useState(
-    storage.getBoolean('is-notifications-enabled'),
-  );
+  const [notificationsEnabled, setNotificationsEnabled] = useState<
+    boolean | undefined
+  >(false);
 
   const toggleNotificationsEnabled = () => {
-    storage.set('is-notifications-enabled', !notificationsEnabled);
     setNotificationsEnabled(!notificationsEnabled);
-    // eslint-disable-next-line no-console
-    console.log('notificationsOpts', notificationsOpts);
+    storage.set('is-notifications-enabled', !notificationsEnabled);
   };
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
@@ -75,6 +73,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   useEffect(() => {
     dispatch(UpdatePPOMInitializationStatus());
+    setNotificationsEnabled(storage.getBoolean('is-notifications-enabled'));
   }, [dispatch]);
 
   useEffect(

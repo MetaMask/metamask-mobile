@@ -22,8 +22,6 @@ export const createStyles = () =>
       alignSelf: 'flex-start',
     },
     icon: {
-      width: 24,
-      height: 24,
       marginRight: 16,
     },
     accountAvatar: {
