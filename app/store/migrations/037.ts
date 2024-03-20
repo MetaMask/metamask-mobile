@@ -127,7 +127,7 @@ function createSelectedAccountForAccountsController(
   if (typeof selectedAddress !== 'string') {
     // Get the first account if selectedAddress is not a string
     const [firstAddress] = Object.keys(
-      state.engine.backgroundState.AccountsController.internalAccounts.accounts,
+      state.engine.backgroundState.PreferencesController?.identities,
     );
     const internalAccount = findInternalAccountByAddress(state, firstAddress);
     if (internalAccount) {
