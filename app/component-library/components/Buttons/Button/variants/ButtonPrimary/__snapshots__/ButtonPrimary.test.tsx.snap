@@ -1,25 +1,53 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ButtonPrimary should render correctly 1`] = `
-<ButtonBase
-  label={
-    <Text
-      color="Inverse"
-      variant="sBodyMD"
-    >
-      Click me!
-    </Text>
-  }
-  labelColor="Inverse"
+exports[`ButtonPrimary render matches latest snapshot 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
+  activeOpacity={1}
   onPress={[Function]}
   onPressIn={[Function]}
   onPressOut={[Function]}
-  size="40"
-  startIconName="Bank"
   style={
     Object {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
       "backgroundColor": "#0376C9",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "paddingHorizontal": 16,
     }
   }
-/>
+>
+  <SvgMock
+    color="#FFFFFF"
+    height={16}
+    name="Bank"
+    style={
+      Object {
+        "height": 16,
+        "marginRight": 8,
+        "width": 16,
+      }
+    }
+    width={16}
+  />
+  <Text
+    accessibilityRole="text"
+    style={
+      Object {
+        "color": "#FFFFFF",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Click me!
+  </Text>
+</TouchableOpacity>
 `;

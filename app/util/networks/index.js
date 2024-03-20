@@ -11,6 +11,7 @@ import {
   RPC,
   LINEA_GOERLI,
   LINEA_MAINNET,
+  LINEA_SEPOLIA,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
@@ -26,7 +27,7 @@ export { handleNetworkSwitch };
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
 const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
-const lineaGoerliLogo = require('../../images/linea-testnet-logo.png');
+const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
@@ -82,7 +83,16 @@ const NetworkList = {
     chainId: toHex('59140'),
     color: '#61dfff',
     networkType: 'linea-goerli',
-    imageSource: lineaGoerliLogo,
+    imageSource: lineaTestnetLogo,
+  },
+  [LINEA_SEPOLIA]: {
+    name: 'Linea Sepolia Test Network',
+    shortName: 'Linea Sepolia',
+    networkId: 59141,
+    chainId: toHex('59141'),
+    color: '#61dfff',
+    networkType: 'linea-sepolia',
+    imageSource: lineaTestnetLogo,
   },
   [RPC]: {
     name: 'Private Network',
@@ -159,7 +169,11 @@ export const isMultiLayerFeeNetwork = (chainId) =>
  * @returns - Image of test network or undefined.
  */
 export const getTestNetImage = (networkType) => {
-  if (networkType === SEPOLIA || networkType === LINEA_GOERLI) {
+  if (
+    networkType === SEPOLIA ||
+    networkType === LINEA_GOERLI ||
+    networkType === LINEA_SEPOLIA
+  ) {
     return networksWithImages?.[networkType.toUpperCase()];
   }
 };
@@ -171,6 +185,9 @@ export const getTestNetImageByChainId = (chainId) => {
   if (NETWORKS_CHAIN_ID.LINEA_GOERLI === chainId) {
     return networksWithImages?.['LINEA-GOERLI'];
   }
+  if (NETWORKS_CHAIN_ID.LINEA_SEPOLIA === chainId) {
+    return networksWithImages?.['LINEA-SEPOLIA'];
+  }
 };
 
 /**
@@ -179,6 +196,7 @@ export const getTestNetImageByChainId = (chainId) => {
 const TESTNET_CHAIN_IDS = [
   ChainId[NetworkType.sepolia],
   ChainId[NetworkType['linea-goerli']],
+  ChainId[NetworkType['linea-sepolia']],
 ];
 
 /**
@@ -187,6 +205,7 @@ const TESTNET_CHAIN_IDS = [
 export const TESTNET_FAUCETS = {
   [ChainId[NetworkType.sepolia]]: SEPOLIA_FAUCET,
   [ChainId[NetworkType['linea-goerli']]]: LINEA_FAUCET,
+  [ChainId[NetworkType['linea-sepolia']]]: LINEA_FAUCET,
 };
 
 export const isTestNetworkWithFaucet = (chainId) =>

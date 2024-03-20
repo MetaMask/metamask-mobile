@@ -114,7 +114,7 @@ function getValues(
     ],
     confirmText: strings('approval_result.ok'),
     onConfirm: actions.onConfirm,
-    onlyConfirmButton: true,
+    hideCancelButton: true,
   };
 }
 
