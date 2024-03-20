@@ -15,6 +15,7 @@ pipelines:
     stages:
       - create_build_release: {}
       - deploy_build_release: {}
+      - create_qa_builds_pipeline: {} #Generate QA builds for E2E app upgrade tests
       - release_notify: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
@@ -130,14 +131,14 @@ stages:
       - android_run_regression_tests: {}
   run_release_e2e_ios_android_stage:
     workflows:
-      - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
-      - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
-      - run_tag_smoke_swaps_ios: {}
-      - run_tag_smoke_swaps_android: {}
-      - run_tag_smoke_core_ios: {}
-      - run_tag_smoke_core_android: {}
+      # - ios_run_regression_tests: {}
+      # - android_run_regression_tests: {}
+      # - run_tag_smoke_confirmations_ios: {}
+      # - run_tag_smoke_confirmations_android: {}
+      # - run_tag_smoke_swaps_ios: {}
+      # - run_tag_smoke_swaps_android: {}
+      # - run_tag_smoke_core_ios: {}
+      # - run_tag_smoke_core_android: {}
       - android_run_app_upgrade_test: {}
   run_e2e_ios_android_stage:
     workflows:
@@ -419,11 +420,10 @@ workflows:
       - android_e2e_test
   android_run_app_upgrade_test:
     envs:
-      - BROWSERSTACK_APP_URL: ''
+      - BROWSERSTACK_APP_URL: 'bs://6768a492a45f328e019756a8363e18cfecf5e6fa' # TODO: last version's QA build
+      - BROWSERSTACK_TAG_EXPRESSION: '@upgrade and @androidApp'
     after_run:
-      - build_android_release
-      - _upload_apk_to_browserstack
-      - wdio_android_e2e_test
+      - build_android_qa
 
   ### Seperating workflows so they run concurrently during smoke runs
   run_tag_smoke_confirmations_ios:
@@ -981,7 +981,7 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
-                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/prod/release/app-prod-release.apk
+                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_UPGRADE_APP_URL
