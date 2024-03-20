@@ -36,6 +36,7 @@ const Routes = {
   LEDGER_TRANSACTION_MODAL: 'LedgerTransactionModal',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
+  NOTIFICATIONS_VIEW: 'NotificationsView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
