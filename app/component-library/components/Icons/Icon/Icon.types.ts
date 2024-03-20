@@ -87,7 +87,6 @@ export enum IconName {
   Ban = 'Ban',
   BankToken = 'BankToken',
   Bank = 'Bank',
-  Bell = 'Bell',
   Bold = 'Bold',
   Book = 'Book',
   Bookmark = 'Bookmark',

@@ -19,7 +19,6 @@ import ArrowLeft from './assets/arrow-left.svg';
 import ArrowRight from './assets/arrow-right.svg';
 import ArrowUp from './assets/arrow-up.svg';
 import Ban from './assets/ban.svg';
-import Bell from './assets/bell.svg';
 import BankToken from './assets/bank-token.svg';
 import Bank from './assets/bank.svg';
 import Bold from './assets/bold.svg';
@@ -190,7 +189,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Ban]: Ban,
   [IconName.BankToken]: BankToken,
   [IconName.Bank]: Bank,
-  [IconName.Bell]: Bell,
   [IconName.Bold]: Bold,
   [IconName.Book]: Book,
   [IconName.Bookmark]: Bookmark,
