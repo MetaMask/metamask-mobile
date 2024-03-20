@@ -15,7 +15,17 @@ exports[`Tag should render correctly 1`] = `
   }
 >
   <Text
-    variant="sBodyMD"
+    accessibilityRole="text"
+    style={
+      Object {
+        "color": "#24272A",
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
   >
     Imported
   </Text>

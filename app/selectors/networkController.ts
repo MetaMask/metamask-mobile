@@ -44,13 +44,21 @@ export const selectNetworkId = createSelector(
 export const selectNetworkStatus = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
-    networkControllerState?.networkStatus,
+    networkControllerState?.networksMetadata[
+      networkControllerState.selectedNetworkClientId
+    ].status,
 );
 
 export const selectNetworkConfigurations = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState.networkConfigurations,
+);
+
+export const selectNetworkClientId = createSelector(
+  selectNetworkControllerState,
+  (networkControllerState: NetworkState) =>
+    networkControllerState.selectedNetworkClientId,
 );
 
 /**
@@ -63,7 +71,11 @@ export const selectNetworkConfigurations = createSelector(
 export const selectLegacyNetwork = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) => {
-    const { networkId, networkStatus } = networkControllerState;
-    return networkStatus !== NetworkStatus.Available ? 'loading' : networkId;
+    const { networkId, selectedNetworkClientId, networksMetadata } =
+      networkControllerState;
+    return networksMetadata?.[selectedNetworkClientId].status !==
+      NetworkStatus.Available
+      ? 'loading'
+      : networkId;
   },
 );
