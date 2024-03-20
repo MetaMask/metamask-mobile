@@ -831,6 +831,8 @@ class Confirm extends PureComponent {
 
       const { result, transactionMeta } = this.state;
 
+      await this.persistTransactionParameters(transaction);
+
       const isLedgerAccount = isHardwareAccount(transaction.from, [
         ExtendedKeyringTypes.ledger,
       ]);
@@ -862,7 +864,6 @@ class Confirm extends PureComponent {
         return;
       }
 
-      await this.persistTransactionParameters(transaction);
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,

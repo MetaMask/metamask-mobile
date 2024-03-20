@@ -35,13 +35,20 @@ import migration31 from './031';
 import migration32 from './032';
 import migration33 from './033';
 import migration34 from './034';
+import migration35 from './035';
+import migration36 from './036';
 
-type MigrationFunction = (state: PersistedState) => PersistedState;
-type AsyncMigrationFunction = (
-  state: Promise<PersistedState> | PersistedState,
-) => Promise<PersistedState>;
+type MigrationFunction = (state: unknown) => unknown;
+type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
+type MigrationsList = Record<
+  string,
+  MigrationFunction | AsyncMigrationFunction
+>;
 
-export const migrationList: MigrationManifest = {
+/**
+ * Contains both asynchronous and synchronous migrations
+ */
+export const migrationList: MigrationsList = {
   0: migration00,
   1: migration01,
   2: migration02,
@@ -70,25 +77,27 @@ export const migrationList: MigrationManifest = {
   25: migration25,
   26: migration26,
   27: migration27,
-  28: migration28 as unknown as MigrationFunction,
-  29: migration29 as unknown as MigrationFunction,
-  30: migration30 as unknown as MigrationFunction,
-  31: migration31 as unknown as MigrationFunction,
-  32: migration32 as unknown as MigrationFunction,
-  33: migration33 as unknown as MigrationFunction,
-  34: migration34 as unknown as MigrationFunction,
+  28: migration28,
+  29: migration29,
+  30: migration30,
+  31: migration31,
+  32: migration32,
+  33: migration33,
+  34: migration34,
+  35: migration35,
+  36: migration36,
 };
 
 // Enable both synchronous and asynchronous migrations
-export const asyncifyMigrations = (inputMigrations: MigrationManifest) =>
+export const asyncifyMigrations = (inputMigrations: MigrationsList) =>
   Object.entries(inputMigrations).reduce(
     (newMigrations, [migrationNumber, migrationFunction]) => {
       // Handle migrations as async
       const asyncMigration = async (
-        stateAsync: Promise<PersistedState> | PersistedState,
+        incomingState: Promise<unknown> | unknown,
       ) => {
-        const state = await stateAsync;
-        return migrationFunction(state as PersistedState);
+        const state = await incomingState;
+        return migrationFunction(state);
       };
       newMigrations[migrationNumber] = asyncMigration;
       return newMigrations;
