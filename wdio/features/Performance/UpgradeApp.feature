@@ -1,5 +1,5 @@
 @androidApp
-@performance
+@upgrade
 @fixturesSkipOnboarding
 Feature: Measure the app launch times for warm starts
 
