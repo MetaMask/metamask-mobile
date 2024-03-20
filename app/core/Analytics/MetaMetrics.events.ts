@@ -349,6 +349,11 @@ enum EVENT_NAME {
   LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
   LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
   LEDGER_HARDWARE_WALLET_FORGOTTEN = 'Ledger hardware wallet forgotten',
+
+  //Notifications
+  ALL_NOTIFICATIONS = 'All Notifications',
+  WALLET_NOTIFICATIONS = 'Wallet Notifications',
+  WEB3_NOTIFICATIONS = 'Web3 Notifications',
 }
 
 enum ACTIONS {
@@ -396,6 +401,10 @@ enum ACTIONS {
   ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP = 'eth_sign_input_seen',
   ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
   ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
+  // Notifications
+  SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
+  SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
+  SELECTS_WEB3_NOTIFICATIONS = 'Selects Web3 Notifications',
 }
 
 const events = {
@@ -918,6 +927,8 @@ enum DESCRIPTION {
   PAYMENTS_SELECTS_APPLE_PAY = 'Selects Apple Pay as payment method',
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
+  // Notifications
+  NOTIFICATIONS = 'Notifications',
 }
 
 const legacyMetaMetricsEvents = {
@@ -1384,6 +1395,22 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.BRIDGE_LINK_CLICKED,
     ACTIONS.BRIDGE,
     DESCRIPTION.BRIDGE,
+  ),
+  // Notifications
+  ALL_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.ALL_NOTIFICATIONS,
+    ACTIONS.SELECTS_ALL_NOTIFICATIONS,
+    DESCRIPTION.NOTIFICATIONS,
+  ),
+  WALLET_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.WALLET_NOTIFICATIONS,
+    ACTIONS.SELECTS_WALLET_NOTIFICATIONS,
+    DESCRIPTION.NOTIFICATIONS,
+  ),
+  WEB3_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.WEB3_NOTIFICATIONS,
+    ACTIONS.SELECTS_WEB3_NOTIFICATIONS,
+    DESCRIPTION.NOTIFICATIONS,
   ),
 };
 
