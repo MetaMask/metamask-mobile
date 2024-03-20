@@ -15,7 +15,7 @@ pipelines:
     stages:
       - create_build_release: {}
       - deploy_build_release: {}
-      - create_qa_builds_pipeline: {} #Generate QA builds for E2E app upgrade tests
+      - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
       - release_notify: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
