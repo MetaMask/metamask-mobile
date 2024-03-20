@@ -1,4 +1,4 @@
-name: Check Bitrise E2E Status
+name: Run Bitrise E2E Check
 
 on:
   issue_comment:
