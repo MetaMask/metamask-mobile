@@ -4111,26 +4111,6 @@
     json-rpc-engine "^6.1.0"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-11.0.0.tgz#c128e3aae9e3c1c721aa52ad85cb42e003e847c3"
-  integrity sha512-wgxZo7BVpJrS3WOZwqQBNisoLGrUYMBIZ5IIWUTMkTfzvLJ9LtDHQFriEP/fHpubj6Nfsr6aKs4fCCs8nsVFPQ==
-  dependencies:
-    "@metamask/base-controller" "^3.2.0"
-    "@metamask/controller-utils" "^4.3.0"
-    "@metamask/eth-json-rpc-infura" "^8.1.1"
-    "@metamask/eth-json-rpc-middleware" "^11.0.0"
-    "@metamask/eth-json-rpc-provider" "^1.0.0"
-    "@metamask/swappable-obj-proxy" "^2.1.0"
-    "@metamask/utils" "^6.2.0"
-    async-mutex "^0.2.6"
-    eth-block-tracker "^7.0.1"
-    eth-query "^2.1.2"
-    eth-rpc-errors "^4.0.2"
-    immer "^9.0.6"
-    json-rpc-engine "^6.1.0"
-    uuid "^8.3.2"
-
 "@metamask/network-controller@^12.0.0", "@metamask/network-controller@^12.1.2":
   version "12.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-12.2.0.tgz#679d81e009cfd2b9fdaf884267d7a11b535f1922"
