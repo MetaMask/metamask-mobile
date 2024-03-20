@@ -23,7 +23,7 @@ async function main(): Promise<void> {
   const removeAndApplyInstructions = `Remove and re-apply the "${e2eLabel}" label to trigger a E2E smoke test on Bitrise.`;
   const mergeFromMainCommitMessagePrefix = `Merge branch 'main' into`;
   const pullRequestLink = `https://github.com/MetaMask/metamask-mobile/pull/${pullRequestNumber}`;
-  const statusCheckName = 'Bitrise E2E Status'
+  const statusCheckName = 'Bitrise E2E Status';
   const statusCheckTitle = 'Bitrise E2E Smoke Test Run';
 
   // Define Bitrise comment tags
@@ -90,22 +90,6 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Reopen conversation in case it's locked
-  const unlockConvoResponse = await octokit.rest.issues.unlock({
-    owner,
-    repo,
-    issue_number: pullRequestNumber,
-  });
-
-  if (unlockConvoResponse.status === 204) {
-    console.log(`Unlocked conversation for PR ${pullRequestLink}`);
-  } else {
-    core.setFailed(
-      `Unlock conversation request returned with status code ${unlockConvoResponse.status}`,
-    );
-    process.exit(1);
-  }
-
   // Kick off E2E smoke tests if E2E smoke label is applied
   if (
     triggerAction === PullRequestTriggerType.Labeled &&
@@ -162,7 +146,9 @@ async function main(): Promise<void> {
     const message = `## [<img alt="https://bitrise.io/" src="https://assets-global.website-files.com/5db35de024bb983af1b4e151/5e6f9ccc3e129dfd8a205e4e_Bitrise%20Logo%20-%20Eggplant%20Bg.png" height="20">](${buildLink}) **Bitrise**\n\n🔄🔄🔄 \`${e2ePipeline}\` started on Bitrise...🔄🔄🔄\n\nCommit hash: ${latestCommitHash}\nBuild link: ${buildLink}\n\n>[!NOTE]\n>- This comment will auto-update when build completes\n>- You can kick off another \`${e2ePipeline}\` on Bitrise by removing and re-applying the \`${e2eLabel}\` label on the pull request\n${bitriseTag}\n${bitrisePendingTag}\n\n${latestCommitTag}`;
 
     if (bitriseBuildResponse.status === 201) {
-      console.log(`Started Bitrise build for commit ${latestCommitHash} at ${buildLink}`);
+      console.log(
+        `Started Bitrise build for commit ${latestCommitHash} at ${buildLink}`,
+      );
     } else {
       core.setFailed(
         `Bitrise build request returned with status code ${bitriseBuildResponse.status}`,
@@ -181,6 +167,22 @@ async function main(): Promise<void> {
     const bitriseComment = comments.find(({ body }) =>
       body?.includes(latestCommitTag),
     );
+
+    // Reopen conversation in case it's locked
+    const unlockConvoResponse = await octokit.rest.issues.unlock({
+      owner,
+      repo,
+      issue_number: pullRequestNumber,
+    });
+
+    if (unlockConvoResponse.status === 204) {
+      console.log(`Unlocked conversation for PR ${pullRequestLink}`);
+    } else {
+      core.setFailed(
+        `Unlock conversation request returned with status code ${unlockConvoResponse.status}`,
+      );
+      process.exit(1);
+    }
 
     if (bitriseComment) {
       // Existing comment exists for commit hash. Update comment with pending status.
@@ -229,7 +231,7 @@ async function main(): Promise<void> {
       started_at: new Date().toISOString(),
       output: {
         title: statusCheckTitle,
-        summary: 'Test runs in progress...',
+        summary: `Test runs in progress... You can view them at ${buildLink}`,
       },
     });
 
@@ -245,6 +247,8 @@ async function main(): Promise<void> {
     }
     return;
   }
+
+  // Code below updates Bitrise status check by comparing the latest Bitrise comment against the latest commits
 
   // Get at least the last 30 comments
   const numberOfTotalComments = prData.comments;
@@ -294,7 +298,7 @@ async function main(): Promise<void> {
       started_at: new Date().toISOString(),
       output: {
         title: statusCheckTitle,
-        summary: `No Bitrise comment found for commit ${latestCommitHash}. Try re-applying the '${e2eLabel}'.`,
+        summary: `No Bitrise comment found for commit ${latestCommitHash}. Try re-applying the '${e2eLabel}' label.`,
       },
     });
 
@@ -347,7 +351,7 @@ async function main(): Promise<void> {
     commits = [...previousCommitBatch, ...commits];
   }
 
-  // Relevant hashes include both merge from main commits and the last non-merge from main commit
+  // Relevant hashes include both merge from main commits and the last non-merge from main commit (the commits that you manually push)
   const relevantCommitHashes: string[] = [];
   for (const commit of commits.reverse()) {
     const commitMessage = commit.commit.message;
