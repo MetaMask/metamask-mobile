@@ -3588,7 +3588,7 @@
     "@metamask/utils" "^3.4.1"
     superstruct "^1.0.3"
 
-"@metamask/abi-utils@^2.0.1", "@metamask/abi-utils@^2.0.2":
+"@metamask/abi-utils@^2.0.2":
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-2.0.2.tgz#ad394e9cb8a95ac177cad942daadd88a246c0de8"
   integrity sha512-B/A1dY/w4F/t6cDHUscklO6ovb/ztFsrsTXFd8QlqSByk/vyy+QbPE3VVpmmyI/7RX+PA1AJcvBdzCIz+r9dVQ==
@@ -3637,23 +3637,23 @@
     "@metamask/utils" "^8.3.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@11.1.0":
-  version "11.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-11.1.0.tgz#55221c39ade424dc8e3e1202cf7469ba368710fe"
-  integrity sha512-xPgUE7OaGjpaHujNqxn/ta8hqQMH7/zrBaFj42g103EAMPoS36AwYunArjkRB+yLjtJdRnwk/6ZDSpA0M3AxVg==
+"@metamask/assets-controllers@12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-12.0.0.tgz#9c2dea05407b362263ac747f4e2bf6123e8c1e58"
+  integrity sha512-g5AqCFaPh2lnzsC32nDdFpMrLaDWETdirWEGSHj+MCvQPWL72RAI5k8PpHqIpxzxJzfj82IYEbnAmYle9f3y8g==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
-    "@metamask/abi-utils" "^2.0.1"
+    "@metamask/abi-utils" "^2.0.2"
     "@metamask/approval-controller" "^3.5.1"
     "@metamask/base-controller" "^3.2.1"
     "@metamask/contract-metadata" "^2.3.1"
     "@metamask/controller-utils" "^4.3.2"
     "@metamask/eth-query" "^3.0.1"
     "@metamask/metamask-eth-abis" "3.0.0"
-    "@metamask/network-controller" "^12.1.2"
+    "@metamask/network-controller" "^12.2.0"
     "@metamask/preferences-controller" "^4.4.0"
     "@metamask/rpc-errors" "^5.1.1"
     "@metamask/utils" "^6.2.0"
@@ -4091,7 +4091,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/network-controller@12.2.0", "@metamask/network-controller@^12.0.0", "@metamask/network-controller@^12.1.2":
+"@metamask/network-controller@12.2.0", "@metamask/network-controller@^12.0.0", "@metamask/network-controller@^12.2.0":
   version "12.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-12.2.0.tgz#679d81e009cfd2b9fdaf884267d7a11b535f1922"
   integrity sha512-MBsEOy8htQtN46s/pbmEPsfe+UyOe3aUGTeswG0Iy0qGKyqu+uEx/nhydaLpMHFlOLbboPWtUmnPRLFE9pQDEA==
