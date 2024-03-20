@@ -19,6 +19,9 @@ import {
   getIsNativeTokenTransferred,
 } from '../transactions';
 
+// It has to be 21000 for cancel transactions, otherwise the API would reject it.
+const CANCEL_GAS = 21000;
+
 // TODO import these from tx controller
 export declare type Hex = `0x${string}`;
 export interface TransactionParams {
@@ -50,7 +53,7 @@ export const createSignedTransactions = async (
       maxFeePerGas: decimalToHex(fee.maxFeePerGas).toString(),
       maxPriorityFeePerGas: decimalToHex(fee.maxPriorityFeePerGas).toString(),
       gas: areCancelTransactions
-        ? decimalToHex(21000).toString() // It has to be 21000 for cancel transactions, otherwise the API would reject it.
+        ? decimalToHex(CANCEL_GAS).toString()
         : unsignedTransaction.gas?.toString(),
       value: unsignedTransaction.value,
     };
@@ -250,19 +253,22 @@ export async function publishHook(request: Request) {
 
     Logger.log(LOG_PREFIX, 'Retrieved fees', feesResponse);
 
-    const signedTransactions = (await createSignedTransactions(
-      transaction,
-      feesResponse.tradeTxFees?.fees ?? [],
-      false,
-      transactionController,
-    )) as string[];
-
-    const signedCanceledTransactions = (await createSignedTransactions(
-      transaction,
-      feesResponse.tradeTxFees?.cancelFees || [],
-      true,
-      transactionController,
-    )) as string[];
+    const [signedTransactions, signedCanceledTransactions] = (await Promise.all(
+      [
+        createSignedTransactions(
+          transaction,
+          feesResponse.tradeTxFees?.fees ?? [],
+          false,
+          transactionController,
+        ),
+        createSignedTransactions(
+          transaction,
+          feesResponse.tradeTxFees?.cancelFees || [],
+          true,
+          transactionController,
+        ),
+      ],
+    )) as [string[], string[]];
 
     Logger.log(LOG_PREFIX, 'Generated signed transactions', {
       signedTransactions,
