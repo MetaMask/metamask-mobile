@@ -267,7 +267,7 @@ When(/^I tap on the Activity tab option$/, async () => {
 });
 
 When(/^I install upgrade the app$/, async () => {
-  await driver.installApp('./app-qa-release-current.apk')
+  await driver.installApp(process.env.BROWSERSTACK_UPGRADE_APP_URL)
 });
 
 When(/^I scroll up$/, async () => {
@@ -276,6 +276,7 @@ When(/^I scroll up$/, async () => {
 
 Then(/^removed test app$/, async () => {
   const platform = await driver.getPlatform();
+  // TODO: Use environment variables for bundle IDs
   if (platform === 'iOS') {
     await driver.removeApp('io.metamask.MetaMask-QA');
   }
