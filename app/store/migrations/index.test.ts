@@ -1,4 +1,4 @@
-import { migrationList, asyncifyMigrations } from './';
+import { migrationList, asyncifyMigrations, MigrationsList } from './';
 import {
   MigrationManifest,
   PersistedState,
@@ -26,7 +26,7 @@ const recentMigrations = Object.entries(migrationList).reduce(
     }
     return finalState;
   },
-  {} as MigrationManifest,
+  {} as MigrationsList,
 );
 
 const synchronousMigration = (state: any) => {

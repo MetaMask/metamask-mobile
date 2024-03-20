@@ -1,4 +1,4 @@
-import { MigrationManifest, PersistedState } from 'redux-persist';
+import { MigrationManifest } from 'redux-persist';
 
 import migration00 from './000';
 import migration01 from './001';
@@ -40,7 +40,7 @@ import migration36 from './036';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
-type MigrationsList = Record<
+export type MigrationsList = Record<
   string,
   MigrationFunction | AsyncMigrationFunction
 >;
