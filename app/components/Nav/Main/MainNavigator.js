@@ -16,6 +16,7 @@ import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
+import NotificationsView from '../../Views/Notifications';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
@@ -540,6 +541,21 @@ const OfflineModeView = () => (
   </Stack.Navigator>
 );
 
+const NotificationsModeView = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="Notifications"
+      component={NotificationsView}
+      options={NotificationsView.navigationOptions}
+    />
+    <Stack.Screen
+      name="NotificationsSettings"
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const PaymentRequestView = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -656,6 +672,7 @@ const MainNavigator = () => (
     />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
+    <Stack.Screen name="NotificationsView" component={NotificationsModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
