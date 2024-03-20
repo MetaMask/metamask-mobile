@@ -2538,11 +2538,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                             ]
                                           }
                                         >
-                                          Your
-                                           
-                                          ETH
-                                           
-                                          is now available in your account
+                                          Your ETH is now available in your account
                                         </Text>
                                       </View>
                                     </View>
@@ -13307,11 +13303,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                             ]
                                           }
                                         >
-                                          Your
-                                           
-                                          ETH
-                                           
-                                          is now available in your account
+                                          Your ETH is now available in your account
                                         </Text>
                                       </View>
                                     </View>

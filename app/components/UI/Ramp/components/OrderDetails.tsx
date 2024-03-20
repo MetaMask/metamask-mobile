@@ -72,11 +72,7 @@ const createStyles = (colors: any) =>
   });
 
 interface PropsStage {
-  stage: FiatOrder['state'];
-  pendingDescription?: string;
-  cryptocurrency?: string;
-  providerName?: string;
-  orderType?: OrderOrderTypeEnum;
+  order: FiatOrder;
   isTransacted: boolean;
 }
 
@@ -91,17 +87,12 @@ const Group: React.FC = (props) => {
   return <View style={styles.group} {...props} />;
 };
 
-const Stage: React.FC<PropsStage> = ({
-  stage,
-  pendingDescription,
-  cryptocurrency,
-  providerName,
-  orderType,
-  isTransacted,
-}: PropsStage) => {
+const Stage: React.FC<PropsStage> = ({ order, isTransacted }: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  switch (stage) {
+  const orderData = order.data as Order;
+
+  switch (order.state) {
     case FIAT_ORDER_STATES.COMPLETED: {
       return (
         <View style={styles.stage}>
@@ -114,22 +105,11 @@ const Stage: React.FC<PropsStage> = ({
             <Text bold big primary centered>
               {strings('fiat_on_ramp_aggregator.order_details.successful')}
             </Text>
-            {orderType === OrderOrderTypeEnum.Buy ? (
+            {orderData.statusDescription ? (
               <Text small centered grey>
-                {strings('fiat_on_ramp_aggregator.order_details.your')}{' '}
-                {cryptocurrency ||
-                  strings('fiat_on_ramp_aggregator.order_details.crypto')}{' '}
-                {strings(
-                  'fiat_on_ramp_aggregator.order_details.available_in_account',
-                )}
+                {orderData.statusDescription}
               </Text>
-            ) : (
-              <Text small centered grey>
-                {strings(
-                  'fiat_on_ramp_aggregator.order_details.delayed_bank_transfer',
-                )}
-              </Text>
-            )}
+            ) : null}
           </Group>
         </View>
       );
@@ -141,22 +121,15 @@ const Stage: React.FC<PropsStage> = ({
           <Image source={failedIcon} />
           <Group>
             <Text bold big primary centered>
-              {stage === 'FAILED'
+              {order.state === 'FAILED'
                 ? strings('fiat_on_ramp_aggregator.order_details.failed')
                 : strings('fiat_on_ramp_aggregator.order_details.cancelled')}
             </Text>
-            <Text small centered grey>
-              {strings(
-                'fiat_on_ramp_aggregator.order_details.failed_description',
-                {
-                  provider:
-                    providerName ||
-                    strings(
-                      'fiat_on_ramp_aggregator.order_details.the_provider',
-                    ),
-                },
-              )}
-            </Text>
+            {orderData.statusDescription ? (
+              <Text small centered grey>
+                {orderData.statusDescription}
+              </Text>
+            ) : null}
           </Group>
         </View>
       );
@@ -173,19 +146,16 @@ const Stage: React.FC<PropsStage> = ({
                   : 'fiat_on_ramp_aggregator.order_details.pending',
               )}
             </Text>
-            {isTransacted ? (
-              pendingDescription ? (
-                <Text small centered grey>
-                  {pendingDescription}
-                </Text>
-              ) : null
-            ) : (
+            {isTransacted && Boolean(orderData.timeDescriptionPending) ? (
               <Text small centered grey>
-                {strings(
-                  'fiat_on_ramp_aggregator.order_details.continue_order_description',
-                )}
+                {orderData.timeDescriptionPending}
               </Text>
-            )}
+            ) : null}
+            {!isTransacted && Boolean(orderData.statusDescription) ? (
+              <Text small centered grey>
+                {orderData.statusDescription}
+              </Text>
+            ) : null}
           </Group>
         </View>
       );
@@ -197,14 +167,14 @@ const Stage: React.FC<PropsStage> = ({
           <Spinner />
           <Group>
             <Text bold big primary centered>
-              {stage === FIAT_ORDER_STATES.PENDING
+              {order.state === FIAT_ORDER_STATES.PENDING
                 ? strings('fiat_on_ramp_aggregator.order_details.processing')
                 : strings('transaction.submitted')}
             </Text>
 
-            {pendingDescription ? (
+            {orderData.statusDescription ? (
               <Text small centered grey>
-                {pendingDescription}
+                {orderData.statusDescription}
               </Text>
             ) : null}
           </Group>
@@ -224,7 +194,6 @@ interface Props {
 const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   const {
     data,
-    state,
     createdAt,
     amount,
     cryptoFee,
@@ -283,14 +252,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   return (
     <View>
       <Group>
-        <Stage
-          stage={state}
-          pendingDescription={orderData?.timeDescriptionPending}
-          cryptocurrency={cryptocurrency}
-          providerName={providerName}
-          orderType={order.orderType}
-          isTransacted={Boolean(order.sellTxHash)}
-        />
+        <Stage order={order} isTransacted={Boolean(order.sellTxHash)} />
         <Group>
           <Text bold centered primary style={styles.tokenAmount}>
             {renderAmount} {cryptocurrency}
