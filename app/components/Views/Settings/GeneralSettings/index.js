@@ -25,7 +25,6 @@ import {
   setUseBlockieIcon,
   setHideZeroBalanceTokens,
 } from '../../../../actions/settings';
-import PickComponent from '../../PickComponent';
 import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
@@ -150,10 +149,6 @@ class Settings extends PureComponent {
      * Active search engine
      */
     searchEngine: PropTypes.string,
-    /**
-     * Active primary currency
-     */
-    primaryCurrency: PropTypes.string,
     /**
      * Show a BlockieIcon instead of JazzIcon
      */
@@ -284,7 +279,6 @@ class Settings extends PureComponent {
   render() {
     const {
       currentCurrency,
-      primaryCurrency,
       useBlockieIcon,
       setUseBlockieIcon,
       selectedAddress,
@@ -318,34 +312,6 @@ class Settings extends PureComponent {
                 />
               </View>
             </View>
-          </View>
-          <View style={styles.setting}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {strings('app_settings.primary_currency_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              style={styles.desc}
-            >
-              {strings('app_settings.primary_currency_desc')}
-            </Text>
-            {this.primaryCurrencyOptions && (
-              <View style={styles.accessory}>
-                <PickComponent
-                  pick={this.selectPrimaryCurrency}
-                  textFirst={strings(
-                    'app_settings.primary_currency_text_first',
-                  )}
-                  valueFirst={'ETH'}
-                  textSecond={strings(
-                    'app_settings.primary_currency_text_second',
-                  )}
-                  valueSecond={'Fiat'}
-                  selectedValue={primaryCurrency}
-                />
-              </View>
-            )}
           </View>
           <View style={styles.setting}>
             <Text variant={TextVariant.BodyLGMedium}>
