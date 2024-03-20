@@ -36,6 +36,7 @@ export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 export const CHAINLIST_URL = 'https://chainlist.wtf';
 export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
 export const LINEA_GOERLI_BLOCK_EXPLORER = 'https://goerli.lineascan.build';
+export const LINEA_SEPOLIA_BLOCK_EXPLORER = 'https://sepolia.lineascan.build';
 export const LINEA_MAINNET_BLOCK_EXPLORER = 'https://lineascan.build';
 
 // Phishing
@@ -63,7 +64,6 @@ export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS
 // SDK
 export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
 
-export const BLOCKAID_ATTRIBUTION_LINK = 'https://blockaid.io';
 export const FALSE_POSITIVE_REPORT_BASE_URL =
   'https://blockaid-false-positive-portal.metamask.io';
 export const UTM_SOURCE = 'metamask-ppom';
