@@ -1287,12 +1287,12 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
   integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
 
-"@consensys/ledgerhq-metamask-keyring@^0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@consensys/ledgerhq-metamask-keyring/-/ledgerhq-metamask-keyring-0.0.7.tgz#7aecb1dd7795f4e22e1eb6ee7dfe7c5e32c5a392"
-  integrity sha512-UoS8EYilAjGWmtUZ0hXdZV3UE+3wgX915kdZzmTUNUoDp/Ze4YqvDYlBBHZaq86PAAE0GweqmnD0Vnah3/OIcA==
+"@consensys/ledgerhq-metamask-keyring@0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@consensys/ledgerhq-metamask-keyring/-/ledgerhq-metamask-keyring-0.0.9.tgz#f824381c9cf55c6e6aad5693263dee77a17d2ac2"
+  integrity sha512-o/wdUU/7s8fIZxP0CcKjaWQaoJ1bz2+3BgeQSsizR2WLqZJF8phYF6t9hwfZeFFgM1FMZDuanVapCvOi13QjiA==
   dependencies:
-    "@ethereumjs/tx" "^3.5.0"
+    "@ethereumjs/tx" "^4.2.0"
     "@ledgerhq/hw-app-eth" "6.26.1"
     "@metamask/eth-sig-util" "^7.0.0"
     buffer "^6.0.3"
@@ -1861,7 +1861,7 @@
     "@ethereumjs/common" "^2.0.0"
     ethereumjs-util "^7.0.7"
 
-"@ethereumjs/tx@^3.2.1", "@ethereumjs/tx@^3.3.0", "@ethereumjs/tx@^3.5.0":
+"@ethereumjs/tx@^3.2.1", "@ethereumjs/tx@^3.3.0":
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.5.2.tgz#197b9b6299582ad84f9527ca961466fce2296c1c"
   integrity sha512-gQDNJWKrSDGu2w7w0PzVXVBNMzb7wwdDOmOqczmhNjqFxFuIbhVJDwiGEnxFNC2/b8ifcZzY7MLcluizohRzNw==
@@ -3456,12 +3456,12 @@
     rxjs "6"
     semver "^7.3.5"
 
-"@ledgerhq/devices@^8.2.0":
-  version "8.2.0"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/devices/-/devices-8.2.0.tgz#ef67bf49628252d1779acaa151b1a941acba790e"
-  integrity sha512-XROTW2gTmmuy+YPPDjdtKKTQ3mfxrPtKtV+a9QFbj8f5MnjVMV0Zpy1BIB4CyIMsVVi4z6+nI67auT7IlsM3SQ==
+"@ledgerhq/devices@^8.2.0", "@ledgerhq/devices@^8.2.1":
+  version "8.2.1"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/devices/-/devices-8.2.1.tgz#c59eec50bacd2f962e22c723a74600160d41fbd0"
+  integrity sha512-l/2I/Xzt7Z32OmGzoc/mUvaZivdn7Id/SO7hBTGpk7PtJTpBRxVAabP4GWEKCayGyOAcvTwoVxM0HMkNVfIzOQ==
   dependencies:
-    "@ledgerhq/errors" "^6.16.1"
+    "@ledgerhq/errors" "^6.16.2"
     "@ledgerhq/logs" "^6.12.0"
     rxjs "^7.8.1"
     semver "^7.3.5"
@@ -3471,10 +3471,10 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/errors/-/errors-5.50.0.tgz#e3a6834cb8c19346efca214c1af84ed28e69dad9"
   integrity sha512-gu6aJ/BHuRlpU7kgVpy2vcYk6atjB4iauP2ymF7Gk0ez0Y/6VSMVSJvubeEQN+IV60+OBK0JgeIZG7OiHaw8ow==
 
-"@ledgerhq/errors@^6.10.0", "@ledgerhq/errors@^6.16.1":
-  version "6.16.1"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/errors/-/errors-6.16.1.tgz#df650a9ba105397dee2e8c0ceddf6931c5b25ede"
-  integrity sha512-4D4wKecGzQpIu7sx03Sg4uE1e8g1oZUndWgw9gw776H8h9ov9c5TxPaldTn2j6orPECAERViLf7LTO4L5pE2Cw==
+"@ledgerhq/errors@^6.10.0", "@ledgerhq/errors@^6.16.1", "@ledgerhq/errors@^6.16.2":
+  version "6.16.2"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/errors/-/errors-6.16.2.tgz#cf3939dc92ed0871aa7fdd45e6d13446a1eaeccd"
+  integrity sha512-jFpohaSW+p1Obp3NDT9QSByEtT3gtBZIjVNu8m25gnrH5zdtfPVlPwH6UiuS50s+2dHQyehV8hF+IfreKDWAZA==
 
 "@ledgerhq/hw-app-eth@5.27.2":
   version "5.27.2"
@@ -3555,12 +3555,12 @@
     events "^3.3.0"
 
 "@ledgerhq/hw-transport@^6.24.1", "@ledgerhq/hw-transport@^6.30.1":
-  version "6.30.1"
-  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport/-/hw-transport-6.30.1.tgz#fd3c825f41197aeaf705e3c066f82843eaf48cae"
-  integrity sha512-Xeeo4nt33g5Fsp3CdsPvcc2Uk7dwYeKRSlSFLWcYAAKprf/PmxgNekhke1eaNU/wLoeLOWhY2Cki8F8w9nLMdQ==
+  version "6.30.4"
+  resolved "https://registry.yarnpkg.com/@ledgerhq/hw-transport/-/hw-transport-6.30.4.tgz#05dee1e9cdec0e430594ecf7f5cf90c13721ad70"
+  integrity sha512-VBcVd7UG8HDrjWMoZI5rqBDz+PBxLHTIPZOGY/fdMoEUwaBbss0Z3MxuJanMyerlfaLqnBSVuL0blz7rOyagkw==
   dependencies:
-    "@ledgerhq/devices" "^8.2.0"
-    "@ledgerhq/errors" "^6.16.1"
+    "@ledgerhq/devices" "^8.2.1"
+    "@ledgerhq/errors" "^6.16.2"
     "@ledgerhq/logs" "^6.12.0"
     events "^3.3.0"
 
@@ -3628,7 +3628,7 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/approval-controller@^3.5.0":
+"@metamask/approval-controller@^3.5.0", "@metamask/approval-controller@^3.5.1":
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-3.5.2.tgz#c8ca4578f053d719bff82b0c9fa1939d21978d46"
   integrity sha512-5jYMtPexeeNL8m+5Mzhayr1l367MbbBs0Wf+FBeL/xLv6nSNqvvNs/CXfvkqxLDZJKIgBCBPKg7eIu1U6MJ6ag==
@@ -3649,24 +3649,24 @@
     "@metamask/utils" "^8.3.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@11.0.1":
-  version "11.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-11.0.1.tgz#3d6bfe17580bbb51919004b26a7cdded402bc7a6"
-  integrity sha512-qJPWhOzyOA7cNOxQgAsydsrAQsrDktm9siGMlCqeJSef8SrA9nsfEg1Iy2evg81cJ+99gNDxkuLj9/Z51w4BwA==
+"@metamask/assets-controllers@11.1.0":
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-11.1.0.tgz#55221c39ade424dc8e3e1202cf7469ba368710fe"
+  integrity sha512-xPgUE7OaGjpaHujNqxn/ta8hqQMH7/zrBaFj42g103EAMPoS36AwYunArjkRB+yLjtJdRnwk/6ZDSpA0M3AxVg==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.1"
-    "@metamask/approval-controller" "^3.5.0"
-    "@metamask/base-controller" "^3.2.0"
+    "@metamask/approval-controller" "^3.5.1"
+    "@metamask/base-controller" "^3.2.1"
     "@metamask/contract-metadata" "^2.3.1"
-    "@metamask/controller-utils" "^4.3.1"
+    "@metamask/controller-utils" "^4.3.2"
     "@metamask/eth-query" "^3.0.1"
     "@metamask/metamask-eth-abis" "3.0.0"
-    "@metamask/network-controller" "^12.0.0"
-    "@metamask/preferences-controller" "^4.2.0"
+    "@metamask/network-controller" "^12.1.2"
+    "@metamask/preferences-controller" "^4.4.0"
     "@metamask/rpc-errors" "^5.1.1"
     "@metamask/utils" "^6.2.0"
     "@types/uuid" "^8.3.0"
@@ -4123,7 +4123,7 @@
     json-rpc-engine "^6.1.0"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^12.0.0":
+"@metamask/network-controller@^12.0.0", "@metamask/network-controller@^12.1.2":
   version "12.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-12.2.0.tgz#679d81e009cfd2b9fdaf884267d7a11b535f1922"
   integrity sha512-MBsEOy8htQtN46s/pbmEPsfe+UyOe3aUGTeswG0Iy0qGKyqu+uEx/nhydaLpMHFlOLbboPWtUmnPRLFE9pQDEA==
@@ -4244,13 +4244,13 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/phishing-controller@6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-6.0.0.tgz#4086ddb0abf263933146b296fea98ee2a17c9484"
-  integrity sha512-dlAxoWAU+k31jdkBESCvY2bwfC7jOE2pSxDwSWHdEmuLs4S2niSs4boQ67azONRiLvF20lF71bKthEhTf/RGdQ==
+"@metamask/phishing-controller@6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-6.0.1.tgz#40f71bac980c84d31033ddc8e61e99f02dd1899c"
+  integrity sha512-wDJ0tbaRbvoCgwBgdxJPvF2XZLynq/wrgrfsKMG3+nZ6pNPLXwLq43vyaglaXWvlXgbMTgw7alftUfSRQGR/SA==
   dependencies:
-    "@metamask/base-controller" "^3.2.0"
-    "@metamask/controller-utils" "^4.3.0"
+    "@metamask/base-controller" "^3.2.1"
+    "@metamask/controller-utils" "^4.3.2"
     "@types/punycode" "^2.1.0"
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
@@ -4288,7 +4288,7 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^4.0.0", "@metamask/preferences-controller@^4.2.0", "@metamask/preferences-controller@^4.4.3":
+"@metamask/preferences-controller@^4.0.0", "@metamask/preferences-controller@^4.4.0", "@metamask/preferences-controller@^4.4.3":
   version "4.4.3"
   resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-4.4.3.tgz#f0f05793370892d2d7bc9b07e685583a1f4d80c9"
   integrity sha512-ftDRfOEgRrQqFyfZEQk9AVD1YMdP54NvtiBCrlqAG4hiFgBXQbQTcyl0i/jR/cfki8hYMuH1gPdId14CCAJbDQ==
@@ -23628,10 +23628,10 @@ react-native-background-timer@2.1.1:
   resolved "https://registry.yarnpkg.com/react-native-background-timer/-/react-native-background-timer-2.1.1.tgz#9a2489681ab2f8033c213c73272e9d4c47572cd5"
   integrity sha512-cuXIIv+dcG8a8qkTD8pMzeqOEZCO+UGKglZWIe1osve+yJslmCowYQff+bI9xa7NOt2w+Vtd4L3d9JonlSqODg==
 
-react-native-ble-plx@2.0.3, react-native-ble-plx@3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/react-native-ble-plx/-/react-native-ble-plx-3.1.1.tgz#3800563b54d6ba3a30f032277bf3feefed5de6b6"
-  integrity sha512-mdyvT9zRP6IGkzE+ukkcPSQGFUORstcK94vnKlBXAKMUN58RNGXhGCjelHgisRkp0k6XTECgms7BZfzIDFRVyA==
+react-native-ble-plx@2.0.3, react-native-ble-plx@3.1.2:
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/react-native-ble-plx/-/react-native-ble-plx-3.1.2.tgz#fa57b6e2bf2102500f70df286578d66723d7b606"
+  integrity sha512-QgukxgjrZYMUxyZ9w4XEiR9QdbdKLibhggE+sPRxp6q11rZG9upU5aricnVB2CiSbn164nlYx3j+GNlJKSlaLg==
   dependencies:
     "@expo/config-plugins" "^7.2.5"
 

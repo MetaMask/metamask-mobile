@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { Platform } = require('react-native');
 const simpleGit = require('simple-git');
 /*
  * This script is used to filter and group commits by teams based on unique commit messages.
@@ -36,7 +37,7 @@ const authorTeams = {
     'Gudahtt',
     'David Murdoch',
   ],
-  DappAPI: ['tmashuang', 'jiexi', 'BelfordZ', 'Shane'],
+  DappAPI: ['tmashuang', 'jiexi', 'BelfordZ', 'Shane','Thomas Huang', 'Alex Donesky', 'jiexi', 'Zachary Belford'],
   'Confirmation UX': [
     'Sylva Elendu',
     'Olusegun Akintayo',
@@ -78,7 +79,7 @@ const authorTeams = {
     'Shane T',
     'Bernardo Garces Chapero',
   ],
-  WalletPlatform: [
+  "Mobile Platform": [
     'cortisiko',
     'Cal-L',
     'chrisleewilcox',
@@ -96,11 +97,7 @@ const authorTeams = {
     'yande',
     'Aslau Mario-Daniel',
   ],
-  WalletUX: [
-    'Frank von Hoven',
-  ],
   Swaps: ['Daniel', 'Davide Brocchetto'],
-  Devex: ['Thomas Huang', 'Alex Donesky', 'jiexi', 'Zachary Belford'],
   Security: ['witmicko'],
   SDK: ['abretonc7s'],
 };
@@ -180,17 +177,16 @@ function formatAsCSV(commitsByTeam) {
   for (const [team, commits] of Object.entries(commitsByTeam)) {
     commits.forEach((commit) => {
       const row = [
-        escapeCSV(commit.hash),
-        assignChangeType(commit.message),
         escapeCSV(commit.message),
         escapeCSV(commit.author),
+        commit.prLink,
         escapeCSV(team),
-        commit.prLink
+        assignChangeType(commit.message)
       ];
       csvContent.push(row.join(','));
     });
   }
-  csvContent.unshift('Commit Hash,Change Type,Commit Message,Author,Team,PR Link');
+  csvContent.unshift('Commit Message,Author,PR Link,Team,Change Type');
 
   return csvContent;
 }
@@ -202,7 +198,7 @@ function escapeCSV(field) {
   }
   return field;
 }
-// Helper function to escape CSV fields
+// Helper function to create change type
 function assignChangeType(field) {
   if (field.includes('feat'))
     return 'Added';
