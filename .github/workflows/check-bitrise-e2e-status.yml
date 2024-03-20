@@ -9,10 +9,10 @@ on:
 env:
   E2E_LABEL: 'Run Smoke E2E'
   E2E_PIPELINE: 'pr_smoke_e2e_pipeline'
-  WORKFLOW_NAME: 'check-bitrise-e2e-status'
+  WORKFLOW_NAME: 'run-bitrise-e2e-check'
 
 jobs:
-  check-bitrise-e2e-status:
+  run-bitrise-e2e-check:
     runs-on: ubuntu-latest
     if: ${{ github.event.issue.pull_request || github.event_name == 'pull_request' }}
     permissions:
@@ -39,4 +39,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # The status creates created under this workflow may be bucketed under another check suite in Github actions. This is a result of workflows with the same triggers.
         # For example, the status check may show as `CLA Signature Bot / Bitrise E2E Status`. This is a bug on Github's UI. https://github.com/orgs/community/discussions/24616
-        run: yarn run check-bitrise-e2e-status
+        run: yarn run run-bitrise-e2e-check
