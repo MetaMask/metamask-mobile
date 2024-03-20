@@ -132,41 +132,29 @@ export default async function migrate(stateAsync: unknown) {
   }
 
   if (
-    !hasProperty(
-      networkControllerState.networkDetails,
-      'isEIP1559Compatible',
-    ) ||
-    networkControllerState.networkDetails.isEIP1559Compatible === null ||
-    networkControllerState.networkDetails.isEIP1559Compatible === undefined
+    !hasProperty(networkControllerState.networkDetails, 'isEIP1559Compatible')
   ) {
-    captureException(
-      new Error(
-        `Migration 29: Invalid NetworkController networkDetails isEIP1559Compatible: '${JSON.stringify(
-          networkControllerState.networkDetails.isEIP1559Compatible,
-        )}'`,
-      ),
-    );
-    return state;
-  }
-
-  // Addressing networkDetails property change
-  const isEIP1559Compatible =
-    networkControllerState.networkDetails.isEIP1559Compatible;
-
-  if (isEIP1559Compatible) {
     networkControllerState.networkDetails = {
-      EIPS: {
-        1559: true,
-      },
+      EIPS: {},
     };
   } else {
-    networkControllerState.networkDetails = {
-      EIPS: {
-        1559: false,
-      },
-    };
+    // Addressing networkDetails property change
+    const isEIP1559Compatible =
+      networkControllerState.networkDetails.isEIP1559Compatible;
+    if (isEIP1559Compatible) {
+      networkControllerState.networkDetails = {
+        EIPS: {
+          1559: true,
+        },
+      };
+    } else {
+      networkControllerState.networkDetails = {
+        EIPS: {
+          1559: false,
+        },
+      };
+    }
   }
-
   if (isObject(networkControllerState.networkDetails)) {
     delete networkControllerState.networkDetails.isEIP1559Compatible;
   }
