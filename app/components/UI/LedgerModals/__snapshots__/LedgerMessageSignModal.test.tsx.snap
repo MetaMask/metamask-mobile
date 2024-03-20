@@ -394,7 +394,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                 "backgroundColor": "#FFFFFF",
                                 "borderTopLeftRadius": 10,
                                 "borderTopRightRadius": 10,
-                                "height": 400,
+                                "height": 450,
                               }
                             }
                           >
