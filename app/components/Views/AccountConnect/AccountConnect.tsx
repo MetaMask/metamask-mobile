@@ -534,27 +534,40 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
-  const renderPhishingModal = () => (
-    <Modal
-      isVisible={showPhishingModal}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.fullScreenModal}
-      backdropOpacity={1}
-      backdropColor={colors.error.default}
-      animationInTiming={300}
-      animationOutTiming={300}
-      useNativeDriver
-    >
-      <PhishingModal
-        fullUrl={blockedUrl}
-        goToETHPhishingDetector={goToETHPhishingDetector}
-        continueToPhishingSite={continueToPhishingSite}
-        goToEtherscam={goToEtherscam}
-        goToFilePhishingIssue={goToFilePhishingIssue}
-        goBackToSafety={goBackToSafety}
-      />
-    </Modal>
+  const renderPhishingModal = useCallback(
+    () => (
+      <Modal
+        isVisible={showPhishingModal}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={styles.fullScreenModal}
+        backdropOpacity={1}
+        backdropColor={colors.error.default}
+        animationInTiming={300}
+        animationOutTiming={300}
+        useNativeDriver
+      >
+        <PhishingModal
+          fullUrl={blockedUrl}
+          goToETHPhishingDetector={goToETHPhishingDetector}
+          continueToPhishingSite={continueToPhishingSite}
+          goToEtherscam={goToEtherscam}
+          goToFilePhishingIssue={goToFilePhishingIssue}
+          goBackToSafety={goBackToSafety}
+        />
+      </Modal>
+    ),
+    [
+      blockedUrl,
+      colors.error.default,
+      continueToPhishingSite,
+      goBackToSafety,
+      goToETHPhishingDetector,
+      goToEtherscam,
+      goToFilePhishingIssue,
+      showPhishingModal,
+      styles.fullScreenModal,
+    ],
   );
 
   const renderConnectScreens = useCallback(() => {
