@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { MMKV } from 'react-native-mmkv';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
@@ -963,9 +963,10 @@ export function getWalletNavbarOptions(
   }
 
   function openNotificationsList() {
-    navigation.navigate('Notifications');
+    navigation.navigate('NotificationsView');
     trackEvent(MetaMetricsEvents.WALLET_NOTIFICATIONS);
   }
+
   // TODO: Fix the delay while changing notification status
   const isNotificationEnabled = storage.getBoolean('is-notifications-enabled');
 
@@ -994,7 +995,7 @@ export function getWalletNavbarOptions(
           <ButtonIcon
             variant={ButtonIconVariants.Primary}
             onPress={openNotificationsList}
-            iconName={IconName.Bell}
+            iconName={IconName.Notification}
             style={styles.infoButton}
             size={IconSize.Xl}
             testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
