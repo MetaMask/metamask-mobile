@@ -170,7 +170,7 @@ const LedgerConnect = () => {
 
   const permsionText = useMemo(() => {
     if (deviceOSVersion >= 12) {
-      return strings('ledger.ledger_reminder_message_step_five');
+      return strings('ledger.ledger_reminder_message_step_four_Androidv12plus');
     }
     return strings('ledger.ledger_reminder_message_step_four');
   }, [deviceOSVersion]);

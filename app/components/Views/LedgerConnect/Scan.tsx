@@ -128,8 +128,8 @@ const Scan = ({
             ),
             primaryButtonConfig: {
               title: strings('ledger.view_settings'),
-              onPress: async () => {
-                await openSettings();
+              onPress: () => {
+                openSettings();
               },
             },
           });
@@ -144,7 +144,7 @@ const Scan = ({
         errorSubtitle: strings('ledger.bluetooth_off_message'),
         primaryButtonConfig: {
           title: strings('ledger.view_settings'),
-          onPress: async () => {
+          onPress: () => {
             Platform.OS === 'ios'
               ? Linking.openURL('App-Prefs:Bluetooth')
               : Linking.openSettings();
