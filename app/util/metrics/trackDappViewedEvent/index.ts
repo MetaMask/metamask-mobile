@@ -2,6 +2,7 @@ import { store } from '../../../store';
 import { selectIdentities } from '../../../selectors/preferencesController';
 import { addToViewedDapp } from '../../../actions/browser';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { prefixUrlWithProtocol } from '../../browser';
 
 /**
  * Tracks Dapp viewed event
@@ -29,6 +30,7 @@ const trackDappViewedEvent = ({
   store.dispatch(addToViewedDapp(hostname));
 
   MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.DAPP_VIEWED, {
+    Referrer: prefixUrlWithProtocol(hostname),
     is_first_visit: isFirstVisit,
     number_of_accounts: numberOfWalletAccounts,
     number_of_accounts_connected: numberOfConnectedAccounts,
