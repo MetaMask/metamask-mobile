@@ -130,31 +130,16 @@ export default async function migrate(stateAsync: unknown) {
     );
     return state;
   }
+  // Addressing networkDetails property change
+  const isEIP1559Compatible =
+    !!networkControllerState.networkDetails.isEIP1559Compatible;
 
-  if (
-    !hasProperty(networkControllerState.networkDetails, 'isEIP1559Compatible')
-  ) {
-    networkControllerState.networkDetails = {
-      EIPS: {},
-    };
-  } else {
-    // Addressing networkDetails property change
-    const isEIP1559Compatible =
-      networkControllerState.networkDetails.isEIP1559Compatible;
-    if (isEIP1559Compatible) {
-      networkControllerState.networkDetails = {
-        EIPS: {
-          1559: true,
-        },
-      };
-    } else {
-      networkControllerState.networkDetails = {
-        EIPS: {
-          1559: false,
-        },
-      };
-    }
-  }
+  networkControllerState.networkDetails = {
+    EIPS: {
+      1559: isEIP1559Compatible,
+    },
+  };
+
   if (isObject(networkControllerState.networkDetails)) {
     delete networkControllerState.networkDetails.isEIP1559Compatible;
   }
