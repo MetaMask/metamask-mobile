@@ -416,6 +416,8 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
     });
 
     const nftController = new NftController(
@@ -542,10 +544,11 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          //@ts-expect-error It's expected, it needs the gas fee controller to be updated a minor version
           listener,
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
-        await networkController.getEIP1559Compatibility(),
+        (await networkController.getEIP1559Compatibility()) ?? false,
       getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
@@ -1007,8 +1010,6 @@ class Engine {
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-        // @ts-expect-error network controller will be updated on this PR: https://github.com/MetaMask/metamask-mobile/pull/8812 and this type error will be addressed
-        // This is not a blocker because gas fee controller does not need ticker to be defined
         getNetworkState: () => networkController.state,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
@@ -1036,8 +1037,6 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated on this PR: https://github.com/MetaMask/metamask-mobile/pull/8812 and this type error will be addressed
-            // This is not a blocker because gas fee controller does not need ticker to be defined
             listener,
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -1222,7 +1221,8 @@ class Engine {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       (state: NetworkState) => {
         if (
-          state.networkStatus === NetworkStatus.Available &&
+          state.networksMetadata[state.selectedNetworkClientId].status ===
+            NetworkStatus.Available &&
           state.providerConfig.chainId !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed

@@ -1,24 +1,4 @@
-const { execSync } = require('child_process');
-
-const getAvailableAVDs = (() => {
-  try {
-    // Run the command to list available AVDs
-    const outputList = execSync("emulator -list-avds").toString();
-
-    // Parse the output and return an array of AVD names
-    const avdNames = outputList.trim().split("\n");
-
-    // return avdNames
-    return avdNames;
-  } catch (error) {
-    console.error(
-      "Revisit the command to get the error list. It seems incorrect:",
-      error.message,
-    );
-    return [];
-  }
-})();
-
+/** @type {Detox.DetoxConfig} */
 module.exports = {
   testRunner: {
     args: {
@@ -53,16 +33,22 @@ module.exports = {
       device: 'ios.simulator',
       app: 'ios.release',
     },
+    // because e2e run on debug mode in bitrise
+    'android.emu.bitrise.debug': {
+      device: 'android.bitrise.emulator',
+      app: 'android.bitrise.debug',
+    },
+
     'android.emu.debug': {
       device: 'android.emulator',
       app: 'android.debug',
     },
     'android.emu.release': {
-      device: 'android.emulator',
+      device: 'android.bitrise.emulator',
       app: 'android.release',
     },
     'android.emu.release.qa': {
-      device: 'android.emulator',
+      device: 'android.bitrise.emulator',
       app: 'android.qa',
     },
   },
@@ -73,10 +59,16 @@ module.exports = {
         type: 'iPhone 13 Pro',
       },
     },
+    'android.bitrise.emulator': {
+      type: 'android.emulator',
+      device: {
+        avdName: 'emulator',
+      },
+    },
     'android.emulator': {
       type: 'android.emulator',
       device: {
-        avdName: getAvailableAVDs[0],
+        avdName: 'Pixel_5_API_30',
       },
     },
   },
@@ -91,6 +83,11 @@ module.exports = {
       binaryPath:
         'ios/build/Build/Products/Release-iphonesimulator/MetaMask.app',
       build: "METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='production' yarn build:ios:release:e2e",
+    },
+    'android.bitrise.debug': {
+      type: 'android.apk',
+      binaryPath: 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
+      build: 'yarn start:android:e2e',
     },
     'android.debug': {
       type: 'android.apk',

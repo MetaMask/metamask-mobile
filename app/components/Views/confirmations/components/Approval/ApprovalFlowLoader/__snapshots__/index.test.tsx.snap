@@ -20,19 +20,103 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
       }
     }
   >
-    <AnimatedSpinner />
+    <View
+      style={
+        Object {
+          "borderColor": "#F2F4F6",
+          "borderRadius": 64,
+          "borderWidth": 3.5,
+          "height": 36,
+          "width": 36,
+        }
+      }
+    >
+      <View
+        collapsable={false}
+        style={
+          Object {
+            "height": 40,
+            "left": -5.5,
+            "position": "relative",
+            "top": -5.5,
+            "transform": Array [
+              Object {
+                "rotate": "0deg",
+              },
+            ],
+            "width": 40,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            Array [
+              Object {
+                "color": "#0376C9",
+                "fontSize": 36,
+              },
+              undefined,
+              Object {
+                "fontFamily": "Material Design Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              Object {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+    </View>
   </View>
   <Text
-    centered={true}
-    noMargin={true}
-    primary={true}
     style={
-      Object {
-        "fontSize": 13,
-        "lineHeight": 20,
-        "paddingHorizontal": 24,
-        "width": "100%",
-      }
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        Object {
+          "textAlign": "center",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "marginVertical": 0,
+        },
+        Object {
+          "fontSize": 13,
+          "lineHeight": 20,
+          "paddingHorizontal": 24,
+          "width": "100%",
+        },
+      ]
     }
   />
 </View>
