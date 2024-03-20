@@ -1,6 +1,6 @@
 import { v4 as uuid } from 'uuid';
 import { EthMethod, InternalAccount } from '@metamask/keyring-api';
-import migrate, { sha256FromAddress } from './037';
+import migrate, { sha256FromAddress, Identity } from './037';
 
 const MOCK_ADDRESS = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -9,12 +9,6 @@ async function addressToUUID(address: string): Promise<string> {
   return uuid({
     random: await sha256FromAddress(address),
   });
-}
-
-interface Identity {
-  name: string;
-  address: string;
-  lastSelected?: number;
 }
 
 interface Identities {
@@ -186,7 +180,7 @@ describe('Migration #037', () => {
           [MOCK_ADDRESS]: { name: 'Account 1', address: MOCK_ADDRESS },
           [MOCK_ADDRESS_2]: { name: 'Account 2', address: MOCK_ADDRESS_2 },
         },
-        selectedAddress: MOCK_ADDRESS,
+        selectedAddress: MOCK_ADDRESS_2,
       });
       const newState = await migrate(oldState);
       expect(newState).toStrictEqual({
@@ -204,7 +198,7 @@ describe('Migration #037', () => {
                     `Account 2`,
                   ),
                 },
-                selectedAccount: expectedUUID,
+                selectedAccount: expectedUUID2,
               },
             },
             PreferencesController: expect.any(Object),
@@ -253,6 +247,59 @@ describe('Migration #037', () => {
               internalAccounts: {
                 accounts: expect.any(Object),
                 selectedAccount: '',
+              },
+            },
+          },
+        },
+      });
+    });
+    it('should select the first account as the selected account if selectedAddress is undefined, and update PreferencesController accordingly', async () => {
+      const identities = [
+        { name: 'Account 1', address: MOCK_ADDRESS },
+        { name: 'Account 2', address: MOCK_ADDRESS_2 },
+      ];
+      // explicitly set selectedAddress to undefined
+      const oldState = createMockState(
+        createMockPreferenceControllerState(identities, undefined),
+      );
+      const newState = await migrate(oldState);
+
+      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
+      const expectedUUID2 = await addressToUUID(MOCK_ADDRESS_2);
+
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            PreferencesController: {
+              // Verifying that PreferencesController's selectedAddress is updated to the first account's address
+              selectedAddress: MOCK_ADDRESS,
+              identities: {
+                [MOCK_ADDRESS]: {
+                  address: MOCK_ADDRESS,
+                  name: 'Account 1',
+                  lastSelected: undefined,
+                },
+                [MOCK_ADDRESS_2]: {
+                  address: MOCK_ADDRESS_2,
+                  name: 'Account 2',
+                  lastSelected: undefined,
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [expectedUUID]: await expectedInternalAccount(
+                    MOCK_ADDRESS,
+                    `Account 1`,
+                  ),
+                  [expectedUUID2]: await expectedInternalAccount(
+                    MOCK_ADDRESS_2,
+                    `Account 2`,
+                  ),
+                },
+                // Verifying the accounts controller's selectedAccount is updated to the first account's UUID
+                selectedAccount: expectedUUID,
               },
             },
           },

@@ -9,7 +9,7 @@ import { v4 as uuid } from 'uuid';
 import { NativeModules } from 'react-native';
 const Aes = NativeModules.Aes;
 
-interface Identity {
+export interface Identity {
   name: string;
   address: string;
   lastSelected?: number;
@@ -105,21 +105,43 @@ async function createInternalAccountsForAccountsController(
     accounts;
 }
 
+function findInternalAccountByAddress(
+  state: Record<string, any>,
+  address: string,
+): InternalAccount | undefined {
+  return Object.values<InternalAccount>(
+    state.engine.backgroundState.AccountsController.internalAccounts.accounts,
+  ).find(
+    (account: InternalAccount) =>
+      account.address.toLowerCase() === address.toLowerCase(),
+  );
+}
+
 function createSelectedAccountForAccountsController(
   state: Record<string, any>,
 ) {
   const selectedAddress =
     state.engine.backgroundState.PreferencesController?.selectedAddress;
 
-  const selectedAccount = Object.values<InternalAccount>(
-    state.engine.backgroundState.AccountsController.internalAccounts.accounts,
-  ).find(
-    (account: InternalAccount) =>
-      account.address.toLowerCase() === selectedAddress.toLowerCase(),
-  ) as InternalAccount;
+  // Handle the case where the selectedAddress from preferences controller is not a string
+  if (typeof selectedAddress !== 'string') {
+    // Get the first account if selectedAddress is not a string
+    const [firstAddress] = Object.keys(
+      state.engine.backgroundState.AccountsController.internalAccounts.accounts,
+    );
+    const internalAccount = findInternalAccountByAddress(state, firstAddress);
+    if (internalAccount) {
+      state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
+        internalAccount.id;
+      state.engine.backgroundState.PreferencesController.selectedAddress =
+        internalAccount.address;
+    }
+    return;
+  }
 
+  const selectedAccount = findInternalAccountByAddress(state, selectedAddress);
   if (selectedAccount) {
     state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
-      selectedAccount.id ?? '';
+      selectedAccount.id;
   }
 }
