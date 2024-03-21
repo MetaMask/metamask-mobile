@@ -1,25 +1,63 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import AssetSearch from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import Engine from '../../../core/Engine';
+const mockedEngine = Engine;
 
-const mockStore = configureMockStore();
+jest.mock('../../../core/Engine.ts', () => ({
+  init: () => mockedEngine.init({}),
+  context: {
+    KeyringController: {
+      getQRKeyringState: async () => ({ subscribe: () => ({}) }),
+    },
+    TokenListController: {
+      tokenList: {
+        '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f': {
+          address: '0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f',
+          symbol: 'SNX',
+          decimals: 18,
+          name: 'Synthetix Network Token',
+          iconUrl:
+            'https://static.metafi.codefi.network/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
+          type: 'erc20',
+          aggregators: [
+            'Aave',
+            'Bancor',
+            'CMC',
+            'Crypto.com',
+            'CoinGecko',
+            '1inch',
+            'PMM',
+            'Synthetix',
+            'Zerion',
+            'Lifi',
+          ],
+          occurrences: 10,
+          fees: {
+            '0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f': 0,
+            '0xda4ef8520b1a57d7d63f1e249606d1a459698876': 0,
+          },
+        },
+      },
+      tokensChainsCache: {},
+      preventPollingOnNetworkRestart: false,
+    },
+  },
+}));
+
 const initialState = {
   engine: {
     backgroundState: initialBackgroundState,
   },
 };
-const store = mockStore(initialState);
 
 describe('AssetSearch', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <AssetSearch onSearch={jest.fn} onFocus={jest.fn} onBlur={jest.fn} />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <AssetSearch onSearch={jest.fn} onFocus={jest.fn} onBlur={jest.fn} />,
+      { state: initialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
