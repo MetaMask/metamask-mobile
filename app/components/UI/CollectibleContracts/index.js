@@ -45,6 +45,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import Logger from '../../../util/Logger';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -191,12 +192,19 @@ const CollectibleContracts = ({
 
   useEffect(() => {
     // TO DO: Move this fix to the controllers layer
-    collectibles.forEach((collectible) => {
-      if (shouldUpdateCollectibleMetadata(collectible)) {
-        updateCollectibleMetadata(collectible);
-      }
-    });
-  }, [collectibles, updateCollectibleMetadata]);
+    // The nft autodetection is enabled on mainnet (only as of today), there is no need to run this if we are on mainnet
+    // because the detectNfts fct will refetch the data.
+    // I see that the reason we have this if when we are on other networks !==Eth and the user tries to refresh, then we should be able
+    // to refetch for all NFTs
+    // We should avoid running for networks where we support NFT autodetection.
+    if (chainId !== CHAIN_IDS.MAINNET) {
+      collectibles.forEach((collectible) => {
+        if (shouldUpdateCollectibleMetadata(collectible)) {
+          updateCollectibleMetadata(collectible);
+        }
+      });
+    }
+  }, [collectibles, updateCollectibleMetadata, chainId]);
 
   const memoizedCollectibles = useMemo(() => collectibles, [collectibles]);
 
