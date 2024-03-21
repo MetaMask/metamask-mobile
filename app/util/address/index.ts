@@ -3,9 +3,8 @@ import {
   isValidAddress,
   addHexPrefix,
   isValidChecksumAddress,
-  //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
   isHexPrefixed,
-} from 'ethereumjs-util';
+} from '@ethereumjs/util';
 import punycode from 'punycode/punycode';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';

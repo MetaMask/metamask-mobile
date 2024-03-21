@@ -25,7 +25,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { renderFromWei } from '../../../../../util/number';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { filterExitRequests } from './utils';
-import { BN } from 'ethereumjs-util';
+import BN from 'bn.js';
 import bn from 'bignumber.js';
 import {
   CommonPercentageInputUnits,

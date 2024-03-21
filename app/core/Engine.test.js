@@ -1,6 +1,6 @@
 import Engine from './Engine';
 import { backgroundState } from '../util/test/initial-root-state';
-import { zeroAddress } from 'ethereumjs-util';
+import { zeroAddress } from '@ethereumjs/util';
 import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../util/test/network';
 

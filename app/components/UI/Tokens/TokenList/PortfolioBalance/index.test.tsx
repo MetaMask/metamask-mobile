@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { BN } from 'ethereumjs-util';
+import BN from 'bn.js';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import AppConstants from '../../../../../../app/core/AppConstants';

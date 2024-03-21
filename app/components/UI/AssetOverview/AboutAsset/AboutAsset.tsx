@@ -1,4 +1,4 @@
-import { zeroAddress } from 'ethereumjs-util';
+import { zeroAddress } from '@ethereumjs/util';
 import React from 'react';
 import { DimensionValue, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';

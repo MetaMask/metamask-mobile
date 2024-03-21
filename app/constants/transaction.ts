@@ -1,4 +1,4 @@
-import { BN } from 'ethereumjs-util';
+import BN from 'bn.js';
 
 // Transaction Status
 export const TX_UNAPPROVED = 'unapproved';

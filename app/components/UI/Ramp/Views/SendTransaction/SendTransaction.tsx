@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { BN } from 'ethereumjs-util';
+import BN from 'bn.js';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import {
   TransactionParams,

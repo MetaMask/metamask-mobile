@@ -17,7 +17,7 @@ import {
   fromWei,
   fromTokenMinimalUnit,
 } from '../../../../util/number';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress } from '@ethereumjs/util';
 import { strings } from '../../../../../locales/i18n';
 import { getTransactionOptionsTitle } from '../../../UI/Navbar';
 import { connect } from 'react-redux';

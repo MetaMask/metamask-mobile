@@ -1,4 +1,4 @@
-import { BN } from 'ethereumjs-util';
+import BN from 'bn.js';
 import { validateSufficientBalance, validateSufficientTokenBalance } from './validation';
 import { renderFromWei, hexToBN } from '../../../../../util/number';
 import {

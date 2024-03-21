@@ -1,4 +1,4 @@
-import { toChecksumAddress } from 'ethereumjs-util';
+import { toChecksumAddress } from '@ethereumjs/util';
 import { useSelector } from 'react-redux';
 
 import { selectChainId } from '../../selectors/networkController';

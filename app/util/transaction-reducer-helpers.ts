@@ -1,5 +1,5 @@
 import { SecurityAlertResponse } from '@metamask/transaction-controller';
-import { BN } from 'ethereumjs-util';
+import type BN from 'bn.js';
 
 interface TxMeta {
   data?: string;

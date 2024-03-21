@@ -4,7 +4,7 @@ import {
   decodeTransferData,
 } from '../../../../../util/transactions';
 import { strings } from '../../../../../../locales/i18n';
-import { BN } from 'ethereumjs-util';
+import type BN from 'bn.js';
 
 interface SelectedAsset {
   address: string;

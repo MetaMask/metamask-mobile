@@ -5,7 +5,7 @@ import {
   type GasFeeController as GasFeeControllerType,
 } from '@metamask/gas-fee-controller';
 
-import { BN } from 'ethereumjs-util';
+import BN from 'bn.js';
 import Engine from '../../../../core/Engine';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import { selectGasFeeControllerState } from '../../../../selectors/gasFeeController';

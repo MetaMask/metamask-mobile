@@ -4,7 +4,7 @@ import Engine from '../../core/Engine';
 import TransactionTypes from '../../core/TransactionTypes';
 import { toLowerCaseEquals } from '../general';
 import { strings } from '../../../locales/i18n';
-import { BN } from 'ethereumjs-util';
+import type BN from 'bn.js';
 import { lt } from '../lodash';
 import { estimateGas as controllerEstimateGas } from '../transaction-controller';
 

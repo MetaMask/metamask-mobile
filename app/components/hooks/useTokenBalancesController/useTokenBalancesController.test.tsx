@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { createStore, Store } from 'redux';
 import { act, render, waitFor } from '@testing-library/react-native';
 import useTokenBalancesController from './useTokenBalancesController';
-import { BN } from 'ethereumjs-util';
+import BN from 'bn.js';
 import { cloneDeep } from 'lodash';
 import { backgroundState } from '../../../util/test/initial-root-state';
 

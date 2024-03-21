@@ -1,4 +1,4 @@
-import { BN } from 'ethereumjs-util';
+import BN from 'bn.js';
 import { useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
