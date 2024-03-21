@@ -51,9 +51,7 @@ describe('Ledger core', () => {
   };
 
   const mockSetSelectedAddress = jest.fn();
-  Engine.context.PreferencesController = {
-    setSelectedAddress: mockSetSelectedAddress,
-  };
+  Engine.setSelectedAddress = mockSetSelectedAddress;
 
   describe('addLedgerKeyring', () => {
     it('should call addNewKeyring from keyring controller', () => {
