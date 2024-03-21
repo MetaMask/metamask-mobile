@@ -47,4 +47,5 @@ export default (colors: ThemeColors) =>
     },
     bottom: { paddingTop: 20 },
     spacer: { width: 20 },
+    icon: { alignSelf: 'center', marginBottom: 10 },
   });

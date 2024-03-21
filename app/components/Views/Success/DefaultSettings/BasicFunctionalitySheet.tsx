@@ -20,6 +20,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import createStyles from './BasicFunctionalitySheet.styles';
 import { RootState } from 'app/reducers';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 
 const BasicFunctionalitySheet = () => {
   const { colors } = useTheme();
@@ -43,6 +48,12 @@ const BasicFunctionalitySheet = () => {
 
   const renderTurnOffContent = () => (
     <View style={styles.container}>
+      <Icon
+        name={IconName.Danger}
+        color={IconColor.Warning}
+        size={IconSize.Lg}
+        style={styles.icon}
+      />
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('default_settings.sheet.title_off')}
       </Text>
