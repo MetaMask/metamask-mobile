@@ -254,7 +254,7 @@
     "humanize-duration": "^3.27.2",
     "is-url": "^1.2.4",
     "json-rpc-engine": "^6.1.0",
-    "json-rpc-middleware-stream": "3.0.0",
+    "json-rpc-middleware-stream": "^4.2.2",
     "lodash": "^4.17.21",
     "lottie-ios": "3.4.1",
     "lottie-react-native": "5.1.5",
