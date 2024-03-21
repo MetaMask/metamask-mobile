@@ -235,6 +235,28 @@ describe('Migration #037', () => {
         },
       });
     });
+
+    it('should handle empty identities and create default AccountsController with no internal accounts', async () => {
+      const oldState = createMockState({
+        // Simulate `identities` being an empty object
+        identities: {},
+      });
+      const newState = await migrate(oldState);
+
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            PreferencesController: expect.any(Object),
+            AccountsController: {
+              internalAccounts: {
+                accounts: {}, // Expect no accounts to be created
+                selectedAccount: '', // Expect no account to be selected
+              },
+            },
+          },
+        },
+      });
+    });
   });
 
   describe('createSelectedAccountForAccountsController', () => {
