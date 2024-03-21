@@ -279,12 +279,14 @@ class Approval extends PureComponent {
     const {
       networkType,
       transaction: { selectedAsset, assetType },
+      isSmartTransaction,
     } = this.props;
     return {
       view: APPROVAL,
       network: networkType,
       activeCurrency: selectedAsset.symbol || selectedAsset.contractName,
       assetType,
+      is_smart_transaction: isSmartTransaction,
     };
   };
 
@@ -306,7 +308,8 @@ class Approval extends PureComponent {
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
     try {
-      const { chainId, transaction, selectedAddress } = this.props;
+      const { chainId, transaction, selectedAddress, isSmartTransaction } =
+        this.props;
       const { selectedAsset } = transaction;
 
       return {
@@ -323,6 +326,7 @@ class Approval extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        is_smart_transaction: isSmartTransaction,
       };
     } catch (error) {
       return {};
