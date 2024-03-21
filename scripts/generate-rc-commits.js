@@ -99,7 +99,7 @@ const authorTeams = {
   ],
   Swaps: ['Daniel', 'Davide Brocchetto'],
   Security: ['witmicko'],
-  SDK: ['abretonc7s'],
+  SDK: ['abretonc7s', 'Omri Dan'],
 };
 
 // Function to get the team for a given author
