@@ -11,6 +11,7 @@ export interface Collectible {
   tokenURI: string;
   contractName?: string;
   standard: string;
+  imageOriginal?: string;
   error: string | undefined;
 }
 
