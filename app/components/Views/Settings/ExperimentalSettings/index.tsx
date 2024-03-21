@@ -19,7 +19,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import Device from '../../../../../app/util/device';
 import { SES_URL } from '../../../../../app/constants/urls';
 import Routes from '../../../../../app/constants/navigation/Routes';
 
@@ -142,7 +141,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
-      {Device.isIos() && <SesSettings />}
+      <SesSettings />
     </ScrollView>
   );
 };
