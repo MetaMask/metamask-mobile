@@ -370,6 +370,10 @@ class AdvancedSettings extends PureComponent {
     PreferencesController.setSmartTransactionsOptInStatus(
       smartTransactionsOptInStatus,
     );
+
+    this.props.metrics.trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
+      stx_opt_in: smartTransactionsOptInStatus,
+    });
   };
 
   openLinkAboutStx = () => {
