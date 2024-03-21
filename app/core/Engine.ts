@@ -416,6 +416,8 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
     });
 
     const nftController = new NftController(
