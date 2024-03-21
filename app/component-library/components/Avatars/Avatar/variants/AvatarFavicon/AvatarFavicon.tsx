@@ -34,7 +34,7 @@ const AvatarFavicon = ({
 
   const onError = useCallback(
     (e: NativeSyntheticEvent<ImageErrorEventData>) =>
-      setError(e.nativeEvent.error),
+      setError(e.nativeEvent?.error),
     [setError],
   );
 
