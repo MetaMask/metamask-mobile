@@ -413,10 +413,11 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
     });
 
     const nftController = new NftController(
@@ -426,7 +427,6 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -471,7 +471,6 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
           listener,
         ),
       onTokenListStateChange: (listener) =>
@@ -504,7 +503,6 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
           listener,
         ),
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -546,10 +544,11 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          //@ts-expect-error It's expected, it needs the gas fee controller to be updated a minor version
           listener,
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
-        await networkController.getEIP1559Compatibility(),
+        (await networkController.getEIP1559Compatibility()) ?? false,
       getChainId: () => networkController.state.providerConfig.chainId,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
         const chainId = networkController.state.providerConfig.chainId;
@@ -931,7 +930,6 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
         onTokenListStateChange: (listener) =>
@@ -955,7 +953,6 @@ class Engine {
         },
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
-        // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
         getNetworkState: () => networkController.state,
         getPreferencesState: () => preferencesController.state,
         getBalancesInSingleCall:
@@ -970,7 +967,6 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
         chainId: networkController.state.providerConfig.chainId,
@@ -999,7 +995,6 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
             listener,
           ),
         onPreferencesStateChange: (listener) =>
@@ -1015,8 +1010,6 @@ class Engine {
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-        // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
-        // This is not a blocker because gas fee controller does not need ticker to be defined
         getNetworkState: () => networkController.state,
         getSelectedAddress: () => preferencesController.state.selectedAddress,
         incomingTransactions: {
@@ -1044,8 +1037,6 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            // @ts-expect-error network controller will be updated to v12 and have this missmatch verison fixed
-            // This is not a blocker because gas fee controller does not need ticker to be defined
             listener,
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -1230,7 +1221,8 @@ class Engine {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       (state: NetworkState) => {
         if (
-          state.networkStatus === NetworkStatus.Available &&
+          state.networksMetadata[state.selectedNetworkClientId].status ===
+            NetworkStatus.Available &&
           state.providerConfig.chainId !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed

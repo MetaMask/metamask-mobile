@@ -831,6 +831,8 @@ class Confirm extends PureComponent {
 
       const { result, transactionMeta } = this.state;
 
+      await this.persistTransactionParameters(transaction);
+
       const isLedgerAccount = isHardwareAccount(transaction.from, [
         ExtendedKeyringTypes.ledger,
       ]);
