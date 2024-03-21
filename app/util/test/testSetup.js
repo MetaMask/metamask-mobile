@@ -171,12 +171,6 @@ NativeModules.RNCNetInfo = {
   getCurrentState: jest.fn(() => Promise.resolve()),
 };
 
-NativeModules.RCTAnalytics = {
-  optIn: jest.fn(),
-  trackEvent: jest.fn(),
-  getRemoteVariables: jest.fn(),
-};
-
 NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
 };
@@ -206,26 +200,6 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 jest.mock('../../images/static-logos.js', () => ({}));
 
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
-
-jest.mock('react-native-permissions', () => ({
-  check: jest.fn().mockRejectedValue('granted'),
-  checkMultiple: jest.fn().mockRejectedValue({
-    'android.permission.ACCESS_FINE_LOCATION': 'granted',
-    'android.permission.BLUETOOTH_SCAN': 'granted',
-    'android.permission.BLUETOOTH_CONNECT': 'granted',
-  }),
-  PERMISSIONS: {
-    IOS: {
-      BLUETOOTH_PERIPHERAL: 'ios.permission.BLUETOOTH_PERIPHERAL',
-    },
-    ANDROID: {
-      ACCESS_FINE_LOCATION: 'android.permission.ACCESS_FINE_LOCATION',
-      BLUETOOTH_SCAN: 'android.permission.BLUETOOTH_SCAN',
-      BLUETOOTH_CONNECT: 'android.permission.BLUETOOTH_CONNECT',
-    },
-  },
-  openSettings: jest.fn(),
-}));
 
 jest.mock('../theme', () => ({
   ...jest.requireActual('../theme'),

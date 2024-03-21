@@ -1,13 +1,13 @@
 /* eslint-disable react/jsx-no-bind */
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import BrowserBottomBar from './';
 
 describe('BrowserBottomBar', () => {
   it('should render correctly', () => {
     const fn = () => null;
 
-    const wrapper = shallow(
+    const { toJSON } = renderWithProvider(
       <BrowserBottomBar
         canGoBack
         canGoForward={false}
@@ -18,6 +18,6 @@ describe('BrowserBottomBar', () => {
         goForward={fn}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
