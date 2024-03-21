@@ -286,7 +286,8 @@ class Confirm extends PureComponent {
 
   getAnalyticsParams = () => {
     try {
-      const { selectedAsset, gasEstimateType, chainId } = this.props;
+      const { selectedAsset, gasEstimateType, chainId, isSmartTransaction } =
+        this.props;
       const { gasSelected, fromSelectedAddress } = this.state;
 
       return {
@@ -301,6 +302,7 @@ class Confirm extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        is_smart_transaction: isSmartTransaction,
       };
     } catch (error) {
       return {};
