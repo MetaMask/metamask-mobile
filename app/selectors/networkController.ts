@@ -5,8 +5,6 @@ import {
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
-import { getDecimalChainId } from '../util/networks';
-import { Hex } from '@metamask/utils';
 
 const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
@@ -68,18 +66,17 @@ export const selectNetworkClientId = createSelector(
  * included in the NetworkController state. It's set to "loading" if the
  * network is loading, but otherwise is set to the network ID.
  *
- * @deprecated Use networkStatus and chainId instead
+ * @deprecated Use networkStatus and networkId instead
  */
 export const selectLegacyNetwork = createSelector(
   selectNetworkControllerState,
-  selectChainId,
-  (networkControllerState: NetworkState, chainId: Hex) => {
-    const { selectedNetworkClientId, networksMetadata } =
+  (networkControllerState: NetworkState) => {
+    const { networkId, selectedNetworkClientId, networksMetadata } =
       networkControllerState;
 
     return networksMetadata?.[selectedNetworkClientId].status !==
       NetworkStatus.Available
       ? 'loading'
-      : getDecimalChainId(chainId);
+      : networkId;
   },
 );
