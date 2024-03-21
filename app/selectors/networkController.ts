@@ -6,6 +6,7 @@ import {
   NetworkStatus,
 } from '@metamask/network-controller';
 import { getDecimalChainId } from '../util/networks';
+import { Hex } from '@metamask/utils';
 
 const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
@@ -71,13 +72,14 @@ export const selectNetworkClientId = createSelector(
  */
 export const selectLegacyNetwork = createSelector(
   selectNetworkControllerState,
-  (networkControllerState: NetworkState) => {
-    const { selectedNetworkClientId, networksMetadata, providerConfig } =
+  selectChainId,
+  (networkControllerState: NetworkState, chainId: Hex) => {
+    const { selectedNetworkClientId, networksMetadata } =
       networkControllerState;
 
     return networksMetadata?.[selectedNetworkClientId].status !==
       NetworkStatus.Available
       ? 'loading'
-      : getDecimalChainId(providerConfig.chainId);
+      : getDecimalChainId(chainId);
   },
 );
