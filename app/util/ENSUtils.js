@@ -1,5 +1,5 @@
 import Engine from '../core/Engine';
-import ENS from 'ethjs-ens';
+import ENS from '@metamask/ethjs-ens';
 import { toLowerCaseEquals } from '../util/general';
 import {
   ChainId,
