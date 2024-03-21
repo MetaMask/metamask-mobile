@@ -2,8 +2,7 @@ import TestHelpers from '../helpers';
 import {
   COMFIRM_TXN_AMOUNT,
   CONFIRM_TRANSACTION_BUTTON_ID,
-  NAVBAR_TITLE_TEXT,
-  TRANSACTION_ACCOUNT_BALANCE,
+  NAVBAR_TITLE_NETWORKS_TEXT,
   TRANSACTION_VIEW_CONTAINER_ID,
 } from '../../wdio/screen-objects/testIDs/Screens/TransactionConfirm.testIds';
 import { ESTIMATED_FEE_TEST_ID } from '../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds.js';
@@ -11,17 +10,8 @@ import {
   EDIT_PRIORITY_SCREEN_TEST_ID,
   MAX_PRIORITY_FEE_INPUT_TEST_ID,
 } from '../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
-
-import messages from '../../locales/languages/en.json';
-
-const EDIT_GAS_FEE_AGGRESSIVE_TEXT = messages.edit_gas_fee_eip1559.aggressive;
-const EDIT_GAS_FEE_ADVANCE_OPTIONS_TEXT =
-  messages.edit_gas_fee_eip1559.advanced_options;
-const EDIT_GAS_FEE_SAVE_BUTTON_TEXT = messages.edit_gas_fee_eip1559.save;
-const EDIT_GAS_FEE_MARKET_TEXT = messages.edit_gas_fee_eip1559.market;
-const EDIT_GAS_FEE_LOW_TEXT = messages.edit_gas_fee_eip1559.low;
-
-const TRANSACTION_CONFIRMATION_CANCEL_BUTTON_TEXT = messages.transaction.cancel;
+import { EditGasViewSelectorsText } from '../selectors/EditGasView.selectors';
+import { TransactionConfirmViewSelectorsText } from '../selectors/TransactionConfirmView.selectors';
 
 export default class TransactionConfirmationView {
   static async tapConfirmButton() {
@@ -34,7 +24,9 @@ export default class TransactionConfirmationView {
   }
 
   static async tapCancelButton() {
-    await TestHelpers.tapByText(TRANSACTION_CONFIRMATION_CANCEL_BUTTON_TEXT);
+    await TestHelpers.tapByText(
+      TransactionConfirmViewSelectorsText.CANCEL_BUTTON,
+    );
   }
 
   static async tapEstimatedGasLink() {
@@ -42,19 +34,19 @@ export default class TransactionConfirmationView {
   }
 
   static async tapLowPriorityGasOption() {
-    await TestHelpers.tapByText(EDIT_GAS_FEE_LOW_TEXT);
+    await TestHelpers.tapByText(EditGasViewSelectorsText.LOW);
   }
 
   static async tapMarketPriorityGasOption() {
-    await TestHelpers.tapByText(EDIT_GAS_FEE_MARKET_TEXT);
+    await TestHelpers.tapByText(EditGasViewSelectorsText.MARKET);
   }
 
   static async tapAggressivePriorityGasOption() {
-    await TestHelpers.tapByText(EDIT_GAS_FEE_AGGRESSIVE_TEXT);
+    await TestHelpers.tapByText(EditGasViewSelectorsText.AGGRESSIVE);
   }
 
   static async tapAdvancedOptionsPriorityGasOption() {
-    await TestHelpers.tapByText(EDIT_GAS_FEE_ADVANCE_OPTIONS_TEXT);
+    await TestHelpers.tapByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
   }
 
   static async isTransactionTotalCorrect(amount) {
@@ -81,26 +73,14 @@ export default class TransactionConfirmationView {
   }
 
   static async tapMaxPriorityFeeSaveButton() {
-    await TestHelpers.tapByText(EDIT_GAS_FEE_SAVE_BUTTON_TEXT);
+    await TestHelpers.tapByText(EditGasViewSelectorsText.SAVE_BUTTON);
   }
 
   static async isVisible() {
     await TestHelpers.checkIfVisible(TRANSACTION_VIEW_CONTAINER_ID);
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(TRANSACTION_VIEW_CONTAINER_ID);
-  }
-
-  static async isBalanceVisible() {
-    await TestHelpers.checkIfVisible(TRANSACTION_ACCOUNT_BALANCE);
-  }
-
-  static async isBalanceNotVisible() {
-    await TestHelpers.checkIfNotVisible(TRANSACTION_ACCOUNT_BALANCE);
-  }
-
   static async isNetworkNameVisible(text) {
-    await TestHelpers.checkIfElementHasString(NAVBAR_TITLE_TEXT, text);
+    await TestHelpers.checkIfElementHasString(NAVBAR_TITLE_NETWORKS_TEXT, text);
   }
 }

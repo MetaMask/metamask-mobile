@@ -5,8 +5,8 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 
 import Regions from './Regions';
 import useRegions from '../../hooks/useRegions';
-import { OnRampSDK } from '../../sdk';
-import { Region } from '../../types';
+import { RampSDK } from '../../sdk';
+import { RampType, Region } from '../../types';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 import Routes from '../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
@@ -15,7 +15,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+      name: Routes.RAMP.REGION,
     },
     {
       state: {
@@ -30,20 +30,23 @@ function render(Component: React.ComponentType) {
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedCurrency = jest.fn();
 
-const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
+const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedRegion: mockSetSelectedRegion,
   setSelectedFiatCurrencyId: mockSetSelectedCurrency,
   sdkError: undefined,
   selectedChainId: '1',
+  rampType: RampType.BUY,
+  isBuy: true,
+  isSell: false,
 };
 
-let mockUseFiatOnRampSDKValues: Partial<OnRampSDK> = {
-  ...mockuseFiatOnRampSDKInitialValues,
+let mockUseRampSDKValues: Partial<RampSDK> = {
+  ...mockUseRampSDKInitialValues,
 };
 
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
-  useFiatOnRampSDK: () => mockUseFiatOnRampSDKValues,
+  useRampSDK: () => mockUseRampSDKValues,
 }));
 
 const mockQueryGetCountries = jest.fn();
@@ -56,6 +59,10 @@ const mockRegionsData = [
     id: '/regions/cl',
     name: 'Chile',
     unsupported: false,
+    support: {
+      buy: true,
+      sell: true,
+    },
   },
   {
     currencies: ['/currencies/fiat/ars'],
@@ -63,10 +70,14 @@ const mockRegionsData = [
     id: '/regions/ar',
     name: 'Argentina',
     unsupported: false,
+    support: {
+      buy: true,
+      sell: true,
+    },
   },
 ] as Partial<Country>[];
 
-const mockuseRegionsInitialValues: Partial<ReturnType<typeof useRegions>> = {
+const mockUseRegionsInitialValues: Partial<ReturnType<typeof useRegions>> = {
   data: mockRegionsData as Country[],
   isFetching: false,
   error: null,
@@ -77,7 +88,7 @@ const mockuseRegionsInitialValues: Partial<ReturnType<typeof useRegions>> = {
 };
 
 let mockUseRegionsValues: Partial<ReturnType<typeof useRegions>> = {
-  ...mockuseRegionsInitialValues,
+  ...mockUseRegionsInitialValues,
 };
 
 jest.mock('../../hooks/useRegions', () => jest.fn(() => mockUseRegionsValues));
@@ -111,20 +122,18 @@ describe('Regions View', () => {
     mockSetOptions.mockClear();
     mockPop.mockClear();
     mockTrackEvent.mockClear();
+    (mockUseRampSDKInitialValues.setSelectedRegion as jest.Mock).mockClear();
     (
-      mockuseFiatOnRampSDKInitialValues.setSelectedRegion as jest.Mock
-    ).mockClear();
-    (
-      mockuseFiatOnRampSDKInitialValues.setSelectedFiatCurrencyId as jest.Mock
+      mockUseRampSDKInitialValues.setSelectedFiatCurrencyId as jest.Mock
     ).mockClear();
   });
 
   beforeEach(() => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
     };
     mockUseRegionsValues = {
-      ...mockuseRegionsInitialValues,
+      ...mockUseRegionsInitialValues,
     };
   });
 
@@ -140,7 +149,7 @@ describe('Regions View', () => {
 
   it('renders correctly while loading', async () => {
     mockUseRegionsValues = {
-      ...mockuseRegionsInitialValues,
+      ...mockUseRegionsInitialValues,
       isFetching: true,
     };
     render(Regions);
@@ -149,7 +158,7 @@ describe('Regions View', () => {
 
   it('renders correctly with no data', async () => {
     mockUseRegionsValues = {
-      ...mockuseRegionsInitialValues,
+      ...mockUseRegionsInitialValues,
       data: null,
     };
     render(Regions);
@@ -158,7 +167,7 @@ describe('Regions View', () => {
 
   it('renders correctly with selectedRegion', async () => {
     mockUseRegionsValues = {
-      ...mockuseRegionsInitialValues,
+      ...mockUseRegionsInitialValues,
       selectedRegion: mockRegionsData[0] as Country,
     };
     render(Regions);
@@ -188,11 +197,18 @@ describe('Regions View', () => {
     });
     fireEvent.press(regionButton);
     expect(mockSetSelectedRegion).toHaveBeenCalledWith(regionToPress);
+    expect(mockTrackEvent).toBeCalledWith('RAMP_REGION_SELECTED', {
+      country_id: '/regions/cl',
+      is_unsupported_onramp: false,
+      is_unsupported_offramp: false,
+      location: 'Region Screen',
+      state_id: '/regions/cl',
+    });
   });
 
   it('navigates on continue press', async () => {
     mockUseRegionsValues = {
-      ...mockuseRegionsInitialValues,
+      ...mockUseRegionsInitialValues,
       selectedRegion: mockRegionsData[0] as Country,
     };
     render(Regions);
@@ -203,14 +219,27 @@ describe('Regions View', () => {
   });
 
   it('navigates and tracks event on cancel button press', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
     };
     render(Regions);
     fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
     expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
+      location: 'Region Screen',
+    });
+
+    mockTrackEvent.mockReset();
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      isBuy: false,
+      isSell: true,
+    };
+    render(Regions);
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+      chain_id_source: '1',
       location: 'Region Screen',
     });
   });
@@ -223,16 +252,25 @@ describe('Regions View', () => {
 
   it('renders correctly with unsupportedRegion', async () => {
     mockUseRegionsValues = {
-      ...mockuseRegionsInitialValues,
+      ...mockUseRegionsInitialValues,
       unsupportedRegion: mockRegionsData[1] as Region,
+    };
+    render(Regions);
+    expect(screen.toJSON()).toMatchSnapshot();
+
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
     };
     render(Regions);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with sdkError', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
     render(Regions);
@@ -240,8 +278,8 @@ describe('Regions View', () => {
   });
 
   it('navigates to home when clicking sdKError button', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
     render(Regions);
@@ -253,7 +291,7 @@ describe('Regions View', () => {
 
   it('renders correctly with error', async () => {
     mockUseRegionsValues = {
-      ...mockuseRegionsInitialValues,
+      ...mockUseRegionsInitialValues,
       error: 'Test error',
     };
     render(Regions);
@@ -262,7 +300,7 @@ describe('Regions View', () => {
 
   it('queries countries again with error', async () => {
     mockUseRegionsValues = {
-      ...mockuseRegionsInitialValues,
+      ...mockUseRegionsInitialValues,
       error: 'Test error',
     };
     render(Regions);

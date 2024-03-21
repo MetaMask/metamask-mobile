@@ -13,7 +13,7 @@ import { strings } from '../../../../locales/i18n';
 import { createStyles } from './styles';
 import { useTheme } from '../../../util/theme';
 import UrlAutocomplete from '../../UI/UrlAutocomplete';
-import { BROWSER_URL_MODAL_ID } from '../../../constants/test-ids';
+import { BrowserUrlModalSelectorsIDs } from '../../../../e2e/selectors/Modals/BrowserUrlModal.selectors';
 import {
   createNavigationDetails,
   useParams,
@@ -80,7 +80,10 @@ const BrowserUrlModal = () => {
 
   const renderContent = () => (
     <>
-      <View style={styles.urlModalContent} testID={BROWSER_URL_MODAL_ID}>
+      <View
+        style={styles.urlModalContent}
+        testID={BrowserUrlModalSelectorsIDs.CONTAINER}
+      >
         <View style={styles.searchWrapper}>
           <TextInput
             keyboardType="web-search"

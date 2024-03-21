@@ -1,68 +1,56 @@
-import TestHelpers from '../../helpers';
 import {
-  WELCOME_SCREEN_CAROUSEL_TITLE_ID,
-  WELCOME_SCREEN_GET_STARTED_BUTTON_ID,
-} from '../../../wdio/screen-objects/testIDs/Screens/WelcomeScreen.testIds';
+  OnboardingCarouselSelectorIDs,
+  OnboardingCarouselSelectorText,
+} from '../../selectors/Onboarding/OnboardingCarousel.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-const ONBOARDING_CAROUSEL_ID = 'onboarding-carouselcarousel-screen--screen';
-
-const CAROUSEL_SCREEN_ONE_IMAGE_ID = 'carousel-one-image';
-const CAROUSEL_SCREEN_TWO_IMAGE_ID = 'carousel-two-image';
-const CAROUSEL_SCREEN_THREE_IMAGE_ID = 'carousel-three-image';
-
-export default class OnboardingCarouselView {
-  static async swipeCarousel() {
-    await TestHelpers.swipe(ONBOARDING_CAROUSEL_ID, 'left');
+class OnboardingCarouselView {
+  get container() {
+    return Matchers.getElementByID(OnboardingCarouselSelectorIDs.CONTAINER_ID);
   }
 
-  static async tapOnGetStartedButton() {
-    await TestHelpers.waitAndTap(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
-  }
-
-  static async isGetStartedButtonVisible() {
-    await TestHelpers.checkIfVisible(WELCOME_SCREEN_GET_STARTED_BUTTON_ID);
-  }
-
-  static async isMetaMaskWelcomeTextVisible() {
-    await TestHelpers.checkIfElementHasString(
-      ONBOARDING_CAROUSEL_ID,
-      'Welcome to MetaMask',
+  get getStartedButton() {
+    return Matchers.getElementByID(
+      OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
     );
   }
 
-  static async isWelcomeToMetaMaskImageVisible() {
-    await TestHelpers.checkIfVisible(CAROUSEL_SCREEN_ONE_IMAGE_ID);
+  get titleOne() {
+    return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_ONE);
   }
 
-  static async isManageYourDigitalTextVisible() {
-    await TestHelpers.checkIfElementHasString(
-      WELCOME_SCREEN_CAROUSEL_TITLE_ID(2),
-      'Manage your digital assets',
+  get imageOne() {
+    return Matchers.getElementByID(OnboardingCarouselSelectorIDs.ONE_IMAGE_ID);
+  }
+
+  get titleTwo() {
+    return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_TWO);
+  }
+
+  get imageTwo() {
+    return Matchers.getElementByID(OnboardingCarouselSelectorIDs.TWO_IMAGE_ID);
+  }
+
+  get titleThree() {
+    return Matchers.getElementByText(
+      OnboardingCarouselSelectorText.TITLE_THREE,
     );
   }
 
-  static async isManageYourDigitalImageVisible() {
-    await TestHelpers.checkIfVisible(CAROUSEL_SCREEN_TWO_IMAGE_ID);
-  }
-
-  static async isYourGatewayToWeb3TextVisible() {
-    await TestHelpers.checkIfElementHasString(
-      WELCOME_SCREEN_CAROUSEL_TITLE_ID(3),
-      'Your gateway to web3',
+  get imageThree() {
+    return Matchers.getElementByID(
+      OnboardingCarouselSelectorIDs.THREE_IMAGE_ID,
     );
   }
 
-  static async isYourGatewayToWeb3ImageVisible() {
-    await TestHelpers.checkIfVisible(CAROUSEL_SCREEN_THREE_IMAGE_ID);
+  async swipeCarousel() {
+    await Gestures.swipe(this.container, 'left');
   }
 
-  static async isVisible() {
-    if (device.getPlatform() === 'ios') {
-      await TestHelpers.checkIfVisible(ONBOARDING_CAROUSEL_ID);
-    }
-  }
-
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ONBOARDING_CAROUSEL_ID);
+  async tapOnGetStartedButton() {
+    await Gestures.waitAndTap(this.getStartedButton);
   }
 }
+
+export default new OnboardingCarouselView();

@@ -1,16 +1,26 @@
-import { AvatarProps, AvatarVariants } from '../../Avatars/Avatar/Avatar.types';
-import { AvatarAccountType } from '../../Avatars/Avatar/variants/AvatarAccount';
+/* eslint-disable import/prefer-default-export */
+// External dependencies.
+import { AvatarVariant, AvatarAccountType } from '../../Avatars/Avatar';
+import { AvatarProps } from '../../Avatars/Avatar/Avatar.types';
 
-export const TEST_ACCOUNT_ADDRESS =
-  '0x2990079bcdEe240329a520d2444386FC119da21a';
-export const TEST_CELL_TITLE = 'Orangefox.eth';
-export const TEST_CELL_SECONDARY_TEXT =
-  '0x2990079bcdEe240329a520d2444386FC119da21a';
-export const TEST_CELL_TERTIARY_TEXT = 'Updated 1 sec ago';
-export const TEST_TAG_LABEL_TEXT = 'Imported';
+// Internal dependencies.
+import { CellProps } from './Cell.types';
 
-export const TEST_AVATAR_PROPS: AvatarProps = {
-  variant: AvatarVariants.Account,
-  accountAddress: TEST_ACCOUNT_ADDRESS,
+// Sample consts
+const SAMPLE_CELL_TITLE = 'Orangefox.eth';
+const SAMPLE_CELL_SECONDARYTEXT = '0x2990079bcdEe240329a520d2444386FC119da21a';
+const SAMPLE_CELL_TERTIARY_TEXT = 'Updated 1 sec ago';
+const SAMPLE_CELL_TAGLABEL = 'Imported';
+const SAMPLE_CELL_AVATARPROPS: AvatarProps = {
+  variant: AvatarVariant.Account,
+  accountAddress: '0x2990079bcdEe240329a520d2444386FC119da21a',
   type: AvatarAccountType.JazzIcon,
+};
+
+export const SAMPLE_CELL_PROPS: CellProps = {
+  title: SAMPLE_CELL_TITLE,
+  secondaryText: SAMPLE_CELL_SECONDARYTEXT,
+  tertiaryText: SAMPLE_CELL_TERTIARY_TEXT,
+  tagLabel: SAMPLE_CELL_TAGLABEL,
+  avatarProps: SAMPLE_CELL_AVATARPROPS,
 };

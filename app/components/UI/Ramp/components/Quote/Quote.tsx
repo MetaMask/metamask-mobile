@@ -14,7 +14,7 @@ import Animated, {
   withTiming,
   WithTimingConfig,
 } from 'react-native-reanimated';
-import { QuoteResponse } from '@consensys/on-ramp-sdk';
+import { QuoteResponse, SellQuoteResponse } from '@consensys/on-ramp-sdk';
 import { ProviderEnvironmentTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import Box from '../Box';
 import Text from '../../../../Base/Text';
@@ -30,20 +30,24 @@ import { strings } from '../../../../../../locales/i18n';
 import ApplePayButton from '../../containers/ApplePayButton';
 import RemoteImage from '../../../../Base/RemoteImage';
 
+import TagColored from '../../../../../component-library/components-temp/TagColored';
 import Row from '../Row';
 import styleSheet from './Quote.styles';
 import { useStyles } from '../../../../../component-library/hooks';
-
+import { isBuyQuote } from '../../utils';
+import { RampType } from '../../types';
 // TODO: Convert into typescript and correctly type optionals
 const ListItem = BaseListItem as any;
 
 interface Props {
-  quote: QuoteResponse;
-  onPress?: () => any;
-  onPressBuy?: () => any;
+  quote: QuoteResponse | SellQuoteResponse;
+  previouslyUsedProvider?: boolean;
+  onPress?: () => void;
+  onPressCTA?: () => void;
   highlighted?: boolean;
   isLoading?: boolean;
-  showInfo: () => any;
+  showInfo: () => void;
+  rampType: RampType;
 }
 
 const animationConfig: WithTimingConfig = {
@@ -53,11 +57,13 @@ const animationConfig: WithTimingConfig = {
 
 const Quote: React.FC<Props> = ({
   quote,
+  previouslyUsedProvider,
   onPress,
-  onPressBuy,
+  onPressCTA,
   showInfo,
   isLoading,
   highlighted,
+  rampType,
 }: Props) => {
   const {
     styles,
@@ -71,8 +77,10 @@ const Quote: React.FC<Props> = ({
     fiat,
     provider,
     crypto,
-    amountOutInFiat,
   } = quote;
+  const amountOutInFiat = isBuyQuote(quote, rampType)
+    ? quote.amountOutInFiat
+    : 0;
   const totalFees = networkFee + providerFee;
   const price = amountIn - totalFees;
 
@@ -112,6 +120,13 @@ const Quote: React.FC<Props> = ({
         accessible={!highlighted}
         accessibilityLabel={quote.provider?.name}
       >
+        {previouslyUsedProvider ? (
+          <ListItem.Date>
+            <TagColored>
+              {strings('fiat_on_ramp_aggregator.previously_used')}
+            </TagColored>
+          </ListItem.Date>
+        ) : null}
         <ListItem.Content>
           <ListItem.Body>
             <TouchableOpacity
@@ -145,20 +160,45 @@ const Quote: React.FC<Props> = ({
           <ListItem.Content>
             <ListItem.Body>
               <Text big primary bold>
-                {renderFromTokenMinimalUnit(
-                  toTokenMinimalUnit(
-                    amountOut,
-                    crypto?.decimals ?? 0,
-                  ).toString(),
-                  crypto?.decimals ?? 0,
-                )}{' '}
-                {crypto?.symbol}
+                {isBuyQuote(quote, rampType) ? (
+                  <>
+                    {renderFromTokenMinimalUnit(
+                      toTokenMinimalUnit(
+                        amountOut,
+                        crypto?.decimals ?? 0,
+                      ).toString(),
+                      crypto?.decimals ?? 0,
+                    )}{' '}
+                    {crypto?.symbol}
+                  </>
+                ) : (
+                  `≈ ${renderFiat(amountOut, fiatCode, fiat?.decimals)}`
+                )}
               </Text>
             </ListItem.Body>
             <ListItem.Amounts>
               <Text big primary right>
-                ≈ {fiatSymbol}{' '}
-                {renderFiat(amountOutInFiat ?? price, fiatCode, fiat?.decimals)}
+                {isBuyQuote(quote, rampType) ? (
+                  <>
+                    ≈ {fiatSymbol}{' '}
+                    {renderFiat(
+                      amountOutInFiat ?? price,
+                      fiatCode,
+                      fiat?.decimals,
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {renderFromTokenMinimalUnit(
+                      toTokenMinimalUnit(
+                        amountIn,
+                        crypto?.decimals ?? 0,
+                      ).toString(),
+                      crypto?.decimals ?? 0,
+                    )}{' '}
+                    {crypto?.symbol}
+                  </>
+                )}
               </Text>
             </ListItem.Amounts>
           </ListItem.Content>
@@ -169,7 +209,7 @@ const Quote: React.FC<Props> = ({
           style={[styles.data, animatedStyle]}
         >
           <View style={styles.buyButton}>
-            {quote.isNativeApplePay ? (
+            {isBuyQuote(quote, rampType) && quote.isNativeApplePay ? (
               <ApplePayButton
                 quote={quote}
                 label={`${
@@ -182,7 +222,7 @@ const Quote: React.FC<Props> = ({
             ) : (
               <StyledButton
                 type={'blue'}
-                onPress={onPressBuy}
+                onPress={onPressCTA}
                 disabled={isLoading}
               >
                 {isLoading ? (

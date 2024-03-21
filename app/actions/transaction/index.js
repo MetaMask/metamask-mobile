@@ -85,6 +85,17 @@ export function prepareTransaction(transaction) {
   };
 }
 
+export function setTransactionSecurityAlertResponse(
+  transactionId,
+  securityAlertResponse,
+) {
+  return {
+    type: 'SET_TRANSACTION_SECURITY_ALERT_RESPONSE',
+    transactionId,
+    securityAlertResponse,
+  };
+}
+
 /**
  * Sets any attribute in transaction object
  *
@@ -94,6 +105,18 @@ export function setTransactionObject(transaction) {
   return {
     type: 'SET_TRANSACTION_OBJECT',
     transaction,
+  };
+}
+
+/**
+ * Sets the current transaction ID only.
+ *
+ * @param {object} transactionId - Id of the current transaction.
+ */
+export function setTransactionId(transactionId) {
+  return {
+    type: 'SET_TRANSACTION_ID',
+    transactionId,
   };
 }
 

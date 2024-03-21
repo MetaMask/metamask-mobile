@@ -1,5 +1,7 @@
 # Card
 
+![Card](./Card.png)
+
 Card is a wrapper component typically used for displaying Card Content.
 
 ## Props

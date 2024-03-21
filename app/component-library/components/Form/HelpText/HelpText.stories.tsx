@@ -1,42 +1,27 @@
-/* eslint-disable no-console */
-
-// Third party dependencies.
-import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { select, text } from '@storybook/addon-knobs';
-
-// External dependencies.
-import { storybookPropsGroupID } from '../../../constants/storybook.constants';
-
 // Internal dependencies.
-import HelpText from './HelpText';
-import { HelpTextProps, HelpTextSeverity } from './HelpText.types';
-import {
-  DEFAULT_HELPTEXT_SEVERITY,
-  SAMPLE_HELPTEXT_TEXT,
-} from './HelpText.constants';
+import { default as HelpTextComponent } from './HelpText';
+import { SAMPLE_HELPTEXT_PROPS } from './HelpText.constants';
+import { HelpTextSeverity } from './HelpText.types';
 
-export const getHelpTextStoryProps = (): HelpTextProps => {
-  const helpTextText = text(
-    'HelpText',
-    SAMPLE_HELPTEXT_TEXT,
-    storybookPropsGroupID,
-  );
-
-  const severitySelector = select(
-    'severity',
-    HelpTextSeverity,
-    DEFAULT_HELPTEXT_SEVERITY,
-    storybookPropsGroupID,
-  );
-  return {
-    children: helpTextText,
-    severity: severitySelector,
-  };
+const HelpTextMeta = {
+  title: 'Component Library / Form',
+  component: HelpTextComponent,
+  argTypes: {
+    severity: {
+      options: HelpTextSeverity,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_HELPTEXT_PROPS.severity,
+    },
+    children: {
+      control: {
+        type: 'text',
+      },
+      defaultValue: SAMPLE_HELPTEXT_PROPS.children,
+    },
+  },
 };
+export default HelpTextMeta;
 
-const HelpTextStory = () => <HelpText {...getHelpTextStoryProps()} />;
-
-storiesOf('Component Library / Form', module).add('HelpText', HelpTextStory);
-
-export default HelpTextStory;
+export const HelpText = {};

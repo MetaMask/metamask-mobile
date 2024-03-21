@@ -1,4 +1,6 @@
 // Third party dependencies.
+import { useNavigation } from '@react-navigation/native';
+import { isEqual } from 'lodash';
 import React, {
   useCallback,
   useContext,
@@ -7,61 +9,88 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
-import { ImageSourcePropType } from 'react-native';
-import { isEqual } from 'lodash';
-import { useNavigation } from '@react-navigation/native';
-
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
-import UntypedEngine from '../../../core/Engine';
-import { isDefaultAccountName } from '../../../util/ENSUtils';
-import Logger from '../../../util/Logger';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { SelectedAccount } from '../../../components/UI/AccountSelectorList/AccountSelectorList.types';
+import { strings } from '../../../../locales/i18n';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
-import { useAccounts, Account } from '../../hooks/useAccounts';
-import getAccountNameWithENS from '../../../util/accounts';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { getActiveTabUrl } from '../../../util/transactions';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
-import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { safeToChecksumAddress } from '../../../util/address';
-import USER_INTENT from '../../../constants/permissions';
+import { SelectedAccount } from '../../../components/UI/AccountSelectorList/AccountSelectorList.types';
+import { USER_INTENT } from '../../../constants/permissions';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import UntypedEngine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { isDefaultAccountName } from '../../../util/ENSUtils';
+import Logger from '../../../util/Logger';
+import getAccountNameWithENS from '../../../util/accounts';
+import {
+  getAddressAccountType,
+  safeToChecksumAddress,
+} from '../../../util/address';
+import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
+import { getActiveTabUrl } from '../../../util/transactions';
+import { Account, useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
+import { StyleSheet } from 'react-native';
+import URLParse from 'url-parse';
+import AppConstants from '../../../../app/core/AppConstants';
+import { RootState } from '../../../../app/reducers';
+import PhishingModal from '../../../components/UI/PhishingModal';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import Routes from '../../../constants/navigation/Routes';
+import {
+  MM_BLOCKLIST_ISSUE_URL,
+  MM_ETHERSCAN_URL,
+  MM_PHISH_DETECT_URL,
+} from '../../../constants/urls';
+import SDKConnect from '../../../core/SDKConnect/SDKConnect';
+import { trackDappViewedEvent } from '../../../util/metrics';
+import { useTheme } from '../../../util/theme';
+import useFavicon from '../../hooks/useFavicon/useFavicon';
 import {
   AccountConnectProps,
   AccountConnectScreens,
 } from './AccountConnect.types';
+import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
-import AccountConnectMultiSelector from './AccountConnectMultiSelector';
-import URLParse from 'url-parse';
+const createStyles = () =>
+  StyleSheet.create({
+    fullScreenModal: {
+      flex: 1,
+    },
+  });
 
 const AccountConnect = (props: AccountConnectProps) => {
   const Engine = UntypedEngine as any;
+
+  const { colors } = useTheme();
+  const styles = createStyles();
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
+
+  const [blockedUrl, setBlockedUrl] = useState('');
+
   const selectedWalletAddress = useSelector(selectSelectedAddress);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
     selectedWalletAddress,
   ]);
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
   );
@@ -70,7 +99,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   });
   const previousIdentitiesListSize = useRef<number>();
   const identitiesMap = useSelector(selectIdentities);
-
+  const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
   const { toastRef } = useContext(ToastContext);
@@ -79,27 +108,84 @@ const AccountConnect = (props: AccountConnectProps) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  const { id: channelId, origin: metadataOrigin } = hostInfo.metadata as {
+    id: string;
+    origin: string;
+  };
+
   const origin: string = useSelector(getActiveTabUrl, isEqual);
-  const hostname = hostInfo.metadata.origin;
+  const accountsLength = useSelector(selectAccountsLength);
+
+  const [hostname, setHostname] = useState<string>(origin);
+
   const urlWithProtocol = prefixUrlWithProtocol(hostname);
+  const sdkConnection = SDKConnect.getInstance().getConnection({ channelId });
+  // Last wallet connect session metadata
+  const wc2Metadata = useSelector((state: RootState) => state.sdk.wc2Metadata);
+
+  const dappIconUrl = sdkConnection?.originatorInfo?.icon;
+  const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
+
+  const isAllowedUrl = useCallback(
+    (url: string) => {
+      const { PhishingController } = Engine.context;
+
+      // Update phishing configuration if it is out-of-date
+      // This is async but we are not `await`-ing it here intentionally, so that we don't slow
+      // down network requests. The configuration is updated for the next request.
+      PhishingController.maybeUpdateState();
+
+      const phishingControllerTestResult = PhishingController.test(url);
+
+      return !phishingControllerTestResult.result;
+    },
+    [Engine.context],
+  );
+
+  useEffect(() => {
+    const url = dappUrl || wc2Metadata?.url || '';
+
+    const cleanUrl = url.replace(/^https?:\/\//, '');
+
+    const isAllowed = isAllowedUrl(cleanUrl);
+
+    if (!isAllowed) {
+      setBlockedUrl(dappUrl);
+      setShowPhishingModal(true);
+    }
+  }, [isAllowedUrl, dappUrl, wc2Metadata?.url]);
+
+  const faviconSource = useFavicon(origin);
+
+  const actualIcon = useMemo(
+    () => (dappIconUrl ? { uri: dappIconUrl } : faviconSource),
+    [dappIconUrl, faviconSource],
+  );
 
   const secureIcon = useMemo(
     () =>
-      (getUrlObj(origin) as URLParse<string>).protocol === 'https:'
+      (getUrlObj(hostname) as URLParse<string>).protocol === 'https:'
         ? IconName.Lock
         : IconName.LockSlash,
-    [origin],
+    [hostname],
   );
 
-  const accountsLength = useSelector(selectAccountsLength);
+  const loadHostname = useCallback(async () => {
+    if (sdkConnection) {
+      const _hostname = (
+        sdkConnection?.originatorInfo?.url ?? metadataOrigin
+      ).replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+      return _hostname;
+    }
 
-  /**
-   * Get image url from favicon api.
-   */
-  const favicon: ImageSourcePropType = useMemo(() => {
-    const iconUrl = `https://api.faviconkit.com/${hostname}/50`;
-    return { uri: iconUrl };
-  }, [hostname]);
+    return wc2Metadata?.url ?? channelId;
+  }, [channelId, metadataOrigin, sdkConnection, wc2Metadata]);
+
+  // Retrieve hostname info based on channelId
+  useEffect(() => {
+    loadHostname().then(setHostname);
+  }, [hostname, setHostname, loadHostname]);
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -117,13 +203,72 @@ const AccountConnect = (props: AccountConnectProps) => {
   const cancelPermissionRequest = useCallback(
     (requestId) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
+      if (channelId && accountsLength === 0) {
+        // Remove Potential SDK connection
+        SDKConnect.getInstance().removeChannel({
+          channelId,
+          sendTerminate: true,
+        });
+      }
 
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
+      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
         number_of_accounts: accountsLength,
         source: 'permission system',
       });
     },
-    [Engine.context.PermissionController, accountsLength],
+    [
+      Engine.context.PermissionController,
+      accountsLength,
+      channelId,
+      trackEvent,
+    ],
+  );
+
+  const navigateToUrlInEthPhishingModal = useCallback(
+    (url: string | null) => {
+      setShowPhishingModal(false);
+      cancelPermissionRequest(permissionRequestId);
+      navigation.goBack();
+      setIsLoading(false);
+
+      if (url !== null) {
+        navigation.navigate(Routes.BROWSER.HOME, {
+          screen: Routes.BROWSER.VIEW,
+          params: {
+            newTabUrl: url,
+            timestamp: Date.now(),
+          },
+        });
+      }
+    },
+    [cancelPermissionRequest, navigation, permissionRequestId],
+  );
+
+  const continueToPhishingSite = useCallback(() => {
+    setShowPhishingModal(false);
+  }, []);
+
+  const goToETHPhishingDetector = useCallback(() => {
+    navigateToUrlInEthPhishingModal(MM_PHISH_DETECT_URL);
+  }, [navigateToUrlInEthPhishingModal]);
+
+  const goToFilePhishingIssue = useCallback(() => {
+    navigateToUrlInEthPhishingModal(MM_BLOCKLIST_ISSUE_URL);
+  }, [navigateToUrlInEthPhishingModal]);
+
+  const goToEtherscam = useCallback(() => {
+    navigateToUrlInEthPhishingModal(MM_ETHERSCAN_URL);
+  }, [navigateToUrlInEthPhishingModal]);
+
+  const goBackToSafety = useCallback(() => {
+    navigateToUrlInEthPhishingModal(null); // No URL means just go back to safety without navigating to a new page
+  }, [navigateToUrlInEthPhishingModal]);
+
+  const triggerDappViewedEvent = useCallback(
+    (numberOfConnectedAccounts: number) =>
+      // Track dapp viewed event
+      trackDappViewedEvent({ hostname, numberOfConnectedAccounts }),
+    [hostname],
   );
 
   const handleConnect = useCallback(async () => {
@@ -134,10 +279,11 @@ const AccountConnect = (props: AccountConnectProps) => {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
-        origin: hostname,
+        origin: metadataOrigin,
       },
       approvedAccounts: selectedAccounts,
     };
+
     const connectedAccountLength = selectedAccounts.length;
     const activeAddress = selectedAccounts[0].address;
     const activeAccountName = getAccountNameWithENS({
@@ -151,9 +297,13 @@ const AccountConnect = (props: AccountConnectProps) => {
       await Engine.context.PermissionController.acceptPermissionsRequest(
         request,
       );
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
+
+      triggerDappViewedEvent(connectedAccountLength);
+
+      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
         number_of_accounts: accountsLength,
         number_of_accounts_connected: connectedAccountLength,
+        account_type: getAddressAccountType(activeAddress),
         source: 'in-app browser',
       });
       let labelOptions: ToastOptions['labelOptions'] = [];
@@ -188,11 +338,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     hostInfo,
     accounts,
     ensByAccountAddress,
-    hostname,
     accountAvatarType,
     Engine.context.PermissionController,
     toastRef,
     accountsLength,
+    metadataOrigin,
+    triggerDappViewedEvent,
+    trackEvent,
   ]);
 
   const handleCreateAccount = useCallback(
@@ -205,21 +357,18 @@ const AccountConnect = (props: AccountConnectProps) => {
           addedAccountAddress,
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
-          {},
-        );
+        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
       } catch (e: any) {
         Logger.error(e, 'error while trying to add a new account');
       } finally {
         setIsLoading(false);
       }
     },
-    [Engine.context],
+    [Engine.context, trackEvent],
   );
 
   const hideSheet = (callback?: () => void) =>
-    sheetRef?.current?.hide?.(callback);
+    sheetRef?.current?.onCloseBottomSheet?.(callback);
 
   /**
    * User intent is set on AccountConnectSingle,
@@ -255,16 +404,13 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-            {},
-          );
+          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-          AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
 
           break;
         }
@@ -282,6 +428,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     permissionRequestId,
     handleCreateAccount,
     handleConnect,
+    trackEvent,
   ]);
 
   const handleSheetDismiss = () => {
@@ -310,11 +457,12 @@ const AccountConnect = (props: AccountConnectProps) => {
     return (
       <AccountConnectSingle
         onSetSelectedAddresses={setSelectedAddresses}
+        connection={sdkConnection}
         onSetScreen={setScreen}
         onUserAction={setUserIntent}
         defaultSelectedAccount={defaultSelectedAccount}
         isLoading={isLoading}
-        favicon={favicon}
+        favicon={actualIcon}
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
       />
@@ -326,8 +474,9 @@ const AccountConnect = (props: AccountConnectProps) => {
     isLoading,
     setScreen,
     setSelectedAddresses,
-    favicon,
+    actualIcon,
     secureIcon,
+    sdkConnection,
     urlWithProtocol,
     setUserIntent,
   ]);
@@ -363,11 +512,12 @@ const AccountConnect = (props: AccountConnectProps) => {
         selectedAddresses={selectedAddresses}
         onSelectAddress={setSelectedAddresses}
         isLoading={isLoading}
-        favicon={favicon}
+        favicon={faviconSource}
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+        connection={sdkConnection}
       />
     ),
     [
@@ -377,9 +527,46 @@ const AccountConnect = (props: AccountConnectProps) => {
       setSelectedAddresses,
       isLoading,
       setUserIntent,
-      favicon,
+      faviconSource,
       urlWithProtocol,
       secureIcon,
+      sdkConnection,
+    ],
+  );
+
+  const renderPhishingModal = useCallback(
+    () => (
+      <Modal
+        isVisible={showPhishingModal}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        style={styles.fullScreenModal}
+        backdropOpacity={1}
+        backdropColor={colors.error.default}
+        animationInTiming={300}
+        animationOutTiming={300}
+        useNativeDriver
+      >
+        <PhishingModal
+          fullUrl={blockedUrl}
+          goToETHPhishingDetector={goToETHPhishingDetector}
+          continueToPhishingSite={continueToPhishingSite}
+          goToEtherscam={goToEtherscam}
+          goToFilePhishingIssue={goToFilePhishingIssue}
+          goBackToSafety={goBackToSafety}
+        />
+      </Modal>
+    ),
+    [
+      blockedUrl,
+      colors.error.default,
+      continueToPhishingSite,
+      goBackToSafety,
+      goToETHPhishingDetector,
+      goToEtherscam,
+      goToFilePhishingIssue,
+      showPhishingModal,
+      styles.fullScreenModal,
     ],
   );
 
@@ -400,13 +587,10 @@ const AccountConnect = (props: AccountConnectProps) => {
   ]);
 
   return (
-    <SheetBottom
-      onDismissed={handleSheetDismiss}
-      reservedMinOverlayHeight={0}
-      ref={sheetRef}
-    >
+    <BottomSheet onClose={handleSheetDismiss} ref={sheetRef}>
       {renderConnectScreens()}
-    </SheetBottom>
+      {renderPhishingModal()}
+    </BottomSheet>
   );
 };
 

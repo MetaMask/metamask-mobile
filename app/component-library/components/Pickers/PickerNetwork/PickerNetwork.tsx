@@ -5,7 +5,7 @@ import React from 'react';
 import { Platform, TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Avatar, { AvatarSize, AvatarVariants } from '../../Avatars/Avatar';
+import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
 import Icon, { IconName, IconSize } from '../../Icons/Icon';
 import Text, { TextVariant } from '../../Texts/Text';
 import { useStyles } from '../../../hooks';
@@ -15,6 +15,7 @@ import { PickerNetworkProps } from './PickerNetwork.types';
 import stylesheet from './PickerNetwork.styles';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { NAVBAR_NETWORK_TEXT } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { PICKERNETWORK_ARROW_TESTID } from './PickerNetwork.constants';
 
 const PickerNetwork = ({
   onPress,
@@ -28,7 +29,7 @@ const PickerNetwork = ({
   return (
     <TouchableOpacity style={styles.base} onPress={onPress} {...props}>
       <Avatar
-        variant={AvatarVariants.Network}
+        variant={AvatarVariant.Network}
         size={AvatarSize.Xs}
         name={label}
         imageSource={imageSource}
@@ -41,7 +42,13 @@ const PickerNetwork = ({
       >
         {label}
       </Text>
-      <Icon size={IconSize.Xs} name={IconName.ArrowDown} />
+      {onPress && (
+        <Icon
+          size={IconSize.Xs}
+          name={IconName.ArrowDown}
+          testID={PICKERNETWORK_ARROW_TESTID}
+        />
+      )}
     </TouchableOpacity>
   );
 };

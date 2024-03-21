@@ -1,3 +1,9 @@
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
+import {
+  caveatSpecifications as snapsCaveatsSpecifications,
+  endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications,
+} from '@metamask/snaps-rpc-methods';
+///: END:ONLY_INCLUDE_IF
 import {
   constructPermission,
   PermissionType,
@@ -8,7 +14,7 @@ import { CaveatTypes, RestrictedMethods } from './constants';
 /**
  * This file contains the specifications of the permissions and caveats
  * that are recognized by our permission system. See the PermissionController
- * README in @metamask/snap-controllers for details.
+ * README in @metamask/snaps-controllers for details.
  */
 
 /**
@@ -65,6 +71,10 @@ export const getCaveatSpecifications = ({ getIdentities }) => ({
     validator: (caveat, _origin, _target) =>
       validateCaveatAccounts(caveat.value, getIdentities),
   },
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  ...snapsCaveatsSpecifications,
+  ...snapsEndowmentCaveatSpecifications,
+  ///: END:ONLY_INCLUDE_IF
 });
 
 /**

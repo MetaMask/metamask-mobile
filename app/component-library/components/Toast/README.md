@@ -1,4 +1,6 @@
-# Toast
+# [Toast](https://metamask-consensys.notion.site/Toast-0c8412d624174c47a20fb654f3001c26)
+
+![Toast](./Toast.png)
 
 Toast is a component that slides up from the bottom. It is typically used to show post confirmation information.
 

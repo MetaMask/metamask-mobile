@@ -1,11 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AddChainApproval renders 1`] = `
-<ApprovalModal
-  isVisible={true}
+<ForwardRef
+  shouldNavigateBack={false}
 >
-  <AddCustomNetwork />
-</ApprovalModal>
+  <View
+    style={
+      Object {
+        "alignItems": "flex-start",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <NetworkVerificationInfo />
+  </View>
+</ForwardRef>
 `;
 
 exports[`AddChainApproval returns null if incorrect approval request type 1`] = `""`;

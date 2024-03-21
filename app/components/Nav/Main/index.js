@@ -11,6 +11,7 @@ import {
   AppState,
   StyleSheet,
   View,
+  Linking,
   PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
@@ -68,7 +69,17 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
-import { addHexPrefix, toHexadecimal } from '../../../util/number';
+import { DEPRECATED_NETWORKS } from '../../../constants/network';
+import WarningAlert from '../../../components/UI/WarningAlert';
+import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
+import {
+  updateIncomingTransactions,
+  startIncomingTransactionPolling,
+  stopIncomingTransactionPolling,
+} from '../../../util/transaction-controller';
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
+import { SnapsExecutionWebView } from '../../../lib/snaps';
+///: END:ONLY_INCLUDE_IF
 
 const Stack = createStackNavigator();
 
@@ -90,6 +101,7 @@ const Main = (props) => {
   const [forceReload, setForceReload] = useState(false);
   const [showRemindLaterModal, setShowRemindLaterModal] = useState(false);
   const [skipCheckbox, setSkipCheckbox] = useState(false);
+  const [showDeprecatedAlert, setShowDeprecatedAlert] = useState(true);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -103,13 +115,20 @@ const Main = (props) => {
   useMinimumVersions();
 
   useEffect(() => {
-    const { TransactionController } = Engine.context;
-    const currentHexChainId = addHexPrefix(toHexadecimal(props.chainId));
-
-    if (props.showIncomingTransactionsNetworks[currentHexChainId]) {
-      TransactionController.startIncomingTransactionPolling();
+    if (DEPRECATED_NETWORKS.includes(props.chainId)) {
+      setShowDeprecatedAlert(true);
     } else {
-      TransactionController.stopIncomingTransactionPolling();
+      setShowDeprecatedAlert(false);
+    }
+  }, [props.chainId]);
+
+  useEffect(() => {
+    const chainId = props.chainId;
+
+    if (props.showIncomingTransactionsNetworks[chainId]) {
+      startIncomingTransactionPolling();
+    } else {
+      stopIncomingTransactionPolling();
     }
   }, [props.showIncomingTransactionsNetworks, props.chainId]);
 
@@ -154,7 +173,6 @@ const Main = (props) => {
   const handleAppStateChange = useCallback(
     (appState) => {
       const newModeIsBackground = appState === 'background';
-      const { TransactionController } = Engine.context;
 
       // If it was in background and it's not anymore
       // we need to stop the Background timer
@@ -170,7 +188,7 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await TransactionController.updateIncomingTransactions();
+          await updateIncomingTransactions();
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
@@ -321,6 +339,23 @@ const Main = (props) => {
     termsOfUse();
   }, [termsOfUse]);
 
+  const openDeprecatedNetworksArticle = () => {
+    Linking.openURL(GOERLI_DEPRECATED_ARTICLE);
+  };
+
+  const renderDeprecatedNetworkAlert = (chainId, backUpSeedphraseVisible) => {
+    if (DEPRECATED_NETWORKS.includes(chainId) && showDeprecatedAlert) {
+      return (
+        <WarningAlert
+          text={strings('networks.deprecated_goerli')}
+          dismissAlert={() => setShowDeprecatedAlert(false)}
+          onPressLearnMore={openDeprecatedNetworksArticle}
+          precedentAlert={backUpSeedphraseVisible}
+        />
+      );
+    }
+  };
+
   return (
     <React.Fragment>
       <View style={styles.flex}>
@@ -329,6 +364,15 @@ const Main = (props) => {
         ) : (
           renderLoader()
         )}
+        {
+          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+        }
+        <View>
+          <SnapsExecutionWebView />
+        </View>
+        {
+          ///: END:ONLY_INCLUDE_IF
+        }
         <GlobalAlert />
         <FadeOutOverlay />
         <Notification navigation={props.navigation} />
@@ -338,6 +382,10 @@ const Main = (props) => {
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
         />
+        {renderDeprecatedNetworkAlert(
+          props.chainId,
+          props.backUpSeedphraseVisible,
+        )}
         <SkipAccountSecurityModal
           modalVisible={showRemindLaterModal}
           onCancel={skipAccountModalSecureNow}
@@ -400,6 +448,10 @@ Main.propTypes = {
    * Current chain id
    */
   chainId: PropTypes.string,
+  /**
+   * backup seed phrase modal visible
+   */
+  backUpSeedphraseVisible: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -407,6 +459,7 @@ const mapStateToProps = (state) => ({
     selectShowIncomingTransactionNetworks(state),
   providerType: selectProviderType(state),
   chainId: selectChainId(state),
+  backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -6,7 +6,7 @@ import { CellSelectProps } from './variants/CellSelect/CellSelect.types';
 /**
  * Cell variants.
  */
-export enum CellVariants {
+export enum CellVariant {
   Select = 'Select',
   MultiSelect = 'MultiSelect',
   Display = 'Display',
@@ -15,7 +15,13 @@ export enum CellVariants {
 /**
  * Cell Account component props.
  */
-export type CellProps =
+export type CellProps = (
   | CellDisplayProps
   | CellMultiSelectProps
-  | CellSelectProps;
+  | CellSelectProps
+) & {
+  /**
+   * Variant of Cell
+   */
+  variant?: CellVariant;
+};

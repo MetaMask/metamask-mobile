@@ -1,5 +1,5 @@
 'use strict';
-import { Regression } from '../../tags';
+import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -11,12 +11,13 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import root from '../../../locales/languages/en.json';
-import ApprovalModal from '../../pages/modals/ApprovalModal';
+import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
+import Assertions from '../../utils/Assertions';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 
-describe(Regression('ERC20 tokens'), () => {
+describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
@@ -51,28 +52,20 @@ describe(Regression('ERC20 tokens'), () => {
         });
 
         //Input custom token amount
-        await TestHelpers.checkIfExists(ApprovalModal.APPROVE_TOKEN_AMOUNT);
-        await TestHelpers.replaceTextInField(
-          ApprovalModal.APPROVE_TOKEN_AMOUNT,
+        await ContractApprovalModal.clearInput();
+        await ContractApprovalModal.inputCustomAmount('2');
+
+        // Assert that custom token amount is shown
+        await Assertions.checkIfHasText(
+          ContractApprovalModal.approveTokenAmount,
           '2',
         );
 
-        // Assert that custom token amount is shown
-        await expect(
-          element(by.id(ApprovalModal.APPROVE_TOKEN_AMOUNT)),
-        ).toHaveText('2');
-
         // Tap next button
-        await TestHelpers.checkIfElementWithTextIsVisible(
-          root.transaction.next,
-        );
-        await TestHelpers.tapByText(root.transaction.next);
+        await ContractApprovalModal.tapNextButton();
 
         // Tap approve button
-        await TestHelpers.checkIfElementWithTextIsVisible(
-          root.transactions.tx_review_approve,
-        );
-        await TestHelpers.tapByText(root.transactions.tx_review_approve);
+        await ContractApprovalModal.tapApproveButton();
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();

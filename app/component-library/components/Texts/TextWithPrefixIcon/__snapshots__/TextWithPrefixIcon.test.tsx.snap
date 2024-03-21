@@ -16,11 +16,7 @@ exports[`TextWithPrefixIcon - Snapshot should render default settings correctly 
     testID="text-with-prefix-icon-icon"
   />
   <Text
-    style={
-      Object {
-        "color": "#24272A",
-      }
-    }
+    color="Default"
     testID="text-with-prefix-icon-text"
     variant="sHeadingSMRegular"
   >

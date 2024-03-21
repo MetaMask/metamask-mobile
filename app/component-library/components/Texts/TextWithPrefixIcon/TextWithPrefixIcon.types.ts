@@ -1,5 +1,5 @@
 // External dependencies.
-import { TextProps } from '../Text/Text.types';
+import { TextProps, TextColor } from '../Text/Text.types';
 import { IconProps } from '../../Icons/Icon';
 
 /**
@@ -18,4 +18,6 @@ export interface TextWithPrefixIconProps extends TextProps {
 export type TextWithPrefixIconStyleSheetVars = Pick<
   TextWithPrefixIconProps,
   'style'
->;
+> & {
+  color: TextColor;
+};

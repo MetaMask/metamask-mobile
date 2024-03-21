@@ -1,4 +1,4 @@
-import { Theme } from '@metamask/design-tokens';
+import type { Theme } from '@metamask/design-tokens';
 import { StyleSheet, TextStyle } from 'react-native';
 
 const styleSheet = (params: {
@@ -11,7 +11,7 @@ const styleSheet = (params: {
     theme,
     vars: { selected },
   } = params;
-  const { colors, typography } = theme;
+  const { colors } = theme;
   return StyleSheet.create({
     button: {
       backgroundColor: selected
@@ -26,7 +26,6 @@ const styleSheet = (params: {
       justifyContent: 'center',
     },
     label: {
-      ...typography.sBodySM,
       letterSpacing: 3,
       color: selected ? colors.background.default : colors.primary.default,
       textAlign: 'center',

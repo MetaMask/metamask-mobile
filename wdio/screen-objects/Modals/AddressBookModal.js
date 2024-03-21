@@ -5,11 +5,11 @@ import {
   ADDRESS_ALIAS_TITLE_ID,
   ENTER_ALIAS_INPUT_BOX_ID
 } from '../testIDs/Screens/AddressBook.testids';
-import { ADD_ADDRESS_MODAL_CONTAINER_ID } from '../../../app/constants/test-ids';
+import { AddAddressModalSelectorsIDs } from "../../../e2e/selectors/Modals/AddAddressModal.selectors";
 
 class AddressBookModal {
   get container() {
-    return Selectors.getElementByPlatform(ADD_ADDRESS_MODAL_CONTAINER_ID);
+    return Selectors.getElementByPlatform(AddAddressModalSelectorsIDs.CONTAINER);
   }
 
   get addressInputField() {

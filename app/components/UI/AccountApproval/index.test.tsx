@@ -1,27 +1,51 @@
 import React from 'react';
-import AccountApproval from './';
-import { shallow } from 'enzyme';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import AccountApproval from '.';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
-const mockStore = configureMockStore();
-const initialState = {
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PhishingController: {
+      maybeUpdateState: jest.fn(),
+      test: jest.fn((url: string) => {
+        if (url === 'phishing.com') return { result: true };
+        return { result: false };
+      }),
+    },
+    KeyringController: {
+      getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
+    },
+  },
+}));
+
+const mockInitialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState: {
+      ...initialBackgroundState,
+    },
   },
 };
-const store = mockStore(initialState);
 
 describe('AccountApproval', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <AccountApproval
-          currentPageInformation={{ icon: '', url: '', title: '' }}
-        />
-      </Provider>,
+    const container = renderWithProvider(
+      <AccountApproval
+        currentPageInformation={{ icon: '', url: '', title: '' }}
+      />,
+      { state: mockInitialState },
     );
-    expect(wrapper).toMatchSnapshot();
+
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should render a warning banner if the hostname is included in phishing list', () => {
+    const { getByText } = renderWithProvider(
+      <AccountApproval
+        currentPageInformation={{ icon: '', url: 'phishing.com', title: '' }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(getByText('Deceptive site ahead')).toBeTruthy();
   });
 });

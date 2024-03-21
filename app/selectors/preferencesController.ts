@@ -41,6 +41,12 @@ export const selectDisplayNftMedia = createSelector(
     preferencesControllerState.displayNftMedia,
 );
 
+export const selectUseSafeChainsListValidation = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.useSafeChainsListValidation,
+);
+
 export const selectDisabledRpcMethodPreferences = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
@@ -87,4 +93,14 @@ export const selectIsIpfsGatewayEnabled = createSelector(
         isIpfsGatewayEnabled: boolean;
       }
     ).isIpfsGatewayEnabled,
+);
+
+export const selectIsSecurityAlertsEnabled = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    (
+      preferencesControllerState as PreferencesState & {
+        securityAlertsEnabled: boolean;
+      }
+    ).securityAlertsEnabled,
 );

@@ -5,7 +5,7 @@ import {
   ProviderBuyFeatureBrowserEnum,
 } from '@consensys/on-ramp-sdk/dist/API';
 import CustomActionButtonComponent from '../components/CustomActionButton';
-import { useFiatOnRampSDK } from '../sdk';
+import { useRampSDK } from '../sdk';
 import useAnalytics from '../hooks/useAnalytics';
 import useInAppBrowser from '../hooks/useInAppBrowser';
 import Logger from '../../../../util/Logger';
@@ -38,8 +38,9 @@ const CustomActionButton: React.FC<
     selectedFiatCurrencyId,
     selectedChainId,
     callbackBaseUrl,
+    isBuy,
     sdk,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
 
   /**
    * * Handle custom action
@@ -57,16 +58,32 @@ const CustomActionButton: React.FC<
         providerId,
       );
 
-      trackEvent('ONRAMP_DIRECT_PROVIDER_CLICKED', {
+      const payload = {
         region: selectedRegion?.id as string,
-        provider_onramp: provider.provider.name,
-        currency_source: fiatSymbol,
-        currency_destination: selectedAsset?.symbol as string,
-        chain_id_destination: selectedChainId as string,
         payment_method_id: selectedPaymentMethodId as string,
-      });
+      };
 
-      const buyAction = await sdk.getBuyUrl(
+      if (isBuy) {
+        trackEvent('ONRAMP_DIRECT_PROVIDER_CLICKED', {
+          ...payload,
+          currency_source: fiatSymbol,
+          currency_destination: selectedAsset?.symbol as string,
+          provider_onramp: provider.provider.name,
+          chain_id_destination: selectedChainId as string,
+        });
+      } else {
+        trackEvent('OFFRAMP_DIRECT_PROVIDER_CLICKED', {
+          ...payload,
+          currency_destination: fiatSymbol,
+          currency_source: selectedAsset?.symbol as string,
+          provider_offramp: provider.provider.name,
+          chain_id_source: selectedChainId as string,
+        });
+      }
+
+      const getUrlMethod = isBuy ? 'getBuyUrl' : 'getSellUrl';
+
+      const buyAction = await sdk[getUrlMethod](
         provider.provider,
         selectedRegion?.id as string,
         selectedPaymentMethodId as string,
@@ -112,6 +129,7 @@ const CustomActionButton: React.FC<
     callbackBaseUrl,
     customAction,
     fiatSymbol,
+    isBuy,
     navigation,
     renderInAppBrowser,
     sdk,
@@ -127,7 +145,9 @@ const CustomActionButton: React.FC<
 
   return (
     <CustomActionButtonComponent
-      customActionButton={customAction.button}
+      customActionButton={
+        isBuy ? customAction.buyButton : customAction.sellButton
+      }
       onPress={handleCustomAction}
       isLoading={isLoading}
       disabled={disabled || isLoading}

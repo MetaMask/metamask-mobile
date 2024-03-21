@@ -8,11 +8,10 @@ import StyledButton from '../../../StyledButton';
 import Row from '../../components/Row';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { strings } from '../../../../../../locales/i18n';
-import { useAppTheme } from '../../../../../util/theme';
-import { colors as importedColors } from '../../../../../styles/common';
+import { useTheme } from '../../../../../util/theme';
 import useActivationKeys from '../../hooks/useActivationKeys';
 
-import { useFiatOnRampSDK } from '../../sdk';
+import { useRampSDK } from '../../sdk';
 import { useNavigation } from '@react-navigation/native';
 import { createAddActivationKeyNavDetails } from './AddActivationKey';
 
@@ -23,8 +22,9 @@ const ListItem = BaseListItem as any;
 
 function ActivationKeys() {
   const navigation = useNavigation();
-  const { colors } = useAppTheme();
-  const { isInternalBuild } = useFiatOnRampSDK();
+  const theme = useTheme();
+  const { colors } = theme;
+  const { isInternalBuild } = useRampSDK();
   const style = styles(colors);
 
   const {
@@ -79,7 +79,7 @@ function ActivationKeys() {
                   true: colors.primary.default,
                   false: colors.border.muted,
                 }}
-                thumbColor={importedColors.white}
+                thumbColor={theme.brandColors.white['000']}
                 ios_backgroundColor={colors.border.muted}
                 disabled={isLoadingKeys}
               />
@@ -91,6 +91,9 @@ function ActivationKeys() {
             </ListItem.Body>
             <ListItem.Amounts>
               <TouchableOpacity
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel="Delete Activation Key"
                 disabled={isLoadingKeys}
                 onPress={() => removeActivationKey(activationKey.key)}
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}

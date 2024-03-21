@@ -3,7 +3,6 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
-import { CHANGE_PASSWORD_TITLE_ID } from '../../../../constants/test-ids';
 import { AUTO_LOCK_SECTION } from './Sections/AutoLock/constants';
 import {
   BATCH_BALANCE_REQUESTS_SECTION,
@@ -18,9 +17,11 @@ import {
   REVEAL_PRIVATE_KEY_SECTION,
   SDK_SECTION,
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
-  THIRD_PARTY_SECTION,
   TURN_ON_REMEMBER_ME,
+  USE_SAFE_CHAINS_LIST_VALIDATION,
 } from './SecuritySettings.constants';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
+import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 
 const initialState = {
   privacy: { approvedHosts: {} },
@@ -88,7 +89,9 @@ describe('SecuritySettings', () => {
       },
     );
     expect(getByText('Protect your wallet')).toBeTruthy();
-    expect(getByTestId(CHANGE_PASSWORD_TITLE_ID)).toBeTruthy();
+    expect(
+      getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
+    ).toBeTruthy();
     expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
     expect(getByTestId(LOGIN_OPTIONS)).toBeTruthy();
     expect(getByTestId(TURN_ON_REMEMBER_ME)).toBeTruthy();
@@ -100,10 +103,27 @@ describe('SecuritySettings', () => {
     expect(getByTestId(DELETE_METRICS_BUTTON)).toBeTruthy();
     expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
     expect(getByTestId(BATCH_BALANCE_REQUESTS_SECTION)).toBeTruthy();
-    expect(getByTestId(THIRD_PARTY_SECTION)).toBeTruthy();
+    expect(SecurityPrivacyViewSelectorsIDs.INCOMING_TRANSACTIONS).toBeTruthy();
     expect(getByTestId(NFT_DISPLAY_MEDIA_MODE_SECTION)).toBeTruthy();
     expect(getByTestId(NFT_AUTO_DETECT_MODE_SECTION)).toBeTruthy();
     expect(getByTestId(IPFS_GATEWAY_SECTION)).toBeTruthy();
     expect(getByText('Automatic security checks')).toBeTruthy();
+    expect(getByTestId(USE_SAFE_CHAINS_LIST_VALIDATION)).toBeTruthy();
+  });
+
+  it('renders Blockaid settings', async () => {
+    const { getByTestId, findByText } = renderWithProvider(
+      <SecuritySettings />,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(await findByText('Security alerts')).toBeDefined();
+    expect(await findByText('Blockaid')).toBeDefined();
+
+    const toggle = getByTestId(SECURITY_ALERTS_TOGGLE_TEST_ID);
+    expect(toggle).toBeDefined();
+    expect(toggle.props.value).toBe(true);
   });
 });

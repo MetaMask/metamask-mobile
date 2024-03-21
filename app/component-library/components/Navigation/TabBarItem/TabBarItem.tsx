@@ -10,7 +10,7 @@ import { useStyles } from '../../../hooks';
 // Internal dependencies
 import styleSheet from './TabBarItem.styles';
 import { TabBarItemProps } from './TabBarItem.types';
-import Avatar, { AvatarVariants } from '../../Avatars/Avatar';
+import Avatar, { AvatarVariant } from '../../Avatars/Avatar';
 
 const TabBarItem = ({
   style,
@@ -25,7 +25,7 @@ const TabBarItem = ({
   return (
     <TouchableOpacity {...props} style={styles.base}>
       <Avatar
-        variant={AvatarVariants.Icon}
+        variant={AvatarVariant.Icon}
         name={icon}
         size={iconSize}
         backgroundColor={iconBackgroundColor}

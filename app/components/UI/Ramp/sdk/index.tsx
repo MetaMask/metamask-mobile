@@ -27,8 +27,10 @@ import {
   fiatOrdersPaymentMethodSelectorAgg,
   setFiatOrdersPaymentMethodAGG,
   networkShortNameSelector,
+  fiatOrdersGetStartedSell,
+  setFiatOrdersGetStartedSell,
 } from '../../../../reducers/fiatOrders';
-import { Region } from '../types';
+import { RampType, Region } from '../types';
 
 import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import Device from '../../../../util/device';
@@ -64,15 +66,18 @@ I18nEvents.addListener('localeChanged', (locale) => {
   SDK.setLocale(locale);
 });
 
-interface OnRampSDKConfig {
+interface RampSDKConfig {
   POLLING_INTERVAL: number;
   POLLING_INTERVAL_HIGHLIGHT: number;
   POLLING_CYCLES: number;
 }
 
-export interface OnRampSDK {
+export interface RampSDK {
   sdk: RegionsService | undefined;
   sdkError?: Error;
+
+  rampType: RampType;
+  setRampType: (rampType: RampType) => void;
 
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;
@@ -96,18 +101,22 @@ export interface OnRampSDK {
   selectedChainId: string;
   selectedNetworkName?: string;
 
-  appConfig: OnRampSDKConfig;
+  isBuy: boolean;
+  isSell: boolean;
+
+  appConfig: RampSDKConfig;
   callbackBaseUrl: string;
   isInternalBuild: boolean;
 }
 
-interface IProviderProps<T> {
+interface ProviderProps<T> {
   value?: T;
-  children?: React.ReactNode | undefined;
+  rampType?: RampType;
+  children?: React.ReactNode;
 }
 
 export const callbackBaseUrl = isDevelopment
-  ? 'https://on-ramp.metaswap-dev.codefi.network/regions/fake-callback'
+  ? 'https://on-ramp.uat-api.cx.metamask.io/regions/fake-callback'
   : 'https://on-ramp-content.metaswap.codefi.network/regions/fake-callback';
 
 export const callbackBaseDeeplink = 'metamask://';
@@ -118,12 +127,13 @@ const appConfig = {
   POLLING_CYCLES: 6,
 };
 
-const SDKContext = createContext<OnRampSDK | undefined>(undefined);
+const SDKContext = createContext<RampSDK | undefined>(undefined);
 
-export const FiatOnRampSDKProvider = ({
+export const RampSDKProvider = ({
   value,
+  rampType: providerRampType,
   ...props
-}: IProviderProps<OnRampSDK>) => {
+}: ProviderProps<RampSDK>) => {
   const [sdkModule, setSdkModule] = useState<RegionsService>();
   const [sdkError, setSdkError] = useState<Error>();
   useActivationKeys({
@@ -137,10 +147,7 @@ export const FiatOnRampSDKProvider = ({
         const sdk = await SDK.regions();
         setSdkModule(sdk);
       } catch (error) {
-        Logger.error(
-          error as Error,
-          `FiatOnRampSDKProvider SDK.regions() failed`,
-        );
+        Logger.error(error as Error, `RampSDKProvider SDK.regions() failed`);
         setSdkError(error as Error);
       }
     })();
@@ -154,6 +161,7 @@ export const FiatOnRampSDKProvider = ({
     fiatOrdersRegionSelectorAgg,
   );
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
+  const INITIAL_GET_STARTED_SELL = useSelector(fiatOrdersGetStartedSell);
   const selectedAddress = useSelector(selectedAddressSelector);
   const selectedChainId = useSelector(chainIdSelector);
   const selectedNetworkNickname = useSelector(selectNickname);
@@ -166,6 +174,8 @@ export const FiatOnRampSDKProvider = ({
   );
   const INITIAL_SELECTED_ASSET = null;
 
+  const [rampType, setRampType] = useState(providerRampType ?? RampType.BUY);
+
   const [selectedRegion, setSelectedRegion] = useState(INITIAL_SELECTED_REGION);
   const [unsupportedRegion, setUnsupportedRegion] = useState<Region>();
 
@@ -174,11 +184,21 @@ export const FiatOnRampSDKProvider = ({
     INITIAL_PAYMENT_METHOD_ID,
   );
   const [selectedFiatCurrencyId, setSelectedFiatCurrencyId] = useState(null);
-  const [getStarted, setGetStarted] = useState(INITIAL_GET_STARTED);
+  const [getStarted, setGetStarted] = useState(
+    (providerRampType ?? RampType.BUY) === RampType.BUY
+      ? INITIAL_GET_STARTED
+      : INITIAL_GET_STARTED_SELL,
+  );
+
+  const isBuy = rampType === RampType.BUY;
+  const isSell = rampType === RampType.SELL;
+
+  useEffect(() => {
+    setSelectedRegion(INITIAL_SELECTED_REGION);
+  }, [INITIAL_SELECTED_REGION]);
 
   const setSelectedRegionCallback = useCallback(
     (region: Region | null) => {
-      setSelectedRegion(region);
       dispatch(setFiatOrdersRegionAGG(region));
     },
     [dispatch],
@@ -203,55 +223,88 @@ export const FiatOnRampSDKProvider = ({
   const setGetStartedCallback = useCallback(
     (getStartedFlag) => {
       setGetStarted(getStartedFlag);
-      dispatch(setFiatOrdersGetStartedAGG(getStartedFlag));
+      if (rampType === RampType.BUY) {
+        dispatch(setFiatOrdersGetStartedAGG(getStartedFlag));
+      } else {
+        dispatch(setFiatOrdersGetStartedSell(getStartedFlag));
+      }
     },
-    [dispatch],
+    [dispatch, rampType],
   );
 
-  const contextValue: OnRampSDK = {
-    sdk,
-    sdkError,
+  const contextValue = useMemo(
+    (): RampSDK => ({
+      sdk,
+      sdkError,
 
-    selectedRegion,
-    setSelectedRegion: setSelectedRegionCallback,
+      rampType,
+      setRampType,
 
-    unsupportedRegion,
-    setUnsupportedRegion,
+      selectedRegion,
+      setSelectedRegion: setSelectedRegionCallback,
 
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
+      unsupportedRegion,
+      setUnsupportedRegion,
 
-    selectedAsset,
-    setSelectedAsset: setSelectedAssetCallback,
+      selectedPaymentMethodId,
+      setSelectedPaymentMethodId: setSelectedPaymentMethodIdCallback,
 
-    selectedFiatCurrencyId,
-    setSelectedFiatCurrencyId: setSelectedFiatCurrencyIdCallback,
+      selectedAsset,
+      setSelectedAsset: setSelectedAssetCallback,
 
-    getStarted,
-    setGetStarted: setGetStartedCallback,
+      selectedFiatCurrencyId,
+      setSelectedFiatCurrencyId: setSelectedFiatCurrencyIdCallback,
 
-    selectedAddress,
-    selectedChainId,
-    selectedNetworkName,
+      getStarted,
+      setGetStarted: setGetStartedCallback,
 
-    appConfig,
-    callbackBaseUrl,
-    isInternalBuild: isDevelopmentOrInternalBuild,
-  };
+      selectedAddress,
+      selectedChainId,
+      selectedNetworkName,
+
+      isBuy,
+      isSell,
+
+      appConfig,
+      callbackBaseUrl,
+      isInternalBuild: isDevelopmentOrInternalBuild,
+    }),
+    [
+      getStarted,
+      isBuy,
+      isSell,
+      rampType,
+      sdk,
+      sdkError,
+      selectedAddress,
+      selectedAsset,
+      selectedChainId,
+      selectedFiatCurrencyId,
+      selectedNetworkName,
+      selectedPaymentMethodId,
+      selectedRegion,
+      setGetStartedCallback,
+      setSelectedAssetCallback,
+      setSelectedFiatCurrencyIdCallback,
+      setSelectedPaymentMethodIdCallback,
+      setSelectedRegionCallback,
+      unsupportedRegion,
+    ],
+  );
 
   return <SDKContext.Provider value={value || contextValue} {...props} />;
 };
 
-export const useFiatOnRampSDK = () => {
+export const useRampSDK = () => {
   const contextValue = useContext(SDKContext);
-  return contextValue as OnRampSDK;
+  return contextValue as RampSDK;
 };
 
-export const withFiatOnRampSDK = (Component: React.FC) => (props: any) =>
+export const withRampSDK = (Component: React.FC) => (props: any) =>
   (
-    <FiatOnRampSDKProvider>
+    <RampSDKProvider>
       <Component {...props} />
-    </FiatOnRampSDKProvider>
+    </RampSDKProvider>
   );
 
 export default SDKContext;

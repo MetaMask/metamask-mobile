@@ -1,37 +1,51 @@
-/* eslint-disable no-console */
-
-// Third party dependencies.
+/* eslint-disable react/display-name */
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { boolean, select } from '@storybook/addon-knobs';
-
-// External dependencies.
-import { storybookPropsGroupID } from '../../../constants/storybook.constants';
 
 // Internal dependencies.
-import TextField from './TextField';
+import { default as TextFieldComponent } from './TextField';
+import { SAMPLE_TEXTFIELD_PROPS } from './TextField.constants';
 import { TextFieldProps, TextFieldSize } from './TextField.types';
-import { DEFAULT_TEXTFIELD_SIZE } from './TextField.constants';
 
-export const getTextFieldStoryProps = (): TextFieldProps => {
-  const sizeSelector = select(
-    'size',
-    TextFieldSize,
-    DEFAULT_TEXTFIELD_SIZE,
-    storybookPropsGroupID,
-  );
-  const isError = boolean('isError', false, storybookPropsGroupID);
-  const isDisabled = boolean('isDisabled', false, storybookPropsGroupID);
-
-  return {
-    size: sizeSelector,
-    isError,
-    isDisabled,
-  };
+const TextFieldMeta = {
+  title: 'Component Library / Form',
+  component: TextFieldComponent,
+  argTypes: {
+    size: {
+      options: TextFieldSize,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_TEXTFIELD_PROPS.size,
+    },
+    isError: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_TEXTFIELD_PROPS.isError,
+    },
+    isDisabled: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_TEXTFIELD_PROPS.isDisabled,
+    },
+    isReadonly: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_TEXTFIELD_PROPS.isReadonly,
+    },
+    placeholder: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_TEXTFIELD_PROPS.placeholder,
+    },
+  },
 };
+export default TextFieldMeta;
 
-const TextFieldStory = () => <TextField {...getTextFieldStoryProps()} />;
-
-storiesOf('Component Library / Form', module).add('TextField', TextFieldStory);
-
-export default TextFieldStory;
+export const TextField = {
+  render: (
+    args: JSX.IntrinsicAttributes &
+      TextFieldProps & { children?: React.ReactNode },
+  ) => (
+    <TextFieldComponent
+      {...args}
+      startAccessory={SAMPLE_TEXTFIELD_PROPS.startAccessory}
+      endAccessory={SAMPLE_TEXTFIELD_PROPS.endAccessory}
+    />
+  ),
+};

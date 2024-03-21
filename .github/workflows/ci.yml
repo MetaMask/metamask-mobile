@@ -43,7 +43,7 @@ jobs:
           cache: yarn
       - run: yarn setup:node
       - name: Deduplicate dependencies
-        run: yarn deduplicate && yarn
+        run: yarn deduplicate
       - name: Print error if duplicates found
         shell: bash
         run: |

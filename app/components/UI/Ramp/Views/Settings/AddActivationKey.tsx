@@ -15,7 +15,7 @@ import {
 import { useTheme } from '../../../../../util/theme';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { regex } from '../../../../../../app/util/regex';
+import { regex } from '../../../../../util/regex';
 import styles from './Settings.styles';
 
 interface AddActivationKeyParams {
@@ -24,7 +24,7 @@ interface AddActivationKeyParams {
 
 export const createAddActivationKeyNavDetails =
   createNavigationDetails<AddActivationKeyParams>(
-    Routes.FIAT_ON_RAMP_AGGREGATOR.ADD_ACTIVATION_KEY,
+    Routes.RAMP.ADD_ACTIVATION_KEY,
   );
 
 function AddActivationKey() {
@@ -42,7 +42,6 @@ function AddActivationKey() {
         navigation,
         false,
         colors,
-        false,
       ),
     );
   }, [colors, navigation]);

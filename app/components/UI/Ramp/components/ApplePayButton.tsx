@@ -24,13 +24,13 @@ const styles = StyleSheet.create({
 });
 
 const applePayButtonStylesLight = StyleSheet.create({
-  applePayButtonText: { color: importedColors.white },
-  applePayButton: { backgroundColor: importedColors.black },
+  applePayButtonText: { color: importedColors.applePayWhite },
+  applePayButton: { backgroundColor: importedColors.applePayBlack },
 });
 
 const applePayButtonStylesDark = StyleSheet.create({
-  applePayButtonText: { color: importedColors.black },
-  applePayButton: { backgroundColor: importedColors.white },
+  applePayButtonText: { color: importedColors.applePayBlack },
+  applePayButton: { backgroundColor: importedColors.applePayWhite },
 });
 
 const ApplePay = ({ disabled }: { disabled?: boolean }) => {

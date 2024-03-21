@@ -20,6 +20,7 @@ import {
   hasBlockExplorer,
   findBlockExplorerForRpc,
   getBlockExplorerName,
+  getDecimalChainId,
 } from '../../../util/networks';
 import Identicon from '../Identicon';
 import StyledButton from '../StyledButton';
@@ -40,7 +41,6 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
 import ReceiveRequest from '../ReceiveRequest';
-import Analytics from '../../../core/Analytics/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import URL from 'url-parse';
@@ -48,11 +48,10 @@ import EthereumAddress from '../EthereumAddress';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
-import DeeplinkManager from '../../../core/DeeplinkManager';
+import DeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
 import SettingsNotification from '../SettingsNotification';
 import { RPC } from '../../../constants/network';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import {
   isDefaultAccountName,
   doENSReverseLookup,
@@ -62,9 +61,9 @@ import { collectiblesSelector } from '../../../reducers/collectibles';
 import { getCurrentRoute } from '../../../reducers/navigation';
 import { ScrollView } from 'react-native-gesture-handler';
 import { isZero } from '../../../util/lodash';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { Authentication } from '../../../core/';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { getLabelTextByAddress } from '../../../util/address';
 import {
   onboardNetworkAction,
   networkSwitched,
@@ -89,6 +88,7 @@ import {
 
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -451,6 +451,10 @@ class DrawerView extends PureComponent {
      * Redux action to close info network modal
      */
     toggleInfoNetworkModal: PropTypes.func,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -491,28 +495,14 @@ class DrawerView extends PureComponent {
   }
 
   renderTag() {
-    let tag = null;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
-    const { keyrings, selectedAddress } = this.props;
-    const allKeyrings =
-      keyrings && keyrings.length
-        ? keyrings
-        : Engine.context.KeyringController.state.keyrings;
-    for (const keyring of allKeyrings) {
-      if (keyring.accounts.includes(selectedAddress)) {
-        if (keyring.type === KeyringTypes.simple) {
-          tag = strings('accounts.imported');
-        } else if (keyring.type === KeyringTypes.qr) {
-          tag = strings('transaction.hardware');
-        }
-        break;
-      }
-    }
-    return tag ? (
-      <View style={styles.importedWrapper}>
+    const label = getLabelTextByAddress(this.props.selectedAddress);
+
+    return label ? (
+      <View style={[styles.importedWrapper]}>
         <Text numberOfLines={1} style={styles.importedText}>
-          {tag}
+          {strings(label)}
         </Text>
       </View>
     ) : null;
@@ -559,15 +549,14 @@ class DrawerView extends PureComponent {
       ) {
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({ showProtectWalletModal: true });
-        InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
-            {
-              wallet_protection_required: false,
-              source: 'Backup Alert',
-            },
-          );
-        });
+
+        this.props.metrics.trackEvent(
+          MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
+          {
+            wallet_protection_required: false,
+            source: 'Backup Alert',
+          },
+        );
       } else {
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({ showProtectWalletModal: false });
@@ -637,17 +626,15 @@ class DrawerView extends PureComponent {
   };
 
   trackEvent = (event) => {
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(event);
-    });
+    this.props.metrics.trackEvent(event);
   };
 
   // NOTE: do we need this event?
   trackOpenBrowserEvent = () => {
     const { providerConfig } = this.props;
-    AnalyticsV2.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
+    this.props.metrics.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
       source: 'In-app Navigation',
-      chain_id: providerConfig.chainId,
+      chain_id: getDecimalChainId(providerConfig.chainId),
     });
   };
 
@@ -716,7 +703,7 @@ class DrawerView extends PureComponent {
       this.props;
     if (providerConfig.type === RPC) {
       const blockExplorer = findBlockExplorerForRpc(
-        providerConfig.rpcTarget,
+        providerConfig.rpcUrl,
         networkConfigurations,
       );
       const url = `${blockExplorer}/address/${selectedAddress}`;
@@ -772,10 +759,10 @@ class DrawerView extends PureComponent {
     const { networkConfigurations } = this.props;
     if (providerType === RPC) {
       const {
-        providerConfig: { rpcTarget },
+        providerConfig: { rpcUrl },
       } = this.props;
       const blockExplorer = findBlockExplorerForRpc(
-        rpcTarget,
+        rpcUrl,
         networkConfigurations,
       );
       if (blockExplorer) {
@@ -860,12 +847,12 @@ class DrawerView extends PureComponent {
 
   getSections = () => {
     const {
-      providerConfig: { type, rpcTarget },
+      providerConfig: { type, rpcUrl },
       networkConfigurations,
     } = this.props;
     let blockExplorer, blockExplorerName;
     if (type === RPC) {
-      blockExplorer = findBlockExplorerForRpc(rpcTarget, networkConfigurations);
+      blockExplorer = findBlockExplorerForRpc(rpcUrl, networkConfigurations);
       blockExplorerName = getBlockExplorerName(blockExplorer);
     }
     return [
@@ -941,7 +928,7 @@ class DrawerView extends PureComponent {
       this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
     InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
+      this.props.metrics.trackEvent(
         MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
         {
           wallet_protection_required: true,
@@ -1038,10 +1025,11 @@ class DrawerView extends PureComponent {
         renderFromWei(accounts[selectedAddress].balance)) ||
       0;
     const fiatBalance = Engine.getTotalFiatAccountBalance();
-    if (fiatBalance !== this.previousBalance) {
+    const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.tokenFiat;
+    if (totalFiatBalance !== Number(this.previousBalance)) {
       this.previousBalance = this.currentBalance;
     }
-    this.currentBalance = fiatBalance;
+    this.currentBalance = totalFiatBalance;
     const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
     const accountName = isDefaultAccountName(name) && ens ? ens : name;
 
@@ -1286,4 +1274,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 DrawerView.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(DrawerView);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(DrawerView));

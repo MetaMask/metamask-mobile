@@ -35,7 +35,11 @@ export interface AccountBaseProps {
    */
   badgeProps: BadgeProps;
   /**
-   * account identicon
+   * i18n string of account type label
+   */
+  accountTypeLabel?: string;
+  /**
+   * Account identicon
    */
   useBlockieIcon: boolean;
 }

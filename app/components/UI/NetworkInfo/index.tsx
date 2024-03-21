@@ -21,7 +21,7 @@ import {
   getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
 import Avatar, {
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 
@@ -117,7 +117,7 @@ interface NetworkInfoProps {
 const NetworkInfo = (props: NetworkInfoProps) => {
   const { onClose, ticker, isTokenDetectionEnabled } = props;
   const providerConfig = useSelector(selectProviderConfig);
-  const { type, ticker: networkTicker, rpcTarget, chainId } = providerConfig;
+  const { type, ticker: networkTicker, rpcUrl, chainId } = providerConfig;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const isTokenDetectionSupported =
@@ -156,7 +156,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
         <View style={styles.tokenView}>
           <View style={styles.tokenType}>
             <Avatar
-              variant={AvatarVariants.Network}
+              variant={AvatarVariant.Network}
               name={networkName.toUpperCase()}
               imageSource={networkImageSource}
             />
@@ -170,9 +170,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
               {networkName}
             </Text>
           </View>
-          {ticker === undefined && (
-            <Text style={styles.rpcUrl}>{rpcTarget}</Text>
-          )}
+          {ticker === undefined && <Text style={styles.rpcUrl}>{rpcUrl}</Text>}
         </View>
         <Text style={styles.messageTitle}>
           {strings('network_information.things_to_keep_in_mind')}:

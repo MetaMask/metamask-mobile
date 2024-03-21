@@ -11,8 +11,6 @@ import { useStyles } from '../../../hooks';
 import styleSheet from './ListItem.styles';
 import { ListItemProps } from './ListItem.types';
 import {
-  DEFAULT_LISTITEM_PADDING,
-  DEFAULT_LISTITEM_BORDERRADIUS,
   DEFAULT_LISTITEM_GAP,
   DEFAULT_LISTITEM_VERTICALALIGNMENT,
   TESTID_LISTITEM_GAP,
@@ -21,32 +19,30 @@ import {
 const ListItem: React.FC<ListItemProps> = ({
   style,
   children,
-  padding = DEFAULT_LISTITEM_PADDING,
-  borderRadius = DEFAULT_LISTITEM_BORDERRADIUS,
   gap = DEFAULT_LISTITEM_GAP,
   verticalAlignment = DEFAULT_LISTITEM_VERTICALALIGNMENT,
 }) => {
   const { styles } = useStyles(styleSheet, {
     style,
-    padding,
-    borderRadius,
     verticalAlignment,
   });
 
   return (
     <View style={styles.base} accessible accessibilityRole="none">
-      {React.Children.map(children, (child, index) => (
-        <>
-          {index > 0 && (
-            <View
-              style={{ width: gap }}
-              testID={TESTID_LISTITEM_GAP}
-              accessible={false}
-            />
-          )}
-          {child}
-        </>
-      ))}
+      {React.Children.toArray(children)
+        .filter((child) => !!child)
+        .map((child, index) => (
+          <React.Fragment key={index}>
+            {index > 0 && (
+              <View
+                style={{ width: gap }}
+                testID={TESTID_LISTITEM_GAP}
+                accessible={false}
+              />
+            )}
+            {child}
+          </React.Fragment>
+        ))}
     </View>
   );
 };

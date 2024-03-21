@@ -45,6 +45,7 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         primaryCurrency: action.primaryCurrency,
       };
+
     default:
       return state;
   }

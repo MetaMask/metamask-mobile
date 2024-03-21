@@ -8,14 +8,13 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import { ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import UntypedEngine from '../../../core/Engine';
 import {
   addPermittedAccounts,
@@ -28,7 +27,6 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { ToastOptions } from '../../../component-library/components/Toast/Toast.types';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccounts, Account } from '../../hooks/useAccounts';
 import getAccountNameWithENS from '../../../util/accounts';
@@ -48,11 +46,14 @@ import {
 } from './AccountPermissions.types';
 import AccountPermissionsConnected from './AccountPermissionsConnected';
 import AccountPermissionsRevoke from './AccountPermissionsRevoke';
-import USER_INTENT from '../../../constants/permissions';
+import { USER_INTENT } from '../../../constants/permissions';
+import useFavicon from '../../hooks/useFavicon/useFavicon';
 import URLParse from 'url-parse';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
   const Engine = UntypedEngine as any;
   const {
     hostInfo: {
@@ -72,6 +73,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const origin: string = useSelector(getActiveTabUrl, isEqual);
+  const faviconSource = useFavicon(origin);
   // TODO - Once we can pass metadata to permission system, pass origin instead of hostname into this component.
   // const hostname = useMemo(() => new URL(origin).hostname, [origin]);
   const secureIcon = useMemo(
@@ -83,13 +85,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   );
 
   const urlWithProtocol = prefixUrlWithProtocol(hostname);
-  /**
-   * Get image url from favicon api.
-   */
-  const favicon: ImageSourcePropType = useMemo(() => {
-    const iconUrl = `https://api.faviconkit.com/${hostname}/50`;
-    return { uri: iconUrl };
-  }, [hostname]);
 
   const { toastRef } = useContext(ToastContext);
   const [isLoading, setIsLoading] = useState(false);
@@ -101,7 +96,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostname,
   );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
     useState<AccountPermissionsScreens>(AccountPermissionsScreens.Connected);
   const { accounts, ensByAccountAddress } = useAccounts({
@@ -115,7 +110,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
   const hideSheet = useCallback(
-    (callback?: () => void) => sheetRef?.current?.hide?.(callback),
+    (callback?: () => void) =>
+      sheetRef?.current?.onCloseBottomSheet?.(callback),
     [sheetRef],
   );
   const metricsSource = 'Browser Tab/Permission UI';
@@ -175,11 +171,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       try {
         setIsLoading(true);
         await KeyringController.addNewAccount();
-        AnalyticsV2.trackEvent(
-          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
-          {},
-        );
-        AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
+        trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
           source: metricsSource,
           number_of_accounts: accounts?.length,
         });
@@ -231,7 +224,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       const totalAccounts = accountsLength;
       // TODO: confirm this value is the newly added accounts or total connected accounts
       const connectedAccounts = connectedAccountLength;
-      AnalyticsV2.trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
+      trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
         number_of_accounts: totalAccounts,
         number_of_accounts_connected: connectedAccounts,
         number_of_networks: nonTestnetNetworks,
@@ -251,6 +244,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     accountAvatarType,
     accountsLength,
     nonTestnetNetworks,
+    trackEvent,
   ]);
 
   useEffect(() => {
@@ -261,7 +255,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         case USER_INTENT.Confirm: {
           handleConnect();
           hideSheet(() => {
-            AnalyticsV2.trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
+            trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
               source: metricsSource,
               number_of_accounts: accounts?.length,
             });
@@ -280,17 +274,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-          AnalyticsV2.trackEvent(
-            MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-            {},
-          );
+          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
 
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-          AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
+          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
 
           break;
         }
@@ -308,6 +299,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     handleCreateAccount,
     handleConnect,
     accounts?.length,
+    trackEvent,
   ]);
 
   const renderConnectedScreen = useCallback(
@@ -320,7 +312,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts={accountsFilteredByPermissions.permitted}
         ensByAccountAddress={ensByAccountAddress}
         selectedAddresses={[activeAddress]}
-        favicon={favicon}
+        favicon={faviconSource}
         hostname={hostname}
         urlWithProtocol={urlWithProtocol}
         secureIcon={secureIcon}
@@ -335,7 +327,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setSelectedAddresses,
       setPermissionsScreen,
       hideSheet,
-      favicon,
+      faviconSource,
       hostname,
       urlWithProtocol,
       secureIcon,
@@ -352,7 +344,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         onSelectAddress={setSelectedAddresses}
         isLoading={isLoading}
         onUserAction={setUserIntent}
-        favicon={favicon}
+        favicon={faviconSource}
         urlWithProtocol={urlWithProtocol}
         secureIcon={secureIcon}
         isAutoScrollEnabled={false}
@@ -365,7 +357,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       isLoading,
       accountsFilteredByPermissions,
       setUserIntent,
-      favicon,
+      faviconSource,
       urlWithProtocol,
       secureIcon,
     ],
@@ -379,7 +371,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         ensByAccountAddress={ensByAccountAddress}
         permittedAddresses={permittedAccountsByHostname}
         isLoading={isLoading}
-        favicon={favicon}
+        favicon={faviconSource}
         urlWithProtocol={urlWithProtocol}
         hostname={hostname}
         secureIcon={secureIcon}
@@ -392,7 +384,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       permittedAccountsByHostname,
       accountsFilteredByPermissions,
       setPermissionsScreen,
-      favicon,
+      faviconSource,
       hostname,
       urlWithProtocol,
       secureIcon,
@@ -416,11 +408,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderRevokeScreen,
   ]);
 
-  return (
-    <SheetBottom reservedMinOverlayHeight={0} ref={sheetRef}>
-      {renderPermissionsScreens()}
-    </SheetBottom>
-  );
+  return <BottomSheet ref={sheetRef}>{renderPermissionsScreens()}</BottomSheet>;
 };
 
 export default AccountPermissions;

@@ -10,6 +10,30 @@ import { createAccountSelectorNavDetails } from '../../../components/Views/Accou
 // Internal dependencies
 import WalletAccount from './WalletAccount';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { Account } from '../../hooks/useAccounts';
+import { KeyringTypes } from '@metamask/keyring-controller';
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [
+          {
+            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+          },
+        ],
+      },
+    },
+  },
+}));
+
+const mockAccount: Account = {
+  name: 'Test account 1',
+  address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+  type: KeyringTypes.hd,
+  yOffset: 0,
+  isSelected: true,
+};
 
 const mockInitialState = {
   settings: {
@@ -18,10 +42,6 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0x',
-        identities: { '0x': { name: 'Account 1' } },
-      },
     },
   },
 };
@@ -53,36 +73,81 @@ jest.mock('react-redux', () => ({
 
 describe('WalletAccount', () => {
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
+    const { toJSON } = renderWithProvider(
+      <WalletAccount account={mockAccount} />,
+      {
+        state: mockInitialState,
+      },
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('shows the account address', () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
+    const { getByTestId } = renderWithProvider(
+      <WalletAccount account={mockAccount} />,
+      {
+        state: mockInitialState,
+      },
+    );
     expect(getByTestId('wallet-account-address')).toBeDefined();
   });
 
   it('copies the account address to the clipboard when the copy button is pressed', async () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
+    const { getByTestId } = renderWithProvider(
+      <WalletAccount account={mockAccount} />,
+      {
+        state: mockInitialState,
+      },
+    );
 
     fireEvent.press(getByTestId('wallet-account-copy-button'));
     expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
   });
 
   it('should navigate to the account selector screen on account press', () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
+    const { getByTestId } = renderWithProvider(
+      <WalletAccount account={mockAccount} />,
+      {
+        state: mockInitialState,
+      },
+    );
 
     fireEvent.press(getByTestId('account-picker'));
     expect(mockNavigate).toHaveBeenCalledWith(
       ...createAccountSelectorNavDetails({}),
     );
+  });
+  it('displays the correct account name', () => {
+    const { getByText } = renderWithProvider(
+      <WalletAccount account={mockAccount} />,
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(getByText(mockAccount.name)).toBeDefined();
+  });
+  it('displays custom account name when ENS is defined but account name is not the default', () => {
+    const ensName = 'test.eth';
+    const { getByText } = renderWithProvider(
+      <WalletAccount account={mockAccount} ens={ensName} />,
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(getByText(mockAccount.name)).toBeDefined();
+  });
+  it('displays ENS name when defined and account name is the default', () => {
+    const ensName = 'test.eth';
+    const mockAccountWithDefaultName: Account = {
+      ...mockAccount,
+      name: 'Account 1',
+    };
+    const { getByText } = renderWithProvider(
+      <WalletAccount account={mockAccountWithDefaultName} ens={ensName} />,
+      {
+        state: mockInitialState,
+      },
+    );
+    expect(getByText(ensName)).toBeDefined();
   });
 });

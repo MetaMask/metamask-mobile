@@ -1,18 +1,12 @@
 import { parseWaitTime, getGasLimit } from '.';
-import Engine from '../../core/Engine';
 
-jest.mock('../../core/Engine');
-
-const ENGINE_MOCK = Engine as jest.MockedClass<any>;
-
-ENGINE_MOCK.context = {
-  TransactionController: {
-    estimateGas: jest.fn().mockImplementation(({ gas }) => {
-      if (gas === undefined) return Promise.resolve({ gas: '0x5208' });
-      return Promise.resolve({ gas });
-    }),
-  },
-};
+jest.mock('../../util/transaction-controller', () => ({
+  __esModule: true,
+  estimateGas: jest.fn().mockImplementation(({ gas }) => {
+    if (gas === undefined) return Promise.resolve({ gas: '0x5208' });
+    return Promise.resolve({ gas });
+  }),
+}));
 
 describe('CustomGas utils :: parseWaitTime', () => {
   it('parseWaitTime', () => {

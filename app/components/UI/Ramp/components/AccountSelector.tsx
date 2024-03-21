@@ -44,7 +44,7 @@ const AccountSelector = () => {
       <Text style={styles.accountText} primary centered numberOfLines={1}>
         {identities[selectedAddress]?.name.length > 13
           ? `${identities[selectedAddress]?.name.substr(0, 13)}...`
-          : identities[selectedAddress]?.name}
+          : identities[selectedAddress]?.name}{' '}
         (
         <EthereumAddress address={selectedAddress} type={'short'} />)
       </Text>

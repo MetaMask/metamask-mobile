@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { useStyles } from '../../../../component-library/hooks';
-import Text from '../../../Base/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import styleSheet from './ContentDisplay.styles';
 import { strings } from '../../../../../locales/i18n';
 
@@ -29,12 +32,18 @@ const ContentDisplay = ({
     <View>
       <Text
         numberOfLines={isExpanded ? undefined : numberOfLines}
-        style={styles.content}
+        color={TextColor.Alternative}
       >
         {content}
       </Text>
       {disclaimer && isExpanded && (
-        <Text style={styles.disclaimer}>{disclaimer}</Text>
+        <Text
+          color={TextColor.Alternative}
+          variant={TextVariant.BodyXS}
+          style={styles.disclaimer}
+        >
+          {disclaimer}
+        </Text>
       )}
       <ButtonLink
         onPress={toggleContent}

@@ -5,12 +5,12 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 
 import PaymentMethods from './PaymentMethods';
 import { mockPaymentMethods } from './PaymentMethods.constants';
-import { createAmountToBuyNavDetails } from '../AmountToBuy';
+import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 import useRegions from '../../hooks/useRegions';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
-import { Region } from '../../types';
-import { OnRampSDK } from '../../sdk';
+import { RampType, Region } from '../../types';
+import { RampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 
@@ -18,7 +18,7 @@ function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
     {
-      name: Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
+      name: Routes.RAMP.PAYMENT_METHOD,
     },
     {
       state: {
@@ -58,20 +58,23 @@ jest.mock('@react-navigation/native', () => {
 const mockSetSelectedRegion = jest.fn();
 const mockSetSelectedPaymentMethodId = jest.fn();
 
-const mockuseFiatOnRampSDKInitialValues: Partial<OnRampSDK> = {
+const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedRegion: mockSetSelectedRegion,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
   selectedChainId: '1',
   sdkError: undefined,
+  rampType: RampType.BUY,
+  isBuy: true,
+  isSell: false,
 };
 
-let mockUseFiatOnRampSDKValues: Partial<OnRampSDK> = {
-  ...mockuseFiatOnRampSDKInitialValues,
+let mockUseRampSDKValues: Partial<RampSDK> = {
+  ...mockUseRampSDKInitialValues,
 };
 
 jest.mock('../../sdk', () => ({
   ...jest.requireActual('../../sdk'),
-  useFiatOnRampSDK: () => mockUseFiatOnRampSDKValues,
+  useRampSDK: () => mockUseRampSDKValues,
 }));
 
 const mockQueryGetCountries = jest.fn();
@@ -147,8 +150,8 @@ describe('PaymentMethods View', () => {
   });
 
   beforeEach(() => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
     };
     mockUseRegionsValues = {
       ...mockuseRegionsInitialValues,
@@ -167,6 +170,17 @@ describe('PaymentMethods View', () => {
   });
 
   it('renders correctly', async () => {
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly for sell', async () => {
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
     render(PaymentMethods);
     expect(screen.toJSON()).toMatchSnapshot();
   });
@@ -198,6 +212,21 @@ describe('PaymentMethods View', () => {
   });
 
   it('renders correctly with empty data', async () => {
+    mockUsePaymentMethodsValues = {
+      ...mockUsePaymentMethodsInitialValues,
+      data: [],
+    };
+    render(PaymentMethods);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly with empty data for sell', async () => {
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
     mockUsePaymentMethodsValues = {
       ...mockUsePaymentMethodsInitialValues,
       data: [],
@@ -247,7 +276,7 @@ describe('PaymentMethods View', () => {
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Reset Region' }));
     expect(mockReset).toBeCalledWith({
-      routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
+      routes: [{ name: Routes.RAMP.REGION }],
     });
   });
 
@@ -259,6 +288,20 @@ describe('PaymentMethods View', () => {
       chain_id_destination: '1',
       location: 'Payment Method Screen',
     });
+
+    mockTrackEvent.mockReset();
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Cancel' }));
+    expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
+      chain_id_source: '1',
+      location: 'Payment Method Screen',
+    });
   });
 
   it('selects payment method on press', async () => {
@@ -267,30 +310,98 @@ describe('PaymentMethods View', () => {
     expect(mockSetSelectedPaymentMethodId).toBeCalledWith(
       '/payments/debit-credit-card',
     );
+
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "ONRAMP_PAYMENT_METHOD_SELECTED",
+        Object {
+          "available_payment_method_ids": Array [
+            "/payments/instant-bank-transfer",
+            "/payments/apple-pay",
+            "/payments/debit-credit-card",
+          ],
+          "location": "Payment Method Screen",
+          "payment_method_id": "/payments/debit-credit-card",
+          "region": "/regions/cl",
+        },
+      ]
+    `);
+
+    mockTrackEvent.mockReset();
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Debit or Credit' }));
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "OFFRAMP_PAYMENT_METHOD_SELECTED",
+        Object {
+          "available_payment_method_ids": Array [
+            "/payments/instant-bank-transfer",
+            "/payments/apple-pay",
+            "/payments/debit-credit-card",
+          ],
+          "location": "Payment Method Screen",
+          "payment_method_id": "/payments/debit-credit-card",
+          "region": "/regions/cl",
+        },
+      ]
+    `);
   });
 
   it('navigates to amount to buy on continue button press', async () => {
     render(PaymentMethods);
     fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));
-    expect(mockNavigate).toHaveBeenCalledWith(...createAmountToBuyNavDetails());
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED',
-      {
-        available_payment_method_ids: [
-          '/payments/instant-bank-transfer',
-          '/payments/apple-pay',
-          '/payments/debit-credit-card',
-        ],
-        payment_method_id: '/payments/instant-bank-transfer',
-        region: '/regions/cl',
-        location: 'Payment Method Screen',
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(...createBuildQuoteNavDetails());
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "ONRAMP_CONTINUE_TO_AMOUNT_CLICKED",
+        Object {
+          "available_payment_method_ids": Array [
+            "/payments/instant-bank-transfer",
+            "/payments/apple-pay",
+            "/payments/debit-credit-card",
+          ],
+          "location": "Payment Method Screen",
+          "payment_method_id": "/payments/instant-bank-transfer",
+          "region": "/regions/cl",
+        },
+      ]
+    `);
+
+    mockTrackEvent.mockReset();
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKValues,
+      isBuy: false,
+      isSell: true,
+      rampType: RampType.SELL,
+    };
+    render(PaymentMethods);
+    fireEvent.press(screen.getByRole('button', { name: 'Continue to amount' }));
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      Array [
+        "OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED",
+        Object {
+          "available_payment_method_ids": Array [
+            "/payments/instant-bank-transfer",
+            "/payments/apple-pay",
+            "/payments/debit-credit-card",
+          ],
+          "location": "Payment Method Screen",
+          "payment_method_id": "/payments/instant-bank-transfer",
+          "region": "/regions/cl",
+        },
+      ]
+    `);
   });
 
   it('renders correctly with sdkError', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
     render(PaymentMethods);
@@ -298,8 +409,8 @@ describe('PaymentMethods View', () => {
   });
 
   it('navigates to home when clicking sdKError button', async () => {
-    mockUseFiatOnRampSDKValues = {
-      ...mockuseFiatOnRampSDKInitialValues,
+    mockUseRampSDKValues = {
+      ...mockUseRampSDKInitialValues,
       sdkError: new Error('sdkError'),
     };
     render(PaymentMethods);

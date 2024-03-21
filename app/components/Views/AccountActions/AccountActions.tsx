@@ -6,9 +6,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
 
 // External dependencies.
-import SheetBottom, {
-  SheetBottomRef,
-} from '../../../component-library/components/Sheet/SheetBottom';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../component-library/hooks';
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -20,7 +20,7 @@ import {
   getEtherscanAddressUrl,
   getEtherscanBaseUrl,
 } from '../../../util/etherscan';
-import { Analytics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import { RPC } from '../../../constants/network';
 import {
   selectNetworkConfigurations,
@@ -33,7 +33,6 @@ import { strings } from '../../../../locales/i18n';
 import styleSheet from './AccountActions.styles';
 import Logger from '../../../util/Logger';
 import { protectWalletModalVisible } from '../../../actions/user';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
@@ -42,12 +41,14 @@ import {
   SHOW_PRIVATE_KEY,
   VIEW_ETHERSCAN,
 } from './AccountActions.constants';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const AccountActions = () => {
   const { styles } = useStyles(styleSheet, {});
-  const sheetRef = useRef<SheetBottomRef>(null);
+  const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
+  const { trackEvent } = useMetrics();
 
   const providerConfig = useSelector(selectProviderConfig);
 
@@ -55,14 +56,14 @@ const AccountActions = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer = useMemo(() => {
-    if (providerConfig?.rpcTarget && providerConfig.type === RPC) {
+    if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
       return findBlockExplorerForRpc(
-        providerConfig.rpcTarget,
+        providerConfig.rpcUrl,
         networkConfigurations,
       );
     }
     return null;
-  }, [networkConfigurations, providerConfig.rpcTarget, providerConfig.type]);
+  }, [networkConfigurations, providerConfig.rpcUrl, providerConfig.type]);
 
   const blockExplorerName = getBlockExplorerName(blockExplorer);
 
@@ -77,7 +78,7 @@ const AccountActions = () => {
   };
 
   const viewInEtherscan = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
         const url = `${blockExplorer}/address/${selectedAddress}`;
         const title = new URL(blockExplorer).hostname;
@@ -94,12 +95,12 @@ const AccountActions = () => {
         goToBrowserUrl(url, etherscan_url);
       }
 
-      Analytics.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
+      trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
     });
   };
 
   const onShare = () => {
-    sheetRef.current?.hide(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
       Share.open({
         message: selectedAddress,
       })
@@ -110,18 +111,13 @@ const AccountActions = () => {
           Logger.log('Error while trying to share address', err);
         });
 
-      Analytics.trackEvent(
-        MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS,
-      );
+      trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
     });
   };
 
   const goToExportPrivateKey = () => {
-    sheetRef.current?.hide(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED,
-        {},
-      );
+    sheetRef.current?.onCloseBottomSheet(() => {
+      trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
 
       navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         credentialName: 'private_key',
@@ -140,7 +136,7 @@ const AccountActions = () => {
   );
 
   return (
-    <SheetBottom ref={sheetRef}>
+    <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
         <AccountAction
           actionTitle={strings('account_actions.edit_name')}
@@ -173,7 +169,7 @@ const AccountActions = () => {
           {...generateTestId(Platform, SHOW_PRIVATE_KEY)}
         />
       </View>
-    </SheetBottom>
+    </BottomSheet>
   );
 };
 

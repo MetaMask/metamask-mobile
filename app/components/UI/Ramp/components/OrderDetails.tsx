@@ -1,10 +1,10 @@
 import React, { useCallback } from 'react';
 import {
-  StyleSheet,
-  View,
-  TouchableOpacity,
   Image,
   Linking,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
@@ -28,6 +28,7 @@ import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { getOrderAmount } from '../utils';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 /* eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
@@ -71,6 +72,8 @@ interface PropsStage {
   pendingDescription?: string;
   cryptocurrency?: string;
   providerName?: string;
+  orderType?: OrderOrderTypeEnum;
+  isTransacted: boolean;
 }
 
 const Row: React.FC = (props) => {
@@ -89,6 +92,8 @@ const Stage: React.FC<PropsStage> = ({
   pendingDescription,
   cryptocurrency,
   providerName,
+  orderType,
+  isTransacted,
 }: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -105,14 +110,22 @@ const Stage: React.FC<PropsStage> = ({
             <Text bold big primary centered>
               {strings('fiat_on_ramp_aggregator.order_details.successful')}
             </Text>
-            <Text small centered grey>
-              {strings('fiat_on_ramp_aggregator.order_details.your')}{' '}
-              {cryptocurrency ||
-                strings('fiat_on_ramp_aggregator.order_details.crypto')}{' '}
-              {strings(
-                'fiat_on_ramp_aggregator.order_details.available_in_account',
-              )}
-            </Text>
+            {orderType === OrderOrderTypeEnum.Buy ? (
+              <Text small centered grey>
+                {strings('fiat_on_ramp_aggregator.order_details.your')}{' '}
+                {cryptocurrency ||
+                  strings('fiat_on_ramp_aggregator.order_details.crypto')}{' '}
+                {strings(
+                  'fiat_on_ramp_aggregator.order_details.available_in_account',
+                )}
+              </Text>
+            ) : (
+              <Text small centered grey>
+                {strings(
+                  'fiat_on_ramp_aggregator.order_details.delayed_bank_transfer',
+                )}
+              </Text>
+            )}
           </Group>
         </View>
       );
@@ -144,6 +157,35 @@ const Stage: React.FC<PropsStage> = ({
         </View>
       );
     }
+    case FIAT_ORDER_STATES.CREATED:
+      return (
+        <View style={styles.stage}>
+          <Spinner />
+          <Group>
+            <Text bold big primary centered>
+              {strings(
+                isTransacted
+                  ? 'transaction.submitted'
+                  : 'fiat_on_ramp_aggregator.order_details.pending',
+              )}
+            </Text>
+            {isTransacted ? (
+              pendingDescription ? (
+                <Text small centered grey>
+                  {pendingDescription}
+                </Text>
+              ) : null
+            ) : (
+              <Text small centered grey>
+                {strings(
+                  'fiat_on_ramp_aggregator.order_details.continue_order_description',
+                )}
+              </Text>
+            )}
+          </Group>
+        </View>
+      );
+
     case FIAT_ORDER_STATES.PENDING:
     default: {
       return (
@@ -155,6 +197,7 @@ const Stage: React.FC<PropsStage> = ({
                 ? strings('fiat_on_ramp_aggregator.order_details.processing')
                 : strings('transaction.submitted')}
             </Text>
+
             {pendingDescription ? (
               <Text small centered grey>
                 {pendingDescription}
@@ -206,6 +249,7 @@ const OrderDetails: React.FC<Props> = ({
   const date = createdAt && toDateFormat(createdAt);
   const renderAmount = getOrderAmount(order);
   const amountOut = Number(amount) - Number(cryptoFee);
+
   const exchangeRate =
     (order.data as Order)?.exchangeRate ??
     Number(amountOut) / Number(cryptoAmount);
@@ -250,14 +294,14 @@ const OrderDetails: React.FC<Props> = ({
           pendingDescription={orderData?.timeDescriptionPending}
           cryptocurrency={cryptocurrency}
           providerName={providerName}
+          orderType={order.orderType}
+          isTransacted={Boolean(order.sellTxHash)}
         />
         <Group>
-          <Text centered primary style={styles.tokenAmount}>
+          <Text bold centered primary style={styles.tokenAmount}>
             {renderAmount} {cryptocurrency}
           </Text>
-          {state !== FIAT_ORDER_STATES.PENDING &&
-          orderData?.fiatCurrency?.decimals !== undefined &&
-          currencySymbol ? (
+          {orderData?.fiatCurrency?.decimals !== undefined && currencySymbol ? (
             <Text centered small grey>
               {currencySymbol}
               {renderFiat(amountOut, currency, orderData.fiatCurrency.decimals)}
@@ -326,7 +370,9 @@ const OrderDetails: React.FC<Props> = ({
               <ListItem.Body>
                 <Text black small>
                   {strings(
-                    'fiat_on_ramp_aggregator.order_details.payment_method',
+                    order.orderType === OrderOrderTypeEnum.Buy
+                      ? 'fiat_on_ramp_aggregator.order_details.payment_method'
+                      : 'fiat_on_ramp_aggregator.order_details.destination',
                   )}
                 </Text>
               </ListItem.Body>
@@ -366,7 +412,9 @@ const OrderDetails: React.FC<Props> = ({
               <ListItem.Body>
                 <Text black small>
                   {strings(
-                    'fiat_on_ramp_aggregator.order_details.token_amount',
+                    order.orderType === OrderOrderTypeEnum.Buy
+                      ? 'fiat_on_ramp_aggregator.order_details.token_amount'
+                      : 'fiat_on_ramp_aggregator.order_details.token_quantity_sold',
                   )}
                 </Text>
               </ListItem.Body>
@@ -418,7 +466,11 @@ const OrderDetails: React.FC<Props> = ({
                 <ListItem.Body>
                   <Text black small>
                     {currency}{' '}
-                    {strings('fiat_on_ramp_aggregator.order_details.amount')}
+                    {strings(
+                      order.orderType === OrderOrderTypeEnum.Buy
+                        ? 'fiat_on_ramp_aggregator.order_details.amount'
+                        : 'fiat_on_ramp_aggregator.order_details.value',
+                    )}
                   </Text>
                 </ListItem.Body>
                 <ListItem.Amounts>
@@ -428,7 +480,9 @@ const OrderDetails: React.FC<Props> = ({
                     <Text small bold primary>
                       {currencySymbol}
                       {renderFiat(
-                        amountOut,
+                        order.orderType === OrderOrderTypeEnum.Buy
+                          ? amountOut
+                          : (amount as number),
                         currency,
                         orderData.fiatCurrency.decimals,
                       )}
@@ -454,7 +508,9 @@ const OrderDetails: React.FC<Props> = ({
                   <Text small bold primary>
                     {currencySymbol}
                     {renderFiat(
-                      cryptoFee as number,
+                      order.orderType === OrderOrderTypeEnum.Buy
+                        ? (cryptoFee as number)
+                        : orderData.totalFeesFiat,
                       currency,
                       orderData.fiatCurrency.decimals,
                     )}
@@ -472,7 +528,9 @@ const OrderDetails: React.FC<Props> = ({
               <ListItem.Body>
                 <Text black small>
                   {strings(
-                    'fiat_on_ramp_aggregator.order_details.purchase_amount',
+                    order.orderType === OrderOrderTypeEnum.Buy
+                      ? 'fiat_on_ramp_aggregator.order_details.purchase_amount'
+                      : 'fiat_on_ramp_aggregator.order_details.amount_received_total',
                   )}
                 </Text>
               </ListItem.Body>
@@ -484,7 +542,9 @@ const OrderDetails: React.FC<Props> = ({
                   <Text small bold primary>
                     {currencySymbol}
                     {renderFiat(
-                      amount as number,
+                      order.orderType === OrderOrderTypeEnum.Buy
+                        ? (amount as number)
+                        : amountOut,
                       currency,
                       orderData.fiatCurrency.decimals,
                     )}

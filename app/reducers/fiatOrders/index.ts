@@ -15,6 +15,9 @@ import {
   FiatOrdersState,
 } from './types';
 import type { RootState } from '../';
+import { getDecimalChainId, isTestNet } from '../../util/networks';
+import { toHex } from '@metamask/controller-utils';
+
 export type { FiatOrder } from './types';
 
 /** Action Creators */
@@ -46,6 +49,10 @@ export const setFiatOrdersPaymentMethodAGG = (
 });
 export const setFiatOrdersGetStartedAGG = (getStartedFlag: boolean) => ({
   type: ACTIONS.FIAT_SET_GETSTARTED_AGG,
+  payload: getStartedFlag,
+});
+export const setFiatOrdersGetStartedSell = (getStartedFlag: boolean) => ({
+  type: ACTIONS.FIAT_SET_GETSTARTED_SELL,
   payload: getStartedFlag,
 });
 export const addFiatCustomIdData = (customIdData: CustomIdData) => ({
@@ -91,6 +98,16 @@ export const updateOnRampNetworks = (
   payload: networks,
 });
 
+export const setFiatSellTxHash = (orderId: string, txHash: string) => ({
+  type: ACTIONS.FIAT_SET_SELL_TX_HASH,
+  payload: { orderId, txHash },
+});
+
+export const removeFiatSellTxHash = (orderId: string) => ({
+  type: ACTIONS.FIAT_REMOVE_SELL_TX_HASH,
+  payload: orderId,
+});
+
 /**
  * Selectors
  */
@@ -128,8 +145,7 @@ const ordersSelector = (state: RootState) =>
   (state.fiatOrders.orders as FiatOrdersState['orders']) || [];
 export const chainIdSelector: (state: RootState) => string = (
   state: RootState,
-) => selectChainId(state);
-
+) => getDecimalChainId(selectChainId(state));
 export const selectedAddressSelector: (state: RootState) => string = (
   state: RootState,
 ) => selectSelectedAddress(state);
@@ -145,6 +161,22 @@ export const fiatOrdersGetStartedAgg: (
   state: RootState,
 ) => FiatOrdersState['getStartedAgg'] = (state: RootState) =>
   state.fiatOrders.getStartedAgg;
+export const fiatOrdersGetStartedSell: (
+  state: RootState,
+) => FiatOrdersState['getStartedSell'] = (state: RootState) =>
+  state.fiatOrders.getStartedSell;
+
+export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
+  const providers = orders
+    .filter(
+      (order) =>
+        order.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR &&
+        order.state === FIAT_ORDER_STATES.COMPLETED &&
+        (order.data as Order)?.provider?.id,
+    )
+    .map((order) => (order.data as Order).provider.id);
+  return Array.from(new Set(providers));
+});
 
 export const getOrders = createSelector(
   ordersSelector,
@@ -155,7 +187,8 @@ export const getOrders = createSelector(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        Number(order.network) === Number(chainId),
+        (isTestNet(toHex(chainId)) ||
+          Number(order.network) === Number(chainId)),
     ),
 );
 
@@ -225,6 +258,7 @@ export const networkShortNameSelector = createSelector(
       (aggregatorNetwork) =>
         Number(aggregatorNetwork.chainId) === Number(chainId),
     );
+
     return network?.shortName;
   },
 );
@@ -236,6 +270,7 @@ export const initialState: FiatOrdersState = {
   selectedRegionAgg: null,
   selectedPaymentMethodAgg: null,
   getStartedAgg: false,
+  getStartedSell: false,
   authenticationUrls: [],
   activationKeys: [],
 };
@@ -308,6 +343,12 @@ const fiatOrderReducer: (
       return {
         ...state,
         getStartedAgg: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_GETSTARTED_SELL: {
+      return {
+        ...state,
+        getStartedSell: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_REGION_AGG: {
@@ -455,6 +496,44 @@ const fiatOrderReducer: (
       return {
         ...state,
         networks: action.payload,
+      };
+    }
+    case ACTIONS.FIAT_SET_SELL_TX_HASH: {
+      const { orderId, txHash } = action.payload;
+      const orders = state.orders;
+      const index = orders.findIndex((order) => order.id === orderId);
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        orders: [
+          ...orders.slice(0, index),
+          {
+            ...orders[index],
+            sellTxHash: txHash,
+          },
+          ...orders.slice(index + 1),
+        ],
+      };
+    }
+    case ACTIONS.FIAT_REMOVE_SELL_TX_HASH: {
+      const orderId = action.payload;
+      const orders = state.orders;
+      const index = orders.findIndex((order) => order.id === orderId);
+      if (index === -1) {
+        return state;
+      }
+      return {
+        ...state,
+        orders: [
+          ...orders.slice(0, index),
+          {
+            ...orders[index],
+            sellTxHash: undefined,
+          },
+          ...orders.slice(index + 1),
+        ],
       };
     }
 

@@ -1,16 +1,17 @@
-import { useFiatOnRampSDK } from '../sdk';
+import { useRampSDK } from '../sdk';
 import useSDKMethod from './useSDKMethod';
 
-function useQuotes(amount: number) {
+function useQuotes(amount: number | string) {
   const {
     selectedPaymentMethodId,
     selectedRegion,
     selectedAsset,
     selectedAddress,
     selectedFiatCurrencyId,
-  } = useFiatOnRampSDK();
+    isBuy,
+  } = useRampSDK();
   const [{ data, isFetching, error }, query] = useSDKMethod(
-    'getQuotes',
+    isBuy ? 'getQuotes' : 'getSellQuotes',
     selectedRegion?.id,
     selectedPaymentMethodId,
     selectedAsset?.id,

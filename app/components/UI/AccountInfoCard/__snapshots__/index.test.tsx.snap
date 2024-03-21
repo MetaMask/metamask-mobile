@@ -37,7 +37,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               "overflow": "hidden",
             },
             Object {
-              "backgroundColor": "#1593F2",
+              "backgroundColor": "#C7144F",
               "borderRadius": 20,
               "height": 40,
               "width": 40,
@@ -68,16 +68,16 @@ exports[`AccountInfoCard should match snapshot 1`] = `
         >
           <RNSVGGroup>
             <RNSVGRect
-              fill={4280574177}
+              fill={4294711651}
               height={40}
               matrix={
                 Array [
-                  -0.14608302856241107,
-                  0.9892723329629884,
-                  -0.9892723329629884,
-                  -0.14608302856241107,
-                  47.19376996149863,
-                  -3.5316743670534505,
+                  0.46329603511986217,
+                  0.8862035792312145,
+                  -0.8862035792312145,
+                  0.46329603511986217,
+                  36.33459561762168,
+                  -10.363254168319774,
                 ]
               }
               propList={
@@ -90,16 +90,16 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294395137}
+              fill={4280576225}
               height={40}
               matrix={
                 Array [
-                  -0.02094241988335673,
-                  -0.9997806834748455,
-                  0.9997806834748455,
-                  -0.02094241988335673,
-                  -18.781089383892542,
-                  50.404901611522334,
+                  -0.5778576243835052,
+                  0.8161375900801603,
+                  -0.8161375900801603,
+                  -0.5778576243835052,
+                  64.52520893292649,
+                  21.54875386801511,
                 ]
               }
               propList={
@@ -112,16 +112,16 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               y={0}
             />
             <RNSVGRect
-              fill={4294736640}
+              fill={4278407261}
               height={40}
               matrix={
                 Array [
-                  -0.458649554484315,
-                  0.8886172326549487,
-                  -0.8886172326549487,
-                  -0.458649554484315,
-                  35.600018143658495,
-                  48.25066628744154,
+                  0.7046342099635947,
+                  -0.7095707365365209,
+                  0.7095707365365209,
+                  0.7046342099635947,
+                  -31.532148358473446,
+                  -5.763782884854738,
                 ]
               }
               propList={
@@ -188,10 +188,11 @@ exports[`AccountInfoCard should match snapshot 1`] = `
       }
     >
       <Text
+        accessibilityRole="text"
         numberOfLines={1}
         style={
-          Array [
-            Object {
+          Object {
+            "0": Object {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
@@ -199,45 +200,65 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               "marginRight": 2,
               "maxWidth": "45%",
             },
-            undefined,
-          ]
+            "1": undefined,
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
-        0x0
+        0xC495...D272
       </Text>
       <Text
+        accessibilityRole="text"
         numberOfLines={1}
         style={
-          Array [
-            Object {
+          Object {
+            "0": Object {
               "color": "#24272A",
               "flexGrow": 1,
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 16,
               "fontWeight": "600",
             },
-            undefined,
-          ]
+            "1": undefined,
+            "color": "#24272A",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
         }
       >
         (
-        0x0...0x0
+        0xC495...D272
         )
       </Text>
     </View>
     <Text
+      accessibilityRole="text"
       numberOfLines={1}
       style={
-        Array [
-          Object {
+        Object {
+          "0": Object {
             "alignSelf": "flex-start",
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "100",
           },
-          undefined,
-        ]
+          "1": undefined,
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
       }
     >
       Balance:

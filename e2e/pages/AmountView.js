@@ -1,40 +1,31 @@
 import TestHelpers from '../helpers';
+import { CURRENCY_SWITCH } from '../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds';
 import {
-  CURRENCY_SWITCH,
-  TRANSACTION_AMOUNT_CONVERSION_VALUE,
-  TRANSACTION_AMOUNT_INPUT,
-} from '../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds';
-
-const TRANSACTION_INPUT_ID = 'txn-amount-input';
-const TRANSACTION_NEXT_BUTTON_ID = 'txn-amount-next-button';
-const TRANSACTION_INSUFFICIENT_FUNDS_ERROR_ID = 'amount-error';
+  AmountViewSelectorsIDs,
+  AmountViewSelectorsText,
+} from '../selectors/SendFlow/AmountView.selectors';
 
 export default class AmountView {
   static async tapNextButton() {
     if (device.getPlatform() === 'ios') {
-      await TestHelpers.waitAndTap(TRANSACTION_NEXT_BUTTON_ID);
+      await TestHelpers.waitAndTap(AmountViewSelectorsIDs.NEXT_BUTTON);
     } else {
-      await TestHelpers.waitAndTapByLabel(TRANSACTION_NEXT_BUTTON_ID);
+      await TestHelpers.waitAndTapByLabel(AmountViewSelectorsIDs.NEXT_BUTTON);
     }
   }
 
   static async typeInTransactionAmount(amount) {
-    if (device.getPlatform === 'android') {
-      await TestHelpers.typeTextAndHideKeyboard(TRANSACTION_INPUT_ID, amount);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.typeTextAndHideKeyboard(
+        AmountViewSelectorsIDs.AMOUNT_INPUT,
+        amount,
+      );
     } else {
-      await TestHelpers.replaceTextInField(TRANSACTION_INPUT_ID, amount);
+      await TestHelpers.replaceTextInField(
+        AmountViewSelectorsIDs.AMOUNT_INPUT,
+        amount,
+      );
     }
-  }
-
-  static async isTransactionAmountConversionValueCorrect(amount) {
-    await TestHelpers.checkIfHasText(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
-      amount,
-    );
-  }
-
-  static isTransactionAmountCorrect(amount) {
-    return TestHelpers.checkIfHasText(TRANSACTION_AMOUNT_INPUT, amount);
   }
 
   static async tapCurrencySwitch() {
@@ -53,14 +44,8 @@ export default class AmountView {
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible('Amount');
-  }
-
-  static async isInsufficientFundsErrorVisible() {
-    await TestHelpers.checkIfVisible(TRANSACTION_INSUFFICIENT_FUNDS_ERROR_ID);
-  }
-
-  static async isAmountErrorVisible() {
-    await TestHelpers.checkIfVisible(TRANSACTION_INSUFFICIENT_FUNDS_ERROR_ID);
+    await TestHelpers.checkIfElementWithTextIsVisible(
+      AmountViewSelectorsText.SCREEN_TITLE,
+    );
   }
 }

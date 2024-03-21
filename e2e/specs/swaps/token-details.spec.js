@@ -1,17 +1,17 @@
 'use strict';
-
-import { Regression } from '../../tags';
+import { SmokeSwaps } from '../../tags';
 import WalletView from '../../pages/WalletView';
 import TokenOverview from '../../pages/TokenOverview';
 import {
-  switchToGoreliNetwork,
   importWalletWithRecoveryPhrase,
+  switchToSepoliaNetwork,
 } from '../../viewHelper';
 import Networks from '../../resources/networks.json';
 
-describe(Regression('Token Chart Tests'), () => {
-  beforeEach(async () => {
+describe(SmokeSwaps('Token Chart Tests'), () => {
+  beforeAll(async () => {
     jest.setTimeout(150000);
+    await device.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {
@@ -30,9 +30,9 @@ describe(Regression('Token Chart Tests'), () => {
     await TokenOverview.tapBackButton();
   });
 
-  it('should not display the chart when using Goerli test network', async () => {
-    await switchToGoreliNetwork();
-    await WalletView.tapOnToken(Networks.Goerli.providerConfig.ticker);
+  it('should not display the chart when using Sepolia test network', async () => {
+    await switchToSepoliaNetwork();
+    await WalletView.tapOnToken(Networks.Sepolia.providerConfig.ticker);
     await TokenOverview.isVisible();
     await TokenOverview.ChartNotVisible();
     await TokenOverview.TokenQuoteIsNotZero();

@@ -1,52 +1,51 @@
-/* eslint-disable no-console, react-native/no-inline-styles */
-
-// Third party dependencies.
+/* eslint-disable react/display-name */
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { text } from '@storybook/addon-knobs';
 
 // Internal dependencies.
-import ModalMandatory from './ModalMandatory';
+import { default as ModalMandatoryComponent } from './ModalMandatory';
+import { SAMPLE_MODALMANDATORY_PROPS } from './ModalMandatory.constants';
 
-storiesOf('Component Library / ModalMandatory', module).add('Default', () => {
-  const groupId = 'Props';
+const ModalMandatoryMeta = {
+  title: 'Component Library / Modals',
+  component: ModalMandatoryComponent,
+  argTypes: {
+    headerTitle: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_MODALMANDATORY_PROPS.route.params.headerTitle,
+    },
+    footerHelpText: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_MODALMANDATORY_PROPS.route.params.footerHelpText,
+    },
+    buttonText: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_MODALMANDATORY_PROPS.route.params.buttonText,
+    },
+    checkboxText: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_MODALMANDATORY_PROPS.route.params.checkboxText,
+    },
+  },
+};
+export default ModalMandatoryMeta;
 
-  const buttonTextSelector = text(
-    'route.params.buttonText',
-    'Accept!',
-    groupId,
-  );
-  const checkboxTextSelector = text(
-    'route.params.checkboxText',
-    'This is the reason why you need to check the box',
-    groupId,
-  );
-  const headerTitleSelector = text(
-    'route.params.headerTitle',
-    'Example of Title',
-    groupId,
-  );
-  const footerHelpTextSelector = text(
-    'route.params.footerHelpText',
-    'You can write a reminder here',
-    groupId,
-  );
+export const ModalMandatory = {
+  render: (args: {
+    headerTitle: string;
+    footerHelpText: string;
 
-  return (
-    <ModalMandatory
+    buttonText: string;
+    checkboxText: string;
+  }) => (
+    <ModalMandatoryComponent
       route={{
         params: {
-          buttonText: buttonTextSelector,
-          checkboxText: checkboxTextSelector,
-          headerTitle: headerTitleSelector,
-          onAccept: () => null,
-          footerHelpText: footerHelpTextSelector,
-          body: {
-            source: 'WebView',
-            uri: 'https://consensys.net/terms-of-use/',
-          },
+          body: SAMPLE_MODALMANDATORY_PROPS.route.params.body,
+          onAccept: SAMPLE_MODALMANDATORY_PROPS.route.params.onAccept,
+          onRender: SAMPLE_MODALMANDATORY_PROPS.route.params.onRender,
+          ...args,
         },
       }}
     />
-  );
-});
+  ),
+};

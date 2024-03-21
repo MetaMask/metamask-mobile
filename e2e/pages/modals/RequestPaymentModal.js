@@ -1,15 +1,14 @@
 import TestHelpers from '../../helpers';
-
-const REQUEST_PAYMENT_CONTAINER_ID = 'receive-request-screen';
-const REQUEST_BUTTON_ID = 'request-payment-button';
-const PUBLIC_ADDRESS_ID = 'account-address';
+import { RequestPaymentModalSelectorsIDs } from '../../selectors/Modals/RequestPaymentModal.selectors';
 
 export default class RequestPaymentModal {
   static async tapRequestPaymentButton() {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(REQUEST_BUTTON_ID);
+      await TestHelpers.waitAndTapByLabel(
+        RequestPaymentModalSelectorsIDs.REQUEST_BUTTON,
+      );
     } else {
-      await TestHelpers.tap(REQUEST_BUTTON_ID);
+      await TestHelpers.tap(RequestPaymentModalSelectorsIDs.REQUEST_BUTTON);
     }
   }
 
@@ -20,18 +19,20 @@ export default class RequestPaymentModal {
       await TestHelpers.delay(1000);
     } else {
       // Close modal
-      await TestHelpers.swipe(REQUEST_PAYMENT_CONTAINER_ID, 'down');
+      await TestHelpers.swipe(
+        RequestPaymentModalSelectorsIDs.CONTAINER,
+        'down',
+      );
     }
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfVisible(REQUEST_PAYMENT_CONTAINER_ID);
+    await TestHelpers.checkIfVisible(RequestPaymentModalSelectorsIDs.CONTAINER);
   }
 
   static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(REQUEST_PAYMENT_CONTAINER_ID);
-  }
-  static async isPublicAddressCorrect(publicAddress) {
-    await TestHelpers.checkIfElementHasString(PUBLIC_ADDRESS_ID, publicAddress);
+    await TestHelpers.checkIfNotVisible(
+      RequestPaymentModalSelectorsIDs.CONTAINER,
+    );
   }
 }

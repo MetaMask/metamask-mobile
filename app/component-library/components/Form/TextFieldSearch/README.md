@@ -1,4 +1,6 @@
-# TextFieldSearch
+# [TextFieldSearch](https://metamask-consensys.notion.site/Text-Field-Search-de685317eeaf413f9682363128ffe673)
+
+![TextFieldSearch](./TextFieldSearch.png)
 
 TextFieldSearch is an input component that allows users to enter text to search.
 ## Props

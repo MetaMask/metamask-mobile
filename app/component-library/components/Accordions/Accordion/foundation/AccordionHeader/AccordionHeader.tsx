@@ -74,7 +74,7 @@ const AccordionHeader = ({
         testID={TESTID_ACCORDIONHEADER_ARROWICON_ANIMATION}
       >
         <Icon
-          name={IconName.ArrowUp}
+          name={IconName.ArrowDown}
           size={IconSize.Sm}
           color={styles.title.color}
           testID={TESTID_ACCORDIONHEADER_ARROWICON}

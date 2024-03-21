@@ -3,10 +3,10 @@ import { Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { OrderStatusEnum, Provider } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import BuyAction from '@consensys/on-ramp-sdk/dist/regions/BuyAction';
 import useAnalytics from './useAnalytics';
-import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
-import { callbackBaseDeeplink, SDK, useFiatOnRampSDK } from '../sdk';
+import { callbackBaseDeeplink, SDK, useRampSDK } from '../sdk';
 import { createCustomOrderIdData } from '../orderProcessor/customOrderId';
 import { aggregatorOrderToFiatOrder } from '../orderProcessor/aggregator';
 import {
@@ -16,6 +16,7 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { setLockTime } from '../../../../actions/settings';
 import Logger from '../../../../util/Logger';
+import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
 import Device from '../../../../util/device';
 
 export default function useInAppBrowser() {
@@ -24,7 +25,8 @@ export default function useInAppBrowser() {
     selectedPaymentMethodId,
     selectedAsset,
     selectedChainId,
-  } = useFiatOnRampSDK();
+    isBuy,
+  } = useRampSDK();
 
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
@@ -50,6 +52,7 @@ export default function useInAppBrowser() {
           customOrderId,
           selectedChainId,
           selectedAddress,
+          isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
         );
         dispatch(addFiatCustomIdData(customIdData));
       }
@@ -66,17 +69,27 @@ export default function useInAppBrowser() {
             trackEvent('ONRAMP_PURCHASE_CANCELLED', {
               amount: amount as number,
               chain_id_destination: selectedChainId,
-              currency_destination: selectedAsset?.symbol as string,
-              currency_source: fiatSymbol as string,
+              currency_destination: isBuy
+                ? (selectedAsset?.symbol as string)
+                : (fiatSymbol as string),
+              currency_source: isBuy
+                ? (fiatSymbol as string)
+                : (selectedAsset?.symbol as string),
               payment_method_id: selectedPaymentMethodId as string,
               provider_onramp: provider.name,
+              order_type: isBuy
+                ? OrderOrderTypeEnum.Buy
+                : OrderOrderTypeEnum.Sell,
             });
 
             return;
           }
 
           const orders = await SDK.orders();
-          const order = await orders.getOrderFromCallback(
+          const getOrderFromCallbackMethod = isBuy
+            ? 'getOrderFromCallback'
+            : 'getSellOrderFromCallback';
+          const order = await orders[getOrderFromCallbackMethod](
             provider.id,
             result.url,
             selectedAddress,
@@ -122,6 +135,7 @@ export default function useInAppBrowser() {
     [
       dispatch,
       handleSuccessfulOrder,
+      isBuy,
       lockTime,
       selectedAddress,
       selectedAsset?.symbol,

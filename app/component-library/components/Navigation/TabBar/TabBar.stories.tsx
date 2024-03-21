@@ -1,13 +1,28 @@
+/* eslint-disable no-labels */
 /* eslint-disable no-console */
 
 // Third party dependencies.
 import React, { useState } from 'react';
-import { storiesOf } from '@storybook/react-native';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
+
+// External dependencies.
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 // Internal dependencies.
-import TabBar from './TabBar';
+import { default as TabBarComponent } from './TabBar';
 import { TabBarIconKey } from './TabBar.types';
 
+const mockInitialState = {
+  wizard: {
+    step: 1,
+  },
+  engine: {
+    backgroundState: initialBackgroundState,
+  },
+};
+const rootReducer = (state = mockInitialState) => state;
+const store = createStore(rootReducer);
 const TabBarStorybook = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const routes = [
@@ -23,11 +38,13 @@ const TabBarStorybook = () => {
       WalletRoute: {
         options: {
           tabBarLabel: TabBarIconKey.Wallet,
+          tabBarIconKey: TabBarIconKey.Wallet,
         },
       },
       BrowserRoute: {
         options: {
           tabBarLabel: TabBarIconKey.Browser,
+          tabBarIconKey: TabBarIconKey.Browser,
         },
       },
     },
@@ -39,9 +56,20 @@ const TabBarStorybook = () => {
     },
   };
 
-  return <TabBar {...mockTabBarProps} />;
+  return <TabBarComponent {...mockTabBarProps} />;
 };
 
-storiesOf('Component Library / TabBar', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => <TabBarStorybook />);
+const TabBarMeta = {
+  title: 'Component Library / Navigation',
+  decorators: [
+    (Story: any) => (
+      <Provider store={store}>
+        <Story />
+      </Provider>
+    ),
+  ],
+};
+
+export default TabBarMeta;
+
+export const TabBar = () => <TabBarStorybook />;

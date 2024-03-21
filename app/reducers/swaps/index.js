@@ -194,9 +194,9 @@ export const swapsTopAssetsSelector = createSelector(
 // * Reducer
 export const initialState = {
   isLive: true, // TODO: should we remove it?
-  hasOnboarded: false,
+  hasOnboarded: true, // TODO: Once we have updated UI / content for the modal, we should enable it again.
 
-  1: {
+  '0x1': {
     isLive: true,
   },
 };

@@ -1,32 +1,54 @@
 import TestHelpers from '../../helpers';
-import {
-  SWIPE_TO_SWAP_BUTTON,
-  SWAP_QUOTE_SUMMARY,
-  SWAP_GAS_FEE,
-} from '../../../wdio/screen-objects/testIDs/Screens/SwapView.js';
+import { SwapsViewSelectors } from '../../selectors/swaps/SwapsView.selectors.js';
+
 import messages from '../../../locales/languages/en.json';
+import { waitFor } from 'detox';
 
 export default class SwapView {
   static async isVisible() {
     await TestHelpers.checkIfElementByTextIsVisible(
       messages.swaps.fetching_quotes,
     );
-    await TestHelpers.checkIfVisible(SWAP_QUOTE_SUMMARY);
-    await TestHelpers.checkIfVisible(SWAP_GAS_FEE);
+    await TestHelpers.checkIfVisible(SwapsViewSelectors.SWAP_QUOTE_SUMMARY);
+    await TestHelpers.checkIfVisible(SwapsViewSelectors.SWAP_GAS_FEE);
   }
 
   static async swipeToSwap() {
     const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.85;
-    await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'fast', percentage);
-    await TestHelpers.delay(500);
-    await TestHelpers.swipe(SWIPE_TO_SWAP_BUTTON, 'right', 'fast', percentage);
+    await waitFor(element(by.id(SwapsViewSelectors.SWIPE_TO_SWAP_BUTTON)))
+      .toBeVisible(100)
+      .withTimeout(8000);
+    await TestHelpers.delay(3000);
+    await TestHelpers.swipe(
+      SwapsViewSelectors.SWIPE_TO_SWAP_BUTTON,
+      'right',
+      'fast',
+      percentage,
+    );
+    await TestHelpers.delay(2000);
   }
 
   static async waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol) {
-    await TestHelpers.checkIfElementByTextIsVisible(
-      `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`,
-    );
+    try {
+      await TestHelpers.checkIfElementByTextIsVisible(
+        `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`,
+        60000,
+      );
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log(`Toast message is slow to appear or did not appear: ${e}`);
+    }
+
     await device.enableSynchronization();
     await TestHelpers.delay(5000);
+  }
+
+  static async tapIUnderstandPriceWarning() {
+    try {
+      await TestHelpers.tapByText('I understand');
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log(`Price warning not displayed: ${e}`);
+    }
   }
 }

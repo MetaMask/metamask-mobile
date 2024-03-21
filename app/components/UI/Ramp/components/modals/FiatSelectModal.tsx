@@ -91,7 +91,11 @@ function FiatSelectModal({
 
   const renderItem = useCallback(
     ({ item }: { item: FiatCurrency }) => (
-      <TouchableOpacity onPress={() => onItemPress(item)}>
+      <TouchableOpacity
+        onPress={() => onItemPress(item)}
+        accessibilityRole="button"
+        accessible
+      >
         <ListItem style={styles.listItem}>
           <ListItem.Content>
             <ListItem.Body>

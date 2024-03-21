@@ -19,66 +19,68 @@ import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import Modal from 'react-native-modal';
 import { UR } from '@ngraveio/bc-ur';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
+import { useTheme } from '../../../util/theme';
+import { Theme } from '../../../util/theme/models';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
-const styles = StyleSheet.create({
-  modal: {
-    margin: 0,
-  },
-  container: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: colors.black,
-  },
-  preview: {
-    flex: 1,
-  },
-  innerView: {
-    flex: 1,
-  },
-  closeIcon: {
-    marginTop: 20,
-    marginRight: 20,
-    width: 40,
-    alignSelf: 'flex-end',
-  },
-  frame: {
-    width: 250,
-    height: 250,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    marginTop: 100,
-    opacity: 0.5,
-  },
-  text: {
-    flex: 1,
-    fontSize: 17,
-    color: colors.white,
-    textAlign: 'center',
-    justifyContent: 'center',
-    marginTop: 100,
-  },
-  hint: {
-    backgroundColor: colors.whiteTransparent,
-    width: '100%',
-    height: 120,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  hintText: {
-    width: 240,
-    maxWidth: '80%',
-    color: colors.black,
-    textAlign: 'center',
-    fontSize: 16,
-    ...fontStyles.normal,
-  },
-  bold: {
-    ...fontStyles.bold,
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    modal: {
+      margin: 0,
+    },
+    container: {
+      width: '100%',
+      height: '100%',
+      backgroundColor: theme.brandColors.black['000'],
+    },
+    preview: {
+      flex: 1,
+    },
+    innerView: {
+      flex: 1,
+    },
+    closeIcon: {
+      marginTop: 20,
+      marginRight: 20,
+      width: 40,
+      alignSelf: 'flex-end',
+    },
+    frame: {
+      width: 250,
+      height: 250,
+      alignSelf: 'center',
+      justifyContent: 'center',
+      marginTop: 100,
+      opacity: 0.5,
+    },
+    text: {
+      flex: 1,
+      fontSize: 17,
+      color: theme.brandColors.white['000'],
+      textAlign: 'center',
+      justifyContent: 'center',
+      marginTop: 100,
+    },
+    hint: {
+      backgroundColor: colors.whiteTransparent,
+      width: '100%',
+      height: 120,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    hintText: {
+      width: 240,
+      maxWidth: '80%',
+      color: theme.brandColors.black['000'],
+      textAlign: 'center',
+      fontSize: 16,
+      ...fontStyles.normal,
+    },
+    bold: {
+      ...fontStyles.bold,
+    },
+  });
 
 const frameImage = require('images/frame.png'); // eslint-disable-line import/no-commonjs
 
@@ -100,8 +102,12 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     hideModal,
     pauseQRCode,
   } = props;
+
   const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
   const [progress, setProgress] = useState(0);
+  const theme = useTheme();
+  const { trackEvent } = useMetrics();
+  const styles = createStyles(theme);
 
   let expectedURTypes: string[];
   if (purpose === 'sync') {
@@ -131,20 +137,20 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         </Text>
       </Text>
     ),
-    [purpose],
+    [purpose, styles],
   );
 
   const onError = useCallback(
     (error) => {
       if (onScanError && error) {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+        trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
           purpose,
           error,
         });
         onScanError(error.message);
       }
     },
-    [purpose, onScanError],
+    [purpose, onScanError, trackEvent],
   );
 
   const onBarCodeRead = useCallback(
@@ -160,7 +166,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         urDecoder.receivePart(content);
         setProgress(Math.ceil(urDecoder.getProgress() * 100));
         if (urDecoder.isError()) {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+          trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
             purpose,
             error: urDecoder.resultError(),
           });
@@ -172,14 +178,14 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             setProgress(0);
             setURDecoder(new URRegistryDecoder());
           } else if (purpose === 'sync') {
-            AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+            trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
               purpose,
               received_ur_type: ur.type,
               error: 'invalid `sync` qr code',
             });
             onScanError(strings('transaction.invalid_qr_code_sync'));
           } else {
-            AnalyticsV2.trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+            trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
               purpose,
               received_ur_type: ur.type,
               error: 'invalid `sign` qr code',
@@ -191,7 +197,15 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         onScanError(strings('transaction.unknown_qr_code'));
       }
     },
-    [visible, urDecoder, onScanError, expectedURTypes, purpose, onScanSuccess],
+    [
+      visible,
+      urDecoder,
+      onScanError,
+      expectedURTypes,
+      purpose,
+      onScanSuccess,
+      trackEvent,
+    ],
   );
 
   const onStatusChange = useCallback(

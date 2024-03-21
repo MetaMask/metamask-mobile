@@ -1,18 +1,12 @@
-# BadgeNetwork
+# [BadgeNetwork](https://metamask-consensys.notion.site/Badge-Network-94a679c50cb446f4844dc624b4f74946)
+
+![BadgeNetwork](./BadgeNetwork.png)
 
 BadgeNetwork is used on top of an element to display network information. **This component is not meant to be used by itself**. It is used by [BadgeWrapper](../BadgeWrapper/BadgeWrapper.tsx), which can render this component as a badge.
 
 ## Props
 
 This component extends [BadgeBaseProps](../../foundation/BadgeBase/BadgeBase.types.ts).
-
-### `variant`
-
-Optional prop to control the variant of badge.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [BadgeVariant.Network](../../Badge.types.ts)                                           | Yes                                                     |
 
 ### `name`
 

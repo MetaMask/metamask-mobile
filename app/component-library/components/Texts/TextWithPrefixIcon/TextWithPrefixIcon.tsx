@@ -13,6 +13,7 @@ import Text from '../Text/Text';
 import { TextWithPrefixIconProps } from './TextWithPrefixIcon.types';
 import styleSheet from './TextWithPrefixIcon.styles';
 import {
+  DEFAULT_TEXTWITHPREFIXICON_COLOR,
   TEXT_WITH_PREFIX_ICON_TEST_ID,
   TEXT_WITH_PREFIX_ICON_ICON_TEST_ID,
   TEXT_WITH_PREFIX_ICON_TEXT_TEST_ID,
@@ -22,19 +23,20 @@ const TextWithPrefixIcon: React.FC<TextWithPrefixIconProps> = ({
   iconProps,
   style,
   children,
+  color = DEFAULT_TEXTWITHPREFIXICON_COLOR,
   ...props
 }) => {
-  const { styles } = useStyles(styleSheet, { style });
+  const { styles } = useStyles(styleSheet, { style, color });
   return (
     <View style={styles.base} testID={TEXT_WITH_PREFIX_ICON_TEST_ID}>
       <Icon
-        color={styles.text.color as string}
+        color={styles.icon.color as string}
         testID={TEXT_WITH_PREFIX_ICON_ICON_TEST_ID}
         {...iconProps}
       />
       <Text
-        style={styles.text}
         testID={TEXT_WITH_PREFIX_ICON_TEXT_TEST_ID}
+        color={color}
         {...props}
       >
         {children}

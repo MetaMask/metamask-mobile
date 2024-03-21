@@ -57,6 +57,18 @@ class FixtureBuilder {
                   balance: '0x0',
                 },
               },
+              accountsByChainId: {
+                64: {
+                  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+                    balance: '0x0',
+                  },
+                },
+                1: {
+                  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+                    balance: '0x0',
+                  },
+                },
+              },
               _U: 0,
               _V: 1,
               _X: null,
@@ -123,14 +135,46 @@ class FixtureBuilder {
               ],
             },
             NetworkController: {
-              network: '1',
-              isCustomNetwork: false,
+              selectedNetworkClientId: 'mainnet',
+              networkId: '1',
               providerConfig: {
                 type: 'mainnet',
-                chainId: '1',
+                chainId: '0x1',
+                ticker: 'ETH',
               },
-              networkDetails: {
-                isEIP1559Compatible: true,
+              networksMetadata: {
+                goerli: {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                'linea-goerli': {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                'linea-sepolia': {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                'linea-mainnet': {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                mainnet: {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                sepolia: {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+              },
+              networkConfigurations: {
+                networkId1: {
+                  rpcUrl: `http://localhost:${getGanachePort()}`,
+                  chainId: '1337',
+                  ticker: 'ETH',
+                  nickname: 'Localhost',
+                },
               },
             },
             PhishingController: {
@@ -157,14 +201,6 @@ class FixtureBuilder {
             },
             PreferencesController: {
               featureFlags: {},
-              frequentRpcList: [
-                {
-                  rpcUrl: `http://localhost:${getGanachePort()}`,
-                  chainId: '1337',
-                  ticker: 'ETH',
-                  nickname: 'Localhost',
-                },
-              ],
               identities: {
                 '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
                   address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
@@ -178,6 +214,7 @@ class FixtureBuilder {
               useTokenDetection: true,
               useNftDetection: false,
               displayNftMedia: true,
+              useSafeChainsListValidation: false,
               isMultiAccountBalancesEnabled: true,
               disabledRpcMethodPreferences: {
                 eth_sign: false,
@@ -201,6 +238,7 @@ class FixtureBuilder {
                 useTokenDetection: true,
                 useNftDetection: false,
                 displayNftMedia: true,
+                useSafeChainsListValidation: false,
                 isMultiAccountBalancesEnabled: true,
                 disabledRpcMethodPreferences: {
                   eth_sign: false,
@@ -292,7 +330,7 @@ class FixtureBuilder {
               usedGasEstimate: null,
               usedCustomGas: null,
               chainCache: {
-                1: {
+                '0x1': {
                   aggregatorMetadata: null,
                   tokens: null,
                   topAssets: null,
@@ -341,6 +379,7 @@ class FixtureBuilder {
           collectibleContractModalVisible: false,
           receiveModalVisible: false,
           dappTransactionModalVisible: false,
+          signMessageModalVisible: true,
         },
         settings: {
           searchEngine: 'DuckDuckGo',
@@ -382,7 +421,7 @@ class FixtureBuilder {
           notifications: [],
         },
         swaps: {
-          1: {
+          '0x1': {
             isLive: true,
           },
           isLive: true,
@@ -537,7 +576,7 @@ class FixtureBuilder {
           isAutomaticSecurityChecksModalOpen: false,
         },
         experimentalSettings: {
-          securityAlertsEnabled: false,
+          securityAlertsEnabled: true,
         },
       },
       asyncState: {
@@ -625,8 +664,8 @@ class FixtureBuilder {
       isCustomNetwork: true,
       providerConfig: {
         type: 'rpc',
-        chainId: '1337',
-        rpcTarget: `http://localhost:${getGanachePort()}`,
+        chainId: '0x539',
+        rpcUrl: `http://localhost:${getGanachePort()}`,
         nickname: 'Localhost',
         ticker: 'ETH',
       },

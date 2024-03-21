@@ -1,137 +1,53 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import {
-  InteractionManager,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from 'react-native';
+import { Linking, ScrollView, Switch, View } from 'react-native';
+
+import { MMKV } from 'react-native-mmkv';
 import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
-import {
-  colors as importedColors,
-  fontStyles,
-} from '../../../../styles/common';
+import { colors as importedColors } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../component-library/components/Texts/Text';
+import { UpdatePPOMInitializationStatus } from '../../../../actions/experimental';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import StyledButton from '../../../UI/StyledButton';
-import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
-import { isBlockaidFeatureEnabled } from '../../../../util/blockaid';
-import AnalyticsV2 from '../../../../util/analyticsV2';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useDispatch } from 'react-redux';
+import { Props } from './ExperimentalSettings.types';
+import createStyles from './ExperimentalSettings.styles';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
+import Device from '../../../../../app/util/device';
+import { SES_URL } from '../../../../../app/constants/urls';
 
-const createStyles = (colors: any) =>
-  StyleSheet.create({
-    wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-      padding: 24,
-      paddingBottom: 48,
-    },
-    title: {
-      ...(fontStyles.normal as any),
-      color: colors.text.default,
-      fontSize: 20,
-      lineHeight: 20,
-      paddingTop: 4,
-      marginTop: -4,
-    },
-    boldTitle: {
-      ...(fontStyles.bold as any),
-      marginTop: 18,
-      marginBottom: 18,
-    },
-    heading: {
-      marginTop: 18,
-      fontSize: 24,
-      lineHeight: 20,
-    },
-    desc: {
-      ...(fontStyles.normal as any),
-      color: colors.text.alternative,
-      fontSize: 14,
-      lineHeight: 20,
-      marginTop: 12,
-    },
-    mutedText: {
-      ...(fontStyles.normal as any),
-      color: colors.text.muted,
-    },
-    setting: {
-      marginVertical: 18,
-    },
-    clearHistoryConfirm: {
-      marginTop: 18,
-    },
-    switchElement: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      flexDirection: 'row',
-    },
-    switch: {
-      alignSelf: 'flex-end',
-    },
-    switchLabel: {
-      alignSelf: 'flex-start',
-    },
-    modalView: {
-      alignItems: 'center',
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    modalText: {
-      ...fontStyles.normal,
-      fontSize: 18,
-      textAlign: 'center',
-      color: colors.text.default,
-    },
-    modalTitle: {
-      ...fontStyles.bold,
-      fontSize: 22,
-      textAlign: 'center',
-      marginBottom: 20,
-      color: colors.text.default,
-    },
-  });
-
-interface Props {
-  /**
-	/* navigation object required to push new views
-	*/
-  navigation: any;
-  /**
-   * contains params that are passed in from navigation
-   */
-  route: any;
-}
+const storage = new MMKV(); // id: mmkv.default
 
 /**
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
-  const { PreferencesController } = Engine.context;
-  const [securityAlertsEnabled, setSecurityAlertsEnabled] = useState(
-    () => PreferencesController.state.securityAlertsEnabled,
+  const dispatch = useDispatch();
+
+  const [sesEnabled, setSesEnabled] = useState(
+    storage.getBoolean('is-ses-enabled'),
   );
+
+  const toggleSesEnabled = () => {
+    storage.set('is-ses-enabled', !sesEnabled);
+    setSesEnabled(!sesEnabled);
+  };
+
   const isFullScreenModal = route?.params?.isFullScreenModal;
-  const { colors } = useTheme();
+
+  const theme = useTheme();
+  const { colors } = theme;
   const styles = createStyles(colors);
 
-  const toggleSecurityAlertsEnabled = () => {
-    PreferencesController?.setSecurityAlertsEnabled(!securityAlertsEnabled);
-    setSecurityAlertsEnabled(!securityAlertsEnabled);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.SETTINGS_EXPERIMENTAL_SECURITY_ALERTS_ENABLED,
-        {
-          security_alerts_enabled: !securityAlertsEnabled,
-        },
-      );
-    });
-  };
+  useEffect(() => {
+    dispatch(UpdatePPOMInitializationStatus());
+  }, [dispatch]);
 
   useEffect(
     () => {
@@ -153,67 +69,79 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     navigation.navigate('WalletConnectSessionsView');
   }, [navigation]);
 
+  const openSesLink = () => Linking.openURL(SES_URL);
+
   const WalletConnectSettings: FC = () => (
     <>
-      <Text style={styles.title}>
+      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
         {strings('experimental_settings.wallet_connect_dapps')}
       </Text>
-      <Text style={styles.desc}>
+      <Text
+        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
+        style={styles.desc}
+      >
         {strings('experimental_settings.wallet_connect_dapps_desc')}
       </Text>
-      <StyledButton
-        type="normal"
+      <Button
+        variant={ButtonVariants.Secondary}
+        size={ButtonSize.Lg}
+        label={strings('experimental_settings.wallet_connect_dapps_cta')}
         onPress={goToWalletConnectSessions}
-        containerStyle={styles.clearHistoryConfirm}
-      >
-        {strings('experimental_settings.wallet_connect_dapps_cta')}
-      </StyledButton>
+        width={ButtonWidthTypes.Full}
+        style={styles.accessory}
+      />
     </>
   );
 
-  const BlockaidSettings: FC = () => (
+  const SesSettings: FC = () => (
     <>
-      <Text style={[styles.title, styles.heading]}>
+      <Text
+        color={TextColor.Default}
+        variant={TextVariant.HeadingLG}
+        style={styles.heading}
+      >
         {strings('app_settings.security_heading')}
       </Text>
       <View style={styles.setting}>
-        <Text style={styles.title}>
-          {strings('experimental_settings.security_alerts')}
-        </Text>
-        <Text style={styles.desc}>
-          {strings('experimental_settings.security_alerts_desc')}
-        </Text>
-        <Text style={[styles.title, styles.boldTitle]}>
-          {strings('experimental_settings.select_providers')}
+        <View style={styles.switchElement}>
+          <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+            {strings('app_settings.ses_heading')}
+          </Text>
+          <Switch
+            value={sesEnabled}
+            onValueChange={toggleSesEnabled}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={importedColors.white}
+            style={styles.switch}
+            ios_backgroundColor={colors.border.muted}
+          />
+        </View>
+        <Text
+          color={TextColor.Alternative}
+          variant={TextVariant.BodyMD}
+          style={styles.desc}
+        >
+          {strings('app_settings.ses_description')}{' '}
+          <Button
+            variant={ButtonVariants.Link}
+            size={ButtonSize.Auto}
+            onPress={openSesLink}
+            label={strings('app_settings.ses_link')}
+          />
+          .
         </Text>
       </View>
-      <View style={styles.switchElement}>
-        <Text style={[styles.switchLabel, styles.title]}>
-          {strings('experimental_settings.blockaid')}
-        </Text>
-        <Switch
-          value={securityAlertsEnabled}
-          onValueChange={toggleSecurityAlertsEnabled}
-          trackColor={{
-            true: colors.primary.default,
-            false: colors.border.muted,
-          }}
-          thumbColor={importedColors.white}
-          style={styles.switch}
-          ios_backgroundColor={colors.border.muted}
-          testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
-        />
-      </View>
-      <Text style={[styles.title, styles.mutedText]}>
-        {strings('experimental_settings.moreProviders')}
-      </Text>
     </>
   );
 
   return (
     <ScrollView style={styles.wrapper}>
       <WalletConnectSettings />
-      {isBlockaidFeatureEnabled() && <BlockaidSettings />}
+      {Device.isIos() && <SesSettings />}
     </ScrollView>
   );
 };

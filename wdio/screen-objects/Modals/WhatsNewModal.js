@@ -1,17 +1,14 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-import {
-  WHATS_NEW_MODAL_CLOSE_BUTTON_ID,
-  WHATS_NEW_MODAL_CONTAINER_ID,
-} from '../../../app/constants/test-ids';
+import { WhatsNewModalSelectorsIDs } from "../../../e2e/selectors/Modals/WhatsNewModal.selectors";
 
 class WhatsNewModal {
   get container() {
-    return Selectors.getElementByPlatform(WHATS_NEW_MODAL_CONTAINER_ID);
+    return Selectors.getXpathElementByResourceId(WhatsNewModalSelectorsIDs.CONTAINER);
   }
 
   get closeButton() {
-    return Selectors.getElementByPlatform(WHATS_NEW_MODAL_CLOSE_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(WhatsNewModalSelectorsIDs.CLOSE_BUTTON);
   }
 
   async waitForDisplay() {

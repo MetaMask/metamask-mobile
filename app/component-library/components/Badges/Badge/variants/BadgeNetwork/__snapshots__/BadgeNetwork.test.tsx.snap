@@ -16,12 +16,6 @@ exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `
   testID="badge-network"
 >
   <Avatar
-    imageSource={
-      Object {
-        "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
-      }
-    }
-    name="Ethereum"
     size="32"
     style={
       Object {

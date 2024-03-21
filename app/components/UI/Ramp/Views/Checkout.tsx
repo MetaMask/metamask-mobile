@@ -5,10 +5,11 @@ import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from 'react-native-webview';
 import { useNavigation } from '@react-navigation/native';
 import { Provider } from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { baseStyles } from '../../../../styles/common';
 import { useTheme } from '../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../Navbar';
-import { useFiatOnRampSDK, SDK } from '../sdk';
+import { useRampSDK, SDK } from '../sdk';
 import {
   addFiatCustomIdData,
   removeFiatCustomIdData,
@@ -35,12 +36,12 @@ interface CheckoutParams {
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
-  Routes.FIAT_ON_RAMP_AGGREGATOR.CHECKOUT,
+  Routes.RAMP.CHECKOUT,
 );
 
 const CheckoutWebView = () => {
-  const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl } =
-    useFiatOnRampSDK();
+  const { selectedAddress, selectedChainId, sdkError, callbackBaseUrl, isBuy } =
+    useRampSDK();
   const dispatch = useDispatch();
   const trackEvent = useAnalytics();
   const [error, setError] = useState('');
@@ -55,12 +56,20 @@ const CheckoutWebView = () => {
   const { url: uri, customOrderId, provider } = params;
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Provider Webview',
-      chain_id_destination: selectedChainId,
-      provider_onramp: provider.name,
-    });
-  }, [provider.name, selectedChainId, trackEvent]);
+    if (isBuy) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Provider Webview',
+        chain_id_destination: selectedChainId,
+        provider_onramp: provider.name,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Provider Webview',
+        chain_id_source: selectedChainId,
+        provider_offramp: provider.name,
+      });
+    }
+  }, [isBuy, provider.name, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -81,10 +90,11 @@ const CheckoutWebView = () => {
       customOrderId,
       selectedChainId,
       selectedAddress,
+      isBuy ? OrderOrderTypeEnum.Buy : OrderOrderTypeEnum.Sell,
     );
     setCustomIdData(customOrderIdData);
     dispatch(addFiatCustomIdData(customOrderIdData));
-  }, [customOrderId, dispatch, selectedAddress, selectedChainId]);
+  }, [customOrderId, dispatch, isBuy, selectedAddress, selectedChainId]);
 
   const handleNavigationStateChange = async (navState: WebViewNavigation) => {
     if (
@@ -103,7 +113,10 @@ const CheckoutWebView = () => {
           return;
         }
         const orders = await SDK.orders();
-        const order = await orders.getOrderFromCallback(
+        const getOrderFromCallbackMethod = isBuy
+          ? 'getOrderFromCallback'
+          : 'getSellOrderFromCallback';
+        const order = await orders[getOrderFromCallbackMethod](
           provider.id,
           navState?.url,
           selectedAddress,

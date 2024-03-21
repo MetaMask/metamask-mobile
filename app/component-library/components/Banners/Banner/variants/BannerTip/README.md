@@ -1,4 +1,6 @@
-# BannerTip
+# [BannerTip](https://metamask-consensys.notion.site/Banner-Tip-67fdb01ab850472f90abc6f4127395cb)
+
+![BannerTip](./BannerTip.png)
 
 BannerTip is an inline notification that offers users educational tips, knowledge, and helpful links. 
 

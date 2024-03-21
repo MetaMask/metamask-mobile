@@ -2,21 +2,21 @@ import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { createStyles } from './styles';
-import { useTheme } from '../../../../../../util/theme';
 import Button, {
   ButtonVariants,
+  ButtonWidthTypes,
+  ButtonSize,
 } from '../../../../../../component-library/components/Buttons/Button';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
-import {
-  CHANGE_PASSWORD_TITLE_ID,
-  CHANGE_PASSWORD_BUTTON_ID,
-} from '../../../../../../constants/test-ids';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 const ChangePassword = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
   const navigation = useNavigation();
 
   const resetPassword = (): void => {
@@ -24,17 +24,28 @@ const ChangePassword = () => {
   };
 
   return (
-    <View style={styles.setting} testID={CHANGE_PASSWORD_TITLE_ID}>
-      <Text style={styles.title}>
+    <View
+      style={styles.setting}
+      testID={SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER}
+    >
+      <Text variant={TextVariant.BodyLGMedium}>
         {strings('password_reset.password_title')}
       </Text>
-      <Text style={styles.desc}>{strings('password_reset.password_desc')}</Text>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.desc}
+      >
+        {strings('password_reset.password_desc')}
+      </Text>
       <Button
         label={strings('password_reset.change_password')}
         variant={ButtonVariants.Secondary}
         onPress={resetPassword}
         style={styles.confirm}
-        testID={CHANGE_PASSWORD_BUTTON_ID}
+        width={ButtonWidthTypes.Full}
+        size={ButtonSize.Lg}
+        testID={SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON}
       />
     </View>
   );

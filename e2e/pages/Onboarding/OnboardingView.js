@@ -1,46 +1,31 @@
-import { WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID } from '../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
-import TestHelpers from '../../helpers';
-import messages from '../../../locales/languages/en.json';
-import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
+import { OnboardingSelectorIDs } from '../../selectors/Onboarding/Onboarding.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-const ONBOARDING_SCREEN_ID = 'onboarding-screen';
-const IMPORT_FROM_SEED_BUTTON_ID =
-  'wallet-setup-screen-import-from-seed-button-id';
-const DeletePasswordString = messages.onboarding.your_wallet;
-
-export default class OnboardingView {
-  static async tapCreateWallet() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(
-        WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
-      );
-    } else {
-      await TestHelpers.waitAndTap(WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID);
-    }
+class OnboardingView {
+  get container() {
+    return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
   }
 
-  static async tapImportWalletFromSeedPhrase() {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.waitAndTapByLabel(IMPORT_FROM_SEED_BUTTON_ID);
-    } else {
-      await TestHelpers.tap(IMPORT_FROM_SEED_BUTTON_ID);
-    }
+  get importSeedButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(OnboardingSelectorIDs.IMPORT_SEED_BUTTON)
+      : Matchers.getElementByID(OnboardingSelectorIDs.IMPORT_SEED_BUTTON);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(ONBOARDING_SCREEN_ID);
+  get newWalletButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(OnboardingSelectorIDs.NEW_WALLET_BUTTON)
+      : Matchers.getElementByID(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ONBOARDING_SCREEN_ID);
+  async tapCreateWallet() {
+    await Gestures.waitAndTap(this.newWalletButton);
   }
-  static async isDeleteWalletToastVisible() {
-    await TestHelpers.checkIfElementHasString(
-      NOTIFICATION_TITLE,
-      DeletePasswordString,
-    );
-  }
-  static async deleteWalletToastisNotVisible() {
-    await TestHelpers.checkIfVisible(NOTIFICATION_TITLE);
+
+  async tapImportWalletFromSeedPhrase() {
+    await Gestures.waitAndTap(this.importSeedButton);
   }
 }
+
+export default new OnboardingView();

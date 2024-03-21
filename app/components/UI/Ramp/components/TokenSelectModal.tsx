@@ -112,7 +112,11 @@ function TokenSelectModal({
 
   const renderItem = useCallback(
     ({ item }: { item: CryptoCurrency }) => (
-      <TouchableOpacity onPress={() => onItemPress(item)}>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible
+        onPress={() => onItemPress(item)}
+      >
         <ListItem style={styles.listItem}>
           <ListItem.Content>
             <ListItem.Icon>

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from './Regions.styles';
@@ -24,7 +24,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
 
-import { useFiatOnRampSDK } from '../../sdk';
+import { useRampSDK } from '../../sdk';
 import { Region } from '../../types';
 import useAnalytics from '../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
@@ -33,7 +33,7 @@ import useRegions from '../../hooks/useRegions';
 const ListItem = BaseListItem as any;
 
 export const createRegionsNavDetails = createNavigationDetails(
-  Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
+  Routes.RAMP.REGION,
 );
 
 const RegionsView = () => {
@@ -45,7 +45,10 @@ const RegionsView = () => {
     setSelectedFiatCurrencyId,
     sdkError,
     selectedChainId,
-  } = useFiatOnRampSDK();
+    isBuy,
+    isSell,
+    rampType,
+  } = useRampSDK();
   const [isRegionModalVisible, , showRegionModal, hideRegionModal] =
     useModalHandler(false);
 
@@ -60,25 +63,36 @@ const RegionsView = () => {
   } = useRegions();
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Region Screen',
-      chain_id_destination: selectedChainId,
-    });
-  }, [selectedChainId, trackEvent]);
+    if (isBuy) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Region Screen',
+        chain_id_destination: selectedChainId,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Region Screen',
+        chain_id_source: selectedChainId,
+      });
+    }
+  }, [isBuy, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
       getFiatOnRampAggNavbar(
         navigation,
         {
-          title: strings('fiat_on_ramp_aggregator.region.buy_crypto_tokens'),
+          title: strings(
+            isBuy
+              ? 'fiat_on_ramp_aggregator.region.buy_crypto_tokens'
+              : 'fiat_on_ramp_aggregator.region.sell_crypto_tokens',
+          ),
           showBack: false,
         },
         colors,
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress]);
+  }, [isBuy, navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
     navigation.navigate(...createPaymentMethodsNavDetails());
@@ -138,7 +152,11 @@ const RegionsView = () => {
     <ScreenLayout>
       <ScreenLayout.Header
         title={strings('fiat_on_ramp_aggregator.region.your_region')}
-        description={strings('fiat_on_ramp_aggregator.region.description')}
+        description={strings(
+          isBuy
+            ? 'fiat_on_ramp_aggregator.region.description'
+            : 'fiat_on_ramp_aggregator.region.sell_description',
+        )}
       />
       <ScreenLayout.Body>
         <ScreenLayout.Content>
@@ -179,7 +197,11 @@ const RegionsView = () => {
             <StyledButton
               type="confirm"
               onPress={handleOnPress}
-              disabled={!selectedRegion}
+              disabled={
+                !selectedRegion ||
+                (isBuy && !selectedRegion.support.buy) ||
+                (isSell && !selectedRegion.support.sell)
+              }
             >
               {strings('fiat_on_ramp_aggregator.continue')}
             </StyledButton>
@@ -192,7 +214,16 @@ const RegionsView = () => {
         subtitle={`${unsupportedRegion?.emoji}   ${unsupportedRegion?.name}`}
         dismiss={clearUnsupportedRegion}
         title={strings('fiat_on_ramp_aggregator.region.unsupported')}
-        body={strings('fiat_on_ramp_aggregator.region.unsupported_description')}
+        body={strings(
+          'fiat_on_ramp_aggregator.region.unsupported_description',
+          {
+            rampType: strings(
+              isBuy
+                ? 'fiat_on_ramp_aggregator.buy'
+                : 'fiat_on_ramp_aggregator.sell',
+            ),
+          },
+        )}
         link={strings('fiat_on_ramp_aggregator.region.unsupported_link')}
       />
 
@@ -206,6 +237,8 @@ const RegionsView = () => {
         dismiss={hideRegionModal as () => void}
         onRegionPress={handleRegionPress}
         location={'Region Screen'}
+        selectedRegion={selectedRegion}
+        rampType={rampType}
       />
     </ScreenLayout>
   );

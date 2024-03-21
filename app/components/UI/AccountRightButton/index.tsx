@@ -21,10 +21,11 @@ import AvatarAccount, {
 } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AccountRightButtonProps } from './AccountRightButton.types';
 import Avatar, {
-  AvatarVariants,
+  AvatarVariant,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
 import {
+  getDecimalChainId,
   getNetworkImageSource,
   getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
@@ -35,7 +36,8 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import { selectProviderConfig } from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import Analytics from '../../../core/Analytics/Analytics';
+import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -65,6 +67,7 @@ const AccountRightButton = ({
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
   const { navigate } = useNavigation();
+  const { trackEvent } = useMetrics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
   const accountAvatarType = useSelector((state: any) =>
@@ -121,12 +124,9 @@ const AccountRightButton = ({
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
       });
-      Analytics.trackEventWithParameters(
-        MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
-        {
-          chain_id: providerConfig.chainId,
-        },
-      );
+      trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
+        chain_id: getDecimalChainId(providerConfig.chainId),
+      });
     } else {
       onPress?.();
     }
@@ -137,6 +137,7 @@ const AccountRightButton = ({
     onPress,
     navigate,
     providerConfig.chainId,
+    trackEvent,
   ]);
 
   const networkName = useMemo(
@@ -161,7 +162,7 @@ const AccountRightButton = ({
     <TouchableOpacity
       style={styles.leftButton}
       onPress={handleButtonPress}
-      testID={'navbar-account-button'}
+      testID={AccountOverviewSelectorsIDs.ACCOUNT_BUTTON}
     >
       <TextInput style={styles.placeholderInput} ref={placeholderInputRef} />
       {selectedAddress ? (
@@ -182,7 +183,7 @@ const AccountRightButton = ({
         )
       ) : (
         <Avatar
-          variant={AvatarVariants.Network}
+          variant={AvatarVariant.Network}
           size={AvatarSize.Md}
           name={networkName}
           imageSource={networkImageSource}

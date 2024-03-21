@@ -3,16 +3,17 @@ import PropTypes from 'prop-types';
 import {
   ActivityIndicator,
   BackHandler,
-  Text,
   View,
   ScrollView,
   StyleSheet,
   Image,
   InteractionManager,
-  Platform,
   Animated,
   Easing,
 } from 'react-native';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import StyledButton from '../../UI/StyledButton';
 import {
@@ -22,11 +23,9 @@ import {
 } from '../../../styles/common';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
-import Button from 'react-native-button';
+import Button from '@metamask/react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import Analytics from '../../../core/Analytics/Analytics';
-import { saveOnboardingEvent } from '../../../actions/onboarding';
 import {
   getTransparentBackOnboardingNavbarOptions,
   getTransparentOnboardingNavbarOptions,
@@ -38,23 +37,17 @@ import { loadingSet, loadingUnset } from '../../../actions/user';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
-import { EXISTING_USER, METRICS_OPT_IN } from '../../../constants/storage';
+import { EXISTING_USER } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-
-import DefaultPreference from 'react-native-default-preference';
+import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  WALLET_SETUP_SCREEN_TITLE_ID,
-  WALLET_SETUP_SCREEN_DESCRIPTION_ID,
-  WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID,
-  WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
+import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
+
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -77,9 +70,6 @@ const createStyles = (colors) =>
       height: Device.isIos() ? 90 : 45,
     },
     title: {
-      fontSize: 24,
-      color: colors.text.default,
-      ...fontStyles.bold,
       textAlign: 'center',
     },
     ctas: {
@@ -96,12 +86,8 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     buttonDescription: {
-      ...fontStyles.normal,
-      fontSize: 14,
       textAlign: 'center',
       marginBottom: 16,
-      color: colors.text.default,
-      lineHeight: 20,
     },
     importWrapper: {
       marginVertical: 24,
@@ -121,10 +107,7 @@ const createStyles = (colors) =>
     },
     loadingText: {
       marginTop: 30,
-      fontSize: 14,
       textAlign: 'center',
-      color: colors.text.default,
-      ...fontStyles.normal,
     },
     modalTypeView: {
       position: 'absolute',
@@ -155,10 +138,6 @@ class Onboarding extends PureComponent {
      */
     passwordSet: PropTypes.bool,
     /**
-     * Save onboarding event to state
-     */
-    saveOnboardingEvent: PropTypes.func,
-    /**
      * loading status
      */
     loading: PropTypes.bool,
@@ -178,6 +157,10 @@ class Onboarding extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   notificationAnimated = new Animated.Value(100);
@@ -290,8 +273,8 @@ class Onboarding extends PureComponent {
 
   onPressCreate = () => {
     const action = async () => {
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (metricsOptIn) {
+      const { metrics } = this.props;
+      if (metrics.isEnabled()) {
         this.props.navigation.navigate('ChoosePassword', {
           [PREVIOUS_SCREEN]: ONBOARDING,
         });
@@ -312,8 +295,8 @@ class Onboarding extends PureComponent {
 
   onPressImport = () => {
     const action = async () => {
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (metricsOptIn) {
+      const { metrics } = this.props;
+      if (metrics.isEnabled()) {
         this.props.navigation.push(
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
         );
@@ -332,17 +315,8 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
-  track = (...eventArgs) => {
-    InteractionManager.runAfterInteractions(async () => {
-      if (Analytics.checkEnabled()) {
-        AnalyticsV2.trackEvent(...eventArgs);
-        return;
-      }
-      const metricsOptIn = await DefaultPreference.get(METRICS_OPT_IN);
-      if (!metricsOptIn) {
-        this.props.saveOnboardingEvent(eventArgs);
-      }
-    });
+  track = (event) => {
+    trackOnboarding(event);
   };
 
   alertExistingUser = (callback) => {
@@ -379,15 +353,16 @@ class Onboarding extends PureComponent {
     return (
       <View style={styles.ctas}>
         <Text
+          variant={TextVariant.HeadingLG}
           style={styles.title}
-          {...generateTestId(Platform, WALLET_SETUP_SCREEN_TITLE_ID)}
+          testID={OnboardingSelectorIDs.SCREEN_TITLE}
         >
           {strings('onboarding.title')}
         </Text>
         <View style={styles.importWrapper}>
           <Text
             style={styles.buttonDescription}
-            {...generateTestId(Platform, WALLET_SETUP_SCREEN_DESCRIPTION_ID)}
+            testID={OnboardingSelectorIDs.SCREEN_DESCRIPTION}
           >
             {strings('onboarding.import')}
           </Text>
@@ -397,7 +372,7 @@ class Onboarding extends PureComponent {
             <StyledButton
               type={'normal'}
               onPress={this.onPressImport}
-              testID={WALLET_SETUP_SCREEN_IMPORT_FROM_SEED_BUTTON_ID}
+              testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
             >
               {strings('import_wallet.import_from_seed_button')}
             </StyledButton>
@@ -406,7 +381,7 @@ class Onboarding extends PureComponent {
             <StyledButton
               type={'blue'}
               onPress={this.onPressCreate}
-              testID={WALLET_SETUP_CREATE_NEW_WALLET_BUTTON_ID}
+              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             >
               {strings('onboarding.start_exploring_now')}
             </StyledButton>
@@ -449,7 +424,10 @@ class Onboarding extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <View style={baseStyles.flexGrow} testID={'onboarding-screen'}>
+      <View
+        style={baseStyles.flexGrow}
+        testID={OnboardingSelectorIDs.CONTAINER_ID}
+      >
         <OnboardingScreenWithBg screen={'c'}>
           <ScrollView
             style={baseStyles.flexGrow}
@@ -507,7 +485,9 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   setLoading: (msg) => dispatch(loadingSet(msg)),
   unsetLoading: () => dispatch(loadingUnset()),
-  saveOnboardingEvent: (event) => dispatch(saveOnboardingEvent(event)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Onboarding);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Onboarding));

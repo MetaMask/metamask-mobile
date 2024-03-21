@@ -1,41 +1,32 @@
-/* eslint-disable no-console */
-
+/* eslint-disable react/display-name */
 // Third party dependencies.
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { select } from '@storybook/addon-knobs';
-
-// External dependencies.
-import { storybookPropsGroupID } from '../../../constants/storybook.constants';
 
 // Internal dependencies.
-import BottomSheetFooter from './BottomSheetFooter';
-import {
-  BottomSheetFooterProps,
-  ButtonsAlignment,
-} from './BottomSheetFooter.types';
-import {
-  DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
-  SAMPLE_BOTTOMSHEETFOOTER_PROPS,
-} from './BottomSheetFooter.constants';
+import { default as BottomSheetFooterComponent } from './BottomSheetFooter';
+import { SAMPLE_BOTTOMSHEETFOOTER_PROPS } from './BottomSheetFooter.constants';
+import { ButtonsAlignment } from './BottomSheetFooter.types';
 
-export const getBottomSheetFooterStoryProps = (): BottomSheetFooterProps => ({
-  buttonsAlignment: select(
-    'buttonsAlignment',
-    ButtonsAlignment,
-    DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
-    storybookPropsGroupID,
+const BottomSheetFooterMeta = {
+  title: 'Component Library / BottomSheets',
+  component: BottomSheetFooterComponent,
+  argTypes: {
+    buttonsAlignment: {
+      options: ButtonsAlignment,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BOTTOMSHEETFOOTER_PROPS.buttonsAlignment,
+    },
+  },
+};
+export default BottomSheetFooterMeta;
+
+export const BottomSheetFooter = {
+  render: (args: any) => (
+    <BottomSheetFooterComponent
+      {...args}
+      buttonPropsArray={SAMPLE_BOTTOMSHEETFOOTER_PROPS.buttonPropsArray}
+    />
   ),
-  buttonPropsArray: SAMPLE_BOTTOMSHEETFOOTER_PROPS.buttonPropsArray,
-});
-
-const BottomSheetFooterStory = () => (
-  <BottomSheetFooter {...getBottomSheetFooterStoryProps()} />
-);
-
-storiesOf('Component Library / BottomSheets', module).add(
-  'BottomSheetFooter',
-  BottomSheetFooterStory,
-);
-
-export default BottomSheetFooterStory;
+};

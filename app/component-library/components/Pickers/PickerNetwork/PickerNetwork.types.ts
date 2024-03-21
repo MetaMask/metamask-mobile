@@ -16,7 +16,7 @@ export interface PickerNetworkProps extends TouchableOpacityProps {
   /**
    * Callback to trigger when picker is pressed.
    */
-  onPress: () => void;
+  onPress?: () => void;
 }
 
 export type PickerNetworkStyleSheetVars = Pick<PickerNetworkProps, 'style'>;

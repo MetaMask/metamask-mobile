@@ -1,20 +1,13 @@
 // Third party dependencies.
-import { ViewProps } from 'react-native';
+import { StyleProp, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { AvatarProps } from '../../../../Avatars/Avatar/Avatar.types';
 
-// Internal dependencies
-import { CellVariants } from '../../Cell.types';
-
 /**
  * Cell Account component props.
  */
-export interface CellBaseProps extends ViewProps {
-  /**
-   * Variant of Cell
-   */
-  variant?: CellVariants;
+export interface CellBaseProps {
   /**
    * Props for avatar component (with the exception of size).
    * Avatar size is restricted to size Md (32x32) for Cells
@@ -40,6 +33,10 @@ export interface CellBaseProps extends ViewProps {
    * Optional accessory that can be inserted on the right of Cell Account.
    */
   children?: React.ReactNode;
+  /**
+   * Optional prop to control the style of the CellBase.
+   */
+  style?: StyleProp<ViewStyle> | undefined;
 }
 
 /**

@@ -1,7 +1,8 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { isEqual } from 'lodash';
 import Routes from '../../../../constants/navigation/Routes';
-import { useFiatOnRampSDK } from '../sdk';
+import { useRampSDK } from '../sdk';
 import { Region } from '../types';
 import useSDKMethod from './useSDKMethod';
 
@@ -13,7 +14,9 @@ export default function useRegions() {
     setSelectedRegion,
     unsupportedRegion,
     setUnsupportedRegion,
-  } = useFiatOnRampSDK();
+    isBuy,
+    isSell,
+  } = useRampSDK();
 
   const [{ data, isFetching, error }, queryGetCountries] =
     useSDKMethod('getCountries');
@@ -31,23 +34,40 @@ export default function useRegions() {
     return allRegions.find((region) => region.id === selectedRegion.id) ?? null;
   }, [data, selectedRegion]);
 
+  const redirectToRegion = useCallback(() => {
+    if (
+      route.name !== Routes.RAMP.REGION &&
+      route.name !== Routes.RAMP.REGION_HAS_STARTED
+    ) {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: Routes.RAMP.REGION_HAS_STARTED,
+          },
+        ],
+      });
+    }
+  }, [navigation, route.name]);
+
   useEffect(() => {
-    if (updatedRegion?.unsupported) {
+    if (!updatedRegion) return;
+
+    if (updatedRegion.unsupported) {
       setSelectedRegion(null);
       setUnsupportedRegion(updatedRegion);
+      redirectToRegion();
+    } else {
+      if (!isEqual(updatedRegion, selectedRegion)) {
+        setSelectedRegion(updatedRegion);
+      }
 
       if (
-        route.name !== Routes.FIAT_ON_RAMP_AGGREGATOR.REGION &&
-        route.name !== Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED
+        (isBuy && !updatedRegion.support.buy) ||
+        (isSell && !updatedRegion.support.sell)
       ) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION,
-            },
-          ],
-        });
+        setUnsupportedRegion(updatedRegion);
+        redirectToRegion();
       }
     }
   }, [
@@ -56,6 +76,10 @@ export default function useRegions() {
     navigation,
     route.name,
     setUnsupportedRegion,
+    redirectToRegion,
+    isBuy,
+    isSell,
+    selectedRegion,
   ]);
 
   const clearUnsupportedRegion = useCallback(

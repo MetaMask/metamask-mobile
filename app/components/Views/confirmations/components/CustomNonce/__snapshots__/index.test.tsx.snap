@@ -1,0 +1,157 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomNonce should render correctly 1`] = `
+<TouchableOpacity
+  style={
+    Object {
+      "borderColor": "#BBC0C5",
+      "borderRadius": 8,
+      "borderWidth": 1,
+      "display": "flex",
+      "flexDirection": "row",
+      "marginHorizontal": 24,
+      "marginTop": 10,
+      "paddingHorizontal": 16,
+      "paddingVertical": 14,
+    }
+  }
+>
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        Object {
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontWeight": "600",
+        },
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+    Nonce
+  </Text>
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        Object {
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontWeight": "600",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "color": "#0376C9",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]
+    }
+  >
+      
+    Edit
+  </Text>
+  <Text
+    style={
+      Array [
+        Object {
+          "color": "#24272A",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 30,
+          "fontWeight": "400",
+          "marginVertical": 2,
+        },
+        undefined,
+        undefined,
+        Object {
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontWeight": "600",
+        },
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "color": "#24272A",
+        },
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        Object {
+          "marginLeft": "auto",
+        },
+      ]
+    }
+  />
+</TouchableOpacity>
+`;

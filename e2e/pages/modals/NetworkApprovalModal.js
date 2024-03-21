@@ -1,38 +1,27 @@
-import TestHelpers from '../../helpers';
-import {
-  APPROVE_NETWORK_DISPLAY_NAME_ID,
-  APPROVE_NETWORK_MODAL_ID,
-  APPROVE_NETWORK_CANCEL_BUTTON_ID,
-  APPROVE_NETWORK_APPROVE_BUTTON_ID,
-} from '../../../app/constants/test-ids';
-export default class NetworkApprovalModal {
-  static async tapApproveButton() {
-    await TestHelpers.tap(APPROVE_NETWORK_APPROVE_BUTTON_ID);
+import { NetworkApprovalModalSelectorsIDs } from '../../selectors/Modals/NetworkApprovalModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+
+class NetworkApprovalModal {
+  get container() {
+    return Matchers.getElementByID(NetworkApprovalModalSelectorsIDs.CONTAINER);
   }
 
-  static async tapCanelButton() {
-    await TestHelpers.tap(APPROVE_NETWORK_CANCEL_BUTTON_ID);
-  }
-
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(APPROVE_NETWORK_MODAL_ID);
-  }
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(APPROVE_NETWORK_MODAL_ID);
-  }
-
-  static async isDisplayNameVisible(displayName) {
-    await TestHelpers.checkIfHasText(
-      APPROVE_NETWORK_DISPLAY_NAME_ID,
-      displayName,
+  get approvedButton() {
+    return Matchers.getElementByID(
+      NetworkApprovalModalSelectorsIDs.APPROVE_BUTTON,
     );
   }
 
-  static async isChainIDVisible(chainID) {
-    await TestHelpers.checkIfElementWithTextIsVisible(chainID);
+  get displayName() {
+    return Matchers.getElementByID(
+      NetworkApprovalModalSelectorsIDs.DISPLAY_NAME,
+    );
   }
 
-  static async isNetworkURLVisible(networkURL) {
-    await TestHelpers.checkIfElementWithTextIsVisible(networkURL);
+  async tapApproveButton() {
+    await Gestures.waitAndTap(this.approvedButton);
   }
 }
+
+export default new NetworkApprovalModal();

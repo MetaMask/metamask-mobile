@@ -6,7 +6,7 @@ import {
   NETWORK_TEST_SWITCH_ID,
 } from '../testIDs/Components/NetworkListModal.TestIds';
 import { ADD_NETWORK_BUTTON } from '../testIDs/Screens/NetworksScreen.testids';
-import { CELL_SELECT_TEST_ID } from '../../../app/constants/test-ids';
+import { CellModalSelectorsIDs } from '../../../e2e/selectors/Modals/CellModal.selectors';
 
 class NetworkListModal {
   get scroll() {
@@ -22,7 +22,7 @@ class NetworkListModal {
   }
 
   get networksButton() {
-    return Selectors.getXpathByContentDesc(CELL_SELECT_TEST_ID);
+    return Selectors.getXpathByContentDesc(CellModalSelectorsIDs.SELECT);
   }
 
   async changeNetwork(networkName) {

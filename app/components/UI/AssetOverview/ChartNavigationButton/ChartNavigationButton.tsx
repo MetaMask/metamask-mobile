@@ -1,7 +1,9 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useStyles } from '../../../../component-library/hooks';
-import Text from '../../../Base/Text';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import styleSheet from './ChartNavigationButton.styles';
 
 interface ChartNavigationButtonProps {
@@ -18,7 +20,9 @@ const ChartNavigationButton = ({
   const { styles } = useStyles(styleSheet, { selected });
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Text style={styles.label}>{label}</Text>
+      <Text variant={TextVariant.BodySM} style={styles.label}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 };

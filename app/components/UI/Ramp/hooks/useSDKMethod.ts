@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { RegionsService } from '@consensys/on-ramp-sdk';
-import { useFiatOnRampSDK, SDK } from '../sdk';
+import { RegionsService, ServicesSignatures } from '@consensys/on-ramp-sdk';
+import { useRampSDK, SDK } from '../sdk';
 import Logger from '../../../../util/Logger';
 
 type NullifyOrPartial<T> = { [P in keyof T]?: T[P] | null };
@@ -18,11 +18,9 @@ function validMethodParams<T extends keyof RegionsService>(
   method: T,
   params: PartialParameters<RegionsService[T]> | [],
 ): params is Parameters<RegionsService[T]> {
-  const { parameters } = SDK.getSignature(
-    RegionsService,
-    RegionsService.prototype[method],
-  );
-
+  const parameters: {
+    required: boolean;
+  }[] = ServicesSignatures.RegionsService[method].parameters;
   return parameters.every(({ required }, index) => {
     if (!required) return true;
 
@@ -90,7 +88,7 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   const method = typeof config === 'string' ? config : config.method;
   const onMount = typeof config === 'string' ? true : config.onMount ?? true;
 
-  const { sdk } = useFiatOnRampSDK();
+  const { sdk } = useRampSDK();
   const [data, setData] = useState<Awaited<
     ReturnType<RegionsService[T]>
   > | null>(null);

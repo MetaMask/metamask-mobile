@@ -8,7 +8,6 @@ import {
   View,
   TextInput,
   SafeAreaView,
-  InteractionManager,
   Platform,
 } from 'react-native';
 import { connect } from 'react-redux';
@@ -35,7 +34,6 @@ import {
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import { useTheme } from '../../../util/theme';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
@@ -54,17 +52,7 @@ import {
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID,
-  IMPORT_FROM_SEED_SCREEN_TITLE_ID,
-  IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
-  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
-  IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/ImportFromSeedScreen.testIds';
-import { IMPORT_PASSWORD_CONTAINER_ID } from '../../../constants/test-ids';
+
 import createStyles from './styles';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -73,6 +61,9 @@ import {
   updateAuthTypeStorageFlags,
 } from '../../../util/authentication';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
+import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
+import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -112,6 +103,10 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const passwordInput = React.createRef();
   const confirmPasswordInput = React.createRef();
+
+  const track = (event, properties) => {
+    trackOnboarding(event, properties);
+  };
 
   const updateNavBar = () => {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
@@ -192,9 +187,7 @@ const ImportFromSecretRecoveryPhrase = ({
     setSeed(parsedSeed);
 
     if (loading) return;
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
-    });
+    track(MetaMetricsEvents.WALLET_IMPORT_ATTEMPTED);
     let error = null;
     if (!passwordRequirementsMet(password)) {
       error = strings('import_from_seed.password_length_error');
@@ -210,11 +203,9 @@ const ImportFromSecretRecoveryPhrase = ({
 
     if (error) {
       Alert.alert(strings('import_from_seed.error'), error);
-      InteractionManager.runAfterInteractions(() => {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-          wallet_setup_type: 'import',
-          error_type: error,
-        });
+      track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+        wallet_setup_type: 'import',
+        error_type: error,
       });
     } else {
       try {
@@ -242,14 +233,12 @@ const ImportFromSecretRecoveryPhrase = ({
         passwordSet();
         setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
         seedphraseBackedUp();
-        InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_IMPORTED, {
-            biometrics_enabled: Boolean(biometryType),
-          });
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
-            wallet_setup_type: 'import',
-            new_wallet: false,
-          });
+        track(MetaMetricsEvents.WALLET_IMPORTED, {
+          biometrics_enabled: Boolean(biometryType),
+        });
+        track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
+          wallet_setup_type: 'import',
+          new_wallet: false,
         });
         if (onboardingWizard) {
           navigation.replace(Routes.ONBOARDING.MANUAL_BACKUP.STEP_3);
@@ -273,11 +262,9 @@ const ImportFromSecretRecoveryPhrase = ({
           setError(error.message);
           Logger.log('Error with seed phrase import', error.message);
         }
-        InteractionManager.runAfterInteractions(() => {
-          AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-            wallet_setup_type: 'import',
-            error_type: error.toString(),
-          });
+        track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
+          wallet_setup_type: 'import',
+          error_type: error.toString(),
         });
       }
     }
@@ -387,10 +374,7 @@ const ImportFromSecretRecoveryPhrase = ({
         containerStyle={inputWidth}
         inputContainerStyle={styles.padding}
         placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-        {...generateTestId(
-          Platform,
-          IMPORT_FROM_SEED_SCREEN_SEED_PHRASE_INPUT_ID,
-        )}
+        testID={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
         placeholderTextColor={colors.text.muted}
         returnKeyType="next"
         autoCapitalize="none"
@@ -424,10 +408,10 @@ const ImportFromSecretRecoveryPhrase = ({
         style={styles.wrapper}
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
-        <View testID={IMPORT_PASSWORD_CONTAINER_ID}>
+        <View testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}>
           <Text
             style={styles.title}
-            {...generateTestId(Platform, IMPORT_FROM_SEED_SCREEN_TITLE_ID)}
+            testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
           >
             {strings('import_from_seed.title')}
           </Text>
@@ -510,11 +494,7 @@ const ImportFromSecretRecoveryPhrase = ({
             <OutlinedTextField
               style={styles.input}
               containerStyle={inputWidth}
-              {...generateTestId(
-                Platform,
-                IMPORT_FROM_SEED_SCREEN_NEW_PASSWORD_INPUT_ID,
-              )}
-              testID={'create-password-first-input-field'}
+              testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
               placeholder={strings('import_from_seed.new_password')}
               placeholderTextColor={colors.text.muted}
               returnKeyType={'next'}
@@ -531,10 +511,7 @@ const ImportFromSecretRecoveryPhrase = ({
             {(password !== '' && (
               <Text
                 style={styles.passwordStrengthLabel}
-                {...generateTestId(
-                  Platform,
-                  IMPORT_FROM_SEED_SCREEN_PASSWORD_STRENGTH_ID,
-                )}
+                testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
               >
                 {strings('choose_password.password_strength')}
                 <Text style={styles[`strength_${passwordStrengthWord}`]}>
@@ -552,11 +529,7 @@ const ImportFromSecretRecoveryPhrase = ({
             <OutlinedTextField
               style={styles.input}
               containerStyle={inputWidth}
-              {...generateTestId(
-                Platform,
-                IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_INPUT_ID,
-              )}
-              testID={'create-password-second-input-field'}
+              testID={ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}
               onChangeText={onPasswordConfirmChange}
               returnKeyType={'next'}
               autoCapitalize="none"
@@ -576,10 +549,9 @@ const ImportFromSecretRecoveryPhrase = ({
                   name="check"
                   size={12}
                   color={colors.success.default}
-                  {...generateTestId(
-                    Platform,
-                    IMPORT_FROM_SEED_SCREEN_CONFIRM_PASSWORD_CHECK_ICON_ID,
-                  )}
+                  testID={
+                    ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_CHECK_ICON_ID
+                  }
                 />
               ) : null}
             </View>
@@ -593,7 +565,12 @@ const ImportFromSecretRecoveryPhrase = ({
           {renderSwitch()}
 
           {!!error && (
-            <Text style={styles.errorMsg} testID={'invalid-seed-phrase'}>
+            <Text
+              style={styles.errorMsg}
+              testID={
+                ImportFromSeedSelectorsIDs.INVALID_SEED_PHRASE_PLACE_HOLDER_TEXT
+              }
+            >
               {error}
             </Text>
           )}
@@ -602,7 +579,7 @@ const ImportFromSecretRecoveryPhrase = ({
             <StyledButton
               type={'blue'}
               onPress={onPressImport}
-              testID={IMPORT_FROM_SEED_SCREEN_SUBMIT_BUTTON_ID}
+              testID={ImportFromSeedSelectorsIDs.SUBMIT_BUTTON_ID}
               disabled={!(password !== '' && password === confirmPassword)}
             >
               {loading ? (

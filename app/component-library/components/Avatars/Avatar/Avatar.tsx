@@ -3,26 +3,31 @@ import React from 'react';
 
 // External dependencies.
 import AvatarAccount from './variants/AvatarAccount';
+import { AvatarAccountProps } from './variants/AvatarAccount/AvatarAccount.types';
 import AvatarFavicon from './variants/AvatarFavicon';
+import { AvatarFaviconProps } from './variants/AvatarFavicon/AvatarFavicon.types';
 import AvatarIcon from './variants/AvatarIcon';
+import { AvatarIconProps } from './variants/AvatarIcon/AvatarIcon.types';
 import AvatarNetwork from './variants/AvatarNetwork';
+import { AvatarNetworkProps } from './variants/AvatarNetwork/AvatarNetwork.types';
 import AvatarToken from './variants/AvatarToken';
+import { AvatarTokenProps } from './variants/AvatarToken/AvatarToken.types';
 
 // Internal dependencies.
-import { AvatarProps, AvatarVariants } from './Avatar.types';
+import { AvatarProps, AvatarVariant } from './Avatar.types';
 
-const Avatar = (avatarProps: AvatarProps) => {
-  switch (avatarProps.variant) {
-    case AvatarVariants.Account:
-      return <AvatarAccount {...avatarProps} />;
-    case AvatarVariants.Favicon:
-      return <AvatarFavicon {...avatarProps} />;
-    case AvatarVariants.Icon:
-      return <AvatarIcon {...avatarProps} />;
-    case AvatarVariants.Network:
-      return <AvatarNetwork {...avatarProps} />;
-    case AvatarVariants.Token:
-      return <AvatarToken {...avatarProps} />;
+const Avatar = ({ variant, ...props }: AvatarProps) => {
+  switch (variant) {
+    case AvatarVariant.Account:
+      return <AvatarAccount {...(props as AvatarAccountProps)} />;
+    case AvatarVariant.Favicon:
+      return <AvatarFavicon {...(props as AvatarFaviconProps)} />;
+    case AvatarVariant.Icon:
+      return <AvatarIcon {...(props as AvatarIconProps)} />;
+    case AvatarVariant.Network:
+      return <AvatarNetwork {...(props as AvatarNetworkProps)} />;
+    case AvatarVariant.Token:
+      return <AvatarToken {...(props as AvatarTokenProps)} />;
     default:
       throw new Error('Invalid Avatar Variant');
   }

@@ -39,35 +39,41 @@ const AmountInput: React.FC<Props> = ({
   onPress,
   onCurrencyPress,
 }: Props) => (
-  <Box
-    label={label}
-    onPress={onPress}
-    highlighted={highlighted}
-    accessible={false}
-  >
+  <Box label={label} highlighted={highlighted}>
     <ListItem.Content>
       <ListItem.Body>
-        <Text
-          black={!highlightedError}
-          red={highlightedError}
-          bold
-          style={styles.amount}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-        >
-          {currencySymbol || ''}
-          {amount}
-        </Text>
-      </ListItem.Body>
-      <ListItem.Amounts style={styles.chevron}>
         <TouchableOpacity
-          disabled={!onCurrencyPress}
-          onPress={onCurrencyPress}
+          accessible
+          accessibilityRole="button"
+          onPress={onPress}
           hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
         >
-          <CurrencyChevron currency={currencyCode} />
+          <Text
+            black={!highlightedError}
+            red={highlightedError}
+            bold
+            style={styles.amount}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {currencySymbol || ''}
+            {amount}
+          </Text>
         </TouchableOpacity>
-      </ListItem.Amounts>
+      </ListItem.Body>
+      {onCurrencyPress ? (
+        <ListItem.Amounts style={styles.chevron}>
+          <TouchableOpacity
+            accessible
+            accessibilityRole="button"
+            disabled={!onCurrencyPress}
+            onPress={onCurrencyPress}
+            hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
+          >
+            <CurrencyChevron currency={currencyCode} />
+          </TouchableOpacity>
+        </ListItem.Amounts>
+      ) : null}
     </ListItem.Content>
   </Box>
 );

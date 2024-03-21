@@ -1,14 +1,30 @@
-import { Order } from '@consensys/on-ramp-sdk';
+import {
+  Order,
+  QuoteResponse,
+  SellQuoteResponse,
+} from '@consensys/on-ramp-sdk';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import {
   timeToDescription,
   TimeDescriptions,
   formatAmount,
   formatId,
-  isNetworkBuySupported,
-  isNetworkBuyNativeTokenSupported,
+  isNetworkRampSupported,
+  isNetworkRampNativeTokenSupported,
   getOrderAmount,
+  isBuyQuotes,
+  isSellQuotes,
+  isBuyQuote,
+  isSellQuote,
+  isSellOrder,
+  isSellFiatOrder,
+  getNotificationDetails,
+  stateHasOrder,
 } from '.';
-import { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
+import { FiatOrder, RampType } from '../../../../reducers/fiatOrders/types';
+import { getOrders } from '../../../../reducers/fiatOrders';
+import type { RootState } from '../../../../reducers';
 
 describe('timeToDescription', () => {
   it('should return a function', () => {
@@ -82,13 +98,13 @@ describe('formatId', () => {
 describe('isNetworkBuySupported', () => {
   it('should return true if network is supported', () => {
     expect(
-      isNetworkBuySupported('1', [
+      isNetworkRampSupported('1', [
         {
           active: true,
           chainId: 1,
           chainName: 'Ethereum Mainnet',
-          shortName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
+          shortName: 'Ethereum',
         },
       ]),
     ).toBe(true);
@@ -96,13 +112,13 @@ describe('isNetworkBuySupported', () => {
 
   it('should return false if network is not supported', () => {
     expect(
-      isNetworkBuySupported('1', [
+      isNetworkRampSupported('1', [
         {
           active: false,
           chainId: 1,
           chainName: 'Ethereum Mainnet',
-          shortName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
+          shortName: 'Ethereum',
         },
       ]),
     ).toBe(false);
@@ -110,13 +126,55 @@ describe('isNetworkBuySupported', () => {
 
   it('should return false if network is not found', () => {
     expect(
-      isNetworkBuySupported('22', [
+      isNetworkRampSupported('22', [
         {
           active: true,
           chainId: 1,
           chainName: 'Ethereum Mainnet',
-          shortName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
+          shortName: 'Ethereum',
+        },
+      ]),
+    ).toBe(false);
+  });
+
+  it('should return true if network is supported when chainId is on hexadecimal format', () => {
+    expect(
+      isNetworkRampSupported('0x1', [
+        {
+          active: true,
+          chainId: 1,
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: true,
+          shortName: 'Ethereum',
+        },
+      ]),
+    ).toBe(true);
+  });
+
+  it('should return false if network is not supported when chainId is on hexadecimal format', () => {
+    expect(
+      isNetworkRampSupported('0x1', [
+        {
+          active: false,
+          chainId: 1,
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: true,
+          shortName: 'Ethereum',
+        },
+      ]),
+    ).toBe(false);
+  });
+
+  it('should return false if network is not found when chainId is on hexadecimal format', () => {
+    expect(
+      isNetworkRampSupported('0x22', [
+        {
+          active: true,
+          chainId: 1,
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: true,
+          shortName: 'Ethereum',
         },
       ]),
     ).toBe(false);
@@ -126,13 +184,13 @@ describe('isNetworkBuySupported', () => {
 describe('isNetworkBuyNativeTokenSupported', () => {
   it('should return true if network is supported and native token is supported', () => {
     expect(
-      isNetworkBuyNativeTokenSupported('1', [
+      isNetworkRampNativeTokenSupported('1', [
         {
           active: true,
           chainId: 1,
           chainName: 'Ethereum Mainnet',
-          shortName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
+          shortName: 'Ethereum',
         },
       ]),
     ).toBe(true);
@@ -140,13 +198,13 @@ describe('isNetworkBuyNativeTokenSupported', () => {
 
   it('should return false if network is not supported', () => {
     expect(
-      isNetworkBuyNativeTokenSupported('1', [
+      isNetworkRampNativeTokenSupported('1', [
         {
           active: false,
           chainId: 1,
           chainName: 'Ethereum Mainnet',
-          shortName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
+          shortName: 'Ethereum',
         },
       ]),
     ).toBe(false);
@@ -154,13 +212,13 @@ describe('isNetworkBuyNativeTokenSupported', () => {
 
   it('should return false if network is not found', () => {
     expect(
-      isNetworkBuyNativeTokenSupported('22', [
+      isNetworkRampNativeTokenSupported('22', [
         {
           active: true,
           chainId: 1,
           chainName: 'Ethereum Mainnet',
-          shortName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
+          shortName: 'Ethereum',
         },
       ]),
     ).toBe(false);
@@ -168,13 +226,69 @@ describe('isNetworkBuyNativeTokenSupported', () => {
 
   it('should return false if network is supported but native token is not supported', () => {
     expect(
-      isNetworkBuyNativeTokenSupported('1', [
+      isNetworkRampNativeTokenSupported('1', [
         {
           active: true,
           chainId: 1,
           chainName: 'Ethereum Mainnet',
-          shortName: 'Ethereum Mainnet',
           nativeTokenSupported: false,
+          shortName: 'Ethereum',
+        },
+      ]),
+    ).toBe(false);
+  });
+
+  it('should return true if network is supported and native token is supported  when chainId is on hexadecimal format', () => {
+    expect(
+      isNetworkRampNativeTokenSupported('0x1', [
+        {
+          active: true,
+          chainId: 1,
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: true,
+          shortName: 'Ethereum',
+        },
+      ]),
+    ).toBe(true);
+  });
+
+  it('should return false if network is not supported when chainId is on hexadecimal format', () => {
+    expect(
+      isNetworkRampNativeTokenSupported('0x1', [
+        {
+          active: false,
+          chainId: 1,
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: true,
+          shortName: 'Ethereum',
+        },
+      ]),
+    ).toBe(false);
+  });
+
+  it('should return false if network is not found when chainId is on hexadecimal format', () => {
+    expect(
+      isNetworkRampNativeTokenSupported('0x22', [
+        {
+          active: true,
+          chainId: 1,
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: true,
+          shortName: 'Ethereum',
+        },
+      ]),
+    ).toBe(false);
+  });
+
+  it('should return false if network is supported but native token is not supported when chainId is on hexadecimal format', () => {
+    expect(
+      isNetworkRampNativeTokenSupported('0x1', [
+        {
+          active: true,
+          chainId: 1,
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: false,
+          shortName: 'Ethereum',
         },
       ]),
     ).toBe(false);
@@ -198,7 +312,7 @@ describe('getOrderAmount', () => {
     network: '1',
     txHash: '0x987654321',
     excludeFromPurchases: false,
-    orderType: 'BUY',
+    orderType: OrderOrderTypeEnum.Buy,
     data: {
       id: 'test-id',
       isOnlyLink: false,
@@ -230,7 +344,7 @@ describe('getOrderAmount', () => {
     expect(getOrderAmount(mockOrder)).toBe('...');
   });
 
-  it('should render correctly when data is provided. ', () => {
+  it('render matches latest snapshot when data is provided. ', () => {
     expect(
       getOrderAmount({
         ...mockOrder,
@@ -239,7 +353,7 @@ describe('getOrderAmount', () => {
     ).toBe('0.01236');
   });
 
-  it('should render correctly when decimals is not provided. ', () => {
+  it('render matches latest snapshot when decimals is not provided. ', () => {
     expect(
       getOrderAmount({
         ...mockOrder,
@@ -250,5 +364,218 @@ describe('getOrderAmount', () => {
         },
       }),
     ).toBe('0.01236');
+  });
+});
+
+describe('Type assertion functions', () => {
+  describe('isBuyQuotes', () => {
+    it('should return true if rampType is BUY', () => {
+      expect(isBuyQuotes([], RampType.BUY)).toBe(true);
+    });
+
+    it('should return false if rampType is SELL', () => {
+      expect(isBuyQuotes([], RampType.SELL)).toBe(false);
+    });
+  });
+
+  describe('isSellQuotes', () => {
+    it('should return true if rampType is SELL', () => {
+      expect(isSellQuotes([], RampType.SELL)).toBe(true);
+    });
+
+    it('should return false if rampType is BUY', () => {
+      expect(isSellQuotes([], RampType.BUY)).toBe(false);
+    });
+  });
+
+  describe('isBuyQuote', () => {
+    it('should return true if rampType is BUY', () => {
+      expect(
+        isBuyQuote({} as QuoteResponse | SellQuoteResponse, RampType.BUY),
+      ).toBe(true);
+    });
+
+    it('should return false if rampType is SELL', () => {
+      expect(
+        isBuyQuote({} as QuoteResponse | SellQuoteResponse, RampType.SELL),
+      ).toBe(false);
+    });
+  });
+
+  describe('isSellQuote', () => {
+    it('should return true if rampType is SELL', () => {
+      expect(
+        isSellQuote({} as QuoteResponse | SellQuoteResponse, RampType.SELL),
+      ).toBe(true);
+    });
+
+    it('should return false if rampType is BUY', () => {
+      expect(
+        isSellQuote({} as QuoteResponse | SellQuoteResponse, RampType.BUY),
+      ).toBe(false);
+    });
+  });
+
+  describe('isSellOrder', () => {
+    it('should return true if orderType is SELL', () => {
+      expect(isSellOrder({ orderType: 'SELL' } as Order)).toBe(true);
+    });
+
+    it('should return false if orderType is BUY', () => {
+      expect(isSellOrder({ orderType: 'BUY' } as Order)).toBe(false);
+    });
+  });
+
+  describe('isSellFiatOrder', () => {
+    it('should return true if orderType is SELL', () => {
+      expect(isSellFiatOrder({ orderType: 'SELL' } as FiatOrder)).toBe(true);
+    });
+
+    it('should return false if orderType is BUY', () => {
+      expect(isSellFiatOrder({ orderType: 'BUY' } as FiatOrder)).toBe(false);
+    });
+  });
+});
+
+describe('getNotificationDetails', () => {
+  const mockOrder = {
+    state: FIAT_ORDER_STATES.PENDING,
+    orderType: OrderOrderTypeEnum.Buy,
+    cryptocurrency: 'ETH',
+    cryptoAmount: '0.01',
+  } as FiatOrder;
+
+  const mockSellOrder = {
+    ...mockOrder,
+    orderType: OrderOrderTypeEnum.Sell,
+  };
+
+  it('should return correct details for buy orders', () => {
+    const pendingDetails = getNotificationDetails(mockOrder);
+    expect(pendingDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "This should only take a few minutes...",
+        "duration": 5000,
+        "status": "pending",
+        "title": "Processing your purchase of ETH",
+      }
+    `);
+    const cancelledDetails = getNotificationDetails({
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.CANCELLED,
+    });
+    expect(cancelledDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Verify your payment method and card support",
+        "duration": 5000,
+        "status": "cancelled",
+        "title": "Your purchase was cancelled",
+      }
+    `);
+    const failedDetails = getNotificationDetails({
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.FAILED,
+    });
+    expect(failedDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Verify your payment method and card support",
+        "duration": 5000,
+        "status": "error",
+        "title": "Purchase of ETH has failed! Please try again, sorry for the inconvenience!",
+      }
+    `);
+
+    const completedDetails = getNotificationDetails({
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+    });
+    expect(completedDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Your ETH is now available",
+        "duration": 5000,
+        "status": "success",
+        "title": "Your purchase of 0.01 ETH was successful!",
+      }
+    `);
+  });
+
+  it('should return correct details for sell orders', () => {
+    const pendingDetails = getNotificationDetails(mockSellOrder);
+    expect(pendingDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Your order is now being processed.",
+        "duration": 5000,
+        "status": "pending",
+        "title": "ETH sale processing",
+      }
+    `);
+    const cancelledDetails = getNotificationDetails({
+      ...mockSellOrder,
+      state: FIAT_ORDER_STATES.CANCELLED,
+    });
+    expect(cancelledDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Your order couldn´t be completed.",
+        "duration": 5000,
+        "status": "cancelled",
+        "title": "Order cancelled",
+      }
+    `);
+    const failedDetails = getNotificationDetails({
+      ...mockSellOrder,
+      state: FIAT_ORDER_STATES.FAILED,
+    });
+    expect(failedDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Your order couldn´t be completed.",
+        "duration": 5000,
+        "status": "error",
+        "title": "Order failed",
+      }
+    `);
+
+    const completedDetails = getNotificationDetails({
+      ...mockSellOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+    });
+    expect(completedDetails).toMatchInlineSnapshot(`
+      Object {
+        "description": "Your order was successful!.",
+        "duration": 5000,
+        "status": "success",
+        "title": "Order completed",
+      }
+    `);
+    const createdDetails = getNotificationDetails({
+      ...mockSellOrder,
+      state: FIAT_ORDER_STATES.CREATED,
+    });
+    expect(createdDetails).toMatchInlineSnapshot(`null`);
+  });
+});
+
+jest.mock('../../../../reducers/fiatOrders', () => ({
+  getOrders: jest.fn(),
+}));
+
+describe('stateHasOrder', () => {
+  it('should return true if state has order', () => {
+    (getOrders as jest.MockedFunction<typeof getOrders>).mockReturnValueOnce([
+      { id: '1' },
+      { id: '2' },
+      { id: '3' },
+    ] as FiatOrder[]);
+    expect(stateHasOrder({} as RootState, { id: '1' } as FiatOrder)).toBe(true);
+  });
+
+  it('should return false if state does not have the order', () => {
+    (getOrders as jest.MockedFunction<typeof getOrders>).mockReturnValueOnce([
+      { id: '1' },
+      { id: '2' },
+      { id: '3' },
+    ] as FiatOrder[]);
+    expect(stateHasOrder({} as RootState, { id: '4' } as FiatOrder)).toBe(
+      false,
+    );
   });
 });

@@ -23,6 +23,7 @@ import {
   LegacyProps,
   UseGasTransactionProps,
 } from './types';
+import { selectGasFeeEstimates } from '../../selectors/confirmTransaction';
 
 /**
  *
@@ -61,7 +62,7 @@ export const useDataStore = () => {
     showCustomNonce,
   ] = useSelector(
     (state: any) => [
-      state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+      selectGasFeeEstimates(state),
       state.engine.backgroundState.GasFeeController.gasEstimateType,
       selectContractExchangeRates(state),
       selectConversionRate(state),
@@ -162,7 +163,7 @@ export const getLegacyTransactionData = ({
   onlyGas,
   multiLayerL1FeeTotal,
 }: LegacyProps) => {
-  const parsedTransationData = parseTransactionLegacy(
+  const parsedTransactionData = parseTransactionLegacy(
     {
       contractExchangeRates,
       conversionRate,
@@ -177,7 +178,7 @@ export const getLegacyTransactionData = ({
     { onlyGas },
   );
 
-  return parsedTransationData;
+  return parsedTransactionData;
 };
 
 /**

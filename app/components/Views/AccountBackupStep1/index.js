@@ -7,8 +7,6 @@ import {
   SafeAreaView,
   StyleSheet,
   BackHandler,
-  InteractionManager,
-  Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
@@ -28,15 +26,11 @@ import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 
 import DefaultPreference from 'react-native-default-preference';
 import { useTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  PROTECT_YOUR_WALLET_CONTAINER_ID,
-  REMIND_LATER_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -132,6 +126,10 @@ const AccountBackupStep1 = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const track = (event, properties) => {
+    trackOnboarding(event, properties);
+  };
+
   useEffect(() => {
     navigation.setOptions({
       ...getOnboardingNavbarOptions(
@@ -165,18 +163,14 @@ const AccountBackupStep1 = (props) => {
 
   const goNext = () => {
     props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
   const showRemindLater = () => {
     if (hasFunds) return;
 
     setRemindLaterModal(true);
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_INITIATED);
   };
 
   const toggleSkipCheckbox = () =>
@@ -194,9 +188,7 @@ const AccountBackupStep1 = (props) => {
 
   const skip = async () => {
     hideRemindLaterModal();
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
     const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
     if (onboardingWizard) {
@@ -216,12 +208,9 @@ const AccountBackupStep1 = (props) => {
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}
-        testID={'account-backup-step-1-screen'}
+        testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
-        <View
-          style={styles.wrapper}
-          {...generateTestId(Platform, PROTECT_YOUR_WALLET_CONTAINER_ID)}
-        >
+        <View style={styles.wrapper}>
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
             <Text style={styles.title}>
@@ -251,7 +240,9 @@ const AccountBackupStep1 = (props) => {
                 >
                   <Text
                     style={styles.remindLaterText}
-                    {...generateTestId(Platform, REMIND_LATER_BUTTON_ID)}
+                    testID={
+                      ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON
+                    }
                   >
                     {strings('account_backup_step_1.remind_me_later')}
                   </Text>
@@ -266,7 +257,6 @@ const AccountBackupStep1 = (props) => {
                 containerStyle={styles.button}
                 type={'confirm'}
                 onPress={goNext}
-                testID={'submit-button'}
               >
                 {strings('account_backup_step_1.cta_text')}
               </StyledButton>

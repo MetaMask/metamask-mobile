@@ -4,19 +4,24 @@ import { Alert, ListRenderItem, Platform, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import type { Hex } from '@metamask/utils';
 
 // External dependencies.
 import Cell, {
-  CellVariants,
+  CellVariant,
 } from '../../../component-library/components/Cells/Cell';
 import { useStyles } from '../../../component-library/hooks';
 import Text from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { formatAddress, safeToChecksumAddress } from '../../../util/address';
+import {
+  formatAddress,
+  safeToChecksumAddress,
+  getLabelTextByAddress,
+} from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import { strings } from '../../../../locales/i18n';
-import { AvatarVariants } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
@@ -53,19 +58,6 @@ const AccountSelectorList = ({
 
   const getKeyExtractor = ({ address }: Account) => address;
 
-  const getTagLabel = (type: KeyringTypes) => {
-    let label = '';
-    switch (type) {
-      case KeyringTypes.qr:
-        label = strings('transaction.hardware');
-        break;
-      case KeyringTypes.simple:
-        label = strings('accounts.imported');
-        break;
-    }
-    return label;
-  };
-
   const renderAccountBalances = useCallback(
     ({ fiatBalance, tokens }: Assets, address: string) => (
       <View
@@ -89,7 +81,7 @@ const AccountSelectorList = ({
       isSelected,
       index,
     }: {
-      address: string;
+      address: Hex;
       imported: boolean;
       isSelected: boolean;
       index: number;
@@ -152,14 +144,14 @@ const AccountSelectorList = ({
       index,
     }) => {
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = getTagLabel(type);
+      const tagLabel = getLabelTextByAddress(address);
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       const cellVariant = isMultiSelect
-        ? CellVariants.MultiSelect
-        : CellVariants.Select;
+        ? CellVariant.MultiSelect
+        : CellVariant.Select;
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
         isSelectedAccount = selectedAddresses.includes(address);
@@ -186,11 +178,11 @@ const AccountSelectorList = ({
           tertiaryText={balanceError}
           onPress={() => onSelectAccount?.(address, isSelectedAccount)}
           avatarProps={{
-            variant: AvatarVariants.Account,
+            variant: AvatarVariant.Account,
             type: accountAvatarType,
             accountAddress: address,
           }}
-          tagLabel={tagLabel}
+          tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
           disabled={isDisabled}
           style={cellStyle}
         >

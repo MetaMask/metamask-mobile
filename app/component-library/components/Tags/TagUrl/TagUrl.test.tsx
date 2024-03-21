@@ -4,12 +4,15 @@ import { shallow } from 'enzyme';
 
 // Internal dependencies.
 import TagUrl from './TagUrl';
-import { TEST_IMAGE_SOURCE, TEST_LABEL } from './TagUrl.constants';
+import { SAMPLE_TAGURL_PROPS } from './TagUrl.constants';
 
 describe('TagUrl', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
-      <TagUrl imageSource={TEST_IMAGE_SOURCE} label={TEST_LABEL} />,
+      <TagUrl
+        imageSource={SAMPLE_TAGURL_PROPS.imageSource}
+        label={SAMPLE_TAGURL_PROPS.label}
+      />,
     );
     expect(wrapper).toMatchSnapshot();
   });

@@ -1323,14 +1323,6 @@
     "wyre_total_label": "Wyre (MetaMask के माध्यम से)",
     "buy_with": "इसके साथ खरीदें",
     "plus_fee": "साथ ही {{fee}} शुल्क",
-    "notifications": {
-      "purchase_failed_title": "{{currency}} की खरीद विफल रही! कृपया पुनः प्रयास करें, असुविधा के लिए क्षमा करें!",
-      "purchase_cancelled_title": "आपकी खरीदारी रद्द कर दी गई थी",
-      "purchase_completed_title": "आपकी {{amount}} {{currency}} की खरीद सफल रही थी!",
-      "purchase_completed_description": "आपका {{currency}} अब उपलब्ध है",
-      "purchase_pending_title": "{{currency}} की आपकी खरीद को संसाधित किया जा रहा है",
-      "purchase_pending_description": "इसमें केवल कुछ मिनट लगने चाहिए..."
-    },
     "date": "दिनांक",
     "from": "प्रेषक",
     "to": "प्रति",
@@ -1364,6 +1356,16 @@
         "subtitle_5": "और देखें कि गैस की लागत कितनी है।",
         "cta": "{{ticker}} खरीदना जारी रखें"
       }
+    }
+  },
+  "fiat_on_ramp_aggregator": {
+    "notifications": {
+      "purchase_failed_title": "{{currency}} की खरीद विफल रही! कृपया पुनः प्रयास करें, असुविधा के लिए क्षमा करें!",
+      "purchase_cancelled_title": "आपकी खरीदारी रद्द कर दी गई थी",
+      "purchase_completed_title": "आपकी {{amount}} {{currency}} की खरीद सफल रही थी!",
+      "purchase_completed_description": "आपका {{currency}} अब उपलब्ध है",
+      "purchase_pending_title": "{{currency}} की आपकी खरीद को संसाधित किया जा रहा है",
+      "purchase_pending_description": "इसमें केवल कुछ मिनट लगने चाहिए..."
     }
   },
   "swaps": {
@@ -1436,7 +1438,6 @@
     "i_understand": "मैं समझता हूं",
     "quotes_expire_in": "उद्धरण की समय-सीमा समाप्ति है",
     "saving": "सहेजा जा रहा है",
-    "using_best_quote": "सर्वोत्तम उद्धरण का उपयोग करना",
     "view_details": "विवरण देखें",
     "estimated_gas_fee": "अनुमानित गैस शुल्क",
     "max_gas_fee": "अधिकतम गैस शुल्क",
@@ -1449,10 +1450,6 @@
     "completed_swap": "स्वैप!",
     "metamask_swap_fee": "MetaMask स्वैप शुल्क",
     "fee_text": {
-      "get_the": "हर बार",
-      "best_price": "शीर्ष चलनिधि",
-      "from_the": "स्रोतों से",
-      "top_liquidity": "सर्वोत्तम मूल्य प्राप्त करें।",
       "fee_is_applied": "{{fee}} का शुल्क स्वचालित रूप से प्रत्येक उद्धरण में शामिल होता है, जो MetaMask को और बेहतर बनाने के लिए चालू विकास का समर्थन करता है।"
     },
     "enable": {

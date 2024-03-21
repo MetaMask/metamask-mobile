@@ -31,7 +31,18 @@ import BottomSheetDialog, {
 } from './foundation/BottomSheetDialog';
 
 const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
-  ({ children, onClose, isInteractable = true, ...props }, ref) => {
+  (
+    {
+      children,
+      onClose,
+      onOpen,
+      isInteractable = true,
+      shouldNavigateBack = true,
+      isFullscreen = false,
+      ...props
+    },
+    ref,
+  ) => {
     const postCallback = useRef<BottomSheetPostCallback>();
     const bottomSheetDialogRef = useRef<BottomSheetDialogRef>(null);
     const { bottom: screenBottomPadding } = useSafeAreaInsets();
@@ -41,34 +52,43 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const { y: frameY } = useSafeAreaFrame();
     const navigation = useNavigation();
 
-    const onHidden = useCallback(() => {
-      navigation.goBack();
+    const onOpenCB = useCallback(() => {
+      onOpen?.(!!postCallback.current);
+      postCallback.current?.();
+    }, [onOpen]);
+
+    const onCloseCB = useCallback(() => {
+      shouldNavigateBack && navigation.goBack();
       onClose?.(!!postCallback.current);
       postCallback.current?.();
-    }, [navigation, onClose]);
+    }, [navigation, onClose, shouldNavigateBack]);
 
     // Dismiss the sheet when Android back button is pressed.
     useEffect(() => {
       const hardwareBackPress = () => {
-        isInteractable && bottomSheetDialogRef.current?.closeDialog();
+        isInteractable && bottomSheetDialogRef.current?.onCloseDialog();
         return true;
       };
       BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
       return () => {
         BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
       };
-    }, [onHidden, isInteractable]);
+    }, [onCloseCB, isInteractable]);
 
     useImperativeHandle(ref, () => ({
-      hide: (callback) => {
+      onCloseBottomSheet: (callback) => {
         postCallback.current = callback;
-        bottomSheetDialogRef.current?.closeDialog();
+        bottomSheetDialogRef.current?.onCloseDialog();
+      },
+      onOpenBottomSheet: (callback) => {
+        postCallback.current = callback;
+        bottomSheetDialogRef.current?.onOpenDialog();
       },
     }));
 
     return (
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={
           Platform.OS === 'ios' ? -screenBottomPadding : frameY
         }
@@ -78,13 +98,15 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         <BottomSheetOverlay
           disabled={!isInteractable}
           onPress={() => {
-            bottomSheetDialogRef.current?.closeDialog();
+            isInteractable && bottomSheetDialogRef.current?.onCloseDialog();
           }}
         />
         <BottomSheetDialog
           isInteractable={isInteractable}
-          onDismissed={onHidden}
+          onClose={onCloseCB}
+          onOpen={onOpenCB}
           ref={bottomSheetDialogRef}
+          isFullscreen={isFullscreen}
         >
           {children}
         </BottomSheetDialog>

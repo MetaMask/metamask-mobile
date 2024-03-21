@@ -9,7 +9,6 @@ import com.airbnb.android.react.lottie.LottiePackage;
 import cl.json.ShareApplication;
 import io.branch.rnbranch.RNBranchModule;
 import io.metamask.nativeModules.RCTMinimizerPackage;
-import io.metamask.nativeModules.RCTAnalyticsPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
@@ -23,6 +22,7 @@ import android.database.CursorWindow;
 import java.lang.reflect.Field;
 
 import io.metamask.nativesdk.NativeSDKPackage;
+import io.metamask.nativeModules.RNTar.RNTarPackage;
 
 public class MainApplication extends Application implements ShareApplication, ReactApplication {
 
@@ -44,9 +44,9 @@ public class MainApplication extends Application implements ShareApplication, Re
 			packages.add(new LottiePackage());
 			packages.add(new PreventScreenshotPackage());
 			packages.add(new ReactVideoPackage());
-			packages.add(new RCTAnalyticsPackage());
       packages.add(new RCTMinimizerPackage());
       packages.add(new NativeSDKPackage());
+      packages.add(new RNTarPackage());
 
       return packages;
 		}

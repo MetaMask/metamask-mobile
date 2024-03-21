@@ -77,13 +77,13 @@ const TextField: React.FC<TextFieldProps> = ({
           { inputElement }
         ) : (
           <Input
-            isStateStylesDisabled
             textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
             isDisabled={isDisabled}
             autoFocus={autoFocus}
             onBlur={onBlurHandler}
             onFocus={onFocusHandler}
             {...props}
+            isStateStylesDisabled
           />
         )}
       </View>

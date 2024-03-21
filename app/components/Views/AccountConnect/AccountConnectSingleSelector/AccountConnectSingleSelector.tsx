@@ -12,7 +12,7 @@ import { AccountConnectScreens } from '../AccountConnect.types';
 // Internal dependencies.
 import { AccountConnectSingleSelectorProps } from './AccountConnectSingleSelector.types';
 import styles from './AccountConnectSingleSelector.styles';
-import USER_INTENT from '../../../../constants/permissions';
+import { USER_INTENT } from '../../../../constants/permissions';
 
 const AccountConnectSingleSelector = ({
   accounts,

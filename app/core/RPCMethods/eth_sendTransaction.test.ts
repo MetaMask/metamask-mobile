@@ -9,6 +9,30 @@ import type {
 import eth_sendTransaction from './eth_sendTransaction';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 
+jest.mock('../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      state: {
+        securityAlertsEnabled: true,
+      },
+    },
+    PPOMController: {
+      usePPOM: jest.fn(),
+    },
+    NetworkController: {
+      state: {
+        providerConfig: { chainId: '0x1' },
+      },
+    },
+  },
+}));
+
+jest.mock('../../util/transaction-controller', () => ({
+  __esModule: true,
+  updateSecurityAlertResponse: jest.fn(),
+  updateTransaction: jest.fn(),
+}));
+
 /**
  * Construct a `eth_sendTransaction` JSON-RPC request.
  *
@@ -39,7 +63,7 @@ function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<unknown> {
 }
 
 /**
- * Get a mock implementation of `TransactionController.addTransaction`.
+ * Get a mock implementation of `addTransaction`.
  *
  * A return value or some type of error must be provided.
  *
@@ -97,10 +121,12 @@ function getMockAddTransaction({
       } else if (processTransactionError) {
         return {
           result: Promise.reject(processTransactionError),
+          transactionMeta: { id: '123' },
         };
       } else {
         return {
           result: Promise.resolve('fake-hash'),
+          transactionMeta: { id: '123' },
         };
       }
     },

@@ -7,35 +7,40 @@ import ScreenLayout from '../../components/ScreenLayout';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import { useFiatOnRampSDK } from '../../sdk';
+import { useRampSDK } from '../../sdk';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import Routes from '../../../../../constants/navigation/Routes';
 import useAnalytics from '../../hooks/useAnalytics';
+import useRampNetwork from '../../hooks/useRampNetwork';
 import styles from './GetStarted.styles';
-import { createRegionsNavDetails } from '../Regions/Regions';
+import useRegions from '../../hooks/useRegions';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../components/images/WalletInfo.png');
 
 const GetStarted: React.FC = () => {
   const navigation = useNavigation();
-  const {
-    getStarted,
-    setGetStarted,
-    sdkError,
-    selectedChainId,
-    selectedRegion,
-  } = useFiatOnRampSDK();
+  const { getStarted, setGetStarted, sdkError, selectedChainId, isBuy } =
+    useRampSDK();
+  const { selectedRegion } = useRegions();
+  const [isNetworkRampSupported] = useRampNetwork();
   const trackEvent = useAnalytics();
 
   const { colors } = useTheme();
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Get Started Screen',
-      chain_id_destination: selectedChainId,
-    });
-  }, [selectedChainId, trackEvent]);
+    if (isBuy) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Get Started Screen',
+        chain_id_destination: selectedChainId,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Get Started Screen',
+        chain_id_source: selectedChainId,
+      });
+    }
+  }, [isBuy, selectedChainId, trackEvent]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -52,18 +57,31 @@ const GetStarted: React.FC = () => {
   }, [navigation, colors, handleCancelPress]);
 
   const handleOnPress = useCallback(() => {
-    navigation.navigate(...createRegionsNavDetails());
+    trackEvent(
+      isBuy ? 'ONRAMP_GET_STARTED_CLICKED' : 'OFFRAMP_GET_STARTED_CLICKED',
+      {
+        text: 'Get Started',
+        location: 'Get Started Screen',
+      },
+    );
     setGetStarted(true);
-  }, [navigation, setGetStarted]);
+  }, [isBuy, setGetStarted, trackEvent]);
 
   useEffect(() => {
     if (getStarted) {
+      if (!isNetworkRampSupported) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: Routes.RAMP.NETWORK_SWITCHER }],
+        });
+        return;
+      }
       if (selectedRegion) {
         navigation.reset({
           index: 0,
           routes: [
             {
-              name: Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD_HAS_STARTED,
+              name: Routes.RAMP.BUILD_QUOTE_HAS_STARTED,
               params: { showBack: false },
             },
           ],
@@ -71,11 +89,11 @@ const GetStarted: React.FC = () => {
       } else {
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION_HAS_STARTED }],
+          routes: [{ name: Routes.RAMP.REGION_HAS_STARTED }],
         });
       }
     }
-  }, [getStarted, navigation, selectedRegion]);
+  }, [getStarted, isNetworkRampSupported, navigation, selectedRegion]);
 
   if (sdkError) {
     return (
@@ -106,12 +124,20 @@ const GetStarted: React.FC = () => {
           </ScreenLayout.Content>
           <ScreenLayout.Content>
             <Text centered bold>
-              {strings('fiat_on_ramp_aggregator.onboarding.quotes')}
+              {strings(
+                isBuy
+                  ? 'fiat_on_ramp_aggregator.onboarding.quotes'
+                  : 'fiat_on_ramp_aggregator.onboarding.quotes_sell',
+              )}
             </Text>
           </ScreenLayout.Content>
           <ScreenLayout.Content>
             <Text centered bold>
-              {strings('fiat_on_ramp_aggregator.onboarding.benefits')}
+              {strings(
+                isBuy
+                  ? 'fiat_on_ramp_aggregator.onboarding.benefits'
+                  : 'fiat_on_ramp_aggregator.onboarding.benefits_sell',
+              )}
             </Text>
           </ScreenLayout.Content>
         </ScrollView>

@@ -1,16 +1,15 @@
-/* eslint-disable no-console */
-
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react/display-name */
 // Third party dependencies.
 import React, { useContext } from 'react';
 import { Alert } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // External dependencies.
-import Button, { ButtonSize, ButtonVariants } from '../Buttons/Button';
+import Button, { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
-import Toast from './Toast';
+import { default as ToastComponent } from './Toast';
 import { ToastContext, ToastContextWrapper } from './Toast.context';
 import { ToastVariants } from './Toast.types';
 import {
@@ -19,70 +18,88 @@ import {
   TEST_NETWORK_IMAGE_URL,
 } from './Toast.constants';
 
-const ToastExample = () => {
-  const { toastRef } = useContext(ToastContext);
-
-  return (
-    <>
-      <Button
-        variant={ButtonVariants.Link}
-        size={ButtonSize.Md}
-        label={'Show Account Toast'}
-        onPress={() => {
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Account,
-            labelOptions: [
-              { label: 'Switching to' },
-              { label: ' Account 2.', isBold: true },
-            ],
-            accountAddress: TEST_ACCOUNT_ADDRESS,
-            accountAvatarType: TEST_AVATAR_TYPE,
-          });
-        }}
-      />
-      <Button
-        variant={ButtonVariants.Link}
-        size={ButtonSize.Md}
-        label={'Show Network Toast'}
-        onPress={() => {
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Network,
-            labelOptions: [
-              { label: 'Added' },
-              { label: ' Mainnet', isBold: true },
-              { label: ' network.' },
-            ],
-            networkImageSource: { uri: TEST_NETWORK_IMAGE_URL },
-            linkButtonOptions: {
-              label: 'Click here!',
-              onPress: () => {
-                Alert.alert('Clicked toast link!');
-              },
-            },
-          });
-        }}
-      />
-      <Button
-        variant={ButtonVariants.Link}
-        size={ButtonSize.Md}
-        label={'Show Plain Toast'}
-        onPress={() => {
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Plain,
-            labelOptions: [{ label: 'This is a plain message.' }],
-          });
-        }}
-      />
-
-      <Toast ref={toastRef} />
-    </>
-  );
+const ToastMeta = {
+  title: 'Component Library / Toast',
+  component: ToastComponent,
+  decorators: [
+    (Story: any) => (
+      <SafeAreaProvider>
+        <ToastContextWrapper>
+          <Story />
+        </ToastContextWrapper>
+      </SafeAreaProvider>
+    ),
+  ],
+  argTypes: {
+    variant: {
+      options: ToastVariants,
+      control: {
+        type: 'select',
+      },
+      defaultValue: ToastVariants.Plain,
+    },
+  },
 };
+export default ToastMeta;
 
-storiesOf('Component Library / Toast', module)
-  .addDecorator((storyFn) => (
-    <SafeAreaProvider>
-      <ToastContextWrapper>{storyFn()}</ToastContextWrapper>
-    </SafeAreaProvider>
-  ))
-  .add('Default', () => <ToastExample />);
+export const Toast = {
+  render: (args: any) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { toastRef } = useContext(ToastContext);
+    let otherToastProps: any;
+
+    switch (args.variant) {
+      case ToastVariants.Plain:
+        otherToastProps = {
+          labelOptions: [{ label: 'This is a Toast message.' }],
+        };
+        break;
+      case ToastVariants.Account:
+        otherToastProps = {
+          labelOptions: [
+            { label: 'Switching to' },
+            { label: ' Account 2.', isBold: true },
+          ],
+          accountAddress: TEST_ACCOUNT_ADDRESS,
+          accountAvatarType: TEST_AVATAR_TYPE,
+        };
+        break;
+      case ToastVariants.Network:
+        otherToastProps = {
+          labelOptions: [
+            { label: 'Added' },
+            { label: ' Mainnet', isBold: true },
+            { label: ' network.' },
+          ],
+          networkImageSource: { uri: TEST_NETWORK_IMAGE_URL },
+          linkButtonOptions: {
+            label: 'Click here!',
+            onPress: () => {
+              Alert.alert('Clicked toast link!');
+            },
+          },
+        };
+        break;
+      default:
+        otherToastProps = {
+          labelOptions: [{ label: 'This is a Toast message.' }],
+        };
+    }
+
+    return (
+      <>
+        <Button
+          variant={ButtonVariants.Secondary}
+          label={`Show ${args.variant} Toast`}
+          onPress={() => {
+            toastRef?.current?.showToast({
+              variant: args.variant,
+              ...otherToastProps,
+            });
+          }}
+        />
+        <ToastComponent ref={toastRef} />
+      </>
+    );
+  },
+};

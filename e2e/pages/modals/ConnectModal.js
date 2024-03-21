@@ -1,53 +1,66 @@
-import TestHelpers from '../../helpers';
 import {
-  ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
-  CANCEL_BUTTON_ID,
-  CONNECT_BUTTON_ID,
-} from '../../../app/constants/test-ids';
-import messages from '../../../locales/languages/en.json';
+  ConnectAccountModalSelectorsIDs,
+  ConnectAccountModalSelectorsText,
+} from '../../selectors/Modals/ConnectAccountModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-const CONNECT_MULTIPLE_ACCOUNTS_STRING =
-  messages.accounts.connect_multiple_accounts;
-
-const CONNECT_MULTIPLE_ACCOUNTS_IMPORT_ACCOUNT_TEXT =
-  messages.account_actions.add_account_or_hardware_wallet;
-
-const SELECT_ALL_TEXT = messages.accounts.select_all;
-
-export default class ConnectModal {
-  static async tapCancelButton() {
-    await TestHelpers.tap(CANCEL_BUTTON_ID);
+class ConnectModal {
+  get container() {
+    return Matchers.getElementByID(ConnectAccountModalSelectorsIDs.CONTAINER);
   }
 
-  static async tapConnectButton() {
-    await TestHelpers.tap(CONNECT_BUTTON_ID);
+  get connectButton() {
+    return Matchers.getElementByID(ConnectAccountModalSelectorsIDs.CONTAINER);
   }
 
-  static async tapConnectMultipleAccountsButton() {
-    await TestHelpers.tapByText(CONNECT_MULTIPLE_ACCOUNTS_STRING);
+  get connectAccountsButton() {
+    return Matchers.getElementByText(
+      ConnectAccountModalSelectorsText.CONNECT_ACCOUNTS,
+    );
   }
 
-  static async tapImportAccountButton() {
-    await TestHelpers.tapByText(CONNECT_MULTIPLE_ACCOUNTS_IMPORT_ACCOUNT_TEXT);
+  get importButton() {
+    return Matchers.getElementByText(
+      ConnectAccountModalSelectorsText.IMPORT_ACCOUNT,
+    );
   }
 
-  static async tapImportAccountOrHWButton() {
-    await TestHelpers.tapByText(CONNECT_MULTIPLE_ACCOUNTS_IMPORT_ACCOUNT_TEXT);
+  get selectAllButton() {
+    return Matchers.getElementByText(
+      ConnectAccountModalSelectorsText.SELECT_ALL,
+    );
   }
 
-  static async tapSelectAllButton() {
-    await TestHelpers.tapByText(SELECT_ALL_TEXT);
+  get selectMultiButton() {
+    return Matchers.getElementByID(
+      ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
   }
 
-  static async tapAccountConnectMultiSelectButton() {
-    await TestHelpers.tap('multiconnect-connect-button');
+  async tapConnectButton() {
+    await Gestures.waitAndTap(this.connectButton);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(ACCOUNT_APROVAL_MODAL_CONTAINER_ID);
+  async tapConnectMultipleAccountsButton() {
+    await Gestures.waitAndTap(this.connectAccountsButton);
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ACCOUNT_APROVAL_MODAL_CONTAINER_ID);
+  async tapImportAccountOrHWButton() {
+    await Gestures.waitAndTap(this.importButton);
+  }
+
+  async tapSelectAllButton() {
+    await Gestures.waitAndTap(this.selectAllButton);
+  }
+
+  async tapAccountConnectMultiSelectButton() {
+    await Gestures.waitAndTap(this.selectMultiButton);
+  }
+
+  async scrollToBottomOfModal() {
+    await Gestures.swipe(this.container, 'down', 'slow');
   }
 }
+
+export default new ConnectModal();

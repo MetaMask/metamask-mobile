@@ -4,27 +4,32 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { IconSize } from '../../../../Icons/Icon';
+import { IconName } from '../../../../Icons/Icon';
 import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
-import { IconSizeByAvatarSize } from './AvatarFavicon.types';
+import { AvatarFaviconProps } from './AvatarFavicon.types';
 
-export const TEST_REMOTE_IMAGE_URL = 'https://uniswap.org/favicon.ico';
+// Defaults
+export const DEFAULT_AVATARFAVICON_SIZE = AvatarSize.Md;
+export const DEFAULT_AVATARFAVICON_ERROR_ICON = IconName.Global;
+export const TEST_REMOTE_SVG_IMAGE_URL =
+  'https://metamask.github.io/test-dapp/metamask-fox.svg';
 
-export const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
-  uri: TEST_REMOTE_IMAGE_URL,
+// Test IDs
+export const AVATARFAVICON_IMAGE_TESTID = 'favicon-avatar-image';
+
+// Sample consts
+export const SAMPLE_AVATARFAVICON_IMAGESOURCE_REMOTE: ImageSourcePropType = {
+  uri: 'https://uniswap.org/favicon.ico',
 };
-
+export const SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE: ImageSourcePropType = {
+  uri: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
+};
 /* eslint-disable-next-line */
-export const TEST_LOCAL_IMAGE_SOURCE: ImageSourcePropType = require('../../../../../../images/fox.png');
+export const SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL: ImageSourcePropType = require('../../../../../../images/fox.png');
 
-export const FAVICON_AVATAR_IMAGE_ID = 'favicon-avatar-image';
-
-export const ICON_SIZE_BY_AVATAR_SIZE: IconSizeByAvatarSize = {
-  [AvatarSize.Xs]: IconSize.Xs,
-  [AvatarSize.Sm]: IconSize.Sm,
-  [AvatarSize.Md]: IconSize.Md,
-  [AvatarSize.Lg]: IconSize.Lg,
-  [AvatarSize.Xl]: IconSize.Xl,
+export const SAMPLE_AVATARFAVICON_PROPS: AvatarFaviconProps = {
+  imageSource: SAMPLE_AVATARFAVICON_IMAGESOURCE_REMOTE,
+  size: DEFAULT_AVATARFAVICON_SIZE,
 };

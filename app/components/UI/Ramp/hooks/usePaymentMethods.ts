@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useFiatOnRampSDK } from '../sdk';
+import { useRampSDK } from '../sdk';
 import useSDKMethod from './useSDKMethod';
 
 function usePaymentMethods() {
@@ -9,14 +9,18 @@ function usePaymentMethods() {
     setSelectedPaymentMethodId,
     selectedChainId,
     sdk,
-  } = useFiatOnRampSDK();
+    isBuy,
+  } = useRampSDK();
   const [isFilterLoading, setIsFilterLoading] = useState(true);
   const [allowedMethodIds, setAllowedMethodIds] = useState<string[]>();
 
-  const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
-    useSDKMethod('getPaymentMethods', selectedRegion?.id);
+  const paymentMethodsMethod = isBuy
+    ? 'getPaymentMethods'
+    : 'getSellPaymentMethods';
 
-  useEffect(() => setAllowedMethodIds(undefined), [selectedRegion]);
+  const [{ data: paymentMethods, isFetching, error }, queryGetPaymentMethods] =
+    useSDKMethod(paymentMethodsMethod, selectedRegion?.id);
+  useEffect(() => setAllowedMethodIds(undefined), [selectedRegion?.id]);
 
   useEffect(() => {
     if (!isFetching && !error && paymentMethods && selectedRegion) {
@@ -27,7 +31,11 @@ function usePaymentMethods() {
           if (!method.customAction) {
             allowed.push(method.id);
           } else {
-            const cryptoCurrencies = await sdk?.getCryptoCurrencies(
+            const cryptoCurrenciesMethod = isBuy
+              ? 'getCryptoCurrencies'
+              : 'getSellCryptoCurrencies';
+
+            const cryptoCurrencies = await sdk?.[cryptoCurrenciesMethod](
               selectedRegion.id,
               method.id,
             );

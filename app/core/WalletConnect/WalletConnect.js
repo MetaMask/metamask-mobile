@@ -22,10 +22,12 @@ import AppConstants from '../AppConstants';
 import { strings } from '../../../locales/i18n';
 import NotificationManager from '../NotificationManager';
 import { msBetweenDates, msToHours } from '../../util/date';
+import { addTransaction } from '../../util/transaction-controller';
 import URL from 'url-parse';
 import parseWalletConnectUri from './wc-utils';
 import { store } from '../../store';
 import { selectChainId } from '../../selectors/networkController';
+import ppomUtil from '../../../app/lib/ppom/ppom-util';
 
 const hub = new EventEmitter();
 let connectors = [];
@@ -167,7 +169,6 @@ class WalletConnect {
 
           // We have to implement this method here since the eth_sendTransaction in Engine is not working because we can't send correct origin
           if (payload.method === 'eth_sendTransaction') {
-            const { TransactionController } = Engine.context;
             try {
               const selectedAddress =
                 Engine.context.PreferencesController.state.selectedAddress?.toLowerCase();
@@ -180,14 +181,31 @@ class WalletConnect {
                 hostname: payloadHostname,
               });
 
-              const hash = await (
-                await TransactionController.addTransaction(payload.params[0], {
-                  deviceConfirmedOn: WalletDevice.MM_MOBILE,
-                  origin: this.url.current
-                    ? WALLET_CONNECT_ORIGIN + this.url.current
-                    : undefined,
-                })
-              ).result;
+              const trx = await addTransaction(payload.params[0], {
+                deviceConfirmedOn: WalletDevice.MM_MOBILE,
+                origin: this.url.current
+                  ? WALLET_CONNECT_ORIGIN + this.url.current
+                  : undefined,
+              });
+
+              const id = trx.transactionMeta.id;
+              const reqObject = {
+                id: payload.id,
+                jsonrpc: '2.0',
+                method: payload.method,
+                params: [
+                  {
+                    from: payload.params[0].from,
+                    to: payload.params[0].to,
+                    value: payload.params[0]?.value,
+                    data: payload.params[0]?.data,
+                  },
+                ],
+              };
+
+              ppomUtil.validateRequest(reqObject, id);
+
+              const hash = await trx.result;
               this.approveRequest({
                 id: payload.id,
                 result: hash,

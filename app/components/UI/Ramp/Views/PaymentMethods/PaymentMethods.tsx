@@ -11,7 +11,7 @@ import ErrorView from '../../components/ErrorView';
 import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import StyledButton from '../../../StyledButton';
 
-import { useFiatOnRampSDK } from '../../sdk';
+import { useRampSDK } from '../../sdk';
 import { useTheme } from '../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
@@ -26,16 +26,14 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 
-import { createAmountToBuyNavDetails } from '../AmountToBuy';
+import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 
 interface PaymentMethodsParams {
   showBack?: boolean;
 }
 
 export const createPaymentMethodsNavDetails =
-  createNavigationDetails<PaymentMethodsParams>(
-    Routes.FIAT_ON_RAMP_AGGREGATOR.PAYMENT_METHOD,
-  );
+  createNavigationDetails<PaymentMethodsParams>(Routes.RAMP.PAYMENT_METHOD);
 
 const PaymentMethods = () => {
   const navigation = useNavigation();
@@ -44,11 +42,12 @@ const PaymentMethods = () => {
   const { showBack } = useParams<PaymentMethodsParams>();
 
   const {
+    isBuy,
     setSelectedRegion,
     setSelectedPaymentMethodId,
     selectedChainId,
     sdkError,
-  } = useFiatOnRampSDK();
+  } = useRampSDK();
 
   const { selectedRegion } = useRegions();
 
@@ -61,25 +60,38 @@ const PaymentMethods = () => {
   } = usePaymentMethods();
 
   const handleCancelPress = useCallback(() => {
-    trackEvent('ONRAMP_CANCELED', {
-      location: 'Payment Method Screen',
-      chain_id_destination: selectedChainId,
-    });
-  }, [selectedChainId, trackEvent]);
+    if (isBuy) {
+      trackEvent('ONRAMP_CANCELED', {
+        location: 'Payment Method Screen',
+        chain_id_destination: selectedChainId,
+      });
+    } else {
+      trackEvent('OFFRAMP_CANCELED', {
+        location: 'Payment Method Screen',
+        chain_id_source: selectedChainId,
+      });
+    }
+  }, [isBuy, selectedChainId, trackEvent]);
 
   const handlePaymentMethodPress = useCallback(
     (id) => {
       setSelectedPaymentMethodId(id);
-      trackEvent('ONRAMP_PAYMENT_METHOD_SELECTED', {
-        payment_method_id: id,
-        available_payment_method_ids: paymentMethods?.map(
-          (paymentMethod) => paymentMethod.id,
-        ) as string[],
-        region: selectedRegion?.id as string,
-        location: 'Payment Method Screen',
-      });
+      trackEvent(
+        isBuy
+          ? 'ONRAMP_PAYMENT_METHOD_SELECTED'
+          : 'OFFRAMP_PAYMENT_METHOD_SELECTED',
+        {
+          payment_method_id: id,
+          available_payment_method_ids: paymentMethods?.map(
+            (paymentMethod) => paymentMethod.id,
+          ) as string[],
+          region: selectedRegion?.id as string,
+          location: 'Payment Method Screen',
+        },
+      );
     },
     [
+      isBuy,
       paymentMethods,
       selectedRegion?.id,
       setSelectedPaymentMethodId,
@@ -93,7 +105,7 @@ const PaymentMethods = () => {
     const needsReset = showBack === false;
     if (needsReset) {
       navigation.reset({
-        routes: [{ name: Routes.FIAT_ON_RAMP_AGGREGATOR.REGION }],
+        routes: [{ name: Routes.RAMP.REGION }],
       });
     } else {
       navigation.goBack();
@@ -101,17 +113,23 @@ const PaymentMethods = () => {
   }, [showBack, setSelectedPaymentMethodId, setSelectedRegion, navigation]);
 
   const handleContinueToAmount = useCallback(() => {
-    trackEvent('ONRAMP_CONTINUE_TO_AMOUNT_CLICKED', {
-      available_payment_method_ids: paymentMethods?.map(
-        (paymentMethod) => paymentMethod.id,
-      ) as string[],
-      payment_method_id: currentPaymentMethod?.id as string,
-      region: selectedRegion?.id as string,
-      location: 'Payment Method Screen',
-    });
-    navigation.navigate(...createAmountToBuyNavDetails());
+    trackEvent(
+      isBuy
+        ? 'ONRAMP_CONTINUE_TO_AMOUNT_CLICKED'
+        : 'OFFRAMP_CONTINUE_TO_AMOUNT_CLICKED',
+      {
+        available_payment_method_ids: paymentMethods?.map(
+          (paymentMethod) => paymentMethod.id,
+        ) as string[],
+        payment_method_id: currentPaymentMethod?.id as string,
+        region: selectedRegion?.id as string,
+        location: 'Payment Method Screen',
+      },
+    );
+    navigation.navigate(...createBuildQuoteNavDetails());
   }, [
     currentPaymentMethod?.id,
+    isBuy,
     navigation,
     paymentMethods,
     selectedRegion?.id,
@@ -124,7 +142,9 @@ const PaymentMethods = () => {
         navigation,
         {
           title: strings(
-            'fiat_on_ramp_aggregator.payment_method.payment_method',
+            isBuy
+              ? 'fiat_on_ramp_aggregator.payment_method.payment_method'
+              : 'fiat_on_ramp_aggregator.payment_method.cash_destination',
           ),
           showBack,
         },
@@ -132,7 +152,7 @@ const PaymentMethods = () => {
         handleCancelPress,
       ),
     );
-  }, [navigation, colors, handleCancelPress, showBack]);
+  }, [navigation, colors, handleCancelPress, showBack, isBuy]);
 
   if (sdkError) {
     return (
@@ -187,11 +207,15 @@ const PaymentMethods = () => {
         <ScreenLayout.Body>
           <ErrorView
             title={strings(
-              'fiat_on_ramp_aggregator.payment_method.no_payment_methods_title',
+              isBuy
+                ? 'fiat_on_ramp_aggregator.payment_method.no_payment_methods_title'
+                : 'fiat_on_ramp_aggregator.payment_method.no_cash_destinations_title',
               { regionName: selectedRegion?.name },
             )}
             description={strings(
-              'fiat_on_ramp_aggregator.payment_method.no_payment_methods_description',
+              isBuy
+                ? 'fiat_on_ramp_aggregator.payment_method.no_payment_methods_description'
+                : 'fiat_on_ramp_aggregator.payment_method.no_cash_destinations_description',
               { regionName: selectedRegion?.name },
             )}
             ctaOnPress={handleResetState}
@@ -225,6 +249,7 @@ const PaymentMethods = () => {
                       ? undefined
                       : () => handlePaymentMethodPress(payment.id)
                   }
+                  isBuy={isBuy}
                 />
               </Row>
             ))}

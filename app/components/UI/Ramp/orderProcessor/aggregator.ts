@@ -1,13 +1,14 @@
+import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { SDK } from '../sdk';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import Logger from '../../../../util/Logger';
-import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import AppConstants from '../../../../core/AppConstants';
 import { ProcessorOptions } from '..';
+import { isSellFiatOrder } from '../utils';
 
 export const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 export const POLLING_FRECUENCY_IN_SECONDS = POLLING_FREQUENCY / 1000;
@@ -29,6 +30,9 @@ const aggregatorOrderStateToFiatOrderState = (
     }
     case OrderStatusEnum.Cancelled: {
       return FIAT_ORDER_STATES.CANCELLED;
+    }
+    case OrderStatusEnum.Created: {
+      return FIAT_ORDER_STATES.CREATED;
     }
     case OrderStatusEnum.Pending:
     case OrderStatusEnum.Unknown:
@@ -89,9 +93,21 @@ export async function processAggregatorOrder(
     return order;
   }
 
+  if (
+    options?.forced !== true &&
+    ((order.data as Order)?.pollingSecondsMinimum ?? 0) > 0 &&
+    order.lastTimeFetched &&
+    order.lastTimeFetched +
+      ((order.data as Order)?.pollingSecondsMinimum ?? 0) * 1000 >
+      now
+  ) {
+    return order;
+  }
+
   try {
     const orders = await SDK.orders();
-    const updatedOrder = await orders.getOrder(order.id, order.account);
+    const getOrderMethod = isSellFiatOrder(order) ? 'getSellOrder' : 'getOrder';
+    const updatedOrder = await orders[getOrderMethod](order.id, order.account);
 
     if (!updatedOrder) {
       throw new Error('Payment Request Failed: empty order response');

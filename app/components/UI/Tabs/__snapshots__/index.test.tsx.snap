@@ -14,7 +14,7 @@ exports[`Tabs should render correctly 1`] = `
     }
   }
 >
-  <ScrollView
+  <RCTScrollView
     contentContainerStyle={
       Object {
         "backgroundColor": "transparent",
@@ -28,19 +28,200 @@ exports[`Tabs should render correctly 1`] = `
       }
     }
   >
-    <TabThumbnail
-      isActiveTab={false}
-      key="1"
-      onSwitch={[Function]}
-      tab={
-        Object {
-          "id": 1,
-          "image": "",
-          "url": "about:blank",
+    <View>
+      <View
+        style={
+          Array [
+            Object {
+              "shadowOffset": Object {
+                "height": 4.8,
+              },
+              "shadowOpacity": 0.192,
+              "shadowRadius": 4.32,
+            },
+            Object {
+              "backgroundColor": "transparent",
+              "overflow": "hidden",
+            },
+          ]
         }
-      }
-    />
-  </ScrollView>
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            Array [
+              Object {
+                "borderColor": "#BBC0C5",
+                "borderRadius": 10,
+                "borderWidth": 1,
+                "elevation": 8,
+                "height": 266.8,
+                "justifyContent": "space-evenly",
+                "marginBottom": 15,
+                "overflow": "hidden",
+                "width": 720,
+              },
+              false,
+            ]
+          }
+        >
+          <View
+            style={
+              Object {
+                "alignItems": "flex-start",
+                "backgroundColor": "#FFFFFF",
+                "flexDirection": "row",
+                "justifyContent": "flex-start",
+                "paddingHorizontal": 10,
+                "paddingVertical": 10,
+              }
+            }
+          >
+            <View
+              style={
+                Object {
+                  "backgroundColor": "transparent",
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "marginRight": 40,
+                }
+              }
+            >
+              <View>
+                <View
+                  style={
+                    Array [
+                      Object {
+                        "alignContent": "center",
+                        "backgroundColor": "#FFFFFF",
+                        "borderRadius": 27,
+                        "height": 54,
+                        "justifyContent": "center",
+                        "width": 54,
+                      },
+                      Object {
+                        "alignSelf": "flex-start",
+                        "height": 22,
+                        "marginLeft": 2,
+                        "marginRight": 5,
+                        "marginTop": 1,
+                        "width": 22,
+                      },
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      Array [
+                        Object {
+                          "color": "#24272A",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 24,
+                          "fontWeight": "400",
+                          "textAlign": "center",
+                          "textTransform": "uppercase",
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    a
+                  </Text>
+                </View>
+              </View>
+              <Text
+                numberOfLines={1}
+                style={
+                  Object {
+                    "color": "#24272A",
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 18,
+                    "fontWeight": "600",
+                    "marginLeft": 5,
+                    "marginRight": 40,
+                    "marginTop": 0,
+                  }
+                }
+              >
+                about:blank
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={[Function]}
+              style={
+                Object {
+                  "backgroundColor": "transparent",
+                  "height": 24,
+                  "marginRight": -5,
+                  "width": 30,
+                }
+              }
+            >
+              <Text
+                allowFontScaling={false}
+                style={
+                  Array [
+                    Object {
+                      "color": undefined,
+                      "fontSize": 12,
+                    },
+                    Object {
+                      "color": "#24272A",
+                      "fontSize": 32,
+                      "marginTop": -7,
+                      "paddingHorizontal": 10,
+                      "paddingTop": 3,
+                      "position": "absolute",
+                      "right": 0,
+                    },
+                    Object {
+                      "fontFamily": "Ionicons",
+                      "fontStyle": "normal",
+                      "fontWeight": "normal",
+                    },
+                    Object {},
+                  ]
+                }
+              >
+                
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View
+            style={
+              Object {
+                "alignItems": "flex-start",
+                "backgroundColor": "#FFFFFF",
+                "flex": 1,
+                "justifyContent": "flex-start",
+              }
+            }
+          >
+            <Image
+              source={
+                Object {
+                  "uri": "",
+                }
+              }
+              style={
+                Object {
+                  "bottom": 0,
+                  "height": null,
+                  "left": 0,
+                  "paddingTop": 1079,
+                  "position": "absolute",
+                  "resizeMode": "cover",
+                  "right": 0,
+                  "top": 0,
+                  "width": null,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </RCTScrollView>
   <View
     style={
       Object {
@@ -117,21 +298,33 @@ exports[`Tabs should render correctly 1`] = `
         }
         testID="tabs_add"
       >
-        <Icon
+        <Text
           allowFontScaling={false}
-          name="plus"
-          size={15}
           style={
-            Object {
-              "alignContent": "center",
-              "color": "#FCFCFC",
-              "fontSize": 24,
-              "justifyContent": "center",
-              "marginTop": 3,
-              "textAlign": "center",
-            }
+            Array [
+              Object {
+                "color": undefined,
+                "fontSize": 15,
+              },
+              Object {
+                "alignContent": "center",
+                "color": "#FFFFFF",
+                "fontSize": 24,
+                "justifyContent": "center",
+                "marginTop": 3,
+                "textAlign": "center",
+              },
+              Object {
+                "fontFamily": "Material Design Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              Object {},
+            ]
           }
-        />
+        >
+          
+        </Text>
       </TouchableOpacity>
     </View>
     <TouchableOpacity

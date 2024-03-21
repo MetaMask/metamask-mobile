@@ -22,7 +22,12 @@ const styleSheet = (params: {
   const { vars } = params;
   const { style } = vars;
   return StyleSheet.create({
-    base: Object.assign({} as ViewStyle, style) as ViewStyle,
+    base: Object.assign(
+      {
+        padding: 16,
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
   });
 };
 
