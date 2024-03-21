@@ -18,6 +18,7 @@ const authorTeams = {
     'Monte Lai',
     'Daniel Rocha',
     'Kate Johnson',
+    'Charly Chevalier',
   ],
   'Wallet UX': ['David Walsh', 'vthomas13', 'Nidhi Kumari', 'Victor Thomas'],
   'Extension Platform': [
