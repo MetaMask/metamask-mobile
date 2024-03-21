@@ -45,7 +45,11 @@ const mainSetupTask = {
     {
       title: 'Install iOS Pods',
       task: async () => {
-        await $`pod install --project-directory=ios`;
+        try {
+          await $`pod install --project-directory=ios`;
+        } catch (error) {
+          throw new Error(error);
+        }
       },
     },
     {
@@ -56,8 +60,9 @@ const mainSetupTask = {
     },
   ],
     {
-      exitOnError: true,
+      exitOnError: false,
       concurrent: true,
+      rendererOptions: { collapseErrors: false }
     })
 };
 
