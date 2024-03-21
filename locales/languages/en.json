@@ -894,7 +894,10 @@
     "blockaid": "Blockaid",
     "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
     "security_alerts": "Security alerts",
-    "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use."
+    "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.",
+    "smart_transactions_opt_in_heading": "Smart Transactions",
+    "smart_transactions_opt_in_desc": "Turn on Smart Transactions for more reliable and secure transactions, and adjustable fees on ETH Mainnet.",
+    "smart_transactions_learn_more": "Learn more."
   },
   "sdk": {
     "disconnect_title": "Disconnect all sites?",
@@ -1425,6 +1428,29 @@
     "sign_description_1": "After you have signed with Keystone,",
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "Submitting your transaction",
+    "status_submitting_description": "Estimated completion {{timeLeft}}",
+    
+    "status_success_header": "Your transaction is complete",
+
+    "status_submitting_past_estimated_deadline_header": "Sorry for the wait",
+    "status_submitting_past_estimated_deadline_description": "If your transaction is not finalized within {{timeLeft}}, it will be canceled and you will not be charged for gas.",
+    
+    "status_cancelled_header": "Your transaction was canceled",
+    "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary gas fees.",
+    
+    "status_failed_header": "Your transaction failed",
+    "status_failed_description": "Sudden market changes can cause failures. If the problem continues, reach out to MetaMask customer support.",
+    
+    "view_transaction": "View transaction",
+    "view_activity": "View activity",
+    "return_to_dapp": "Return to {{dappName}}",
+    "try_again": "Try again",
+    "create_new": "Create new {{txType}}",
+    "swap": "swap",
+    "send": "send"
   },
   "address_book": {
     "recents": "Recents",
@@ -2415,6 +2441,14 @@
       "title": "Cashing out made easy",
       "description": "Sell your crypto directly in MetaMask! We’ll help you find quotes from trusted providers, so you can sell your crypto in an accessible, fast, and secure way, every time.",
       "action_text": "Try it out"
+    },
+    "stx": {
+      "header": "Introducing smart transactions",
+      "title": "What are smart transactions?",
+      "description_1": "Smart transactions enhance the reliability, privacy, and cost-effectiveness of MetaMask.",
+      "description_2": "Right now, smart transactions are only available on ETH Mainnet. You can turn them off at any time in settings.",
+      "secondary_button": "Not right now",
+      "primary_button": "Continue"
     }
   },
   "invalid_network": {

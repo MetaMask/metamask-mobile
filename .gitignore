@@ -1,3 +1,6 @@
+.yalc
+yalc.lock
+
 # osx
 .DS_Store
 # don't save asdf tools-version config as nvm is prioritized.

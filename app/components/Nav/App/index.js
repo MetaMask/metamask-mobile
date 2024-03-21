@@ -104,6 +104,7 @@ import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -550,6 +551,10 @@ const App = ({ userLoggedIn }) => {
         component={ModalMandatory}
       />
       <Stack.Screen name={Routes.MODAL.WHATS_NEW} component={WhatsNewModal} />
+      <Stack.Screen
+        name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
+        component={SmartTransactionsOptInModal}
+      />
       <Stack.Screen
         name={Routes.SHEET.ACCOUNT_SELECTOR}
         component={AccountSelector}
