@@ -72,6 +72,9 @@ async function createInternalAccountsForAccountsController(
   } = state.engine.backgroundState.PreferencesController?.identities || {};
 
   if (Object.keys(identities).length === 0) {
+    captureException(
+      new Error(`Migration 37: PreferencesController?.identities are empty'`),
+    );
     return;
   }
 
@@ -135,6 +138,11 @@ function createSelectedAccountForAccountsController(
 
   // Handle the case where the selectedAddress from preferences controller is not a string
   if (typeof selectedAddress !== 'string') {
+    captureException(
+      new Error(
+        `Migration 37: Invalid selectedAddress. state.engine.backgroundState.PreferencesController?.selectedAddress is not a string:'${typeof selectedAddress}'. Setting selectedAddress to the first account.`,
+      ),
+    );
     // Get the first account if selectedAddress is not a string
     const [firstAddress] = Object.keys(
       state.engine.backgroundState.PreferencesController?.identities,

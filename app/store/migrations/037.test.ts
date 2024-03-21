@@ -1,6 +1,12 @@
 import { v4 as uuid } from 'uuid';
 import { EthMethod, InternalAccount } from '@metamask/keyring-api';
 import migrate, { sha256FromAddress, Identity } from './037';
+import { captureException } from '@sentry/react-native';
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+const mockedCaptureException = jest.mocked(captureException);
 
 const MOCK_ADDRESS = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
@@ -243,6 +249,8 @@ describe('Migration #037', () => {
       });
       const newState = await migrate(oldState);
 
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+
       expect(newState).toStrictEqual({
         engine: {
           backgroundState: {
@@ -344,6 +352,8 @@ describe('Migration #037', () => {
       });
 
       const newState = await migrate(oldState);
+
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
 
       expect(newState).toStrictEqual({
         engine: {
