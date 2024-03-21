@@ -70,4 +70,13 @@ describe('Engine', () => {
 
     expect(backgroundState).toStrictEqual(initialState);
   });
+
+  it('setSelectedAccount throws an error if no account exists for the given address', () => {
+    const engine = Engine.init(initialState);
+    const invalidAddress = '0xInvalidAddress';
+
+    expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
+      `No account found for address: ${invalidAddress}`,
+    );
+  });
 });

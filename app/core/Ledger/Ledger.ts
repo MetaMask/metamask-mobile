@@ -95,12 +95,11 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  */
 export const forgetLedger = async (): Promise<void> => {
   const keyringController = Engine.context.KeyringController;
-  const preferencesController = Engine.context.PreferencesController;
   const keyring = await getLedgerKeyring();
   keyring.forgetDevice();
 
   const accounts: string[] = await keyringController.getAccounts();
-  preferencesController.setSelectedAddress(accounts[0]);
+  Engine.setSelectedAddress(accounts[0]);
 
   await keyringController.persistAllKeyrings();
 };
