@@ -425,7 +425,7 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - BROWSERSTACK_APP_URL: 'bs://6768a492a45f328e019756a8363e18cfecf5e6fa' # TODO: last version's QA build
+      - BROWSERSTACK_APP_URL: 'bs://6768a492a45f328e019756a8363e18cfecf5e6fa' # TODO: last version's QA build 7.18.0 1268
       - BROWSERSTACK_TAG_EXPRESSION: '@upgrade and @androidApp'
     after_run:
       - build_android_qa

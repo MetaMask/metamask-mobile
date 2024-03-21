@@ -13,7 +13,7 @@ Feature: Measure the app launch times for warm starts
     When I tap on the Settings tab option
     And I scroll up
     And In settings I tap on "About MetaMask"
-    Then "MetaMask-QA v7.16.0 (1265)" is displayed
+    Then "MetaMask-QA v7.18.0 (1268)" is displayed
     When I install upgrade the app
     And I relaunch the app
     And the app displayed the splash animation
@@ -22,5 +22,5 @@ Feature: Measure the app launch times for warm starts
     And I tap on the Settings tab option
     And I scroll up
     And In settings I tap on "About MetaMask"
-    Then "MetaMask-QA v7.17.0 (1267)" is displayed
+    Then "MetaMask-QA v7.18.0 (1281)" is displayed
     And removed test app
