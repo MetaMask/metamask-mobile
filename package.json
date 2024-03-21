@@ -125,7 +125,7 @@
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
-    "@consensys/on-ramp-sdk": "1.26.2",
+    "@consensys/on-ramp-sdk": "1.26.8",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
@@ -158,7 +158,7 @@
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "^0.12.0",
-    "@metamask/signature-controller": "5.3.0",
+    "@metamask/signature-controller": "5.3.1",
     "@metamask/slip44": "3.1.0",
     "@metamask/snaps-controllers": "^5.0.0",
     "@metamask/snaps-rpc-methods": "^6.0.0",
