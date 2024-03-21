@@ -1,6 +1,6 @@
 # List things here that *are - 'used, that depcheck is wrong about'
 ignores:
-  - 'jsc-android'
+  - 'jsc-android' # used by android/app/build.gradle > jscFlavor > org.webkit:android-jsc-intl:+
   - '@metamask/oss-attribution-generator'
   - 'webpack-cli'
   # This is used on the patch for TokenRatesController of Assets controllers, for we to be able to use the last version of it
