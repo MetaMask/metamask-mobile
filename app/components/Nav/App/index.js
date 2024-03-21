@@ -131,19 +131,19 @@ const Stack = createStackNavigator();
 const OnboardingSuccessComponent = ({ navigation }) => (
   <OnboardingSuccess
     // eslint-disable-next-line react/prop-types
-    onDone={() => navigation.replace({ routes: [{ name: 'HomeNav' }] })}
+    onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
   />
 );
 
 // eslint-disable-next-line react/prop-types
-const OnboardingSuccessFlow = ({ route, navigation }) => (
+const OnboardingSuccessFlow = ({ route }) => (
   <Stack.Navigator
     name={Routes.ONBOARDING.SUCCESS_FLOW}
     initialRouteName={Routes.ONBOARDING.SUCCESS}
   >
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponent}
+      component={OnboardingSuccessComponent} // Used in SRP flow
       options={OnboardingSuccess.navigationOptions}
     />
     <Stack.Screen
@@ -186,6 +186,22 @@ const OnboardingNav = ({ navigation }) => (
       name={Routes.ONBOARDING.SUCCESS_FLOW}
       component={OnboardingSuccessFlow}
       options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SUCCESS}
+      component={() => (
+        <OnboardingSuccess
+          noSRP
+          // eslint-disable-next-line react/prop-types
+          onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
+        />
+      )} // Used in SRP flow
+      options={OnboardingSuccess.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
+      component={DefaultSettings}
+      options={DefaultSettings.navigationOptions}
     />
     <Stack.Screen
       name="ManualBackupStep1"
@@ -478,6 +494,7 @@ const App = ({ userLoggedIn }) => {
     async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
+      // const route = 'OnboardingSuccessFlow';
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;

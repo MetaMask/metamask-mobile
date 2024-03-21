@@ -234,7 +234,7 @@ class ManualBackupStep3 extends PureComponent {
           </View>
         ) : null}
         {process.env.BASIC_FUNCTIONALITY ? (
-          <OnboardingSuccess onDone={this.done} />
+          <OnboardingSuccess onDone={this.done} backedUpSRP />
         ) : (
           <ActionView
             confirmTestID={ManualBackUpStepsSelectorsIDs.DONE_BUTTON}

@@ -188,6 +188,7 @@ const AccountBackupStep1 = (props) => {
   };
 
   const skip = async () => {
+    // Skip SRP flow
     hideRemindLaterModal();
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
@@ -195,20 +196,16 @@ const AccountBackupStep1 = (props) => {
     const goToSuccessFlow = () => {
       props.navigation.reset({
         index: 1,
-        routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+        routes: [{ name: Routes.ONBOARDING.SUCCESS }],
       });
     };
 
-    if (onboardingWizard) {
-      process.env.BASIC_FUNCTIONALITY
-        ? goToSuccessFlow()
-        : props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
-    } else {
-      props.setOnboardingWizardStep(1);
-      process.env.BASIC_FUNCTIONALITY
-        ? goToSuccessFlow()
-        : props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
-    }
+    const goToHomeNav = () => {
+      !onboardingWizard && props.setOnboardingWizardStep(1);
+      props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+    };
+
+    process.env.BASIC_FUNCTIONALITY ? goToSuccessFlow() : goToHomeNav();
   };
 
   const showWhatIsSeedphrase = () => setWhatIsSeedphraseModal(true);
