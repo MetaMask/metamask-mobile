@@ -106,9 +106,6 @@ async function createInternalAccountsForAccountsController(
         EthMethod.SignTypedDataV1,
         EthMethod.SignTypedDataV3,
         EthMethod.SignTypedDataV4,
-        EthMethod.PrepareUserOperation,
-        EthMethod.PatchUserOperation,
-        EthMethod.SignUserOperation,
       ],
 
       type: EthAccountType.Eoa,

@@ -18,9 +18,6 @@ describe('PermissionController specifications', () => {
       EthMethod.SignTypedDataV1,
       EthMethod.SignTypedDataV3,
       EthMethod.SignTypedDataV4,
-      EthMethod.PrepareUserOperation,
-      EthMethod.PatchUserOperation,
-      EthMethod.SignUserOperation,
     ],
   };
   describe('caveat specifications', () => {
