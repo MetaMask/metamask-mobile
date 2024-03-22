@@ -232,7 +232,7 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
-const App = ({ userLoggedIn }) => {
+const App = ({ userLoggedIn, hasUserSelectedAutomaticSecurityCheckOption }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -391,7 +391,13 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
     async function initSDKConnect() {
-      if (navigator?.getCurrentRoute && onboarded && !sdkInit.current) {
+      // If we post initialize the sdk before the security modal being seen by the user, the security modal will render twice
+      if (
+        navigator?.getCurrentRoute &&
+        onboarded &&
+        !sdkInit.current &&
+        hasUserSelectedAutomaticSecurityCheckOption
+      ) {
         try {
           const sdkConnect = SDKConnect.getInstance();
           await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
@@ -405,7 +411,7 @@ const App = ({ userLoggedIn }) => {
     initSDKConnect().catch((err) => {
       Logger.error(err, 'Error initializing SDKConnect');
     });
-  }, [navigator, onboarded]);
+  }, [navigator, onboarded, hasUserSelectedAutomaticSecurityCheckOption]);
 
   useEffect(() => {
     // Handle post-init process separately.
@@ -450,7 +456,6 @@ const App = ({ userLoggedIn }) => {
     checkExisting().catch((error) => {
       Logger.error(error, 'Error checking existing user');
     });
-    /* eslint-disable react-hooks/exhaustive-deps */
   }, []);
 
   useEffect(() => {
@@ -822,6 +827,8 @@ const App = ({ userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
+  hasUserSelectedAutomaticSecurityCheckOption:
+    state.security.hasUserSelectedAutomaticSecurityCheckOption,
 });
 
 export default connect(mapStateToProps)(App);
