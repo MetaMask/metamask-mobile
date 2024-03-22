@@ -114,6 +114,9 @@ const SearchingForDeviceStep = () => {
         {Device.isAndroid() && (
           <Text style={styles.ledgerInstructionText}>{permissionText}</Text>
         )}
+        <Text style={styles.ledgerInstructionText}>
+          {strings('ledger.ledger_reminder_message_step_five')}
+        </Text>
       </View>
       <TouchableOpacity onPress={handleOpenInstallEthAppInstructions}>
         <Text style={styles.howToInstallEthAppText} bold link numerOfLines={2}>

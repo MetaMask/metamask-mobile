@@ -2748,6 +2748,7 @@
     "ledger_reminder_message_step_three": "3. Enable Bluetooth",
     "ledger_reminder_message_step_four": "4. Location is enabled with use precise location on",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Nearby devices is enabled",
+    "ledger_reminder_message_step_five": "5. Do not disturb must be turned off",
     "available_devices": "Available devices",
     "retry": "Retry",
     "continue": "Continue",
