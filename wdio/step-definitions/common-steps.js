@@ -285,3 +285,7 @@ Then(/^removed test app$/, async () => {
     await driver.removeApp('io.metamask.qa');
   }
 });
+
+Given(/^the splash animation completes$/, async () => {
+  await WelcomeScreen.waitForSplashAnimationToComplete();
+});

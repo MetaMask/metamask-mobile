@@ -16,7 +16,7 @@ Feature: Measure the app launch times for warm starts
     Then "MetaMask-QA v7.18.0 (1268)" is displayed
     When I install upgrade the app
     And I relaunch the app
-    And the app displayed the splash animation
+    And the splash animation completes
     And I fill my password in the Login screen
     And I log into my wallet
     And I tap on the Settings tab option
