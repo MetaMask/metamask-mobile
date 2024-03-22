@@ -17,6 +17,9 @@ import LockManagerService from '../../core/LockManagerService';
 import { isObject } from '@metamask/utils';
 import AppConstants from '../../../app/core/AppConstants';
 
+// We are intercepting all fetch request to gate api calls
+// based on privacy settings.
+// @ts-ignore
 const originalFetch = window.fetch; // Never touch this!
 
 export function* appLockStateMachine() {
@@ -116,7 +119,8 @@ export function* basicFunctionalityToggle() {
     );
     if (!basicFunctionalityEnabled) {
       const blockList = AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST;
-      window.fetch = function (fetchProp) {
+      // @ts-ignore
+      window.fetch = function (fetchProp: any) {
         let url = '';
         if (typeof fetchProp === 'string') {
           url = fetchProp;
