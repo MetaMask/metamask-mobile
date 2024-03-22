@@ -56,6 +56,7 @@ export function renderScreen(
     options?: StackNavigationOptions;
   },
   providerValues?: ProviderValues,
+  initialParams: Record<string, any> = {},
 ) {
   const Stack = createStackNavigator();
   return renderWithProvider(
@@ -64,6 +65,7 @@ export function renderScreen(
         name={options.name}
         options={options.options}
         component={Component}
+        initialParams={initialParams}
       ></Stack.Screen>
     </Stack.Navigator>,
     providerValues,
