@@ -1,3 +1,4 @@
+import { PreferencesController } from '@metamask/preferences-controller';
 import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -94,12 +95,13 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
  * Forgets the ledger keyring's previous device specific state.
  */
 export const forgetLedger = async (): Promise<void> => {
-  const keyringController = Engine.context.KeyringController;
+  const { KeyringController, PreferencesController } = Engine.context;
 
   const keyring = await getLedgerKeyring();
   keyring.forgetDevice();
 
-  await keyringController.persistAllKeyrings();
+  await KeyringController.persistAllKeyrings();
+  PreferencesController.updateIdentities(await KeyringController.getAccounts());
 };
 
 /**

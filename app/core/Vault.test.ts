@@ -1,3 +1,4 @@
+import { PreferencesController } from '@metamask/preferences-controller';
 import Logger from '../util/Logger';
 import Engine from './Engine';
 
@@ -11,6 +12,10 @@ jest.mock('./Engine', () => ({
       restoreQRKeyring: jest.fn(),
       addNewKeyring: jest.fn(),
       persistAllKeyrings: jest.fn(),
+      getAccounts: jest.fn().mockReturnValue(['account']),
+    },
+    PreferencesController: {
+      updateIdentities: jest.fn(),
     },
   },
 }));
@@ -64,7 +69,7 @@ describe('Vault', () => {
 
   describe('restoreLedgerKeyring', () => {
     it('should restore ledger keyring if it exists', async () => {
-      const { KeyringController } = Engine.context;
+      const { KeyringController, PreferencesController } = Engine.context;
 
       const mockSerialisedKeyring = jest.fn();
       const mockDeserializedKeyring = jest.fn();
@@ -77,6 +82,8 @@ describe('Vault', () => {
       expect(getLedgerKeyring).toHaveBeenCalled();
       expect(mockDeserializedKeyring).toHaveBeenCalled();
       expect(KeyringController.persistAllKeyrings).toHaveBeenCalled();
+      expect(KeyringController.getAccounts).toHaveBeenCalled();
+      expect(PreferencesController.updateIdentities).toHaveBeenCalled();
     });
 
     it('should not restore ledger keyring if it does not exist', async () => {
