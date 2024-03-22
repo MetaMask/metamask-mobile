@@ -32,7 +32,6 @@ export const restoreLedgerKeyring = async (keyring) => {
   if (keyring) {
     try {
       const serializedLedgerKeyring = await keyring.serialize();
-      //This will regenerate a new ledger keyring after `createNewVaultAndRestore` is called
       (await getLedgerKeyring()).deserialize(serializedLedgerKeyring);
 
       await KeyringController.persistAllKeyrings();
