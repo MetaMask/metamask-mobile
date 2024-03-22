@@ -140,6 +140,13 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
   await CommonScreen.isTextDisplayed(text);
 });
 
+Then(/^"([^"]*)?" is displayed for app upgrade step/, async (text) => {
+  const appUpgradeText = process.env[text]
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(appUpgradeText);
+});
+
 Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
@@ -267,7 +274,7 @@ When(/^I tap on the Activity tab option$/, async () => {
 });
 
 When(/^I install upgrade the app$/, async () => {
-  await driver.installApp(process.env.BROWSERSTACK_UPGRADE_APP_URL)
+  await driver.installApp(process.env.BROWSERSTACK_APP_URL)
 });
 
 When(/^I scroll up$/, async () => {
