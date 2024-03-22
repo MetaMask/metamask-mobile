@@ -72,9 +72,6 @@ const useBluetoothPermissions = () => {
 
     if (!hasError) {
       setHasBluetoothPermissions(true);
-      // Edge case, when `View setting` click, checkPermissions will trigger, and setBluetoothPermissionError(undefined), but when screen move away to android setting page,
-      // bluetoothPermissionError somehow has been set back to `LocationAccessBlocked` error because screen not in metamask. therefore we need to setBluetoothPermissionError(undefined) again below
-      // to make sure User come back to Metamask, the bluetoothPermissionError is undefined, otherwise, `ledgerConfirmationModal.tsx` will have issue on retry.
       setBluetoothPermissionError(undefined);
     }
   };
