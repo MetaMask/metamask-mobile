@@ -63,6 +63,7 @@ import { isNetworkRampNativeTokenSupported } from '../../../../../../components/
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
+import { getIsSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -238,6 +239,10 @@ class TransactionReviewInformation extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that indicates if the transaction is a smart transaction
+     */
+    isSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -655,6 +660,7 @@ class TransactionReviewInformation extends PureComponent {
       gasEstimateType,
       gasSelected,
       isNativeTokenBuySupported,
+      isSmartTransaction,
     } = this.props;
     const { nonce } = this.props.transaction;
     const colors = this.context.colors || mockTheme.colors;
@@ -683,7 +689,7 @@ class TransactionReviewInformation extends PureComponent {
             warningMessage={strings('edit_gas_fee_eip1559.low_fee_warning')}
           />
         )}
-        {showCustomNonce && (
+        {showCustomNonce && !isSmartTransaction && (
           <CustomNonce nonce={nonce} onNonceEdit={this.toggleNonceModal} />
         )}
         {!!amountError && (
@@ -750,6 +756,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
+  isSmartTransaction: getIsSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
