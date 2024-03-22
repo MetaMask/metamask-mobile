@@ -1,4 +1,3 @@
-import { PreferencesController } from '@metamask/preferences-controller';
 import Logger from '../util/Logger';
 import Engine from './Engine';
 

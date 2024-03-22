@@ -1,4 +1,3 @@
-import { PreferencesController } from '@metamask/preferences-controller';
 import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
