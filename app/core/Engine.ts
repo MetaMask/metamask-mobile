@@ -594,7 +594,6 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          //@ts-expect-error It's expected, it needs the gas fee controller to be updated a minor version
           listener,
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
