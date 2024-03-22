@@ -17,6 +17,12 @@
       "0x1": {}
     }
   },
+  "AccountsController": {
+     "internalAccounts": {
+       "accounts": {},
+       "selectedAccount": ""
+     }
+  },
   "AddressBookController": {
     "addressBook": {}
   },

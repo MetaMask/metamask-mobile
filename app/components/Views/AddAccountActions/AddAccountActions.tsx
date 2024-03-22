@@ -36,12 +36,12 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   }, [onBack, navigate, trackEvent]);
 
   const createNewAccount = useCallback(async () => {
-    const { KeyringController, PreferencesController } = Engine.context;
+    const { KeyringController } = Engine.context;
     try {
       setIsLoading(true);
 
       const { addedAccountAddress } = await KeyringController.addNewAccount();
-      PreferencesController.setSelectedAddress(addedAccountAddress);
+      Engine.setSelectedAddress(addedAccountAddress);
       trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
     } catch (e: any) {
       Logger.error(e, 'error while trying to add a new account');
