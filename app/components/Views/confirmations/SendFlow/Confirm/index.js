@@ -1188,6 +1188,7 @@ class Confirm extends PureComponent {
       chainId,
       gasEstimateType,
       isNativeTokenBuySupported,
+      isSmartTransaction,
     } = this.props;
     const { nonce } = this.props.transaction;
     const {
@@ -1318,7 +1319,7 @@ class Confirm extends PureComponent {
               updateGasState={this.updateGasState}
             />
           )}
-          {showCustomNonce && (
+          {showCustomNonce && !isSmartTransaction && (
             <CustomNonce
               nonce={nonce}
               onNonceEdit={() => this.toggleConfirmationModal(EDIT_NONCE)}
