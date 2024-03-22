@@ -30,7 +30,7 @@ jobs:
           ref: ${{ steps.extract_current_branch.outputs.branch }}
       
       - name: Crowdin push main as baseline
-        uses: crowdin/github-action@c858c54aca1629608ec39a54ee0f7ba4389eb59f
+        uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
         with:
           crowdin_branch_name: ${{ steps.extract_current_branch.outputs.branch }}
           upload_sources: true
