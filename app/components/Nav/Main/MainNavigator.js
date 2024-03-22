@@ -278,7 +278,7 @@ const SettingsFlow = () => (
       component={RevealPrivateCredential}
     />
     <Stack.Screen
-      name="WalletConnectSessionsView"
+      name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
       component={WalletConnectSessions}
       options={WalletConnectSessions.navigationOptions}
     />
