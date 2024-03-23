@@ -23,7 +23,8 @@ echo "6. Init git submodules"
 echo "This may take a while..."
 git submodule update --init
 
-echo "7. Copy env variables..."
+if ! [ -n "${CI+isset}" ] ; then
+  echo "7. CI not detected, copying env variables..."
   if [ ! -f .js.env ]; then
       echo "Creating .js.env..."
       cp .js.env.example .js.env
@@ -36,3 +37,4 @@ echo "7. Copy env variables..."
       echo "Creating .ios.env"
       cp .ios.env.example .ios.env
   fi
+fi
