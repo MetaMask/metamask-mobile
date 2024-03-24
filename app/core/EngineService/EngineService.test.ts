@@ -3,18 +3,16 @@ import Engine from '../Engine';
 import { store } from '../../store';
 
 jest.mock('../../util/test/network-store.js', () => jest.fn());
-jest.mock('../../store', () => {
-  return {
-    store: {
-      getState: jest.fn(() => ({
-        engine: {
-          backgroundState: {},
-        },
-      })),
-      dispatch: jest.fn(),
-    },
-  };
-});
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      engine: {
+        backgroundState: {},
+      },
+    })),
+    dispatch: jest.fn(),
+  },
+}));
 
 jest.mock('../Engine', () => {
   // Do not need to mock entire Engine. Only need subset of data for testing purposes.

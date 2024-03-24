@@ -7,18 +7,16 @@ jest.mock('react-native-default-preference', () => ({
   set: jest.fn().mockResolvedValue(''),
 }));
 jest.mock('../utils/DevLogger');
-jest.mock('../../../store', () => {
-  return {
-    store: {
-      getState: jest.fn(() => ({
-        sdk: {
-          connections: {},
-          approvedHosts: {},
-        },
-      })),
-    },
-  };
-});
+jest.mock('../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      sdk: {
+        connections: {},
+        approvedHosts: {},
+      },
+    })),
+  },
+}));
 
 describe('loadAndroidConnections', () => {
   beforeEach(() => {
