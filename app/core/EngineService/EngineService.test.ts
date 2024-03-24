@@ -17,12 +17,19 @@ jest.mock('../../store', () => {
 });
 
 jest.mock('../Engine', () => {
+  // Do not need to mock entire Engine. Only need subset of data for testing purposes.
   let instance: any = undefined;
   return {
     get context() {
+      if (!instance) {
+        throw new Error('Engine does not exist');
+      }
       return instance.context;
     },
     get controllerMessenger() {
+      if (!instance) {
+        throw new Error('Engine does not exist');
+      }
       return instance.controllerMessenger;
     },
     destroyEngine: jest.fn(),
