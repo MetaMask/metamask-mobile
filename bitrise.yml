@@ -1020,6 +1020,12 @@ workflows:
                 BROWSERSTACK_OS_VERSION
 
                 BROWSERSTACK_TAG_EXPRESSION
+
+                CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER
+
+                NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER
+
+                BROWSERSTACK_CURRENT_APP_URL
   wdio_android_e2e_test:
     before_run:
       - code_setup
