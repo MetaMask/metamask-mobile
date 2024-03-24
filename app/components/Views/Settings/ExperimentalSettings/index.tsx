@@ -21,6 +21,7 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import Device from '../../../../../app/util/device';
 import { SES_URL } from '../../../../../app/constants/urls';
+import Routes from '../../../../../app/constants/navigation/Routes';
 
 const storage = new MMKV(); // id: mmkv.default
 
@@ -66,7 +67,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   );
 
   const goToWalletConnectSessions = useCallback(() => {
-    navigation.navigate('WalletConnectSessionsView');
+    navigation.navigate(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW);
   }, [navigation]);
 
   const openSesLink = () => Linking.openURL(SES_URL);

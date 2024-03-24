@@ -131,7 +131,7 @@ export function renderAccountName(address, identities) {
  */
 
 export async function importAccountFromPrivateKey(private_key) {
-  const { KeyringController, PreferencesController } = Engine.context;
+  const { KeyringController } = Engine.context;
   // Import private key
   let pkey = private_key;
   // Handle PKeys with 0x
@@ -141,7 +141,7 @@ export async function importAccountFromPrivateKey(private_key) {
   const { importedAccountAddress } =
     await KeyringController.importAccountWithStrategy('privateKey', [pkey]);
   const checksummedAddress = safeToChecksumAddress(importedAccountAddress);
-  return PreferencesController.setSelectedAddress(checksummedAddress);
+  return Engine.setSelectedAddress(checksummedAddress);
 }
 
 /**

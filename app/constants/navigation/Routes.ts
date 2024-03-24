@@ -104,6 +104,7 @@ const Routes = {
   WALLET: {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
+    WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
