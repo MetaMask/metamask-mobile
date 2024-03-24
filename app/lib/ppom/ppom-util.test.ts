@@ -33,8 +33,6 @@ jest.mock('@metamask/transaction-controller', () => ({
   normalizeTransactionParams: jest.fn(),
 }));
 
-jest.mock('../../store', () => ({ store: { dispatch: jest.fn() } }));
-
 const mockRequest = {
   id: 4247010338,
   jsonrpc: '2.0',
