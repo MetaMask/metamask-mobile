@@ -141,10 +141,19 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
 });
 
 Then(/^"([^"]*)?" is displayed for app upgrade step/, async (text) => {
-  const appUpgradeText = process.env[text]
+  try {
+    const CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER = 'CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER'
+    console.log("CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER", process.env[CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER])
+    const NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER = 'NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER'
+    console.log("NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER", process.env[NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER])
+    console.log("TEXT", text)
+  } catch (e) {
+    console.log("ERRROR", e)
+  }
+  // const appUpgradeText = process.env[text]
   const timeout = 1000;
   await driver.pause(timeout);
-  await CommonScreen.isTextDisplayed(appUpgradeText);
+  await CommonScreen.isTextDisplayed(text);
 });
 
 Then(/^"([^"]*)?" is not displayed/, async (text) => {
