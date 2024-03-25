@@ -141,19 +141,10 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
 });
 
 Then(/^"([^"]*)?" is displayed for app upgrade step/, async (text) => {
-  try {
-    const CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER = 'CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER'
-    console.log("CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER", process.env[CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER])
-    const NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER = 'NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER'
-    console.log("NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER", process.env[NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER])
-    console.log("TEXT", text)
-  } catch (e) {
-    console.log("ERRROR", e)
-  }
-  // const appUpgradeText = process.env[text]
+  const appUpgradeText = process.env[text]
   const timeout = 1000;
   await driver.pause(timeout);
-  await CommonScreen.isTextDisplayed(text);
+  await CommonScreen.isTextDisplayed(appUpgradeText);
 });
 
 Then(/^"([^"]*)?" is not displayed/, async (text) => {
@@ -283,7 +274,7 @@ When(/^I tap on the Activity tab option$/, async () => {
 });
 
 When(/^I install upgrade the app$/, async () => {
-  await driver.installApp("bs://6768a492a45f328e019756a8363e18cfecf5e6fa")
+  await driver.installApp(process.env.BROWSERSTACK_APP_URL)
 });
 
 When(/^I scroll up$/, async () => {
