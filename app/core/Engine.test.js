@@ -79,4 +79,11 @@ describe('Engine', () => {
       `No account found for address: ${invalidAddress}`,
     );
   });
+
+  it('useNftDetection should be true by default for new users', () => {
+    const engine = Engine.init({});
+    const backgroundState = engine.datamodel.state;
+
+    expect(backgroundState.PreferencesController.useNftDetection).toBe(true);
+  });
 });
