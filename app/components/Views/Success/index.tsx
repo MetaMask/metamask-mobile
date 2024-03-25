@@ -137,10 +137,14 @@ const OnboardingSuccess = ({
     }
   };
 
+  const toggleHint = () => {
+    setShowHint(!showHint);
+  };
+
   const renderHint = () => (
     <HintModal
       onConfirm={saveHint}
-      onCancel={saveHint}
+      onCancel={toggleHint}
       modalVisible={showHint}
       onRequestClose={Keyboard.dismiss}
       value={hintText}
