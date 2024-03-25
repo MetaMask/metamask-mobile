@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import React, { useLayoutEffect } from 'react';
+import React from 'react';
 import { MMKV } from 'react-native-mmkv';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
@@ -89,15 +89,15 @@ const styles = StyleSheet.create({
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   infoButton: {
-    paddingRight: Device.isAndroid() ? 22 : 18,
     marginTop: 5,
   },
   disabled: {
     opacity: 0.3,
   },
   leftButtonContainer: {
+    marginRight: Device.isAndroid() ? 22 : 12,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
   optinHeaderLeft: {
     flexDirection: 'row',

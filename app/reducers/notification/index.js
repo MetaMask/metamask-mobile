@@ -1,5 +1,5 @@
 import notificationTypes from '../../util/notifications';
-const { TRANSACTION, SIMPLE } = notificationTypes;
+const { TRANSACTION, SIMPLE, WEB3, FCM } = notificationTypes;
 
 export const initialState = {
   notifications: [],

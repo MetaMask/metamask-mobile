@@ -17,6 +17,7 @@ import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import NotificationsView from '../../Views/Notifications';
+import NotificationsDetails from '../../Views/Notifications/Details';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
@@ -541,12 +542,19 @@ const OfflineModeView = () => (
   </Stack.Navigator>
 );
 
-const NotificationsModeView = () => (
+const NotificationsModeView = (props) => (
   <Stack.Navigator>
     <Stack.Screen
       name="Notifications"
       component={NotificationsView}
       options={NotificationsView.navigationOptions}
+    />
+    <Stack.Screen
+      name="NotificationsDetails"
+      component={NotificationsDetails}
+      options={NotificationsDetails.navigationOptions}
+      // eslint-disable-next-line react/prop-types
+      initialParams={{ notification: props.route.params?.notification }}
     />
     <Stack.Screen
       name="NotificationsSettings"

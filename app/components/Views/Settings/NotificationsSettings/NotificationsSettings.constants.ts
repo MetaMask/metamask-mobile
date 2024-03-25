@@ -10,19 +10,19 @@ export const NotificationsViewSelectorsIDs = {
     'ProductsAnnouncements',
 };
 
-export const NotificationsToggleTypes = {
-  ACCOUNT: 'account',
-  ACTIONS: 'actions',
-};
+export enum NotificationsToggleTypes {
+  ACCOUNT = 'account',
+  ACTIONS = 'actions',
+}
 
-export const NotificationsActionsTypes = {
-  SENT: 'sent',
-  RECEIVED: 'received',
-  STAKED: 'staked',
-  SWAPED: 'swaped',
-  DEFI: 'defi',
-  SNAPS: 'snaps',
-  BRIDGED: 'bridged',
-  BOUGHT: 'bought',
-  FCM: 'fcm',
-};
+export enum NotificationsActionsTypes {
+  SENT = 'sent',
+  RECEIVED = 'received',
+  STAKED = 'staked',
+  SWAPED = 'swaped',
+  DEFI = 'defi',
+  SNAPS = 'snaps',
+  BRIDGED = 'bridged',
+  BOUGHT = 'bought',
+  FCM = 'fcm',
+}

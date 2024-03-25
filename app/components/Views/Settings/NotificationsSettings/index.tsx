@@ -1,6 +1,5 @@
 import React, { FC, useEffect, useState } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
-
 import { MMKV } from 'react-native-mmkv';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -74,7 +73,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   useEffect(() => {
     dispatch(UpdatePPOMInitializationStatus());
     setNotificationsEnabled(storage.getBoolean('is-notifications-enabled'));
-  }, [dispatch]);
+  }, [dispatch, notificationsEnabled, navigation]);
 
   useEffect(
     () => {
@@ -161,7 +160,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               key={account.address}
               title={account.name}
               description={account.address}
-              // value={account.value}
+              value={true}
               // onOptionUpdated={}
             />
           ))}

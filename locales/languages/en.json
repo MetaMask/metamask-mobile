@@ -534,7 +534,8 @@
     "collectible_asset_contract": "Asset contract",
     "share_check_out_nft": "Check out my NFT!",
     "share_via": "Shared via",
-    "untitled_collection": "Untitled Collection"
+    "untitled_collection": "Untitled Collection",
+    "collection": "Collection"
   },
   "transfer": {
     "title": "Transfer",
@@ -547,7 +548,6 @@
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
-    "qr_hardware": "QR hardware",
     "remove_account_title": "Account removal",
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
@@ -1446,7 +1446,8 @@
     "sign_title_device": "with your Keystone",
     "sign_description_1": "After you have signed with Keystone,",
     "sign_description_2": "tap on Get Signature",
-    "sign_get_signature": "Get Signature"
+    "sign_get_signature": "Get Signature",
+    "network_fee": "Network Fee"
   },
   "address_book": {
     "recents": "Recents",
@@ -1830,7 +1831,18 @@
     "wc_signed_failed_title": "This sign request failed",
     "wc_sent_tx_rejected_title": "You've rejected the transaction request",
     "approved_tx_rejected_title": "You've rejected granting permission",
-    "wc_description": "Please check the application"
+    "wc_description": "Please check the application",
+    "wallet": "Wallet",
+    "web3": "Web3",
+    "empty": {
+      "title": "Nothing to see here",
+      "message": "This is where you can find notifications once there’s activity in your wallet. "
+    },
+    "list": {
+      "0": "All",
+      "1": "Wallet",
+      "2": "Web3"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Protect your wallet",
