@@ -77,22 +77,6 @@ export const handleSendMessage = async ({
         connection.rpcQueueManager,
       );
       connection.setLoading(false);
-      // Remove once sdk has migrated away from DefaultPreferences storage and AccountConnect.tsx is using hooks to prevent re-rendering.
-      // This specific case is used to fix issue of AccountConnect backgrop not closing properly after connecting to dapp on ios.
-      if (connection.navigation?.getCurrentRoute()?.name === 'AccountConnect') {
-        DevLogger.log(`[handleSendMessage] remove modal`);
-        if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-          try {
-            connection.navigation?.goBack();
-            await wait(100); // delay to allow modal to close
-          } catch (_e) {
-            // Ignore temporarily until next stage of permissions system implementation
-          }
-          connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          });
-        }
-      }
       return;
     }
 
