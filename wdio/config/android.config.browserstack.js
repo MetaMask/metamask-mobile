@@ -22,7 +22,7 @@ config.capabilities = [
     app: process.env.BROWSERSTACK_CURRENT_APP_URL || process.env.BROWSERSTACK_APP_URL,
     'browserstack.debug': true,
     'browserstack.local': true,
-    'browserstack.midSessionInstallApps' : [process.env.BROWSERSTACK_APP_URL],
+    'browserstack.midSessionInstallApps' : ['bs://8f1908ee7bfd6ad208b886016d2c33fd3b9148e5'],//[process.env.BROWSERSTACK_APP_URL],
   },
 ];
 
