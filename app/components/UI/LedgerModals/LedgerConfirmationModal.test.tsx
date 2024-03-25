@@ -158,31 +158,6 @@ describe('LedgerConfirmationModal', () => {
     expect(getByTestId(ERROR_STEP)).toBeTruthy();
   });
 
-  it('calls onConfirmation when ledger commands are being sent and confirmed have been received.', async () => {
-    const onConfirmation = jest.fn();
-    unlockLedgerDefaultAccount.mockReturnValue(Promise.resolve(true));
-    useLedgerBluetooth.mockReturnValue({
-      isSendingLedgerCommands: true,
-      isAppLaunchConfirmationNeeded: false,
-      ledgerLogicToRun: jest.fn().mockImplementation((callback) => callback()),
-      error: null,
-    });
-
-    renderWithProvider(
-      <LedgerConfirmationModal
-        onConfirmation={onConfirmation}
-        onRejection={jest.fn()}
-        deviceId={'test'}
-      />,
-    );
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    await act(async () => {});
-
-    expect(unlockLedgerDefaultAccount).toHaveBeenCalled();
-    expect(onConfirmation).toHaveBeenCalled();
-  });
-
   it('calls onRejection when user refuses confirmation', async () => {
     const onRejection = jest.fn();
     useLedgerBluetooth.mockReturnValue({

@@ -414,6 +414,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     "flex": 1,
                                   }
                                 }
+                                testID="searching-for-device-step"
                               >
                                 <Image
                                   resizeMode="contain"
