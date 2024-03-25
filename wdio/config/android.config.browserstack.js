@@ -19,10 +19,10 @@ config.capabilities = [
     build: 'Android QA E2E Smoke Tests',
     device: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 6',
     os_version: process.env.BROWSERSTACK_OS_VERSION || '12.0',
-    app: process.env.BROWSERSTACK_CURRENT_APP_URL || process.env.BROWSERSTACK_APP_URL,
+    app: process.env.BROWSERSTACK_APP_URL,
     'browserstack.debug': true,
     'browserstack.local': true,
-    'browserstack.midSessionInstallApps' : [process.env.BROWSERSTACK_APP_URL],
+    'browserstack.midSessionInstallApps' : ['bs://6768a492a45f328e019756a8363e18cfecf5e6fa'],
   },
 ];
 
