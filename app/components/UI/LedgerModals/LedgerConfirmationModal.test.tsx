@@ -4,7 +4,7 @@ import LedgerConfirmationModal from './LedgerConfirmationModal';
 
 
 describe('LedgerConfirmationModal', () => {
-  it('should render correctly', () => {
+  it('render matches latest snapshot', () => {
     const wrapper = shallow(
       <LedgerConfirmationModal onConfirmation={jest.fn()} onRejection={jest.fn()} deviceId={'test'} />,
     );
