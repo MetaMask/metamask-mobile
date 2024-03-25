@@ -1,13 +1,22 @@
-import { shallow } from 'enzyme';
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 
+const mockedNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockedNavigate,
+    }),
+  };
+});
 
 describe('LedgerConfirmationModal', () => {
   it('render matches latest snapshot', () => {
-    const wrapper = shallow(
+    const {toJSON } = renderWithProvider(
       <LedgerConfirmationModal onConfirmation={jest.fn()} onRejection={jest.fn()} deviceId={'test'} />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
