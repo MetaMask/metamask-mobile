@@ -50,21 +50,33 @@ describe('SearchingForDeviceStep', () => {
   it('shows correct permission text for Android 12+', () => {
     getSystemVersion.mockReturnValue('12');
     const { getByText } = renderWithProvider(<SearchingForDeviceStep />);
-    expect(getByText(strings('ledger.ledger_reminder_message_step_four_Androidv12plus'))).toBeTruthy();
+    expect(
+      getByText(
+        strings('ledger.ledger_reminder_message_step_four_Androidv12plus'),
+      ),
+    ).toBeTruthy();
   });
 
   it('shows correct permission text for Android < 12', () => {
     getSystemVersion.mockReturnValue('11');
     const { getByText } = renderWithProvider(<SearchingForDeviceStep />);
-    expect(getByText(strings('ledger.ledger_reminder_message_step_four'))).toBeTruthy();
+    expect(
+      getByText(strings('ledger.ledger_reminder_message_step_four')),
+    ).toBeTruthy();
   });
 
   it('doesnt not show permission text for ios', () => {
     Device.isAndroid.mockReturnValueOnce(false);
     getSystemVersion.mockReturnValue('11');
     const { getByText } = renderWithProvider(<SearchingForDeviceStep />);
-    expect(() => getByText(strings('ledger.ledger_reminder_message_step_four'))).toThrow();
-    expect(() => getByText(strings('ledger.ledger_reminder_message_step_four_Androidv12plus'))).toThrow();
+    expect(() =>
+      getByText(strings('ledger.ledger_reminder_message_step_four')),
+    ).toThrow();
+    expect(() =>
+      getByText(
+        strings('ledger.ledger_reminder_message_step_four_Androidv12plus'),
+      ),
+    ).toThrow();
   });
 
   it('matches snapshot for Android 12+', () => {
