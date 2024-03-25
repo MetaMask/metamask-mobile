@@ -9,6 +9,8 @@ import { useAssetFromTheme } from '../../../../util/theme';
 import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
 
+import { OPEN_ETH_APP_STEP } from './Steps.constants';
+
 const createStyles = () =>
   StyleSheet.create({
     modalTitle: {
@@ -43,7 +45,7 @@ const OpenETHAppStep = ({ onReject }: OpenETHAppStepProps) => {
   );
 
   return (
-    <>
+    <View testID={OPEN_ETH_APP_STEP}>
       <Image
         source={ledgerImage}
         style={styles.ledgerImageStyle}
@@ -67,7 +69,7 @@ const OpenETHAppStep = ({ onReject }: OpenETHAppStepProps) => {
       >
         {strings('transaction.reject')}
       </StyledButton>
-    </>
+    </View>
   );
 };
 

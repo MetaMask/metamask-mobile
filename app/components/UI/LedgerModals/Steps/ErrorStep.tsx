@@ -8,6 +8,7 @@ import Device from '../../../../util/device';
 
 import ledgerConnectErrorDarkImage from '../../../../images/ledger-connect-error-dark.png';
 import ledgerConnectErrorLightImage from '../../../../images/ledger-connect-error-light.png';
+import { ERROR_STEP } from './Steps.constants';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -67,7 +68,7 @@ const ErrorStep = ({
   };
 
   return (
-    <>
+    <View testID={ERROR_STEP}>
       <Image
         source={ledgerErrorImage}
         style={styles.ledgerImageStyle}
@@ -100,7 +101,7 @@ const ErrorStep = ({
           </StyledButton>
         </View>
       </View>
-    </>
+    </View>
   );
 };
 

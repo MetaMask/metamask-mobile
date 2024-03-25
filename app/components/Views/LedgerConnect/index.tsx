@@ -299,7 +299,7 @@ const LedgerConnect = () => {
               {Device.isAndroid() && (
                 <Text style={styles.ledgerInstructionText}>{permsionText}</Text>
               )}
-               <Text style={styles.ledgerInstructionText}>
+              <Text style={styles.ledgerInstructionText}>
                 {strings('ledger.ledger_reminder_message_step_five')}
               </Text>
               <Text

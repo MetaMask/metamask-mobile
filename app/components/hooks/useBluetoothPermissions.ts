@@ -8,12 +8,7 @@ import {
   requestMultiple,
 } from 'react-native-permissions';
 import Device from '../../util/device';
-
-export enum BluetoothPermissionErrors {
-  BluetoothAccessBlocked = 'BluetoothAccessBlocked',
-  LocationAccessBlocked = 'LocationAccessBlocked',
-  NearbyDevicesAccessBlocked = 'NearbyDevicesAccessBlocked',
-}
+import { BluetoothPermissionErrors } from '../../core/Ledger/ledgerErrors';
 
 const useBluetoothPermissions = () => {
   const appState = useRef(AppState.currentState);

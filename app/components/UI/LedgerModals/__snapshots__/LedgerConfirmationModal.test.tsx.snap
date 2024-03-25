@@ -27,6 +27,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
           "flex": 1,
         }
       }
+      testID="searching-for-device-step"
     >
       <Image
         resizeMode="contain"

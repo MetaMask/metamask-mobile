@@ -7,6 +7,7 @@ import StyledButton from '../../StyledButton';
 import Text from '../../../Base/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useAssetFromTheme } from '../../../../util/theme';
+import { LEDGER_CONFIRMATION_STEP } from './Steps.constants';
 
 const ledgerConnectLightImage = require('../../../../images/ledger-connect-light.png');
 const ledgerConnectDarkImage = require('../../../../images/ledger-connect-dark.png');
@@ -47,7 +48,7 @@ const ConfirmationStep = ({ onReject }: ConfirmationStepProps) => {
   );
 
   return (
-    <>
+    <View testID={LEDGER_CONFIRMATION_STEP}>
       <Image
         source={ledgerImage}
         style={styles.ledgerImageStyle}
@@ -66,7 +67,7 @@ const ConfirmationStep = ({ onReject }: ConfirmationStepProps) => {
           {strings('transaction.reject')}
         </StyledButton>
       </View>
-    </>
+    </View>
   );
 };
 

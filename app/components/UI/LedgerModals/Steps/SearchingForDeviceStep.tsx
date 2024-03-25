@@ -16,6 +16,7 @@ import Text from '../../../Base/Text';
 
 import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
 import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
+import { SEARCHING_FOR_DEVICE_STEP } from './Steps.constants';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -86,7 +87,10 @@ const SearchingForDeviceStep = () => {
   }, [deviceOSVersion]);
 
   return (
-    <View style={styles.lookingForDeviceContainer}>
+    <View
+      style={styles.lookingForDeviceContainer}
+      testID={SEARCHING_FOR_DEVICE_STEP}
+    >
       <Image
         source={ledgerImage}
         style={styles.ledgerImageStyle}
