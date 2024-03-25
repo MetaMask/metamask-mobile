@@ -14,7 +14,6 @@ import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
-import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
 
 jest.mock('../../../core/Ledger/Ledger', () => ({
   unlockLedgerDefaultAccount: jest.fn(),
