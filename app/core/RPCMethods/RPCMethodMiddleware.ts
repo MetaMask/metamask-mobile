@@ -459,6 +459,7 @@ export const getRpcMethodMiddleware = ({
             const acc = await getPermittedAccounts(hostname);
             res.result = acc;
           } catch (error) {
+            DevLogger.log(`eth_requestAccounts error`, error);
             if (error) {
               throw ethErrors.provider.userRejectedRequest(
                 'User denied account authorization.',
