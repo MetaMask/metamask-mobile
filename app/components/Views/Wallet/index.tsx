@@ -279,11 +279,11 @@ const Wallet = ({ navigation }: any) => {
     [trackEvent],
   );
 
-  const turnOnBasicFunctionality = () => {
+  const turnOnBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
-  };
+  }, [navigation]);
 
   const renderContent = useCallback(() => {
     let balance: any = 0;
@@ -379,8 +379,10 @@ const Wallet = ({ navigation }: any) => {
     providerConfig.chainId,
     selectedAddress,
     styles.wrapper,
-    styles.walletAccount,
     styles.banner,
+    styles.walletAccount,
+    basicFunctionalityEnabled,
+    turnOnBasicFunctionality,
     selectedAccount,
     ensForSelectedAccount,
     renderTabBar,

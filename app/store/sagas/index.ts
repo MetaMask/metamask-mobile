@@ -19,6 +19,7 @@ import AppConstants from '../../../app/core/AppConstants';
 
 // We are intercepting all fetch request to gate api calls
 // based on privacy settings.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 const originalFetch = window.fetch; // Never touch this!
 
@@ -119,6 +120,7 @@ export function* basicFunctionalityToggle() {
     );
     if (!basicFunctionalityEnabled) {
       const blockList = AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       window.fetch = function (fetchProp: any) {
         let url = '';
