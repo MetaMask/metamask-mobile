@@ -8,7 +8,10 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import ProgressBar from './ProgressBar';
 import { useTheme } from '../../../util/theme';
-import { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
+import {
+  SmartTransaction,
+  SmartTransactionStatuses,
+} from '@metamask/smart-transactions-controller/dist/types';
 import {
   findBlockExplorerForRpc,
   getBlockExplorerTxUrl,
@@ -33,13 +36,12 @@ interface Props {
     isDapp: boolean;
     isInSwapFlow: boolean;
   };
-  pendingApprovalId: string;
   origin: string;
   onConfirm: () => void;
 }
 
-const FALLBACK_STX_ESTIMATED_DEADLINE_SEC = 45; // TODO: Use a value from backend instead.
-const FALLBACK_STX_MAX_DEADLINE_SEC = 150; // TODO: Use a value from backend instead.
+export const FALLBACK_STX_ESTIMATED_DEADLINE_SEC = 45;
+export const FALLBACK_STX_MAX_DEADLINE_SEC = 150;
 
 export const showRemainingTimeInMinAndSec = (
   remainingTimeInSec: number,
@@ -49,12 +51,12 @@ export const showRemainingTimeInMinAndSec = (
   }
   const minutes = Math.floor(remainingTimeInSec / 60);
   const seconds = remainingTimeInSec % 60;
+
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
 const SmartTransactionStatus = ({
   requestState: { smartTransaction, isDapp, isInSwapFlow },
-  pendingApprovalId,
   origin,
   onConfirm,
 }: Props) => {
@@ -128,7 +130,7 @@ const SmartTransactionStatus = ({
     },
   });
 
-  const isStxPending = status === 'pending';
+  const isStxPending = status === SmartTransactionStatuses.PENDING;
 
   // Calc time left for progress bar and timer display
   const stxDeadlineSec = isStxPastEstimatedDeadline
@@ -249,7 +251,7 @@ const SmartTransactionStatus = ({
     description = strings('smart_transactions.status_submitting_description', {
       timeLeft: showRemainingTimeInMinAndSec(timeLeftForPendingStxInSec),
     });
-  } else if (status === 'success') {
+  } else if (status === SmartTransactionStatuses.SUCCESS) {
     icon = IconName.CheckCircle;
     iconColor = IconColor.Success;
     header = strings('smart_transactions.status_success_header');
@@ -276,7 +278,7 @@ const SmartTransactionStatus = ({
       secondaryButtonText = strings('smart_transactions.view_activity');
       onSecondaryButtonPress = viewActivity;
     }
-  } else if (status === 'cancelled') {
+  } else if (status?.startsWith(SmartTransactionStatuses.CANCELLED)) {
     icon = IconName.Danger;
     iconColor = IconColor.Error;
     header = strings('smart_transactions.status_cancelled_header');
