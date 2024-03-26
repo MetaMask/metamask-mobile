@@ -1,6 +1,5 @@
 import { Fee } from '@metamask/smart-transactions-controller/dist/types';
 import { TransactionController } from '@metamask/transaction-controller';
-import Logger from '../Logger';
 import { decimalToHex } from '../conversions';
 
 // It has to be 21000 for cancel transactions, otherwise the API would reject it.
