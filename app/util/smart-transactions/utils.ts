@@ -49,21 +49,11 @@ export const createSignedTransactions = async (
     return unsignedTransactionWithFees;
   });
 
-  Logger.log(
-    'STX createSignedTransactions, unsignedTransactionsWithFees',
-    unsignedTransactionsWithFees,
-  );
-
   const signedTransactions =
     await transactionController.approveTransactionsWithSameNonce(
       unsignedTransactionsWithFees,
       { hasNonce: true },
     );
-
-  Logger.log(
-    'STX createSignedTransactions signedTransactions',
-    signedTransactions,
-  );
 
   return signedTransactions;
 };
