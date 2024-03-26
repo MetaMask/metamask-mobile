@@ -22,9 +22,7 @@ import {
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
-import useLedgerBluetooth, {
-  LedgerCommunicationErrors,
-} from '../../hooks/Ledger/useLedgerBluetooth';
+import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import { showSimpleNotification } from '../../../actions/notification';
 import LedgerConnectionError, {
   LedgerConnectionErrorProps,
@@ -40,6 +38,7 @@ import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSystemVersion } from 'react-native-device-info';
+import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
 const createStyles = (theme: any) =>
   StyleSheet.create({
@@ -168,7 +167,7 @@ const LedgerConnect = () => {
     });
   };
 
-  const permsionText = useMemo(() => {
+  const permissionText = useMemo(() => {
     if (deviceOSVersion >= 12) {
       return strings('ledger.ledger_reminder_message_step_four_Androidv12plus');
     }
@@ -297,7 +296,9 @@ const LedgerConnect = () => {
                 {strings('ledger.ledger_reminder_message_step_three')}
               </Text>
               {Device.isAndroid() && (
-                <Text style={styles.ledgerInstructionText}>{permsionText}</Text>
+                <Text style={styles.ledgerInstructionText}>
+                  {permissionText}
+                </Text>
               )}
               <Text style={styles.ledgerInstructionText}>
                 {strings('ledger.ledger_reminder_message_step_five')}
