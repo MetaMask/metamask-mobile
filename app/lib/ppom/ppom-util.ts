@@ -117,15 +117,13 @@ const validateRequest = async (req: any, transactionId?: string) => {
 };
 
 function normalizeRequest(request: any) {
-  // normalize origin
+  if (request.method !== TRANSACTION_METHOD) {
+    return request;
+  }
 
   request.origin = request.origin
     ?.replace(WALLET_CONNECT_ORIGIN, '')
     ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
-
-  if (request.method !== TRANSACTION_METHOD) {
-    return request;
-  }
 
   const transactionParams = request.params?.[0] || {};
   const normalizedParams = normalizeTransactionParams(transactionParams);
