@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { StyleSheet, View, TouchableOpacity, Image } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
