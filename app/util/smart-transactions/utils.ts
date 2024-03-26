@@ -1,28 +1,11 @@
+/* eslint-disable import/prefer-default-export */
 import { Fee } from '@metamask/smart-transactions-controller/dist/types';
 import { TransactionController } from '@metamask/transaction-controller';
 import { decimalToHex } from '../conversions';
+import { TransactionParams } from './smart-tx';
 
 // It has to be 21000 for cancel transactions, otherwise the API would reject it.
 const CANCEL_GAS = 21000;
-
-// TODO import these from tx controller
-export declare type Hex = `0x${string}`;
-export interface TransactionParams {
-  chainId?: Hex;
-  data?: string;
-  from: string;
-  gas?: string;
-  gasPrice?: string;
-  gasUsed?: string;
-  nonce?: string;
-  to?: string;
-  value?: string;
-  maxFeePerGas?: string;
-  maxPriorityFeePerGas?: string;
-  estimatedBaseFee?: string;
-  estimateGasError?: string;
-  type?: string;
-}
 
 export const createSignedTransactions = async (
   unsignedTransaction: TransactionParams,
