@@ -7,14 +7,15 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 import Device from '../../../util/device';
 import useBluetooth from '../../hooks/Ledger/useBluetooth';
-import useBluetoothPermissions, {
-  BluetoothPermissionErrors,
-} from '../../hooks/useBluetoothPermissions';
+import useBluetoothPermissions from '../../hooks/useBluetoothPermissions';
 import { LedgerConnectionErrorProps } from './LedgerConnectionError';
 import useBluetoothDevices, {
   BluetoothDevice,
 } from '../../hooks/Ledger/useBluetoothDevices';
-import { LedgerCommunicationErrors } from '../../hooks/Ledger/useLedgerBluetooth';
+import {
+  BluetoothPermissionErrors,
+  LedgerCommunicationErrors,
+} from '../../../core/Ledger/ledgerErrors';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
