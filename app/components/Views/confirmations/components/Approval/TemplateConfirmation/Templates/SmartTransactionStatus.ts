@@ -20,7 +20,6 @@ function getValues(
         element: 'SmartTransactionStatus',
         props: {
           requestState: pendingApproval.requestState,
-          pendingApprovalId: pendingApproval.id,
           origin: pendingApproval.origin,
           onConfirm: actions.onConfirm,
         },
