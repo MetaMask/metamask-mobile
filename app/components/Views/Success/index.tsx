@@ -138,7 +138,7 @@ const OnboardingSuccess = ({
   };
 
   const toggleHint = () => {
-    setShowHint(!showHint);
+    setShowHint((hintVisible) => !hintVisible);
   };
 
   const renderHint = () => (
