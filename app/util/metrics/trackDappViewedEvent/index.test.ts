@@ -2,6 +2,11 @@ import trackDappViewedEvent from './index';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
+// Need to mock this module since it uses store.getState, which interferes with the mocks from this test file.
+jest.mock(
+  '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
+  () => jest.fn(),
+);
 
 const mockMetrics = {
   trackEvent: jest.fn(),
@@ -39,7 +44,7 @@ describe('trackDappViewedEvent', () => {
     jest.clearAllMocks();
   });
 
-  it('should track with isFirstVisit = true', () => {
+  it('tracks as first visit when dapp hostname not in history', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
         visitedDappsByHostname: {},
@@ -54,6 +59,7 @@ describe('trackDappViewedEvent', () => {
     }));
 
     const expectedMetrics = {
+      Referrer: 'https://uniswap.org',
       is_first_visit: true,
       number_of_accounts: 2,
       number_of_accounts_connected: 1,
@@ -71,7 +77,7 @@ describe('trackDappViewedEvent', () => {
     );
   });
 
-  it('should track with isFirstVisit = false', () => {
+  it('does not tracks as first visit when dapp hostname is in history', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
         visitedDappsByHostname: { 'uniswap.org': true },
@@ -86,6 +92,7 @@ describe('trackDappViewedEvent', () => {
     }));
 
     const expectedMetrics = {
+      Referrer: 'https://uniswap.org',
       is_first_visit: false,
       number_of_accounts: 2,
       number_of_accounts_connected: 1,
@@ -103,7 +110,7 @@ describe('trackDappViewedEvent', () => {
     );
   });
 
-  it('should track with the correct number of connected accounts', () => {
+  it('tracks connected accounts number', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
         visitedDappsByHostname: { 'uniswap.org': true },
@@ -118,6 +125,7 @@ describe('trackDappViewedEvent', () => {
     }));
 
     const expectedMetrics = {
+      Referrer: 'https://uniswap.org',
       is_first_visit: false,
       number_of_accounts: 2,
       number_of_accounts_connected: 1,
@@ -135,7 +143,40 @@ describe('trackDappViewedEvent', () => {
     );
   });
 
-  it('should track with the correct number of wallet accounts', () => {
+  it('tracks account number', () => {
+    mockGetState.mockImplementation(() => ({
+      browser: {
+        visitedDappsByHostname: { 'uniswap.org': true },
+      },
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            identities: { '0x1': true },
+          },
+        },
+      },
+    }));
+
+    const expectedMetrics = {
+      Referrer: 'https://uniswap.org',
+      is_first_visit: false,
+      number_of_accounts: 1,
+      number_of_accounts_connected: 1,
+      source: 'in-app browser',
+    };
+
+    trackDappViewedEvent({
+      hostname: 'uniswap.org',
+      numberOfConnectedAccounts: 1,
+    });
+
+    expect(mockMetrics.trackEvent).toBeCalledWith(
+      MetaMetricsEvents.DAPP_VIEWED,
+      expectedMetrics,
+    );
+  });
+
+  it('tracks dapp url', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
         visitedDappsByHostname: { 'uniswap.org': true },
@@ -154,6 +195,7 @@ describe('trackDappViewedEvent', () => {
       number_of_accounts: 1,
       number_of_accounts_connected: 1,
       source: 'in-app browser',
+      Referrer: 'https://uniswap.org',
     };
 
     trackDappViewedEvent({

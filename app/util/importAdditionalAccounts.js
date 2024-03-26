@@ -41,7 +41,7 @@ const updateIdentities = async (accounts) => {
   });
 
   // setSelectedAddress to the initial account
-  PreferencesController.setSelectedAddress(accounts[0]);
+  Engine.setSelectedAddress(accounts[0]);
 };
 
 /**

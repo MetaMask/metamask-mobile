@@ -5,6 +5,7 @@ import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
+import { sha256 } from 'ethereumjs-util';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -175,6 +176,14 @@ NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
 };
 
+NativeModules.Aes = {
+  sha256: jest.fn().mockImplementation((address) => {
+    const uniqueAddressChar = address[2]; // Assuming 0x prefix is present, so actual third character is at index 2
+    const hashBase = '012345678987654';
+    return Promise.resolve(hashBase + uniqueAddressChar);
+  }),
+};
+
 jest.mock(
   'react-native/Libraries/Components/Touchable/TouchableOpacity',
   () => 'TouchableOpacity',
@@ -200,26 +209,6 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 jest.mock('../../images/static-logos.js', () => ({}));
 
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
-
-jest.mock('react-native-permissions', () => ({
-  check: jest.fn().mockRejectedValue('granted'),
-  checkMultiple: jest.fn().mockRejectedValue({
-    'android.permission.ACCESS_FINE_LOCATION': 'granted',
-    'android.permission.BLUETOOTH_SCAN': 'granted',
-    'android.permission.BLUETOOTH_CONNECT': 'granted',
-  }),
-  PERMISSIONS: {
-    IOS: {
-      BLUETOOTH_PERIPHERAL: 'ios.permission.BLUETOOTH_PERIPHERAL',
-    },
-    ANDROID: {
-      ACCESS_FINE_LOCATION: 'android.permission.ACCESS_FINE_LOCATION',
-      BLUETOOTH_SCAN: 'android.permission.BLUETOOTH_SCAN',
-      BLUETOOTH_CONNECT: 'android.permission.BLUETOOTH_CONNECT',
-    },
-  },
-  openSettings: jest.fn(),
-}));
 
 jest.mock('../theme', () => ({
   ...jest.requireActual('../theme'),
