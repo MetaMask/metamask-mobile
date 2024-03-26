@@ -9,6 +9,7 @@ import {
   getBlockExplorerAddressUrl,
   getBlockExplorerTxUrl,
   getNetworkNonce,
+  convertNetworkId,
 } from '.';
 import {
   MAINNET,
@@ -338,5 +339,39 @@ describe('network-utils', () => {
 
       expect(releaseLockMock).toHaveBeenCalledTimes(1);
     });
+  });
+  describe('convertNetworkId', () => {
+    it('converts a number to a string', () => {
+      expect(convertNetworkId(1)).toEqual('1');
+    });
+
+    it('converts a hexadecimal string to a decimal string', () => {
+      // Assuming convertHexToDecimal works correctly for '0x1' and returns 1
+      expect(convertNetworkId('0x1')).toEqual('1');
+    });
+
+    it('returns the same string if it is numeric', () => {
+      expect(convertNetworkId('123')).toEqual('123');
+    });
+
+    it('throws an error for non-numeric, non-hexadecimal strings', () => {
+      expect(() => convertNetworkId('abc')).toThrow(
+        "Cannot parse as a valid network ID: 'abc'",
+      );
+    });
+
+    it('throws an error for NaN values', () => {
+      expect(() => convertNetworkId(NaN)).toThrow(
+        "Cannot parse as a valid network ID: 'NaN'",
+      );
+    });
+
+    it('throws an error for non-numeric strings', () => {
+      expect(() => convertNetworkId('123abc')).toThrow(
+        "Cannot parse as a valid network ID: '123abc'",
+      );
+    });
+
+    // Add more tests as necessary to cover other edge cases or invalid inputs
   });
 });

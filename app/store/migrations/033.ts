@@ -32,12 +32,22 @@ export default async function migrate(stateAsync: unknown) {
     );
     return state;
   }
-  const networkControllerState = state.engine.backgroundState
-    .NetworkController as NetworkState;
+  const networkControllerState = state.engine.backgroundState.NetworkController;
   if (!isObject(networkControllerState)) {
     captureException(
       new Error(
         `Migration 33: Invalid NetworkController state error: '${typeof networkControllerState}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (!isObject(networkControllerState.providerConfig)) {
+    captureException(
+      new Error(
+        `Migration 33: NetworkController providerConfig not found: '${JSON.stringify(
+          networkControllerState.providerConfig,
+        )}'`,
       ),
     );
     return state;
