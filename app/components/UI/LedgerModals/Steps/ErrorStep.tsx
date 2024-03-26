@@ -8,7 +8,7 @@ import Device from '../../../../util/device';
 
 import ledgerConnectErrorDarkImage from '../../../../images/ledger-connect-error-dark.png';
 import ledgerConnectErrorLightImage from '../../../../images/ledger-connect-error-light.png';
-import { ERROR_STEP } from './Steps.constants';
+import { ERROR_STEP, RETRY_BUTTON } from './Steps.constants';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -90,7 +90,7 @@ const ErrorStep = ({
         )}
         {!isRetryHide && (
           <View style={styles.buttonStyle}>
-            <StyledButton type="normal" onPress={onRetry}>
+            <StyledButton type="normal" onPress={onRetry} testID={RETRY_BUTTON}>
               {strings('ledger.try_again')}
             </StyledButton>
           </View>

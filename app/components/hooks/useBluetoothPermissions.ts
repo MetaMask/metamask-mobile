@@ -16,7 +16,7 @@ const useBluetoothPermissions = () => {
     useState<boolean>(false);
   const [bluetoothPermissionError, setBluetoothPermissionError] =
     useState<BluetoothPermissionErrors>();
-  const deviceOSVersion = Number(getSystemVersion()) ?? '';
+  const deviceOSVersion = Number(getSystemVersion()) || 0;
 
   const checkIosPermission = async () => {
     const bluetoothPermissionStatus = await request(
