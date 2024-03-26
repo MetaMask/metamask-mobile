@@ -7,14 +7,13 @@ import {
 } from '@metamask/transaction-controller';
 import Logger from '../Logger';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
-import TransactionTypes from '../../core/TransactionTypes';
 import {
-  getIsSwapApproveTransaction,
-  getIsInSwapFlowTransaction,
-  getIsSwapTransaction,
-  getIsNativeTokenTransferred,
-} from '../transactions';
-import { createSignedTransactions } from './utils';
+  createSignedTransactions,
+  getShouldEndFlow,
+  getShouldStartFlow,
+  getShouldUpdateFlow,
+  getTxType,
+} from './utils';
 
 // TODO import these from tx controller
 export declare type Hex = `0x${string}`;
@@ -92,50 +91,28 @@ export async function publishHook(request: Request) {
     transactionMeta,
   );
 
-  // Determine tx type
-  // If it isn't a dapp tx, check if it's MM Swaps or Send
-  // process.env.MM_FOX_CODE is from MM Swaps
-  const isDapp =
-    transactionMeta?.origin !== TransactionTypes.MMM &&
-    transactionMeta?.origin !== process.env.MM_FOX_CODE;
+  const {
+    isDapp,
+    isSend,
+    isInSwapFlow,
+    isSwapApproveTx,
+    isSwapTransaction,
+    isNativeTokenTransferred,
+  } = getTxType(transactionMeta, chainId);
 
-  const to = transactionMeta.transaction.to?.toLowerCase();
-  const data = transactionMeta.transaction.data; // undefined for send txs of gas tokens
-
-  const isInSwapFlow = getIsInSwapFlowTransaction(
-    data,
-    transactionMeta.origin,
-    to,
-    chainId,
+  const shouldStartFlow = getShouldStartFlow(
+    isDapp,
+    isSend,
+    isSwapApproveTx,
+    isSwapTransaction,
+    isNativeTokenTransferred,
   );
-  const isSwapApproveTx = getIsSwapApproveTransaction(
-    data,
-    transactionMeta.origin,
-    to,
-    chainId,
+  const shouldUpdateFlow = getShouldUpdateFlow(
+    isDapp,
+    isSend,
+    isSwapTransaction,
   );
-  const isSwapTransaction = getIsSwapTransaction(
-    data,
-    transactionMeta.origin,
-    to,
-    chainId,
-  );
-
-  const isNativeTokenTransferred = getIsNativeTokenTransferred(
-    transactionMeta.transaction,
-  );
-
-  const isSend = !isDapp && !isInSwapFlow;
-
-  // Status modal start, update, and close conditions
-  // Swap txs are the 2nd in the swap flow, so we don't want to show another status page for that
-  const shouldStartFlow =
-    isDapp ||
-    isSend ||
-    isSwapApproveTx ||
-    (isSwapTransaction && isNativeTokenTransferred);
-  const shouldUpdateFlow = isDapp || isSend || isSwapTransaction;
-  const shouldEndFlow = isDapp || isSend || isSwapTransaction;
+  const shouldEndFlow = getShouldEndFlow(isDapp, isSend, isSwapTransaction);
 
   Logger.log(
     LOG_PREFIX,
@@ -196,7 +173,6 @@ export async function publishHook(request: Request) {
   );
 
   try {
-    Logger.log(LOG_PREFIX, 'Fetching fees', transaction, chainId);
     const feesResponse = await smartTransactionsController.getFees(
       { ...transaction, chainId },
       undefined,
