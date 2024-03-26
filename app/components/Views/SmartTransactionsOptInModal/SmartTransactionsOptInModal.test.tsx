@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
@@ -138,7 +139,8 @@ describe('SmartTransactionsOptInModal', () => {
   });
 
   it("should navigate to What's New modal if required", async () => {
-    shouldShowWhatsNewModal.mockImplementation(() => true);
+    // @ts-ignore
+    shouldShowWhatsNewModal.mockImplementation(async () => true);
 
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
@@ -155,7 +157,8 @@ describe('SmartTransactionsOptInModal', () => {
     });
   });
   it("should not navigate to What's New modal if not required", async () => {
-    shouldShowWhatsNewModal.mockImplementation(() => false);
+    // @ts-ignore
+    shouldShowWhatsNewModal.mockImplementation(async () => false);
 
     const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
       state: initialState,
