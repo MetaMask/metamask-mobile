@@ -12,18 +12,14 @@ const getAvailableAVDs = (() => {
     // Parse the output and return an array of AVD names
     const avdNames = outputList.trim().split("\n");
 
-    // Check if the first AVD name is valid
-    if (!avdNames[0].includes("Storing crashdata")) {
-      return avdNames;
-    } else {
-      // Log a message and skip the invalid AVD name
-      console.log(`Skipping emulator with AVD name '${avdNames[0]}' due to error.`);
-      return avdNames.slice(1);
-    }
+    // return avdNames
+    return avdNames;
   } catch (error) {
-    // Handle errors
-    console.error('Error:', error.message);
-    process.exit(1);
+    console.error(
+      "Revisit the command to get the error list. It seems incorrect:",
+      error.message,
+    );
+    return [];
   }
 })();
 
