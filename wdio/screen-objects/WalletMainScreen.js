@@ -150,10 +150,7 @@ class WalletMainScreen {
   }
 
   async isVisible() {
-    // Provide longer timer since login may take longer on warm start load
-    const walletScreenContainer = await this.WalletScreenContainer;
-    await walletScreenContainer.waitForDisplayed({timeout: 200000})
-    expect(walletScreenContainer).toBeDisplayed();
+    expect(this.WalletScreenContainer).toBeDisplayed();
   }
 
   async isNetworkNameCorrect(network) {
