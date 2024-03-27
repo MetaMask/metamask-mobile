@@ -22,3 +22,19 @@ echo "" > ios/release.xcconfig
 echo "6. Init git submodules"
 echo "This may take a while..."
 git submodule update --init
+
+if ! [ -n "${CI+isset}" ] ; then
+  echo "7. CI not detected, copying env variables..."
+  if [ ! -f .js.env ]; then
+      echo "Creating .js.env..."
+      cp .js.env.example .js.env
+  fi
+  if [ ! -f .android.env ]; then
+      echo "Creating .android.env..."
+      cp .android.env.example .android.env
+  fi
+  if [ ! -f .ios.env ]; then
+      echo "Creating .ios.env"
+      cp .ios.env.example .ios.env
+  fi
+fi

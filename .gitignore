@@ -108,7 +108,7 @@ e2e/reports
 # ppom
 ppom/node_modules
 ppom/dist
-
+ppom/package-lock.json
 
 # ccache
 ccache

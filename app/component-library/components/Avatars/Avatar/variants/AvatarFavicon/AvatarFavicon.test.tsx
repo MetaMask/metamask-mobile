@@ -45,6 +45,7 @@ describe('AvatarFavicon', () => {
         imageSource={SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE}
       />,
     );
+
     expect(wrapper).toMatchSnapshot();
   });
 
@@ -76,7 +77,7 @@ describe('AvatarFavicon', () => {
     const currentImageComponent = wrapper.findWhere(
       (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
     );
-    expect(currentImageComponent.exists()).toBe(false);
+    expect(currentImageComponent.exists()).toBe(true);
     expect(wrapper).toMatchSnapshot();
   });
 });

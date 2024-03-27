@@ -73,6 +73,7 @@ export const selectLegacyNetwork = createSelector(
   (networkControllerState: NetworkState) => {
     const { networkId, selectedNetworkClientId, networksMetadata } =
       networkControllerState;
+
     return networksMetadata?.[selectedNetworkClientId].status !==
       NetworkStatus.Available
       ? 'loading'
