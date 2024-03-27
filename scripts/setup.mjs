@@ -33,18 +33,20 @@ const copyEnvVarsTask = {
   task: async (_, task) => {
     const isCI = process.env.CI;
     if (isCI) {
-      task.skip('CI detected. skipping')
+      task.skip('CI detected')
     } else {
       const envFiles = [
         '.js.env',
         '.ios.env',
         '.android.env'];
       envFiles.forEach((envFileName) => {
-        if (!fs.existsSync(envFileName)) {
-          fs.cp(`${envFileName}.example`, envFileName, (err) => {
-            throw new Error(err)
-          });
-        };
+        try {
+          fs.copyFileSync(`${envFileName}.example`, envFileName, fs.constants.COPYFILE_EXCL);
+        } catch (err) {
+          // Ignore if file already exists
+          return;
+
+        }
       })
     }
   }
@@ -147,7 +149,8 @@ const patchModulesTask = {
     {
       title: 'Create xcconfig files',
       task: async () => {
-        await $`echo "" > ios/debug.xcconfig && echo "" > ios/release.xcconfig`;
+        fs.writeFileSync('ios/debug.xcconfig', '');
+        fs.writeFileSync('ios/release.xcconfig', '');
       }
     },
     {
