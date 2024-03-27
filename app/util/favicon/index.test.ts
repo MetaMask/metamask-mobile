@@ -22,6 +22,7 @@ jest.mock('../../store', () => {
           ],
         },
       })),
+      dispatch: jest.fn(),
     },
   };
 });

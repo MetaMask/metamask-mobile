@@ -5,7 +5,6 @@ import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
-import { sha256 } from 'ethereumjs-util';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -78,6 +77,13 @@ jest.mock('../../core/NotificationManager', () => ({
   gotIncomingTransaction: jest.fn(),
   requestPushNotificationsPermission: jest.fn(),
   showSimpleNotification: jest.fn(),
+}));
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(),
+    dispatch: jest.fn(),
+  },
 }));
 
 jest.mock('../../core/NotificationManager');

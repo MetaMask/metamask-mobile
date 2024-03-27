@@ -19,6 +19,17 @@ jest.mock('../../../util/Logger');
 jest.mock('../SDKConnect');
 jest.mock('../utils/DevLogger');
 jest.mock('../utils/wait.util');
+jest.mock('../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      sdk: {
+        connections: {},
+        approvedHosts: {},
+      },
+    })),
+    dispatch: jest.fn(),
+  },
+}));
 
 describe('asyncInit', () => {
   let mockInstance = {} as unknown as SDKConnect;
