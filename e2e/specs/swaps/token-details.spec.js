@@ -6,7 +6,7 @@ import {
   importWalletWithRecoveryPhrase,
   switchToSepoliaNetwork,
 } from '../../viewHelper';
-import Networks from '../../resources/networks.json';
+import { CustomNetworks } from '../../resources/networks.e2e';
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
@@ -32,7 +32,7 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
 
   it('should not display the chart when using Sepolia test network', async () => {
     await switchToSepoliaNetwork();
-    await WalletView.tapOnToken(Networks.Sepolia.providerConfig.ticker);
+    await WalletView.tapOnToken(CustomNetworks.Sepolia.providerConfig.ticker);
     await TokenOverview.isVisible();
     await TokenOverview.ChartNotVisible();
     await TokenOverview.TokenQuoteIsNotZero();

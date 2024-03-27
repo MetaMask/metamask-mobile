@@ -19,6 +19,7 @@ import Root from './app/components/Views/Root';
 import { name } from './app.json';
 
 // List of warnings that we're ignoring
+
 LogBox.ignoreLogs([
   '{}',
   // Uncomment the below lines (21 and 22) to run browser-tests.spec.js in debug mode
