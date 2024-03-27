@@ -10,11 +10,11 @@ import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import {
   getBlockaidMetricsParams,
   isBlockaidSupportedOnCurrentChain,
-  withBlockaidMetricsParams,
+  getBlockaidTransactionMetricsParams,
 } from '.';
 
 describe('Blockaid util', () => {
-  describe('withBlockaidMetricsParams', () => {
+  describe('getBlockaidTransactionMetricsParams', () => {
     beforeEach(() => {
       jest
         .spyOn(NetworkControllerMock, 'selectChainId')
@@ -41,7 +41,7 @@ describe('Blockaid util', () => {
           },
         },
       };
-      const result = withBlockaidMetricsParams(transaction);
+      const result = getBlockaidTransactionMetricsParams(transaction);
       expect(result).toStrictEqual({});
     });
 
@@ -62,7 +62,7 @@ describe('Blockaid util', () => {
         },
       };
 
-      const result = withBlockaidMetricsParams(transaction);
+      const result = getBlockaidTransactionMetricsParams(transaction);
       expect(result).toEqual({
         ui_customizations: ['flagged_as_malicious'],
         security_alert_response: ResultType.Malicious,
