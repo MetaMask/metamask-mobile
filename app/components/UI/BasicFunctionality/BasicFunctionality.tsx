@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 
 export default function BasicFunctionalityComponent({
   handleSwitchToggle,
-}: BasicFunctionalityComponentProps) {
+}: Readonly<BasicFunctionalityComponentProps>) {
   const theme = useTheme();
   const { colors } = theme;
   const isEnabled = useSelector(

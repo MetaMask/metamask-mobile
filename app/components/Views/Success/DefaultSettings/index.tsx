@@ -56,18 +56,27 @@ const DefaultSettings = () => {
         onPress={() => navigation.goBack()}
         style={styles.backButton}
       >
-        <Icon name={IconName.ArrowLeft} size={IconSize.Lg} color={'black'} />
+        <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
       </TouchableOpacity>
     ),
     [navigation],
+  );
+  const renderTitle = useCallback(
+    () => (
+      <Text variant={TextVariant.HeadingMD}>
+        {strings('onboarding_success.default_settings')}
+      </Text>
+    ),
+    [],
   );
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerLeft: renderBackButton,
-      headerTitle: strings('onboarding_success.default_settings'),
+      headerTitle: renderTitle,
     });
-  }, [navigation, renderBackButton]);
+  }, [navigation, renderBackButton, renderTitle]);
+
   const handleSwitchToggle = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,

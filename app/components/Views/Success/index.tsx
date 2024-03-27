@@ -4,6 +4,7 @@ import {
   StyleSheet,
   Linking,
   Keyboard,
+  TouchableOpacity,
   Text as RNText,
 } from 'react-native';
 import Button from '../../../component-library/components/Buttons/Button';
@@ -76,17 +77,17 @@ const styles = StyleSheet.create({
     minHeight: 50,
   },
   iconWrapper: {
-    marginRight: 8,
-    justifyContent: 'center',
+    marginRight: 6,
+  },
+  linkWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   footerText: {
     fontSize: 12,
     marginTop: 10,
     lineHeight: 22,
     fontWeight: '400',
-  },
-  manageDefaultSettings: {
-    paddingTop: 10,
   },
 });
 
@@ -228,10 +229,9 @@ const OnboardingSuccess = ({
 
   const renderFooter = () => (
     <View style={styles.footer}>
-      <Text
-        color={TextColor.Info}
+      <TouchableOpacity
+        style={styles.linkWrapper}
         onPress={goToDefaultSettings}
-        style={styles.manageDefaultSettings}
       >
         <View style={styles.iconWrapper}>
           <Icon
@@ -240,8 +240,10 @@ const OnboardingSuccess = ({
             color={IconColor.Info}
           />
         </View>
-        {strings('onboarding_success.manage_default_settings')}
-      </Text>
+        <Text color={TextColor.Info}>
+          {strings('onboarding_success.manage_default_settings')}
+        </Text>
+      </TouchableOpacity>
       <Text style={styles.footerText}>
         {strings('onboarding_success.default_settings_footer')}
       </Text>

@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { CommonActions, NavigationContainer } from '@react-navigation/native';
+import PropTypes from 'prop-types';
 import { Animated, Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
@@ -127,16 +128,26 @@ const Stack = createStackNavigator();
  * Create Wallet and Import from Secret Recovery Phrase
  */
 
-// eslint-disable-next-line react/prop-types
-const OnboardingSuccessComponent = ({ navigation }) => (
+const OnboardingSuccessComponent = () => (
   <OnboardingSuccess
-    // eslint-disable-next-line react/prop-types
-    onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
+    onDone={() =>
+      NavigationService.navigation.reset({ routes: [{ name: 'HomeNav' }] })
+    }
   />
 );
 
-// eslint-disable-next-line react/prop-types
-const OnboardingSuccessFlow = ({ route }) => (
+const OnboardingSuccessComponentNoSRP = () => (
+  <OnboardingSuccess
+    noSRP
+    onDone={() =>
+      NavigationService.navigation.reset({
+        routes: [{ name: 'HomeNav' }],
+      })
+    }
+  />
+);
+
+const OnboardingSuccessFlow = () => (
   <Stack.Navigator
     name={Routes.ONBOARDING.SUCCESS_FLOW}
     initialRouteName={Routes.ONBOARDING.SUCCESS}
@@ -154,8 +165,7 @@ const OnboardingSuccessFlow = ({ route }) => (
   </Stack.Navigator>
 );
 
-// eslint-disable-next-line react/prop-types
-const OnboardingNav = ({ navigation }) => (
+const OnboardingNav = () => (
   <Stack.Navigator initialRouteName="OnboardingCarousel">
     <Stack.Screen
       name="Onboarding"
@@ -189,13 +199,7 @@ const OnboardingNav = ({ navigation }) => (
     />
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS}
-      component={() => (
-        <OnboardingSuccess
-          noSRP
-          // eslint-disable-next-line react/prop-types
-          onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
-        />
-      )} // Used in SRP flow
+      component={OnboardingSuccessComponentNoSRP} // Used in SRP flow
       options={OnboardingSuccess.navigationOptions}
     />
     <Stack.Screen
@@ -477,7 +481,6 @@ const App = ({ userLoggedIn }) => {
     async function checkExisting() {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
-      // const route = 'OnboardingSuccessFlow';
       const route = !existingUser
         ? Routes.ONBOARDING.ROOT_NAV
         : Routes.ONBOARDING.LOGIN;

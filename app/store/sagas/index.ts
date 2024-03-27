@@ -136,15 +136,11 @@ export function* basicFunctionalityToggle() {
           });
         }
 
-        if (!basicFunctionalityEnabled) {
-          const disallowed = blockList.find((api) => url.includes(api));
-          if (disallowed) {
-            Promise.reject(new Error(`Disallowed URL: ${url}`)).catch(
-              (error) => {
-                console.error(error);
-              },
-            );
-          }
+        const disallowed = blockList.find((api) => url.includes(api));
+        if (disallowed) {
+          Promise.reject(new Error(`Disallowed URL: ${url}`)).catch((error) => {
+            console.error(error);
+          });
         }
         return originalFetch.apply(this, [url]);
       };
