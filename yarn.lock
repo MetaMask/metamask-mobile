@@ -24225,9 +24225,9 @@ react-native-webview-invoke@^0.6.2:
   resolved "https://registry.yarnpkg.com/react-native-webview-invoke/-/react-native-webview-invoke-0.6.2.tgz#75cc27ef98ea1cbc9386269347d3aafe90d33aa3"
   integrity sha512-PCzP7Zl3XwHU10JYS8nR0gwuR8XiOO0MhC8y9ZuPPI+HeISn95GvNYhOXxeLgfbdbUcpNWh1HqxPDySlfCIqxg==
 
-"react-native-webview@https://github.com/MetaMask/react-native-webview-mm#53bed05617f0fa46712e3b02cc041872dfc8a601":
+"react-native-webview@https://github.com/MetaMask/react-native-webview-mm#683473b8ceaa3f5e6ebe22c0f3889d3e4fb51775":
   version "13.6.3"
-  resolved "https://github.com/MetaMask/react-native-webview-mm#53bed05617f0fa46712e3b02cc041872dfc8a601"
+  resolved "https://github.com/MetaMask/react-native-webview-mm#683473b8ceaa3f5e6ebe22c0f3889d3e4fb51775"
   dependencies:
     escape-string-regexp "2.0.0"
     invariant "2.2.4"
