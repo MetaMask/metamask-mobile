@@ -231,16 +231,17 @@ const mapStateToProps = (state) => {
     state.engine.backgroundState.SmartTransactionsController
       .smartTransactionsState.smartTransactions[chainId];
 
-  const filteredSmartTransactions = smartTransactions
-    ?.filter((stx) => stx.status !== 'success' && stx.status)
-    .map((stx) => ({
-      ...stx,
-      id: stx.uuid,
-      transactionType: TransactionType.smart,
-      status: stx.status?.startsWith('cancelled')
-        ? SmartTransactionStatuses.cancelled
-        : stx.status,
-    }));
+  const filteredSmartTransactions =
+    smartTransactions
+      ?.filter((stx) => stx.status !== 'success' && stx.status)
+      .map((stx) => ({
+        ...stx,
+        id: stx.uuid,
+        transactionType: TransactionType.smart,
+        status: stx.status?.startsWith('cancelled')
+          ? SmartTransactionStatuses.cancelled
+          : stx.status,
+      })) ?? [];
 
   return {
     conversionRate: selectConversionRate(state),
