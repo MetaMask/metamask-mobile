@@ -27,16 +27,17 @@ export const restoreQRKeyring = async (qrKeyring) => {
  * Restores the Ledger keyring if it exists.
  */
 export const restoreLedgerKeyring = async (keyring) => {
-  const { KeyringController } = Engine.context;
+  const { KeyringController, PreferencesController } = Engine.context;
 
   if (keyring) {
     try {
       const serializedLedgerKeyring = await keyring.serialize();
-      //This will regenerate a new ledger keyring after `createNewVaultAndRestore` is called
       (await getLedgerKeyring()).deserialize(serializedLedgerKeyring);
 
       await KeyringController.persistAllKeyrings();
-      KeyringController.updateIdentities(await KeyringController.getAccounts());
+      PreferencesController.updateIdentities(
+        await KeyringController.getAccounts(),
+      );
     } catch (e) {
       Logger.error(
         e,
