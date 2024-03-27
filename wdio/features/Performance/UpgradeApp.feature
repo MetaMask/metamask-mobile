@@ -19,8 +19,7 @@ Feature: Measure the app launch times for warm starts
     And the splash animation completes
     And I fill my password in the Login screen
     And I log into my wallet
-    Then I am on the wallet view
-    When I tap on the Settings tab option
+    And I tap on the Settings tab option
     And I scroll up
     And In settings I tap on "About MetaMask"
     Then version "NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER" is displayed for app upgrade step
