@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
@@ -9,7 +9,10 @@ import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import {
@@ -27,6 +30,7 @@ import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
 import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
 import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
+import { getNetworkNameFromProviderConfig } from '../../../util/networks';
 const AddAsset = () => {
   const navigation = useNavigation();
   const { assetType, collectibleContract } = useParams<AddAssetParams>();
@@ -36,11 +40,17 @@ const AddAsset = () => {
     theme: { colors },
   } = useStyles(styleSheet, {});
 
+  const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
 
   const isTokenDetectionSupported =
     isTokenDetectionSupportedForNetwork(chainId);
+
+  const networkName = useMemo(
+    () => getNetworkNameFromProviderConfig(providerConfig),
+    [providerConfig],
+  );
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -133,6 +143,9 @@ const AddAsset = () => {
           )}
           <AddCustomToken
             chainId={chainId}
+            networkName={networkName}
+            ticker={providerConfig.ticker}
+            type={providerConfig.type}
             navigation={navigation}
             tabLabel={strings('add_asset.custom_token')}
             isTokenDetectionSupported={isTokenDetectionSupported}
