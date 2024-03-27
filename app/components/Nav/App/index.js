@@ -86,7 +86,6 @@ import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
-import BlockaidIndicator from '../../Views/Settings/SecuritySettings/BlockaidIndicator';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
@@ -628,10 +627,6 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
         component={ReturnToAppModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.BLOCKAID_INDICATOR}
-        component={BlockaidIndicator}
       />
       <Stack.Screen
         name={Routes.SHEET.AMBIGUOUS_ADDRESS}
