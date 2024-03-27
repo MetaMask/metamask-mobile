@@ -1,14 +1,15 @@
 import AppConstants from '../../core/AppConstants';
 
-const initialState = {
+export const initialState = {
   searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
   primaryCurrency: 'ETH',
   lockTime: -1, // Disabled by default
   useBlockieIcon: true,
   hideZeroBalanceTokens: false,
+  basicServicesEnabled: true,
 };
 
-const settingsReducer = (state = initialState, action) => {
+export const settingsReducer = (state = initialState, action) => {
   switch (action.type) {
     case 'SET_SEARCH_ENGINE':
       return {
@@ -44,6 +45,11 @@ const settingsReducer = (state = initialState, action) => {
       return {
         ...state,
         primaryCurrency: action.primaryCurrency,
+      };
+    case 'TOGGLE_BASIC_SERVICES':
+      return {
+        ...state,
+        basicServicesEnabled: action.basicServicesEnabled,
       };
 
     default:
