@@ -382,7 +382,8 @@ class Engine {
         useTokenDetection:
           initialState?.PreferencesController?.useTokenDetection ?? true,
         // TODO: Use previous value when preferences UI is available
-        useNftDetection: false,
+        useNftDetection:
+          initialState?.PreferencesController?.useTokenDetection ?? true,
         displayNftMedia: true,
         securityAlertsEnabled: true,
       },

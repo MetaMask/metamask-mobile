@@ -18,10 +18,10 @@
     }
   },
   "AccountsController": {
-     "internalAccounts": {
-       "accounts": {},
-       "selectedAccount": ""
-     }
+    "internalAccounts": {
+      "accounts": {},
+      "selectedAccount": ""
+    }
   },
   "AddressBookController": {
     "addressBook": {}
@@ -70,7 +70,7 @@
       "ticker": "ETH"
     },
     "networksMetadata": {
-      "mainnet":{  "EIPS": {},"status": "unknown"}
+      "mainnet": { "EIPS": {}, "status": "unknown" }
     },
     "networkId": null,
     "selectedNetworkClientId": "mainnet"
@@ -88,7 +88,7 @@
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,
-    "useNftDetection": false,
+    "useNftDetection": true,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
     "securityAlertsEnabled": true,
