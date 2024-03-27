@@ -10,14 +10,3 @@ exports[`Scan render matches latest snapshot 1`] = `
   }
 />
 `;
-
-exports[`Scan should render correctly 1`] = `
-<View
-  style={
-    Object {
-      "alignItems": "center",
-      "flex": 1,
-    }
-  }
-/>
-`;
