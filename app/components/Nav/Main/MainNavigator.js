@@ -18,6 +18,7 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
+import GasDetails from '../../Views/Notifications/Details/GasDetails';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
@@ -561,6 +562,26 @@ const NotificationsModeView = (props) => (
       component={NotificationsSettings}
       options={NotificationsSettings.navigationOptions}
     />
+    <Stack.Screen
+      name="ContactForm"
+      component={ContactForm}
+      options={ContactForm.navigationOptions}
+    />
+    <Stack.Screen
+      name="GasDetails"
+      component={GasDetails}
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: {
+          backgroundColor: importedColors.transparent,
+        },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+    />
   </Stack.Navigator>
 );
 
@@ -659,6 +680,7 @@ const MainNavigator = () => (
       name={Routes.DEPRECATED_NETWORK_DETAILS}
       component={DeprecatedNetworkDetails}
       options={{
+        cardOverlayEnabled: true,
         //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
         cardStyle: { backgroundColor: importedColors.transparent },
         cardStyleInterpolator: () => ({
