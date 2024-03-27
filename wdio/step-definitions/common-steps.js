@@ -141,6 +141,8 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
 });
 
 Then(/^"([^"]*)?" is displayed for app upgrade step/, async (text) => {
+  console.log("CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER", process.env.CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER);
+  console.log('NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER', process.env.NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER)
   const appUpgradeText = process.env[text]
   const timeout = 1000;
   await driver.pause(timeout);
