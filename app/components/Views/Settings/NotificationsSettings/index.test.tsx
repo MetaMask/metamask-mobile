@@ -12,7 +12,7 @@ const mockStore = configureMockStore();
 
 const initialState = {
   notificationsSettings: {
-    securityAlertsEnabled: true, //TODO: change INITIAL STATE
+    isEnabled: true,
   },
   engine: {
     backgroundState: initialBackgroundState,

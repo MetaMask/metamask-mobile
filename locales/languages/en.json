@@ -1143,6 +1143,7 @@
     "confirm": "Confirm"
   },
   "transaction": {
+    "transaction_id": "Transaction ID",
     "alert": "ALERT",
     "amount": "Amount",
     "next": "Next",

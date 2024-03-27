@@ -1,28 +1,43 @@
 import React, { FC, useEffect, useState } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
 import { MMKV } from 'react-native-mmkv';
+import { useDispatch, useSelector } from 'react-redux';
+import { camelCase } from 'lodash';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
+
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { UpdatePPOMInitializationStatus } from '../../../../actions/experimental';
+import { useAccounts } from '../../../../components/hooks/useAccounts';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { useDispatch, useSelector } from 'react-redux';
+
+import { UpdatePPOMInitializationStatus } from '../../../../actions/experimental';
+
 import { Props } from './NotificationsSettings.types';
 import createStyles from './NotificationsSettings.styles';
 import NotificationOptionToggle from './NotificationOptionToggle';
-import notificationsOpts from './notificationsOpts';
+import notificationsRows from './notificationsRows';
 import {
   NotificationsToggleTypes,
   NotificationsViewSelectorsIDs,
 } from './NotificationsSettings.constants';
-import { useAccounts } from '../../../../components/hooks/useAccounts';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
-const storage = new MMKV(); // id: mmkv.default
+import { updateNotificationStatus } from '../../../../actions/notification';
 
+const storage = new MMKV();
+
+interface NotificationsSettingsStoreKey {
+  isEnabled: boolean;
+  notificationsOpts: {
+    [key: string]: boolean;
+  };
+  accounts: {
+    [key: string]: boolean;
+  };
+}
 interface SessionHeaderProps {
   title: string;
   description: string;
@@ -43,25 +58,38 @@ const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
     </View>
   </>
 );
-/**
- * Main view for app Notifications Settings
- */
+
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const dispatch = useDispatch();
+  const notificationsSettingsCurrentState = useSelector(
+    (state: any) => state.notification.notificationsSettings,
+  );
   const { accounts } = useAccounts();
+
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
 
-  const [notificationsEnabled, setNotificationsEnabled] = useState<
-    boolean | undefined
-  >(false);
+  const [notificationsSettings, setNotificationsSettings] =
+    useState<NotificationsSettingsStoreKey>(notificationsSettingsCurrentState);
 
   const toggleNotificationsEnabled = () => {
-    setNotificationsEnabled(!notificationsEnabled);
-    storage.set('is-notifications-enabled', !notificationsEnabled);
+    setNotificationsSettings({
+      isEnabled: !notificationsSettings?.isEnabled,
+      notificationsOpts: {
+        assetsReceived: true,
+        assetsSent: true,
+        deFi: true,
+        productAnnouncements: true,
+        snaps: true,
+      },
+      accounts: accounts.reduce((acc: { [key: string]: boolean }, account) => {
+        acc[account.address] = true;
+        return acc;
+      }, {}),
+    });
   };
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
@@ -72,8 +100,15 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   useEffect(() => {
     dispatch(UpdatePPOMInitializationStatus());
-    setNotificationsEnabled(storage.getBoolean('is-notifications-enabled'));
-  }, [dispatch, notificationsEnabled, navigation]);
+  }, [dispatch, navigation]);
+
+  useEffect(() => {
+    dispatch(updateNotificationStatus(notificationsSettings));
+    storage.set(
+      'notifications-settings',
+      JSON.stringify(notificationsSettings),
+    );
+  }, [dispatch, notificationsSettings]);
 
   useEffect(
     () => {
@@ -98,7 +133,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
-          value={notificationsEnabled}
+          value={notificationsSettings?.isEnabled}
           onValueChange={toggleNotificationsEnabled}
           trackColor={{
             true: colors.primary.default,
@@ -120,7 +155,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <MainNotificationSettings />
-      {notificationsEnabled && (
+      {notificationsSettings?.isEnabled && (
         <>
           <SessionHeader
             title={strings(
@@ -131,15 +166,29 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             )}
             styles={styles}
           />
-          {notificationsOpts.map((opt) => (
+          {notificationsRows.map((opt) => (
             <NotificationOptionToggle
               type={NotificationsToggleTypes.ACTIONS}
               key={opt.title}
               icon={opt.icon}
               title={opt.title}
               description={opt.description}
-              value={opt.value}
-              // onOptionUpdated={}
+              value={
+                notificationsSettings.notificationsOpts[camelCase(opt.title)]
+              }
+              onOptionUpdated={(value) => {
+                setNotificationsSettings({
+                  ...notificationsSettings,
+                  notificationsOpts: {
+                    ...notificationsSettings.notificationsOpts,
+                    [camelCase(opt.title)]: value,
+                  },
+                });
+                storage.set(
+                  'notifications-settings',
+                  JSON.stringify(notificationsSettings),
+                );
+              }}
               testId={NotificationsViewSelectorsIDs[opt.title]}
               disabled={opt.disabled}
             />
@@ -160,8 +209,20 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               key={account.address}
               title={account.name}
               description={account.address}
-              value={true}
-              // onOptionUpdated={}
+              value={notificationsSettings.accounts[account.address]}
+              onOptionUpdated={(value) => {
+                setNotificationsSettings({
+                  ...notificationsSettings,
+                  accounts: {
+                    ...notificationsSettings.accounts,
+                    [account.address]: value,
+                  },
+                });
+                storage.set(
+                  'notifications-settings',
+                  JSON.stringify(notificationsSettings),
+                );
+              }}
             />
           ))}
         </>
