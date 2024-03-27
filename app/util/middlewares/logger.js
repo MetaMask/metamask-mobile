@@ -1,5 +1,5 @@
-import Logger from './Logger';
-import trackErrorAsAnalytics from './metrics/TrackError/trackErrorAsAnalytics';
+import Logger from '../Logger';
+import trackErrorAsAnalytics from '../metrics/TrackError/trackErrorAsAnalytics';
 
 /**
  * List of rpc errors caused by the user rejecting a certain action.
@@ -14,29 +14,6 @@ import trackErrorAsAnalytics from './metrics/TrackError/trackErrorAsAnalytics';
 const USER_REJECTED_ERRORS = ['user rejected', 'user denied', 'user cancelled'];
 
 const USER_REJECTED_ERROR_CODE = 4001;
-
-/**
- * Returns a middleware that appends the DApp origin to request
- * @param {{ origin: string }} opts - The middleware options
- * @returns {Function}
- */
-export function createOriginMiddleware(opts) {
-  return function originMiddleware(
-    /** @type {any} */ req,
-    /** @type {any} */ _,
-    /** @type {Function} */ next,
-  ) {
-    req.origin = opts.origin;
-
-    // web3-provider-engine compatibility
-    // TODO:provider delete this after web3-provider-engine deprecation
-    if (!req.params) {
-      req.params = [];
-    }
-
-    next();
-  };
-}
 
 /**
  * Checks if the error code or message contains a user rejected error
@@ -67,7 +44,7 @@ function containsUserRejectedError(errorMessage, errorCode) {
  * @param {{ origin: string }} opts - The middleware options
  * @returns {Function}
  */
-export function createLoggerMiddleware(opts) {
+export default function createLoggerMiddleware(opts) {
   return function loggerMiddleware(
     /** @type {any} */ req,
     /** @type {any} */ res,
