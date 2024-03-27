@@ -32,16 +32,10 @@ export class ENSCache {
 const ENS_SUPPORTED_CHAIN_IDS = [ChainId[NetworkType.mainnet]];
 
 /**
- * Network id was deprecated on controller util on version 5.0.0
  * We still need it to support the legacy ENS library that we are using.
  */
-const legacyNetworkId = {
+const ENS_SUPPORTED_NETWORK_IDS = {
   [InfuraNetworkType.mainnet]: '1',
-  [InfuraNetworkType.goerli]: '5',
-  [InfuraNetworkType.sepolia]: '11155111',
-  [InfuraNetworkType['linea-goerli']]: '59140',
-  [InfuraNetworkType['linea-sepolia']]: '59141',
-  [InfuraNetworkType['linea-mainnet']]: '59144',
 };
 
 /**
@@ -49,7 +43,8 @@ const legacyNetworkId = {
  * legacy ENS library we are using.
  */
 const CHAIN_ID_TO_NETWORK_ID = {
-  [ChainId[NetworkType.mainnet]]: legacyNetworkId[NetworkType.mainnet],
+  [ChainId[NetworkType.mainnet]]:
+    ENS_SUPPORTED_NETWORK_IDS[NetworkType.mainnet],
 };
 
 /**
