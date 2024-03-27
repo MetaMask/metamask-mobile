@@ -1,5 +1,54 @@
+import fs from 'fs';
 import { $ } from 'execa';
 import { Listr } from 'listr2';
+
+/*
+ * FIXME: We shouldn't be making system wide installs without user consent.
+ * Should make it optional on non-CI environments
+*/
+const detoxGlobalInstallTask = {
+  title: 'Install Detox utils',
+  task: (_, task) => task.newListr([
+    {
+      title: 'Install detox-cli globally',
+      task: async () => {
+        await $`yarn global add detox-cli`;
+      }
+    },
+    {
+      title: 'Install applesimutils globally',
+      task: async () => {
+        await $`brew tap wix/brew`;
+        await $`brew install applesimutils`;
+      }
+    }
+  ])
+};
+
+/*
+ * TODO: parse example env file and add missing variables to existing .js.env
+ */
+const copyEnvVarsTask = {
+  title: 'Copy env vars',
+  task: async (_, task) => {
+    const isCI = process.env.CI;
+    if (isCI) {
+      task.skip('CI detected. skipping')
+    } else {
+      const envFiles = [
+        '.js.env',
+        '.ios.env',
+        '.android.env'];
+      envFiles.forEach((envFileName) => {
+        if (!fs.existsSync(envFileName)) {
+          fs.cp(`${envFileName}.example`, envFileName, (err) => {
+            throw new Error(err)
+          });
+        };
+      })
+    }
+  }
+};
 
 const ppomBuildTask = {
   title: 'Build PPOM',
@@ -40,7 +89,7 @@ const ppomBuildTask = {
 }
 
 const mainSetupTask = {
-  title: 'Setup',
+  title: 'Dependencies setup',
   task: (_, task) => task.newListr([
     {
       title: 'Install iOS Pods',
@@ -58,6 +107,8 @@ const mainSetupTask = {
         await $`yarn allow-scripts`;
       },
     },
+    copyEnvVarsTask,
+    detoxGlobalInstallTask
   ],
     {
       exitOnError: false,
@@ -66,10 +117,8 @@ const mainSetupTask = {
     })
 };
 
-;
-
-const postInstallTask = {
-  title: 'Run postinstall',
+const patchModulesTask = {
+  title: 'Patch modules',
   task: (_, task) => task.newListr([
     {
       title: 'Build Inpage Bridge',
@@ -116,7 +165,7 @@ const postInstallTask = {
 const tasks = new Listr([
   mainSetupTask,
   ppomBuildTask,
-  postInstallTask,
+  patchModulesTask
 ],
   {
     exitOnError: true,
