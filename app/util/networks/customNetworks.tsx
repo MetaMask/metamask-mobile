@@ -29,6 +29,18 @@ const PopularList = [
     },
   },
   {
+    chainId: toHex('8453'),
+    nickname: 'Base',
+    rpcUrl: 'https://mainnet.base.org',
+    ticker: 'ETH',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://basescan.org/',
+      imageUrl: 'BASE',
+      imageSource: require('../../images/base.png'),
+    },
+  },
+  {
     chainId: toHex('56'),
     nickname: 'BNB Smart Chain',
     rpcUrl: 'https://bsc-dataseed1.binance.org',
