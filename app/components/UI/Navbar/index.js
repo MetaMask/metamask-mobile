@@ -50,6 +50,7 @@ import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/SendLinkView.selectors';
+import { withBlockaidMetricsParams } from '../../../util/blockaid';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event, params);
@@ -512,6 +513,7 @@ export function getSendFlowTitle(
   route,
   themeColors,
   resetTransaction,
+  transaction,
 ) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
@@ -527,9 +529,13 @@ export function getSendFlowTitle(
   });
   const rightAction = () => {
     const providerType = route?.params?.providerType ?? '';
+    const additionalTransactionMetricsParams = transaction
+      ? withBlockaidMetricsParams(transaction)
+      : {};
     trackEvent(MetaMetricsEvents.SEND_FLOW_CANCEL, {
       view: title.split('.')[1],
       network: providerType,
+      ...additionalTransactionMetricsParams,
     });
     resetTransaction();
     navigation.dangerouslyGetParent()?.pop();
