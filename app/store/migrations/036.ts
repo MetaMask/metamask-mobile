@@ -42,6 +42,15 @@ export default async function migrate(stateAsync: unknown) {
     );
     return state;
   }
+  if (!isObject(state.engine.backgroundState.PreferencesController)) {
+    captureException(
+      new Error(
+        `Migration 36: Invalid PreferencesController state: '${typeof state
+          .engine.backgroundState.PreferencesController}'`,
+      ),
+    );
+    return state;
+  }
   createDefaultAccountsController(state);
   await createInternalAccountsForAccountsController(state);
   createSelectedAccountForAccountsController(state);
