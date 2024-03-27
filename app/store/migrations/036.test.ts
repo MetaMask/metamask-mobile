@@ -94,6 +94,45 @@ function createMockState(
 
 describe('Migration #036', () => {
   describe('createDefaultAccountsController', () => {
+    beforeEach(() => {
+      mockedCaptureException.mockReset();
+    });
+    it('should throw if state.engine is not defined', async () => {
+      const newState = await migrate({});
+      expect(newState).toStrictEqual({});
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        `Migration 36: Invalid root engine state: 'undefined'`,
+      );
+    });
+    it('should throw if state.engine.backgroundState is not defined', async () => {
+      const oldState = {
+        engine: {
+          backgroundState: null,
+        },
+      };
+      const newState = await migrate(oldState);
+      expect(newState).toStrictEqual(oldState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        `Migration 36: Invalid root engine backgroundState: 'object'`,
+      );
+    });
+    it('should throw if state.engine.backgroundState.PreferencesController is not defined', async () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            PreferencesController: null,
+          },
+        },
+      };
+      const newState = await migrate(oldState);
+      expect(newState).toStrictEqual(oldState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        `Migration 36: Invalid PreferencesController state: 'object'`,
+      );
+    });
     it('creates default state for accounts controller', async () => {
       const oldState = createMockState({
         identities: {
