@@ -34,7 +34,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-
+import { GeneralViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/GeneralView.selectors';
 const diameter = 40;
 const spacing = 8;
 
@@ -289,7 +289,10 @@ class Settings extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <ScrollView style={styles.wrapper}>
+      <ScrollView
+        style={styles.wrapper}
+        testID={GeneralViewSelectorsIDs.GENERAL_SCREEN_SCROLL_VIEW}
+      >
         <View style={styles.inner}>
           <View style={[styles.setting, styles.firstSetting]}>
             <Text variant={TextVariant.BodyLGMedium}>
@@ -377,6 +380,9 @@ class Settings extends PureComponent {
                   thumbColor={themeTokens.brandColors.white['000']}
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
+                  testID={
+                    GeneralViewSelectorsIDs.HIDE_TOKENS_WITHOUT_BALANCE_TOGGLE
+                  }
                 />
               </View>
             </View>
