@@ -51,7 +51,7 @@ import TransactionReviewDetailsCard from '../TransactionReview/TransactionReview
 import AppConstants from '../../../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
-import { withBlockaidMetricsParams } from '../../../../../util/blockaid';
+import { getBlockaidTransactionMetricsParams } from '../../../../../util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
@@ -685,7 +685,7 @@ class ApproveTransactionReview extends PureComponent {
     const { transaction } = this.props;
     const analyticsParams = {
       ...this.getAnalyticsParams(),
-      ...withBlockaidMetricsParams(transaction),
+      ...getBlockaidTransactionMetricsParams(transaction),
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
@@ -1169,7 +1169,7 @@ class ApproveTransactionReview extends PureComponent {
       MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
       {
         ...this.getAnalyticsParams(),
-        ...withBlockaidMetricsParams(transaction),
+        ...getBlockaidTransactionMetricsParams(transaction),
       },
     );
   };
@@ -1186,7 +1186,7 @@ class ApproveTransactionReview extends PureComponent {
         MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
         {
           ...this.getAnalyticsParams(),
-          ...withBlockaidMetricsParams(this.props.transaction),
+          ...getBlockaidTransactionMetricsParams(this.props.transaction),
         },
       );
       return this.setState({ isReadyToApprove: true });

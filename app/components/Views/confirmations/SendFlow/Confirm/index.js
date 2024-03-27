@@ -107,7 +107,7 @@ import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlo
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { getLedgerKeyring } from '../../../../../core/Ledger/Ledger';
 import {
-  withBlockaidMetricsParams,
+  getBlockaidTransactionMetricsParams,
   isBlockaidFeatureEnabled,
 } from '../../../../../util/blockaid';
 import ppomUtil from '../../../../../lib/ppom/ppom-util';
@@ -841,7 +841,7 @@ class Confirm extends PureComponent {
                 assetType,
                 {
                   ...this.getAnalyticsParams(),
-                  ...withBlockaidMetricsParams(transaction),
+                  ...getBlockaidTransactionMetricsParams(transaction),
                 },
               ),
             type: 'signTransaction',
@@ -870,7 +870,7 @@ class Confirm extends PureComponent {
           MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           {
             ...this.getAnalyticsParams(),
-            ...withBlockaidMetricsParams(transaction),
+            ...getBlockaidTransactionMetricsParams(transaction),
           },
         );
         stopGasPolling();
@@ -1084,7 +1084,7 @@ class Confirm extends PureComponent {
     const { transaction } = this.props;
     const analyticsParams = {
       ...this.getAnalyticsParams(),
-      ...withBlockaidMetricsParams(transaction),
+      ...getBlockaidTransactionMetricsParams(transaction),
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
