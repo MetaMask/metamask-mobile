@@ -1425,7 +1425,11 @@
     "details": "Details",
     "amount": "Amount",
     "gas_limit": "Gas Limit (Units)",
+    "gas_used": "Gas Used (Units)",
     "gas_price": "Gas Price (GWEI)",
+    "base_fee": "Base Fee (GWEI)",
+    "priority_fee": "Priority Fee (GWEI)",
+    "max_fee": "Max Fee Per Gas",
     "total": "Total",
     "view_on": "VIEW ON",
     "view_on_etherscan": "View on Etherscan",
@@ -1843,7 +1847,10 @@
       "0": "All",
       "1": "Wallet",
       "2": "Web3"
-    }
+    },
+    "address_copied_to_clipboard": "Address copied to clipboard",
+    "transaction_id_copied_to_clipboard": "Transaction ID copied to clipboard"
+
   },
   "protect_your_wallet_modal": {
     "title": "Protect your wallet",
