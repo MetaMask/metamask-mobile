@@ -8,6 +8,7 @@ import {
 } from '../testIDs/Components/TabBar.testIds';
 import Gestures from '../../helpers/Gestures';
 import BrowserScreen from '../BrowserObject/BrowserScreen';
+import { element } from 'detox';
 
 class TabBarModal {
   get walletButton() {
@@ -56,7 +57,8 @@ class TabBarModal {
   }
 
   async tapSettingButton() {
-    await Gestures.waitAndTap(element(by.id(TAB_BAR_SETTING_BUTTON)));
+    const elem = (element(by.id(TAB_BAR_SETTING_BUTTON)));
+    await Gestures.waitAndTap(elem);
   }
 
   async tapActivityButton() {
