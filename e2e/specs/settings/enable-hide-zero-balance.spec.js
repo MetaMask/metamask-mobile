@@ -16,7 +16,6 @@ import GeneralView from '../../pages/Settings/GeneralView';
 import Matchers from '../../utils/Matchers';
 
 const TOKEN_NAME = 'XRPL';
-const TOKEN_NAME_ELEMENT = Matchers.getElementByText(TOKEN_NAME);
 describe(SmokeCore('enables hide tokens with zero balance'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
@@ -49,7 +48,9 @@ describe(SmokeCore('enables hide tokens with zero balance'), () => {
 
         await TabBarComponent.tapWallet();
 
-        await Assertions.checkIfNotVisible(TOKEN_NAME_ELEMENT);
+        await Assertions.checkIfNotVisible(
+          Matchers.getElementByText(TOKEN_NAME),
+        );
       },
     );
   });
