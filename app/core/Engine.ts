@@ -92,7 +92,6 @@ import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
   PPOMControllerEvents,
-  PPOMInitialisationStatusType,
   PPOMState,
 } from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -181,7 +180,6 @@ import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
 import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
-import { UpdatePPOMInitializationStatus } from '../actions/experimental';
 import {
   AccountsController,
   AccountsControllerActions,
@@ -1237,10 +1235,11 @@ class Engine {
             allowedEvents: ['NetworkController:stateChange'],
           }),
           onPreferencesChange: (listener) =>
-            preferencesController.subscribe(listener),
-          provider: networkController.getProviderAndBlockTracker().provider,
+            preferencesController.subscribe(listener as any),
+          provider: networkController.getProviderAndBlockTracker()
+            .provider as any,
           ppomProvider: {
-            PPOM,
+            PPOM: PPOM as any,
             ppomInit,
           },
           storageBackend: new RNFSStorageBackend('PPOMDB'),
@@ -1250,14 +1249,6 @@ class Engine {
           nativeCrypto: Crypto as any,
         });
         controllers.push(ppomController as any);
-        this.controllerMessenger.subscribe(
-          AppConstants.PPOM_INITIALISATION_STATE_CHANGE_EVENT,
-          (ppomInitializationStatus: PPOMInitialisationStatusType) => {
-            store.dispatch(
-              UpdatePPOMInitializationStatus(ppomInitializationStatus),
-            );
-          },
-        );
       } catch (e) {
         Logger.log(`Error initializing PPOMController: ${e}`);
         return;
