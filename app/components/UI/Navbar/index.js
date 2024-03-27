@@ -1,6 +1,5 @@
 /* eslint-disable react/display-name */
 import React from 'react';
-import { MMKV } from 'react-native-mmkv';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
 import AccountRightButton from '../AccountRightButton';
@@ -892,9 +891,8 @@ export function getWalletNavbarOptions(
   onPressTitle,
   navigation,
   themeColors,
+  isNotificationEnabled,
 ) {
-  const storage = new MMKV();
-
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,
@@ -967,9 +965,6 @@ export function getWalletNavbarOptions(
     trackEvent(MetaMetricsEvents.WALLET_NOTIFICATIONS);
   }
 
-  // TODO: Fix the delay while changing notification status
-  const isNotificationEnabled = storage.getBoolean('is-notifications-enabled');
-
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -1001,6 +996,7 @@ export function getWalletNavbarOptions(
             testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
           />
         )}
+
         <ButtonIcon
           variant={ButtonIconVariants.Primary}
           onPress={openQRScanner}
