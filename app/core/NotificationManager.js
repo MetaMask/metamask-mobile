@@ -14,7 +14,7 @@ import {
 } from '../constants/storage';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
-import { selectChainId } from '../selectors/networkController';
+import { selectChainId, selectTicker } from '../selectors/networkController';
 import { store } from '../store';
 
 const constructTitleAndMessage = (data) => {
@@ -404,6 +404,7 @@ class NotificationManager {
     } = Engine.context;
     const { selectedAddress } = PreferencesController.state;
     const chainId = selectChainId(store.getState());
+    const ticker = selectTicker(store.getState());
 
     /// Find the incoming TX
     const { transactions } = TransactionController.state;
@@ -430,7 +431,7 @@ class NotificationManager {
             nonce: `${hexToBN(txs[0].transaction.nonce).toString()}`,
             amount: `${renderFromWei(hexToBN(txs[0].transaction.value))}`,
             id: txs[0]?.id,
-            assetType: strings('unit.eth'),
+            assetType: txs[0]?.transferInformation?.symbol || ticker,
           },
           autoHide: true,
           duration: 5000,
