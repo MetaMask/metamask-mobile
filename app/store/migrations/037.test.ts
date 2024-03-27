@@ -2,8 +2,6 @@ import { v4 as uuid } from 'uuid';
 import { EthMethod, InternalAccount } from '@metamask/keyring-api';
 import migrate, { sha256FromAddress, Identity } from './037';
 import { captureException } from '@sentry/react-native';
-import { back } from '@react-navigation/compat/lib/typescript/src/NavigationActions';
-import { PreferencesController } from '@metamask/preferences-controller';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
