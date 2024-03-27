@@ -541,10 +541,10 @@
   },
   "accounts": {
     "create_new_account": "Yeni hesap oluştur",
-    "qr_hardware": "QR donanımı",
     "import_account": "Bir hesabı içe aktar",
     "connect_hardware": "Donanım cüzdanı bağla",
     "imported": "İçe aktarıldı",
+    "qr_hardware": "QR donanımı",
     "remove_account_title": "Hesap kaldırma",
     "remove_account_message": "Bu hesabı gerçekten kaldırmak istiyor musunuz?",
     "no": "Hayır",
@@ -891,6 +891,7 @@
     "security_check_subheading": "Güvenlik kontrolleri",
     "symbol_required": "Sembol gerekli.",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon and Sepolia.",
     "security_alerts": "Güvenlik uyarıları",
     "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel olarak incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı aktivitelere karşı sizi uyarır. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır. Bu özelliği etkinleştirerek sağlayıcının kullanım koşullarını kabul etmiş olursunuz."
   },
@@ -2406,6 +2407,7 @@
       "title": "Güvenlik uyarıları ile güvende kalın",
       "description_1": "Blockaid tarafından desteklenen güvenlik uyarıları ile gizliliğinizi korumaya devam ederken bilinen dolandırıcılıklardan güvenli bir şekilde uzakta kalın. Bu özellik şu anda tüm MetaMask kullanıcıları için varsayılan olarak açıktır.",
       "description_2": "Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin.",
+      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon and Sepolia.",
       "got_it": "Anladım"
     },
     "sell": {
@@ -2738,9 +2740,9 @@
     "connect_ledger": "Ledger'ı bağla",
     "looking_for_device": "Cihaz aranıyor",
     "ledger_reminder_message": "Ledger Nano X cihazınızın şöyle olduğundan emin olun:",
-    "ledger_reminder_message_step_one": "1. Kilidi açılmış",
-    "ledger_reminder_message_step_two": "2. Ethereum uygulaması yüklü",
-    "ledger_reminder_message_step_three": "3. Bluetooth etkinleştirilmiş",
+    "ledger_reminder_message_step_one": "1. Ledger Nano X cihazının kilidini açın",
+    "ledger_reminder_message_step_two": "2. Ethereum uygulamasını yükleyin ve açın",
+    "ledger_reminder_message_step_three": "Bluetooth'u etkinleştirin",
     "ledger_reminder_message_step_four": "4. Konum etkinleştirilmiş",
     "available_devices": "Kullanılabilir cihazlar",
     "retry": "Tekrar Dene",

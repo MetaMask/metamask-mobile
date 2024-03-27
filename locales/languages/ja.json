@@ -541,10 +541,10 @@
   },
   "accounts": {
     "create_new_account": "新規アカウントの作成",
-    "qr_hardware": "QRハードウェア",
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
+    "qr_hardware": "QRハードウェア",
     "remove_account_title": "アカウントの削除",
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
@@ -891,6 +891,7 @@
     "security_check_subheading": "セキュリティチェック",
     "symbol_required": "シンボルが必要です",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon and Sepolia.",
     "security_alerts": "セキュリティアラート",
     "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。"
   },
@@ -2406,6 +2407,7 @@
       "title": "セキュリティアラートで安全を確保",
       "description_1": "Blockaidのセキュリティアラートで、プライバシーを確保しつつ既知の詐欺から身を守ります。この機能は、MetaMaskユーザー全員を対象にデフォルトでオンになります。",
       "description_2": "要求を承認する前に、必ず独自のデューデリジェンスを行ってください。",
+      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon and Sepolia.",
       "got_it": "了解"
     },
     "sell": {
@@ -2738,9 +2740,9 @@
     "connect_ledger": "Ledgerを接続する",
     "looking_for_device": "デバイスを検索中",
     "ledger_reminder_message": "Ledger Nano Xが次の状態であることを確認してください:",
-    "ledger_reminder_message_step_one": "1. ロック解除済み",
-    "ledger_reminder_message_step_two": "2. イーサリアムアプリがインストール済み",
-    "ledger_reminder_message_step_three": "3. Bluetoothが有効",
+    "ledger_reminder_message_step_one": "1. Ledger Nano Xのロックを解除します",
+    "ledger_reminder_message_step_two": "2. イーサリアムアプリをインストールして開きます",
+    "ledger_reminder_message_step_three": "3. Bluetoothを有効にします",
     "ledger_reminder_message_step_four": "4. 位置情報が有効",
     "available_devices": "利用可能なデバイス",
     "retry": "再試行",
