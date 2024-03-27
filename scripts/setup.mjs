@@ -128,12 +128,14 @@ const patchModulesTask = {
         await $`./scripts/build-inpage-bridge.sh`;
       }
     },
+    // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
     {
       title: 'React Native nodeify',
       task: async () => {
-        await $`node_modules/.bin/rn-nodeify --install 'crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs' --hack`;
+        await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
       }
     },
+    // TODO: validate if we really need to stil jetify our packages
     {
       title: 'Jetify',
       task: async () => {
