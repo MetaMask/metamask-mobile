@@ -41,18 +41,31 @@ yarn watch
 
 You can trigger the tests against a `release` or `debug` build. It recommended that you trigger the tests against a debug build.
 
-To trigger the tests on a debug build run this command:
+To build the app for testing on an iOS debug build run this command:
+
+```bash
+yarn test:e2e:ios:debug:build
+```
+
+To build the app for testing on an android debug build run this command:
+
+```bash
+yarn test:e2e:android:debug:build
+```
+
+To run the tests on a debug build run this command:
 
 For iOS
 
 ```bash
-yarn test:e2e:ios:debug
+yarn test:e2e:ios:debug:run
 ```
+
 
 and on Android:
 
 ```bash
-yarn test:e2e:android:debug
+yarn test:e2e:android:debug:run
 ```
 
 If you choose to run tests against a release build, you can do so by running this command:
@@ -74,23 +87,23 @@ If you have already built the application for Detox and want to run a specific t
 For iOS
 
 ```bash
-yarn test:e2e:ios:debug:single e2e/specs/TEST_NAME.spec.js
+yarn test:e2e:ios:debug:run e2e/specs/TEST_NAME.spec.js
 ```
 
 and on Android:
 
 ```bash
-yarn test:e2e:android:debug:single e2e/specs/TEST_NAME.spec.js
+yarn test:e2e:android:debug:run e2e/specs/TEST_NAME.spec.js
 ```
 
 To run tests associated with a certain tag, you can do so using the `--testNamePattern` flag. For example:
 
 ```bash
-yarn test:e2e:ios:debug --testNamePattern="Smoke"
+yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
 ```
 
 ```bash
-yarn test:e2e:android:debug --testNamePattern="Smoke"
+yarn test:e2e:android:debug:run --testNamePattern="Smoke"
 ```
 
 This runs all tests that are tagged "Smoke"
