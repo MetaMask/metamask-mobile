@@ -9,7 +9,7 @@ Confirmations can be triggered by dApps and the UI itself, and are used to appro
 - Connecting to dApps
 - Giving permissions to dApps
 - Sending Eth
-- Transfering tokens
+- Transferring tokens
 - Signing data
 - Interacting with Snaps
 - Adding Ethereum networks
