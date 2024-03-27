@@ -16,7 +16,7 @@ jest.mock('../../store', () => ({
 
 jest.mock('../Engine', () => {
   // Do not need to mock entire Engine. Only need subset of data for testing purposes.
-  let instance: any = undefined;
+  let instance: any;
   return {
     get context() {
       if (!instance) {
