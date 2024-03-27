@@ -22,6 +22,7 @@ config.capabilities = [
     app: process.env.BROWSERSTACK_APP_URL,
     'browserstack.debug': true,
     'browserstack.local': true,
+    'browserstack.midSessionInstallApps' : [process.env.BROWSERSTACK_UPGRADE_APP_URL],
   },
 ];
 

@@ -23,7 +23,7 @@ class TabBarModal {
   }
 
   get settingsButton() {
-    return Selectors.getElementByPlatform(TAB_BAR_SETTING_BUTTON);
+    return Selectors.getXpathElementByResourceId(TAB_BAR_SETTING_BUTTON);
   }
 
   get activityButton() {

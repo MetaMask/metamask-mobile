@@ -21,6 +21,7 @@ config.capabilities = [
     app: process.env.BROWSERSTACK_APP_URL, // TODO: Add package ID when upload to BrowserStack
     'browserstack.debug': true,
     'browserstack.local': true,
+    'browserstack.midSessionInstallApps' : [process.env.BROWSERSTACK_UPGRADE_APP_URL],
   },
 ];
 
