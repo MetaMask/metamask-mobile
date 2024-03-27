@@ -35,6 +35,7 @@ export const NETWORKS_CHAIN_ID = {
   ZKSYNC_ERA: toHex('324'),
   ARBITRUM_GOERLI: toHex('421613'),
   OPTIMISM_GOERLI: toHex('420'),
+  MUMBAI: toHex('80001'),
 };
 
 // To add a deprecation warning to a network, add it to the array
@@ -43,6 +44,7 @@ export const DEPRECATED_NETWORKS = [
   NETWORKS_CHAIN_ID.ARBITRUM_GOERLI,
   NETWORKS_CHAIN_ID.OPTIMISM_GOERLI,
   NETWORKS_CHAIN_ID.LINEA_GOERLI,
+  NETWORKS_CHAIN_ID.MUMBAI,
 ];
 export const CHAINLIST_CURRENCY_SYMBOLS_MAP = {
   MAINNET: 'ETH',
