@@ -19,7 +19,7 @@ import Networks, {
   blockTagParamIndex,
   getAllNetworks,
 } from '../../util/networks';
-import { polyfillGasPrice } from './utils';
+import { polyfillGasPrice, validateParams } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
@@ -31,12 +31,20 @@ import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import {
+  selectChainId,
   selectProviderConfig,
   selectProviderType,
 } from '../../selectors/networkController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../selectors/preferencesController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
+import { swapsLivenessSelector } from '../../reducers/swaps/index.js';
+import { isSwapsAllowed } from '../../components/UI/Swaps/utils/index.js';
+import { fromWei } from '../../util/number/index.js';
 import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
@@ -327,6 +335,89 @@ export const getRpcMethodMiddleware = ({
       permissionRpcMethods.handlers;
 
     const rpcMethods: any = {
+      wallet_swapAsset: async () => {
+        const { from, to, user_address } = req.params[0];
+        const identities = selectIdentities(store.getState());
+        const selectedAddress = selectSelectedAddress(store.getState());
+        const dappConnectedAccount = Object.keys(identities).find(
+          (address) =>
+            safeToChecksumAddress(address) ===
+            safeToChecksumAddress(user_address),
+        );
+
+        if (!dappConnectedAccount) {
+          throw ethErrors.rpc.invalidParams('This address does not exist');
+        }
+
+        // This condition is only needed until we support multiple source tokens swap
+        if (from.length > 1) {
+          throw ethErrors.rpc.invalidParams(
+            'Currently we de not support multiple tokens swap',
+          );
+        }
+
+        validateParams(from[0], ['amount', 'chainId', 'token_address'], 'from');
+        validateParams(to, ['token_address', 'chainId'], 'to');
+
+        const chainId = selectChainId(store.getState());
+
+        //  This verification is not needed when we support cross chain swaps
+        if (from[0].chainId !== to.chainId) {
+          throw ethErrors.rpc.invalidParams(
+            'ChainId value is not consistent between from and to',
+          );
+        }
+
+        const checksummedDappConnectedAccount =
+          safeToChecksumAddress(dappConnectedAccount);
+
+        if (
+          safeToChecksumAddress(selectedAddress) !==
+          checksummedDappConnectedAccount
+        ) {
+          Engine.context.PreferencesController.setSelectedAddress(
+            checksummedDappConnectedAccount,
+          );
+        }
+
+        if (
+          chainId !== parseInt(from[0].chainId, 16).toString() ||
+          chainId !== parseInt(to.chainId, 16).toString()
+        ) {
+          await RPCMethods.wallet_switchEthereumChain({
+            req: {
+              params: [{ chainId: from[0].chainId }],
+            },
+            res,
+            requestUserApproval,
+            analytics: {
+              request_source: getSource(),
+              request_platform: analytics?.platform,
+            },
+          });
+        }
+        // switch to the chain id asked from the dapp
+        // validate if swaps is enable on that network
+        const swapsIsLive = swapsLivenessSelector(store.getState());
+        const isSwappable = isSwapsAllowed(chainId) && swapsIsLive;
+
+        if (!isSwappable) {
+          Alert.alert('Swap is not active or not possible on this chain');
+          return;
+        }
+
+        const decimalWei = parseInt(from[0].amount, 16);
+        const tokenAmount = fromWei(decimalWei);
+
+        navigation.navigate('Swaps', {
+          screen: 'SwapsAmountView',
+          params: {
+            sourceToken: from[0].token_address,
+            destinationToken: to.token_address,
+            amount: tokenAmount,
+          },
+        });
+      },
       wallet_getPermissions: async () =>
         new Promise<any>((resolve) => {
           const handle = getPermissionsHandler.implementation(

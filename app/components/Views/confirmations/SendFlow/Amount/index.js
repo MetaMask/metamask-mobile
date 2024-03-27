@@ -100,14 +100,14 @@ import { PREFIX_HEX_STRING } from '../../../../../constants/transaction';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import { swapsLivenessSelector } from '../../../../../reducers/swaps';
-import { isSwapsAllowed } from '../../../../UI/Swaps/utils';
+import { isSwapsAllowed } from '../../../../../components/UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
-import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
