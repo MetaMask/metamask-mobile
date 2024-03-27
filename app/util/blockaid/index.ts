@@ -67,3 +67,17 @@ export const getBlockaidMetricsParams = (
 
   return additionalParams;
 };
+
+export const withBlockaidMetricsParams = (transaction: any) => {
+  let blockaidParams = {};
+
+  if (
+    transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
+  ) {
+    blockaidParams = getBlockaidMetricsParams(
+      transaction.currentTransactionSecurityAlertResponse?.response,
+    );
+  }
+
+  return blockaidParams;
+};

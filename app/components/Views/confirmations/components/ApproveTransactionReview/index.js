@@ -51,7 +51,7 @@ import TransactionReviewDetailsCard from '../TransactionReview/TransactionReview
 import AppConstants from '../../../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../../../constants/transaction';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
-import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
+import { withBlockaidMetricsParams } from '../../../../../util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
@@ -510,21 +510,6 @@ class ApproveTransactionReview extends PureComponent {
     clearInterval(intervalIdForEstimatedL1Fee);
   };
 
-  withBlockaidMetricsParams = () => {
-    let blockaidParams = {};
-
-    const { transaction } = this.props;
-    if (
-      transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
-    ) {
-      blockaidParams = getBlockaidMetricsParams(
-        transaction.currentTransactionSecurityAlertResponse?.response,
-      );
-    }
-
-    return blockaidParams;
-  };
-
   getAnalyticsParams = () => {
     try {
       const { chainId, transaction, onSetAnalyticsParams } = this.props;
@@ -697,9 +682,10 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   onContactUsClicked = () => {
+    const { transaction } = this.props;
     const analyticsParams = {
       ...this.getAnalyticsParams(),
-      ...this.withBlockaidMetricsParams(),
+      ...withBlockaidMetricsParams(transaction),
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
@@ -1177,13 +1163,13 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   onCancelPress = () => {
-    const { onCancel } = this.props;
+    const { onCancel, transaction } = this.props;
     onCancel && onCancel();
     this.props.metrics.trackEvent(
       MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
       {
         ...this.getAnalyticsParams(),
-        ...this.withBlockaidMetricsParams(),
+        ...withBlockaidMetricsParams(transaction),
       },
     );
   };
@@ -1200,7 +1186,7 @@ class ApproveTransactionReview extends PureComponent {
         MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
         {
           ...this.getAnalyticsParams(),
-          ...this.withBlockaidMetricsParams(),
+          ...withBlockaidMetricsParams(this.props.transaction),
         },
       );
       return this.setState({ isReadyToApprove: true });
