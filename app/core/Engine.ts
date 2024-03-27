@@ -1331,14 +1331,19 @@ class Engine {
             currentChainId = state.providerConfig.chainId;
           }, 500);
         }
+      },
+    );
 
+    this.controllerMessenger.subscribe(
+      'NetworkController:networkDidChange',
+      async () => {
         try {
           const networkId = await deprecatedGetNetworkId();
           store.dispatch(setNetworkId(networkId));
         } catch (error) {
           captureException(
             new Error(
-              `Network ID not changed, current chainId: ${state.providerConfig.chainId}`,
+              `Network ID not changed, current chainId: ${networkController.state.providerConfig.chainId}`,
             ),
           );
         }
