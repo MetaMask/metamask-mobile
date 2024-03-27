@@ -100,12 +100,28 @@ export async function publishHook(request: Request) {
     isNativeTokenTransferred,
   } = getTxType(transactionMeta, chainId);
 
+  let smartTransactionStatusApprovalId: string | undefined;
+
+  // Looking for a pendingApproval that's a swap approve tx
+  Logger.log(LOG_PREFIX, 'approvalController.state', approvalController.state);
+
+  const pendingApprovalsForSwapApproveTx = Object.values(
+    approvalController.state.pendingApprovals,
+  ).filter(
+    ({ origin: pendingApprovalOrigin, type, requestState }) =>
+      // MM_FOX_CODE is the origin for MM Swaps
+      pendingApprovalOrigin === process.env.MM_FOX_CODE &&
+      type === ApprovalTypes.SMART_TRANSACTION_STATUS &&
+      requestState?.isInSwapFlow &&
+      requestState?.isSwapApproveTx,
+  );
+  smartTransactionStatusApprovalId = pendingApprovalsForSwapApproveTx[0]?.id;
+
   const shouldStartFlow = getShouldStartFlow(
     isDapp,
     isSend,
     isSwapApproveTx,
-    isSwapTransaction,
-    isNativeTokenTransferred,
+    Boolean(pendingApprovalsForSwapApproveTx[0]),
   );
   const shouldUpdateFlow = getShouldUpdateFlow(
     isDapp,
@@ -114,63 +130,26 @@ export async function publishHook(request: Request) {
   );
   const shouldEndFlow = getShouldEndFlow(isDapp, isSend, isSwapTransaction);
 
-  Logger.log(
-    LOG_PREFIX,
-    'isDapp',
+  Logger.log(LOG_PREFIX, {
     isDapp,
-    'isInSwapFlow',
     isInSwapFlow,
-    'isSwapApproveTx',
     isSwapApproveTx,
-    'isSwapTransaction',
     isSwapTransaction,
-    'isNativeTokenTransferred',
+    isSend,
     isNativeTokenTransferred,
-    'shouldStartFlow',
     shouldStartFlow,
-    'shouldUpdateFlow',
     shouldUpdateFlow,
-    'shouldEndFlow',
     shouldEndFlow,
-  );
+  });
 
-  let smartTransactionStatusApprovalId: string | undefined;
   if (shouldStartFlow) {
     const { id } = approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
     smartTransactionStatusApprovalId = id;
-  } else {
-    Logger.log(
-      LOG_PREFIX,
-      'approvalController.state',
-      approvalController.state,
-    );
 
-    // Looking for a pendingApproval that's a swap approve tx
-    const pendingApprovals = Object.values(
-      approvalController.state.pendingApprovals,
-    ).filter(
-      ({ origin: pendingApprovalOrigin, type, requestState }) =>
-        pendingApprovalOrigin === process.env.MM_FOX_CODE &&
-        type === ApprovalTypes.SMART_TRANSACTION_STATUS &&
-        requestState?.isInSwapFlow &&
-        requestState?.isSwapApproveTx,
-    );
-
-    if (pendingApprovals.length !== 1) {
-      throw new Error(
-        `${LOG_PREFIX} - No pending approval found for swap approve tx`,
-      );
-    }
-
-    smartTransactionStatusApprovalId = pendingApprovals[0].id;
+    Logger.log(LOG_PREFIX, 'Started approval flow', {
+      smartTransactionStatusApprovalId,
+    });
   }
-
-  Logger.log(
-    LOG_PREFIX,
-    'Started approval flow',
-    'smartTransactionStatusApprovalId',
-    smartTransactionStatusApprovalId,
-  );
 
   try {
     const feesResponse = await smartTransactionsController.getFees(
