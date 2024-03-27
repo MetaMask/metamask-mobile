@@ -22,10 +22,10 @@ buildscript {
 	dependencies {
 		classpath('com.android.tools.build:gradle:7.3.1')
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-    	classpath("com.facebook.react:react-native-gradle-plugin")
+    classpath("com.facebook.react:react-native-gradle-plugin")
 		classpath("io.sentry:sentry-android-gradle-plugin:4.2.0")
 	}
-	allprojects { 
+	allprojects {
     repositories {
         maven {
           url("$rootDir/../node_modules/detox/Detox-android")

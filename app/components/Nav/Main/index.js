@@ -12,7 +12,6 @@ import {
   StyleSheet,
   View,
   Linking,
-  PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -22,7 +21,7 @@ import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import PushNotification from 'react-native-push-notification';
+import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
 import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
@@ -36,6 +35,7 @@ import {
   removeNotificationById,
   removeNotVisibleNotifications,
 } from '../../../actions/notification';
+import { STORAGE_IDS } from '../../../util/notifications/settings/storage/constants';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
@@ -273,6 +273,22 @@ const Main = (props) => {
     }
   });
 
+  const bootstrapInitialNotification = useCallback(async () => {
+    const initialNotification = await notifee.getInitialNotification();
+
+    if (initialNotification) {
+      if (
+        initialNotification.data &&
+        initialNotification.data.action === 'tx'
+      ) {
+        if (initialNotification.data.id) {
+          NotificationManager.setTransactionToView(initialNotification.data.id);
+        }
+        props.navigation.navigate('TransactionsView');
+      }
+    }
+  }, [props.navigation]);
+
   // Remove all notifications that aren't visible
   useEffect(() => {
     removeNotVisibleNotifications();
@@ -283,29 +299,6 @@ const Main = (props) => {
       'change',
       handleAppStateChange,
     );
-    PushNotification.configure({
-      requestPermissions: false,
-      onNotification: (notification) => {
-        let data = null;
-        if (Device.isAndroid()) {
-          if (notification.tag) {
-            data = JSON.parse(notification.tag);
-          }
-        } else if (notification.data) {
-          data = notification.data;
-        }
-        if (data && data.action === 'tx') {
-          if (data.id) {
-            NotificationManager.setTransactionToView(data.id);
-          }
-          props.navigation.navigate('TransactionsHome');
-        }
-
-        if (Device.isIos()) {
-          notification.finish(PushNotificationIOS.FetchResult.NoData);
-        }
-      },
-    });
 
     setTimeout(() => {
       NotificationManager.init({
@@ -338,6 +331,42 @@ const Main = (props) => {
   useEffect(() => {
     termsOfUse();
   }, [termsOfUse]);
+
+  useEffect(() => {
+    notifee.decrementBadgeCount(1);
+
+    bootstrapInitialNotification();
+    setTimeout(() => {
+      notifee.onForegroundEvent(({ type, detail }) => {
+        if (type !== EventType.DISMISSED) {
+          let data = null;
+          if (Device.isAndroid()) {
+            if (detail.notification.data) {
+              data = JSON.parse(detail.notification.data);
+            }
+          } else if (detail.notification.data) {
+            data = detail.notification.data;
+          }
+          if (data && data.action === 'tx') {
+            if (data.id) {
+              NotificationManager.setTransactionToView(data.id);
+            }
+            if (props.navigation) {
+              props.navigation.navigate('TransactionsView');
+            }
+          }
+        }
+      });
+      /**
+       * Creates a channel (required for Android)
+       */
+      notifee.createChannel({
+        id: STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID,
+        name: 'Default',
+        importance: AndroidImportance.HIGH,
+      });
+    }, 1000);
+  }, [bootstrapInitialNotification, props.navigation]);
 
   const openDeprecatedNetworksArticle = () => {
     Linking.openURL(GOERLI_DEPRECATED_ARTICLE);
