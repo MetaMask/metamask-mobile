@@ -3,7 +3,7 @@ import {
   InternalAccount,
   EthMethod,
 } from '@metamask/keyring-api';
-import { isObject } from '@metamask/utils';
+import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { v4 as uuid } from 'uuid';
 import { NativeModules } from 'react-native';
@@ -51,6 +51,21 @@ export default async function migrate(stateAsync: unknown) {
     );
     return state;
   }
+  if (
+    !hasProperty(
+      state.engine.backgroundState.PreferencesController,
+      'identities',
+    )
+  ) {
+    captureException(
+      new Error(
+        `Migration 36: Missing identities property from PreferencesController: '${typeof state
+          .engine.backgroundState.PreferencesController}'`,
+      ),
+    );
+    return state;
+  }
+
   createDefaultAccountsController(state);
   await createInternalAccountsForAccountsController(state);
   createSelectedAccountForAccountsController(state);
@@ -142,8 +157,8 @@ function createSelectedAccountForAccountsController(
   const selectedAddress =
     state.engine.backgroundState.PreferencesController?.selectedAddress;
 
-  // Handle the case where the selectedAddress from preferences controller is not a string
-  if (typeof selectedAddress !== 'string') {
+  // Handle the case where the selectedAddress from preferences controller is either not defined or not a string
+  if (!selectedAddress || typeof selectedAddress !== 'string') {
     captureException(
       new Error(
         `Migration 36: Invalid selectedAddress. state.engine.backgroundState.PreferencesController?.selectedAddress is not a string:'${typeof selectedAddress}'. Setting selectedAddress to the first account.`,
