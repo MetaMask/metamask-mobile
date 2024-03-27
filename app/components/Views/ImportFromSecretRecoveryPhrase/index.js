@@ -68,8 +68,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const IOS_REJECTED_BIOMETRICS_ERROR =
-  'Error: The user name or passphrase you entered is not correct.';
+const IOS_REJECTED_BIOMETRICS_ERROR = 'Error: User canceled the operation.';
 
 /**
  * View where users can set restore their account
@@ -157,29 +156,6 @@ const ImportFromSecretRecoveryPhrase = ({
     setBiometryChoice(biometryChoice);
   };
 
-  /**
-   * This function handles the case when the user rejects the OS prompt for allowing use of biometrics.
-   * If this occurs we will create the wallet automatically with password as the login method
-   */
-  const handleRejectedOsBiometricPrompt = async (parsedSeed) => {
-    const newAuthData = await Authentication.componentAuthenticationType(
-      false,
-      false,
-    );
-    try {
-      await Authentication.newWalletAndRestore(
-        password,
-        newAuthData,
-        parsedSeed,
-        true,
-      );
-    } catch (err) {
-      this.setState({ loading: false, error: err.toString() });
-    }
-    setBiometryType(newAuthData.availableBiometryType);
-    updateBiometryChoice(false);
-  };
-
   const onPressImport = async () => {
     const vaultSeed = await parseVaultValue(password, seed);
     const parsedSeed = parseSeedPhrase(vaultSeed || seed);
@@ -224,8 +200,14 @@ const ImportFromSecretRecoveryPhrase = ({
           );
         } catch (err) {
           // retry faceID if the user cancels the
-          if (Device.isIos && err.toString() === IOS_REJECTED_BIOMETRICS_ERROR)
-            await handleRejectedOsBiometricPrompt(parsedSeed);
+          if (
+            Device.isIos &&
+            err.toString() === IOS_REJECTED_BIOMETRICS_ERROR
+          ) {
+            setLoading(false);
+            setError(err.toString());
+            return;
+          }
         }
         // Get onboarding wizard state
         const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
