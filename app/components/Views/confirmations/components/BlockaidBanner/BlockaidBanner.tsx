@@ -12,7 +12,6 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import {
-  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -24,7 +23,6 @@ import {
   isBlockaidSupportedOnCurrentChain,
 } from '../../../../../util/blockaid';
 import {
-  ATTRIBUTION_LINE_TEST_ID,
   FALSE_POSITIVE_REPOST_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
   REASON_TITLE_I18N_KEY_MAP,
@@ -37,7 +35,6 @@ import {
 } from './BlockaidBanner.types';
 import BlockaidBannerLink from './BlockaidBannerLink';
 import {
-  BLOCKAID_ATTRIBUTION_LINK,
   FALSE_POSITIVE_REPORT_BASE_URL,
   UTM_SOURCE,
 } from '../../../../../constants/urls';
@@ -47,6 +44,8 @@ import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
+import AppConstants from '../../../../../core/AppConstants';
 
 const getReportUrl = (encodedData: string) =>
   `${FALSE_POSITIVE_REPORT_BASE_URL}?data=${encodeURIComponent(
@@ -64,33 +63,6 @@ const getDescription = (reason: Reason) =>
     REASON_DESCRIPTION_I18N_KEY_MAP[reason] ||
       REASON_DESCRIPTION_I18N_KEY_MAP[Reason.other],
   );
-
-const Attribution = ({ styles }: { styles: Record<string, any> }) => (
-  <View style={styles.attributionBase}>
-    <View style={styles.attributionItem}>
-      <Icon
-        name={IconName.SecurityTick}
-        size={IconSize.Sm}
-        color={IconColor.Primary}
-        style={styles.securityTickIcon}
-      />
-    </View>
-    <View style={styles.attributionItem}>
-      <Text
-        variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
-        data-testid={ATTRIBUTION_LINE_TEST_ID}
-      >
-        {strings('blockaid_banner.attribution')}
-      </Text>
-    </View>
-    <View style={styles.attributionItem}>
-      <BlockaidBannerLink
-        text={strings('blockaid_banner.attribution_link_name')}
-        link={BLOCKAID_ATTRIBUTION_LINK}
-      />
-    </View>
-  </View>
-);
 
 const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
   const {
@@ -121,8 +93,12 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       return;
     }
 
+    const domain = req.origin as string;
+
     const reportData = {
-      domain: req.origin,
+      domain: domain
+        ?.replace(WALLET_CONNECT_ORIGIN, '')
+        ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, ''),
       jsonRpcMethod: req.method,
       jsonRpcParams: JSON.stringify(req.params),
       blockNumber: block,
@@ -248,7 +224,6 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       {...bannerProps}
     >
       {renderDetails()}
-      <Attribution styles={styles} />
     </BannerAlert>
   );
 };

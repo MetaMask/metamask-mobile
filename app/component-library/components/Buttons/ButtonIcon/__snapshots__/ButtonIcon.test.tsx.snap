@@ -19,10 +19,17 @@ exports[`ButtonIcon should render correctly 1`] = `
     }
   }
 >
-  <Icon
+  <SvgMock
     color="#0376C9"
+    height={16}
     name="AddSquare"
-    size="16"
+    style={
+      Object {
+        "height": 16,
+        "width": 16,
+      }
+    }
+    width={16}
   />
 </TouchableOpacity>
 `;

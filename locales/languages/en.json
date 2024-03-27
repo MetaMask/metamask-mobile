@@ -1,8 +1,6 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
-    "attribution": "Powered by",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "If you approve this request, someone can steal your assets listed on Blur.",
     "deceptive_request_title": "This is a deceptive request",
     "failed_title": "Request may not be safe",
@@ -543,7 +541,6 @@
   },
   "accounts": {
     "create_new_account": "Create a new account",
-    "qr_hardware": "QR hardware",
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
@@ -1488,7 +1485,7 @@
     "add": "Add",
     "cancel": "Cancel",
     "approve": "Approve",
-    "edit_network_details":"Edit network details",
+    "edit_network_details": "Edit network details",
     "malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Network Information",
@@ -1511,7 +1508,6 @@
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
     "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
-
   },
   "select": {
     "cancel": "Cancel",
@@ -2744,9 +2740,9 @@
     "connect_ledger": "Connect Ledger",
     "looking_for_device": "Looking for device",
     "ledger_reminder_message": "Please make sure your Ledger Nano X is:",
-    "ledger_reminder_message_step_one": "1. Unlocked",
-    "ledger_reminder_message_step_two": "2. The Ethereum app is installed",
-    "ledger_reminder_message_step_three": "3. Bluetooth is enabled",
+    "ledger_reminder_message_step_one": "1. Unlock your Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. Install and open the Ethereum app",
+    "ledger_reminder_message_step_three": "3. Enable Bluetooth",
     "ledger_reminder_message_step_four": "4. Location is enabled",
     "available_devices": "Available devices",
     "retry": "Retry",

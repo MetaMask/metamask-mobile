@@ -31,6 +31,7 @@ Before running the app, make sure your development environment has all the requi
 ### Building the app
 
 **Clone the project**
+
 ```bash
 git clone git@github.com:MetaMask/metamask-mobile.git && \
 cd metamask-mobile
@@ -44,27 +45,24 @@ yarn setup
 
 _Not the usual install command, this will run scripts and a lengthy postinstall flow_
 
-**Setup environment variables**
-```bash
-cp .ios.env.example .ios.env && \
-cp .android.env.example .android.env && \
-cp .js.env.example .js.env
-```
-
 ### Running the app
 
 **Run Metro bundler**
+
 ```bash
 yarn watch
 ```
+
 _Like a local server for the app_
 
 **Run on a iOS device**
+
 ```bash
-yarn start:ios 
+yarn start:ios
 ```
 
 **Run on an Android device**
+
 ```bash
 yarn start:android
 ```
