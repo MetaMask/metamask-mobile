@@ -541,10 +541,10 @@
   },
   "accounts": {
     "create_new_account": "Neues Konto erstellen",
-    "qr_hardware": "QR-Hardware",
     "import_account": "Ein Konto importieren",
     "connect_hardware": "Hardware-Wallet verknüpfen",
     "imported": "Importiert",
+    "qr_hardware": "QR-Hardware",
     "remove_account_title": "Kontoentfernung",
     "remove_account_message": "Möchten Sie dieses Konto wirklich entfernen?",
     "no": "Nein",
@@ -891,6 +891,7 @@
     "security_check_subheading": "Sicherheitsprüfungen",
     "symbol_required": "Symbol ist erforderlich.",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon and Sepolia.",
     "security_alerts": "Sicherheitsbenachrichtigungen",
     "security_alerts_desc": "Diese Funktion warnt Sie vor bösartigen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie Anfragen genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden."
   },
@@ -2406,6 +2407,7 @@
       "title": "Gehen Sie mit Sicherheitsbenachrichtigungen auf Nummer sicher.",
       "description_1": "Mit den Sicherheitswarnungen von Blockaid sind Sie vor bekannten Betrügereien sicher und schützen gleichzeitig Ihre Privatsphäre. Diese Funktion ist jetzt standardmäßig für alle MetaMask-Benutzer aktiviert.",
       "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen.",
+      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon and Sepolia.",
       "got_it": "Verstanden"
     },
     "sell": {
@@ -2738,9 +2740,9 @@
     "connect_ledger": "Ledger verbinden",
     "looking_for_device": "Suche nach Gerät",
     "ledger_reminder_message": "Bitte stellen Sie sicher, dass Ihr Ledger Nano X:",
-    "ledger_reminder_message_step_one": "1. entsperrt ist.",
-    "ledger_reminder_message_step_two": "2. die Ethereum-App installierrt ist.",
-    "ledger_reminder_message_step_three": "3. Bluetooth aktiviert ist.",
+    "ledger_reminder_message_step_one": "1. Entsperren Sie Ihre Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. Installieren und öffnen Sie die Ethereum-App",
+    "ledger_reminder_message_step_three": "3. Aktivieren Sie Bluetooth",
     "ledger_reminder_message_step_four": "4. Standortdaten aktiviert sind.",
     "available_devices": "Verfügbare Geräte",
     "retry": "Erneut versuchen",

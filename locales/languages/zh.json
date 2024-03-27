@@ -541,10 +541,10 @@
   },
   "accounts": {
     "create_new_account": "创建新账户",
-    "qr_hardware": "QR 硬件",
     "import_account": "导入账户",
     "connect_hardware": "连接硬件钱包",
     "imported": "已导入",
+    "qr_hardware": "QR 硬件",
     "remove_account_title": "删除账户",
     "remove_account_message": "是否确实想要删除此账户？",
     "no": "否",
@@ -891,6 +891,7 @@
     "security_check_subheading": "安全检查",
     "symbol_required": "需要符号。",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon and Sepolia.",
     "security_alerts": "安全提醒",
     "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。"
   },
@@ -2406,6 +2407,7 @@
       "title": "安全警报助您确保安全",
       "description_1": "通过由 Blockaid 提供的安全提醒避免受到已知欺诈，同时保护您的隐私。目前所有 MetaMask 用户默认启用此功能。",
       "description_2": "在批准请求之前，必须自行作出审慎调查。",
+      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon and Sepolia.",
       "got_it": "知道了"
     },
     "sell": {
@@ -2738,9 +2740,9 @@
     "connect_ledger": "连接Ledger",
     "looking_for_device": "正在查找设备",
     "ledger_reminder_message": "请确保您的Ledger Nano X：",
-    "ledger_reminder_message_step_one": "1. 已解锁",
-    "ledger_reminder_message_step_two": "2. 已安装以太坊应用程序",
-    "ledger_reminder_message_step_three": "3. 已启用蓝牙",
+    "ledger_reminder_message_step_one": "1. 解锁您的 Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. 安装并打开以太坊应用程序",
+    "ledger_reminder_message_step_three": "3. 启用蓝牙",
     "ledger_reminder_message_step_four": "4. 已启用位置",
     "available_devices": "可用设备",
     "retry": "重试",

@@ -541,10 +541,10 @@
   },
   "accounts": {
     "create_new_account": "Создать новый счет",
-    "qr_hardware": "QR-оборудование",
     "import_account": "Импортировать счет",
     "connect_hardware": "Подключить аппаратный кошелек",
     "imported": "Импортирован",
+    "qr_hardware": "QR-оборудование",
     "remove_account_title": "Удаление счета",
     "remove_account_message": "Вы действительно хотите удалить этот счет?",
     "no": "Нет",
@@ -891,6 +891,7 @@
     "security_check_subheading": "Проверки безопасности",
     "symbol_required": "Требуется символ.",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon and Sepolia.",
     "security_alerts": "Оповещения безопасности",
     "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика."
   },
@@ -2406,6 +2407,7 @@
       "title": "Избегайте угроз с помощью оповещений безопасности",
       "description_1": "Защитите себя от известных способов мошенничества, сохраняя при этом свою конфиденциальность с помощью предупреждений безопасности от Blockaid. Эта функция теперь включена по умолчанию для всех пользователей MetaMask.",
       "description_2": "Всегда проводите собственную комплексную проверку перед утверждением запросов.",
+      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon and Sepolia.",
       "got_it": "Понятно"
     },
     "sell": {
@@ -2738,9 +2740,9 @@
     "connect_ledger": "Подключить Ledger",
     "looking_for_device": "Поиск устройства...",
     "ledger_reminder_message": "Убедитесь с следующем: ",
-    "ledger_reminder_message_step_one": "1. Ваш Ledger Nano X разблокирован.",
-    "ledger_reminder_message_step_two": "2. Приложение Ethereum установлено.",
-    "ledger_reminder_message_step_three": "3. Bluetooth включен.",
+    "ledger_reminder_message_step_one": "1. Разблокируйте свой Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. Установите и откройте приложение Ethereum",
+    "ledger_reminder_message_step_three": "3. Включите Bluetooth",
     "ledger_reminder_message_step_four": "4. Доступ к местоположению предоставлен.",
     "available_devices": "Доступные устройства",
     "retry": "Повтор",

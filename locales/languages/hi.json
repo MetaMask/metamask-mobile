@@ -541,10 +541,10 @@
   },
   "accounts": {
     "create_new_account": "नया खाता बनाएं",
-    "qr_hardware": "QR हार्डवेयर",
     "import_account": "एक खाता इम्पोर्ट करें",
     "connect_hardware": "हार्डवेयर वॉलेट कनेक्ट करें",
     "imported": "इम्पोर्ट किया गया",
+    "qr_hardware": "QR हार्डवेयर",
     "remove_account_title": "अकाउंट हटाया जाना",
     "remove_account_message": "क्या आप वास्तव में इस अकाउंट को हटाना चाहते हैं?",
     "no": "नहीं",
@@ -891,6 +891,7 @@
     "security_check_subheading": "सुरक्षा जाँचें",
     "symbol_required": "सिंबल की ज़रूरत है।",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon and Sepolia.",
     "security_alerts": "सुरक्षा एलर्ट",
     "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।"
   },
@@ -2406,6 +2407,7 @@
       "title": "सुरक्षा चेतावनियों के माध्यम से सुरक्षित रहें",
       "description_1": "ब्लॉकएड द्वारा संचालित सिक्योरिटी अलर्ट के साथ अपनी गोपनीयता की रक्षा करते हुए पहचाने गए स्कैम से सुरक्षित रहें। यह सुविधा अब सभी MetaMask उपयोगकर्ताओं के लिए डिफ़ॉल्ट रूप से चालू है।",
       "description_2": "किसी भी रिक्वेस्ट को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें।",
+      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon and Sepolia.",
       "got_it": "समझ गए"
     },
     "sell": {
@@ -2738,9 +2740,9 @@
     "connect_ledger": "Ledger कनेक्ट करें",
     "looking_for_device": "डिवाइस खोज रहा है",
     "ledger_reminder_message": "कृपया पक्का करें कि आपका Ledger Nano X है:",
-    "ledger_reminder_message_step_one": "1. अनलॉक है",
-    "ledger_reminder_message_step_two": "2. Ethereum ऐप इंस्टॉल हो गया है",
-    "ledger_reminder_message_step_three": "3. ब्लूटूथ सक्षम है",
+    "ledger_reminder_message_step_one": "1. अपने Ledger Nano X को अनलॉक करें",
+    "ledger_reminder_message_step_two": "2. Ethereum ऐप को इनस्टॉल करें और खोलें",
+    "ledger_reminder_message_step_three": "3. ब्लूटूथ चालू करें",
     "ledger_reminder_message_step_four": "4. लोकेशन सक्षम है",
     "available_devices": "उपलब्ध डिवाइस",
     "retry": "फिर से कोशिश करें",

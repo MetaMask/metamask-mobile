@@ -541,10 +541,10 @@
   },
   "accounts": {
     "create_new_account": "Gumawa ng bagong account",
-    "qr_hardware": "QR hardware",
     "import_account": "Mag-import ng account",
     "connect_hardware": "Ikonekta ang wallet na hardware",
     "imported": "Na-import",
+    "qr_hardware": "QR hardware",
     "remove_account_title": "Pag-alis ng account",
     "remove_account_message": "Gusto mo ba talagang alisin ang account na ito?",
     "no": "Hindi",
@@ -891,6 +891,7 @@
     "security_check_subheading": "Pagsusuring panseguridad",
     "symbol_required": "Kailangan ang simbolo.",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon and Sepolia.",
     "security_alerts": "Mga alerto sa seguridad",
     "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider."
   },
@@ -2406,6 +2407,7 @@
       "title": "Manatiling ligtas gamit ang mga alerto sa seguridad",
       "description_1": "Manatiling ligtas sa mga scam habang patuloy na pinoprotektahan ang iyong pagkapribado sa pamamagitan ng mga alerto sa seguridad na pinatatakbo ng Blockaid. Ang tampok na ito ay naka-on nang default para sa lahat ng user ng MetaMask.",
       "description_2": "Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang mga kahilingan.",
+      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon and Sepolia.",
       "got_it": "Nakuha ko"
     },
     "sell": {
@@ -2738,9 +2740,9 @@
     "connect_ledger": "Ikonekta ang Ledger",
     "looking_for_device": "Naghahanap ng device",
     "ledger_reminder_message": "Siguraduhin na ang iyong Ledger Nano X ay:",
-    "ledger_reminder_message_step_one": "1. Naka-unlock",
-    "ledger_reminder_message_step_two": "2. Naka-install ang app ng Ethereum",
-    "ledger_reminder_message_step_three": "3. Gumagana ang Bluetooth",
+    "ledger_reminder_message_step_one": "1. I-unlock ang iyong Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. I-install at buksan ang Ethereum app",
+    "ledger_reminder_message_step_three": "3. I-enable ang Bluetooth",
     "ledger_reminder_message_step_four": "4. Gumagana ang lokasyon",
     "available_devices": "Available na mga device",
     "retry": "Subukang muli",

@@ -541,10 +541,10 @@
   },
   "accounts": {
     "create_new_account": "Δημιουργία νέου λογαριασμού",
-    "qr_hardware": "Υλικό QR",
     "import_account": "Εισαγωγή λογαριασμού",
     "connect_hardware": "Σύνδεση πορτοφολιού υλικού",
     "imported": "Έγινε εισαγωγή",
+    "qr_hardware": "Υλικό QR",
     "remove_account_title": "Αφαίρεση λογαριασμού",
     "remove_account_message": "Θέλετε σίγουρα να αφαιρέσετε αυτόν τον λογαριασμό;",
     "no": "Όχι",
@@ -891,6 +891,7 @@
     "security_check_subheading": "Έλεγχοι ασφαλείας",
     "symbol_required": "Απαιτείται το σύμβολο.",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon and Sepolia.",
     "security_alerts": "Ειδοποιήσεις ασφαλείας",
     "security_alerts_desc": "Αυτή η λειτουργία σας προειδοποιεί για κακόβουλη δραστηριότητα, καθώς ελέγχει τοπικά τα αιτήματα συναλλαγών και υπογραφών σας. Πάντα να κάνετε τη δική σας επιμελή έρευνα προτού εγκρίνετε οποιαδήποτε αιτήματα. Δεν υπάρχει καμία εγγύηση ότι αυτή η λειτουργία θα εντοπίσει όλες τις κακόβουλες δραστηριότητες. Ενεργοποιώντας αυτή τη λειτουργία, συμφωνείτε με τους όρους χρήσης του παρόχου."
   },
@@ -2406,6 +2407,7 @@
       "title": "Μείνετε ασφαλείς με ειδοποιήσεις ασφαλείας",
       "description_1": "Αποφύγετε τις γνωστές απάτες, προστατεύοντας παράλληλα το απόρρητό σας με τις ειδοποιήσεις ασφαλείας που παρέχονται από το Blockaid. Αυτή η λειτουργία είναι πλέον ενεργοποιημένη από προεπιλογή για όλους τους χρήστες του MetaMask.",
       "description_2": "Πάντα να προβαίνετε σε δικό σας επιμελή έλεγχο προτού εγκρίνετε τα αιτήματα.",
+      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon and Sepolia.",
       "got_it": "Κατανοητό"
     },
     "sell": {
@@ -2738,9 +2740,9 @@
     "connect_ledger": "Συνδέστε το Ledger",
     "looking_for_device": "Αναζήτηση συσκευής",
     "ledger_reminder_message": "Βεβαιωθείτε ότι το Ledger Nano X είναι:",
-    "ledger_reminder_message_step_one": "1. Ξεκλείδωτο",
-    "ledger_reminder_message_step_two": "2. Η εφαρμογή Ethereum είναι εγκαταστημένη",
-    "ledger_reminder_message_step_three": "3. Το Bluetooth είναι ενεργοποιημένο",
+    "ledger_reminder_message_step_one": "1. Ξεκλειδώστε το Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. Εγκαταστήστε και ανοίξτε την εφαρμογή Ethereum",
+    "ledger_reminder_message_step_three": "3. Ενεργοποιήστε το Bluetooth",
     "ledger_reminder_message_step_four": "4. Η τοποθεσία είναι ενεργοποιημένη",
     "available_devices": "Διαθέσιμες συσκευές",
     "retry": "Επανάληψη",
