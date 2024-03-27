@@ -1,5 +1,9 @@
 /* eslint-disable import/prefer-default-export */
-import { Fee } from '@metamask/smart-transactions-controller/dist/types';
+import {
+  Fee,
+  SmartTransaction,
+  SmartTransactionStatuses,
+} from '@metamask/smart-transactions-controller/dist/types';
 import {
   TransactionController,
   TransactionMeta,
@@ -13,6 +17,7 @@ import {
   getIsSwapTransaction,
   getIsNativeTokenTransferred,
 } from '../transactions';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
 
 // It has to be 21000 for cancel transactions, otherwise the API would reject it.
 const CANCEL_GAS = 21000;
@@ -121,3 +126,27 @@ export const getShouldEndFlow = (
   isSend: boolean,
   isSwapTransaction: boolean,
 ): boolean => isDapp || isSend || isSwapTransaction;
+
+export const waitForTransactionHash = ({
+  smartTransactionsController,
+  uuid,
+}: {
+  smartTransactionsController: SmartTransactionsController;
+  uuid: string;
+}): Promise<string | null> =>
+  new Promise((resolve) => {
+    (smartTransactionsController as any).eventEmitter.on(
+      `${uuid}:smartTransaction`,
+      async (smartTransaction: SmartTransaction) => {
+        const { status, statusMetadata } = smartTransaction;
+        if (!status || status === SmartTransactionStatuses.PENDING) {
+          return;
+        }
+        if (statusMetadata?.minedHash) {
+          resolve(statusMetadata.minedHash);
+        } else {
+          resolve(null);
+        }
+      },
+    );
+  });
