@@ -17,9 +17,14 @@ const detoxGlobalInstallTask = {
     },
     {
       title: 'Install applesimutils globally',
-      task: async () => {
-        await $`brew tap wix/brew`;
-        await $`brew install applesimutils`;
+      task: async (_, appSimTask) => {
+        const isOSX = process.platform === 'darwin';
+        if (!isOSX) {
+          appSimTask.skip('Not macOS.');
+        } else {
+          await $`brew tap wix/brew`;
+          await $`brew install applesimutils`;
+        }
       }
     }
   ])
@@ -95,11 +100,16 @@ const mainSetupTask = {
   task: (_, task) => task.newListr([
     {
       title: 'Install iOS Pods',
-      task: async () => {
-        try {
-          await $`pod install --project-directory=ios`;
-        } catch (error) {
-          throw new Error(error);
+      task: async (_, podInstallTask) => {
+        const isOSX = process.platform === 'darwin';
+        if (!isOSX) {
+          podInstallTask.skip('Not macOS.');
+        } else {
+          try {
+            await $`pod install --project-directory=ios`;
+          } catch (error) {
+            throw new Error(error);
+          }
         }
       },
     },
@@ -135,7 +145,6 @@ const patchModulesTask = {
         await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
       }
     },
-    // TODO: validate if we really need to stil jetify our packages
     {
       title: 'Jetify',
       task: async () => {
