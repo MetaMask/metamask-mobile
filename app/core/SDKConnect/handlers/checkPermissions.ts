@@ -77,6 +77,15 @@ export const checkPermissions = async ({
     return true;
   }
 
+  const currentPerm = permissionsController.getPermissions(
+    connection.channelId,
+  );
+
+  if (currentPerm) {
+    DevLogger.log(`checkPermissions currentPerm`, currentPerm);
+    // delete previous one
+    permissionsController.revokeAllPermissions(connection.channelId);
+  }
   DevLogger.log(`checkPermissions request permissions`, acc);
   connection.approvalPromise = permissionsController.requestPermissions(
     { origin },

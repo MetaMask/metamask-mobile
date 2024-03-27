@@ -9,6 +9,7 @@ export const RPC_METHODS = {
   METAMASK_GETPROVIDERSTATE: 'metamask_getProviderState',
   METAMASK_CONNECTSIGN: 'metamask_connectSign',
   METAMASK_CONNECTWITH: 'metamask_connectWith',
+  METAMASK_OPEN: 'metamask_open',
   METAMASK_BATCH: 'metamask_batch',
   PERSONAL_SIGN: 'personal_sign',
   ETH_SIGN: 'eth_sign',
@@ -22,6 +23,7 @@ export const RPC_METHODS = {
   WALLET_ADDETHEREUMCHAIN: 'wallet_addEthereumChain',
   WALLET_SWITCHETHEREUMCHAIN: 'wallet_switchEthereumChain',
   WALLET_REQUESTPERMISSIONS: 'wallet_requestPermissions',
+  WALLET_GETPERMISSIONS: 'wallet_getPermissions',
   ETH_ACCOUNTS: 'eth_accounts',
   ETH_CHAINID: 'eth_chainId',
 };
@@ -40,6 +42,7 @@ export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   [RPC_METHODS.WALLET_ADDETHEREUMCHAIN]: true,
   [RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN]: true,
   [RPC_METHODS.WALLET_REQUESTPERMISSIONS]: true,
+  [RPC_METHODS.WALLET_GETPERMISSIONS]: true,
   [RPC_METHODS.METAMASK_CONNECTSIGN]: true,
   [RPC_METHODS.METAMASK_BATCH]: true,
 };

@@ -36,6 +36,11 @@ function handleClientsDisconnected({
         console.warn(
           `Connected::clients_disconnected dApp connection disconnected before ready`,
         );
+        // Terminate to prevent bypassing initial approval when auto-reconnect on deeplink.
+        instance.disconnect({
+          terminate: true,
+          context: 'CLIENTS_DISCONNECTED',
+        });
       }
     }
 

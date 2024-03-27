@@ -111,24 +111,29 @@ export const handleConnectionMessage = async ({
     batchRPCManager: connection.batchRPCManager,
     selectedAddress,
     selectedChainId: hexChainId,
+    connection,
+    navigation: connection.navigation,
     rpc: {
       id: message.id,
       method: message.method,
       params: message.params as any,
     },
   });
-  DevLogger.log(`[handleConnectionMessage] processedRpc`, processedRpc);
 
-  connection.rpcQueueManager.add({
-    id: processedRpc?.id ?? message.id,
-    method: processedRpc?.method ?? message.method,
-  });
+  if (processedRpc) {
+    DevLogger.log(`[handleConnectionMessage] processedRpc`, processedRpc);
 
-  connection.backgroundBridge?.onMessage({
-    name: 'metamask-provider',
-    data: processedRpc,
-    origin: 'sdk',
-  });
+    connection.rpcQueueManager.add({
+      id: processedRpc?.id ?? message.id,
+      method: processedRpc?.method ?? message.method,
+    });
+
+    connection.backgroundBridge?.onMessage({
+      name: 'metamask-provider',
+      data: processedRpc,
+      origin: 'sdk',
+    });
+  }
 
   // Update initial connection state
   connection.initialConnection = false;
