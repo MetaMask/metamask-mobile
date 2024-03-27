@@ -408,42 +408,17 @@ exports[`AddActivationKey renders correctly 1`] = `
                             }
                           >
                             <Text
+                              accessibilityRole="text"
                               style={
-                                Array [
-                                  Object {
-                                    "color": "#24272A",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 30,
-                                    "fontWeight": "400",
-                                    "marginVertical": 2,
-                                  },
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  undefined,
-                                  Object {
-                                    "fontSize": 20,
-                                  },
-                                ]
+                                Object {
+                                  "color": "#24272A",
+                                  "fontFamily": "Euclid Circular B",
+                                  "fontSize": 16,
+                                  "fontWeight": "500",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                  "marginBottom": 8,
+                                }
                               }
                             >
                               Add Activation Key
@@ -494,8 +469,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   undefined,
                                   undefined,
                                   Object {
+                                    "columnGap": 8,
                                     "flexDirection": "row",
-                                    "marginHorizontal": -5,
                                   },
                                 ]
                               }
@@ -504,117 +479,80 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 accessibilityRole="button"
                                 accessible={true}
                                 activeOpacity={1}
-                                disabled={true}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
-                                  Array [
-                                    Array [
-                                      Object {
-                                        "borderRadius": 100,
-                                        "justifyContent": "center",
-                                        "padding": 15,
-                                      },
-                                      Object {
-                                        "backgroundColor": "#0376C9",
-                                        "minHeight": 50,
-                                      },
-                                      Object {
-                                        "flex": 1,
-                                        "marginHorizontal": 5,
-                                      },
-                                    ],
-                                    Object {
-                                      "opacity": 0.6,
-                                    },
-                                  ]
+                                  Object {
+                                    "alignItems": "center",
+                                    "alignSelf": "flex-start",
+                                    "backgroundColor": "transparent",
+                                    "borderColor": "#0376C9",
+                                    "borderRadius": 24,
+                                    "borderWidth": 1,
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "paddingHorizontal": 16,
+                                  }
                                 }
+                                variant="Secondary"
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    Array [
-                                      Object {
-                                        "color": "#007aff",
-                                        "fontSize": 17,
-                                        "fontWeight": "500",
-                                        "textAlign": "center",
-                                      },
-                                      Object {
-                                        "color": "#dcdcdc",
-                                      },
-                                      Array [
-                                        Object {
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 14,
-                                          "fontWeight": "600",
-                                          "textAlign": "center",
-                                        },
-                                        Object {
-                                          "color": "#FFFFFF",
-                                        },
-                                        undefined,
-                                      ],
-                                      Object {
-                                        "opacity": 0.6,
-                                      },
-                                    ]
+                                    Object {
+                                      "color": "#0376C9",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 >
-                                  Add
+                                  Cancel
                                 </Text>
                               </TouchableOpacity>
                               <TouchableOpacity
                                 accessibilityRole="button"
                                 accessible={true}
-                                activeOpacity={0.2}
+                                activeOpacity={1}
+                                disabled={true}
                                 onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
-                                  Array [
-                                    Array [
-                                      Object {
-                                        "borderRadius": 100,
-                                        "justifyContent": "center",
-                                        "padding": 15,
-                                      },
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
-                                        "borderColor": "#535A61",
-                                        "borderWidth": 1,
-                                      },
-                                      Object {
-                                        "flex": 1,
-                                        "marginHorizontal": 5,
-                                      },
-                                    ],
-                                    null,
-                                  ]
+                                  Object {
+                                    "alignItems": "center",
+                                    "alignSelf": "flex-start",
+                                    "backgroundColor": "#0376C9",
+                                    "borderRadius": 24,
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "opacity": 0.5,
+                                    "paddingHorizontal": 16,
+                                  }
                                 }
+                                variant="Primary"
                               >
                                 <Text
+                                  accessibilityRole="text"
                                   style={
-                                    Array [
-                                      Object {
-                                        "color": "#007aff",
-                                        "fontSize": 17,
-                                        "fontWeight": "500",
-                                        "textAlign": "center",
-                                      },
-                                      null,
-                                      Array [
-                                        Object {
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 14,
-                                          "fontWeight": "600",
-                                          "textAlign": "center",
-                                        },
-                                        Object {
-                                          "color": "#535A61",
-                                        },
-                                        undefined,
-                                      ],
-                                      null,
-                                    ]
+                                    Object {
+                                      "color": "#FFFFFF",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
                                   }
                                 >
-                                  Cancel
+                                  Add
                                 </Text>
                               </TouchableOpacity>
                             </View>

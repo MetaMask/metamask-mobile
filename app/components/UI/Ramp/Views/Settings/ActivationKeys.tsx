@@ -1,18 +1,32 @@
+// Third party dependencies
 import React, { useCallback } from 'react';
 import { ActivityIndicator, Switch, TouchableOpacity } from 'react-native';
 
+import { useNavigation } from '@react-navigation/native';
+// External dependencies
 import BaseListItem from '../../../../Base/ListItem';
-import Text from '../../../../Base/Text';
-import StyledButton from '../../../StyledButton';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 
 import Row from '../../components/Row';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import useActivationKeys from '../../hooks/useActivationKeys';
 
 import { useRampSDK } from '../../sdk';
-import { useNavigation } from '@react-navigation/native';
+
+// Internal dependencies
 import { createAddActivationKeyNavDetails } from './AddActivationKey';
 
 import styles from './Settings.styles';
@@ -52,8 +66,8 @@ function ActivationKeys() {
 
   return (
     <>
-      <Text reset>
-        <Text style={style.title}>
+      <Text style={style.title}>
+        <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.fiat_on_ramp.sdk_activation_keys')}
         </Text>
         <Text>
@@ -62,7 +76,7 @@ function ActivationKeys() {
         </Text>
       </Text>
       <Row>
-        <Text grey>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('app_settings.fiat_on_ramp.activation_keys_description')}
         </Text>
       </Row>
@@ -85,7 +99,7 @@ function ActivationKeys() {
               />
             </ListItem.Icon>
             <ListItem.Body>
-              <Text muted={isLoadingKeys} selectable>
+              <Text color={TextColor.Muted} selectable>
                 {activationKey.key}
               </Text>
             </ListItem.Body>
@@ -98,9 +112,9 @@ function ActivationKeys() {
                 onPress={() => removeActivationKey(activationKey.key)}
                 hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
               >
-                <MaterialCommunityIcons
-                  name="delete-outline"
-                  size={20}
+                <Icon
+                  name={IconName.Trash}
+                  size={IconSize.Lg}
                   color={
                     isLoadingKeys ? colors.error.disabled : colors.error.default
                   }
@@ -111,13 +125,14 @@ function ActivationKeys() {
         </ListItem>
       ))}
       <Row>
-        <StyledButton
-          type="normal"
-          disabled={isLoadingKeys}
+        <Button
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          isDisabled={isLoadingKeys}
           onPress={handleAddNewKeyPress}
-        >
-          {strings('app_settings.fiat_on_ramp.add_activation_key')}
-        </StyledButton>
+          label={strings('app_settings.fiat_on_ramp.add_activation_key')}
+        />
       </Row>
     </>
   );
