@@ -502,9 +502,9 @@ class ChoosePassword extends PureComponent {
     await PreferencesController.update(preferencesControllerState);
     // Reselect previous selected account if still available
     if (hdKeyring.accounts.includes(selectedAddress)) {
-      PreferencesController.setSelectedAddress(selectedAddress);
+      Engine.setSelectedAddress(selectedAddress);
     } else {
-      PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
+      Engine.setSelectedAddress(hdKeyring.accounts[0]);
     }
   };
 
