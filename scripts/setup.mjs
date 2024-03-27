@@ -135,13 +135,6 @@ const patchModulesTask = {
         await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
       }
     },
-    // TODO: validate if we really need to stil jetify our packages
-    {
-      title: 'Jetify',
-      task: async () => {
-        await $`yarn jetify`;
-      }
-    },
     {
       title: 'Patch npm packages',
       task: async () => {
