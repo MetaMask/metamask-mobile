@@ -128,7 +128,7 @@ describe('LedgerConnect', () => {
     Device.getDeviceHeight.mockReturnValue(50);
   });
 
-  it('should render correctly', () => {
+  it('render matches latest snapshot', () => {
     const wrapper = renderWithProvider(<LedgerConnect />);
     expect(wrapper).toMatchSnapshot();
   });
@@ -153,7 +153,7 @@ describe('LedgerConnect', () => {
     expect(ledgerLogicToRun).toHaveBeenCalled();
   });
 
-  it('should show error when LedgerCommunicationError FailedToOpenApp is returned', () => {
+  it('displays error on LedgerCommunicationError FailedToOpenApp', () => {
     checkLedgerCommunicationErrorFlow(
       LedgerCommunicationErrors.FailedToOpenApp,
       strings('ledger.failed_to_open_eth_app'),
@@ -161,7 +161,7 @@ describe('LedgerConnect', () => {
     );
   });
 
-  it('should show error when LedgerCommunicationError FailedToCloseApp is returned', () => {
+  it('displays error on LedgerCommunicationError FailedToCloseApp', () => {
     checkLedgerCommunicationErrorFlow(
       LedgerCommunicationErrors.FailedToCloseApp,
       strings('ledger.running_app_close'),
@@ -169,7 +169,7 @@ describe('LedgerConnect', () => {
     );
   });
 
-  it('should show error when LedgerCommunicationError AppIsNotInstalled is returned', () => {
+  it('displays error on LedgerCommunicationError AppIsNotInstalled', () => {
     checkLedgerCommunicationErrorFlow(
       LedgerCommunicationErrors.AppIsNotInstalled,
       strings('ledger.ethereum_app_not_installed'),
@@ -177,7 +177,7 @@ describe('LedgerConnect', () => {
     );
   });
 
-  it('should show error when LedgerCommunicationError LedgerIsLocked is returned', () => {
+  it('displays error on LedgerCommunicationError LedgerIsLocked', () => {
     checkLedgerCommunicationErrorFlow(
       LedgerCommunicationErrors.LedgerIsLocked,
       strings('ledger.ledger_is_locked'),
@@ -185,7 +185,7 @@ describe('LedgerConnect', () => {
     );
   });
 
-  it('should navigate to selectHardwareWallet when default LedgerCommunicationError is returned', () => {
+  it('navigates to selectHardwareWallet on default LedgerCommunicationError', () => {
     const navigate = jest.fn();
     useNavigation.mockReturnValue({
       navigate,
@@ -205,7 +205,7 @@ describe('LedgerConnect', () => {
     expect(navigate).toHaveBeenNthCalledWith(1, 'SelectHardwareWallet');
   });
 
-  it('should show correct permission text when device is android 12+ ', () => {
+  it('displays android 12+ permission text on android 12+ device', () => {
     getSystemVersion.mockReturnValue('13');
     const { getByText } = renderWithProvider(<LedgerConnect />);
     expect(
@@ -215,7 +215,7 @@ describe('LedgerConnect', () => {
     ).toBeTruthy();
   });
 
-  it('should show correct permission text when device is android 11 ', () => {
+  it('displays android 11 permission text on android 11 device', () => {
     getSystemVersion.mockReturnValue('11');
     const { getByText } = renderWithProvider(<LedgerConnect />);
     expect(
@@ -223,7 +223,7 @@ describe('LedgerConnect', () => {
     ).toBeTruthy();
   });
 
-  it('should open how to install eth app link when clicked', () => {
+  it('opens "how to install eth" on link', () => {
     const navigate = jest.fn();
     useNavigation.mockReturnValue({
       navigate,
@@ -246,7 +246,7 @@ describe('LedgerConnect', () => {
     });
   });
 
-  it('should call connectLedger when retry button is pressed', () => {
+  it('calls connectLedger on retry button', () => {
     const ledgerLogicToRun = jest.fn();
 
     useLedgerBluetooth.mockReturnValue({

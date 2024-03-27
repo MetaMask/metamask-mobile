@@ -22,7 +22,7 @@ jest.mock('../../../../util/device', () => ({
 }));
 
 describe('SearchingForDeviceStep', () => {
-  it('renders correctly', () => {
+  it('renders device search step', () => {
     getSystemVersion.mockReturnValue('13');
     const { getByTestId } = renderWithProvider(<SearchingForDeviceStep />);
     expect(getByTestId(SEARCHING_FOR_DEVICE_STEP)).toBeTruthy();
@@ -66,7 +66,7 @@ describe('SearchingForDeviceStep', () => {
     ).toBeTruthy();
   });
 
-  it('doesnt not show permission text for ios', () => {
+  it('does not show permission text for iOS', () => {
     Device.isAndroid.mockReturnValueOnce(false);
     getSystemVersion.mockReturnValue('11');
     const { getByText } = renderWithProvider(<SearchingForDeviceStep />);

@@ -78,7 +78,7 @@ describe('useBluetoothPermissions', () => {
     );
   });
 
-  it('grants permissions on Android version 12 and above', async () => {
+  it('grants permissions on Android 12+', async () => {
     Device.isAndroid.mockReturnValue(true);
     getSystemVersion.mockReturnValue('12');
     requestMultiple.mockResolvedValue({
@@ -95,7 +95,7 @@ describe('useBluetoothPermissions', () => {
     expect(result.current.bluetoothPermissionError).toBeUndefined();
   });
 
-  it('denies permissions on Android version 12 and above', async () => {
+  it('denies permissions on Android 12+', async () => {
     Device.isAndroid.mockReturnValue(true);
     getSystemVersion.mockReturnValue('12');
     requestMultiple.mockResolvedValue({
@@ -114,7 +114,7 @@ describe('useBluetoothPermissions', () => {
     );
   });
 
-  it('grants permissions on Android version below 12', async () => {
+  it('grants permissions on Android <12', async () => {
     Device.isAndroid.mockReturnValue(true);
     getSystemVersion.mockReturnValue('11');
     request.mockResolvedValue(RESULTS.GRANTED);
@@ -128,7 +128,7 @@ describe('useBluetoothPermissions', () => {
     expect(result.current.bluetoothPermissionError).toBeUndefined();
   });
 
-  it('denies permissions on Android version below 12', async () => {
+  it('denies permissions on Android <12', async () => {
     Device.isAndroid.mockReturnValue(true);
     getSystemVersion.mockReturnValue('11');
     request.mockResolvedValue(RESULTS.DENIED);
@@ -165,7 +165,7 @@ describe('useBluetoothPermissions', () => {
     expect(requestMultiple).toHaveBeenCalledTimes(2);
   });
 
-  it('does not check permissions when app state changes to inactive', async () => {
+  it('does not check permissions when app state changes to background', async () => {
     Device.isAndroid.mockReturnValue(true);
     getSystemVersion.mockReturnValue('12');
     requestMultiple.mockResolvedValue({
@@ -186,7 +186,7 @@ describe('useBluetoothPermissions', () => {
     expect(requestMultiple).toHaveBeenCalledTimes(1);
   });
 
-  it('should still grants permissions when getSystemVersion is null', async () => {
+  it('grants permissions when getSystemVersion is null', async () => {
     Device.isAndroid.mockReturnValue(true);
     getSystemVersion.mockReturnValue(null);
     request.mockResolvedValue(RESULTS.GRANTED);
@@ -200,7 +200,7 @@ describe('useBluetoothPermissions', () => {
     expect(result.current.bluetoothPermissionError).toBeUndefined();
   });
 
-  it('should still grants permissions when getSystemVersion return not number', async () => {
+  it('grants permissions when getSystemVersion return is not a number', async () => {
     Device.isAndroid.mockReturnValue(true);
     getSystemVersion.mockReturnValue('adbd');
     request.mockResolvedValue(RESULTS.GRANTED);

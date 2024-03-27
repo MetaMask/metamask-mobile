@@ -48,7 +48,7 @@ describe('Scan', () => {
     });
   });
 
-  it('should render correctly', () => {
+  it('render matches latest snapshot', () => {
     const container = renderWithProvider(
       <Scan
         onDeviceSelected={jest.fn()}
@@ -84,7 +84,7 @@ describe('Scan', () => {
     expect(onDeviceSelected).toHaveBeenCalledWith(selectedDevice);
   });
 
-  it('should call onScanningErrorStateChanged when bluetoothPermissionError LocationAccessBlocked occur', () => {
+  it('calls onScanningErrorStateChanged on bluetoothPermissionError LocationAccessBlocked', () => {
     const onScanningErrorStateChanged = jest.fn();
 
     useBluetoothPermissions.mockReturnValue({
@@ -104,7 +104,7 @@ describe('Scan', () => {
     expect(onScanningErrorStateChanged).toHaveBeenCalled();
   });
 
-  it('should call onScanningErrorStateChanged when bluetoothPermissionError BluetoothAccessBlocked occur', () => {
+  it('calls onScanningErrorStateChanged on bluetoothPermissionError BluetoothAccessBlocked', () => {
     const onScanningErrorStateChanged = jest.fn();
 
     useBluetoothPermissions.mockReturnValue({
@@ -125,7 +125,7 @@ describe('Scan', () => {
     expect(onScanningErrorStateChanged).toHaveBeenCalled();
   });
 
-  it('should call onScanningErrorStateChanged when bluetoothPermissionError NearbyDevicesAccessBlocked occur', () => {
+  it('calls onScanningErrorStateChanged on bluetoothPermissionError NearbyDevicesAccessBlocked', () => {
     const onScanningErrorStateChanged = jest.fn();
 
     useBluetoothPermissions.mockReturnValue({
@@ -146,7 +146,7 @@ describe('Scan', () => {
     expect(onScanningErrorStateChanged).toHaveBeenCalled();
   });
 
-  it('should call onScanningErrorStateChanged when bluetoothConnectionError occur', () => {
+  it('calls onScanningErrorStateChanged on bluetoothConnectionError', () => {
     const onScanningErrorStateChanged = jest.fn();
 
     useBluetooth.mockReturnValue({
@@ -165,7 +165,7 @@ describe('Scan', () => {
     expect(onScanningErrorStateChanged).toHaveBeenCalled();
   });
 
-  it('should call onScanningErrorStateChanged when deviceScanError occur', () => {
+  it('calls onScanningErrorStateChanged on deviceScanError', () => {
     const onScanningErrorStateChanged = jest.fn();
 
     useBluetoothDevices.mockReturnValue({
@@ -184,7 +184,7 @@ describe('Scan', () => {
     expect(onScanningErrorStateChanged).toHaveBeenCalled();
   });
 
-  it('should call onDeviceSelected when user select a device from the list', () => {
+  it('calls onDeviceSelected when user selects a Ledger device', () => {
     const onDeviceSelected = jest.fn();
     useBluetoothDevices.mockReturnValue({
       devices: [
