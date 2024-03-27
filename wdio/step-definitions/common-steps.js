@@ -141,7 +141,8 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
 });
 
 Then(/^"([^"]*)?" is displayed for app upgrade step/, async (text) => {
-  const appUpgradeText = process.env[text]
+  const envVar = text.replace(/"/g, '');
+  const appUpgradeText = process.env[envVar];
   const timeout = 1000;
   await driver.pause(timeout);
   await CommonScreen.isTextDisplayed(appUpgradeText);
