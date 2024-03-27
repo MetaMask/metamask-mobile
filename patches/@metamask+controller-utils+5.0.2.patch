@@ -109,3 +109,39 @@ index 6718e5e..a092f29 100644
      readonly "linea-mainnet": "0xe708";
  };
  export declare type ChainId = (typeof ChainId)[keyof typeof ChainId];
+diff --git a/node_modules/@metamask/controller-utils/dist/types.js b/node_modules/@metamask/controller-utils/dist/types.js
+index 9a41d8a..077ddeb 100644
+--- a/node_modules/@metamask/controller-utils/dist/types.js
++++ b/node_modules/@metamask/controller-utils/dist/types.js
+@@ -9,6 +9,7 @@ exports.InfuraNetworkType = {
+     goerli: 'goerli',
+     sepolia: 'sepolia',
+     'linea-goerli': 'linea-goerli',
++    'linea-sepolia': 'linea-sepolia',
+     'linea-mainnet': 'linea-mainnet',
+ };
+ /**
+@@ -36,6 +37,7 @@ var BuiltInNetworkName;
+     BuiltInNetworkName["Goerli"] = "goerli";
+     BuiltInNetworkName["Sepolia"] = "sepolia";
+     BuiltInNetworkName["LineaGoerli"] = "linea-goerli";
++    BuiltInNetworkName["LineaSepolia"] = "linea-sepolia";
+     BuiltInNetworkName["LineaMainnet"] = "linea-mainnet";
+     BuiltInNetworkName["Aurora"] = "aurora";
+ })(BuiltInNetworkName = exports.BuiltInNetworkName || (exports.BuiltInNetworkName = {}));
+@@ -50,6 +52,7 @@ exports.ChainId = {
+     [BuiltInNetworkName.Sepolia]: '0xaa36a7',
+     [BuiltInNetworkName.Aurora]: '0x4e454152',
+     [BuiltInNetworkName.LineaGoerli]: '0xe704',
++    [BuiltInNetworkName.LineaSepolia]: '0xe705',
+     [BuiltInNetworkName.LineaMainnet]: '0xe708', // toHex(59144)
+ };
+ var NetworksTicker;
+@@ -58,6 +61,7 @@ var NetworksTicker;
+     NetworksTicker["goerli"] = "GoerliETH";
+     NetworksTicker["sepolia"] = "SepoliaETH";
+     NetworksTicker["linea-goerli"] = "LineaETH";
++    NetworksTicker["linea-sepolia"] = "LineaETH";
+     NetworksTicker["linea-mainnet"] = "ETH";
+     NetworksTicker["rpc"] = "";
+ })(NetworksTicker = exports.NetworksTicker || (exports.NetworksTicker = {}));
