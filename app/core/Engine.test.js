@@ -43,21 +43,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     let backgroundState = engine.datamodel.state;
 
-    // deleting lastVisited from chainStatus, since its timestamp it makes the test case fail
-    const { chainId, versionInfo } =
-      backgroundState.PPOMController.chainStatus['0x1'];
     backgroundState = {
       ...backgroundState,
-      PPOMController: {
-        ...backgroundState.PPOMController,
-        chainStatus: {
-          ...backgroundState.PPOMController.chainStatus,
-          '0x1': {
-            chainId,
-            versionInfo,
-          },
-        },
-      },
       KeyringController: {
         ...backgroundState.KeyringController,
         vault: {
