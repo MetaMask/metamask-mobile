@@ -13,7 +13,7 @@ Feature: Measure the app launch times for warm starts
     When I tap on the Settings tab option
     And I scroll up
     And In settings I tap on "About MetaMask"
-    Then "CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER" is displayed for app upgrade step
+    Then version "CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER" is displayed for app upgrade step
     When I install upgrade the app
     And I relaunch the app
     And the splash animation completes
@@ -22,5 +22,5 @@ Feature: Measure the app launch times for warm starts
     And I tap on the Settings tab option
     And I scroll up
     And In settings I tap on "About MetaMask"
-    Then "NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER" is displayed for app upgrade step
+    Then version "NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER" is displayed for app upgrade step
     And removed test app
