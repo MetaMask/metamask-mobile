@@ -19,9 +19,7 @@ import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import {
   selectChainId,
-  selectNetworkId,
   selectProviderConfig,
-  selectLegacyNetwork,
 } from '../../selectors/networkController';
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -38,6 +36,19 @@ const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getPermittedAccounts } from '../Permissions';
+import { NetworkStatus } from '@metamask/network-controller';
+
+const legacyNetworkId = () => {
+  const { networksMetadata, selectedNetworkClientId } =
+    store.getState().engine.backgroundState.NetworkController;
+
+  const { networkId } = store.getState().networkOnboarded;
+
+  return networksMetadata?.[selectedNetworkClientId].status !==
+    NetworkStatus.Available
+    ? 'loading'
+    : networkId;
+};
 
 export class BackgroundBridge extends EventEmitter {
   constructor({
@@ -79,7 +90,7 @@ export class BackgroundBridge extends EventEmitter {
     this.engine = null;
 
     this.chainIdSent = selectChainId(store.getState());
-    this.networkVersionSent = selectNetworkId(store.getState());
+    this.networkVersionSent = store.getState().networkOnboarded;
 
     // This will only be used for WalletConnect for now
     this.addressSent =
@@ -208,7 +219,7 @@ export class BackgroundBridge extends EventEmitter {
     }
 
     const result = {
-      networkVersion: selectLegacyNetwork(store.getState()),
+      networkVersion: legacyNetworkId(),
       chainId,
     };
     return result;
@@ -404,7 +415,7 @@ export class BackgroundBridge extends EventEmitter {
     return {
       isInitialized: !!vault,
       isUnlocked: true,
-      network: selectLegacyNetwork(store.getState()),
+      network: legacyNetworkId(),
       selectedAddress,
     };
   }

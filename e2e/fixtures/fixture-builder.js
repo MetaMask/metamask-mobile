@@ -568,6 +568,7 @@ class FixtureBuilder {
             networkUrl: '',
             networkStatus: false,
           },
+          networkId: '',
         },
         security: {
           allowLoginWithRememberMe: false,

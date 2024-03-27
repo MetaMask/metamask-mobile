@@ -38,3 +38,8 @@ export const showNetworkOnboardingAction = ({
   nativeToken,
   showNetworkOnboarding,
 });
+
+export const setNetworkId = (networkId: string) => ({
+  type: 'NETWORK_ID_UPDATED',
+  networkId,
+});
