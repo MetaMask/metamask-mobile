@@ -279,7 +279,7 @@ describe('LedgerConfirmationModal', () => {
     expect(getByTestId(ERROR_STEP)).toBeTruthy();
   });
 
-  it('should run retry connectLedger logic when user clicks on retry button', async () => {
+  it('retries connectLedger when retry button is used', async () => {
     const ledgerLogicToRun = jest.fn();
 
     useLedgerBluetooth.mockReturnValue({
@@ -309,7 +309,7 @@ describe('LedgerConfirmationModal', () => {
     expect(ledgerLogicToRun).toHaveBeenCalledTimes(2);
   });
 
-  it('should run retry checkPermissions logic when user clicks on retry button', async () => {
+  it('retries connectLedger when retry button is used', async () => {
     const checkPermissions = jest.fn();
     useBluetoothPermissions.mockReturnValue({
       hasBluetoothPermissions: false,
@@ -361,7 +361,7 @@ describe('LedgerConfirmationModal', () => {
     expect(onConfirmation).toHaveBeenCalled();
   });
 
-  it('should log LEDGER_HARDWARE_WALLET_ERROR when unlockLedgerDefaultAccount throw exception', async () => {
+  it('logs LEDGER_HARDWARE_WALLET_ERROR thrown by unlockLedgerDefaultAccount', async () => {
     const onConfirmation = jest.fn();
 
     const ledgerLogicToRun = jest.fn();
