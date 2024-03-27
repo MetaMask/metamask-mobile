@@ -140,6 +140,13 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
   await CommonScreen.isTextDisplayed(text);
 });
 
+Then(/^version "([^"]*)?" is displayed for app upgrade step/, async (text) => {
+  const appUpgradeText = process.env[text];
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(appUpgradeText);
+});
+
 Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
@@ -267,7 +274,7 @@ When(/^I tap on the Activity tab option$/, async () => {
 });
 
 When(/^I install upgrade the app$/, async () => {
-  await driver.installApp('./app-qa-release-current.apk')
+  await driver.installApp(process.env.BROWSERSTACK_APP_URL)
 });
 
 When(/^I scroll up$/, async () => {
@@ -276,6 +283,7 @@ When(/^I scroll up$/, async () => {
 
 Then(/^removed test app$/, async () => {
   const platform = await driver.getPlatform();
+  // TODO: Use environment variables for bundle IDs
   if (platform === 'iOS') {
     await driver.removeApp('io.metamask.MetaMask-QA');
   }
@@ -283,4 +291,8 @@ Then(/^removed test app$/, async () => {
   if (platform === 'Android') {
     await driver.removeApp('io.metamask.qa');
   }
+});
+
+Given(/^the splash animation completes$/, async () => {
+  await WelcomeScreen.waitForSplashAnimationToComplete();
 });

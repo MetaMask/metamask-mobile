@@ -15,6 +15,7 @@ pipelines:
     stages:
       - create_build_release: {}
       - deploy_build_release: {}
+      - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
       - release_notify: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
@@ -37,9 +38,10 @@ pipelines:
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-      - build_e2e_android_stage: {} #builds android detox E2E
-      - run_e2e_android_stage: {} #runs android detox test E2E
-      - notify: {}
+      - run_release_e2e_ios_android_stage: {}
+      # - build_e2e_android_stage: {} #builds android detox E2E
+      # - run_e2e_android_stage: {} #runs android detox test E2E
+      # - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
     stages:
@@ -130,14 +132,15 @@ stages:
       - android_run_regression_tests: {}
   run_release_e2e_ios_android_stage:
     workflows:
-      - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
-      - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
-      - run_tag_smoke_swaps_ios: {}
-      - run_tag_smoke_swaps_android: {}
-      - run_tag_smoke_core_ios: {}
-      - run_tag_smoke_core_android: {}
+      # - ios_run_regression_tests: {}
+      # - android_run_regression_tests: {}
+      # - run_tag_smoke_confirmations_ios: {}
+      # - run_tag_smoke_confirmations_android: {}
+      # - run_tag_smoke_swaps_ios: {}
+      # - run_tag_smoke_swaps_android: {}
+      # - run_tag_smoke_core_ios: {}
+      # - run_tag_smoke_core_android: {}
+      - android_run_app_upgrade_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -416,6 +419,22 @@ workflows:
       - TEST_SUITE: 'Regression'
     after_run:
       - android_e2e_test
+  android_run_app_upgrade_test:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - BROWSERSTACK_CURRENT_APP_URL: 'bs://111887b9cb8b1282c38031e1ede8aa83e841ae65' # TODO: last version's QA build 7.18.0 1268
+      - BROWSERSTACK_TAG_EXPRESSION: '@upgrade and @androidApp'
+      - CURRENT_BUILD_VERSION: 7.18.0
+      - CURRENT_BUILD_NUMBER: 1281
+      - NEW_BUILD_VERSION: 7.18.0
+      - NEW_BUILD_NUMBER: 1281
+      - CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER: 'MetaMask-QA v$CURRENT_BUILD_VERSION ($CURRENT_BUILD_NUMBER)'
+      - NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER: 'MetaMask-QA v$NEW_BUILD_VERSION ($NEW_BUILD_NUMBER)'
+    after_run:
+      - build_android_qa
 
   ### Seperating workflows so they run concurrently during smoke runs
   run_tag_smoke_confirmations_ios:
@@ -994,6 +1013,7 @@ workflows:
             - wait_for_builds: 'false'
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+            # environment_key_list must be separated by new lines. https://github.com/bitrise-steplib/bitrise-step-build-router-start/blob/master/step.yml#L86
             - environment_key_list: BROWSERSTACK_APP_URL
 
                 BROWSERSTACK_DEVICE
@@ -1001,6 +1021,12 @@ workflows:
                 BROWSERSTACK_OS_VERSION
 
                 BROWSERSTACK_TAG_EXPRESSION
+
+                CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER
+
+                NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER
+
+                BROWSERSTACK_CURRENT_APP_URL
   wdio_android_e2e_test:
     before_run:
       - code_setup

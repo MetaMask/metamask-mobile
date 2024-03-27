@@ -42,6 +42,12 @@ class WelcomeScreen {
     }
   }
 
+  async waitForSplashAnimationToComplete() {
+    const elem = await this.splashScreenMetamaskAnimationId;
+    await elem.waitForExist();
+    await elem.waitForExist({ reverse: true });
+  }
+
   async isScreenDisplayed() {
     expect(this.screen).toBeDisplayed();
   }
