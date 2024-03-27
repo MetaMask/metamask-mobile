@@ -241,12 +241,26 @@ const ImportFromSecretRecoveryPhrase = ({
           new_wallet: false,
         });
         if (onboardingWizard) {
-          navigation.replace(Routes.ONBOARDING.MANUAL_BACKUP.STEP_3);
+          if (process.env.BASIC_FUNCTIONALITY) {
+            navigation.reset({
+              index: 1,
+              routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+            });
+          } else {
+            navigation.replace(Routes.ONBOARDING.MANUAL_BACKUP.STEP_3);
+          }
         } else {
           setOnboardingWizardStep(1);
-          navigation.replace(Routes.ONBOARDING.HOME_NAV, {
-            screen: Routes.WALLET_VIEW,
-          });
+          if (process.env.BASIC_FUNCTIONALITY) {
+            navigation.reset({
+              index: 1,
+              routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+            });
+          } else {
+            navigation.replace(Routes.ONBOARDING.HOME_NAV, {
+              screen: Routes.WALLET_VIEW,
+            });
+          }
         }
         await importAdditionalAccounts();
       } catch (error) {

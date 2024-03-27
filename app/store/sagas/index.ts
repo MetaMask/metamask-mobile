@@ -14,6 +14,14 @@ import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
+import { isObject } from '@metamask/utils';
+import AppConstants from '../../../app/core/AppConstants';
+
+// We are intercepting all fetch request to gate api calls
+// based on privacy settings.
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+const originalFetch = window.fetch; // Never touch this!
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -105,7 +113,43 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
   }
 }
 
+export function* basicFunctionalityToggle() {
+  while (true) {
+    const { basicFunctionalityEnabled } = yield take(
+      'TOGGLE_BASIC_FUNCTIONALITY',
+    );
+    if (!basicFunctionalityEnabled) {
+      const blockList = AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      window.fetch = function (fetchProp: any) {
+        let url = '';
+        if (typeof fetchProp === 'string') {
+          url = fetchProp;
+        } else if (isObject(fetchProp)) {
+          url = fetchProp.url as string;
+        }
+
+        if (!url) {
+          Promise.reject(new Error('No URL')).catch((error) => {
+            console.error(error);
+          });
+        }
+
+        const disallowed = blockList.find((api) => url.includes(api));
+        if (disallowed) {
+          Promise.reject(new Error(`Disallowed URL: ${url}`)).catch((error) => {
+            console.error(error);
+          });
+        }
+        return originalFetch.apply(this, [url]);
+      };
+    }
+  }
+}
+
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
   yield fork(authStateMachine);
+  yield fork(basicFunctionalityToggle);
 }
