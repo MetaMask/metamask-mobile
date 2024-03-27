@@ -1013,12 +1013,19 @@ workflows:
             - wait_for_builds: 'false'
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+            # environment_key_list must be separated by new lines. https://github.com/bitrise-steplib/bitrise-step-build-router-start/blob/master/step.yml#L86
             - environment_key_list: BROWSERSTACK_APP_URL
+
                 BROWSERSTACK_DEVICE
+
                 BROWSERSTACK_OS_VERSION
+
                 BROWSERSTACK_TAG_EXPRESSION
+
                 CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER
+
                 NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER
+
                 BROWSERSTACK_CURRENT_APP_URL
   wdio_android_e2e_test:
     before_run:
