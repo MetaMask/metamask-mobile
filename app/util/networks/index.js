@@ -526,7 +526,11 @@ export function convertNetworkId(value) {
   }
   throw new Error(`Cannot parse as a valid network ID: '${value}'`);
 }
-
+/**
+ * This function is only needed to get the networkId to support some legacy networks
+ * @deprecated
+ * @returns - network id of the current network
+ */
 export const deprecatedGetNetworkId = async () => {
   const ethQuery = Engine.controllerMessenger.call(
     'NetworkController:getEthQuery',
