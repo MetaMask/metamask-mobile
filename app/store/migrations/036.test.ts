@@ -108,21 +108,21 @@ describe('Migration #036', () => {
     it('should throw if state.engine.backgroundState is not defined', async () => {
       const oldState = {
         engine: {
-          backgroundState: null,
+          backgroundState: undefined,
         },
       };
       const newState = await migrate(oldState);
       expect(newState).toStrictEqual(oldState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-        `Migration 36: Invalid root engine backgroundState: 'object'`,
+        `Migration 36: Invalid root engine backgroundState: 'undefined'`,
       );
     });
     it('should throw if state.engine.backgroundState.PreferencesController is not defined', async () => {
       const oldState = {
         engine: {
           backgroundState: {
-            PreferencesController: null,
+            PreferencesController: undefined,
           },
         },
       };
@@ -130,7 +130,22 @@ describe('Migration #036', () => {
       expect(newState).toStrictEqual(oldState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-        `Migration 36: Invalid PreferencesController state: 'object'`,
+        `Migration 36: Invalid PreferencesController state: 'undefined'`,
+      );
+    });
+    it('should throw if state.engine.backgroundState.PreferencesController.identities is not defined', async () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            PreferencesController: {},
+          },
+        },
+      };
+      const newState = await migrate(oldState);
+      expect(newState).toStrictEqual(oldState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        `Migration 36: Missing identities property from PreferencesController: 'object'`,
       );
     });
     it('creates default state for accounts controller', async () => {
