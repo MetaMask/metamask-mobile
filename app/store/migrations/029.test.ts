@@ -74,6 +74,19 @@ const oldState = {
           },
         ],
       },
+      TokensController: {
+        allTokens: { '1': { '0x123': { address: '0x123' } } },
+        allIgnoredTokens: { '1': { '0x123': { address: '0x123' } } },
+        allDetectedTokens: { '1': { '0x123': { address: '0x123' } } },
+      },
+      TokenRatesController: {
+        contractExchangeRatesByChainId: { '1': { ETH: { '0x123': 0.0001 } } },
+      },
+      TokenListController: {
+        tokensChainsCache: {
+          '1': { timeStamp: 1, data: { '0x123': { address: '0x123' } } },
+        },
+      },
     },
   },
   networkOnboarded: {
@@ -159,6 +172,19 @@ const expectedNewState = {
             verifiedOnBlockchain: true,
           },
         ],
+      },
+      TokensController: {
+        allTokens: { '0x1': { '0x123': { address: '0x123' } } },
+        allIgnoredTokens: { '0x1': { '0x123': { address: '0x123' } } },
+        allDetectedTokens: { '0x1': { '0x123': { address: '0x123' } } },
+      },
+      TokenRatesController: {
+        contractExchangeRatesByChainId: { '0x1': { ETH: { '0x123': 0.0001 } } },
+      },
+      TokenListController: {
+        tokensChainsCache: {
+          '0x1': { timeStamp: 1, data: { '0x123': { address: '0x123' } } },
+        },
       },
     },
   },
@@ -256,23 +282,6 @@ describe('Migration #29', () => {
             NetworkController: {
               ...initialBackgroundState.NetworkController,
               networkDetails: {
-                isEIP1559Compatible: undefined,
-              },
-            },
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 29: Invalid NetworkController networkDetails isEIP1559Compatible: 'undefined'",
-      scenario: 'networkDetails isEIP1559Compatible is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              ...initialBackgroundState.NetworkController,
-              networkDetails: {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: null,
@@ -360,12 +369,68 @@ describe('Migration #29', () => {
       errorMessage: "Migration 29: Invalid TransactionController state: 'null'",
       scenario: 'TransactionController state is invalid',
     },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            ...initialBackgroundState,
+            NetworkController: {
+              ...initialBackgroundState.NetworkController,
+              networkDetails: {
+                isEIP1559Compatible: true,
+              },
+              networkConfigurations: {},
+            },
+            TokensController: null,
+          },
+        },
+      }),
+      errorMessage: "Migration 29: Invalid TokensController state: 'null'",
+      scenario: 'TokensController state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            ...initialBackgroundState,
+            NetworkController: {
+              ...initialBackgroundState.NetworkController,
+              networkDetails: {
+                isEIP1559Compatible: true,
+              },
+              networkConfigurations: {},
+            },
+            TokenRatesController: null,
+          },
+        },
+      }),
+      errorMessage: "Migration 29: Invalid TokenRatesController state: 'null'",
+      scenario: 'TokenRatesController state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            ...initialBackgroundState,
+            NetworkController: {
+              ...initialBackgroundState.NetworkController,
+              networkDetails: {
+                isEIP1559Compatible: true,
+              },
+              networkConfigurations: {},
+            },
+            TokenListController: null,
+          },
+        },
+      }),
+      errorMessage: "Migration 29: Invalid TokenListController state: 'null'",
+      scenario: 'TokenListController state is invalid',
+    },
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, () => {
-      const newState = migration(state);
-
+    it(`should capture exception if ${scenario}`, async () => {
+      const newState = await migration(state);
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
@@ -374,8 +439,8 @@ describe('Migration #29', () => {
     });
   }
 
-  it('All states changing as expected', () => {
-    const newState = migration(oldState);
+  it('All states changing as expected', async () => {
+    const newState = await migration(oldState);
 
     expect(newState).toStrictEqual(expectedNewState);
   });

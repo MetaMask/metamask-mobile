@@ -1,4 +1,4 @@
-import migrate from './032';
+import migrate from './034';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
@@ -23,7 +23,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #32', () => {
+describe('Migration #34', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -32,14 +32,14 @@ describe('Migration #32', () => {
   const invalidStates = [
     {
       state: null,
-      errorMessage: "Migration 32: Invalid root state: 'object'",
+      errorMessage: "Migration 34: Invalid root state: 'object'",
       scenario: 'state is invalid',
     },
     {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 32: Invalid root engine state: 'object'",
+      errorMessage: "Migration 34: Invalid root engine state: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -49,7 +49,7 @@ describe('Migration #32', () => {
         },
       }),
       errorMessage:
-        "Migration 32: Invalid root engine backgroundState: 'object'",
+        "Migration 34: Invalid root engine backgroundState: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -58,7 +58,7 @@ describe('Migration #32', () => {
           backgroundState: { NetworkController: null },
         },
       }),
-      errorMessage: "Migration 32: Invalid NetworkController state: 'object'",
+      errorMessage: "Migration 34: Invalid NetworkController state: 'object'",
       scenario: 'NetworkController is invalid',
     },
     {
@@ -68,14 +68,14 @@ describe('Migration #32', () => {
         },
       }),
       errorMessage:
-        "Migration 32: Invalid NetworkController providerConfig: 'object'",
+        "Migration 34: Invalid NetworkController providerConfig: 'object'",
       scenario: 'providerConfig is invalid',
     },
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, () => {
-      const newState = migrate(state);
+    it(`should capture exception if ${scenario}`, async () => {
+      const newState = await migrate(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
@@ -85,7 +85,7 @@ describe('Migration #32', () => {
     });
   }
 
-  it('should not change ticker if ticker was defined', () => {
+  it('should not change ticker if ticker was defined', async () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -101,11 +101,11 @@ describe('Migration #32', () => {
       },
     };
 
-    const migratedState = migrate(oldState);
+    const migratedState = await migrate(oldState);
     expect(migratedState).toStrictEqual(oldState);
   });
 
-  it('should add ticker when no ticker is defined', () => {
+  it('should add ticker when no ticker is defined', async () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -119,7 +119,7 @@ describe('Migration #32', () => {
         },
       },
     };
-    const migratedState = migrate(oldState);
+    const migratedState = await migrate(oldState);
     expect(migratedState).toStrictEqual(expectedState);
   });
 });
