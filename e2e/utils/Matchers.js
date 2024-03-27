@@ -26,6 +26,18 @@ class Matchers {
   }
 
   /**
+   * Get element by text.
+   *
+   * @param {string} id - Match elements with the specified text
+   * @param {string | RegExp} label - Match elements with the specified text
+   * @param {number} index - Index of the element (default: 0)
+   * @return {Promise<Detox.IndexableNativeElement>} - Resolves to the located element
+   */
+  static async getElementByIDAndLabel(id, label, index = 0) {
+    return element(by.id(id).and(by.label(label)));
+  }
+
+  /**
    * Get element by label.
    *
    * @param {string} label - Match elements with the specified accessibility label (iOS) or content description (Android)

@@ -70,9 +70,9 @@ export const importWalletWithRecoveryPhrase = async () => {
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(1000);
   try {
-    await OnboardingWizardModal.isVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
     await OnboardingWizardModal.tapNoThanksButton();
-    await OnboardingWizardModal.isNotVisible();
+    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
   } catch {
     //
   }
@@ -122,9 +122,9 @@ export const CreateNewWallet = async () => {
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(1000);
   try {
-    await OnboardingWizardModal.isVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
     await OnboardingWizardModal.tapNoThanksButton();
-    await OnboardingWizardModal.isNotVisible();
+    await Assertions.checkIfNotVisible(OnboardingWizardModal.stepOneContainer);
   } catch {
     //
   }
@@ -140,11 +140,8 @@ export const CreateNewWallet = async () => {
   }
 
   // Dismissing the protect your wallet modal
-  await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
-  await TestHelpers.delay(1000);
-
+  await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
   await ProtectYourWalletModal.tapRemindMeLaterButton();
-
   await SkipAccountSecurityModal.tapIUnderstandCheckBox();
   await SkipAccountSecurityModal.tapSkipButton();
 };
@@ -152,7 +149,7 @@ export const CreateNewWallet = async () => {
 export const addLocalhostNetwork = async () => {
   await TabBarComponent.tapSettings();
   await SettingsView.tapNetworks();
-  await NetworkView.isNetworkViewVisible();
+  await Assertions.checkIfVisible(NetworkView.networkContainer);
 
   await TestHelpers.delay(3000);
   await NetworkView.tapAddNetworkButton();
@@ -169,17 +166,20 @@ export const addLocalhostNetwork = async () => {
   }
   await TestHelpers.delay(3000);
 
-  await NetworkEducationModal.isVisible();
-  await NetworkEducationModal.isNetworkNameCorrect('Localhost');
+  await Assertions.checkIfVisible(NetworkEducationModal.container);
+  await Assertions.checkIfElementToHaveText(
+    NetworkEducationModal.networkName,
+    'Localhost',
+  );
   await NetworkEducationModal.tapGotItButton();
-  await NetworkEducationModal.isNotVisible();
+  await Assertions.checkIfNotVisible(NetworkEducationModal.container);
 };
 
 export const switchToSepoliaNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
   await NetworkListModal.tapTestNetworkSwitch();
-  await NetworkListModal.isTestNetworkToggleOn();
-  await NetworkListModal.changeNetwork(SEPOLIA);
+  await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
+  await NetworkListModal.changeToNetwork(SEPOLIA);
   await WalletView.isNetworkNameVisible(SEPOLIA);
   await NetworkEducationModal.tapGotItButton();
 };

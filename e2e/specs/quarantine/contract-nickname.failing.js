@@ -78,9 +78,11 @@ describe('Adding Contract Nickname', () => {
     // dealing with flakiness on bitrise.
     await TestHelpers.delay(1000);
     try {
-      await OnboardingWizardModal.isVisible();
+      await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
       await OnboardingWizardModal.tapNoThanksButton();
-      await OnboardingWizardModal.isNotVisible();
+      await Assertions.checkIfNotVisible(
+        OnboardingWizardModal.stepOneContainer,
+      );
     } catch {
       //
     }
@@ -106,9 +108,9 @@ describe('Adding Contract Nickname', () => {
   });
 
   it('should dismiss network education modal', async () => {
-    await NetworkEducationModal.isVisible();
+    await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
   });
   it('should go to the Privacy and settings view', async () => {
     await TabBarComponent.tapSettings();

@@ -1,16 +1,12 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { RPC } from '../../../constants/network';
 import { connect, useSelector } from 'react-redux';
 import Description from './InfoDescription';
 import { useTheme } from '../../../util/theme';
-import {
-  NETWORK_EDUCATION_MODAL_CONTAINER_ID,
-  NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-} from '../../../../wdio/screen-objects/testIDs/Components/NetworkEducationModalTestIds';
 import { fontStyles } from '../../../styles/common';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
@@ -23,7 +19,7 @@ import {
 import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { NetworkEducationModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkEducationModal.selectors';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -148,7 +144,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
     <View style={styles.wrapper}>
       <View
         style={styles.modalContentView}
-        {...generateTestId(Platform, NETWORK_EDUCATION_MODAL_CONTAINER_ID)}
+        testID={NetworkEducationModalSelectorsIDs.CONTAINER}
       >
         <Text style={styles.title}>
           {strings('network_information.switched_network')}
@@ -162,10 +158,7 @@ const NetworkInfo = (props: NetworkInfoProps) => {
             />
             <Text
               style={styles.tokenText}
-              {...generateTestId(
-                Platform,
-                NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
-              )}
+              testID={NetworkEducationModalSelectorsIDs.NETWORK_NAME}
             >
               {networkName}
             </Text>

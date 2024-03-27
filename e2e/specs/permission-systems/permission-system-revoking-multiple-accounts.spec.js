@@ -40,7 +40,8 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await Browser.navigateToURL(SUSHI_SWAP);
         await Assertions.checkIfVisible(ConnectModal.container);
         await ConnectModal.scrollToBottomOfModal();
-        await Browser.isAccountToastVisible('Account 1');
+        await Assertions.checkIfNotVisible(ConnectModal.container);
+        await TabBarComponent.tapBrowser();
 
         // should connect with multiple accounts
         await Browser.tapOpenAllTabsButton();
@@ -65,14 +66,14 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await Browser.isRevokeAllAccountToastVisible();
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
-        await NetworkListModal.isVisible();
+        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.swipeToDismissModal();
-        await NetworkListModal.isNotVisible();
+        await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
         await TestHelpers.delay(3500);
         await Browser.tapOpenAllTabsButton();
         await TestHelpers.tapByText(SUSHI_SWAP_SHORT_HAND_URL);
         await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-        await NetworkListModal.isVisible();
+        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
       },
     );
   });

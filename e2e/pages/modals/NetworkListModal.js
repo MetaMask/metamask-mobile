@@ -1,63 +1,55 @@
-import TestHelpers from '../../helpers';
 import {
-  NETWORK_SCROLL_ID,
-  NETWORK_TEST_SWITCH_ID,
-  OTHER_NETWORK_LIST_ID,
-  ADD_NETWORK_BUTTON,
-} from '../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
-import { NetworkListModalSelectorsText } from '../../selectors/Modals/NetworkListModal.selectors';
+  NetworkListModalSelectorsIDs,
+  NetworkListModalSelectorsText,
+} from '../../selectors/Modals/NetworkListModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+import { CellModalSelectorsIDs } from '../../selectors/Modals/CellModal.selectors';
 
-export default class NetworkListModal {
-  static async changeNetwork(networkName) {
-    await TestHelpers.tapByText(networkName);
+class NetworkListModal {
+  get networkScroll() {
+    return Matchers.getElementByID(NetworkListModalSelectorsIDs.SCROLL);
   }
 
-  static async scrollToBottomOfNetworkList() {
-    await TestHelpers.swipe(NETWORK_SCROLL_ID, 'up', 'fast');
-    await TestHelpers.delay(1000);
-  }
-
-  static async swipeToDismissModal() {
-    await TestHelpers.swipeByText(
+  get selectNetwork() {
+    return Matchers.getElementByText(
       NetworkListModalSelectorsText.SELECT_NETWORK,
-      'down',
-      'slow',
-      0.6,
     );
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(NETWORK_SCROLL_ID);
+  get testSwitch() {
+    return Matchers.getElementByID(NetworkListModalSelectorsIDs.TEST_SWITCH);
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(NETWORK_SCROLL_ID);
+  async getCustomNetwork(network) {
+    if (device.getPlatform() === 'android') {
+      return Matchers.getElementByText(network);
+    }
+    const regex = new RegExp('[A-Za-z0-9]\\s' + network, 'is');
+    return Matchers.getElementByIDAndLabel(CellModalSelectorsIDs.SELECT, regex);
   }
 
-  static async isNetworkNameVisibleInListOfNetworks(networkName) {
-    await TestHelpers.checkIfElementHasString(
-      OTHER_NETWORK_LIST_ID,
-      networkName,
-    );
+  async changeToNetwork(networkName) {
+    const elem = Matchers.getElementByText(networkName);
+    await Gestures.waitAndTap(elem);
   }
 
-  static async tapTestNetworkSwitch() {
-    await TestHelpers.waitAndTap(NETWORK_TEST_SWITCH_ID);
+  async changeToCustomNetwork(networkName) {
+    const elem = this.getCustomNetwork(networkName);
+    await Gestures.waitAndTap(elem);
   }
 
-  static async tapAddNetworkButton() {
-    await TestHelpers.waitAndTap(ADD_NETWORK_BUTTON);
+  async scrollToBottomOfNetworkList() {
+    await Gestures.swipe(this.networkScroll, 'up', 'fast');
   }
 
-  static async isTestNetworkToggleOn() {
-    await TestHelpers.checkIfToggleIsOn(NETWORK_TEST_SWITCH_ID);
+  async swipeToDismissModal() {
+    await Gestures.swipe(this.selectNetwork, 'down', 'slow', 0.6);
   }
 
-  static async isTestNetworkToggleOff() {
-    await TestHelpers.checkIfToggleIsOff(NETWORK_TEST_SWITCH_ID);
-  }
-
-  static async isTestNetworkDisplayed(networkName) {
-    await TestHelpers.checkIfElementWithTextIsNotVisible(networkName);
+  async tapTestNetworkSwitch() {
+    await Gestures.waitAndTap(this.testSwitch);
   }
 }
+
+export default new NetworkListModal();
