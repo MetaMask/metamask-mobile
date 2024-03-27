@@ -86,7 +86,6 @@ import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
-import BlockaidIndicator from '../../Views/Settings/SecuritySettings/BlockaidIndicator';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
@@ -244,9 +243,7 @@ const App = ({ userLoggedIn }) => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
-  const sdkInit = useRef(false);
-  const sdkPostInit = useRef(false);
-  const [postInitReady, setPostInitReady] = useState(false);
+  const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
@@ -356,7 +353,7 @@ const App = ({ userLoggedIn }) => {
             Logger.error('Error from Branch: ' + error);
           }
 
-          if (sdkPostInit.current === true) {
+          if (sdkInit.current) {
             handleDeeplink(opts);
           } else {
             queueOfHandleDeeplinkFunctions.current =
@@ -391,13 +388,20 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
     async function initSDKConnect() {
-      if (navigator?.getCurrentRoute && onboarded && !sdkInit.current) {
+      if (
+        navigator?.getCurrentRoute &&
+        onboarded &&
+        sdkInit.current === undefined &&
+        userLoggedIn
+      ) {
+        sdkInit.current = false;
         try {
           const sdkConnect = SDKConnect.getInstance();
           await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
-          setPostInitReady(true);
+          await SDKConnect.getInstance().postInit();
           sdkInit.current = true;
         } catch (err) {
+          sdkInit.current = undefined;
           console.error(`Cannot initialize SDKConnect`, err);
         }
       }
@@ -405,29 +409,7 @@ const App = ({ userLoggedIn }) => {
     initSDKConnect().catch((err) => {
       Logger.error(err, 'Error initializing SDKConnect');
     });
-  }, [navigator, onboarded]);
-
-  useEffect(() => {
-    // Handle post-init process separately.
-    async function handlePostInit() {
-      if (
-        sdkInit.current &&
-        !sdkPostInit.current &&
-        postInitReady &&
-        userLoggedIn
-      ) {
-        try {
-          await SDKConnect.getInstance().postInit();
-          sdkPostInit.current = true;
-        } catch (err) {
-          console.error(`Cannot postInit SDKConnect`, err);
-        }
-      }
-    }
-    handlePostInit().catch((err) => {
-      Logger.error(err, 'Error postInit SDKConnect');
-    });
-  }, [userLoggedIn, postInitReady, queueOfHandleDeeplinkFunctions]);
+  }, [navigator, onboarded, userLoggedIn]);
 
   useEffect(() => {
     if (isWC2Enabled) {
@@ -585,10 +567,6 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
         component={ReturnToAppModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.BLOCKAID_INDICATOR}
-        component={BlockaidIndicator}
       />
       <Stack.Screen
         name={Routes.SHEET.AMBIGUOUS_ADDRESS}
