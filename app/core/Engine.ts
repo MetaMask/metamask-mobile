@@ -85,14 +85,12 @@ import {
   SubjectMetadataControllerActions,
   SubjectMetadataControllerEvents,
   SubjectMetadataControllerState,
-  SubjectType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
   PPOMControllerEvents,
-  PPOMInitialisationStatusType,
   PPOMState,
 } from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -107,7 +105,6 @@ import {
   PersistedSnapControllerState,
   WebViewExecutionService,
 } from '@metamask/snaps-controllers';
-import { Snap } from '@metamask/snaps-utils';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
@@ -181,7 +178,6 @@ import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
 import { isHardwareAccount } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
-import { UpdatePPOMInitializationStatus } from '../actions/experimental';
 import {
   AccountsController,
   AccountsControllerActions,
@@ -698,11 +694,6 @@ class Engine {
           ),
           getMnemonic: getPrimaryKeyringMnemonic.bind(this),
           getUnlockPromise: getAppState.bind(this),
-          addSubjectMetadata: (params: any) =>
-            this.controllerMessenger.call<'SubjectMetadataController:addSubjectMetadata'>(
-              'SubjectMetadataController:addSubjectMetadata',
-              params,
-            ),
           getSnap: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:get',
@@ -980,22 +971,6 @@ class Engine {
           fetch: fetchFunction,
         }),
     });
-
-    this.controllerMessenger.subscribe(
-      'SnapController:snapInstalled',
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      (snap: Snap, svgIcon: any = null) => {
-        const parts = snap.id.split(/[:/]/);
-        subjectMetadataController.addSubjectMetadata({
-          subjectType: SubjectType.Snap,
-          name: parts[parts.length - 1] || snap.id,
-          origin: snap.id,
-          version: snap.version,
-          svgIcon,
-        });
-      },
-    );
     ///: END:ONLY_INCLUDE_IF
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
@@ -1237,10 +1212,11 @@ class Engine {
             allowedEvents: ['NetworkController:stateChange'],
           }),
           onPreferencesChange: (listener) =>
-            preferencesController.subscribe(listener),
-          provider: networkController.getProviderAndBlockTracker().provider,
+            preferencesController.subscribe(listener as any),
+          provider: networkController.getProviderAndBlockTracker()
+            .provider as any,
           ppomProvider: {
-            PPOM,
+            PPOM: PPOM as any,
             ppomInit,
           },
           storageBackend: new RNFSStorageBackend('PPOMDB'),
@@ -1250,14 +1226,6 @@ class Engine {
           nativeCrypto: Crypto as any,
         });
         controllers.push(ppomController as any);
-        this.controllerMessenger.subscribe(
-          AppConstants.PPOM_INITIALISATION_STATE_CHANGE_EVENT,
-          (ppomInitializationStatus: PPOMInitialisationStatusType) => {
-            store.dispatch(
-              UpdatePPOMInitializationStatus(ppomInitializationStatus),
-            );
-          },
-        );
       } catch (e) {
         Logger.log(`Error initializing PPOMController: ${e}`);
         return;

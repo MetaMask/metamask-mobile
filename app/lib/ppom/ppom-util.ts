@@ -11,6 +11,8 @@ import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import Logger from '../../util/Logger';
 import { updateSecurityAlertResponse } from '../../util/transaction-controller';
 import { normalizeTransactionParams } from '@metamask/transaction-controller';
+import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
+import AppConstants from '../../core/AppConstants';
 
 const TRANSACTION_METHOD = 'eth_sendTransaction';
 
@@ -118,6 +120,10 @@ function normalizeRequest(request: any) {
   if (request.method !== TRANSACTION_METHOD) {
     return request;
   }
+
+  request.origin = request.origin
+    ?.replace(WALLET_CONNECT_ORIGIN, '')
+    ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
 
   const transactionParams = request.params?.[0] || {};
   const normalizedParams = normalizeTransactionParams(transactionParams);

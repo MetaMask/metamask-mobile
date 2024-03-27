@@ -102,7 +102,7 @@ describe('Blockaid util', () => {
     it('return false if blockaid is not on current network', () => {
       jest
         .spyOn(NetworkControllerMock, 'selectChainId')
-        .mockReturnValue(NETWORKS_CHAIN_ID.SEPOLIA);
+        .mockReturnValue(NETWORKS_CHAIN_ID.GOERLI);
       const result = isBlockaidSupportedOnCurrentChain();
       expect(result).toEqual(false);
     });
