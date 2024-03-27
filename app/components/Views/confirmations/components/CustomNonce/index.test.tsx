@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import CustomNonce from '.';
 
 describe('CustomNonce', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<CustomNonce />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(<CustomNonce />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

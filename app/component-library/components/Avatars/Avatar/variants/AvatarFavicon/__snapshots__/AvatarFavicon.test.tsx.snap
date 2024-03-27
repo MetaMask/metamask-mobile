@@ -30,9 +30,14 @@ exports[`AvatarFavicon should render SVG 1`] = `
   size="32"
   style={Object {}}
 >
-  <SvgUri
-    height="100%"
+  <Image
     onError={[Function]}
+    resizeMode="contain"
+    source={
+      Object {
+        "uri": "https://metamask.github.io/test-dapp/metamask-fox.svg",
+      }
+    }
     style={
       Object {
         "flex": 1,
@@ -41,8 +46,6 @@ exports[`AvatarFavicon should render SVG 1`] = `
       }
     }
     testID="favicon-avatar-image"
-    uri="https://metamask.github.io/test-dapp/metamask-fox.svg"
-    width="100%"
   />
 </AvatarBase>
 `;
@@ -52,9 +55,22 @@ exports[`AvatarFavicon should render fallback when svg has error 1`] = `
   size="32"
   style={Object {}}
 >
-  <Icon
-    name="Global"
-    size="20"
+  <Image
+    onError={[Function]}
+    resizeMode="contain"
+    source={
+      Object {
+        "uri": "https://metamask.github.io/test-dapp/metamask-fox.svg",
+      }
+    }
+    style={
+      Object {
+        "flex": 1,
+        "height": undefined,
+        "width": undefined,
+      }
+    }
+    testID="favicon-avatar-image"
   />
 </AvatarBase>
 `;

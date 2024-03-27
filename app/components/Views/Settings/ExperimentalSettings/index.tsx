@@ -9,9 +9,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { UpdatePPOMInitializationStatus } from '../../../../actions/experimental';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
-import { useDispatch } from 'react-redux';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
 import Button, {
@@ -21,6 +19,7 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import Device from '../../../../../app/util/device';
 import { SES_URL } from '../../../../../app/constants/urls';
+import Routes from '../../../../../app/constants/navigation/Routes';
 
 const storage = new MMKV(); // id: mmkv.default
 
@@ -28,8 +27,6 @@ const storage = new MMKV(); // id: mmkv.default
  * Main view for app Experimental Settings
  */
 const ExperimentalSettings = ({ navigation, route }: Props) => {
-  const dispatch = useDispatch();
-
   const [sesEnabled, setSesEnabled] = useState(
     storage.getBoolean('is-ses-enabled'),
   );
@@ -44,10 +41,6 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
-
-  useEffect(() => {
-    dispatch(UpdatePPOMInitializationStatus());
-  }, [dispatch]);
 
   useEffect(
     () => {
@@ -66,7 +59,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   );
 
   const goToWalletConnectSessions = useCallback(() => {
-    navigation.navigate('WalletConnectSessionsView');
+    navigation.navigate(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW);
   }, [navigation]);
 
   const openSesLink = () => Linking.openURL(SES_URL);
