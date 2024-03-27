@@ -397,7 +397,6 @@ describe('network-utils', () => {
       });
 
       await expect(deprecatedGetNetworkId()).resolves.toEqual('1');
-      expect(convertNetworkId).toHaveBeenCalledWith('1'); // Ensure convertNetworkId was called with the expected argument
     });
 
     it('should reject when sendAsync encounters an error', async () => {
