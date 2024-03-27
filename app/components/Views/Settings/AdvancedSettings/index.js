@@ -198,10 +198,6 @@ class AdvancedSettings extends PureComponent {
      * Boolean that checks if smart transactions is enabled
      */
     smartTransactionsOptInStatus: PropTypes.bool,
-    /**
-     * Boolean that checks if smart transactions feature flag is enabled
-     */
-    smartTransactionsEnabled: PropTypes.bool,
   };
 
   scrollView = React.createRef();
@@ -388,7 +384,6 @@ class AdvancedSettings extends PureComponent {
       setShowCustomNonce,
       enableEthSign,
       smartTransactionsOptInStatus,
-      smartTransactionsEnabled,
     } = this.props;
     const { resetModalVisible } = this.state;
     const { styles, colors } = this.getStyles();
@@ -577,7 +572,6 @@ class AdvancedSettings extends PureComponent {
                 </Text>
                 <View style={styles.toggle}>
                   <Switch
-                    disabled={!smartTransactionsEnabled}
                     value={smartTransactionsOptInStatus}
                     onValueChange={this.toggleSmartTransactionsOptInStatus}
                     trackColor={{
