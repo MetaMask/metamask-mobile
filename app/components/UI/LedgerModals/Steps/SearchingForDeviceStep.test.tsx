@@ -7,6 +7,7 @@ import { SEARCHING_FOR_DEVICE_STEP } from './Steps.constants';
 import { strings } from '../../../../../locales/i18n';
 import { getSystemVersion } from 'react-native-device-info';
 import Device from '../../../../util/device';
+import { LEDGER_SUPPORT_LINK } from '../../../../constants/urls';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -42,7 +43,7 @@ describe('SearchingForDeviceStep', () => {
     expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true',
+        url: LEDGER_SUPPORT_LINK,
         title: strings('ledger.how_to_install_eth_webview_title'),
       },
     });

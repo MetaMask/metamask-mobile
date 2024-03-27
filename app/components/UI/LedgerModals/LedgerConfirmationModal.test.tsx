@@ -269,7 +269,7 @@ describe('LedgerConfirmationModal', () => {
       bluetoothConnectionError: true,
     });
 
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId, getByText } = renderWithProvider(
       <LedgerConfirmationModal
         onConfirmation={jest.fn()}
         onRejection={jest.fn()}
@@ -277,6 +277,8 @@ describe('LedgerConfirmationModal', () => {
       />,
     );
     expect(getByTestId(ERROR_STEP)).toBeTruthy();
+    expect(getByText(strings('ledger.bluetooth_off'))).toBeTruthy();
+    expect(getByText(strings('ledger.bluetooth_off_message'))).toBeTruthy();
   });
 
   it('retries connectLedger when retry button is used', async () => {
@@ -309,7 +311,7 @@ describe('LedgerConfirmationModal', () => {
     expect(ledgerLogicToRun).toHaveBeenCalledTimes(2);
   });
 
-  it('retries connectLedger when retry button is used', async () => {
+  it('retries checkPermissions when retry button is used', async () => {
     const checkPermissions = jest.fn();
     useBluetoothPermissions.mockReturnValue({
       hasBluetoothPermissions: false,
