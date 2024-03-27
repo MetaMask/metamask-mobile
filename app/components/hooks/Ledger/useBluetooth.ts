@@ -20,7 +20,6 @@ const useBluetooth = (hasBluetoothPermissions: boolean) => {
                 setBluetoothOn(true);
                 setBluetoothConnectionError(false);
               }
-
               if (!e.available && e.type === State.PoweredOff) {
                 setBluetoothOn(false);
                 setBluetoothConnectionError(true);

@@ -7,14 +7,15 @@ import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 import Device from '../../../util/device';
 import useBluetooth from '../../hooks/Ledger/useBluetooth';
-import useBluetoothPermissions, {
-  BluetoothPermissionErrors,
-} from '../../hooks/useBluetoothPermissions';
+import useBluetoothPermissions from '../../hooks/useBluetoothPermissions';
 import { LedgerConnectionErrorProps } from './LedgerConnectionError';
 import useBluetoothDevices, {
   BluetoothDevice,
 } from '../../hooks/Ledger/useBluetoothDevices';
-import { LedgerCommunicationErrors } from '../../hooks/Ledger/useLedgerBluetooth';
+import {
+  BluetoothPermissionErrors,
+  LedgerCommunicationErrors,
+} from '../../../core/Ledger/ledgerErrors';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -95,6 +96,19 @@ const Scan = ({
   useEffect(() => {
     if (bluetoothPermissionError && !permissionErrorShown) {
       switch (bluetoothPermissionError) {
+        case BluetoothPermissionErrors.LocationAccessBlocked:
+          onScanningErrorStateChanged({
+            errorTitle: strings('ledger.location_access_blocked'),
+            errorSubtitle: strings('ledger.location_access_blocked_message'),
+
+            primaryButtonConfig: {
+              title: strings('ledger.view_settings'),
+              onPress: async () => {
+                await openSettings();
+              },
+            },
+          });
+          break;
         case BluetoothPermissionErrors.BluetoothAccessBlocked:
           onScanningErrorStateChanged({
             errorTitle: strings('ledger.bluetooth_access_blocked'),
@@ -107,14 +121,16 @@ const Scan = ({
             },
           });
           break;
-        case BluetoothPermissionErrors.LocationAccessBlocked:
+        case BluetoothPermissionErrors.NearbyDevicesAccessBlocked:
           onScanningErrorStateChanged({
-            errorTitle: strings('ledger.location_access_blocked'),
-            errorSubtitle: strings('ledger.location_access_blocked_message'),
+            errorTitle: strings('ledger.nearbyDevices_access_blocked'),
+            errorSubtitle: strings(
+              'ledger.nearbyDevices_access_blocked_message',
+            ),
             primaryButtonConfig: {
               title: strings('ledger.view_settings'),
-              onPress: async () => {
-                await openSettings();
+              onPress: () => {
+                openSettings();
               },
             },
           });
@@ -129,7 +145,7 @@ const Scan = ({
         errorSubtitle: strings('ledger.bluetooth_off_message'),
         primaryButtonConfig: {
           title: strings('ledger.view_settings'),
-          onPress: async () => {
+          onPress: () => {
             Platform.OS === 'ios'
               ? Linking.openURL('App-Prefs:Bluetooth')
               : Linking.openSettings();
