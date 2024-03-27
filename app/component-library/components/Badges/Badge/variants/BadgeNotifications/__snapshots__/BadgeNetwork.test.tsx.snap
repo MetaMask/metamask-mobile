@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BadgeNotifications - snapshots should render badge notifications correctly 1`] = `
+<BadgeBase
+  onLayout={[Function]}
+  style={
+    Object {
+      "alignItems": "center",
+      "aspectRatio": 1,
+      "height": "50%",
+      "justifyContent": "center",
+      "minHeight": 16,
+      "opacity": 0,
+    }
+  }
+  testID="badge-notifications"
+>
+  <Avatar
+    size="32"
+    style={
+      Object {
+        "transform": Array [
+          Object {
+            "scale": 1,
+          },
+        ],
+      }
+    }
+    variant="Notifications"
+  />
+</BadgeBase>
+`;

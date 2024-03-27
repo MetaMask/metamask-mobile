@@ -532,7 +532,8 @@
     "collectible_asset_contract": "Asset contract",
     "share_check_out_nft": "Check out my NFT!",
     "share_via": "Shared via",
-    "untitled_collection": "Untitled Collection"
+    "untitled_collection": "Untitled Collection",
+    "collection": "Collection"
   },
   "transfer": {
     "title": "Transfer",
@@ -544,7 +545,6 @@
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
-    "qr_hardware": "QR hardware",
     "remove_account_title": "Account removal",
     "remove_account_message": "Do you really want to remove this account?",
     "no": "No",
@@ -703,6 +703,26 @@
     "general_desc": "Currency conversion, primary currency, language and search engine",
     "advanced_title": "Advanced",
     "advanced_desc": "Access developer features, reset account, setup testnets, state logs, IPFS gateway and custom RPC",
+    "notifications_title": "Notifications",
+    "notifications_desc": "Manage your notifications",
+    "allow_notifications": "Allow notifications",
+    "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices. Learn how we protect your privacy while using this feature.",
+    "notifications_opts" :{
+      "customize_session_title": "Customize your notifications",
+      "customize_session_desc": "Turn on the types of notifications you want to receive:",
+      "account_session_title": "Account activity",
+      "account_session_desc": "Select the accounts you want to be notified about:",
+      "assets_sent_title": "Assets Sent",
+      "assets_sent_desc": "Funds and NFT",
+      "assets_received_title": "Assets Received",
+      "assets_received_desc": "Funds and NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "Staking, swapping, and bridging",
+      "snaps_title": "Snaps",
+      "snaps_desc": "New features and updates",
+      "products_announcements_title": "Product announcements",
+      "products_announcements_desc": "New products and features"
+    },
     "contacts_title": "Contacts",
     "contacts_desc": "Add, edit, remove, and manage your accounts",
     "security_title": "Security & Privacy",
@@ -1120,6 +1140,7 @@
     "confirm": "Confirm"
   },
   "transaction": {
+    "transaction_id": "Transaction ID",
     "alert": "ALERT",
     "amount": "Amount",
     "next": "Next",
@@ -1401,7 +1422,11 @@
     "details": "Details",
     "amount": "Amount",
     "gas_limit": "Gas Limit (Units)",
+    "gas_used": "Gas Used (Units)",
     "gas_price": "Gas Price (GWEI)",
+    "base_fee": "Base Fee (GWEI)",
+    "priority_fee": "Priority Fee (GWEI)",
+    "max_fee": "Max Fee Per Gas",
     "total": "Total",
     "view_on": "VIEW ON",
     "view_on_etherscan": "View on Etherscan",
@@ -1423,7 +1448,8 @@
     "sign_title_device": "with your Keystone",
     "sign_description_1": "After you have signed with Keystone,",
     "sign_description_2": "tap on Get Signature",
-    "sign_get_signature": "Get Signature"
+    "sign_get_signature": "Get Signature",
+    "network_fee": "Network Fee"
   },
   "address_book": {
     "recents": "Recents",
@@ -1806,7 +1832,21 @@
     "wc_signed_failed_title": "This sign request failed",
     "wc_sent_tx_rejected_title": "You've rejected the transaction request",
     "approved_tx_rejected_title": "You've rejected granting permission",
-    "wc_description": "Please check the application"
+    "wc_description": "Please check the application",
+    "wallet": "Wallet",
+    "web3": "Web3",
+    "empty": {
+      "title": "Nothing to see here",
+      "message": "This is where you can find notifications once there’s activity in your wallet. "
+    },
+    "list": {
+      "0": "All",
+      "1": "Wallet",
+      "2": "Web3"
+    },
+    "address_copied_to_clipboard": "Address copied to clipboard",
+    "transaction_id_copied_to_clipboard": "Transaction ID copied to clipboard"
+
   },
   "protect_your_wallet_modal": {
     "title": "Protect your wallet",

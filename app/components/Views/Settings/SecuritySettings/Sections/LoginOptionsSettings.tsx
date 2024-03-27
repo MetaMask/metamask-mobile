@@ -6,6 +6,8 @@ import { Authentication } from '../../../../../core';
 import AUTHENTICATION_TYPE from '../../../../../constants/userProperties';
 import Device from '../../../../../util/device';
 import AsyncStorage from '../../../../../store/async-storage-wrapper';
+import { useStyles } from '../../../../../component-library/hooks';
+import styleSheet from './styles';
 import {
   BIOMETRY_CHOICE_DISABLED,
   PASSCODE_DISABLED,
@@ -24,6 +26,7 @@ const LoginOptionsSettings = ({
   onSignWithBiometricsOptionUpdated,
   onSignWithPasscodeOptionUpdated,
 }: BiometricOptionSectionProps) => {
+  const { styles } = useStyles(styleSheet, {});
   const [biometryType, setBiometryType] = useState<
     BIOMETRY_TYPE | AUTHENTICATION_TYPE.BIOMETRIC | undefined
   >(undefined);
@@ -78,7 +81,7 @@ const LoginOptionsSettings = ({
   );
 
   return (
-    <View testID={LOGIN_OPTIONS}>
+    <View testID={LOGIN_OPTIONS} style={styles.loginOptionsWrapper}>
       {biometryType ? (
         <SecurityOptionToggle
           title={strings(`biometrics.enable_${biometryType.toLowerCase()}`)}

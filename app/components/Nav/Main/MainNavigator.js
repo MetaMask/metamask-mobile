@@ -10,11 +10,15 @@ import SimpleWebview from '../../Views/SimpleWebview';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
+import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
+import NotificationsView from '../../Views/Notifications';
+import NotificationsDetails from '../../Views/Notifications/Details';
+import GasDetails from '../../Views/Notifications/Details/GasDetails';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
@@ -236,6 +240,11 @@ const SettingsFlow = () => (
       name="AdvancedSettings"
       component={AdvancedSettings}
       options={AdvancedSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name="NotificationsSettings"
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
     />
     <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
     <Stack.Screen
@@ -534,6 +543,48 @@ const OfflineModeView = () => (
   </Stack.Navigator>
 );
 
+const NotificationsModeView = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="Notifications"
+      component={NotificationsView}
+      options={NotificationsView.navigationOptions}
+    />
+    <Stack.Screen
+      name="NotificationsDetails"
+      component={NotificationsDetails}
+      options={NotificationsDetails.navigationOptions}
+      // eslint-disable-next-line react/prop-types
+      initialParams={{ notification: props.route.params?.notification }}
+    />
+    <Stack.Screen
+      name="NotificationsSettings"
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
+    />
+    <Stack.Screen
+      name="ContactForm"
+      component={ContactForm}
+      options={ContactForm.navigationOptions}
+    />
+    <Stack.Screen
+      name="GasDetails"
+      component={GasDetails}
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: {
+          backgroundColor: importedColors.transparent,
+        },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+    />
+  </Stack.Navigator>
+);
+
 const PaymentRequestView = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -629,6 +680,7 @@ const MainNavigator = () => (
       name={Routes.DEPRECATED_NETWORK_DETAILS}
       component={DeprecatedNetworkDetails}
       options={{
+        cardOverlayEnabled: true,
         //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
         cardStyle: { backgroundColor: importedColors.transparent },
         cardStyleInterpolator: () => ({
@@ -650,6 +702,7 @@ const MainNavigator = () => (
     />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
+    <Stack.Screen name="NotificationsView" component={NotificationsModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
