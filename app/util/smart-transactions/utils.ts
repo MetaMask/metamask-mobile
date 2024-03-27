@@ -102,18 +102,14 @@ export const getTxType = (transactionMeta: TransactionMeta, chainId: Hex) => {
 };
 
 // Status modal start, update, and close conditions
-// Swap txs are the 2nd in the swap flow, so we don't want to show another status page for that
+// If ERC20 if from token in swap and requires additional allowance, Swap txs are the 2nd in the swap flow, so we don't want to show another status page for that
 export const getShouldStartFlow = (
   isDapp: boolean,
   isSend: boolean,
   isSwapApproveTx: boolean,
-  isSwapTransaction: boolean,
-  isNativeTokenTransferred: boolean,
+  hasPendingApprovalForSwapApproveTx: boolean,
 ): boolean =>
-  isDapp ||
-  isSend ||
-  isSwapApproveTx ||
-  (isSwapTransaction && isNativeTokenTransferred);
+  isDapp || isSend || isSwapApproveTx || !hasPendingApprovalForSwapApproveTx;
 
 export const getShouldUpdateFlow = (
   isDapp: boolean,
