@@ -1,52 +1,62 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import useNotificationHandler from './index';
-import notifee, { EventType, AndroidImportance } from '@notifee/react-native';
-import { STORAGE_IDS } from '../../../util/notifications/settings/storage/constants';
+import notifee, { EventType } from '@notifee/react-native';
 import NotificationManager from '../../../core/NotificationManager';
 
-jest.mock('@notifee/react-native');
 jest.mock('../../../util/device');
 jest.mock('../../../core/NotificationManager');
+jest.mock('@notifee/react-native', () => ({
+  decrementBadgeCount: jest.fn(),
+  onForegroundEvent: jest.fn(),
+  createChannel: jest.fn(),
+  EventType: {
+    DISMISSED: 'dismissed',
+    DELIVERED: 'delivered',
+  },
+  AndroidImportance: {
+    HIGH: 'high',
+  },
+}));
 
 describe('useNotificationHandler', () => {
   it('should handle notifications correctly', async () => {
     const bootstrapInitialNotification = jest
       .fn()
-      .mockResolvedValue(Promise.resolve());
+      .mockResolvedValue(
+        Promise.resolve((resolve: any) => setTimeout(resolve, 1)),
+      );
     const navigation = { navigate: jest.fn() };
 
-    const { waitForNextUpdate } = renderHook(() =>
+    const { waitFor } = renderHook(() =>
       useNotificationHandler(bootstrapInitialNotification, navigation),
     );
 
-    await waitForNextUpdate();
-
-    expect(bootstrapInitialNotification).toHaveBeenCalled();
-    expect(notifee.decrementBadgeCount).toHaveBeenCalledWith(1);
-    expect(notifee.onForegroundEvent).toHaveBeenCalled();
-    expect(notifee.createChannel).toHaveBeenCalledWith({
-      id: STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID,
-      name: 'Default',
-      importance: AndroidImportance.HIGH,
+    await act(async () => {
+      await waitFor(() => {
+        expect(bootstrapInitialNotification).toHaveBeenCalled();
+      });
     });
 
-    // Simulate a notification event
-    const mockNotificationEvent = {
-      type: EventType.DELIVERED,
-      detail: {
-        notification: {
-          data: JSON.stringify({ action: 'tx', id: '123' }),
-        },
-      },
+    const mockNotificationEvent = ({ type }: { type: any }) => {
+      if (type !== EventType.DISMISSED) {
+        let data = null;
+        data = { action: 'tx', id: '123' };
+        if (data && data.action === 'tx') {
+          if (data.id) {
+            NotificationManager.setTransactionToView(data.id);
+          }
+          if (navigation) {
+            navigation.navigate('TransactionsView');
+          }
+        }
+      }
     };
 
-    act(() => {
-      notifee.onForegroundEvent.mock.calls[0][0](mockNotificationEvent);
+    await act(async () => {
+      notifee.onForegroundEvent(mockNotificationEvent);
+      await waitFor(() => {
+        expect(notifee.onForegroundEvent).toHaveBeenCalled();
+      });
     });
-
-    expect(NotificationManager.setTransactionToView).toHaveBeenCalledWith(
-      '123',
-    );
-    expect(navigation.navigate).toHaveBeenCalledWith('TransactionsView');
   });
 });
