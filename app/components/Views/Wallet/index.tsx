@@ -325,7 +325,7 @@ const Wallet = ({ navigation }: any) => {
     }
     return (
       <View style={styles.wrapper}>
-        {!basicFunctionalityEnabled ? (
+        {process.env.BASIC_FUNCTIONALITY && !basicFunctionalityEnabled ? (
           <View style={styles.banner}>
             <BannerAlert
               severity={BannerAlertSeverity.Error}
