@@ -57,8 +57,7 @@ class TabBarModal {
   }
 
   async tapSettingButton() {
-    const elem = (element(by.id(TAB_BAR_SETTING_BUTTON)));
-    await Gestures.waitAndTap(elem);
+    await Gestures.waitAndTap(this.settingsButton);
   }
 
   async tapActivityButton() {
