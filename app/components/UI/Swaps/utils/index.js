@@ -34,9 +34,10 @@ export const allowedTestnetChainIds = [
   NETWORKS_CHAIN_ID.SEPOLIA,
 ];
 
-if (__DEV__) {
-  allowedChainIds.push(...allowedTestnetChainIds);
-}
+// TODO uncomment this when we are done QA. This is to let ppl test on sepolia
+// if (__DEV__) {
+allowedChainIds.push(...allowedTestnetChainIds);
+// }
 
 export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ACTIVE) {
