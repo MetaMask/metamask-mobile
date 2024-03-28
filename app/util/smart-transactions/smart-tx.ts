@@ -91,6 +91,7 @@ export async function publishHook(request: Request) {
     transactionMeta,
   );
 
+  if (!chainId) throw new Error('chainId is required');
   const {
     isDapp,
     isSend,
