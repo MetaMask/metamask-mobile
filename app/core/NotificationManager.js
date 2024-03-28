@@ -10,7 +10,7 @@ import { strings } from '../../locales/i18n';
 import { AppState, Alert } from 'react-native';
 import { NotificationTransactionTypes } from '../util/notifications/types';
 import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
-import mmStorage from '../util/notifications/settings/storage';
+import { mmStorage } from '../util/notifications/settings/storage';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
