@@ -1110,8 +1110,8 @@ class Engine {
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         provider: networkController.getProviderAndBlockTracker().provider,
-        disableSendFlowHistory: false,
-        disableHistory: false,
+        disableSendFlowHistory: true,
+        disableHistory: true,
       }),
       new SwapsController(
         {
