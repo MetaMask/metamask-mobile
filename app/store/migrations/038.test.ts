@@ -71,9 +71,8 @@ describe('Migration #38', () => {
     });
   }
 
-  it('Should have deleted networkId from Network Controller and copied to networkOnBoarded property', async () => {
+  it('Should have deleted networkId from Network Controller and copied to networkId property', async () => {
     const oldState = {
-      networkOnboarded: {},
       engine: {
         backgroundState: {
           NetworkController: {
@@ -84,9 +83,7 @@ describe('Migration #38', () => {
     };
 
     const expectedState = {
-      networkOnboarded: {
-        networkId: '1',
-      },
+      networkProvider: { networkId: '1' },
       engine: {
         backgroundState: {
           NetworkController: {},

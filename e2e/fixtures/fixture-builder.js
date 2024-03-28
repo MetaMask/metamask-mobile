@@ -568,7 +568,6 @@ class FixtureBuilder {
             networkUrl: '',
             networkStatus: false,
           },
-          networkId: '',
         },
         security: {
           allowLoginWithRememberMe: false,
@@ -586,6 +585,7 @@ class FixtureBuilder {
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '6.5.0',
       },
+      networkId: '',
     };
     return this;
   }

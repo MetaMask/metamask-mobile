@@ -189,7 +189,10 @@ import {
 } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
-import { setNetworkId } from '../actions/onboardNetwork';
+import {
+  networkIdUpdated,
+  networkIdWillUpdate,
+} from '../actions/networkProvider';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1339,7 +1342,7 @@ class Engine {
       async () => {
         try {
           const networkId = await deprecatedGetNetworkId();
-          store.dispatch(setNetworkId(networkId));
+          store.dispatch(networkIdUpdated(networkId));
         } catch (error) {
           captureException(
             new Error(
@@ -1347,6 +1350,13 @@ class Engine {
             ),
           );
         }
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      'NetworkController:networkWillChange',
+      () => {
+        store.dispatch(networkIdWillUpdate());
       },
     );
 

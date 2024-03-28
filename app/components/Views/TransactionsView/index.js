@@ -155,7 +155,7 @@ const TransactionsView = ({
     so the effect will not be noticeable if the user is in this screen.
     */
     InteractionManager.runAfterInteractions(() => {
-      const { networkId } = store.getState().networkOnboarded;
+      const { networkId } = store.getState().networkProvider;
       filterTransactions(networkId);
     });
   }, [filterTransactions]);

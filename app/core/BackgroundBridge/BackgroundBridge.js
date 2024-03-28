@@ -42,7 +42,7 @@ const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
     store.getState().engine.backgroundState.NetworkController;
 
-  const { networkId } = store.getState().networkOnboarded;
+  const { networkId } = store.getState().networkProvider;
 
   if (!networkId) return 'loading';
 
@@ -92,7 +92,7 @@ export class BackgroundBridge extends EventEmitter {
     this.engine = null;
 
     this.chainIdSent = selectChainId(store.getState());
-    this.networkVersionSent = store.getState().networkOnboarded;
+    this.networkVersionSent = store.getState().networkProvider.networkId;
 
     // This will only be used for WalletConnect for now
     this.addressSent =

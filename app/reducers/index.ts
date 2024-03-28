@@ -24,6 +24,7 @@ import { EngineState } from '../core/Engine';
 import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
+import networkProviderReducer from './networkProvider';
 /**
  * Infer state from a reducer
  *
@@ -67,6 +68,7 @@ export interface RootState {
   signatureRequest: any;
   rpcEvents: any;
   accounts: any;
+  networkProvider: StateFromReducer<typeof networkProviderReducer>;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -96,6 +98,7 @@ const rootReducer = combineReducers<RootState, any>({
   experimentalSettings: experimentalSettingsReducer,
   rpcEvents: rpcEventReducer,
   accounts: accountsReducer,
+  networkProvider: networkProviderReducer,
 });
 
 export default rootReducer;

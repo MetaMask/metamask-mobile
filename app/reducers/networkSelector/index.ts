@@ -28,7 +28,6 @@ function networkOnboardReducer(
     showNetworkOnboarding: boolean;
     type: string;
     payload: any;
-    networkId: string;
   } = {
     nativeToken: '',
     networkType: '',
@@ -37,7 +36,6 @@ function networkOnboardReducer(
     showNetworkOnboarding: false,
     type: '',
     payload: undefined,
-    networkId: '',
   },
 ) {
   switch (action.type) {
@@ -72,11 +70,6 @@ function networkOnboardReducer(
           [action.payload]: true,
           ...state.networkOnboardedState,
         },
-      };
-    case 'NETWORK_ID_UPDATED':
-      return {
-        ...state,
-        networkId: action.networkId,
       };
     default:
       return state;

@@ -51,18 +51,7 @@ export default async function migrate(stateAsync: unknown) {
     return state;
   }
 
-  if (!isObject(state.networkOnboarded)) {
-    captureException(
-      new Error(
-        `Migration 38: networkOnboarded not found: '${JSON.stringify(
-          state.networkOnboarded,
-        )}'`,
-      ),
-    );
-    return state;
-  }
-
-  state.networkOnboarded.networkId = networkControllerState.networkId;
+  state.networkProvider = { networkId: networkControllerState.networkId };
 
   delete networkControllerState.networkId;
 
