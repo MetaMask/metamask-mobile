@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';

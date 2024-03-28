@@ -21,10 +21,9 @@ import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import notifee, { AndroidImportance, EventType } from '@notifee/react-native';
+import notifee from '@notifee/react-native';
 import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
@@ -35,12 +34,12 @@ import {
   removeNotificationById,
   removeNotVisibleNotifications,
 } from '../../../actions/notification';
-import { STORAGE_IDS } from '../../../util/notifications/settings/storage/constants';
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
+import useNotificationHandler from '../../../util/notifications/hooks';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -289,6 +288,8 @@ const Main = (props) => {
     }
   }, [props.navigation]);
 
+  useNotificationHandler(bootstrapInitialNotification, props.navigation);
+
   // Remove all notifications that aren't visible
   useEffect(() => {
     removeNotVisibleNotifications();
@@ -331,42 +332,6 @@ const Main = (props) => {
   useEffect(() => {
     termsOfUse();
   }, [termsOfUse]);
-
-  useEffect(() => {
-    notifee.decrementBadgeCount(1);
-
-    bootstrapInitialNotification();
-    setTimeout(() => {
-      notifee.onForegroundEvent(({ type, detail }) => {
-        if (type !== EventType.DISMISSED) {
-          let data = null;
-          if (Device.isAndroid()) {
-            if (detail.notification.data) {
-              data = JSON.parse(detail.notification.data);
-            }
-          } else if (detail.notification.data) {
-            data = detail.notification.data;
-          }
-          if (data && data.action === 'tx') {
-            if (data.id) {
-              NotificationManager.setTransactionToView(data.id);
-            }
-            if (props.navigation) {
-              props.navigation.navigate('TransactionsView');
-            }
-          }
-        }
-      });
-      /**
-       * Creates a channel (required for Android)
-       */
-      notifee.createChannel({
-        id: STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID,
-        name: 'Default',
-        importance: AndroidImportance.HIGH,
-      });
-    }, 1000);
-  }, [bootstrapInitialNotification, props.navigation]);
 
   const openDeprecatedNetworksArticle = () => {
     Linking.openURL(GOERLI_DEPRECATED_ARTICLE);
