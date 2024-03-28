@@ -1487,6 +1487,12 @@ export const BrowserTab = (props) => {
     </View>
   );
 
+  /*
+   * Wait DOM to be fully loaded before running the web3 provider script.
+   * This ensures all DOM objects are defined on first run.
+   */
+  const loadJavascriptAfterDOMReady = `window.self.document.addEventListener("DOMContentLoaded", function() {${entryScriptWeb3}});`
+
   /**
    * Main render
    */
@@ -1507,7 +1513,7 @@ export const BrowserTab = (props) => {
                   <WebviewError error={error} returnHome={returnHome} />
                 )}
                 source={{ uri: initialUrl }}
-                injectedJavaScriptBeforeContentLoaded={`window.self.document.addEventListener("DOMContentLoaded", function() {${entryScriptWeb3}});`}
+                injectedJavaScriptBeforeContentLoaded={loadJavascriptAfterDOMReady}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
                 onLoad={onLoad}
