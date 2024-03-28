@@ -428,34 +428,6 @@ exports[`AppInformation should render correctly 1`] = `
                                 }
                               }
                             />
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#535A61",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 18,
-                                  "fontWeight": "400",
-                                  "marginBottom": 20,
-                                  "textAlign": "left",
-                                }
-                              }
-                            >
-                              Branch: undefined
-                            </Text>
-                            <Text
-                              style={
-                                Object {
-                                  "color": "#535A61",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 18,
-                                  "fontWeight": "400",
-                                  "marginBottom": 20,
-                                  "textAlign": "left",
-                                }
-                              }
-                            >
-                              Commit Hash: undefined
-                            </Text>
                           </View>
                           <Text
                             style={
