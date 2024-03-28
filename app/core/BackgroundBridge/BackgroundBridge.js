@@ -44,6 +44,8 @@ const legacyNetworkId = () => {
 
   const { networkId } = store.getState().networkOnboarded;
 
+  if (!networkId) return 'loading';
+
   return networksMetadata?.[selectedNetworkClientId].status !==
     NetworkStatus.Available
     ? 'loading'
