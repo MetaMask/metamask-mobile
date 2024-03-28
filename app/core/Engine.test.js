@@ -43,21 +43,8 @@ describe('Engine', () => {
     const engine = Engine.init({});
     let backgroundState = engine.datamodel.state;
 
-    // deleting lastVisited from chainStatus, since its timestamp it makes the test case fail
-    const { chainId, versionInfo } =
-      backgroundState.PPOMController.chainStatus['0x1'];
     backgroundState = {
       ...backgroundState,
-      PPOMController: {
-        ...backgroundState.PPOMController,
-        chainStatus: {
-          ...backgroundState.PPOMController.chainStatus,
-          '0x1': {
-            chainId,
-            versionInfo,
-          },
-        },
-      },
       KeyringController: {
         ...backgroundState.KeyringController,
         vault: {
@@ -69,5 +56,14 @@ describe('Engine', () => {
     };
 
     expect(backgroundState).toStrictEqual(initialState);
+  });
+
+  it('setSelectedAccount throws an error if no account exists for the given address', () => {
+    const engine = Engine.init(initialState);
+    const invalidAddress = '0xInvalidAddress';
+
+    expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
+      `No account found for address: ${invalidAddress}`,
+    );
   });
 });
