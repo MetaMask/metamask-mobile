@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Step4 should render correctly 1`] = `
+exports[`Step3 should render correctly 1`] = `
 <ContextProvider
   value={
     Object {
@@ -32,6 +32,8 @@ exports[`Step4 should render correctly 1`] = `
     }
   }
 >
-  <Component />
+  <Component
+    coachmarkRef={Object {}}
+  />
 </ContextProvider>
 `;

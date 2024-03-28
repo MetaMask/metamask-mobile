@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import Step6 from './';
+import Step6 from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 

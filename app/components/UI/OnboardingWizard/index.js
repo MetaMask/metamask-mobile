@@ -9,6 +9,7 @@ import Step3 from './Step3';
 import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
+import Step7 from './Step7';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import DefaultPreference from 'react-native-default-preference';
 import Modal from 'react-native-modal';
@@ -121,6 +122,7 @@ const OnboardingWizard = (props) => {
         />
       ),
       6: <Step6 navigation={navigation} onClose={closeOnboardingWizard} />,
+      7: <Step7 navigation={navigation} onClose={closeOnboardingWizard} />,
     };
     return steps[step];
   };

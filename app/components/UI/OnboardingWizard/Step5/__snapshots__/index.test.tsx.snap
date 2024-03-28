@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Step5 should render correctly 1`] = `
+exports[`Step4 should render correctly 1`] = `
 <ContextProvider
   value={
     Object {
