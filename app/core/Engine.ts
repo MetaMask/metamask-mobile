@@ -1083,7 +1083,6 @@ class Engine {
         getSelectedAddress: () =>
           accountsController.getSelectedAccount().address,
         incomingTransactions: {
-          apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () => {
             const currentHexChainId =
               networkController.state.providerConfig.chainId;
@@ -1111,6 +1110,8 @@ class Engine {
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         provider: networkController.getProviderAndBlockTracker().provider,
+        disableSendFlowHistory: false,
+        disableHistory: false,
       }),
       new SwapsController(
         {
