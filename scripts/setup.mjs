@@ -2,6 +2,14 @@ import fs from 'fs';
 import { $ } from 'execa';
 import { Listr } from 'listr2';
 
+const rendererOptions = {
+  collapseErrors: false,
+  showSkipMessage: false,
+  suffixSkips: true,
+  collapseSubtasks: false
+};
+
+
 /*
  * FIXME: We shouldn't be making system wide installs without user consent.
  * Should make it optional on non-CI environments
@@ -27,7 +35,11 @@ const detoxGlobalInstallTask = {
         }
       }
     }
-  ])
+  ],
+    {
+     rendererOptions
+    }
+  )
 };
 
 /*
@@ -125,7 +137,7 @@ const mainSetupTask = {
     {
       exitOnError: false,
       concurrent: true,
-      rendererOptions: { collapseErrors: false }
+      rendererOptions
     })
 };
 
