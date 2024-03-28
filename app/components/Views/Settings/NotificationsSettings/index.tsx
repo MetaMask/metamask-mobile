@@ -14,8 +14,6 @@ import { useAccounts } from '../../../../components/hooks/useAccounts';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 
-import { UpdatePPOMInitializationStatus } from '../../../../actions/experimental';
-
 import { Props } from './NotificationsSettings.types';
 import createStyles from './NotificationsSettings.styles';
 import NotificationOptionToggle from './NotificationOptionToggle';
@@ -97,10 +95,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
-
-  useEffect(() => {
-    dispatch(UpdatePPOMInitializationStatus());
-  }, [dispatch, navigation]);
 
   useEffect(() => {
     dispatch(updateNotificationStatus(notificationsSettings));

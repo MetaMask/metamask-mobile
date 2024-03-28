@@ -18,6 +18,7 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
+import NotificationsActivateReminder from '../../Views/Notifications/ActivationReminder';
 import GasDetails from '../../Views/Notifications/Details/GasDetails';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
@@ -224,6 +225,21 @@ const SnapsSettingsStack = () => (
 );
 ///: END:ONLY_INCLUDE_IF
 
+const NotificationsReminderStack = () => (
+  <Stack.Navigator initialRouteName={'NotificationsActivateReminder'}>
+    <Stack.Screen
+      mode={'modal'}
+      name="NotificationsActivateReminder"
+      component={NotificationsActivateReminder}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="NotificationsSettings"
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
+    />
+  </Stack.Navigator>
+);
 const SettingsFlow = () => (
   <Stack.Navigator initialRouteName={'Settings'}>
     <Stack.Screen
@@ -242,9 +258,10 @@ const SettingsFlow = () => (
       options={AdvancedSettings.navigationOptions}
     />
     <Stack.Screen
-      name="NotificationsSettings"
-      component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
+      mode={'modal'}
+      name="NotificationsActivateReminder"
+      component={NotificationsActivateReminder}
+      options={NotificationsActivateReminder.navigationOptions}
     />
     <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
     <Stack.Screen
@@ -320,6 +337,11 @@ const SettingsFlow = () => (
       name="EnterPasswordSimple"
       component={EnterPasswordSimple}
       options={EnterPasswordSimple.navigationOptions}
+    />
+    <Stack.Screen
+      name="NotificationsSettings"
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
     />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -563,6 +585,12 @@ const NotificationsModeView = (props) => (
       options={NotificationsSettings.navigationOptions}
     />
     <Stack.Screen
+      mode={'modal'}
+      name="NotificationsActivateReminder"
+      component={NotificationsActivateReminder}
+      options={NotificationsActivateReminder.navigationOptions}
+    />
+    <Stack.Screen
       name="ContactForm"
       component={ContactForm}
       options={ContactForm.navigationOptions}
@@ -724,6 +752,10 @@ const MainNavigator = () => (
       )}
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
+    />
+    <Stack.Screen
+      name="NotificationsActivateReminder"
+      component={NotificationsReminderStack}
     />
   </Stack.Navigator>
 );
