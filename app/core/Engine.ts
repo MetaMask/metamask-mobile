@@ -174,9 +174,6 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
-import { isHardwareAccount } from '../util/address';
-import { ledgerSignTypedMessage } from './Ledger/Ledger';
-import ExtendedKeyringTypes from '../constants/keyringTypes';
 
 import {
   AccountsController,
@@ -1146,13 +1143,14 @@ class Engine {
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted<
           'SignatureController',
-          'ApprovalController:addRequest',
+          'ApprovalController:addRequest'
+          | 'KeyringController:signPersonalMessage',
           never
         >({
           name: 'SignatureController',
           allowedActions: [
             `${approvalController.name}:addRequest`,
-            'KeyringController:signPersonalMessage',
+            `${keyringController.name}:signPersonalMessage`,
           ],
         }),
         isEthSignEnabled: () =>
