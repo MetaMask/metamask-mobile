@@ -1171,7 +1171,10 @@ class Engine {
           never
         >({
           name: 'SignatureController',
-          allowedActions: [`${approvalController.name}:addRequest`],
+          allowedActions: [
+            `${approvalController.name}:addRequest`,
+            'KeyringController:signPersonalMessage',
+          ],
         }),
         isEthSignEnabled: () =>
           Boolean(
