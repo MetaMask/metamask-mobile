@@ -119,7 +119,8 @@
     "tough-cookie": "4.1.3",
     "crypto-js": "4.2.0",
     "axios": "1.6.0",
-    "react-native-ble-plx": "3.1.2"
+    "react-native-ble-plx": "3.1.2",
+    "@metamask/assets-controllers/babel-runtime/regenerator-runtime": "^0.13.8"
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
