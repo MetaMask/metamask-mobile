@@ -140,7 +140,8 @@ stages:
       # - run_tag_smoke_swaps_android: {}
       # - run_tag_smoke_core_ios: {}
       # - run_tag_smoke_core_android: {}
-      - android_run_app_upgrade_test: {}
+      - run_android_qa_performance_test: {}
+      # - android_run_app_upgrade_test: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -911,6 +912,15 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
+  run_android_qa_performance_test:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    before_run:
+      - build_android_qa
+    after_run:
+      - wdio_android_e2e_test
   build_android_qa:
     before_run:
       - code_setup
@@ -1006,27 +1016,27 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
-      - build-router-start@0:
-          inputs:
-            - workflows: |-
-                wdio_android_e2e_test
-            - wait_for_builds: 'false'
-            - abort_on_fail: 'yes'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-            # environment_key_list must be separated by new lines. https://github.com/bitrise-steplib/bitrise-step-build-router-start/blob/master/step.yml#L86
-            - environment_key_list: BROWSERSTACK_APP_URL
+      # - build-router-start@0:
+      #     inputs:
+      #       - workflows: |-
+      #           wdio_android_e2e_test
+      #       - wait_for_builds: 'false'
+      #       - abort_on_fail: 'yes'
+      #       - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
+      #       # environment_key_list must be separated by new lines. https://github.com/bitrise-steplib/bitrise-step-build-router-start/blob/master/step.yml#L86
+      #       - environment_key_list: BROWSERSTACK_APP_URL
 
-                BROWSERSTACK_DEVICE
+      #           BROWSERSTACK_DEVICE
 
-                BROWSERSTACK_OS_VERSION
+      #           BROWSERSTACK_OS_VERSION
 
-                BROWSERSTACK_TAG_EXPRESSION
+      #           BROWSERSTACK_TAG_EXPRESSION
 
-                CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER
+      #           CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER
 
-                NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER
+      #           NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER
 
-                BROWSERSTACK_CURRENT_APP_URL
+      #           BROWSERSTACK_CURRENT_APP_URL
   wdio_android_e2e_test:
     before_run:
       - code_setup
