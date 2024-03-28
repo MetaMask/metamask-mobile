@@ -140,8 +140,7 @@ stages:
       # - run_tag_smoke_swaps_android: {}
       # - run_tag_smoke_core_ios: {}
       # - run_tag_smoke_core_android: {}
-      - run_android_qa_performance_test: {}
-      # - android_run_app_upgrade_test: {}
+      - run_android_app_upgrade: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -420,7 +419,7 @@ workflows:
       - TEST_SUITE: 'Regression'
     after_run:
       - android_e2e_test
-  android_run_app_upgrade_test:
+  run_android_app_upgrade:
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
@@ -435,7 +434,7 @@ workflows:
       - CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER: 'MetaMask-QA v$CURRENT_BUILD_VERSION ($CURRENT_BUILD_NUMBER)'
       - NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER: 'MetaMask-QA v$NEW_BUILD_VERSION ($NEW_BUILD_NUMBER)'
     after_run:
-      - build_android_qa
+      - run_android_qa_performance
 
   ### Seperating workflows so they run concurrently during smoke runs
   run_tag_smoke_confirmations_ios:
@@ -912,7 +911,7 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
-  run_android_qa_performance_test:
+  run_android_qa_performance:
     meta:
       bitrise.io:
         stack: linux-docker-android-20.04
