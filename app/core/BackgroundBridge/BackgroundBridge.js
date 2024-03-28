@@ -262,9 +262,9 @@ export class BackgroundBridge extends EventEmitter {
 
     // Check if update already sent
     if (
-      this.chainIdSent !== publicState.chainId &&
-      this.networkVersionSent !== publicState.networkVersion &&
-      publicState.networkVersion !== 'loading'
+      this.chainIdSent !== publicState.chainId ||
+      (this.networkVersionSent !== publicState.networkVersion &&
+        publicState.networkVersion !== 'loading')
     ) {
       this.chainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;
