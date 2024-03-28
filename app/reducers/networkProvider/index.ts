@@ -1,7 +1,7 @@
 import { NetworkProviderState } from '../../actions/networkProvider/state';
 
 export const initialState: Readonly<NetworkProviderState> = {
-  networkProvider: { networkId: '' },
+  networkId: '',
 };
 
 /**
@@ -10,7 +10,7 @@ export const initialState: Readonly<NetworkProviderState> = {
  * @returns
  */
 
-function networkOnboardReducer(
+function networkProviderReducer(
   state = initialState,
   action: {
     networkId: string;
@@ -24,18 +24,12 @@ function networkOnboardReducer(
     case 'NETWORK_ID_UPDATED':
       return {
         ...state,
-        networkProvider: {
-          ...state.networkProvider,
-          networkId: action.networkId,
-        },
+        networkId: action.networkId,
       };
     case 'NETWORK_WILL_UPDATE':
       return {
         ...state,
-        networkProvider: {
-          ...state.networkProvider,
-          networkId: action.networkId,
-        },
+        networkId: action.networkId,
       };
 
     default:
@@ -43,4 +37,4 @@ function networkOnboardReducer(
   }
 }
 
-export default networkOnboardReducer;
+export default networkProviderReducer;

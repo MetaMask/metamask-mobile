@@ -1,5 +1,3 @@
 export interface NetworkProviderState {
-  networkProvider: {
-    networkId: string;
-  };
+  networkId: string;
 }
