@@ -1319,7 +1319,7 @@ class Engine {
 
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
-      async (state: NetworkState) => {
+      (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
             NetworkStatus.Available &&
@@ -1523,7 +1523,7 @@ class Engine {
       const fiatBalance = this.getTotalFiatAccountBalance() || 0;
       const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
 
-      return totalFiatBalance > 0 || tokenFound || nfts?.length > 0;
+      return totalFiatBalance > 0 || tokenFound || nfts.length > 0;
     } catch (e) {
       Logger.log('Error while getting user funds', e);
     }
