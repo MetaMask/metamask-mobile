@@ -925,12 +925,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 node -v
-                COMMIT_SHORT_HASH="${BITRISE_GIT_COMMIT:0:7}"
-
-                if [[ -z "$BITRISE_GIT_COMMIT" ]]; then
-                  COMMIT_SHORT_HASH="$(git rev-parse --short HEAD)"
-                fi
-                GIT_BRANCH=$BITRISE_GIT_BRANCH GIT_COMMIT=$COMMIT_SHORT_HASH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
           title: Build Android Pre-Release Bundle
           is_always_run: false
       - save-gradle-cache@1: {}
