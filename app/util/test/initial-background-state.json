@@ -48,12 +48,6 @@
   "TokenDetectionController": {},
   "NftDetectionController": {},
   "PPOMController": {
-    "chainStatus": {
-      "0x1": {
-        "chainId": "0x1",
-        "versionInfo": []
-      }
-    },
     "storageMetadata": [],
     "versionFileETag": "",
     "versionInfo": []
