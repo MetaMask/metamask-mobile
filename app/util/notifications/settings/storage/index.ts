@@ -5,7 +5,7 @@ export const notificationSettingsStorage = new MMKV({
   id: STORAGE_IDS.NOTIFICATIONS,
 });
 
-export default class mmStorage {
+export class mmStorage {
   static getLocal(key: string) {
     if (!key) {
       return;
