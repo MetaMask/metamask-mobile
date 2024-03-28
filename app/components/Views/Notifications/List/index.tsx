@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 import ScrollableTabView, {
   DefaultTabBar,
@@ -78,11 +78,30 @@ const Notifications = ({
     [trackEvent],
   );
 
-  const combinedLists = [
-    allNotifications,
-    walletNotifications,
-    web3Notifications,
-  ];
+  const combinedLists = useMemo(
+    () => [allNotifications, walletNotifications, web3Notifications],
+    [allNotifications, walletNotifications, web3Notifications],
+  );
+
+  const renderList = useCallback(
+    (list, idx) => (
+      <FlatList
+        // eslint-disable-next-line
+        // @ts-ignore
+        tabLabel={strings(`notifications.list.${idx.toString()}`)}
+        keyExtractor={(_, index) => index.toString()}
+        key={combinedLists.indexOf(list)}
+        data={list}
+        ListEmptyComponent={<Empty />}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => <Row notification={item} onPress={onPress} />}
+        initialNumToRender={10}
+        maxToRenderPerBatch={2}
+        onEndReachedThreshold={0.5}
+      />
+    ),
+    [combinedLists, onPress, styles.list],
+  );
 
   return (
     <View style={styles.wrapper}>
@@ -95,24 +114,7 @@ const Notifications = ({
           renderTabBar={renderTabBar}
           onChangeTab={onChangeTab}
         >
-          {combinedLists.map((list, idx) => (
-            <FlatList
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              tabLabel={strings(`notifications.list.${idx.toString()}`)}
-              keyExtractor={(_, index) => index.toString()}
-              key={combinedLists.indexOf(list)}
-              data={list}
-              ListEmptyComponent={<Empty />}
-              contentContainerStyle={styles.list}
-              renderItem={({ item }) => (
-                <Row notification={item} onPress={onPress} />
-              )}
-              initialNumToRender={10}
-              maxToRenderPerBatch={2}
-              onEndReachedThreshold={0.5}
-            />
-          ))}
+          {combinedLists.map((list, idx) => renderList(list, idx))}
         </ScrollableTabView>
       )}
     </View>
