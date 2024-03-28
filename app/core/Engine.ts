@@ -85,7 +85,6 @@ import {
   SubjectMetadataControllerActions,
   SubjectMetadataControllerEvents,
   SubjectMetadataControllerState,
-  SubjectType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
@@ -106,7 +105,6 @@ import {
   PersistedSnapControllerState,
   WebViewExecutionService,
 } from '@metamask/snaps-controllers';
-import { Snap } from '@metamask/snaps-utils';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
@@ -706,11 +704,6 @@ class Engine {
           ),
           getMnemonic: getPrimaryKeyringMnemonic.bind(this),
           getUnlockPromise: getAppState.bind(this),
-          addSubjectMetadata: (params: any) =>
-            this.controllerMessenger.call<'SubjectMetadataController:addSubjectMetadata'>(
-              'SubjectMetadataController:addSubjectMetadata',
-              params,
-            ),
           getSnap: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:get',
@@ -988,22 +981,6 @@ class Engine {
           fetch: fetchFunction,
         }),
     });
-
-    this.controllerMessenger.subscribe(
-      'SnapController:snapInstalled',
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      (snap: Snap, svgIcon: any = null) => {
-        const parts = snap.id.split(/[:/]/);
-        subjectMetadataController.addSubjectMetadata({
-          subjectType: SubjectType.Snap,
-          name: parts[parts.length - 1] || snap.id,
-          origin: snap.id,
-          version: snap.version,
-          svgIcon,
-        });
-      },
-    );
     ///: END:ONLY_INCLUDE_IF
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
