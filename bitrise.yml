@@ -39,9 +39,9 @@ pipelines:
   run_e2e_android_pipeline:
     stages:
       - run_release_e2e_ios_android_stage: {}
-      # - build_e2e_android_stage: {} #builds android detox E2E
-      # - run_e2e_android_stage: {} #runs android detox test E2E
-      # - notify: {}
+      - build_e2e_android_stage: {} #builds android detox E2E
+      - run_e2e_android_stage: {} #runs android detox test E2E
+      - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   release_e2e_pipeline:
     stages:
@@ -132,14 +132,14 @@ stages:
       - android_run_regression_tests: {}
   run_release_e2e_ios_android_stage:
     workflows:
-      # - ios_run_regression_tests: {}
-      # - android_run_regression_tests: {}
-      # - run_tag_smoke_confirmations_ios: {}
-      # - run_tag_smoke_confirmations_android: {}
-      # - run_tag_smoke_swaps_ios: {}
-      # - run_tag_smoke_swaps_android: {}
-      # - run_tag_smoke_core_ios: {}
-      # - run_tag_smoke_core_android: {}
+      - ios_run_regression_tests: {}
+      - android_run_regression_tests: {}
+      - run_tag_smoke_confirmations_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
+      - run_tag_smoke_core_ios: {}
+      - run_tag_smoke_core_android: {}
       - run_android_qa_app_upgrade: {}
   run_e2e_ios_android_stage:
     workflows:
