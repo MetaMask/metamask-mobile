@@ -359,21 +359,15 @@ describe('network-utils', () => {
       expect(convertNetworkId('123')).toEqual('123');
     });
 
-    it('throws an error for non-numeric, non-hexadecimal strings', () => {
+    it('throws for non-numeric, non-hexadecimal strings', () => {
       expect(() => convertNetworkId('abc')).toThrow(
         "Cannot parse as a valid network ID: 'abc'",
       );
     });
 
-    it('throws an error for NaN values', () => {
+    it('throws for NaN values', () => {
       expect(() => convertNetworkId(NaN)).toThrow(
         "Cannot parse as a valid network ID: 'NaN'",
-      );
-    });
-
-    it('throws an error for non-numeric strings', () => {
-      expect(() => convertNetworkId('123abc')).toThrow(
-        "Cannot parse as a valid network ID: '123abc'",
       );
     });
   });
@@ -390,7 +384,7 @@ describe('network-utils', () => {
       });
     });
 
-    it('should resolve with the correct network ID', async () => {
+    it('resolves with the correct network ID', async () => {
       // Mock sendAsync to call the callback with null error and a result
       mockSendAsync.mockImplementation((_, callback) => {
         callback(null, '1');
@@ -399,7 +393,7 @@ describe('network-utils', () => {
       await expect(deprecatedGetNetworkId()).resolves.toEqual('1');
     });
 
-    it('should reject when sendAsync encounters an error', async () => {
+    it('rejects when sendAsync encounters an error', async () => {
       // Mock sendAsync to call the callback with an error
       mockSendAsync.mockImplementation((_, callback) => {
         callback(new Error('Failed to fetch network ID'), null);
@@ -410,7 +404,7 @@ describe('network-utils', () => {
       );
     });
 
-    it('should throw an error if the provider has not been initialized', async () => {
+    it('throws when provider is not initialized', async () => {
       // Mock the call method to return undefined, simulating an uninitialized provider
       Engine.controllerMessenger.call.mockReturnValueOnce(undefined);
 

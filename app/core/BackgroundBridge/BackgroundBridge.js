@@ -37,18 +37,17 @@ const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getPermittedAccounts } from '../Permissions';
 import { NetworkStatus } from '@metamask/network-controller';
+import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
     store.getState().engine.backgroundState.NetworkController;
 
-  const { networkId } = store.getState().networkProvider;
-
-  if (!networkId) return 'loading';
+  const { networkId } = store.getState().inpageProvider;
 
   return networksMetadata?.[selectedNetworkClientId].status !==
     NetworkStatus.Available
-    ? 'loading'
+    ? NETWORK_ID_LOADING
     : networkId;
 };
 
@@ -92,7 +91,7 @@ export class BackgroundBridge extends EventEmitter {
     this.engine = null;
 
     this.chainIdSent = selectChainId(store.getState());
-    this.networkVersionSent = store.getState().networkProvider.networkId;
+    this.networkVersionSent = store.getState().inpageProvider.networkId;
 
     // This will only be used for WalletConnect for now
     this.addressSent =
@@ -277,7 +276,7 @@ export class BackgroundBridge extends EventEmitter {
     if (
       this.chainIdSent !== publicState.chainId ||
       (this.networkVersionSent !== publicState.networkVersion &&
-        publicState.networkVersion !== 'loading')
+        publicState.networkVersion !== NETWORK_ID_LOADING)
     ) {
       this.chainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;

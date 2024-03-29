@@ -34,6 +34,7 @@ import {
 } from '../../../selectors/preferencesController';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 import { store } from '../../../store';
+import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -59,7 +60,7 @@ const TransactionsView = ({
 
   const filterTransactions = useCallback(
     (networkId) => {
-      if (networkId === null) return;
+      if (networkId === NETWORK_ID_LOADING) return;
 
       let accountAddedTimeInsertPointFound = false;
       const addedAccountTime = identities[selectedAddress]?.importTime;
@@ -155,7 +156,7 @@ const TransactionsView = ({
     so the effect will not be noticeable if the user is in this screen.
     */
     InteractionManager.runAfterInteractions(() => {
-      const { networkId } = store.getState().networkProvider;
+      const { networkId } = store.getState().inpageProvider;
       filterTransactions(networkId);
     });
   }, [filterTransactions]);

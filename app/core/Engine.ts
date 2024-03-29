@@ -190,7 +190,7 @@ import { lowerCase } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
-} from '../actions/networkProvider';
+} from '../core/redux/slices/inpageProvider';
 
 const NON_EMPTY = 'NON_EMPTY';
 

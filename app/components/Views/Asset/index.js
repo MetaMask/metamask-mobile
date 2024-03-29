@@ -275,7 +275,7 @@ class Asset extends PureComponent {
     this.txsPending.length !== newTxsPending.length;
 
   ethFilter = (tx) => {
-    const { networkId } = store.getState().networkProvider;
+    const { networkId } = store.getState().inpageProvider;
     const { selectedAddress, chainId } = this.props;
     const {
       transaction: { from, to },
@@ -299,7 +299,7 @@ class Asset extends PureComponent {
   };
 
   noEthFilter = (tx) => {
-    const { networkId } = store.getState().networkProvider;
+    const { networkId } = store.getState().inpageProvider;
 
     const { chainId, swapsTransactions, selectedAddress } = this.props;
     const {

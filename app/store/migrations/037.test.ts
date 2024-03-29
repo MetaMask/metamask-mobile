@@ -83,7 +83,7 @@ describe('Migration #37', () => {
     };
 
     const expectedState = {
-      networkProvider: { networkId: '1' },
+      inpageProvider: { networkId: '1' },
       engine: {
         backgroundState: {
           NetworkController: {},

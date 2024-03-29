@@ -43,15 +43,13 @@ export default async function migrate(stateAsync: unknown) {
   if (!networkControllerState.networkId) {
     captureException(
       new Error(
-        `Migration 37: Invalid NetworkController networkId not found: '${JSON.stringify(
-          networkControllerState.networkId,
-        )}'`,
+        `Migration 37: Invalid NetworkController networkId not found: '${networkControllerState.networkId}'`,
       ),
     );
     return state;
   }
 
-  state.networkProvider = { networkId: networkControllerState.networkId };
+  state.inpageProvider = { networkId: networkControllerState.networkId };
 
   delete networkControllerState.networkId;
 

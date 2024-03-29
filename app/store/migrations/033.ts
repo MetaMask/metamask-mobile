@@ -44,9 +44,7 @@ export default async function migrate(stateAsync: unknown) {
   if (!isObject(networkControllerState.providerConfig)) {
     captureException(
       new Error(
-        `Migration 33: NetworkController providerConfig not found: '${JSON.stringify(
-          networkControllerState.providerConfig,
-        )}'`,
+        `Migration 33: NetworkController providerConfig not found: '${networkControllerState.providerConfig}'`,
       ),
     );
     return state;
