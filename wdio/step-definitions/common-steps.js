@@ -177,7 +177,7 @@ Then(
 When(/^I log into my wallet$/, async () => {
   await LoginScreen.tapUnlockButton();
   await driver.pause(10000);
-  await WalletMainScreen.isVisible();
+  await WalletMainScreen.isMainWalletViewVisible();
 });
 
 When(/^I kill the app$/, async () => {3
