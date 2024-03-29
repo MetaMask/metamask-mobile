@@ -38,7 +38,6 @@ pipelines:
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
     stages:
-      - run_release_e2e_ios_android_stage: {}
       - build_e2e_android_stage: {} #builds android detox E2E
       - run_e2e_android_stage: {} #runs android detox test E2E
       - notify: {}
@@ -425,14 +424,12 @@ workflows:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
     envs:
-      - BROWSERSTACK_CURRENT_APP_URL: 'bs://36be83a5e1d585301f833ba0f031f7ecf968d600' # Last production's QA build
-      - BROWSERSTACK_TAG_EXPRESSION: '@upgrade and @androidApp'
-      - CURRENT_BUILD_VERSION: 7.18.0
-      - CURRENT_BUILD_NUMBER: 1281
-      - NEW_BUILD_VERSION: 7.18.0
-      - NEW_BUILD_NUMBER: 1281
-      - CURRENT_PRODUCTION_VERSION_AND_BUILD_NUMBER: 'MetaMask-QA v$CURRENT_BUILD_VERSION ($CURRENT_BUILD_NUMBER)'
-      - NEW_PRODUCTION_VERSION_AND_BUILD_NUMBER: 'MetaMask-QA v$NEW_BUILD_VERSION ($NEW_BUILD_NUMBER)'
+      - PRODUCTION_APP_URL: 'bs://36be83a5e1d585301f833ba0f031f7ecf968d600' # Last production's QA build
+      - PRODUCTION_BUILD_VERSION: 7.18.0
+      - PRODUCTION_BUILD_NUMBER: 1281
+      - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
+      - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_VERSION ($PRODUCTION_BUILD_NUMBER)'
+      - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
     after_run:
       - run_android_appium_test
 

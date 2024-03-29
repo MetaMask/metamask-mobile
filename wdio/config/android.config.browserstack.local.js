@@ -18,7 +18,7 @@ config.capabilities = [
     build: 'Android QA E2E Tests',
     device: 'Google Pixel 3a',
     os_version: '9.0',
-    app: process.env.BROWSERSTACK_CURRENT_APP_URL || process.env.BROWSERSTACK_APP_URL,
+    app: process.env.PRODUCTION_APP_URL || process.env.BROWSERSTACK_APP_URL,
     'browserstack.debug': true,
     'browserstack.local': true,
     'browserstack.midSessionInstallApps' : [process.env.BROWSERSTACK_APP_URL],
