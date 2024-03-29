@@ -14,15 +14,6 @@ const PopularNetworksList = {
       ticker: 'AVAX',
     },
   },
-  // Arbitrum: {
-  //   providerConfig: {
-  //     type: 'rpc',
-  //     chainId: toHex('42161'),
-  // rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
-  //     nickname: 'Arbitrum One',
-  //     ticker: 'ETH',
-  //   },
-  // },
   BNB: {
     providerConfig: {
       type: 'rpc',
