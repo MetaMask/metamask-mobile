@@ -425,10 +425,10 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - PRODUCTION_APP_URL: 'bs://36be83a5e1d585301f833ba0f031f7ecf968d600' # Last production's QA build
-      - PRODUCTION_BUILD_VERSION: 7.18.0
-      - PRODUCTION_BUILD_NUMBER: 1281
+      - PRODUCTION_BUILD_VERSION_NAME: 7.18.0
+      - PRODUCTION_BUILD_VERSION_NUMBER: 1281
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
-      - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_VERSION ($PRODUCTION_BUILD_NUMBER)'
+      - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_VERSION_NAME ($PRODUCTION_BUILD_VERSION_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
     after_run:
       - run_android_appium_test
