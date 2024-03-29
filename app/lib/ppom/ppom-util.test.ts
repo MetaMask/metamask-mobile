@@ -183,4 +183,34 @@ describe('validateResponse', () => {
       params: [normalizedTransactionParamsMock],
     });
   });
+
+  it('normalizes transaction request origin before validation', async () => {
+    const validateMock = jest.fn();
+
+    const ppomMock = {
+      validateJsonRpc: validateMock,
+    };
+
+    Engine.context.PPOMController.usePPOM.mockImplementation((callback: any) =>
+      callback(ppomMock),
+    );
+
+    await PPOMUtil.validateRequest(
+      {
+        ...mockRequest,
+        origin: 'wc::metamask.github.io',
+      },
+      '123',
+    );
+
+    expect(normalizeTransactionParamsMock).toBeCalledTimes(1);
+    expect(normalizeTransactionParamsMock).toBeCalledWith(
+      mockRequest.params[0],
+    );
+
+    expect(validateMock).toBeCalledTimes(1);
+    expect(validateMock).toBeCalledWith({
+      ...mockRequest,
+    });
+  });
 });
