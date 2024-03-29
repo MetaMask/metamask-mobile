@@ -301,8 +301,8 @@ class NotificationManager {
       const promptCount = mmStorage.getLocal(
         STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
       );
-
-      const permissionStatus = await notifee.requestPermission();
+      let permissionStatus;
+      permissionStatus = await notifee.requestPermission();
 
       if (
         !promptCount ||
@@ -324,11 +324,11 @@ class NotificationManager {
                 text: strings('notifications.prompt_ok'),
                 onPress: async () => {
                   if (Device.isIos()) {
-                    await notifee.requestPermission({
+                    permissionStatus = await notifee.requestPermission({
                       provisional: true,
                     });
                   } else {
-                    await notifee.requestPermission();
+                    permissionStatus = await notifee.requestPermission();
                   }
                   // await saveFCMToken();
                 },
@@ -344,6 +344,7 @@ class NotificationManager {
           Date.now().toString(),
         );
       }
+      return permissionStatus;
     } catch (e) {
       Logger.error(e, strings('notifications.error_checking_permission'));
     }
