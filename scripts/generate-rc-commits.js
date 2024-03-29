@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { Platform } = require('react-native');
 const simpleGit = require('simple-git');
 /*
  * This script is used to filter and group commits by teams based on unique commit messages.
