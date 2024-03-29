@@ -60,7 +60,7 @@ describe('Migration #37', () => {
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, async () => {
+    it(`captures exception if ${scenario}`, async () => {
       const newState = await migrate(state);
 
       expect(newState).toStrictEqual(state);
