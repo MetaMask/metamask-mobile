@@ -1321,7 +1321,7 @@ class Engine {
           const networkId = await deprecatedGetNetworkId();
           store.dispatch(networkIdUpdated(networkId));
         } catch (error) {
-          Logger.error(
+          console.error(
             error,
             `Network ID not changed, current chainId: ${networkController.state.providerConfig.chainId}`,
           );
