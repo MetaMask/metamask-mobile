@@ -2,8 +2,6 @@ import { getGanachePort } from './utils';
 import { merge } from 'lodash';
 import { PopularNetworksList } from '../resources/networks.e2e';
 const DAPP_URL = 'localhost';
-const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
-const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 /* eslint-enable */
 
