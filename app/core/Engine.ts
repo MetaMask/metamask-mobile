@@ -429,6 +429,8 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      //@ts-expect-error - This ts issue will be addressed when the assets-controllers are updated to v14
+      //At v14 assets controllers have the controller-utils v5 that have linea-sepolia on the InfuraNetworkType patched
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
