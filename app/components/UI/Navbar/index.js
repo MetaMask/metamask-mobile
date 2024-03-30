@@ -960,9 +960,13 @@ export function getWalletNavbarOptions(
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   }
 
-  function openNotificationsList() {
-    navigation.navigate('NotificationsView');
-    trackEvent(MetaMetricsEvents.WALLET_NOTIFICATIONS);
+  function handleNotificationOnPress() {
+    if (isNotificationEnabled) {
+      navigation.navigate('NotificationsView');
+      trackEvent(MetaMetricsEvents.WALLET_NOTIFICATIONS);
+    } else {
+      navigation.navigate('NotificationsOptIn');
+    }
   }
 
   return {
@@ -986,16 +990,14 @@ export function getWalletNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.leftButtonContainer}>
-        {isNotificationEnabled && (
-          <ButtonIcon
-            variant={ButtonIconVariants.Primary}
-            onPress={openNotificationsList}
-            iconName={IconName.Notification}
-            style={styles.infoButton}
-            size={IconSize.Xl}
-            testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-          />
-        )}
+        <ButtonIcon
+          variant={ButtonIconVariants.Primary}
+          onPress={handleNotificationOnPress}
+          iconName={IconName.Notification}
+          style={styles.infoButton}
+          size={IconSize.Xl}
+          testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+        />
 
         <ButtonIcon
           variant={ButtonIconVariants.Primary}

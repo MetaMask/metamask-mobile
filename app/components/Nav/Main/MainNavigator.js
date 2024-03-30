@@ -18,7 +18,7 @@ import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
-import NotificationsActivateReminder from '../../Views/Notifications/ActivationReminder';
+import NotificationsOptIn from '../../Views/Notifications/NotificationsOptIn';
 import GasDetails from '../../Views/Notifications/Details/GasDetails';
 import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
@@ -230,7 +230,7 @@ const NotificationsReminderStack = () => (
     <Stack.Screen
       mode={'modal'}
       name="NotificationsActivateReminder"
-      component={NotificationsActivateReminder}
+      component={NotificationsOptIn}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -259,9 +259,9 @@ const SettingsFlow = () => (
     />
     <Stack.Screen
       mode={'modal'}
-      name="NotificationsActivateReminder"
-      component={NotificationsActivateReminder}
-      options={NotificationsActivateReminder.navigationOptions}
+      name="NotificationsOptIn"
+      component={NotificationsOptIn}
+      options={NotificationsOptIn.navigationOptions}
     />
     <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
     <Stack.Screen
@@ -586,9 +586,9 @@ const NotificationsModeView = (props) => (
     />
     <Stack.Screen
       mode={'modal'}
-      name="NotificationsActivateReminder"
-      component={NotificationsActivateReminder}
-      options={NotificationsActivateReminder.navigationOptions}
+      name="NotificationsOptIn"
+      component={NotificationsOptIn}
+      options={NotificationsOptIn.navigationOptions}
     />
     <Stack.Screen
       name="ContactForm"
@@ -754,8 +754,9 @@ const MainNavigator = () => (
       headerStyle={{ borderBottomWidth: 0 }}
     />
     <Stack.Screen
-      name="NotificationsActivateReminder"
-      component={NotificationsReminderStack}
+      name="NotificationsOptIn"
+      component={NotificationsOptIn}
+      options={NotificationsOptIn.navigationOptions}
     />
   </Stack.Navigator>
 );
