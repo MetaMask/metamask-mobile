@@ -758,6 +758,11 @@ const MainNavigator = () => (
       component={NotificationsOptIn}
       options={NotificationsOptIn.navigationOptions}
     />
+    <Stack.Screen
+      name="NotificationsSettings"
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
+    />
   </Stack.Navigator>
 );
 
