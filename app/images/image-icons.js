@@ -5,6 +5,7 @@ import OPTIMISM from './optimism.png';
 import ONE from './harmony.png';
 import FTM from './fantom.png';
 import ETHEREUM from './eth-logo-new.png';
+import BASE from './base.png';
 import BNB from './binance.png';
 import AVAX from './avalanche.png';
 import LINEA_TESTNET from './linea-testnet-logo.png';
@@ -18,6 +19,7 @@ export default {
   ONE,
   FTM,
   ETHEREUM,
+  BASE,
   BNB,
   AETH,
   AVAX,
