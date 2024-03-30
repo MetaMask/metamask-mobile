@@ -1845,9 +1845,18 @@
       "2": "Web3"
     },
     "address_copied_to_clipboard": "Address copied to clipboard",
-    "transaction_id_copied_to_clipboard": "Transaction ID copied to clipboard"
-
-  },
+    "transaction_id_copied_to_clipboard": "Transaction ID copied to clipboard",
+    "activation_card": {
+      "title": "Turn on notifications",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications. ",
+      "description_2": "To use this feature, we’ll generate an anonymous ID for your account. It’s used only for syncing your data in MetaMask and doesn't link to your activities or other identifiers, ensuring your privacy.",
+      "learn_more": "Learn how we protect your privacy while using this feature. ",
+      "manage_preferences_1": "You can turn off notifications at any time in ",
+      "manage_preferences_2": "Settings > Notifications.",
+      "cancel": "Cancel",
+      "cta": "Turn on"
+  }
+},
   "protect_your_wallet_modal": {
     "title": "Protect your wallet",
     "body_for_password": "Protect your wallet by setting a password and saving your Secret Recovery Phrase (required).",
