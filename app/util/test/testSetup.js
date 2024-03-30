@@ -172,16 +172,10 @@ NativeModules.RNCNetInfo = {
   getCurrentState: jest.fn(() => Promise.resolve()),
 };
 
-NativeModules.RCTAnalytics = {
-  optIn: jest.fn(),
-  trackEvent: jest.fn(),
-  getRemoteVariables: jest.fn(),
-};
-
 NativeModules.NotifeeApiModule = {
   addListener: jest.fn(),
   eventsAddListener: jest.fn(),
-  eventsNotifyReady: jest.fn()
+  eventsNotifyReady: jest.fn(),
 };
 
 NativeModules.PlatformConstants = {
@@ -246,7 +240,9 @@ jest.mock('@segment/analytics-react-native', () => ({
   createClient: jest.fn(() => initializeMockClient()),
 }));
 
-jest.mock('@notifee/react-native', () => require('@notifee/react-native/jest-mock'));
+jest.mock('@notifee/react-native', () =>
+  require('@notifee/react-native/jest-mock'),
+);
 
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,
