@@ -4,6 +4,7 @@ import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { NetworkState } from '@metamask/network-controller';
 import NetworkList from '../../util/networks';
+import { NetworkType } from '@metamask/controller-utils';
 
 export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
@@ -59,7 +60,7 @@ export default async function migrate(stateAsync: unknown) {
     networkControllerState.providerConfig = {
       chainId: CHAIN_IDS.LINEA_SEPOLIA,
       ticker: 'LineaETH',
-      type: 'linea-sepolia',
+      type: NetworkType['linea-sepolia'],
     };
     networkControllerState.networkId = `${NetworkList[LINEA_SEPOLIA].networkId}`;
   }
