@@ -681,6 +681,11 @@ class FixtureBuilder {
     return this;
   }
 
+  withTokensController(data) {
+    merge(this.fixture.state.engine.backgroundState.TokensController, data);
+    return this;
+  }
+
   /**
    * Build and return the fixture object.
    * @returns {Object} - The built fixture object.
