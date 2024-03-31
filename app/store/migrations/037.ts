@@ -9,7 +9,7 @@ export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
   if (!isObject(state)) {
     captureException(
-      new Error(`Migration 38: Invalid state error: '${typeof state}'`),
+      new Error(`Migration 37: Invalid state error: '${typeof state}'`),
     );
     return state;
   }
@@ -17,7 +17,7 @@ export default async function migrate(stateAsync: unknown) {
   if (!isObject(state.engine)) {
     captureException(
       new Error(
-        `Migration 38: Invalid engine state error: '${typeof state.engine}'`,
+        `Migration 37: Invalid engine state error: '${typeof state.engine}'`,
       ),
     );
     return state;
@@ -26,7 +26,7 @@ export default async function migrate(stateAsync: unknown) {
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
-        `Migration 38: Invalid engine backgroundState error: '${typeof state
+        `Migration 37: Invalid engine backgroundState error: '${typeof state
           .engine.backgroundState}'`,
       ),
     );
@@ -37,7 +37,7 @@ export default async function migrate(stateAsync: unknown) {
   if (!isObject(networkControllerState)) {
     captureException(
       new Error(
-        `Migration 38: Invalid NetworkController state error: '${typeof networkControllerState}'`,
+        `Migration 37: Invalid NetworkController state error: '${typeof networkControllerState}'`,
       ),
     );
     return state;
@@ -46,7 +46,7 @@ export default async function migrate(stateAsync: unknown) {
   if (!networkControllerState.providerConfig.chainId) {
     captureException(
       new Error(
-        `Migration 38: NetworkController providerConfig chainId not found: '${JSON.stringify(
+        `Migration 37: NetworkController providerConfig chainId not found: '${JSON.stringify(
           networkControllerState.providerConfig.chainId,
         )}'`,
       ),

@@ -1,4 +1,4 @@
-import migration from './038';
+import migration from './037';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
@@ -50,7 +50,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #38', () => {
+describe('Migration #37', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -61,7 +61,7 @@ describe('Migration #38', () => {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 38: Invalid engine state error: 'object'",
+      errorMessage: "Migration 37: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -71,7 +71,7 @@ describe('Migration #38', () => {
         },
       }),
       errorMessage:
-        "Migration 38: Invalid engine backgroundState error: 'object'",
+        "Migration 37: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -83,7 +83,7 @@ describe('Migration #38', () => {
         },
       }),
       errorMessage:
-        "Migration 38: Invalid NetworkController state error: 'object'",
+        "Migration 37: Invalid NetworkController state error: 'object'",
       scenario: 'NetworkController state is invalid',
     },
     {
@@ -95,7 +95,7 @@ describe('Migration #38', () => {
         },
       }),
       errorMessage:
-        "Migration 38: NetworkController providerConfig chainId not found: 'null'",
+        "Migration 37: NetworkController providerConfig chainId not found: 'null'",
       scenario: 'chainId is invalid',
     },
   ];
