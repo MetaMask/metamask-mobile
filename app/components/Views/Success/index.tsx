@@ -28,6 +28,7 @@ import Icon, {
   IconColor,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
   root: {
@@ -118,9 +119,7 @@ const OnboardingSuccess = ({
   };
 
   const handleLink = () => {
-    Linking.openURL(
-      'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
-    );
+    Linking.openURL(AppConstants.URLS.WHAT_IS_SRP);
   };
 
   const saveHint = async () => {

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Linking } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -19,6 +19,7 @@ import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
+import AppConstants from '../../../core/AppConstants';
 
 const styles = StyleSheet.create({
   setting: {
@@ -64,6 +65,10 @@ export default function ManageNetworksComponent() {
     });
   }, [navigation, trackEvent, providerConfig]);
 
+  const handleLink = () => {
+    Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);
+  };
+
   return (
     <View style={styles.setting}>
       <View style={styles.heading}>
@@ -77,6 +82,10 @@ export default function ManageNetworksComponent() {
         style={styles.description}
       >
         {strings('default_settings.manage_networks_body')}
+        <Text color={TextColor.Info} onPress={handleLink}>
+          {strings('default_settings.privacy_policy')}
+        </Text>
+        {strings('default_settings.manage_networks_body2')}
       </Text>
       <PickerNetwork
         label={networkName}

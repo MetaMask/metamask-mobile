@@ -50,8 +50,8 @@ const BasicFunctionalitySheet = () => {
     <View style={styles.container}>
       <Icon
         name={IconName.Danger}
-        color={IconColor.Warning}
-        size={IconSize.Lg}
+        color={IconColor.Error}
+        size={IconSize.Xl}
         style={styles.icon}
       />
       <Text variant={TextVariant.HeadingMD} style={styles.title}>

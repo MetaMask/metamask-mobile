@@ -1,7 +1,13 @@
 import React, { useCallback, useLayoutEffect } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Linking,
+} from 'react-native';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import Icon, {
   IconSize,
@@ -12,6 +18,7 @@ import Routes from '../../../../../app/constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import BasicFunctionalityComponent from '../../../../components/UI/BasicFunctionality/BasicFunctionality';
 import ManageNetworksComponent from '../../../../components/UI/ManageNetworks/ManageNetworks';
+import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({
   root: {
@@ -83,10 +90,18 @@ const DefaultSettings = () => {
     });
   };
 
+  const handleLink = () => {
+    Linking.openURL(AppConstants.URLS.WHAT_IS_SRP);
+  };
+
   return (
     <ScrollView style={styles.root}>
       <Text variant={TextVariant.BodyMD}>
         {strings('default_settings.description')}
+        <Text color={TextColor.Info} onPress={handleLink}>
+          {' '}
+          {strings('default_settings.learn_more_about_privacy')}
+        </Text>
       </Text>
       <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
       <ManageNetworksComponent />
