@@ -1062,6 +1062,9 @@ class Engine {
         confirmExternalTransaction:
           this.txController.confirmExternalTransaction.bind(this.txController),
         provider: networkController.getProviderAndBlockTracker().provider,
+        getTransactions: this.txController.getTransactions.bind(
+          this.txController,
+        ),
 
         // STX controller will call it like this:
         // Looks like this for MM swap, send
