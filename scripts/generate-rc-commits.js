@@ -19,7 +19,26 @@ const authorTeams = {
     'Kate Johnson',
     'Charly Chevalier',
   ],
-  'Wallet UX': ['David Walsh', 'vthomas13', 'Nidhi Kumari', 'Victor Thomas'],
+  Assets: ['salimtb', 'sahar-fehri', 'Brian Bergeron'],
+  'Confirmation Systems': [
+    'OGPoyraz',
+    'vinistevam',
+    'Matthew Walsh',
+    'cryptotavares',
+    'Vinicius Stevam',
+    'Derek Brans',
+    'sleepytanya',
+  ],
+  DappAPI: ['tmashuang', 'jiexi', 'BelfordZ', 'Shane','Thomas Huang', 'Alex Donesky', 'jiexi', 'Zachary Belford'],
+  'Confirmation UX': [
+    'Sylva Elendu',
+    'Olusegun Akintayo',
+    'Jyoti Puri',
+    'Ariella Vu',
+    'Sylva Elendu',
+    'seaona',
+  ],
+  'Design Systems': ['georgewrmarshall', 'Garrett Bear', 'George Marshall', 'Brian August Nguyen'],
   'Extension Platform': [
     'chloeYue',
     'Pedro Figueiredo',
@@ -37,38 +56,7 @@ const authorTeams = {
     'Gudahtt',
     'David Murdoch',
   ],
-  DappAPI: ['tmashuang', 'jiexi', 'BelfordZ', 'Shane','Thomas Huang', 'Alex Donesky', 'jiexi', 'Zachary Belford'],
-  'Confirmation UX': [
-    'Sylva Elendu',
-    'Olusegun Akintayo',
-    'Jyoti Puri',
-    'Ariella Vu',
-    'Sylva Elendu',
-    'seaona',
-  ],
-  'Confirmation Systems': [
-    'OGPoyraz',
-    'vinistevam',
-    'Matthew Walsh',
-    'cryptotavares',
-    'Vinicius Stevam',
-    'Derek Brans',
-    'sleepytanya',
-  ],
-  'Design Systems': ['georgewrmarshall', 'Garrett Bear', 'George Marshall', 'Brian August Nguyen'],
-  Snaps: [
-    'David Drazic',
-    'hmalik88',
-    'Montoya',
-    'Mrtenz',
-    'Frederik Bolding',
-    'Bowen Sanders',
-    'Guillaume Roux',
-    'Hassan Malik',
-    'Maarten Zuidhoorn',
-    'Jonathan Ferreira',
-  ],
-  Assets: ['salimtb', 'sahar-fehri', 'Brian Bergeron'],
+  'Hardware Wallets': ['Xiaoming Wang'],
   Linea: ['VGau'],
   Lavamoat: ['weizman', 'legobeat', 'kumavis',  'LeoTM'],
   'Shared Libraries': ['Michele Esposito', 'Elliot Winkler'],
@@ -79,7 +67,7 @@ const authorTeams = {
     'Shane T',
     'Bernardo Garces Chapero',
   ],
-  "Mobile Platform": [
+  'Mobile Platform': [
     'cortisiko',
     'Cal-L',
     'chrisleewilcox',
@@ -96,10 +84,26 @@ const authorTeams = {
     'Curtis David',
     'yande',
     'Aslau Mario-Daniel',
+    'Kylan Hurt',
+    'CW',
+  ],
+  Ramps: ['Pedro Pablo Aste Kompen'],
+  Security: ['witmicko', 'Nicholas Ellul'],
+  SDK: ['abretonc7s', 'Omri Dan'],
+  Snaps: [
+    'David Drazic',
+    'hmalik88',
+    'Montoya',
+    'Mrtenz',
+    'Frederik Bolding',
+    'Bowen Sanders',
+    'Guillaume Roux',
+    'Hassan Malik',
+    'Maarten Zuidhoorn',
+    'Jonathan Ferreira',
   ],
   Swaps: ['Daniel', 'Davide Brocchetto'],
-  Security: ['witmicko'],
-  SDK: ['abretonc7s', 'Omri Dan'],
+  'Wallet UX': ['David Walsh', 'vthomas13', 'Nidhi Kumari', 'Victor Thomas'],
 };
 
 // Function to get the team for a given author
@@ -202,7 +206,7 @@ function escapeCSV(field) {
 function assignChangeType(field) {
   if (field.includes('feat'))
     return 'Added';
-  else if (field.includes('chore') || field.includes('test') || field.includes('ci')  || field.includes('docs'))
+  else if (field.includes('chore') || field.includes('test') || field.includes('ci')  || field.includes('docs') || field.includes('refactor'))
     return 'Changed';
   else if (field.includes('fix'))
     return 'Fixed';
