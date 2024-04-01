@@ -225,11 +225,11 @@ const SnapsSettingsStack = () => (
 );
 ///: END:ONLY_INCLUDE_IF
 
-const NotificationsReminderStack = () => (
-  <Stack.Navigator initialRouteName={'NotificationsActivateReminder'}>
+const NotificationsOptInStack = () => (
+  <Stack.Navigator initialRouteName={'NotificationsOptIn'}>
     <Stack.Screen
       mode={'modal'}
-      name="NotificationsActivateReminder"
+      name="NotificationsOptIn"
       component={NotificationsOptIn}
       options={{ headerShown: false }}
     />
@@ -754,14 +754,9 @@ const MainNavigator = () => (
       headerStyle={{ borderBottomWidth: 0 }}
     />
     <Stack.Screen
-      name="NotificationsOptIn"
-      component={NotificationsOptIn}
-      options={NotificationsOptIn.navigationOptions}
-    />
-    <Stack.Screen
-      name="NotificationsSettings"
-      component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
+      name="NotificationsOptInStack"
+      component={NotificationsOptInStack}
+      options={NotificationsOptInStack.navigationOptions}
     />
   </Stack.Navigator>
 );

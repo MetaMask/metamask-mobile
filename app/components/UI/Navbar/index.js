@@ -965,7 +965,7 @@ export function getWalletNavbarOptions(
       navigation.navigate('NotificationsView');
       trackEvent(MetaMetricsEvents.WALLET_NOTIFICATIONS);
     } else {
-      navigation.navigate('NotificationsOptIn');
+      navigation.navigate('NotificationsOptInStack');
     }
   }
 
