@@ -136,7 +136,6 @@ class FixtureBuilder {
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
-              networkId: '1',
               providerConfig: {
                 type: 'mainnet',
                 chainId: '0x1',
@@ -578,15 +577,15 @@ class FixtureBuilder {
         experimentalSettings: {
           securityAlertsEnabled: true,
         },
+        inpageProvider: {
+          networkId: '1',
+        },
       },
       asyncState: {
         '@MetaMask:existingUser': 'true',
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '6.5.0',
-      },
-      inpageProvider: {
-        networkId: '',
       },
     };
     return this;
