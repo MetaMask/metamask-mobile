@@ -1,10 +1,10 @@
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
+import Logger from '../../../util/Logger';
 import { Minimizer } from '../../NativeModules';
 import SDKConnect from '../../SDKConnect/SDKConnect';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
-import Logger from '../../../util/Logger';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 
@@ -40,18 +40,43 @@ export function handleMetaMaskDeeplink({
     if (params.redirect) {
       Minimizer.goBack();
     } else if (params.channelId) {
-      handleDeeplink({
-        channelId: params.channelId,
-        origin,
-        url,
-        context: 'deeplink_scheme',
-        otherPublicKey: params.pubkey,
-        sdkConnect: SDKConnect.getInstance(),
-      }).catch((err) => {
-        Logger.error(err, 'DeepLinkManager failed to connect');
-      });
+      // differentiate between  deeplink callback and socket connection
+      if (params.comm === 'deeplinking') {
+        SDKConnect.getInstance().state.deeplinkingService.handleConnection({
+          channelId: params.channelId,
+          url,
+          scheme: params.scheme ?? '',
+          dappPublicKey: params.pubkey,
+        });
+      } else {
+        handleDeeplink({
+          channelId: params.channelId,
+          origin,
+          url,
+          context: 'deeplink_scheme',
+          otherPublicKey: params.pubkey,
+          sdkConnect: SDKConnect.getInstance(),
+        }).catch((err) => {
+          Logger.error(err, 'DeepLinkManager failed to connect');
+        });
+      }
     }
     return true;
+  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.MMSDK}`)) {
+    if (!params.message || !params.scheme) {
+      throw new Error(
+        `DeepLinkManager failed to connect - Invalid message or scheme`,
+      );
+      return;
+    }
+
+    SDKConnect.getInstance().state.deeplinkingService.handleMessage({
+      channelId: params.channelId,
+      url,
+      message: params.message,
+      scheme: params.scheme,
+      dappPublicKey: params.pubkey,
+    });
   } else if (
     url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`) ||
     url.startsWith(`${PREFIXES.METAMASK}/${ACTIONS.WC}`)

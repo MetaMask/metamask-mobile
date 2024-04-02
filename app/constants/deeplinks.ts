@@ -20,6 +20,7 @@ export enum ACTIONS {
   FOCUS = 'focus',
   WC = 'wc',
   CONNECT = 'connect',
+  MMSDK = 'mmsdk',
   ANDROID_SDK = 'bind',
   BUY_CRYPTO = 'buy-crypto',
   SELL_CRYPTO = 'sell-crypto',

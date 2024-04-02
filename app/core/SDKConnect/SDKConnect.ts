@@ -32,6 +32,7 @@ import {
   updateSDKLoadingState,
 } from './StateManagement';
 import DevLogger from './utils/DevLogger';
+import DeeplinkProtocolService from './SDKDeeplinkProtocol/DeeplinkProtocolService';
 
 export interface ConnectedSessions {
   [id: string]: Connection;
@@ -70,6 +71,7 @@ export interface SDKConnectState {
   androidSDKStarted: boolean;
   androidSDKBound: boolean;
   androidService?: AndroidService;
+  deeplinkingService: DeeplinkProtocolService;
   androidConnections: SDKSessions;
   connecting: { [channelId: string]: boolean };
   approvedHosts: ApprovedHosts;
@@ -109,6 +111,7 @@ export class SDKConnect {
     sdkLoadingState: {},
     disabledHosts: {},
     rpcqueueManager: new RPCQueueManager(),
+    deeplinkingService: new DeeplinkProtocolService(),
     appStateListener: undefined,
     socketServerUrl: AppConstants.MM_SDK.SERVER_URL,
   };
