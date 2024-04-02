@@ -14,14 +14,18 @@ import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
-import { isObject } from '@metamask/utils';
+// import { isObject } from '@metamask/utils';
 import AppConstants from '../../../app/core/AppConstants';
+import { Alert } from 'react-native';
 
 // We are intercepting all fetch request to gate api calls
 // based on privacy settings.
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-const originalFetch = window.fetch; // Never touch this!
+// const originalFetch = window.fetch; // Never touch this!
+
+const originalSend = XMLHttpRequest.prototype.send;
+const originalOpen = XMLHttpRequest.prototype.open;
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -118,33 +122,107 @@ export function* basicFunctionalityToggle() {
     const { basicFunctionalityEnabled } = yield take(
       'TOGGLE_BASIC_FUNCTIONALITY',
     );
-    if (!basicFunctionalityEnabled) {
-      const blockList = AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      window.fetch = function (fetchProp: any) {
-        let url = '';
-        if (typeof fetchProp === 'string') {
-          url = fetchProp;
-        } else if (isObject(fetchProp)) {
-          url = fetchProp.url as string;
-        }
+    // const blockList = AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST;
 
-        if (!url) {
-          Promise.reject(new Error('No URL')).catch((error) => {
-            console.error(error);
-          });
-        }
+    const shouldBlockRequest = (url: string) => {
+      if (basicFunctionalityEnabled) return false;
+      return AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST.some((blockedUrl) =>
+        url.includes(blockedUrl),
+      );
+    };
 
-        const disallowed = blockList.find((api) => url.includes(api));
-        if (disallowed) {
-          Promise.reject(new Error(`Disallowed URL: ${url}`)).catch((error) => {
-            console.error(error);
-          });
-        }
-        return originalFetch.apply(this, [url]);
-      };
-    }
+    let currentUrl: string | null = null; // This will keep track of the URL of the current request
+
+    XMLHttpRequest.prototype.open = function (method, url) {
+      currentUrl = url.toString(); // Convert URL object to string
+      return originalOpen.apply(this, [method, currentUrl]);
+    };
+
+    const handleError = () =>
+      Promise.reject(new Error(`Disallowed URL: ${currentUrl}`)).catch(
+        (error) => {
+          console.error(error);
+        },
+      );
+
+    // if (basicFunctionalityEnabled) {
+    //   XMLHttpRequest.prototype.send = function (body) {
+    //     return originalSend.apply(this, [body]);
+    //   };
+    // } else {
+    //   XMLHttpRequest.prototype.send = function (body) {
+    //     if (currentUrl && shouldBlockRequest(currentUrl)) {
+    //       handleError();
+    //     }
+    //     return originalSend.apply(this, [body]);
+    //   };
+    // }
+
+    // Override the 'send' method to implement the blocking logic
+    XMLHttpRequest.prototype.send = function (body) {
+      // Check if the current request should be blocked
+      if (
+        !basicFunctionalityEnabled &&
+        currentUrl &&
+        shouldBlockRequest(currentUrl)
+      ) {
+        // Trigger an error callback or handle the blocked request as needed
+        Alert.alert('BLOCKED URL', currentUrl);
+        handleError();
+        // Do not proceed with the request
+        return;
+      }
+      // For non-blocked requests, proceed as normal
+      return originalSend.call(this, body);
+    };
+
+    // axios.create().interceptors.request.use(
+    //   (config) => {
+    //     // Perform a check against the blockList before the request is sent
+    //     const isBlocked = blockList.find((blockedUrl) =>
+    //       config?.url?.includes(blockedUrl),
+    //     );
+    //     if (isBlocked) {
+    //       // Throw an error or modify the request as needed
+    //       const error = new Error(`Disallowed URL: ${config.url}`);
+    //       Alert.alert('BLOCKED URL', config.url);
+
+    //       return Promise.reject(error);
+    //     }
+    //     // If not blocked, return the config
+    //     return config;
+    //   },
+    //   (error) => {
+    //     // Do something with request error
+    //     console.log('Request error', error);
+    //     return Promise.reject(error);
+    //   },
+    // );
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    // window.fetch = function (fetchProp: any) {
+    //   let url = '';
+    //   if (typeof fetchProp === 'string') {
+    //     url = fetchProp;
+    //   } else if (isObject(fetchProp)) {
+    //     url = fetchProp.url as string;
+    //   }
+
+    //   if (!url) {
+    //     Promise.reject(new Error('No URL')).catch((error) => {
+    //       console.error(error);
+    //     });
+    //   }
+
+    //   const disallowed = blockList.find((api) => url.includes(api));
+    //   if (disallowed) {
+    //     Promise.reject(new Error(`Disallowed URL: ${url}`)).catch((error) => {
+    //       console.error(error);
+    //     });
+    //   }
+    //   return originalFetch.apply(this, [url]);
+    // };
   }
 }
 
