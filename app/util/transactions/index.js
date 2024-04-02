@@ -347,8 +347,7 @@ export async function getTransactionActionKey(transaction, chainId) {
     return SWAPS_TRANSACTION_ACTION_KEY;
   let ret;
   // if data in transaction try to get method data
-  // Skip getMethodData for STX in order to get them to show in pending txs
-  if (data && data !== '0x' && transaction.transactionType !== 'smart') {
+  if (data && data !== '0x') {
     const methodData = await getMethodData(data);
     const { name } = methodData;
     if (name) return name;
