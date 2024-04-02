@@ -67,7 +67,7 @@ export const handleConnectionMessage = async ({
 
   connection.setLoading(false);
 
-  if (!lcLogguedRPCs.includes(message.method.toLowerCase())) {
+  if (lcLogguedRPCs.includes(message.method.toLowerCase())) {
     // Save analytics data on tracked methods
     SendAnalytics(
       {
