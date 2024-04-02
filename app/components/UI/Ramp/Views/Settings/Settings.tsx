@@ -83,7 +83,7 @@ function Settings() {
                   </ListItem.Body>
                 </ListItem.Content>
               </ListItem>
-              {selectedRegion && (
+              {selectedRegion ? (
                 <Button
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Lg}
@@ -91,7 +91,7 @@ function Settings() {
                   onPress={handleResetRegion}
                   label={strings('app_settings.fiat_on_ramp.reset_region')}
                 />
-              )}
+              ) : null}
             </Row>
             {isInternalBuild ? (
               <Row>
