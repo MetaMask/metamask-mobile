@@ -751,6 +751,15 @@ class Transactions extends PureComponent {
             .concat(confirmedTransactions)
         : this.props.transactions;
 
+    // console.log(
+    //   'STX transactions',
+    //   transactions.map((tx) => ({
+    //     id: tx.id,
+    //     transactionHash: tx.transactionHash,
+    //     txHash: tx.txHash,
+    //   })),
+    // );
+
     const renderSpeedUpGas = () => {
       if (!this.existingGas) return null;
       if (!this.existingGas.isEIP1559Transaction)
