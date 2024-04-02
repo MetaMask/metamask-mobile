@@ -231,6 +231,14 @@ const mapStateToProps = (state) => {
     state.engine.backgroundState.SmartTransactionsController
       .smartTransactionsState.smartTransactions[chainId];
 
+  // TODO this will get resolved when TxController is upgraded to support tx.txHash
+  // Bug with duplicate STX showing up
+  // Duplicates have tx.txHash, originals have tx.transactionHash
+  // Remove ones with no tx.transactionHash
+  const filteredNonSmartTransactions = nonSmartTransactions.filter(
+    (tx) => tx.transactionHash,
+  );
+
   const filteredSmartTransactions =
     smartTransactions
       ?.filter((stx) => stx.status !== 'success' && stx.status)
@@ -249,9 +257,10 @@ const mapStateToProps = (state) => {
     tokens: selectTokens(state),
     selectedAddress: selectSelectedAddress(state),
     identities: selectIdentities(state),
-    transactions: [...nonSmartTransactions, ...filteredSmartTransactions].sort(
-      (a, b) => b.time - a.time,
-    ),
+    transactions: [
+      ...filteredNonSmartTransactions,
+      ...filteredSmartTransactions,
+    ].sort((a, b) => b.time - a.time),
     networkType: selectProviderType(state),
     chainId,
   };
