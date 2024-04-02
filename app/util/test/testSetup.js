@@ -20,6 +20,17 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
+jest.mock('react-native-webview', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  const WebView = (props) => <View {...props} />;
+
+  return {
+    WebView,
+  };
+});
+
+
 jest.mock('react-native-fs', () => ({
   CachesDirectoryPath: jest.fn(),
   DocumentDirectoryPath: jest.fn(),
