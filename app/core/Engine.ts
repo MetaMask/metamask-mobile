@@ -195,6 +195,7 @@ import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
 import { getIsSmartTransaction } from '../selectors/smartTransactionsController';
 import { publishHook as smartPublishHook } from '../util/smart-transactions/smart-tx';
 import { getSwapsFeatureFlags } from '../reducers/swaps';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1074,6 +1075,14 @@ class Engine {
         ),
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      getExternalPendingTransactions: (address: string) =>
+        this.stxController.getTransactions({
+          addressFrom: address,
+          status: SmartTransactionStatuses.PENDING,
+        }),
 
       hooks: {
         publish: (transactionMeta) => {
