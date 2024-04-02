@@ -191,14 +191,25 @@ class TransactionElement extends PureComponent {
   mounted = false;
 
   componentDidMount = async () => {
-    const [transactionElement, transactionDetails] = await decodeTransaction({
-      ...this.props,
-      swapsTransactions: this.props.swapsTransactions,
-      swapsTokens: this.props.swapsTokens,
-      assetSymbol: this.props.assetSymbol,
-    });
+    const [transactionElement, transactionDetails] = await decodeTransaction(
+      {
+        ...this.props,
+        swapsTransactions: this.props.swapsTransactions,
+        swapsTokens: this.props.swapsTokens,
+        assetSymbol: this.props.assetSymbol,
+      },
+      this.props.i,
+    );
     this.mounted = true;
     this.mounted && this.setState({ transactionElement, transactionDetails });
+
+    if (this.props.i === 0) {
+      console.log(
+        'STX transactionElement',
+        transactionElement,
+        transactionDetails,
+      );
+    }
   };
 
   componentWillUnmount() {
