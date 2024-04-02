@@ -1,8 +1,6 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "이 요청을 승인하면 스캠을 목적으로 하는 타사가 회원님의 자산을 모두 가져갈 수 있습니다.",
-    "attribution": "제공자:",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "이 요청을 승인하면 Blur에 등록된 회원님의 자산을 타인이 훔칠 수 있습니다.",
     "deceptive_request_title": "사기성 요청입니다",
     "failed_title": "안전하지 않은 요청일 수 있습니다",
@@ -893,7 +891,6 @@
     "security_check_subheading": "보안 점검",
     "symbol_required": "심볼은 필수입니다.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "개인정보 보호 - 제3자와 데이터를 공유하지 않습니다. Arbitrum, Avalanche, BNB Chain, 이더리움 메인넷, Optimism, Polygon에서 사용할 수 있습니다.",
     "security_alerts": "보안 경고",
     "security_alerts_desc": "이 기능은 트랜잭션 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동을 탐지하는 것은 아닙니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다."
   },
@@ -2409,7 +2406,6 @@
       "title": "보안 경고로 안전성을 유지하세요",
       "description_1": "Blockaid가 제공하는 보안 경고를 통해 개인정보를 보호하고 사기도 방지하세요. 이 기능은 이제 모든 MetaMask 사용자에게 기본적으로 적용됩니다.",
       "description_2": "요청을 승인하기 전에 항상 직접 확인하세요.",
-      "description_3": "Arbitrum, Avalanche, BNB Chain, 이더리움 메인넷, Linea, Optimism, Polygon에서 사용할 수 있습니다.",
       "got_it": "확인"
     },
     "sell": {

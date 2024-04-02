@@ -1,24 +1,31 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import { renderScreen } from '../../../util/test/renderWithProvider';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import LockScreen from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import Routes from '../../../constants/navigation/Routes';
 
-const mockStore = configureMockStore();
-const initialState = {
-  user: {
-    passwordSet: false,
+const mockInitialState = {
+  settings: {},
+  engine: {
+    backgroundState: {
+      ...initialBackgroundState,
+      PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+          selectedAddress: '0x43727620ca89a4fC2878De582A6AF7c5E4596b70',
+        },
+      },
+    },
   },
 };
-const store = mockStore(initialState);
 
 describe('LockScreen', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <LockScreen />
-      </Provider>,
+    const { toJSON } = renderScreen(
+      LockScreen,
+      { name: Routes.LOCK_SCREEN },
+      { state: mockInitialState },
+      { bioStateMachineId: '' },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
