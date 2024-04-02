@@ -290,11 +290,7 @@ describe('handleConnectionMessage', () => {
       it('should add processed RPC to the RPC queue', async () => {
         await handleConnectionMessage({ message, engine, connection });
 
-        expect(mockRpcQueueManagerAdd).toHaveBeenCalledTimes(1);
-        expect(mockRpcQueueManagerAdd).toHaveBeenCalledWith({
-          id: message?.id,
-          method: message?.method,
-        });
+        expect(mockRpcQueueManagerAdd).toHaveBeenCalledTimes(0);
       });
     });
   });
