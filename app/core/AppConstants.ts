@@ -168,8 +168,6 @@ export default {
   PPOM_INITIALISATION_STATE_CHANGE_EVENT:
     'PPOMController:initialisationStateChangeEvent',
   BASIC_FUNCTIONALITY_BLOCK_LIST: [
-    'infura',
-    'swap',
     'token-api',
     'gas-api',
     'price-api',
