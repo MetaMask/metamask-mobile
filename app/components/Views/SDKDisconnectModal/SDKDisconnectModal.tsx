@@ -82,12 +82,8 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
 
   const onConfirm = async () => {
     if (account && channelId) {
-      DevLogger.log(
-        `OnConfirm->removePermittedAccounts account=${account} channelId: ${channelId}`,
-      );
       removePermittedAccounts(channelId, [account]);
     } else if (!account && channelId) {
-      DevLogger.log(`OnConfirm->removeChannel channelId: ${channelId}`);
       SDKConnect.getInstance().removeChannel({
         channelId,
         sendTerminate: true,
