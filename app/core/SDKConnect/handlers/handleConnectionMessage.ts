@@ -21,6 +21,20 @@ import handleSendMessage from './handleSendMessage';
 // eslint-disable-next-line
 const { version } = require('../../../../package.json');
 
+const lcLogguedRPCs = [
+  'eth_sendTransaction',
+  'eth_signTypedData',
+  'eth_signTransaction',
+  'personal_sign',
+  'wallet_requestPermissions',
+  'wallet_switchEthereumChain',
+  'eth_signTypedData_v3',
+  'eth_signTypedData_v4',
+  'metamask_connectSign',
+  'metamask_connectWith',
+  'metamask_batch',
+].map((method) => method.toLowerCase());
+
 export const handleConnectionMessage = async ({
   message,
   engine,
@@ -53,22 +67,24 @@ export const handleConnectionMessage = async ({
 
   connection.setLoading(false);
 
-  // Save analytics data on sdk methods
-  SendAnalytics(
-    {
-      id: connection.channelId,
-      event: TrackingEvents.SDK_RPC_REQUEST_RECEIVED,
-      sdkVersion: connection.originatorInfo?.apiVersion,
-      walletVersion: version,
-      params: {
-        method: message.method,
-        from: 'mobile_wallet',
+  if (!lcLogguedRPCs.includes(message.method.toLowerCase())) {
+    // Save analytics data on tracked methods
+    SendAnalytics(
+      {
+        id: connection.channelId,
+        event: TrackingEvents.SDK_RPC_REQUEST_RECEIVED,
+        sdkVersion: connection.originatorInfo?.apiVersion,
+        walletVersion: version,
+        params: {
+          method: message.method,
+          from: 'mobile_wallet',
+        },
       },
-    },
-    connection.socketServerUrl,
-  ).catch((error) => {
-    Logger.error(error, 'SendAnalytics failed');
-  });
+      connection.socketServerUrl,
+    ).catch((error) => {
+      Logger.error(error, 'SendAnalytics failed');
+    });
+  }
 
   // Wait for keychain to be unlocked before handling rpc calls.
   const keyringController = (
