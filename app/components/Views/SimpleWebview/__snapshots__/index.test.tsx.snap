@@ -8,7 +8,7 @@ exports[`SimpleWebview should render correctly 1`] = `
     }
   }
 >
-  <Component
+  <WebView
     source={
       Object {
         "uri": "https://etherscan.io",
