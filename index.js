@@ -19,6 +19,7 @@ import notifee, { EventType } from '@notifee/react-native';
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
+import { isTest } from './app/util/test/utils.js';
 
 import NotificationManager from './app/core/NotificationManager';
 
@@ -101,5 +102,5 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
  */
 AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
-  process.env.IS_TEST === 'true' ? Root : Sentry.wrap(Root),
+  isTest ? Root : Sentry.wrap(Root),
 );
