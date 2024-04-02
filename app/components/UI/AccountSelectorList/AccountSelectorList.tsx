@@ -114,7 +114,7 @@ const AccountSelectorList = ({
                 nextActiveAddress = accounts[nextActiveIndex]?.address;
               }
               // Switching accounts on the PreferencesController must happen before account is removed from the KeyringController, otherwise UI will break.
-              // If needed, place PreferencesController.setSelectedAddress in onRemoveImportedAccount callback.
+              // If needed, place Engine.setSelectedAddress in onRemoveImportedAccount callback.
               onRemoveImportedAccount?.({
                 removedAddress: address,
                 nextActiveAddress,
