@@ -49,7 +49,4 @@ export const getIsSmartTransaction = (state: RootState) => {
     selectSmartTransactionsOptInStatus(state);
 
   return isSmartTransactionsEnabled && smartTransactionsOptInStatus;
-
-  // TODO remove this only for debugging
-  // return true;
 };
