@@ -1,7 +1,7 @@
 import { NavigationContainerRef } from '@react-navigation/native';
 import { RootState } from '../../../../app/reducers';
 import { disconnectAll } from '../../../../app/actions/sdk';
-import { store } from '../../../../app/store';
+import { store } from '../../../store';
 import Logger from '../../../util/Logger';
 import SDKConnect, { ApprovedHosts, SDKSessions } from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
