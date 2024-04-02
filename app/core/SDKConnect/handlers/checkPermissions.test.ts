@@ -67,6 +67,7 @@ describe('checkPermissions', () => {
       executeProviderRequest: jest.fn(),
       executeRestrictedMethod: jest.fn().mockResolvedValue({}),
       hasPermissions: jest.fn(),
+      getPermissions: jest.fn(),
       requestPermissions,
     } as unknown as PermissionController<any, any>;
 
