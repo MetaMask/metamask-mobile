@@ -36,7 +36,7 @@ import {
   selectUseTokenDetection,
 } from '../../../../selectors/preferencesController';
 import Routes from '../../../../constants/navigation/Routes';
-import { trackEventV2 as trackEvent } from '../../../../util/analyticsV2';
+
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AdvancedViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/AdvancedView.selectors';
 import Text, {
@@ -52,6 +52,8 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../component-library/components/Banners/Banner';
+import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { wipeTransactions } from '../../../../util/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -185,6 +187,10 @@ class AdvancedSettings extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   scrollView = React.createRef();
@@ -240,9 +246,8 @@ class AdvancedSettings extends PureComponent {
   };
 
   resetAccount = () => {
-    const { TransactionController } = Engine.context;
     const { navigation } = this.props;
-    TransactionController.wipeTransactions(true);
+    wipeTransactions(true);
     navigation.navigate('WalletView');
   };
 
@@ -261,12 +266,18 @@ class AdvancedSettings extends PureComponent {
     // A not so great way to copy objects by value
 
     try {
-      const data = generateStateLogs(fullState);
+      const stateLogsWithReleaseDetails = generateStateLogs({
+        ...fullState,
+        appVersion,
+        buildNumber,
+      });
 
-      let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
+      let url = `data:text/plain;base64,${new Buffer(
+        stateLogsWithReleaseDetails,
+      ).toString('base64')}`;
       // // Android accepts attachements as BASE64
       if (Device.isIos()) {
-        await RNFS.writeFile(path, data, 'utf8');
+        await RNFS.writeFile(path, stateLogsWithReleaseDetails, 'utf8');
         url = path;
       }
 
@@ -291,7 +302,9 @@ class AdvancedSettings extends PureComponent {
       // Disable eth_sign directly without friction
       const { PreferencesController } = Engine.context;
       PreferencesController.setDisabledRpcMethodPreference('eth_sign', false);
-      trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_DISABLED, {});
+      this.props.metrics.trackEvent(
+        MetaMetricsEvents.SETTINGS_ADVANCED_ETH_SIGN_DISABLED,
+      );
     }
   };
 
@@ -552,4 +565,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setShowCustomNonce(showCustomNonce)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(AdvancedSettings);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(AdvancedSettings));

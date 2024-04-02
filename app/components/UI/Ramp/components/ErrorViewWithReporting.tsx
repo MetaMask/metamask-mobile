@@ -12,9 +12,11 @@ import { ScreenLocation } from '../types';
 function ErrorViewWithReporting({
   error,
   location,
+  asScreen,
 }: {
   error: Error;
   location: ScreenLocation;
+  asScreen?: boolean;
 }) {
   const navigation = useNavigation();
 
@@ -32,6 +34,7 @@ function ErrorViewWithReporting({
         navigation.dangerouslyGetParent()?.pop();
       }}
       location={location}
+      asScreen={asScreen}
     />
   );
 }

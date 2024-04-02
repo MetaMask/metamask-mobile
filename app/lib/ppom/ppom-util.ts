@@ -9,10 +9,16 @@ import Engine from '../../core/Engine';
 import { store } from '../../store';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import Logger from '../../util/Logger';
+import { updateSecurityAlertResponse } from '../../util/transaction-controller';
+import { normalizeTransactionParams } from '@metamask/transaction-controller';
+import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
+import AppConstants from '../../core/AppConstants';
+
+const TRANSACTION_METHOD = 'eth_sendTransaction';
 
 const ConfirmationMethods = Object.freeze([
   'eth_sendRawTransaction',
-  'eth_sendTransaction',
+  TRANSACTION_METHOD,
   'eth_sign',
   'eth_signTypedData',
   'eth_signTypedData_v1',
@@ -70,8 +76,9 @@ const validateRequest = async (req: any, transactionId?: string) => {
           setSignatureRequestSecurityAlertResponse(RequestInProgress),
         );
       }
+      const normalizedRequest = normalizeRequest(req);
       securityAlertResponse = await ppomController.usePPOM((ppom: any) =>
-        ppom.validateJsonRpc(req),
+        ppom.validateJsonRpc(normalizedRequest),
       );
       securityAlertResponse = {
         ...securityAlertResponse,
@@ -95,10 +102,10 @@ const validateRequest = async (req: any, transactionId?: string) => {
           securityAlertResponse,
         ),
       );
-      const { TransactionController } = Engine.context;
-      TransactionController.updateSecurityAlertResponse(transactionId, {
+      updateSecurityAlertResponse(
+        transactionId as string,
         securityAlertResponse,
-      });
+      );
     } else {
       store.dispatch(
         setSignatureRequestSecurityAlertResponse(securityAlertResponse),
@@ -108,5 +115,23 @@ const validateRequest = async (req: any, transactionId?: string) => {
   // todo: once all call to validateRequest are async we may not return any result
   return securityAlertResponse;
 };
+
+function normalizeRequest(request: any) {
+  if (request.method !== TRANSACTION_METHOD) {
+    return request;
+  }
+
+  request.origin = request.origin
+    ?.replace(WALLET_CONNECT_ORIGIN, '')
+    ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+
+  const transactionParams = request.params?.[0] || {};
+  const normalizedParams = normalizeTransactionParams(transactionParams);
+
+  return {
+    ...request,
+    params: [normalizedParams],
+  };
+}
 
 export default { validateRequest };

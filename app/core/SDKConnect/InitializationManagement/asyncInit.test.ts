@@ -1,6 +1,4 @@
 import { NavigationContainerRef } from '@react-navigation/native';
-import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../AppConstants';
 import SDKConnect from '../SDKConnect';
 import { wait } from '../utils/wait.util';
 import asyncInit from './asyncInit';
@@ -21,6 +19,17 @@ jest.mock('../../../util/Logger');
 jest.mock('../SDKConnect');
 jest.mock('../utils/DevLogger');
 jest.mock('../utils/wait.util');
+jest.mock('../../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      sdk: {
+        connections: {},
+        approvedHosts: {},
+      },
+    })),
+    dispatch: jest.fn(),
+  },
+}));
 
 describe('asyncInit', () => {
   let mockInstance = {} as unknown as SDKConnect;
@@ -72,18 +81,6 @@ describe('asyncInit', () => {
   });
 
   describe('Loading connections and hosts from storage', () => {
-    it('should load connections and approved hosts from DefaultPreference', async () => {
-      await asyncInit({
-        instance: mockInstance,
-        navigation: mockNavigation,
-      });
-
-      expect(DefaultPreference.get).toHaveBeenCalledTimes(2);
-      expect(DefaultPreference.get).toHaveBeenCalledWith(
-        AppConstants.MM_SDK.SDK_CONNECTIONS,
-      );
-    });
-
     it('should parse and set connections from the storage', async () => {
       await asyncInit({
         instance: mockInstance,

@@ -13,7 +13,7 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
-import Networks from '../../resources/networks.json';
+import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
@@ -27,7 +27,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(Networks.Tenderly)
+      .withNetworkController(CustomNetworks.Tenderly)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -48,7 +48,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   it.each`
     quantity | sourceTokenSymbol | destTokenSymbol
-    ${'.05'} | ${'ETH'}          | ${'USDC'}
+    ${'.05'} | ${'ETH'}          | ${'USDT'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {

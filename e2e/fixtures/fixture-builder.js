@@ -57,6 +57,18 @@ class FixtureBuilder {
                   balance: '0x0',
                 },
               },
+              accountsByChainId: {
+                64: {
+                  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+                    balance: '0x0',
+                  },
+                },
+                1: {
+                  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+                    balance: '0x0',
+                  },
+                },
+              },
               _U: 0,
               _V: 1,
               _X: null,
@@ -123,14 +135,38 @@ class FixtureBuilder {
               ],
             },
             NetworkController: {
-              network: '1',
-              isCustomNetwork: false,
+              selectedNetworkClientId: 'mainnet',
+              networkId: '1',
               providerConfig: {
                 type: 'mainnet',
                 chainId: '0x1',
+                ticker: 'ETH',
               },
-              networkDetails: {
-                EIPS: {},
+              networksMetadata: {
+                goerli: {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                'linea-goerli': {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                'linea-sepolia': {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                'linea-mainnet': {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                mainnet: {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                sepolia: {
+                  EIPS: {},
+                  status: 'unknown',
+                },
               },
               networkConfigurations: {
                 networkId1: {

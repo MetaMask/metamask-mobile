@@ -29,7 +29,6 @@ const styleSheet = (_params: {
       marginBottom: 4,
     },
     details: { marginLeft: 10, marginBottom: 10 },
-    securityTickIcon: { marginTop: 4 },
     bannerWrapperMargined: {
       marginTop: 10,
       marginLeft: 10,
@@ -51,7 +50,7 @@ const styleSheet = (_params: {
     bannerSectionSmallSpaced: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      justifyContent: 'space-around',
       borderWidth: 1,
       borderRadius: 4,
       borderColor: _params.theme.colors.border.default,
@@ -62,11 +61,12 @@ const styleSheet = (_params: {
       padding: 10,
     },
     infoText: {
-      marginLeft: 8,
+      marginHorizontal: 5,
     },
     flexRowSection: {
       flexDirection: 'row',
       alignItems: 'center',
+      marginRight: 10,
     },
   });
 

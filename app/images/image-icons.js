@@ -7,8 +7,7 @@ import FTM from './fantom.png';
 import ETHEREUM from './eth-logo-new.png';
 import BNB from './binance.png';
 import AVAX from './avalanche.png';
-import GOERLI from './goerli-logo-dark.png';
-import LINEA_GOERLI from './linea-testnet-logo.png';
+import LINEA_TESTNET from './linea-testnet-logo.png';
 import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
 
@@ -22,8 +21,8 @@ export default {
   BNB,
   AETH,
   AVAX,
-  GOERLI,
-  'LINEA-GOERLI': LINEA_GOERLI,
+  'LINEA-GOERLI': LINEA_TESTNET,
+  'LINEA-SEPOLIA': LINEA_TESTNET,
   SEPOLIA,
   'LINEA-MAINNET': LINEA_MAINNET,
 };

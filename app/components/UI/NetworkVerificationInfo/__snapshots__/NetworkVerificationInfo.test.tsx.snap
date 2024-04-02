@@ -104,7 +104,13 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           <Image
             onError={[Function]}
             resizeMode="contain"
-            source="test-icon"
+            source={
+              Object {
+                "default": Object {
+                  "uri": "MockImage",
+                },
+              }
+            }
             style={
               Object {
                 "flex": 1,
@@ -348,7 +354,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               }
             }
           >
-            1
+            10
           </Text>
           <Text
             accessibilityRole="text"
@@ -458,6 +464,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     testID="bottomsheetfooter"
   >
     <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
       activeOpacity={1}
       onPressIn={[Function]}
       onPressOut={[Function]}
@@ -496,6 +504,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       </Text>
     </TouchableOpacity>
     <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
       activeOpacity={1}
       onPressIn={[Function]}
       onPressOut={[Function]}

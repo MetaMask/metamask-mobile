@@ -5,6 +5,7 @@ import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import DefaultPreference from 'react-native-default-preference';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
+import { isTest } from '../test/utils';
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
 const METAMASK_BUILD_TYPE = process.env['METAMASK_BUILD_TYPE'] || 'main'; // eslint-disable-line dot-notation
@@ -83,8 +84,25 @@ function removeDeviceName(report) {
     report.contexts.device.name = null;
 }
 
+/**
+ * Removes SES from the Sentry error event stack trace.
+ * By default, SES is shown as the top level frame, which can obscure errors.
+ * We filter it out by identifying the SES stack trace frame simply by 'filename',
+ * since the 'context_line' is rather verbose.
+ * @param {*} report - the error event
+ */
+function removeSES(report) {
+  const stacktraceFrames = report.exception.values[0].stacktrace.frames;
+  const filteredFrames = stacktraceFrames.filter(
+    (frame) => frame.filename !== 'app:///ses.cjs',
+  );
+  report.exception.values[0].stacktrace.frames = filteredFrames;
+}
+
 function rewriteReport(report) {
   try {
+    // filter out SES from error stack trace
+    removeSES(report);
     // simplify certain complex error messages (e.g. Ethjs)
     simplifyErrorMessages(report);
     // remove urls from error message
@@ -179,7 +197,7 @@ export function deriveSentryEnvironment(
 // Setup sentry remote error reporting
 export function setupSentry() {
   // Disable Sentry for E2E tests
-  if (process.env.IS_TEST === 'true') {
+  if (isTest) {
     return;
   }
 
@@ -208,7 +226,7 @@ export function setupSentry() {
               }),
             ]
           : integrations,
-      tracesSampleRate: 0.05,
+      tracesSampleRate: 0.04,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
