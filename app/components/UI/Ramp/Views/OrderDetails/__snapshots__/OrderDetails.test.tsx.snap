@@ -163,6 +163,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -170,6 +171,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -199,6 +202,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -206,6 +210,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -2102,6 +2108,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -2109,6 +2116,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -2138,6 +2147,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -2145,6 +2155,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -4056,6 +4068,7 @@ exports[`OrderDetails renders a created order 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -4063,6 +4076,8 @@ exports[`OrderDetails renders a created order 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -4092,6 +4107,7 @@ exports[`OrderDetails renders a created order 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -4099,6 +4115,8 @@ exports[`OrderDetails renders a created order 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -5938,6 +5956,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -5945,6 +5964,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -5974,6 +5995,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -5981,6 +6003,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -7877,6 +7901,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -7884,6 +7909,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -7913,6 +7940,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -7920,6 +7948,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -9759,6 +9789,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -9766,6 +9797,8 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -9795,6 +9828,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -9802,6 +9836,8 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -10198,6 +10234,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -10205,6 +10242,8 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -10234,6 +10273,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -10241,6 +10281,8 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -10878,6 +10920,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -10885,6 +10928,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -10914,6 +10959,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -10921,6 +10967,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -12871,6 +12919,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -12878,6 +12927,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -12907,6 +12958,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -12914,6 +12966,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -14933,6 +14987,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -14940,6 +14995,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -14969,6 +15026,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -14976,6 +15034,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -16815,6 +16875,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -16822,6 +16883,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -16851,6 +16914,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -16858,6 +16922,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >

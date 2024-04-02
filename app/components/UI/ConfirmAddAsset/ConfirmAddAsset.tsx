@@ -8,7 +8,7 @@ import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import { getNetworkNavbarOptions } from '../Navbar';
+import { getImportTokenNavbarOptions } from '../Navbar';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
@@ -41,6 +41,7 @@ import {
   ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL,
   ADD_CONFIRM_CUSTOM_ASSET,
 } from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
+import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
 
 const RenderBalance = (asset: {
   symbol: string;
@@ -66,7 +67,7 @@ const RenderBalance = (asset: {
         {balanceFiat === TOKEN_BALANCE_LOADING ? (
           <SkeletonText thin style={styles.skeleton} />
         ) : (
-          balanceFiat ?? '$0.00'
+          balanceFiat ?? ''
         )}
       </Text>
     </View>
@@ -82,19 +83,6 @@ const ConfirmAddAsset = () => {
   const [showExitModal, setShowExitModal] = React.useState(false);
   const showExitModalFunction = () => setShowExitModal(!showExitModal);
 
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getNetworkNavbarOptions(
-        'Import Tokens',
-        false,
-        navigation,
-        colors,
-        undefined,
-        true,
-      ),
-    );
-  }, [colors, navigation]);
-
   /**
    * Go to wallet page
    */
@@ -106,6 +94,20 @@ const ConfirmAddAsset = () => {
       },
     });
   };
+
+  const updateNavBar = useCallback(() => {
+    navigation.setOptions(
+      getImportTokenNavbarOptions(
+        `add_asset.${TOKEN_TITLE}`,
+        false,
+        navigation,
+        colors,
+        true,
+        0,
+        () => setShowExitModal(true),
+      ),
+    );
+  }, [colors, navigation]);
 
   useEffect(() => {
     updateNavBar();

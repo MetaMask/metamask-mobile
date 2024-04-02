@@ -26,4 +26,10 @@ export default class ConfirmAddAssetView {
   static async cancelModalIsVisible() {
     await TestHelpers.checkIfVisible(ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL);
   }
+
+  static async tapOnConfirmModalButton() {
+    await TestHelpers.tapByText(
+      ImportTokenViewSelectorsText.CONFIRM_CANCEL_IMPORT_TOKEN,
+    );
+  }
 }

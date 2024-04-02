@@ -3,7 +3,6 @@ import { TextInput, View, StyleSheet, Platform, TextStyle } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import Fuse from 'fuse.js';
-// import Icon from 'react-native-vector-icons/FontAwesome';
 import { toLowerCaseEquals } from '../../../util/general';
 import { useSelector } from 'react-redux';
 import { TokenListToken } from '@metamask/assets-controllers';

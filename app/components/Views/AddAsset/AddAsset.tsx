@@ -7,7 +7,10 @@ import SearchTokenAutocomplete from '../../UI/SearchTokenAutocomplete';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
-import { getNetworkNavbarOptions } from '../../UI/Navbar';
+import {
+  getImportTokenNavbarOptions,
+  getNetworkNavbarOptions,
+} from '../../UI/Navbar';
 import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
 import {
   selectChainId,
@@ -54,12 +57,21 @@ const AddAsset = () => {
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
-      getNetworkNavbarOptions(
-        `add_asset.${assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
-        true,
-        navigation,
-        colors,
-      ),
+      assetType === TOKEN
+        ? getImportTokenNavbarOptions(
+            `add_asset.${TOKEN_TITLE}`,
+            true,
+            navigation,
+            colors,
+            true,
+            0,
+          )
+        : getNetworkNavbarOptions(
+            `add_asset.${assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
+            true,
+            navigation,
+            colors,
+          ),
     );
   }, [assetType, colors, navigation]);
 

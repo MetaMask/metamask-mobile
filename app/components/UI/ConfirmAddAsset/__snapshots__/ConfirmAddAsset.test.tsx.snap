@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ConfirmAddAsset should render correctly 1`] = `
+exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
 <View
   style={
     Object {
@@ -61,7 +61,79 @@ exports[`ConfirmAddAsset should render correctly 1`] = `
             }
             testID="badge-wrapper-badge"
           >
-            <View />
+            <View>
+              <View
+                placeholderStyle={
+                  Object {
+                    "backgroundColor": "#F2F4F6",
+                  }
+                }
+                useNativeDriver={true}
+              >
+                <Image
+                  address="0xdac17f958d2ee523a2206206994597c13d831ec7"
+                  fadeIn={true}
+                  onError={[Function]}
+                  onLoadEnd={[Function]}
+                  placeholderStyle={
+                    Object {
+                      "backgroundColor": "#F2F4F6",
+                    }
+                  }
+                  source={
+                    Object {
+                      "uri": "https://example.com/usdt.png",
+                    }
+                  }
+                  style={
+                    Array [
+                      Object {
+                        "borderRadius": 25,
+                        "height": 50,
+                        "overflow": "hidden",
+                        "width": 50,
+                      },
+                      Object {
+                        "height": 32,
+                        "width": 32,
+                      },
+                    ]
+                  }
+                />
+                <View
+                  collapsable={false}
+                  style={
+                    Object {
+                      "bottom": 0,
+                      "left": 0,
+                      "opacity": 1,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      Array [
+                        Object {
+                          "borderRadius": 25,
+                          "height": 32,
+                          "overflow": "hidden",
+                          "width": 32,
+                        },
+                        Object {
+                          "backgroundColor": "#eee",
+                        },
+                        Object {
+                          "backgroundColor": "#F2F4F6",
+                        },
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
             <View
               style={
                 Object {
@@ -150,7 +222,7 @@ exports[`ConfirmAddAsset should render correctly 1`] = `
               }
             }
           >
-            Ethereum
+            Tether USD
           </Text>
           <Text
             accessibilityRole="text"
@@ -167,7 +239,7 @@ exports[`ConfirmAddAsset should render correctly 1`] = `
               }
             }
           >
-            ETH
+            USDT
           </Text>
         </View>
         <View

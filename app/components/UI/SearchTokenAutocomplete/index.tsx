@@ -123,14 +123,17 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     (asset) => {
       const assetAddressLower = asset.address.toLowerCase();
 
-      const newSelectedAsset = selectedAsset.reduce((acc, currentAsset) => {
-        const currentAssetAddressLower = currentAsset.address.toLowerCase();
-        if (currentAssetAddressLower === assetAddressLower) {
-          return acc;
-        }
+      const newSelectedAsset = selectedAsset.reduce(
+        (filteredAssets, currentAsset) => {
+          const currentAssetAddressLower = currentAsset.address.toLowerCase();
+          if (currentAssetAddressLower === assetAddressLower) {
+            return filteredAssets;
+          }
 
-        return [...acc, currentAsset];
-      }, []);
+          return [...filteredAssets, currentAsset];
+        },
+        [],
+      );
 
       if (newSelectedAsset.length === selectedAsset.length) {
         newSelectedAsset.push(asset);
@@ -183,7 +186,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         title: strings('wallet.token_toast.token_imported_title'),
         description:
           selectedAsset.length > 1
-            ? strings('wallet.token_toast.token_imported_desc_2', {
+            ? strings('wallet.token_toast.tokens_import_success_multiple', {
                 tokensNumber: selectedAsset.length,
               })
             : strings('wallet.token_toast.token_imported_desc_1'),
@@ -293,6 +296,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
           label={strings('transaction.next')}
           onPress={goToConfirmAddToken}
           isDisabled={selectedAsset.length < 1}
+          testID="token-import-next-button"
         />
       </View>
     </View>

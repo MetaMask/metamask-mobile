@@ -103,6 +103,7 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
       marginTop: 0,
       color: colors.error.default,
+      paddingBottom: 8,
     },
     tokenDetectionBanner: { marginHorizontal: 20, marginTop: 20 },
     tokenDetectionDescription: { color: colors.text.default },
@@ -211,13 +212,12 @@ class AddCustomToken extends PureComponent {
       () => {
         InteractionManager.runAfterInteractions(() => {
           this.props.navigation.goBack();
+          this.props.navigation.goBack();
           NotificationManager.showSimpleNotification({
-            status: `simple_notification`,
+            status: `import_success`,
             duration: 5000,
             title: strings('wallet.token_toast.token_imported_title'),
-            description: strings('wallet.token_toast.token_imported_desc', {
-              tokenSymbol: symbol,
-            }),
+            description: strings('wallet.token_toast.token_imported_desc_1'),
           });
         });
       },
@@ -318,7 +318,7 @@ class AddCustomToken extends PureComponent {
       validated = false;
     } else if (symbol.length >= 11) {
       this.setState({
-        warningSymbol: 'Symbol must be 11 characters or fewer',
+        warningSymbol: strings('token.symbol_length'),
       });
     } else {
       this.setState({ warningSymbol: `` });
@@ -528,7 +528,7 @@ class AddCustomToken extends PureComponent {
           {this.renderBanner()}
           <View style={styles.addressWrapper}>
             <Text style={styles.inputLabel}>
-              {strings('token.token_contract_address')}
+              {strings('asset_details.address')}
             </Text>
             <TextInput
               style={addressInputStyle}
@@ -639,6 +639,7 @@ class AddCustomToken extends PureComponent {
             style={styles.import}
             onPress={this.goToConfirmAddToken}
             isDisabled={isDisabled}
+            testID="next-button-custom-import"
           />
         </View>
       </View>

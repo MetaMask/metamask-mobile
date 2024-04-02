@@ -27,10 +27,10 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({
     selectedAsset: [
       {
-        symbol: 'ETH',
-        address: '0x...',
-        iconUrl: 'url',
-        name: 'Ethereum',
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        symbol: 'USDT',
+        name: 'Tether USD',
+        iconUrl: 'https://example.com/usdt.png',
         decimals: 18,
       },
     ],
@@ -81,7 +81,7 @@ const mockInitialState = {
 };
 
 describe('ConfirmAddAsset', () => {
-  it('should render correctly', () => {
+  it('render matches previous snapshot', () => {
     const wrapper = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
@@ -91,8 +91,8 @@ describe('ConfirmAddAsset', () => {
     const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
-    expect(getByText('Ethereum')).toBeTruthy();
-    expect(getByText('ETH')).toBeTruthy();
+    expect(getByText('Tether USD')).toBeTruthy();
+    expect(getByText('USDT')).toBeTruthy();
     expect(getByText('$27.02')).toBeTruthy();
   });
 

@@ -46,7 +46,7 @@ describe('MultiAssetListItems', () => {
     (useSelector as jest.Mock).mockClear();
   });
 
-  it('should render correctly', async () => {
+  it('render matches previous snapshot', async () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectProviderConfig) return mockProviderConfig;
     });
