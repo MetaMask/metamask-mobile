@@ -4,6 +4,8 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import {
   CommunicationLayerMessage,
   MessageType,
+  SendAnalytics,
+  TrackingEvents,
 } from '@metamask/sdk-communication-layer';
 import Logger from '../../../util/Logger';
 import Engine from '../../Engine';
@@ -16,6 +18,8 @@ import {
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
 import handleSendMessage from './handleSendMessage';
+// eslint-disable-next-line
+const { version } = require('../../../../package.json');
 
 export const handleConnectionMessage = async ({
   message,
@@ -48,6 +52,23 @@ export const handleConnectionMessage = async ({
   );
 
   connection.setLoading(false);
+
+  // Save analytics data on sdk methods
+  SendAnalytics(
+    {
+      id: connection.channelId,
+      event: TrackingEvents.SDK_RPC_REQUEST_RECEIVED,
+      sdkVersion: connection.originatorInfo?.apiVersion,
+      walletVersion: version,
+      params: {
+        method: message.method,
+        from: 'mobile_wallet',
+      },
+    },
+    connection.socketServerUrl,
+  ).catch((error) => {
+    Logger.error(error, 'SendAnalytics failed');
+  });
 
   // Wait for keychain to be unlocked before handling rpc calls.
   const keyringController = (
