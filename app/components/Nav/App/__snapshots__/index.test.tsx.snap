@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`App should render correctly when logged in 1`] = `
+exports[`App renders according to latest snapshot 1`] = `
 <View
   style={
     Object {
