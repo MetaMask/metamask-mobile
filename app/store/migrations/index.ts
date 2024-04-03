@@ -37,6 +37,7 @@ import migration33 from './033';
 import migration34 from './034';
 import migration35 from './035';
 import migration36 from './036';
+import migration38 from './038';
 
 // We do not keep track of the old state
 // We create this type for better readability
@@ -82,6 +83,7 @@ export const migrations: MigrationManifest = {
   34: migration34 as unknown as AsyncMigration,
   35: migration35 as unknown as AsyncMigration,
   36: migration36 as unknown as AsyncMigration,
+  37: migration38 as unknown as asyncMigration,
 };
 
 // The latest (i.e. highest) version number.

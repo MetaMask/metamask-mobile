@@ -60,7 +60,7 @@ export const filterByAddressAndNetwork = (
   chainId: string,
 ): boolean => {
   const {
-    transaction: { from, to },
+    txParams: { from, to },
     isTransfer,
     transferInformation,
   } = tx;

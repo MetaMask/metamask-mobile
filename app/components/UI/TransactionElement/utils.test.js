@@ -4,7 +4,7 @@ describe('decodeIncomingTransfer', () => {
     // Arrange
     const args = {
       tx: {
-        transaction: {
+        txParams: {
           to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
           from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
           value: '52daf0',
@@ -14,8 +14,7 @@ describe('decodeIncomingTransfer', () => {
           decimals: 6,
           contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         },
-        transactionHash:
-          '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
       },
       currentCurrency: 'usd',
       contractExchangeRates: {},
@@ -45,8 +44,7 @@ describe('decodeIncomingTransfer', () => {
       renderValue: '5.43 USDT',
       renderFrom: '0x1440ec793aE50fA046B95bFeCa5aF475b6003f9e',
       renderTo: '0x77648F1407986479fb1fA5Cc3597084B5dbDB057',
-      transactionHash:
-        '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+      hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
       transactionType: 'transaction_received_token',
       summaryAmount: '5.43 USDT',
       summaryFee: '< 0.00001 ETH',
@@ -59,7 +57,7 @@ describe('decodeIncomingTransfer', () => {
     // Arrange
     const args = {
       tx: {
-        transaction: {
+        txParams: {
           to: '0x77648f1407986479fb1fa5cc3597084b5dbdb057',
           from: '0x1440ec793ae50fa046b95bfeca5af475b6003f9e',
           value: '3B9ACA00', // 1000000000 in decimal
@@ -69,8 +67,7 @@ describe('decodeIncomingTransfer', () => {
           decimals: 6,
           contractAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         },
-        transactionHash:
-          '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+        hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
       },
       currentCurrency: 'usd',
       contractExchangeRates: {},
@@ -100,8 +97,7 @@ describe('decodeIncomingTransfer', () => {
       renderValue: '1000 USDT',
       renderFrom: '0x1440ec793aE50fA046B95bFeCa5aF475b6003f9e',
       renderTo: '0x77648F1407986479fb1fA5Cc3597084B5dbDB057',
-      transactionHash:
-        '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
+      hash: '0x942d7843454266b81bf631022aa5f3f944691731b62d67c4e80c4bb5740058bb',
       transactionType: 'transaction_received_token',
       summaryAmount: '1000 USDT',
       summaryFee: '< 0.00001 ETH',

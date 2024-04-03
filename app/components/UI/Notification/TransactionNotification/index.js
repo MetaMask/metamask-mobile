@@ -249,9 +249,7 @@ function TransactionNotification(props) {
         swapsTransactions,
         swapsTokens,
       });
-      const existingGasPrice = new BigNumber(
-        tx?.transaction?.gasPrice || '0x0',
-      );
+      const existingGasPrice = new BigNumber(tx?.txParams?.gasPrice || '0x0');
       const gasFeeValue = fastSplit(
         existingGasPrice
           .times(
@@ -289,7 +287,7 @@ function TransactionNotification(props) {
           <BaseNotification
             status={currentNotification.status}
             data={{
-              ...tx?.transaction,
+              ...tx?.txParams,
               ...currentNotification.transaction,
               title: transactionElement?.notificationKey,
             }}

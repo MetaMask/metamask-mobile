@@ -416,8 +416,8 @@ class NotificationManager {
         .reverse()
         .filter(
           (tx) =>
-            safeToChecksumAddress(tx.transaction?.to) === selectedAddress &&
-            safeToChecksumAddress(tx.transaction?.from) !== selectedAddress &&
+            safeToChecksumAddress(tx.txParams?.to) === selectedAddress &&
+            safeToChecksumAddress(tx.txParams?.from) !== selectedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&

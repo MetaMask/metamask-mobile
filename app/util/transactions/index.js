@@ -337,7 +337,7 @@ export async function isCollectibleAddress(address, tokenId) {
  * @returns {string} - Corresponding transaction action key
  */
 export async function getTransactionActionKey(transaction, chainId) {
-  const { transaction: { data, to } = {} } = transaction;
+  const { txParams: { data, to } = {} } = transaction;
   if (!to) return CONTRACT_METHOD_DEPLOY;
   if (to === getSwapsContractAddress(chainId))
     return SWAPS_TRANSACTION_ACTION_KEY;
@@ -384,11 +384,9 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
       currencySymbol = tx.transferInformation.symbol;
     }
 
-    const incoming =
-      safeToChecksumAddress(tx.transaction.to) === selectedAddress;
+    const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
     const selfSent =
-      incoming &&
-      safeToChecksumAddress(tx.transaction.from) === selectedAddress;
+      incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
     return incoming
       ? selfSent
         ? currencySymbol
@@ -503,7 +501,9 @@ export function addAccountTimeFlagFilter(
   );
 }
 
+//Leaving here a comment to re-visit this function since it's probably be possible to deprecate
 export function getNormalizedTxState(state) {
+  console.log('ENTER State transaction', state.transaction);
   return state.transaction
     ? { ...state.transaction, ...state.transaction.transaction }
     : undefined;

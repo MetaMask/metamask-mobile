@@ -219,14 +219,12 @@ class TransactionElement extends PureComponent {
 
   renderTxTime = () => {
     const { tx, selectedAddress } = this.props;
-    const incoming =
-      safeToChecksumAddress(tx.transaction.to) === selectedAddress;
+    const incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
     const selfSent =
-      incoming &&
-      safeToChecksumAddress(tx.transaction.from) === selectedAddress;
+      incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
     return `${
       (!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE
-        ? `#${parseInt(tx.transaction.nonce, 16)} - ${toDateFormat(
+        ? `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
             tx.time,
           )} ${strings(
             'transactions.from_device_label',
@@ -402,7 +400,7 @@ class TransactionElement extends PureComponent {
     const { tx } = this.props;
 
     let existingGas = {};
-    const transaction = tx?.transaction;
+    const transaction = tx?.txParams;
     if (transaction) {
       if (isEIP1559Transaction(transaction)) {
         existingGas = {
@@ -413,9 +411,7 @@ class TransactionElement extends PureComponent {
           ),
         };
       } else {
-        const existingGasPrice = tx.transaction
-          ? tx.transaction.gasPrice
-          : '0x0';
+        const existingGasPrice = tx.txParams ? tx.txParams.gasPrice : '0x0';
         const existingGasPriceDecimal = parseInt(
           existingGasPrice === undefined ? '0x0' : existingGasPrice,
           16,
