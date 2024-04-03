@@ -1,6 +1,6 @@
 import { NavigationContainerRef } from '@react-navigation/native';
+import { disconnectAll, resetConnections } from '../../../../app/actions/sdk';
 import { RootState } from '../../../../app/reducers';
-import { disconnectAll } from '../../../../app/actions/sdk';
 import { store } from '../../../store';
 import Logger from '../../../util/Logger';
 import SDKConnect, { ApprovedHosts, SDKSessions } from '../SDKConnect';
@@ -26,9 +26,6 @@ const asyncInit = async ({
   await wait(1000);
   DevLogger.log(`SDKConnect::init() - waited 1000ms - keep initializing`);
 
-  // All connectectiions are disconnected on start
-  store.dispatch(disconnectAll());
-
   const { sdk } = store.getState() as RootState;
   const validConnections: SDKSessions = {};
   const validHosts: ApprovedHosts = {};
@@ -37,7 +34,9 @@ const asyncInit = async ({
     const now = Date.now();
     for (const id in sdk.connections) {
       const connInfo = sdk.connections[id];
+      const ttl = sdk.approvedHosts[id] <= now;
       if (sdk.approvedHosts[id] <= now) {
+        DevLogger.log(`Connection ${id} is still valid, TTL: ${ttl}`);
         // Only keep connections that are not expired.
         validConnections[id] = sdk.connections[id];
         validHosts[id] = sdk.approvedHosts[id];
@@ -49,15 +48,20 @@ const asyncInit = async ({
         );
       }
     }
-    instance.state.connections = sdk.connections;
-    instance.state.approvedHosts = sdk.approvedHosts;
+    DevLogger.log(
+      `SDKConnect::init() - valid connections length=${
+        Object.keys(validConnections).length
+      }`,
+      validConnections,
+    );
+    instance.state.connections = validConnections;
+    instance.state.approvedHosts = validHosts;
     instance.state.androidConnections = sdk.androidConnections;
 
     // Update store with valid connection
-    store.dispatch({
-      type: 'SDK_SET_CONNECTIONS',
-      payload: validConnections,
-    });
+    store.dispatch(resetConnections(validConnections));
+    // All connectectiions are disconnected on start
+    store.dispatch(disconnectAll());
     DevLogger.log(`SDKConnect::init() - done`);
     instance.state._initialized = true;
   } catch (err) {
