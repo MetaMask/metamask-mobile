@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",
-    "attribution": "Fourni par",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Si vous approuvez cette demande, quelqu’un pourrait s’emparer de vos actifs répertoriés sur Blur.",
     "deceptive_request_title": "Cette demande est trompeuse",
     "failed_title": "Cette demande peut présenter des risques",
     "failed_description": "À cause d’une erreur, cette demande n’a pas été vérifiée par le fournisseur de services de sécurité. Veuillez agir avec prudence.",
     "loading_title": "En train de vérifier s’il y a des alertes de sécurité…",
-    "loading_complete_title": "Aucune alerte reçue",
+    "loading_complete_title": "Aucune alerte n’a été reçue. Faites toujours preuve de diligence raisonnable avant d’approuver les demandes.",
     "malicious_domain_description": "Vous interagissez avec un domaine malveillant. Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "other_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "raw_signature_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
@@ -377,10 +375,13 @@
     "nfts_autodetection_title": "Détection de NFT",
     "nfts_autodetection_desc": "Cela permet à MetaMask de détecter automatiquement les NFT d’OpenSea et de les afficher dans votre portefeuille MetaMask.",
     "network_details_check": "Vérification des détails du réseau",
-    "network_with_chain_id": "The network with chain ID",
-    "use_the_currency_symbol": "uses the currency symbol",
-    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
-    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_with_chain_id": "Le réseau qui a un ID de chaîne",
+    "potential_scam": "Il pourrait s’agir d’une arnaque",
+    "network_not_matching": "L’ID ou le nom de la chaîne associée à ce réseau n’est pas correct. De nombreux jetons populaires utilisent le nom",
+    "target_scam_network": ", ce qui en fait une cible pour les escrocs. Vérifiez toutes les informations avant de continuer, car vous risquez de vous faire arnaquer.",
+    "use_the_currency_symbol": "utilise le symbole monétaire",
+    "use_correct_symbol": "Assurez-vous que vous utilisez le bon symbole avant de continuer",
+    "chain_id_currently_used": "Cet ID de chaîne est actuellement utilisé par le",
     "network_check_validation_desc": "réduit les risques de connexion au mauvais réseau ou à un réseau malveillant.",
     "nfts_autodetection_cta": "Activez la détection de NFT dans les paramètres",
     "learn_more": "En savoir plus",
@@ -888,21 +889,37 @@
     "network_provider": "Fournisseur de réseau",
     "token_nft_ens_subheading": "Détection automatique des jetons, NFT et ENS",
     "security_check_subheading": "Contrôles de sécurité",
-    "security_alerts": "Alertes de sécurité",
-    "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos demandes de transaction et de signature. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité. En l’activant, vous acceptez les conditions d’utilisation du fournisseur.",
+    "symbol_required": "Le symbole est requis.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Protection de la vie privée : aucune donnée n’est partagée avec des tiers. Disponible sur Arbitrum, Avalanche, BNB chain, Optimism, Polygon et le réseau principal Ethereum.",
-    "symbol_required": "Symbol is required."
+    "security_alerts": "Alertes de sécurité",
+    "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos demandes de transaction et de signature. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité. En l’activant, vous acceptez les conditions d’utilisation du fournisseur."
   },
   "sdk": {
     "disconnect_title": "Déconnecter tous les sites ?",
     "disconnect_all_info": "Si vous supprimez vos connexions à tous les sites, vous devrez autoriser la connexion à nouveau.",
     "disconnect": "Déconnecter",
     "disconnect_all": "Déconnecter tous",
+    "disconnect_all_accounts": "Déconnecter tous les comptes",
+    "manage_connections": "Gérer les connexions",
+    "manage": "Gérer",
     "cancel": "Annuler",
     "loading": "Connexion à MetaMask...",
     "unkown_dapp": "Nom de DAPP non disponible",
-    "no_connections": "Aucune connexion trouvée"
+    "no_connections": "Aucune connexion",
+    "no_connections_desc": "Les comptes que vous connectez à un site ou à une application seront affichés ici."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} compte(s) connecté(s)."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Déconnecter de tous les sites ?",
+    "disconnect_all_desc": "Si vous déconnectez vos comptes de tous les sites, vous devrez accorder des autorisations pour les reconnecter.",
+    "disconnect_account": "Voulez-vous déconnecter le compte ?",
+    "disconnect_all_accounts": "Déconnecter tous les comptes",
+    "disconnect_all_accounts_desc": "Si vous déconnectez tous les comptes de {{dapp}}, vous devrez accorder des autorisations pour les reconnecter.",
+    "disconnect_account_desc": "Si vous déconnectez {{account}} de {{dapp}}, vous devrez accorder des autorisations pour le reconnecter.",
+    "disconnect_confirm": "Déconnecter",
+    "cancel": "Annuler"
   },
   "sdk_return_to_app_modal": {
     "title": "Retourner à l’application",
@@ -1467,7 +1484,7 @@
     "add": "Ajouter",
     "cancel": "Annuler",
     "approve": "Approuver",
-    "edit_network_details": "Edit network details",
+    "edit_network_details": "Modifier les détails du réseau",
     "malicious_network_warning": "Un fournisseur de réseau malveillant peut mentir quant à l’état de la blockchain et enregistrer votre activité sur le réseau. N’ajoutez que des réseaux personnalisés auxquels vous faites confiance.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Informations sur le réseau",
@@ -1487,7 +1504,9 @@
     "add_network": "ajouter manuellement d’autres réseaux.",
     "select_network": "Sélectionner un réseau",
     "show_test_networks": "Afficher les réseaux de test",
-    "deprecated_goerli": "En raison des changements apportés au protocole d’Ethereum, le réseau de test Goerli pourra ne pas fonctionner d’une manière aussi fiable qu’auparavant et deviendra bientôt obsolète."
+    "deprecated_goerli": "En raison des changements apportés au protocole d’Ethereum, le réseau de test Goerli pourra ne pas fonctionner d’une manière aussi fiable qu’auparavant et deviendra bientôt obsolète.",
+    "network_deprecated_title": "Ce réseau est obsolète",
+    "network_deprecated_description": "Le réseau auquel vous essayez de vous connecter n’est plus pris en charge par Metamask."
   },
   "select": {
     "cancel": "Annuler",
@@ -2036,9 +2055,13 @@
     "fetching_new_quotes": "Récupération des nouvelles cotations…",
     "quotes_expire_in": "Les cotations expirent dans",
     "get_new_quotes": "Obtenir de nouvelles cotations",
+    "explore_more_options": "Découvrez d’autres options",
+    "one_more_option": "1 option supplémentaire",
+    "more_options": "{{count}} options supplémentaires",
+    "previously_used": "Utilisé précédemment",
     "quotes_timeout": "Expiration des cotations",
     "request_new_quotes": "Veuillez demander de nouvelles cotations pour obtenir le meilleur taux actuellement disponible.",
-    "terms_of_service": "Terms of Service",
+    "terms_of_service": "Conditions d’utilisation",
     "amount_to_buy": "Quantité à acheter",
     "amount_to_sell": "Quantité à vendre",
     "want_to_buy": "Vous voulez acheter",
@@ -2383,7 +2406,6 @@
       "title": "Restez en sécurité grâce aux alertes de sécurité",
       "description_1": "Évitez les arnaques les plus courantes et protégez vos données privées grâce aux alertes de sécurité fournies par Blockaid. Cette fonctionnalité est désormais activée par défaut pour tous les utilisateurs de MetaMask.",
       "description_2": "Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande.",
-      "description_3": "Disponible sur Arbitrum, Avalanche, BNB chain, Linea, Optimism, Polygon et le réseau principal Ethereum.",
       "got_it": "D’accord"
     },
     "sell": {

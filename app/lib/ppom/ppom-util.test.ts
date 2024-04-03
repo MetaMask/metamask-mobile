@@ -1,3 +1,4 @@
+import { normalizeTransactionParams } from '@metamask/transaction-controller';
 import * as SignatureRequestActions from '../../actions/signatureRequest'; // eslint-disable-line import/no-namespace
 import * as TransactionActions from '../../actions/transaction'; // eslint-disable-line import/no-namespace
 import Engine from '../../core/Engine';
@@ -25,6 +26,11 @@ jest.mock('../../core/Engine', () => ({
       },
     },
   },
+}));
+
+jest.mock('@metamask/transaction-controller', () => ({
+  ...jest.requireActual('@metamask/transaction-controller'),
+  normalizeTransactionParams: jest.fn(),
 }));
 
 const mockRequest = {
@@ -59,9 +65,15 @@ const mockSignatureRequest = {
 };
 
 describe('validateResponse', () => {
+  const normalizeTransactionParamsMock = jest.mocked(
+    normalizeTransactionParams,
+  );
+
   beforeEach(() => {
     Engine.context.PreferencesController.state.securityAlertsEnabled = true;
     Engine.context.NetworkController.state.providerConfig.chainId = '0x1';
+
+    normalizeTransactionParamsMock.mockImplementation((params) => params);
   });
 
   afterEach(() => {
@@ -136,5 +148,69 @@ describe('validateResponse', () => {
     const spy = jest.spyOn(SignatureRequestActions, 'default');
     await PPOMUtil.validateRequest(mockSignatureRequest);
     expect(spy).toBeCalledTimes(2);
+  });
+
+  it('normalizes transaction requests before validation', async () => {
+    const normalizedTransactionParamsMock = {
+      ...mockRequest.params[0],
+      data: '0xabcd',
+    };
+
+    const validateMock = jest.fn();
+
+    const ppomMock = {
+      validateJsonRpc: validateMock,
+    };
+
+    Engine.context.PPOMController.usePPOM.mockImplementation((callback: any) =>
+      callback(ppomMock),
+    );
+
+    normalizeTransactionParamsMock.mockReturnValue(
+      normalizedTransactionParamsMock,
+    );
+
+    await PPOMUtil.validateRequest(mockRequest, '123');
+
+    expect(normalizeTransactionParamsMock).toBeCalledTimes(1);
+    expect(normalizeTransactionParamsMock).toBeCalledWith(
+      mockRequest.params[0],
+    );
+
+    expect(validateMock).toBeCalledTimes(1);
+    expect(validateMock).toBeCalledWith({
+      ...mockRequest,
+      params: [normalizedTransactionParamsMock],
+    });
+  });
+
+  it('normalizes transaction request origin before validation', async () => {
+    const validateMock = jest.fn();
+
+    const ppomMock = {
+      validateJsonRpc: validateMock,
+    };
+
+    Engine.context.PPOMController.usePPOM.mockImplementation((callback: any) =>
+      callback(ppomMock),
+    );
+
+    await PPOMUtil.validateRequest(
+      {
+        ...mockRequest,
+        origin: 'wc::metamask.github.io',
+      },
+      '123',
+    );
+
+    expect(normalizeTransactionParamsMock).toBeCalledTimes(1);
+    expect(normalizeTransactionParamsMock).toBeCalledWith(
+      mockRequest.params[0],
+    );
+
+    expect(validateMock).toBeCalledTimes(1);
+    expect(validateMock).toBeCalledWith({
+      ...mockRequest,
+    });
   });
 });

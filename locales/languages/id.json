@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan dapat mengambil semua aset Anda.",
-    "attribution": "Didukung oleh",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Jika Anda menyetujui permintaan ini, seseorang dapat mencuri aset Anda yang terdaftar di Blur.",
     "deceptive_request_title": "Ini adalah permintaan tipuan",
     "failed_title": "Permintaan mungkin tidak aman",
     "failed_description": "Karena terjadi kesalahan, permintaan ini tidak diverifikasi oleh penyedia keamanan. Lanjutkan dengan hati-hati.",
     "loading_title": "Memeriksa peringatan keamanan...",
-    "loading_complete_title": "Tidak menerima peringatan apa pun",
+    "loading_complete_title": "Tidak menerima peringatan. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
     "malicious_domain_description": "Anda berinteraksi dengan domain berbahaya. Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "other_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "raw_signature_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
@@ -377,10 +375,13 @@
     "nfts_autodetection_title": "Deteksi NFT",
     "nfts_autodetection_desc": "Izinkan MetaMask untuk mendeteksi NFT dari OpenSea secara otomatis dan ditampilkan di dompet MetaMask Anda.",
     "network_details_check": "Pemeriksaan detail jaringan",
-    "network_with_chain_id": "The network with chain ID",
-    "use_the_currency_symbol": "uses the currency symbol",
-    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
-    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_with_chain_id": "Jaringan dengan ID chain",
+    "potential_scam": "Ini merupakan potensi penipuan",
+    "network_not_matching": "Jaringan ini tidak cocok dengan ID chain atau nama yang terkait. Banyak token populer yang menggunakan nama tersebut",
+    "target_scam_network": "menjadikannya sebagai target penipuan. Penipu dapat mengelabui Anda agar mengirimkan mata uang yang lebih berharga sebagai gantinya. Pastikan untuk memverifikasi semuanya sebelum melanjutkan.",
+    "use_the_currency_symbol": "menggunakan simbol mata uang",
+    "use_correct_symbol": "Pastikan Anda menggunakan simbol yang benar sebelum melanjutkan",
+    "chain_id_currently_used": "ID chain ini saat ini digunakan oleh",
     "network_check_validation_desc": "mengurangi peluang Anda untuk terhubung ke jaringan berbahaya atau salah.",
     "nfts_autodetection_cta": "Aktifkan deteksi NFT di Pengaturan",
     "learn_more": "Pelajari selengkapnya",
@@ -888,21 +889,37 @@
     "network_provider": "Penyedia jaringan",
     "token_nft_ens_subheading": "Autodeteksi Token, NFT, dan ENS",
     "security_check_subheading": "Pemeriksaan keamanan",
-    "security_alerts": "Peringatan keamanan",
-    "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan apa pun. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia.",    
+    "symbol_required": "Simbol wajib diisi.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Menjaga privasi - tidak ada data yang dibagikan kepada pihak ketiga. Tersedia di Arbitrum, Avalanche, BNB chain, Mainnet Ethereum, Optimism, dan Polygon.",
-    "symbol_required": "Symbol is required."
+    "security_alerts": "Peringatan keamanan",
+    "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia."
   },
   "sdk": {
     "disconnect_title": "Putuskan koneksi semua situs?",
     "disconnect_all_info": "Jika koneksi ke semua situs dihapus, Anda harus memberikan izin untuk menghubungkannya kembali.",
     "disconnect": "Putuskan koneksi",
     "disconnect_all": "Putuskan semua koneksi",
+    "disconnect_all_accounts": "Putuskan koneksi semua Akun",
+    "manage_connections": "Kelola Koneksi",
+    "manage": "Kelola",
     "cancel": "Batal",
     "loading": "Menghubungkan ke MetaMask...",
     "unkown_dapp": "Nama Aplikasi Terdesentralisasi (DAPP) tidak tersedia",
-    "no_connections": "Koneksi tidak ditemukan"
+    "no_connections": "Tidak ada koneksi",
+    "no_connections_desc": "Jika Anda menghubungkan akun ke situs atau aplikasi, Anda akan melihatnya di sini."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} akun terhubung."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Putuskan koneksi dari semua situs?",
+    "disconnect_all_desc": "Jika Anda memutuskan koneksi akun dari semua situs, Anda harus memberikan izin untuk menghubungkannya kembali.",
+    "disconnect_account": "Putuskan koneksi akun?",
+    "disconnect_all_accounts": "Putuskan koneksi semua Akun",
+    "disconnect_all_accounts_desc": "Jika Anda memutuskan koneksi semua akun dari {{dapp}}, Anda harus memberikan izin untuk menghubungkannya kembali.",
+    "disconnect_account_desc": "Jika Anda memutuskan koneksi {{account}} dari {{dapp}}, Anda harus memberikan izin untuk menghubungkannya kembali.",
+    "disconnect_confirm": "Putuskan koneksi",
+    "cancel": "Batal"
   },
   "sdk_return_to_app_modal": {
     "title": "Kembali ke aplikasi",
@@ -1467,7 +1484,7 @@
     "add": "Tambahkan",
     "cancel": "Batal",
     "approve": "Setujui",
-    "edit_network_details": "Edit network details",
+    "edit_network_details": "Edit detail jaringan",
     "malicious_network_warning": "Penyedia jaringan jahat dapat berbohong tentang status blockchain dan merekam aktivitas jaringan Anda. Hanya tambahkan jaringan kustom yang Anda percayai.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Informasi Jaringan",
@@ -1487,7 +1504,9 @@
     "add_network": "menambahkan lebih banyak jaringan secara manual.",
     "select_network": "Pilih jaringan",
     "show_test_networks": "Tampilkan jaringan pengujian",
-    "deprecated_goerli": "Sehubungan dengan perubahan protokol Ethereum: Jaringan uji Goerli mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan."
+    "deprecated_goerli": "Sehubungan dengan perubahan protokol Ethereum: Jaringan uji Goerli mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan.",
+    "network_deprecated_title": "Jaringan ini tidak digunakan lagi",
+    "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di Metamask."
   },
   "select": {
     "cancel": "Batal",
@@ -2036,9 +2055,13 @@
     "fetching_new_quotes": "Mengambil kuotasi baru...",
     "quotes_expire_in": "Kuotasi berakhir dalam",
     "get_new_quotes": "Dapatkan kuotasi baru",
+    "explore_more_options": "Jelajahi opsi lain",
+    "one_more_option": "1 opsi lain",
+    "more_options": "{{count}} opsi lain",
+    "previously_used": "Digunakan sebelumnya",
     "quotes_timeout": "Waktu kuotasi habis",
     "request_new_quotes": "Minta kuotasi baru untuk mendapatkan tarif terbaik saat ini.",
-    "terms_of_service": "Terms of Service",
+    "terms_of_service": "Ketentuan Layanan",
     "amount_to_buy": "Jumlah yang akan dibeli",
     "amount_to_sell": "Jumlah yang akan dijual",
     "want_to_buy": "Anda ingin membeli",
@@ -2383,7 +2406,6 @@
       "title": "Tetap aman bersama peringatan keamanan",
       "description_1": "Hindari penipuan yang diketahui sambil tetap melindungi privasi Anda bersama peringatan keamanan yang didukung oleh Blockaid. Saat ini fitur ini diaktifkan secara default untuk semua pengguna MetaMask.",
       "description_2": "Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
-      "description_3": "Tersedia di Arbitrum, Avalanche, BNB Chain, Mainnet Ethereum, Linea, Optimism, dan Polygon.",
       "got_it": "Mengerti"
     },
     "sell": {

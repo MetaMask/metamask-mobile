@@ -74,6 +74,7 @@ import URL from 'url-parse';
 import Logger from '../../../util/Logger';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -277,7 +278,7 @@ const SettingsFlow = () => (
       component={RevealPrivateCredential}
     />
     <Stack.Screen
-      name="WalletConnectSessionsView"
+      name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
       component={WalletConnectSessions}
       options={WalletConnectSessions.navigationOptions}
     />
@@ -614,6 +615,19 @@ const MainNavigator = () => (
     <Stack.Screen
       name="CollectiblesDetails"
       component={CollectiblesDetails}
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+    />
+    <Stack.Screen
+      name={Routes.DEPRECATED_NETWORK_DETAILS}
+      component={DeprecatedNetworkDetails}
       options={{
         //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
         cardStyle: { backgroundColor: importedColors.transparent },

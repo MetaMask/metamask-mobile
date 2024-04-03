@@ -1,8 +1,9 @@
 import { NavigationContainerRef } from '@react-navigation/native';
-import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../AppConstants';
+import { RootState } from '../../../../app/reducers';
+import { disconnectAll } from '../../../../app/actions/sdk';
+import { store } from '../../../store';
 import Logger from '../../../util/Logger';
-import SDKConnect, { ApprovedHosts } from '../SDKConnect';
+import SDKConnect, { ApprovedHosts, SDKSessions } from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
 
@@ -25,56 +26,38 @@ const asyncInit = async ({
   await wait(1000);
   DevLogger.log(`SDKConnect::init() - waited 1000ms - keep initializing`);
 
+  // All connectectiions are disconnected on start
+  store.dispatch(disconnectAll());
+
+  const { sdk } = store.getState() as RootState;
+  const validConnections: SDKSessions = {};
+  const validHosts: ApprovedHosts = {};
   try {
-    DevLogger.log(`SDKConnect::init() - loading connections`);
-    // On Android the DefaultPreferences will start loading after the biometrics
-    const [connectionsStorage, hostsStorage] = await Promise.all([
-      DefaultPreference.get(AppConstants.MM_SDK.SDK_CONNECTIONS),
-      DefaultPreference.get(AppConstants.MM_SDK.SDK_APPROVEDHOSTS),
-    ]);
-
-    DevLogger.log(
-      `SDKConnect::init() - connectionsStorage=${connectionsStorage} hostsStorage=${hostsStorage}`,
-    );
-
-    if (connectionsStorage) {
-      instance.state.connections = JSON.parse(connectionsStorage);
-      DevLogger.log(
-        `SDKConnect::init() - connections [${
-          Object.keys(instance.state.connections).length
-        }]`,
-      );
-    }
-
-    if (hostsStorage) {
-      const uncheckedHosts = JSON.parse(hostsStorage) as ApprovedHosts;
-      // Check if the approved hosts haven't timed out.
-      const approvedHosts: ApprovedHosts = {};
-      let expiredCounter = 0;
-      for (const host in uncheckedHosts) {
-        const expirationTime = uncheckedHosts[host];
-        if (Date.now() < expirationTime) {
-          // Host is valid, add it to the list.
-          approvedHosts[host] = expirationTime;
-        } else {
-          expiredCounter += 1;
-        }
-      }
-      if (expiredCounter > 1) {
-        // Update the list of approved hosts excluding the expired ones.
-        await DefaultPreference.set(
-          AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-          JSON.stringify(approvedHosts),
+    // Remove connections that have expired.
+    const now = Date.now();
+    for (const id in sdk.connections) {
+      const connInfo = sdk.connections[id];
+      if (sdk.approvedHosts[id] <= now) {
+        // Only keep connections that are not expired.
+        validConnections[id] = sdk.connections[id];
+        validHosts[id] = sdk.approvedHosts[id];
+      } else {
+        // Remove expired connections
+        DevLogger.log(
+          `SDKConnect::init() - removing expired connection ${id}`,
+          connInfo,
         );
       }
-      instance.state.approvedHosts = approvedHosts;
-      DevLogger.log(
-        `SDKConnect::init() - approvedHosts [${
-          Object.keys(instance.state.approvedHosts).length
-        }]`,
-      );
     }
+    instance.state.connections = sdk.connections;
+    instance.state.approvedHosts = sdk.approvedHosts;
+    instance.state.androidConnections = sdk.androidConnections;
 
+    // Update store with valid connection
+    store.dispatch({
+      type: 'SDK_SET_CONNECTIONS',
+      payload: validConnections,
+    });
     DevLogger.log(`SDKConnect::init() - done`);
     instance.state._initialized = true;
   } catch (err) {

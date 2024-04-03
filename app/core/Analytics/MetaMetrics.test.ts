@@ -237,6 +237,63 @@ describe('MetaMetrics', () => {
       });
       expect(metaMetrics.isDataRecorded()).toBeFalsy();
     });
+
+    describe('Legacy events', () => {
+      it('tracks legacy properties', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = {
+          category: 'event1',
+          properties: { action: 'action1', name: 'description1' },
+        };
+
+        metaMetrics.trackEvent(event);
+
+        const { segmentMockClient } = global as any;
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...event.properties,
+        });
+      });
+
+      it('overrides legacy properties', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        await metaMetrics.enable();
+        const event: IMetaMetricsEvent = {
+          category: 'event1',
+          properties: { action: 'action1', name: 'description1' },
+        };
+        const properties = { action: 'action2', name: 'description2' };
+
+        metaMetrics.trackEvent(event, properties);
+
+        const { segmentMockClient } = global as any;
+        expect(segmentMockClient.track).toHaveBeenCalledWith(event.category, {
+          anonymous: false,
+          ...properties,
+        });
+      });
+
+      it('does not break on JS legacy call', async () => {
+        const metaMetrics = TestMetaMetrics.getInstance();
+        expect(await metaMetrics.configure()).toBeTruthy();
+        await metaMetrics.enable();
+
+        const event = undefined;
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error: Testing untyped legacy JS call with undefined event
+        metaMetrics.trackEvent(event);
+
+        const { segmentMockClient } = global as any;
+        expect(segmentMockClient.track).toHaveBeenCalledWith(undefined, {
+          anonymous: false,
+          undefined,
+        });
+      });
+    });
   });
 
   describe('Grouping', () => {

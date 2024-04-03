@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।",
-    "attribution": "के द्वारा पावर्ड",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो कोई Blur पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
     "deceptive_request_title": "इस अनुरोध को धोखेबाजी के उद्देश्य से भेजा गया है",
     "failed_title": "हो सकता है कि अनुरोध सुरक्षित न हो",
     "failed_description": "कोई समस्या होने के कारण, इस अनुरोध को सिक्यूरिटी प्रोवाइडर द्वारा सत्यापित नहीं किया गया। सावधानी से आगे बढ़ें।",
     "loading_title": "सुरक्षा अलर्ट की जाँच की जा रही है...",
-    "loading_complete_title": "कोई एलर्ट प्राप्त नहीं हुआ",
+    "loading_complete_title": "कोई एलर्ट प्राप्त नहीं हुआ। किसी भी अनुरोध को एप्रूव करने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें।",
     "malicious_domain_description": "आप एक बुरी नीयत वाले डोमेन से इंटरैक्ट कर रहे हैं। यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
     "other_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
     "raw_signature_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
@@ -377,10 +375,13 @@
     "nfts_autodetection_title": "NFT का पता लगाना",
     "nfts_autodetection_desc": "MetaMask को अनुमति दें ताकि OpenSea से NFT का अपनेआप पता लगा ले और आपके MetaMask वॉलेट में दिखे।",
     "network_details_check": "नेटवर्क डिटेल्स की जांच",
-    "network_with_chain_id": "The network with chain ID",
-    "use_the_currency_symbol": "uses the currency symbol",
-    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
-    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_with_chain_id": "चेन ID के साथ वाला नेटवर्क",
+    "potential_scam": "यह एक बड़ा स्कैम है",
+    "network_not_matching": "यह नेटवर्क अपने साथ जुड़ी हुई चेन ID या नाम से मेल नहीं खाता है। कई लोकप्रिय टोकन नाम का उपयोग करते हैं,",
+    "target_scam_network": "जिससे इसमें स्कैम किया जा सकता है। स्कैम करने वाले आपको बदले में ज़्यादा कीमती करेंसी भेजने का झांसा दे सकते हैं। आगे बढ़ने से पहले सब कुछ वेरीफाई करें।",
+    "use_the_currency_symbol": "करेंसी सिंबल का उपयोग करता है",
+    "use_correct_symbol": "आगे बढ़ने से पहले यह पक्का कर लें कि आप सही सिंबल का उपयोग कर रहे हैं",
+    "chain_id_currently_used": "यह चेन ID वर्तमान में के द्वारा इस्तेमाल की जाती है",
     "network_check_validation_desc": "किसी बुरी नीयत वाले या गलत नेटवर्क से जुड़ने की आपकी संभावना कम हो जाती है।",
     "nfts_autodetection_cta": "सेटिंग में NFT का पता लगाना चालू करें",
     "learn_more": "ज्यादा जानें।",
@@ -888,21 +889,37 @@
     "network_provider": "नेटवर्क प्रोवाइडर",
     "token_nft_ens_subheading": "टोकन, NFT और ENS ऑटो-डिटेक्शन",
     "security_check_subheading": "सुरक्षा जाँचें",
-    "security_alerts": "सुरक्षा चेतावनियाँ",
-    "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।",    
+    "symbol_required": "सिंबल की ज़रूरत है।",
     "blockaid": "Blockaid",
-    "blockaid_desc": "गोपनीयता को सुरक्षित रखना - कोई भी डेटा थर्ड पार्टी के साथ शेयर नहीं किया जाता है। Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism और Polygon पर उपलब्ध है।",    
-    "symbol_required": "Symbol is required."
+    "security_alerts": "सुरक्षा एलर्ट",
+    "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।"
   },
   "sdk": {
     "disconnect_title": "सभी साइटों को डिसकनेक्ट करें?",
     "disconnect_all_info": "यदि आप सभी साइटों के लिए अपने कनेक्शन्स हटाते हैं, तो फिर से कनेक्ट करने के लिए आपको अनुमति देनी होगी।",
     "disconnect": "डिसकनेक्ट करें",
     "disconnect_all": "सभी को डिस्कनेक्ट करें",
+    "disconnect_all_accounts": "सभी अकाउंट डिस्कनेक्ट करें",
+    "manage_connections": "कनेक्शन मैनेज करें",
+    "manage": "मैनेज करें",
     "cancel": "रद्द करें",
     "loading": "MetaMask से कनेक्ट हो रहा है...",
     "unkown_dapp": "DAPP नाम उपलब्ध नहीं है",
-    "no_connections": "कोई कनेक्शन नहीं मिला"
+    "no_connections": "कोई कनेक्शन नहीं",
+    "no_connections_desc": "यदि आप किसी अकाउंट को किसी साइट या ऐप से कनेक्ट करते हैं, तो वह आपको यहां दिखेगा।"
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} अकाउंट कनेक्टेड हैं।"
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "सभी साइटों से डिसकनेक्ट करें?",
+    "disconnect_all_desc": "यदि आप सभी साइटों से अपने एकाउंट्स को डिसकनेक्ट करते हैं, तो उन्हें फिर से कनेक्ट करने के लिए आपको अनुमति देनी होगी।",
+    "disconnect_account": "अकाउंट डिस्कनेक्ट करें?",
+    "disconnect_all_accounts": "सभी अकाउंट डिस्कनेक्ट करें",
+    "disconnect_all_accounts_desc": "यदि आप {{dapp}} से सभी एकाउंट्स को डिसकनेक्ट करते हैं, तो उन्हें फिर से कनेक्ट करने के लिए आपको अनुमति देनी होगी।",
+    "disconnect_account_desc": "यदि आप {{dapp}} से {{account}} को डिसकनेक्ट करते हैं, तो उसे फिर से कनेक्ट करने के लिए आपको अनुमति देनी होगी।",
+    "disconnect_confirm": "डिसकनेक्ट करें",
+    "cancel": "कैंसिल करें"
   },
   "sdk_return_to_app_modal": {
     "title": "ऐप पर लौटें",
@@ -1467,7 +1484,7 @@
     "add": "जोड़ें",
     "cancel": "रद्द करें",
     "approve": "स्वीकृति दें",
-    "edit_network_details": "Edit network details",
+    "edit_network_details": "नेटवर्क का ब्यौरा बदलें",
     "malicious_network_warning": "एक दुर्भावनापूर्ण नेटवर्क प्रदाता ब्लॉकचेन की स्थिति के बारे में झूठ बोल सकता है और आपकी नेटवर्क गतिविधि को रिकॉर्ड कर सकता है। केवल ऐसे कस्टम नेटवर्क जोड़ें जिन पर आपको भरोसा हो।",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "नेटवर्क संबंधी सूचना",
@@ -1487,7 +1504,9 @@
     "add_network": "मैन्युअल रूप से अधिक नेटवर्क जोड़ें।",
     "select_network": "एक नेटवर्क चुनें",
     "show_test_networks": "परीक्षण नेटवर्क दिखाएं",
-    "deprecated_goerli": "Ethereum के प्रोटोकॉल परिवर्तनों के कारण: Goerli परीक्षण नेटवर्क विश्वसनीय रूप से काम नहीं कर सकता है और जल्द ही बंद हो जाएगा।"
+    "deprecated_goerli": "Ethereum के प्रोटोकॉल परिवर्तनों के कारण: Goerli परीक्षण नेटवर्क विश्वसनीय रूप से काम नहीं कर सकता है और जल्द ही बंद हो जाएगा।",
+    "network_deprecated_title": "इस नेटवर्क को हटा दिया गया है",
+    "network_deprecated_description": "जिस नेटवर्क से आप कनेक्ट करने का प्रयास कर रहे हैं उसे अब MetaMask सपोर्ट नहीं करता।"
   },
   "select": {
     "cancel": "रद्द करें",
@@ -2036,9 +2055,13 @@
     "fetching_new_quotes": "नए उद्धरण प्राप्त कर रहे हैं...",
     "quotes_expire_in": "उद्धरण वैधता अवधि समाप्ति",
     "get_new_quotes": "नए उद्धरण प्राप्त करें",
+    "explore_more_options": "ज़्यादा विकल्प देखें",
+    "one_more_option": "1 और विकल्प",
+    "more_options": "{{count}} ज़्यादा विकल्प",
+    "previously_used": "पहले इस्तेमाल किया गया",
     "quotes_timeout": "उद्धरण समयबाह्य",
     "request_new_quotes": "नवीनतम सर्वोत्तम दर प्राप्त करने के लिए कृपया नए उद्धरणों का रिक्वेस्ट करें।",
-    "terms_of_service": "Terms of Service",
+    "terms_of_service": "सेवा की शर्तें",
     "amount_to_buy": "खरीदने के लिए राशि",
     "amount_to_sell": "बेचने के लिए राशि",
     "want_to_buy": "आप खरीदना चाहते हैं",
@@ -2383,7 +2406,6 @@
       "title": "सुरक्षा चेतावनियों के माध्यम से सुरक्षित रहें",
       "description_1": "ब्लॉकएड द्वारा संचालित सिक्योरिटी अलर्ट के साथ अपनी गोपनीयता की रक्षा करते हुए पहचाने गए स्कैम से सुरक्षित रहें। यह सुविधा अब सभी MetaMask उपयोगकर्ताओं के लिए डिफ़ॉल्ट रूप से चालू है।",
       "description_2": "किसी भी रिक्वेस्ट को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें।",
-      "description_3": "Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism और Polygon पर उपलब्ध है।",
       "got_it": "समझ गए"
     },
     "sell": {

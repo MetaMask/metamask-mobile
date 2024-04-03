@@ -29,6 +29,7 @@ async function reconnect({
     if (trigger) {
       instance.state.connected[channelId].setTrigger('deeplink');
     }
+    instance.updateSDKLoadingState({ channelId, loading: false });
 
     return;
   }
@@ -50,6 +51,9 @@ async function reconnect({
       DevLogger.log(`SDKConnect::reconnect[${context}] - same otherPublicKey`);
     }
   }
+
+  // Update initial connection state
+  instance.state.connections[channelId].initialConnection = initialConnection;
 
   const wasPaused = existingConnection?.remote.isPaused();
   // Make sure the connection has resumed from pause before reconnecting.
@@ -113,6 +117,7 @@ async function reconnect({
       DevLogger.log(
         `SDKConnect::reconnect - already connected [connected] -- trigger updated to '${trigger}'`,
       );
+      instance.updateSDKLoadingState({ channelId, loading: false });
       return;
     }
 
@@ -120,6 +125,7 @@ async function reconnect({
       DevLogger.log(
         `SDKConnect::reconnect - already connected [ready=${ready}] -- ignoring`,
       );
+      instance.updateSDKLoadingState({ channelId, loading: false });
       return;
     }
   }
@@ -151,11 +157,11 @@ async function reconnect({
   instance.state.connected[channelId].connect({
     withKeyExchange: true,
   });
+
   instance.watchConnection(instance.state.connected[channelId]);
   const afterConnected =
     instance.state.connected[channelId].remote.isConnected() ?? false;
   instance.state.connecting[channelId] = !afterConnected; // If not connected, it means it's connecting.
-  instance.emit('refresh');
 }
 
 export default reconnect;

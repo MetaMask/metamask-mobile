@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo có thể lấy hết tài sản của bạn.",
-    "attribution": "Được cung cấp bởi",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Nếu bạn chấp thuận yêu cầu này, người khác có thể đánh cắp tài sản của bạn được niêm yết trên Blur.",
     "deceptive_request_title": "Đây là một yêu cầu lừa đảo",
     "failed_title": "Yêu cầu có thể không an toàn",
     "failed_description": "Do có lỗi, yêu cầu này đã không được nhà cung cấp dịch vụ bảo mật xác minh. Hãy thực hiện cẩn thận.",
     "loading_title": "Đang kiểm tra cảnh báo bảo mật...",
-    "loading_complete_title": "Không nhận được cảnh báo nào",
+    "loading_complete_title": "Không nhận được cảnh báo nào. Luôn tự thẩm định trước khi chấp thuận các yêu cầu.",
     "malicious_domain_description": "Bạn đang tương tác với một tên miền độc hại. Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "other_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
     "raw_signature_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
@@ -377,10 +375,13 @@
     "nfts_autodetection_title": "Phát hiện NFT",
     "nfts_autodetection_desc": "Cho phép MetaMask tự động phát hiện NFT từ OpenSea và hiển thị trên ví MetaMask của bạn.",
     "network_details_check": "Kiểm tra thông tin mạng",
-    "network_with_chain_id": "The network with chain ID",
-    "use_the_currency_symbol": "uses the currency symbol",
-    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
-    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_with_chain_id": "Mạng có ID chuỗi",
+    "potential_scam": "Đây có khả năng là một hành vi lừa đảo",
+    "network_not_matching": "Mạng này không trùng khớp với tên hoặc ID chuỗi đã liên kết của nó. Nhiều token phổ biến sử dụng tên",
+    "target_scam_network": "khiến nó trở thành mục tiêu để lừa đảo. Những kẻ lừa đảo có thể lừa bạn gửi lại cho họ những loại tiền tệ có giá trị hơn. Nhớ xác minh mọi thông tin trước khi tiếp tục.",
+    "use_the_currency_symbol": "sử dụng ký hiệu tiền tệ",
+    "use_correct_symbol": "Đảm bảo bạn đang sử dụng đúng ký hiệu trước khi tiếp tục",
+    "chain_id_currently_used": "ID chuỗi này hiện được sử dụng bởi",
     "network_check_validation_desc": "giảm khả năng bạn kết nối với mạng độc hại hoặc mạng không chính xác.",
     "nfts_autodetection_cta": "Bật tính năng phát hiện NFT trong phần Cài đặt",
     "learn_more": "Tìm hiểu thêm",
@@ -888,21 +889,37 @@
     "network_provider": "Nhà cung cấp mạng",
     "token_nft_ens_subheading": "Tự động phát hiện Token, NFT và ENS",
     "security_check_subheading": "Kiểm tra bảo mật",
-    "security_alerts": "Cảnh báo bảo mật",
-    "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp.",    
+    "symbol_required": "Ký hiệu là bắt buộc.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Bảo vệ quyền riêng tư - không có dữ liệu nào được chia sẻ với các bên thứ ba. Có sẵn trên Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism và Polygon.",    
-    "symbol_required": "Symbol is required."
+    "security_alerts": "Cảnh báo bảo mật",
+    "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp."
   },
   "sdk": {
     "disconnect_title": "Ngắt kết nối tất cả các trang web?",
     "disconnect_all_info": "Nếu bạn xóa kết nối với tất cả các trang web, bạn sẽ cần cấp quyền để kết nối lại.",
     "disconnect": "Ngắt kết nối",
     "disconnect_all": "Ngắt kết nối tất cả",
+    "disconnect_all_accounts": "Ngắt kết nối tất cả Tài khoản",
+    "manage_connections": "Quản lý Kết nối",
+    "manage": "Quản lý",
     "cancel": "Hủy",
     "loading": "Đang kết nối với MetaMask...",
     "unkown_dapp": "Tên DAPP không khả dụng",
-    "no_connections": "Không tìm thấy kết nối nào"
+    "no_connections": "Không có kết nối",
+    "no_connections_desc": "Nếu bạn kết nối tài khoản với một trang web hoặc một ứng dụng, bạn sẽ thấy tài khoản đó ở đây."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} tài khoản được kết nối."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Ngắt kết nối khỏi tất cả các trang web?",
+    "disconnect_all_desc": "Nếu bạn ngắt kết nối tài khoản khỏi tất cả các trang web, bạn sẽ cần cấp quyền để kết nối lại.",
+    "disconnect_account": "Ngắt kết nối tài khoản?",
+    "disconnect_all_accounts": "Ngắt kết nối tất cả Tài khoản",
+    "disconnect_all_accounts_desc": "Nếu bạn ngắt kết nối tất cả các tài khoản khỏi {{dapp}}, bạn sẽ cần cấp quyền để kết nối lại.",
+    "disconnect_account_desc": "Nếu bạn ngắt kết nối {{account}} khỏi {{dapp}}, bạn sẽ cần cấp quyền để kết nối lại.",
+    "disconnect_confirm": "Ngắt kết nối",
+    "cancel": "Hủy"
   },
   "sdk_return_to_app_modal": {
     "title": "Quay lại ứng dụng",
@@ -1467,7 +1484,7 @@
     "add": "Thêm",
     "cancel": "Hủy",
     "approve": "Chấp thuận",
-    "edit_network_details": "Edit network details",
+    "edit_network_details": "Chỉnh sửa thông tin mạng",
     "malicious_network_warning": "Một nhà cung cấp mạng độc hại có thể nói dối về trạng thái của chuỗi khối và ghi lại hoạt động của bạn trên mạng. Chỉ thêm các mạng tùy chỉnh mà bạn tin tưởng.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Thông tin mạng",
@@ -1487,7 +1504,9 @@
     "add_network": "thêm thủ công các mạng khác.",
     "select_network": "Chọn mạng",
     "show_test_networks": "Hiển thị các mạng thử nghiệm",
-    "deprecated_goerli": "Do những thay đổi trong giao thức của Ethereum: Mạng thử nghiệm Goerli có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng."
+    "deprecated_goerli": "Do những thay đổi trong giao thức của Ethereum: Mạng thử nghiệm Goerli có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng.",
+    "network_deprecated_title": "Mạng này đã ngừng sử dụng",
+    "network_deprecated_description": "Mạng bạn đang cố gắng kết nối không còn được hỗ trợ trên MetaMask."
   },
   "select": {
     "cancel": "Hủy",
@@ -2036,9 +2055,13 @@
     "fetching_new_quotes": "Đang tìm nạp báo giá mới...",
     "quotes_expire_in": "Báo giá hết hạn sau",
     "get_new_quotes": "Nhận báo giá mới",
+    "explore_more_options": "Khám phá thêm tùy chọn",
+    "one_more_option": "Thêm 1 tùy chọn",
+    "more_options": "Thêm {{count}} tùy chọn",
+    "previously_used": "Đã sử dụng trước đây",
     "quotes_timeout": "Hết thời gian chờ báo giá",
     "request_new_quotes": "Vui lòng yêu cầu báo giá mới để nhận tỷ giá tốt nhất và mới nhất.",
-    "terms_of_service": "Terms of Service",
+    "terms_of_service": "Điều khoản dịch vụ",
     "amount_to_buy": "Số tiền cần mua",
     "amount_to_sell": "Số tiền cần bán",
     "want_to_buy": "Bạn muốn mua",
@@ -2383,7 +2406,6 @@
       "title": "Đảm bảo an toàn với cảnh báo bảo mật",
       "description_1": "Đảm bảo an toàn trước các hành vi lừa đảo đã biết, đồng thời vẫn bảo vệ quyền riêng tư của bạn với các cảnh báo bảo mật do Blockaid cung cấp. Tính năng này hiện được bật theo mặc định dành cho tất cả người dùng MetaMask.",
       "description_2": "Luôn tự thẩm định trước khi chấp thuận các yêu cầu.",
-      "description_3": "Có sẵn trên Arbitrum, Avalanche, BNB Chain, Ethereum Mainnet, Linea, Optimism và Polygon.",
       "got_it": "Đã hiểu"
     },
     "sell": {

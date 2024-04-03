@@ -1,6 +1,9 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { SettingsViewSelectorsIDs } from '../../selectors/Settings/SettingsView.selectors';
+import {
+  SettingsViewSelectorsIDs,
+  SettingsViewSelectorsText,
+} from '../../selectors/Settings/SettingsView.selectors';
 import { CommonSelectorsText } from '../../selectors/Common.selectors';
 
 class SettingsView {
@@ -27,6 +30,15 @@ class SettingsView {
   get lockSettingsButton() {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.LOCK);
   }
+  get contactSupportButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACT);
+  }
+
+  get contactSupportSectionTitle() {
+    return Matchers.getElementByText(
+      SettingsViewSelectorsText.CONTACT_SUPPORT_TITLE,
+    );
+  }
 
   get alertButton() {
     return device.getPlatform() === 'android'
@@ -41,6 +53,13 @@ class SettingsView {
   async scrollToLockButton() {
     await Gestures.scrollToElement(
       this.lockSettingsButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async scrollToContactSupportButton() {
+    await Gestures.scrollToElement(
+      this.contactSupportButton,
       this.scrollViewIdentifier,
     );
   }
@@ -72,6 +91,10 @@ class SettingsView {
   async tapLock() {
     await this.scrollToLockButton();
     await Gestures.waitAndTap(this.lockSettingsButton);
+  }
+  async tapContactSupport() {
+    await this.scrollToLockButton();
+    await Gestures.waitAndTap(this.contactSupportButton);
   }
 
   async tapYesAlertButton() {

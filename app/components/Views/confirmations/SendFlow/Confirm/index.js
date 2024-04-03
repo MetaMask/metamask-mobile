@@ -444,7 +444,7 @@ class Confirm extends PureComponent {
         id,
         jsonrpc: '2.0',
         method: 'eth_sendTransaction',
-        origin: TransactionTypes.MMM,
+        origin: TransactionTypes.MM,
         params: [
           {
             from,
@@ -831,9 +831,13 @@ class Confirm extends PureComponent {
 
       const { result, transactionMeta } = this.state;
 
+      await this.persistTransactionParameters(transaction);
+
       const isLedgerAccount = isHardwareAccount(transaction.from, [
         ExtendedKeyringTypes.ledger,
       ]);
+
+      await this.persistTransactionParameters(transaction);
 
       if (isLedgerAccount) {
         const ledgerKeyring = await getLedgerKeyring();
@@ -860,7 +864,6 @@ class Confirm extends PureComponent {
         return;
       }
 
-      await this.persistTransactionParameters(transaction);
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,

@@ -4,6 +4,7 @@ const Routes = {
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
   SETTINGS_VIEW: 'SettingsView',
+  DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
     ID: 'Ramp',
     BUY: 'RampBuy',
@@ -72,17 +73,19 @@ const Routes = {
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     CHANGE_PASSWORD: 'ResetPassword',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
+    SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
+    SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',
+    SDK_DISCONNECT: 'SDKDisconnect',
     ACCOUNT_CONNECT: 'AccountConnect',
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
-    BLOCKAID_INDICATOR: 'BlockaidIndicator',
     ACCOUNT_ACTIONS: 'AccountActions',
     ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
     SHOW_IPFS: 'ShowIpfs',
@@ -100,6 +103,7 @@ const Routes = {
   WALLET: {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
+    WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',

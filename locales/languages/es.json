@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Si aprueba esta solicitud, un tercero conocido por estafas podría quedarse con todos sus activos.",
-    "attribution": "Impulsado por",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Si aprueba esta solicitud, alguien puede robar sus activos enlistados en Blur.",
     "deceptive_request_title": "Esta es una solicitud engañosa",
     "failed_title": "Es posible que la solicitud no sea segura",
     "failed_description": "Debido a un error, el proveedor de seguridad no verificó esta solicitud. Proceda con precaución.",
     "loading_title": "Comprobando alertas de seguridad...",
-    "loading_complete_title": "No se recibieron alertas",
+    "loading_complete_title": "No se recibió ninguna. Siempre asegúrese de hacer su propia diligencia debida antes de aprobar cualquier solicitud.",
     "malicious_domain_description": "Está interactuando con un dominio malicioso. Si aprueba esta solicitud, podría perder sus activos.",
     "other_description": "Si aprueba esta solicitud, podría perder sus activos.",
     "raw_signature_farming_description": "Si aprueba esta solicitud, podría perder sus activos.",
@@ -377,10 +375,13 @@
     "nfts_autodetection_title": "Detección de NFT",
     "nfts_autodetection_desc": "Permita que MetaMask detecte automáticamente los NFT de OpenSea y los muestre en su monedero MetaMask.",
     "network_details_check": "Verificación de detalles de la red",
-    "network_with_chain_id": "The network with chain ID",
-    "use_the_currency_symbol": "uses the currency symbol",
-    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
-    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_with_chain_id": "La red con ID de cadena",
+    "potential_scam": "Esto es una estafa potencial",
+    "network_not_matching": "Esta red no coincide con su ID o nombre de cadena asociada. Muchos tokens populares usan el nombre",
+    "target_scam_network": "lo que los convierte en blanco de estafas. Los estafadores pueden engañarlo para que les envíe dinero más valioso a cambio. Verifique todo antes de continuar.",
+    "use_the_currency_symbol": "utiliza el símbolo de moneda",
+    "use_correct_symbol": "Asegúrese de estar utilizando el símbolo correcto antes de continuar",
+    "chain_id_currently_used": "Esta ID de cadena es utilizada actualmente por el",
     "network_check_validation_desc": "reduce las posibilidades de conectarse a una red maliciosa o incorrecta.",
     "nfts_autodetection_cta": "Active la detección de NFT en Configuraciones",
     "learn_more": "Más información",
@@ -888,21 +889,37 @@
     "network_provider": "Proveedor de red",
     "token_nft_ens_subheading": "Detección automática de tokens, NFT y ENS",
     "security_check_subheading": "Verificaciones de seguridad",
-    "security_alerts": "Alertas de seguridad",
-    "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al activar esta función, acepta los términos de uso del proveedor.",
+    "symbol_required": "Se requiere símbolo.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Preservación de la privacidad: no se comparten datos con terceros. Disponible en Arbitrum, Avalanche, BNB Chain, la red pricipal de Ethereum, Optimism y Polygon.",    
-    "symbol_required": "Symbol is required."
+    "security_alerts": "Alertas de seguridad",
+    "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al habilitar esta función, acepta los términos de uso del proveedor."
   },
   "sdk": {
     "disconnect_title": "¿Desconectar de todos los sitios?",
     "disconnect_all_info": "Si elimina sus conexiones a todos los sitios, tendrá que dar permiso para volver a conectarse.",
     "disconnect": "Desconectar",
     "disconnect_all": "Desconectar todo",
+    "disconnect_all_accounts": "Desconectar todas las cuentas",
+    "manage_connections": "Gestionar las conexiones",
+    "manage": "Gestionar",
     "cancel": "Cancelar",
     "loading": "Conectándose a MetaMask...",
     "unkown_dapp": "Nombre de DAPP no disponible",
-    "no_connections": "No se encontraron conexiones"
+    "no_connections": "Sin conexiones",
+    "no_connections_desc": "Si conecta una cuenta a un sitio o una aplicación, lo verá aquí."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} cuenta(s) conectada(s)."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "¿Desconectarse de todos los sitios?",
+    "disconnect_all_desc": "Si desconecta sus cuentas de todos los sitios, deberá otorgar permisos para volver a conectarlas.",
+    "disconnect_account": "¿Desconectar cuenta?",
+    "disconnect_all_accounts": "Desconectar todas las cuentas",
+    "disconnect_all_accounts_desc": "Si desconecta todas las cuentas de {{dapp}}, deberá otorgar permisos para volver a conectarlas.",
+    "disconnect_account_desc": "Si desconecta {{account}} de {{dapp}}, deberá otorgar permisos para volver a conectarla.",
+    "disconnect_confirm": "Desconectar",
+    "cancel": "Cancelar"
   },
   "sdk_return_to_app_modal": {
     "title": "Volver a la aplicación",
@@ -1467,7 +1484,7 @@
     "add": "Agregar",
     "cancel": "Cancelar",
     "approve": "Aprobar",
-    "edit_network_details": "Edit network details",
+    "edit_network_details": "Editar detalles de la red",
     "malicious_network_warning": "Un proveedor de red malintencionado puede mentir sobre el estado de la cadena de bloques y registrar su actividad de red. Agregue solo redes personalizadas de confianza.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Información de red",
@@ -1487,7 +1504,9 @@
     "add_network": "agregar más redes manualmente.",
     "select_network": "Seleccionar una red",
     "show_test_networks": "Mostrar redes de prueba",
-    "deprecated_goerli": "Debido a los cambios de protocolo de Ethereum: es posible que la red de prueba de Goerli no funcione de manera tan confiable y pronto quedará obsoleta."
+    "deprecated_goerli": "Debido a los cambios de protocolo de Ethereum: es posible que la red de prueba de Goerli no funcione de manera tan confiable y pronto quedará obsoleta.",
+    "network_deprecated_title": "Esta red está en desuso",
+    "network_deprecated_description": "La red a la que está intentando conectarse ya no es compatible con Metamask."
   },
   "select": {
     "cancel": "Cancelar",
@@ -2036,9 +2055,13 @@
     "fetching_new_quotes": "Obteniendo cotizaciones nuevas...",
     "quotes_expire_in": "Las cotizaciones vencen en",
     "get_new_quotes": "Obtener cotizaciones nuevas",
+    "explore_more_options": "Explorar otras opciones",
+    "one_more_option": "1 opción más",
+    "more_options": "{{count}} más opciones",
+    "previously_used": "Usado anteriormente",
     "quotes_timeout": "Cotizaciones vencidas",
     "request_new_quotes": "Por favor, solicite cotizaciones nuevas para tener los costos más recientes.",
-    "terms_of_service": "Terms of Service",
+    "terms_of_service": "Términos de servicio",
     "amount_to_buy": "Monto para comprar",
     "amount_to_sell": "Monto para vender",
     "want_to_buy": "Quiere comprar",
@@ -2383,7 +2406,6 @@
       "title": "Manténgase seguro con alertas de seguridad",
       "description_1": "Manténgase a salvo de estafas conocidas y al mismo tiempo proteja su privacidad con alertas de seguridad impulsadas por Blockaid. Esta función ahora está activada de forma predeterminada para todos los usuarios de MetaMask.",
       "description_2": "Siempre asegúrese de hacer su propia diligencia debida antes de aprobar cualquier solicitud.",
-      "description_3": "Disponible en Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism y Polygon.",
       "got_it": "Entendido"
     },
     "sell": {
