@@ -28,6 +28,10 @@ function watchConnection(connection: Connection, instance: SDKConnect) {
         if (instance.state.connections[connection.channelId]) {
           instance.state.connections[connection.channelId].connected = false;
         }
+      } else if (connectionStatus === ConnectionStatus.WAITING) {
+        if (instance.state.connections[connection.channelId]) {
+          instance.state.connections[connection.channelId].connected = false;
+        }
       }
       store.dispatch(resetConnections(instance.state.connections));
       DevLogger.log(
