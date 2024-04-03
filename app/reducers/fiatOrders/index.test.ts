@@ -568,30 +568,39 @@ describe('fiatOrderReducer', () => {
     const stateWithActivationKey = fiatOrderReducer(
       {
         ...initialState,
-        activationKeys: [{ key: 'test-activation-key', active: true }],
+        activationKeys: [
+          { key: 'test-activation-key', label: 'test-key', active: true },
+        ],
       },
-      updateActivationKey('test-activation-key', false),
+      updateActivationKey('test-activation-key', 'test-key-updated', false),
     );
     const stateWithNonExistentActivationKeySetInactive = fiatOrderReducer(
       {
         ...initialState,
-        activationKeys: [{ key: 'test-activation-key', active: true }],
+        activationKeys: [
+          { key: 'test-activation-key', label: 'test-key', active: true },
+        ],
       },
-      updateActivationKey('non-existent-activation-key', false),
+      updateActivationKey(
+        'non-existent-activation-key',
+        'non-existing-test-key',
+        false,
+      ),
     );
 
     const stateWithActivationKeyWithLabel = fiatOrderReducer(
       stateWithActivationKey,
-      updateActivationKey('test-activation-key', false, 'test-label'),
+      updateActivationKey('test-activation-key', 'test-label', false),
     );
 
     expect(stateWithActivationKey.activationKeys).toEqual([
-      { key: 'test-activation-key', active: false },
+      { key: 'test-activation-key', label: 'test-key-updated', active: false },
     ]);
     expect(stateWithNonExistentActivationKeySetInactive.activationKeys).toEqual(
       [
         {
           key: 'test-activation-key',
+          label: 'test-key',
           active: true,
         },
       ],
