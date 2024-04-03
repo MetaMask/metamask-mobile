@@ -4,7 +4,6 @@ import {
 } from '../../selectors/Settings/NetworksView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import TestHelpers from '../../helpers';
 
 class NetworkView {
   get networkContainer() {
@@ -128,8 +127,7 @@ class NetworkView {
   async longPressToRemoveNetwork(networkName) {
     const network = this.getnetworkName(networkName);
     await Gestures.tapAndLongPress(network);
-    // await Gestures.waitAndTap(this.removeNetwork);
-    await Gestures.tapAndLongPress(this.removeNetwork);
+    await Gestures.waitAndTap(this.removeNetwork);
   }
 
   async tapDeleteButton() {
