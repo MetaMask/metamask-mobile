@@ -88,12 +88,16 @@ export const handleSendMessage = async ({
           connection.navigation?.canGoBack()
         ) {
           try {
-            DevLogger.log(`[handleSendMessage] goBack()`);
+            DevLogger.log(
+              `[handleSendMessage] goBack()`,
+              connection.navigation.getCurrentOptions(),
+            );
             connection.navigation?.goBack();
             await wait(200); // delay to allow modal to close
             DevLogger.log(`[handleSendMessage] navigate to ROOT_MODAL_FLOW`);
           } catch (_e) {
             // Ignore temporarily until next stage of permissions system implementation
+            DevLogger.log(`[handleSendMessage] error goBack()`, _e);
           }
           connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
