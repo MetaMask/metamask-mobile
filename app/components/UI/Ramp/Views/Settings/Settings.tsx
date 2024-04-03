@@ -34,7 +34,7 @@ function Settings() {
   const navigation = useNavigation();
   const { selectedRegion, setSelectedRegion, isInternalBuild } = useRampSDK();
   const { colors } = useAppTheme();
-  const style = styles(colors);
+  const style = styles();
   const trackEvent = useAnalytics();
 
   useEffect(() => {
@@ -64,7 +64,7 @@ function Settings() {
         <ScreenLayout.Body>
           <ScreenLayout.Content>
             <Row first>
-              <Text style={style.title} variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyLGMedium}>
                 {strings('app_settings.fiat_on_ramp.current_region')}
               </Text>
               <ListItem>

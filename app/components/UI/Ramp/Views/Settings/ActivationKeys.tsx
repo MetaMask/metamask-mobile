@@ -4,7 +4,6 @@ import { ActivityIndicator, Switch, TouchableOpacity } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
 // External dependencies
-import BaseListItem from '../../../../Base/ListItem';
 import Text, {
   TextVariant,
   TextColor,
@@ -27,19 +26,18 @@ import useActivationKeys from '../../hooks/useActivationKeys';
 import { useRampSDK } from '../../sdk';
 
 // Internal dependencies
-import { createAddActivationKeyNavDetails } from './AddActivationKey';
+import { creatActivationKeyFormNavDetails } from './ActivationKeyForm';
 
-import styles from './Settings.styles';
-
-// TODO: Convert into typescript and correctly type optionals
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
 
 function ActivationKeys() {
   const navigation = useNavigation();
   const theme = useTheme();
   const { colors } = theme;
   const { isInternalBuild } = useRampSDK();
-  const style = styles(colors);
 
   const {
     isLoadingKeys,
@@ -52,21 +50,45 @@ function ActivationKeys() {
   });
 
   const handleAddNewKey = useCallback(
-    (key) => addActivationKey(key),
+    (key: string, label: string, _active: boolean) =>
+      addActivationKey(key, label),
     [addActivationKey],
+  );
+
+  const handleUpdateKey = useCallback(
+    (key: string, label: string, active: boolean) =>
+      updateActivationKey(key, label, active),
+    [updateActivationKey],
   );
 
   const handleAddNewKeyPress = useCallback(() => {
     navigation.navigate(
-      ...createAddActivationKeyNavDetails({
+      ...creatActivationKeyFormNavDetails({
         onSubmit: handleAddNewKey,
+        key: '',
+        label: '',
+        active: true,
       }),
     );
   }, [navigation, handleAddNewKey]);
 
+  const handleEditPress = useCallback(
+    (key: string, label: string, active: boolean) => {
+      navigation.navigate(
+        ...creatActivationKeyFormNavDetails({
+          onSubmit: handleUpdateKey,
+          key,
+          label,
+          active,
+        }),
+      );
+    },
+    [navigation, handleUpdateKey],
+  );
+
   return (
     <>
-      <Text style={style.title}>
+      <Text>
         <Text variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.fiat_on_ramp.sdk_activation_keys')}
         </Text>
@@ -82,46 +104,87 @@ function ActivationKeys() {
       </Row>
       {activationKeys.map((activationKey) => (
         <ListItem key={activationKey.key}>
-          <ListItem.Content>
-            <ListItem.Icon>
-              <Switch
-                onValueChange={() =>
-                  updateActivationKey(activationKey.key, !activationKey.active)
+          <ListItemColumn>
+            <Switch
+              onValueChange={() =>
+                updateActivationKey(
+                  activationKey.key,
+                  activationKey.label ?? '',
+                  !activationKey.active,
+                )
+              }
+              value={activationKey.active}
+              trackColor={{
+                true: colors.primary.default,
+                false: colors.border.muted,
+              }}
+              thumbColor={theme.brandColors.white['000']}
+              ios_backgroundColor={colors.border.muted}
+              disabled={isLoadingKeys}
+            />
+          </ListItemColumn>
+          <ListItemColumn widthType={WidthType.Fill}>
+            {activationKey.label ? (
+              <Text
+                color={
+                  activationKey.active ? TextColor.Default : TextColor.Muted
                 }
-                value={activationKey.active}
-                trackColor={{
-                  true: colors.primary.default,
-                  false: colors.border.muted,
-                }}
-                thumbColor={theme.brandColors.white['000']}
-                ios_backgroundColor={colors.border.muted}
-                disabled={isLoadingKeys}
-              />
-            </ListItem.Icon>
-            <ListItem.Body>
-              <Text color={TextColor.Muted} selectable>
-                {activationKey.key}
-              </Text>
-            </ListItem.Body>
-            <ListItem.Amounts>
-              <TouchableOpacity
-                accessible
-                accessibilityRole="button"
-                accessibilityLabel="Delete Activation Key"
-                disabled={isLoadingKeys}
-                onPress={() => removeActivationKey(activationKey.key)}
-                hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+                selectable
               >
-                <Icon
-                  name={IconName.Trash}
-                  size={IconSize.Lg}
-                  color={
-                    isLoadingKeys ? colors.error.disabled : colors.error.default
-                  }
-                />
-              </TouchableOpacity>
-            </ListItem.Amounts>
-          </ListItem.Content>
+                {activationKey.label}
+              </Text>
+            ) : null}
+            <Text
+              color={activationKey.active ? TextColor.Default : TextColor.Muted}
+              selectable
+            >
+              {activationKey.key}
+            </Text>
+          </ListItemColumn>
+          <ListItemColumn>
+            <TouchableOpacity
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Edit Activation Key"
+              disabled={isLoadingKeys}
+              onPress={() =>
+                handleEditPress(
+                  activationKey.key,
+                  activationKey.label || '',
+                  activationKey.active,
+                )
+              }
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <Icon
+                name={IconName.Edit}
+                size={IconSize.Lg}
+                color={
+                  isLoadingKeys
+                    ? colors.primary.disabled
+                    : colors.primary.default
+                }
+              />
+            </TouchableOpacity>
+          </ListItemColumn>
+          <ListItemColumn>
+            <TouchableOpacity
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="Delete Activation Key"
+              disabled={isLoadingKeys}
+              onPress={() => removeActivationKey(activationKey.key)}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <Icon
+                name={IconName.Trash}
+                size={IconSize.Lg}
+                color={
+                  isLoadingKeys ? colors.error.disabled : colors.error.default
+                }
+              />
+            </TouchableOpacity>
+          </ListItemColumn>
         </ListItem>
       ))}
       <Row>

@@ -445,7 +445,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
-                                        "marginBottom": 8,
                                       }
                                     }
                                   >
@@ -590,7 +589,6 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
-                                        "marginBottom": 8,
                                       }
                                     }
                                   >
@@ -657,255 +655,375 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                     </Text>
                                   </View>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      Array [
-                                        Object {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      Object {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        Object {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
-                                      <View
+                                      <RCTSwitch
+                                        accessibilityRole="switch"
+                                        disabled={true}
+                                        onChange={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        onTintColor="#0376C9"
                                         style={
                                           Array [
                                             Object {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
+                                              "height": 31,
+                                              "width": 51,
                                             },
-                                            undefined,
+                                            Object {
+                                              "backgroundColor": "#D6D9DC",
+                                              "borderRadius": 16,
+                                            },
                                           ]
                                         }
-                                      >
-                                        <RCTSwitch
-                                          accessibilityRole="switch"
-                                          disabled={true}
-                                          onChange={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
-                                          onTintColor="#0376C9"
-                                          style={
-                                            Array [
-                                              Object {
-                                                "height": 31,
-                                                "width": 51,
-                                              },
-                                              Object {
-                                                "backgroundColor": "#D6D9DC",
-                                                "borderRadius": 16,
-                                              },
-                                            ]
+                                        thumbTintColor="#FFFFFF"
+                                        tintColor="#D6D9DC"
+                                        value={true}
+                                      />
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          Object {
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
-                                          thumbTintColor="#FFFFFF"
-                                          tintColor="#D6D9DC"
-                                          value={true}
+                                        }
+                                      >
+                                        test key 1
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          Object {
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        testKey1
+                                      </Text>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={true}
+                                        hitSlop={
+                                          Object {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
+                                      >
+                                        <SvgMock
+                                          color="#0376C980"
+                                          height={24}
+                                          name="Edit"
+                                          style={
+                                            Object {
+                                              "height": 24,
+                                              "width": 24,
+                                            }
+                                          }
+                                          width={24}
                                         />
-                                      </View>
-                                      <View
-                                        style={
-                                          Array [
-                                            Object {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                      </TouchableOpacity>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
                                         }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={true}
+                                        hitSlop={
+                                          Object {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          selectable={true}
+                                        <SvgMock
+                                          color="#D7384780"
+                                          height={24}
+                                          name="Trash"
                                           style={
                                             Object {
-                                              "color": "#BBC0C5",
-                                              "fontFamily": "Euclid Circular B",
-                                              "fontSize": 14,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
-                                        >
-                                          testKey1
-                                        </Text>
-                                      </View>
-                                      <View
-                                        style={
-                                          Array [
-                                            Object {
-                                              "alignItems": "flex-end",
-                                              "flex": 0.6,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
-                                          accessibilityRole="button"
-                                          accessible={true}
-                                          disabled={true}
-                                          hitSlop={
-                                            Object {
-                                              "bottom": 20,
-                                              "left": 20,
-                                              "right": 20,
-                                              "top": 20,
-                                            }
-                                          }
-                                          onPress={[Function]}
-                                        >
-                                          <SvgMock
-                                            color="#D7384780"
-                                            height={24}
-                                            name="Trash"
-                                            style={
-                                              Object {
-                                                "height": 24,
-                                                "width": 24,
-                                              }
-                                            }
-                                            width={24}
-                                          />
-                                        </TouchableOpacity>
-                                      </View>
+                                          width={24}
+                                        />
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      Array [
-                                        Object {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      Object {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        Object {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
-                                      <View
+                                      <RCTSwitch
+                                        accessibilityRole="switch"
+                                        disabled={true}
+                                        onChange={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        onTintColor="#0376C9"
                                         style={
                                           Array [
                                             Object {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
+                                              "height": 31,
+                                              "width": 51,
                                             },
-                                            undefined,
+                                            Object {
+                                              "backgroundColor": "#D6D9DC",
+                                              "borderRadius": 16,
+                                            },
                                           ]
                                         }
-                                      >
-                                        <RCTSwitch
-                                          accessibilityRole="switch"
-                                          disabled={true}
-                                          onChange={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
-                                          onTintColor="#0376C9"
-                                          style={
-                                            Array [
-                                              Object {
-                                                "height": 31,
-                                                "width": 51,
-                                              },
-                                              Object {
-                                                "backgroundColor": "#D6D9DC",
-                                                "borderRadius": 16,
-                                              },
-                                            ]
+                                        thumbTintColor="#FFFFFF"
+                                        tintColor="#D6D9DC"
+                                        value={false}
+                                      />
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          Object {
+                                            "color": "#BBC0C5",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
-                                          thumbTintColor="#FFFFFF"
-                                          tintColor="#D6D9DC"
-                                          value={false}
+                                        }
+                                      >
+                                        test key 2
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          Object {
+                                            "color": "#BBC0C5",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        testKey2
+                                      </Text>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={true}
+                                        hitSlop={
+                                          Object {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
+                                      >
+                                        <SvgMock
+                                          color="#0376C980"
+                                          height={24}
+                                          name="Edit"
+                                          style={
+                                            Object {
+                                              "height": 24,
+                                              "width": 24,
+                                            }
+                                          }
+                                          width={24}
                                         />
-                                      </View>
-                                      <View
-                                        style={
-                                          Array [
-                                            Object {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                      </TouchableOpacity>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
                                         }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={true}
+                                        hitSlop={
+                                          Object {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          selectable={true}
+                                        <SvgMock
+                                          color="#D7384780"
+                                          height={24}
+                                          name="Trash"
                                           style={
                                             Object {
-                                              "color": "#BBC0C5",
-                                              "fontFamily": "Euclid Circular B",
-                                              "fontSize": 14,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
-                                        >
-                                          testKey2
-                                        </Text>
-                                      </View>
-                                      <View
-                                        style={
-                                          Array [
-                                            Object {
-                                              "alignItems": "flex-end",
-                                              "flex": 0.6,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
-                                          accessibilityRole="button"
-                                          accessible={true}
-                                          disabled={true}
-                                          hitSlop={
-                                            Object {
-                                              "bottom": 20,
-                                              "left": 20,
-                                              "right": 20,
-                                              "top": 20,
-                                            }
-                                          }
-                                          onPress={[Function]}
-                                        >
-                                          <SvgMock
-                                            color="#D7384780"
-                                            height={24}
-                                            name="Trash"
-                                            style={
-                                              Object {
-                                                "height": 24,
-                                                "width": 24,
-                                              }
-                                            }
-                                            width={24}
-                                          />
-                                        </TouchableOpacity>
-                                      </View>
+                                          width={24}
+                                        />
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                   <View
@@ -1426,7 +1544,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
-                                        "marginBottom": 8,
                                       }
                                     }
                                   >
@@ -1571,7 +1688,6 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
-                                        "marginBottom": 8,
                                       }
                                     }
                                   >
@@ -2151,7 +2267,6 @@ exports[`Settings Region renders correctly when region is not set 1`] = `
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
-                                        "marginBottom": 8,
                                       }
                                     }
                                   >
@@ -2698,7 +2813,6 @@ exports[`Settings Region renders correctly when region is set 1`] = `
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
-                                        "marginBottom": 8,
                                       }
                                     }
                                   >
@@ -3284,7 +3398,6 @@ exports[`Settings renders correctly 1`] = `
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
-                                        "marginBottom": 8,
                                       }
                                     }
                                   >
@@ -3870,7 +3983,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
-                                        "marginBottom": 8,
                                       }
                                     }
                                   >
@@ -4015,7 +4127,6 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
                                         "lineHeight": 22,
-                                        "marginBottom": 8,
                                       }
                                     }
                                   >
@@ -4079,255 +4190,375 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                     </Text>
                                   </View>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      Array [
-                                        Object {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      Object {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        Object {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
-                                      <View
+                                      <RCTSwitch
+                                        accessibilityRole="switch"
+                                        disabled={false}
+                                        onChange={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        onTintColor="#0376C9"
                                         style={
                                           Array [
                                             Object {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
+                                              "height": 31,
+                                              "width": 51,
                                             },
-                                            undefined,
+                                            Object {
+                                              "backgroundColor": "#D6D9DC",
+                                              "borderRadius": 16,
+                                            },
                                           ]
                                         }
-                                      >
-                                        <RCTSwitch
-                                          accessibilityRole="switch"
-                                          disabled={false}
-                                          onChange={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
-                                          onTintColor="#0376C9"
-                                          style={
-                                            Array [
-                                              Object {
-                                                "height": 31,
-                                                "width": 51,
-                                              },
-                                              Object {
-                                                "backgroundColor": "#D6D9DC",
-                                                "borderRadius": 16,
-                                              },
-                                            ]
+                                        thumbTintColor="#FFFFFF"
+                                        tintColor="#D6D9DC"
+                                        value={true}
+                                      />
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          Object {
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
-                                          thumbTintColor="#FFFFFF"
-                                          tintColor="#D6D9DC"
-                                          value={true}
+                                        }
+                                      >
+                                        test key 1
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          Object {
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        testKey1
+                                      </Text>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={false}
+                                        hitSlop={
+                                          Object {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
+                                      >
+                                        <SvgMock
+                                          color="#0376C9"
+                                          height={24}
+                                          name="Edit"
+                                          style={
+                                            Object {
+                                              "height": 24,
+                                              "width": 24,
+                                            }
+                                          }
+                                          width={24}
                                         />
-                                      </View>
-                                      <View
-                                        style={
-                                          Array [
-                                            Object {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                      </TouchableOpacity>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
                                         }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={false}
+                                        hitSlop={
+                                          Object {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          selectable={true}
+                                        <SvgMock
+                                          color="#D73847"
+                                          height={24}
+                                          name="Trash"
                                           style={
                                             Object {
-                                              "color": "#BBC0C5",
-                                              "fontFamily": "Euclid Circular B",
-                                              "fontSize": 14,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
-                                        >
-                                          testKey1
-                                        </Text>
-                                      </View>
-                                      <View
-                                        style={
-                                          Array [
-                                            Object {
-                                              "alignItems": "flex-end",
-                                              "flex": 0.6,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
-                                          accessibilityRole="button"
-                                          accessible={true}
-                                          disabled={false}
-                                          hitSlop={
-                                            Object {
-                                              "bottom": 20,
-                                              "left": 20,
-                                              "right": 20,
-                                              "top": 20,
-                                            }
-                                          }
-                                          onPress={[Function]}
-                                        >
-                                          <SvgMock
-                                            color="#D73847"
-                                            height={24}
-                                            name="Trash"
-                                            style={
-                                              Object {
-                                                "height": 24,
-                                                "width": 24,
-                                              }
-                                            }
-                                            width={24}
-                                          />
-                                        </TouchableOpacity>
-                                      </View>
+                                          width={24}
+                                        />
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
-                                      Array [
-                                        Object {
-                                          "padding": 15,
-                                        },
-                                        undefined,
-                                      ]
+                                      Object {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                        "padding": 16,
+                                      }
                                     }
                                   >
                                     <View
                                       style={
-                                        Array [
-                                          Object {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                          },
-                                          undefined,
-                                        ]
+                                        Object {
+                                          "flex": -1,
+                                        }
                                       }
+                                      testID="listitemcolumn"
                                     >
-                                      <View
+                                      <RCTSwitch
+                                        accessibilityRole="switch"
+                                        disabled={false}
+                                        onChange={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        onTintColor="#0376C9"
                                         style={
                                           Array [
                                             Object {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                              "marginRight": 15,
+                                              "height": 31,
+                                              "width": 51,
                                             },
-                                            undefined,
+                                            Object {
+                                              "backgroundColor": "#D6D9DC",
+                                              "borderRadius": 16,
+                                            },
                                           ]
                                         }
-                                      >
-                                        <RCTSwitch
-                                          accessibilityRole="switch"
-                                          disabled={false}
-                                          onChange={[Function]}
-                                          onResponderTerminationRequest={[Function]}
-                                          onStartShouldSetResponder={[Function]}
-                                          onTintColor="#0376C9"
-                                          style={
-                                            Array [
-                                              Object {
-                                                "height": 31,
-                                                "width": 51,
-                                              },
-                                              Object {
-                                                "backgroundColor": "#D6D9DC",
-                                                "borderRadius": 16,
-                                              },
-                                            ]
+                                        thumbTintColor="#FFFFFF"
+                                        tintColor="#D6D9DC"
+                                        value={false}
+                                      />
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": 1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          Object {
+                                            "color": "#BBC0C5",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
                                           }
-                                          thumbTintColor="#FFFFFF"
-                                          tintColor="#D6D9DC"
-                                          value={false}
+                                        }
+                                      >
+                                        test key 2
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        selectable={true}
+                                        style={
+                                          Object {
+                                            "color": "#BBC0C5",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        testKey2
+                                      </Text>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
+                                        }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Edit Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={false}
+                                        hitSlop={
+                                          Object {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
+                                      >
+                                        <SvgMock
+                                          color="#0376C9"
+                                          height={24}
+                                          name="Edit"
+                                          style={
+                                            Object {
+                                              "height": 24,
+                                              "width": 24,
+                                            }
+                                          }
+                                          width={24}
                                         />
-                                      </View>
-                                      <View
-                                        style={
-                                          Array [
-                                            Object {
-                                              "flex": 1,
-                                            },
-                                            undefined,
-                                          ]
+                                      </TouchableOpacity>
+                                    </View>
+                                    <View
+                                      accessible={false}
+                                      style={
+                                        Object {
+                                          "width": 16,
                                         }
+                                      }
+                                      testID="listitem-gap"
+                                    />
+                                    <View
+                                      style={
+                                        Object {
+                                          "flex": -1,
+                                        }
+                                      }
+                                      testID="listitemcolumn"
+                                    >
+                                      <TouchableOpacity
+                                        accessibilityLabel="Delete Activation Key"
+                                        accessibilityRole="button"
+                                        accessible={true}
+                                        disabled={false}
+                                        hitSlop={
+                                          Object {
+                                            "bottom": 20,
+                                            "left": 20,
+                                            "right": 20,
+                                            "top": 20,
+                                          }
+                                        }
+                                        onPress={[Function]}
                                       >
-                                        <Text
-                                          accessibilityRole="text"
-                                          selectable={true}
+                                        <SvgMock
+                                          color="#D73847"
+                                          height={24}
+                                          name="Trash"
                                           style={
                                             Object {
-                                              "color": "#BBC0C5",
-                                              "fontFamily": "Euclid Circular B",
-                                              "fontSize": 14,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
-                                        >
-                                          testKey2
-                                        </Text>
-                                      </View>
-                                      <View
-                                        style={
-                                          Array [
-                                            Object {
-                                              "alignItems": "flex-end",
-                                              "flex": 0.6,
-                                            },
-                                            undefined,
-                                          ]
-                                        }
-                                      >
-                                        <TouchableOpacity
-                                          accessibilityLabel="Delete Activation Key"
-                                          accessibilityRole="button"
-                                          accessible={true}
-                                          disabled={false}
-                                          hitSlop={
-                                            Object {
-                                              "bottom": 20,
-                                              "left": 20,
-                                              "right": 20,
-                                              "top": 20,
-                                            }
-                                          }
-                                          onPress={[Function]}
-                                        >
-                                          <SvgMock
-                                            color="#D73847"
-                                            height={24}
-                                            name="Trash"
-                                            style={
-                                              Object {
-                                                "height": 24,
-                                                "width": 24,
-                                              }
-                                            }
-                                            width={24}
-                                          />
-                                        </TouchableOpacity>
-                                      </View>
+                                          width={24}
+                                        />
+                                      </TouchableOpacity>
                                     </View>
                                   </View>
                                   <View

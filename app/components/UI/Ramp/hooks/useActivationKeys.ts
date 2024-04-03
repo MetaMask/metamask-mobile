@@ -66,7 +66,7 @@ export default function useActivationKeys(
   const dispatchAddActivationKey: (
     ...args: Parameters<typeof addActivationKey>
   ) => void = useCallback(
-    (key: string) => dispatch(addActivationKey(key)),
+    (key: string, label?: string) => dispatch(addActivationKey(key, label)),
     [dispatch],
   );
 
@@ -80,8 +80,8 @@ export default function useActivationKeys(
   const dispatchUpdateActivationKey: (
     ...args: Parameters<typeof updateActivationKey>
   ) => void = useCallback(
-    (activationKey, active) =>
-      dispatch(updateActivationKey(activationKey, active)),
+    (activationKey, label, active) =>
+      dispatch(updateActivationKey(activationKey, label, active)),
     [dispatch],
   );
   return {
