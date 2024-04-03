@@ -553,6 +553,7 @@ workflows:
         stack: linux-docker-android-20.04
   android_e2e_test:
     before_run:
+      - android_e2e_build
       - setup
       - prep_environment
     after_run:
