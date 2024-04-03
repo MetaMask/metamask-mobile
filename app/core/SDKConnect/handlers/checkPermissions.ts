@@ -22,6 +22,9 @@ export const checkPermissions = async ({
   const OTPExpirationDuration =
     Number(process.env.OTP_EXPIRATION_DURATION_IN_MS) || HOUR_IN_MS;
 
+  // close poientially open loading modal
+  connection.setLoading(false);
+
   const channelWasActiveRecently =
     !!lastAuthorized && Date.now() - lastAuthorized < OTPExpirationDuration;
 

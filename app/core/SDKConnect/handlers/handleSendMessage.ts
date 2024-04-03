@@ -82,10 +82,16 @@ export const handleSendMessage = async ({
         connection.navigation?.getCurrentRoute()?.name === 'AccountConnect'
       ) {
         DevLogger.log(`[handleSendMessage] remove modal`);
-        if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
+        if (
+          Device.isIos() &&
+          parseInt(Platform.Version as string) >= 17 &&
+          connection.navigation?.canGoBack()
+        ) {
           try {
+            DevLogger.log(`[handleSendMessage] goBack()`);
             connection.navigation?.goBack();
-            await wait(100); // delay to allow modal to close
+            await wait(200); // delay to allow modal to close
+            DevLogger.log(`[handleSendMessage] navigate to ROOT_MODAL_FLOW`);
           } catch (_e) {
             // Ignore temporarily until next stage of permissions system implementation
           }
@@ -102,6 +108,7 @@ export const handleSendMessage = async ({
       return;
     }
 
+    // Add delay to display UI feedback before redirecting
     if (METHODS_TO_DELAY[method]) {
       await wait(1200);
     }
