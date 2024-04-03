@@ -23,7 +23,7 @@ import {
 } from '../../../selectors/networkController';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import { useNavigation } from '@react-navigation/native';
-import { getSwapsFeatureFlags } from '../../../reducers/swaps';
+import { getSwapsChainFeatureFlags } from '../../../reducers/swaps';
 import Logger from '../../../util/Logger';
 import Button, {
   ButtonVariants,
@@ -63,7 +63,7 @@ const SmartTransactionStatus = ({
   const { status, creationTime } = smartTransaction;
   const providerConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const swapFeatureFlags = useSelector(getSwapsFeatureFlags);
+  const swapFeatureFlags = useSelector(getSwapsChainFeatureFlags);
 
   const navigation = useNavigation();
   const { colors } = useTheme();

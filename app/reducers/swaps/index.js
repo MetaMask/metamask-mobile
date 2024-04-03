@@ -7,13 +7,15 @@ import { lte } from '../../util/lodash';
 import { selectChainId } from '../../selectors/networkController';
 import { selectTokens } from '../../selectors/tokensController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
-import Device from '../../util/device';
-import Logger from '../../util/Logger';
+import {
+  getChainFeatureFlags,
+  getFeatureFlagDeviceKey,
+  getSwapsLiveness,
+} from './utils';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
 export const SWAPS_SET_HAS_ONBOARDED = 'SWAPS_SET_HAS_ONBOARDED';
-export const SWAPS_SET_SMART_TX_FEATURE_FLAG = 'SWAPS_SET_SMART_TX';
 const MAX_TOKENS_WITH_BALANCE = 5;
 
 // * Action Creator
@@ -64,23 +66,28 @@ export const swapsLivenessSelector = createSelector(
  */
 export const swapsSmartTxFlagEnabled = createSelector(
   swapsStateSelector,
-  chainIdSelector,
-  (swapsState, chainId) => {
-    const stxFlags = swapsState[chainId]?.smartTransactions;
+  (swapsState) => {
+    const globalFlags = swapsState.featureFlags;
 
-    if (!stxFlags) return false;
+    const deviceKey = getFeatureFlagDeviceKey();
 
-    return typeof stxFlags === 'object' && Object.keys(stxFlags).length > 0;
+    const isEnabled = Boolean(
+      globalFlags?.smart_transactions?.mobile_active &&
+        globalFlags.smartTransactions[deviceKey],
+    );
+
+    // return isEnabled; // TODO put this back once API fixed
+    return true;
   },
 );
 
 /**
  * Returns the swaps feature flags
  */
-export const getSwapsFeatureFlags = createSelector(
+export const getSwapsChainFeatureFlags = createSelector(
   swapsStateSelector,
   chainIdSelector,
-  (swapsState, chainId) => swapsState[chainId],
+  (swapsState, chainId) => swapsState[chainId].featureFlags,
 );
 
 /**
@@ -223,8 +230,10 @@ export const initialState = {
   isLive: true, // TODO: should we remove it?
   hasOnboarded: true, // TODO: Once we have updated UI / content for the modal, we should enable it again.
 
+  featureFlags: undefined,
   '0x1': {
     isLive: true,
+    featureFlags: undefined,
   },
 };
 
@@ -240,32 +249,26 @@ function swapsReducer(state = initialState, action) {
           ...state,
           [chainId]: {
             ...data,
-            ...featureFlags,
+            featureFlags: undefined,
             isLive: false,
           },
+          featureFlags: undefined,
         };
       }
 
-      const isIphone = Device.isIos();
-      const isAndroid = Device.isAndroid();
-      const featureFlagKey = isIphone
-        ? 'mobileActiveIOS'
-        : isAndroid
-        ? 'mobileActiveAndroid'
-        : 'mobileActive';
-
-      const liveness =
-        // @ts-expect-error interface mismatch
-        typeof featureFlagsByChainId === 'boolean'
-          ? featureFlags
-          : featureFlags?.[featureFlagKey] ?? false;
+      const chainFeatureFlags = getChainFeatureFlags(featureFlags, chainId);
+      const liveness = getSwapsLiveness(featureFlags, chainId);
 
       return {
         ...state,
         [chainId]: {
           ...data,
-          ...featureFlags,
+          featureFlags: chainFeatureFlags,
           isLive: liveness,
+        },
+        featureFlags: {
+          smart_transactions: featureFlags.smart_transactions,
+          smartTransactions: featureFlags.smartTransactions,
         },
       };
     }
