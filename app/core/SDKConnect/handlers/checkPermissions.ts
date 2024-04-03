@@ -50,11 +50,15 @@ export const checkPermissions = async ({
   ).PermissionController;
 
   if (connection.approvalPromise) {
-    DevLogger.log(`checkPermissions approvalPromise exists`);
+    const currentRouteName = connection.navigation?.getCurrentRoute()?.name;
+    DevLogger.log(
+      `checkPermissions approvalPromise exists currentRouteName=${currentRouteName}`,
+    );
     // Make sure the window is displayed.
     const match = permissionsController.hasPermissions(connection.channelId);
     DevLogger.log(`checkPermissions match`, match);
     // Wait for result and clean the promise afterwards.
+
     await connection.approvalPromise;
     connection.approvalPromise = undefined;
     return true;
@@ -77,16 +81,6 @@ export const checkPermissions = async ({
     return true;
   }
 
-  const currentPerm = permissionsController.getPermissions(
-    connection.channelId,
-  );
-
-  if (currentPerm) {
-    DevLogger.log(`checkPermissions currentPerm`, currentPerm);
-    // delete previous one
-    permissionsController.revokeAllPermissions(connection.channelId);
-  }
-  DevLogger.log(`checkPermissions request permissions`, acc);
   connection.approvalPromise = permissionsController.requestPermissions(
     { origin },
     { eth_accounts: {} },
