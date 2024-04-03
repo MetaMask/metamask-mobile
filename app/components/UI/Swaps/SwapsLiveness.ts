@@ -41,7 +41,7 @@ function SwapLiveness() {
   );
   const checkLiveness = useCallback(async () => {
     try {
-      const featureFlags = await swapsUtils.fetchSwapsFeatureLiveness(
+      const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
         getFeatureFlagChainId(chainId),
         AppConstants.SWAPS.CLIENT_ID,
       );

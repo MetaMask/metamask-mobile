@@ -9,6 +9,45 @@ import reducer, {
 
 const emptyAction = { type: null };
 
+const defaultFeatureFlags = {
+  ethereum: {
+    mobile_active: true,
+    extension_active: true,
+    fallback_to_v1: false,
+    fallbackToV1: false,
+    mobileActive: true,
+    extensionActive: true,
+    mobileActiveIOS: true,
+    mobileActiveAndroid: true,
+    smartTransactions: {
+      expectedDeadline: 45,
+      maxDeadline: 150,
+      returnTxHashAsap: false,
+    },
+  },
+  bsc: {
+    mobile_active: true,
+    extension_active: true,
+    fallback_to_v1: false,
+    fallbackToV1: false,
+    mobileActive: true,
+    extensionActive: true,
+    mobileActiveIOS: true,
+    mobileActiveAndroid: true,
+    smartTransactions: {},
+  },
+  smart_transactions: {
+    mobile_active: false,
+    extension_active: true,
+  },
+  smartTransactions: {
+    mobileActive: false,
+    extensionActive: true,
+    mobileActiveIOS: false,
+    mobileActiveAndroid: false,
+  },
+};
+
 describe('swaps reducer', () => {
   it('should return initial state', () => {
     const state = reducer(undefined, emptyAction);
@@ -24,21 +63,7 @@ describe('swaps reducer', () => {
       const liveState = reducer(initalState, {
         type: SWAPS_SET_LIVENESS,
         payload: {
-          featureFlags: {
-            mobile_active: true,
-            extension_active: true,
-            fallback_to_v1: false,
-            fallbackToV1: false,
-            mobileActive: true,
-            extensionActive: true,
-            mobileActiveIOS: true,
-            mobileActiveAndroid: true,
-            smartTransactions: {
-              expectedDeadline: 45,
-              maxDeadline: 150,
-              returnTxHashAsap: false,
-            },
-          },
+          featureFlags: defaultFeatureFlags,
           chainId: '0x1',
         },
       });
@@ -49,24 +74,27 @@ describe('swaps reducer', () => {
       Device.isAndroid = jest.fn().mockReturnValue(false);
 
       const initalState = reducer(undefined, emptyAction);
+      const featureFlags = cloneDeep(defaultFeatureFlags);
+      featureFlags.ethereum = {
+        mobile_active: false,
+        extension_active: true,
+        fallback_to_v1: false,
+        fallbackToV1: false,
+        mobileActive: false,
+        extensionActive: true,
+        mobileActiveIOS: false,
+        mobileActiveAndroid: true,
+        smartTransactions: {
+          expectedDeadline: 45,
+          maxDeadline: 150,
+          returnTxHashAsap: false,
+        },
+      };
+
       const liveState = reducer(initalState, {
         type: SWAPS_SET_LIVENESS,
         payload: {
-          featureFlags: {
-            mobile_active: false,
-            extension_active: true,
-            fallback_to_v1: false,
-            fallbackToV1: false,
-            mobileActive: false,
-            extensionActive: true,
-            mobileActiveIOS: false,
-            mobileActiveAndroid: true,
-            smartTransactions: {
-              expectedDeadline: 45,
-              maxDeadline: 150,
-              returnTxHashAsap: false,
-            },
-          },
+          featureFlags,
           chainId: '0x1',
         },
       });
@@ -77,24 +105,27 @@ describe('swaps reducer', () => {
       Device.isAndroid = jest.fn().mockReturnValue(true);
 
       const initalState = reducer(undefined, emptyAction);
+      const featureFlags = cloneDeep(defaultFeatureFlags);
+      featureFlags.ethereum = {
+        mobile_active: true,
+        extension_active: true,
+        fallback_to_v1: false,
+        fallbackToV1: false,
+        mobileActive: true,
+        extensionActive: true,
+        mobileActiveIOS: true,
+        mobileActiveAndroid: true,
+        smartTransactions: {
+          expectedDeadline: 45,
+          maxDeadline: 150,
+          returnTxHashAsap: false,
+        },
+      };
+
       const liveState = reducer(initalState, {
         type: SWAPS_SET_LIVENESS,
         payload: {
-          featureFlags: {
-            mobile_active: true,
-            extension_active: true,
-            fallback_to_v1: false,
-            fallbackToV1: false,
-            mobileActive: true,
-            extensionActive: true,
-            mobileActiveIOS: true,
-            mobileActiveAndroid: true,
-            smartTransactions: {
-              expectedDeadline: 45,
-              maxDeadline: 150,
-              returnTxHashAsap: false,
-            },
-          },
+          featureFlags,
           chainId: '0x1',
         },
       });
@@ -105,24 +136,27 @@ describe('swaps reducer', () => {
       Device.isAndroid = jest.fn().mockReturnValue(true);
 
       const initalState = reducer(undefined, emptyAction);
+      const featureFlags = cloneDeep(defaultFeatureFlags);
+      featureFlags.ethereum = {
+        mobile_active: false,
+        extension_active: true,
+        fallback_to_v1: false,
+        fallbackToV1: false,
+        mobileActive: false,
+        extensionActive: true,
+        mobileActiveIOS: false,
+        mobileActiveAndroid: false,
+        smartTransactions: {
+          expectedDeadline: 45,
+          maxDeadline: 150,
+          returnTxHashAsap: false,
+        },
+      };
+
       const liveState = reducer(initalState, {
         type: SWAPS_SET_LIVENESS,
         payload: {
-          featureFlags: {
-            mobile_active: false,
-            extension_active: true,
-            fallback_to_v1: false,
-            fallbackToV1: false,
-            mobileActive: false,
-            extensionActive: true,
-            mobileActiveIOS: false,
-            mobileActiveAndroid: false,
-            smartTransactions: {
-              expectedDeadline: 45,
-              maxDeadline: 150,
-              returnTxHashAsap: false,
-            },
-          },
+          featureFlags,
           chainId: '0x1',
         },
       });
@@ -143,18 +177,83 @@ describe('swaps reducer', () => {
         swaps: cloneDeep(initialState),
       };
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      rootState.swaps['0x1'].smartTransactions = {
-        expectedDeadline: 45,
-        maxDeadline: 150,
-        returnTxHashAsap: false,
+      rootState.swaps = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        featureFlags: {
+          smart_transactions: {
+            mobile_active: true,
+            extension_active: true,
+          },
+          smartTransactions: {
+            mobileActive: true,
+            extensionActive: true,
+            mobileActiveIOS: true,
+            mobileActiveAndroid: true,
+          },
+        },
+        '0x1': {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          featureFlags: {
+            smartTransactions: {
+              expectedDeadline: 45,
+              maxDeadline: 150,
+              returnTxHashAsap: false,
+            },
+          },
+        },
       };
 
       const enabled = swapsSmartTxFlagEnabled(rootState);
       expect(enabled).toEqual(true);
     });
-    it('should return false if smart transactions are not enabled', () => {
+
+    it('should return false if smart transactions flags are disabled', () => {
+      const rootState = {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              providerConfig: { chainId: '0x1' },
+            },
+          },
+        },
+        swaps: cloneDeep(initialState),
+      };
+
+      rootState.swaps = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        featureFlags: {
+          smart_transactions: {
+            mobile_active: false,
+            extension_active: true,
+          },
+          smartTransactions: {
+            mobileActive: false,
+            extensionActive: true,
+            mobileActiveIOS: false,
+            mobileActiveAndroid: false,
+          },
+        },
+        '0x1': {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          featureFlags: {
+            smartTransactions: {
+              expectedDeadline: 45,
+              maxDeadline: 150,
+              returnTxHashAsap: false,
+            },
+          },
+        },
+      };
+
+      const enabled = swapsSmartTxFlagEnabled(rootState);
+      expect(enabled).toEqual(false);
+    });
+
+    it('should return false if smart transactions flags are undefined', () => {
       const rootState = {
         engine: {
           backgroundState: {
@@ -173,11 +272,15 @@ describe('swaps reducer', () => {
 
   it('should set has onboarded', () => {
     const initalState = reducer(undefined, emptyAction);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const notOnboardedState = reducer(initalState, {
       type: SWAPS_SET_HAS_ONBOARDED,
       payload: false,
     });
     expect(notOnboardedState.hasOnboarded).toBe(false);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const liveState = reducer(initalState, {
       type: SWAPS_SET_HAS_ONBOARDED,
       payload: true,

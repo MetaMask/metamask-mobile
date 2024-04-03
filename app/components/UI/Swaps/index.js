@@ -89,6 +89,7 @@ import {
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getFeatureFlagChainId } from './SwapsLiveness';
+import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -261,22 +262,12 @@ function SwapsAmountView({
   useEffect(() => {
     (async () => {
       try {
-        const featureFlags = await swapsUtils.fetchSwapsFeatureLiveness(
+        const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
           getFeatureFlagChainId(chainId),
           AppConstants.SWAPS.CLIENT_ID,
         );
 
-        const isIphone = Device.isIos();
-        const isAndroid = Device.isAndroid();
-        const featureFlagKey = isIphone
-          ? 'mobileActiveIOS'
-          : isAndroid
-          ? 'mobileActiveAndroid'
-          : 'mobileActive';
-        const liveness =
-          typeof data === 'boolean'
-            ? featureFlags
-            : featureFlags?.[featureFlagKey] ?? false;
+        const liveness = getSwapsLiveness(featureFlags, chainId);
         setLiveness(chainId, featureFlags);
 
         if (liveness) {
