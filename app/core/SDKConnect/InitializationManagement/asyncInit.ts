@@ -1,11 +1,16 @@
 import { NavigationContainerRef } from '@react-navigation/native';
-import { disconnectAll, resetConnections } from '../../../../app/actions/sdk';
+import {
+  disconnectAll,
+  resetApprovedHosts,
+  resetConnections,
+} from '../../../../app/actions/sdk';
 import { RootState } from '../../../../app/reducers';
 import { store } from '../../../store';
 import Logger from '../../../util/Logger';
 import SDKConnect, { ApprovedHosts, SDKSessions } from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
+import AppConstants from '../../../../app/core/AppConstants';
 
 const asyncInit = async ({
   navigation,
@@ -32,18 +37,32 @@ const asyncInit = async ({
   try {
     // Remove connections that have expired.
     const now = Date.now();
+    const connectionsLength = Object.keys(sdk.connections).length;
+    const approvedHostsLength = Object.keys(sdk.approvedHosts).length;
+    DevLogger.log(
+      `SDKConnect::init() - connections length=${connectionsLength} approvedHosts length=${approvedHostsLength}`,
+    );
     for (const id in sdk.connections) {
       const connInfo = sdk.connections[id];
-      const ttl = sdk.approvedHosts[id] <= now;
-      if (sdk.approvedHosts[id] <= now) {
-        DevLogger.log(`Connection ${id} is still valid, TTL: ${ttl}`);
+      const sdkHostId = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + id;
+      const ttl = (connInfo.validUntil ?? 0) - now;
+      DevLogger.log(
+        `Checking connection ${id} sdkHostId=${sdkHostId} TTL=${ttl} validUntil=${
+          connInfo.validUntil ?? 0
+        } hostValue:${sdk.approvedHosts[sdkHostId]} now: ${now}`,
+        sdk.approvedHosts,
+      );
+      if (ttl > 0) {
+        DevLogger.log(
+          `Connection ${id} / ${sdkHostId} is still valid, TTL: ${ttl}`,
+        );
         // Only keep connections that are not expired.
         validConnections[id] = sdk.connections[id];
-        validHosts[id] = sdk.approvedHosts[id];
+        validHosts[sdkHostId] = sdk.approvedHosts[sdkHostId];
       } else {
         // Remove expired connections
         DevLogger.log(
-          `SDKConnect::init() - removing expired connection ${id}`,
+          `SDKConnect::init() - removing expired connection ${id} ${sdkHostId}`,
           connInfo,
         );
       }
@@ -60,6 +79,7 @@ const asyncInit = async ({
 
     // Update store with valid connection
     store.dispatch(resetConnections(validConnections));
+    store.dispatch(resetApprovedHosts(validHosts));
     // All connectectiions are disconnected on start
     store.dispatch(disconnectAll());
     DevLogger.log(`SDKConnect::init() - done`);
