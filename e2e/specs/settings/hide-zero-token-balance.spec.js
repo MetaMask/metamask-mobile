@@ -12,11 +12,9 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 
-import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
 import WalletView from '../../pages/WalletView';
 import GeneralView from '../../pages/Settings/GeneralView';
-import Matchers from '../../utils/Matchers';
 
 const TOKEN_SYMBOL = 'TST';
 
@@ -61,7 +59,14 @@ describe(Regression('enables hide tokens with zero balance'), () => {
         ganacheOptions: defaultGanacheOptions,
       },
       async () => {
+        const token = WalletView.tokenName(TOKEN_SYMBOL);
         await loginToApp();
+
+        await Assertions.checkIfVisible(token);
+
+        // should go to settings then security & privacy
+        await TabBarComponent.tapSettings();
+        await SettingsView.tapGeneralSettings();
       },
     );
   });

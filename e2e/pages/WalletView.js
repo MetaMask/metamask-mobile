@@ -56,8 +56,8 @@ class WalletView {
   }
 
   async tapOnToken(token) {
-    const token = await Matchers.getElementByText(token);
-    await Gestures.waitAndTap(token);
+    const tokenName = await Matchers.getElementByText(token);
+    await Gestures.waitAndTap(tokenName);
   }
 
   async tapIdenticon() {
@@ -106,8 +106,8 @@ class WalletView {
   }
 
   async removeTokenFromWallet(token) {
-    const token = await Matchers.getElementByText(token);
-    await Gestures.tapAndLongPress(token);
+    const tokenName = await Matchers.getElementByText(token);
+    await Gestures.tapAndLongPress(tokenName);
     await Gestures.tap(WalletViewSelectorsText.HIDE_TOKENS);
   }
 
@@ -126,6 +126,10 @@ class WalletView {
   async isConnectedNetwork(value) {
     await Gestures.checkIfHasText(this.navbarNetworkText, value);
   }
-}
 
-export default WalletView;
+  async tokenName(token) {
+    const tokenName = await Matchers.getElementByText(token);
+    return tokenName;
+  }
+}
+export default new WalletView();
