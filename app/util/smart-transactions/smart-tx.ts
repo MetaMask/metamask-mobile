@@ -41,7 +41,6 @@ interface Request {
   isSmartTransaction: boolean;
   approvalController: ApprovalController;
   featureFlags: {
-    isLive: boolean;
     mobile_active: boolean;
     extension_active: boolean;
     fallback_to_v1: boolean;
