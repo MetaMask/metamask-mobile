@@ -7,11 +7,7 @@ import { lte } from '../../util/lodash';
 import { selectChainId } from '../../selectors/networkController';
 import { selectTokens } from '../../selectors/tokensController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
-import {
-  getChainFeatureFlags,
-  getFeatureFlagDeviceKey,
-  getSwapsLiveness,
-} from './utils';
+import { getChainFeatureFlags, getSwapsLiveness } from './utils';
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -69,15 +65,14 @@ export const swapsSmartTxFlagEnabled = createSelector(
   (swapsState) => {
     const globalFlags = swapsState.featureFlags;
 
-    const deviceKey = getFeatureFlagDeviceKey();
+    const deviceKey = 'mobileActive';
 
     const isEnabled = Boolean(
       globalFlags?.smart_transactions?.mobile_active &&
         globalFlags.smartTransactions[deviceKey],
     );
 
-    // return isEnabled; // TODO put this back once API fixed
-    return true;
+    return isEnabled;
   },
 );
 
