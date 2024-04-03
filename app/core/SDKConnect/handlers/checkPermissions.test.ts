@@ -50,6 +50,7 @@ describe('checkPermissions', () => {
       isApproved: mockIsApproved,
       revalidate: mockRevalidate,
       initialConnection: true,
+      setLoading: jest.fn(),
     } as unknown as Connection;
 
     engine = {
