@@ -45,13 +45,13 @@ const OpenETHAppStep = ({ onReject }: OpenETHAppStepProps) => {
   );
 
   return (
-    <View testID={OPEN_ETH_APP_STEP}>
+    <>
       <Image
         source={ledgerImage}
         style={styles.ledgerImageStyle}
         resizeMode="contain"
       />
-      <View style={styles.modalTitle}>
+      <View style={styles.modalTitle} testID={OPEN_ETH_APP_STEP}>
         <Text bold big>
           {strings('ledger.open_eth_app')}
         </Text>
@@ -69,7 +69,7 @@ const OpenETHAppStep = ({ onReject }: OpenETHAppStepProps) => {
       >
         {strings('transaction.reject')}
       </StyledButton>
-    </View>
+    </>
   );
 };
 

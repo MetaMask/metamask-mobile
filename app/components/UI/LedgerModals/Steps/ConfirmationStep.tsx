@@ -48,13 +48,16 @@ const ConfirmationStep = ({ onReject }: ConfirmationStepProps) => {
   );
 
   return (
-    <View testID={LEDGER_CONFIRMATION_STEP}>
+    <>
       <Image
         source={ledgerImage}
         style={styles.ledgerImageStyle}
         resizeMode="contain"
       />
-      <View style={styles.confirmationViewTitle}>
+      <View
+        style={styles.confirmationViewTitle}
+        testID={LEDGER_CONFIRMATION_STEP}
+      >
         <Text bold big style={styles.titleText}>
           {strings('ledger.confirm_transaction_on_ledger')}
         </Text>
@@ -67,7 +70,7 @@ const ConfirmationStep = ({ onReject }: ConfirmationStepProps) => {
           {strings('transaction.reject')}
         </StyledButton>
       </View>
-    </View>
+    </>
   );
 };
 

@@ -30,11 +30,10 @@ const createStyles = () =>
     },
     titleText: {
       fontSize: 22,
-      marginHorizontal: 10,
     },
     subtitleText: {
       marginTop: 20,
-      marginHorizontal: 10,
+      marginHorizontal: 20,
     },
   });
 
@@ -68,13 +67,13 @@ const ErrorStep = ({
   };
 
   return (
-    <View testID={ERROR_STEP}>
+    <>
       <Image
         source={ledgerErrorImage}
         style={styles.ledgerImageStyle}
         resizeMode="contain"
       />
-      <View style={styles.textContainer}>
+      <View style={styles.textContainer} testID={ERROR_STEP}>
         <Text big bold style={styles.titleText}>
           {title}
         </Text>
@@ -101,7 +100,7 @@ const ErrorStep = ({
           </StyledButton>
         </View>
       </View>
-    </View>
+    </>
   );
 };
 

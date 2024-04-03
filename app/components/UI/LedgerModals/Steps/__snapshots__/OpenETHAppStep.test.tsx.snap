@@ -1,9 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OpenETHAppStep matches snapshot 1`] = `
-<View
-  testID="open-eth-app-step"
->
+Array [
   <Image
     resizeMode="contain"
     source={
@@ -19,13 +17,14 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         "width": 100,
       }
     }
-  />
+  />,
   <View
     style={
       Object {
         "marginTop": 30,
       }
     }
+    testID="open-eth-app-step"
   >
     <Text
       style={
@@ -71,7 +70,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
     >
       Please open the Ethereum app
     </Text>
-  </View>
+  </View>,
   <View
     style={
       Object {
@@ -201,7 +200,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         press the two buttons on the device to accept the prompt to open the Ethereum app to continue.
       </Text>
     </Text>
-  </View>
+  </View>,
   <TouchableOpacity
     accessibilityRole="button"
     accessible={true}
@@ -256,6 +255,6 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
     >
       Reject
     </Text>
-  </TouchableOpacity>
-</View>
+  </TouchableOpacity>,
+]
 `;
