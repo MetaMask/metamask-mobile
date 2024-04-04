@@ -1,3 +1,4 @@
+import { safeToChecksumAddress } from '../../util/address';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   caveatSpecifications as snapsCaveatsSpecifications,
@@ -135,16 +136,18 @@ export const getPermissionSpecifications = ({
       const internalAccounts = getInternalAccounts();
 
       return accounts.sort((firstAddress, secondAddress) => {
-        const lowerCaseFirstAddress = firstAddress.toLowerCase();
+        const checkSummedFirstAddress = safeToChecksumAddress(firstAddress);
         const firstAccount = internalAccounts.find(
           (internalAccount) =>
-            internalAccount.address.toLowerCase() === lowerCaseFirstAddress,
+            safeToChecksumAddress(internalAccount.address) ===
+            checkSummedFirstAddress,
         );
 
-        const lowerCaseSecondAddress = secondAddress.toLowerCase();
+        const checkSummedSecondAddress = safeToChecksumAddress(secondAddress);
         const secondAccount = internalAccounts.find(
           (internalAccount) =>
-            internalAccount.address.toLowerCase() === lowerCaseSecondAddress,
+            safeToChecksumAddress(internalAccount.address) ===
+            checkSummedSecondAddress,
         );
 
         if (!firstAccount) {
@@ -210,11 +213,11 @@ function validateCaveatAccounts(accounts, getInternalAccounts) {
         `${PermissionKeys.eth_accounts} error: Expected an array of objects that contains an Ethereum addresses. Received: "${address}".`,
       );
     }
-    const lowerCaseAddress = address.toLowerCase();
+    const checkSummedAddress = safeToChecksumAddress(address);
     if (
       !internalAccounts.some(
         (internalAccount) =>
-          internalAccount.address.toLowerCase() === lowerCaseAddress,
+          safeToChecksumAddress(internalAccount.address) === checkSummedAddress,
       )
     ) {
       throw new Error(

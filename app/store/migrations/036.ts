@@ -7,6 +7,7 @@ import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { v4 as uuid } from 'uuid';
 import { NativeModules } from 'react-native';
+import { safeToChecksumAddress } from '../../util/address';
 const Aes = NativeModules.Aes;
 
 export interface Identity {
@@ -147,7 +148,7 @@ function findInternalAccountByAddress(
     state.engine.backgroundState.AccountsController.internalAccounts.accounts,
   ).find(
     (account: InternalAccount) =>
-      account.address.toLowerCase() === address.toLowerCase(),
+      safeToChecksumAddress(account.address) === safeToChecksumAddress(address),
   );
 }
 

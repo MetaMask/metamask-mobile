@@ -802,9 +802,9 @@ class Engine {
             accounts = [],
           ) => {
             const accountsMissingIdentities = accounts.filter((address) => {
-              const lowerCaseAddress = lowerCase(address);
+              const checkSummedAddress = safeToChecksumAddress(address);
               return !internalAccounts.some(
-                (account) => account.address.toLowerCase() === lowerCaseAddress,
+                (account) => safeToChecksumAddress(account.address) === checkSummedAddress,
               );
             });
             const keyringTypesWithMissingIdentities =
