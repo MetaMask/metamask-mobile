@@ -10,7 +10,7 @@ const selectCurrencyRateControllerState = (state: RootState) =>
 export const selectConversionRate = createSelector(
   selectCurrencyRateControllerState,
   selectChainId,
-  (state) => state.settings.showFiatOnTestnets,
+  (state: any) => state.settings.showFiatOnTestnets,
   (currencyRateControllerState, chainId, showFiatOnTestnets) =>
     isTestNet(chainId) && !showFiatOnTestnets
       ? undefined
