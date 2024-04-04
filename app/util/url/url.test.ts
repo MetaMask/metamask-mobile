@@ -13,7 +13,7 @@ describe('URL Check Functions', () => {
       expect(isPortfolioUrl(url)).toBe(false);
     });
 
-    it('should return true for portfolio URLs with additional params', () => {
+    it('returns true for portfolio URLs with additional params', () => {
       const url = `${AppConstants.PORTFOLIO.URL}/bridge?foo=bar`;
       expect(isBridgeUrl(url)).toBe(true);
     });
