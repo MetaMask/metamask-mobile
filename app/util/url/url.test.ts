@@ -45,7 +45,7 @@ describe('URL Check Functions', () => {
       expect(isBridgeUrl(url)).toBe(true);
     });
 
-    it('should return true for bridge URLs with trailing slash', () => {
+    it('returns true for bridge URLs with trailing slash', () => {
       const url = `${AppConstants.BRIDGE.URL}/`;
       expect(isBridgeUrl(url)).toBe(true);
     });
