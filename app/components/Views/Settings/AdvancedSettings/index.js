@@ -23,6 +23,7 @@ import { baseStyles } from '../../../../styles/common';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setShowCustomNonce,
+  setShowFiatOnTestnets,
   setShowHexData,
 } from '../../../../actions/settings';
 import { strings } from '../../../../../locales/i18n';
@@ -171,6 +172,14 @@ class AdvancedSettings extends PureComponent {
      * Indicates whether custom nonce should be shown in transaction editor
      */
     showCustomNonce: PropTypes.bool,
+    /**
+     * Indicates whether fiat conversions should be shown on testnets
+     */
+    showFiatOnTestnets: PropTypes.bool,
+    /**
+     * Called to toggle showing fiat conversions on testnets
+     */
+    setShowFiatOnTestnets: PropTypes.func,
     /**
      * Entire redux state used to generate state logs
      */
@@ -358,8 +367,10 @@ class AdvancedSettings extends PureComponent {
     const {
       showHexData,
       showCustomNonce,
+      showFiatOnTestnets,
       setShowHexData,
       setShowCustomNonce,
+      setShowFiatOnTestnets,
       enableEthSign,
     } = this.props;
     const { resetModalVisible } = this.state;
@@ -522,6 +533,33 @@ class AdvancedSettings extends PureComponent {
             </View>
             {this.renderTokenDetectionSection()}
             <View style={styles.setting}>
+              <View style={styles.titleContainer}>
+                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                  {strings('app_settings.show_fiat_on_testnets')}
+                </Text>
+                <View style={styles.toggle}>
+                  <Switch
+                    value={showFiatOnTestnets}
+                    onValueChange={setShowFiatOnTestnets}
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={theme.brandColors.white['000']}
+                    style={styles.switch}
+                    ios_backgroundColor={colors.border.muted}
+                  />
+                </View>
+              </View>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.show_fiat_on_testnets_desc')}
+              </Text>
+            </View>
+            <View style={styles.setting}>
               <Text variant={TextVariant.BodyLGMedium}>
                 {strings('app_settings.state_logs')}
               </Text>
@@ -553,6 +591,7 @@ AdvancedSettings.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
+  showFiatOnTestnets: state.settings.showFiatOnTestnets,
   enableEthSign: selectDisabledRpcMethodPreferences(state).eth_sign,
   fullState: state,
   isTokenDetectionEnabled: selectUseTokenDetection(state),
@@ -563,6 +602,8 @@ const mapDispatchToProps = (dispatch) => ({
   setShowHexData: (showHexData) => dispatch(setShowHexData(showHexData)),
   setShowCustomNonce: (showCustomNonce) =>
     dispatch(setShowCustomNonce(showCustomNonce)),
+  setShowFiatOnTestnets: (showFiatOnTestnets) =>
+    dispatch(setShowFiatOnTestnets(showFiatOnTestnets)),
 });
 
 export default connect(

@@ -127,6 +127,7 @@ import {
   isMainnetByChainId,
   getDecimalChainId,
   fetchEstimatedMultiLayerL1Fee,
+  isTestNet,
 } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
@@ -1382,7 +1383,15 @@ class Engine {
     } = this.context;
     const { selectedAddress } = PreferencesController.state;
     const { currentCurrency } = CurrencyRateController.state;
-    const networkProvider = NetworkController.state.providerConfig;
+    const { chainId } = NetworkController.state.providerConfig;
+    const {
+      settings: { showFiatOnTestnets },
+    } = store.getState();
+
+    if (isTestNet(chainId) && !showFiatOnTestnets) {
+      return { ethFiat: 0, tokenFiat: 0 };
+    }
+
     const conversionRate =
       CurrencyRateController.state.conversionRate === null
         ? 0
@@ -1393,15 +1402,9 @@ class Engine {
     let ethFiat = 0;
     let tokenFiat = 0;
     const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-    if (
-      accountsByChainId?.[toHexadecimal(networkProvider.chainId)]?.[
-        selectedAddress
-      ]
-    ) {
+    if (accountsByChainId?.[toHexadecimal(chainId)]?.[selectedAddress]) {
       ethFiat = weiToFiatNumber(
-        accountsByChainId[toHexadecimal(networkProvider.chainId)][
-          selectedAddress
-        ].balance,
+        accountsByChainId[toHexadecimal(chainId)][selectedAddress].balance,
         conversionRate,
         decimalsToShow,
       );
