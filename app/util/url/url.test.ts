@@ -35,7 +35,7 @@ describe('URL Check Functions', () => {
       expect(isBridgeUrl(url)).toBe(true);
     });
 
-    it('should return false for URLs similar to bridge URLs', () => {
+    it('returns false for URLs that were false positive with previous regex implementation', () => {
       const url = 'https://portfolioxmetamask.io/bridge';
       expect(isPortfolioUrl(url)).toBe(false);
     });
