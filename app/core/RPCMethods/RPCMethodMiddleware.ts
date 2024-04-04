@@ -451,14 +451,34 @@ export const getRpcMethodMiddleware = ({
         } else {
           try {
             checkTabActive();
+            const currentPerm =
+              Engine.context.PermissionController.getPermissions(
+                channelId ?? validHostname,
+              );
+            const accountPerm =
+              Engine.context.PermissionController.getPermission(
+                channelId ?? validHostname,
+                'eth_accounts',
+              );
+            DevLogger.log(
+              `eth_requestAccounts currentPerm ${channelId ?? validHostname}`,
+              currentPerm,
+              accountPerm,
+            );
             await Engine.context.PermissionController.requestPermissions(
               { origin: channelId ?? validHostname },
               { eth_accounts: {} },
-              { id: channelId ?? validHostname },
+              {
+                id: channelId ?? validHostname,
+                preserveExistingPermissions: true,
+              },
             );
+            DevLogger.log(`eth_requestAccounts requestPermissions`);
             const acc = await getPermittedAccounts(hostname);
+            DevLogger.log(`eth_requestAccounts getPermittedAccounts`, acc);
             res.result = acc;
           } catch (error) {
+            DevLogger.log(`eth_requestAccounts error`, error);
             if (error) {
               throw ethErrors.provider.userRejectedRequest(
                 'User denied account authorization.',
