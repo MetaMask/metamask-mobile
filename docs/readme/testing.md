@@ -24,12 +24,15 @@ All tests live within the e2e/specs folder.
 
 ### iOS
 
-Prerequisites for running tests:
+Prerequisites for running tests
 
-- Make sure to install `detox-cli` by referring to the instructions mentioned [here](https://wix.github.io/Detox/docs/introduction/getting-started/#detox-prerequisites).
-- Additionally, install `applesimutils` by following the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils).
-- Before running any tests, it's recommended to refer to the `iOS section` above and check the latest simulator device specified under `Install the correct simulator`.
-- The default device for iOS is the iPhone 13 Pro and Android the Pixel 5. Ensure you have these set up.
+- Before running tests:
+    - Homebrew is a pre-requisite for `applesimutils`, please ensure that homebrew is installed. Read more [here](environment.md#package-manager).
+
+    -  Ensure that the `applesimutils` is installed on your machine by typing `applesimutils` command in your terminal. Please note that `applesimutils` is essential for running the iOS tests. If you don't have `applesimutils` installed, please use the guidelines provided [here](https://github.com/wix/AppleSimulatorUtils) to install it.
+
+    - To ensure that the detox-cli is properly installed, please verify its presence by running the command `detox` in your terminal. The detox-cli serves as a convenient script that facilitates running commands through a local Detox executable located at node_modules/.bin/detox. Its purpose is to simplify the operation of Detox from the command line. For example, you can execute commands like `detox test -c ios.sim.debug` with ease using detox-cli. In case the detox-cli is not installed, please refer to the instructions provided [here](https://wix.github.io/Detox/docs/introduction/environment-setup/#1-command-line-tools-detox-cli) for detailed guidance. 
+- The default device for iOS is the iPhone 13 Pro and Android the Pixel 5. Ensure you have these set up. You can change the default devices at anytime by updating the `device.type` in the detox config `e2e/.detoxrc.js`
 - Make sure that Metro is running. Use this command to launch the metro server:
 
 ```bash
@@ -38,18 +41,31 @@ yarn watch
 
 You can trigger the tests against a `release` or `debug` build. It recommended that you trigger the tests against a debug build.
 
-To trigger the tests on a debug build run this command:
+To build the app for testing on an iOS debug build run this command:
+
+```bash
+yarn test:e2e:ios:debug:build
+```
+
+To build the app for testing on an android debug build run this command:
+
+```bash
+yarn test:e2e:android:debug:build
+```
+
+To run the tests on a debug build run this command:
 
 For iOS
 
 ```bash
-yarn test:e2e:ios:debug
+yarn test:e2e:ios:debug:run
 ```
+
 
 and on Android:
 
 ```bash
-yarn test:e2e:android:debug
+yarn test:e2e:android:debug:run
 ```
 
 If you choose to run tests against a release build, you can do so by running this command:
@@ -71,23 +87,23 @@ If you have already built the application for Detox and want to run a specific t
 For iOS
 
 ```bash
-yarn test:e2e:ios:debug:single e2e/specs/TEST_NAME.spec.js
+yarn test:e2e:ios:debug:run e2e/specs/TEST_NAME.spec.js
 ```
 
 and on Android:
 
 ```bash
-yarn test:e2e:android:debug:single e2e/specs/TEST_NAME.spec.js
+yarn test:e2e:android:debug:run e2e/specs/TEST_NAME.spec.js
 ```
 
 To run tests associated with a certain tag, you can do so using the `--testNamePattern` flag. For example:
 
 ```bash
-yarn test:e2e:ios:debug --testNamePattern="Smoke"
+yarn test:e2e:ios:debug:run --testNamePattern="Smoke"
 ```
 
 ```bash
-yarn test:e2e:android:debug --testNamePattern="Smoke"
+yarn test:e2e:android:debug:run --testNamePattern="Smoke"
 ```
 
 This runs all tests that are tagged "Smoke"

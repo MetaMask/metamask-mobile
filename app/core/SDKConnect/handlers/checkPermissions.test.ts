@@ -4,10 +4,14 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import Engine from '../../Engine';
 import { Connection } from '../Connection';
 import checkPermissions from './checkPermissions';
+import { PermissionController } from '@metamask/permission-controller';
+import { getPermittedAccounts } from '../../../core/Permissions';
+
 jest.mock('../Connection', () => ({
   RPC_METHODS: jest.requireActual('../Connection').RPC_METHODS,
 }));
 jest.mock('../../Engine');
+jest.mock('../../../core/Permissions');
 jest.mock('@metamask/preferences-controller');
 jest.mock('@metamask/approval-controller');
 jest.mock('../utils/DevLogger');
@@ -17,12 +21,21 @@ describe('checkPermissions', () => {
   let engine = {
     context: {},
   } as unknown as typeof Engine;
+  const requestPermissions = jest.fn();
   let preferencesController = {} as unknown as PreferencesController;
   let approvalController = {} as unknown as ApprovalController;
-
+  let permissionController = {
+    executeProviderRequest: jest.fn(),
+    executeRestrictedMethod: jest.fn().mockResolvedValue({}),
+    hasPermissions: jest.fn(),
+    requestPermissions,
+  } as unknown as PermissionController<any, any>;
   const HOUR_IN_MS = 3600000;
   const currentTime = Date.now();
 
+  const mockGetPermittedAccounts = getPermittedAccounts as jest.MockedFunction<
+    typeof getPermittedAccounts
+  >;
   const mockIsApproved = jest.fn();
   const mockRevalidate = jest.fn();
   const mockAdd = jest.fn();
@@ -30,12 +43,14 @@ describe('checkPermissions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers().setSystemTime(currentTime);
+    mockGetPermittedAccounts.mockResolvedValue([]);
 
     connection = {
       channelId: 'channelId',
       isApproved: mockIsApproved,
       revalidate: mockRevalidate,
       initialConnection: true,
+      setLoading: jest.fn(),
     } as unknown as Connection;
 
     engine = {
@@ -49,12 +64,21 @@ describe('checkPermissions', () => {
     approvalController = {
       add: mockAdd,
     } as unknown as ApprovalController;
+    permissionController = {
+      executeProviderRequest: jest.fn(),
+      executeRestrictedMethod: jest.fn().mockResolvedValue({}),
+      hasPermissions: jest.fn(),
+      getPermissions: jest.fn(),
+      requestPermissions,
+    } as unknown as PermissionController<any, any>;
 
-    // @ts-ignore
-    engine.context = {
-      PreferencesController: preferencesController,
-      ApprovalController: approvalController,
-    };
+    engine = {
+      context: {
+        PreferencesController: preferencesController,
+        ApprovalController: approvalController,
+        PermissionController: permissionController,
+      },
+    } as unknown as typeof Engine;
   });
 
   afterAll(() => {
@@ -73,7 +97,7 @@ describe('checkPermissions', () => {
     mockIsApproved.mockReturnValue(false);
 
     await checkPermissions({ connection, engine });
-    expect(mockAdd).toHaveBeenCalled();
+    expect(requestPermissions).toHaveBeenCalled();
   });
 
   it('should return true if the connection is not initially approved and a deeplink origin exists', async () => {

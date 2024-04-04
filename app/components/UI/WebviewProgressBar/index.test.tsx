@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import WebviewProgressBar from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('WebviewProgressBar', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<WebviewProgressBar />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<WebviewProgressBar />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

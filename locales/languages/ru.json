@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, может похитить все ваши активы.",
-    "attribution": "На основе",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Если вы одобрите этот запрос, кто-то может украсть ваши активы, зарегистрированные в Blur.",
     "deceptive_request_title": "Это запрос с целью обмана",
     "failed_title": "Запрос может быть небезопасным",
     "failed_description": "Из-за ошибки этот запрос не был подтвержден поставщиком услуг безопасности. Действуйте осторожно.",
     "loading_title": "Проверка оповещений безопасности...",
-    "loading_complete_title": "Оповещения не получены",
+    "loading_complete_title": "Оповещения не получены. Всегда проводите собственную комплексную проверку перед утверждением запросов.",
     "malicious_domain_description": "Вы взаимодействуете с вредоносным доменом. Если вы одобрите этот запрос, вы можете потерять свои активы.",
     "other_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
     "raw_signature_farming_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
@@ -377,10 +375,13 @@
     "nfts_autodetection_title": "Определение NFT",
     "nfts_autodetection_desc": "Разрешите MetaMask автоопределять NFT из OpenSea и отображать их в кошельке MetaMask.",
     "network_details_check": "Проверка сведений о сети",
-    "network_with_chain_id": "The network with chain ID",
-    "use_the_currency_symbol": "uses the currency symbol",
-    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
-    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_with_chain_id": "Сеть с ID блокчейна",
+    "potential_scam": "Это потенциальное мошенничество",
+    "network_not_matching": "Эта сеть не соответствует идентификатору или имени связанного с ним блокчейна. Многие популярные токены используют это название,",
+    "target_scam_network": "что делает его мишенью для мошенников. Мошенники могут обманом заставить вас отправить им взамен более ценную валюту. Проверьте все, прежде чем продолжить.",
+    "use_the_currency_symbol": "использует символ валюты",
+    "use_correct_symbol": "Прежде чем продолжить, убедитесь, что вы используете правильный символ",
+    "chain_id_currently_used": "Этот ID блокчейна в настоящее время используется",
     "network_check_validation_desc": "снижает ваши шансы подключиться к вредоносной или неправильной сети.",
     "nfts_autodetection_cta": "Включите определение NFT в настройках",
     "learn_more": "Подробнее",
@@ -888,17 +889,37 @@
     "network_provider": "Поставщик услуг сети",
     "token_nft_ens_subheading": "Автоопределение токенов, NFT и ENS",
     "security_check_subheading": "Проверки безопасности",
-    "symbol_required": "Symbol is required."
+    "symbol_required": "Требуется символ.",
+    "blockaid": "Blockaid",
+    "security_alerts": "Оповещения безопасности",
+    "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика."
   },
   "sdk": {
     "disconnect_title": "Отключить все сайты?",
     "disconnect_all_info": "Если вы удалите свои подключения ко всем сайтам, вам потребуется снова предоставить разрешение на подключение.",
     "disconnect": "Отключить",
     "disconnect_all": "Отключить все",
+    "disconnect_all_accounts": "Отключить все счета",
+    "manage_connections": "Управление подключениями",
+    "manage": "Управление",
     "cancel": "Отмена",
     "loading": "Подключение к MetaMask...",
     "unkown_dapp": "Имя DAPP недоступно",
-    "no_connections": "Подключения не найдены"
+    "no_connections": "Нет подключений",
+    "no_connections_desc": "Если вы подключите счет к сайту или приложению, вы увидите его здесь."
+  },
+  "sdk_session_item": {
+    "connected_accounts": "Подключен(-ы) {{accountsLength}} счет(-а/ов)."
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "Отключиться от всех сайтов?",
+    "disconnect_all_desc": "Если вы отключите свои счета от всех сайтов, вам потребуется предоставить разрешения на их повторное подключение.",
+    "disconnect_account": "Отключить счет?",
+    "disconnect_all_accounts": "Отключить все счета",
+    "disconnect_all_accounts_desc": "Если вы отключите все счета от {{dapp}}, вам потребуется предоставить разрешения на их повторное подключение.",
+    "disconnect_account_desc": "Если вы отключите {{account}} от {{dapp}}, вам потребуется предоставить разрешения на его повторное подключение.",
+    "disconnect_confirm": "Отключить",
+    "cancel": "Отмена"
   },
   "sdk_return_to_app_modal": {
     "title": "Назад в приложение",
@@ -1463,7 +1484,7 @@
     "add": "Добавить",
     "cancel": "Отмена",
     "approve": "Одобрить",
-    "edit_network_details": "Edit network details",
+    "edit_network_details": "Изменить сведения о сети",
     "malicious_network_warning": "Вредоносный сетевой провайдер может дезинформировать о состоянии блокчейна и записывать ваши действия в сети. Добавляйте только те пользовательские сети, которым доверяете.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Информация о сети",
@@ -1483,7 +1504,9 @@
     "add_network": "добавить другие сети вручную.",
     "select_network": "Выбрать сеть",
     "show_test_networks": "Показать тестнеты",
-    "deprecated_goerli": "Из-за изменений протокола Ethereum: тестовая сеть Goerli может работать ненадежно и скоро будет выведена из эксплуатации."
+    "deprecated_goerli": "Из-за изменений протокола Ethereum: тестовая сеть Goerli может работать ненадежно и скоро будет выведена из эксплуатации.",
+    "network_deprecated_title": "Эта сеть устарела",
+    "network_deprecated_description": "Сеть, к которой вы пытаетесь подключиться, больше не поддерживается в Metamask."
   },
   "select": {
     "cancel": "Отмена",
@@ -1841,11 +1864,7 @@
     "wallet_connect_dapps_desc": "Просмотр списка активных сеансов WalletConnect",
     "wallet_connect_dapps_cta": "Просмотр сеансов",
     "network_not_supported": "Текущая сеть не поддерживается",
-    "security_alerts": "Оповещения безопасности",
-    "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика.",
     "select_provider": "Выберите предпочитаемого поставщика",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Сохранение конфиденциальности – никакие данные не передаются третьим сторонам. Доступно в Arbitrum, Avalanche, BNB Chain, Мейн-нете Ethereum, Optimism и Polygon.",
     "switch_network": "Переключитесь на мейн-нет или Sepolia"
   },
   "walletconnect_sessions": {
@@ -2036,9 +2055,13 @@
     "fetching_new_quotes": "Получение новых котировок...",
     "quotes_expire_in": "Срок котировок истекает через",
     "get_new_quotes": "Получить новые котировки",
+    "explore_more_options": "Изучить другие варианты",
+    "one_more_option": "Еще 1 вариант",
+    "more_options": "Еще {{count}} варианта(-ов)",
+    "previously_used": "Ранее использовались",
     "quotes_timeout": "Таймаут котировок",
     "request_new_quotes": "Запросите новые котировки, чтобы получить последний лучший курс.",
-    "terms_of_service": "Terms of Service",
+    "terms_of_service": "Условия обслуживания",
     "amount_to_buy": "Сумма для покупки",
     "amount_to_sell": "Сумма для продажи",
     "want_to_buy": "Вы хотите купить",
@@ -2383,7 +2406,6 @@
       "title": "Избегайте угроз с помощью оповещений безопасности",
       "description_1": "Защитите себя от известных способов мошенничества, сохраняя при этом свою конфиденциальность с помощью предупреждений безопасности от Blockaid. Эта функция теперь включена по умолчанию для всех пользователей MetaMask.",
       "description_2": "Всегда проводите собственную комплексную проверку перед утверждением запросов.",
-      "description_3": "Доступно в Arbitrum, Avalanche, BNB Chain, Мейн-нете Ethereum, Linea, Optimism и Polygon.",
       "got_it": "Понятно"
     },
     "sell": {

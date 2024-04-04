@@ -135,14 +135,38 @@ class FixtureBuilder {
               ],
             },
             NetworkController: {
-              network: '1',
-              isCustomNetwork: false,
+              selectedNetworkClientId: 'mainnet',
+              networkId: '1',
               providerConfig: {
                 type: 'mainnet',
                 chainId: '0x1',
+                ticker: 'ETH',
               },
-              networkDetails: {
-                EIPS: {},
+              networksMetadata: {
+                goerli: {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                'linea-goerli': {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                'linea-sepolia': {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                'linea-mainnet': {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                mainnet: {
+                  EIPS: {},
+                  status: 'unknown',
+                },
+                sepolia: {
+                  EIPS: {},
+                  status: 'unknown',
+                },
               },
               networkConfigurations: {
                 networkId1: {

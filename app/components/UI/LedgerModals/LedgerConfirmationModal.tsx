@@ -3,20 +3,20 @@ import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { Colors } from '../../../util/theme/models';
-import useLedgerBluetooth, {
-  LedgerCommunicationErrors,
-} from '../../hooks/Ledger/useLedgerBluetooth';
+import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import useBluetooth from '../../hooks/Ledger/useBluetooth';
-import useBluetoothPermissions, {
-  BluetoothPermissionErrors,
-} from '../../../components/hooks/useBluetoothPermissions';
+import useBluetoothPermissions from '../../../components/hooks/useBluetoothPermissions';
 import ConfirmationStep from './Steps/ConfirmationStep';
 import ErrorStep from './Steps/ErrorStep';
 import OpenETHAppStep from './Steps/OpenETHAppStep';
 import SearchingForDeviceStep from './Steps/SearchingForDeviceStep';
 import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import {
+  BluetoothPermissionErrors,
+  LedgerCommunicationErrors,
+} from '../../../core/Ledger/ledgerErrors';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -24,7 +24,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      height: 400,
+      height: 450,
     },
     contentWrapper: {
       flex: 1,
@@ -46,6 +46,7 @@ const LedgerConfirmationModal = ({
 }: LedgerConfirmationModalProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { trackEvent } = useMetrics();
   const [permissionErrorShown, setPermissionErrorShown] = useState(false);
   const {
     isSendingLedgerCommands,
@@ -76,7 +77,7 @@ const LedgerConfirmationModal = ({
     } catch (_e) {
       // Handle a super edge case of the user starting a transaction with the device connected
       // After arriving to confirmation the ETH app is not installed anymore this causes a crash.
-      AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
+      trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
         device_type: 'Ledger',
         error: 'LEDGER_ETH_APP_NOT_INSTALLED',
       });
@@ -88,12 +89,9 @@ const LedgerConfirmationModal = ({
     try {
       onRejection();
     } finally {
-      AnalyticsV2.trackEvent(
-        MetaMetricsEvents.LEDGER_HARDWARE_TRANSACTION_CANCELLED,
-        {
-          device_type: 'Ledger',
-        },
-      );
+      trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_TRANSACTION_CANCELLED, {
+        device_type: 'Ledger',
+      });
     }
   };
 
@@ -180,7 +178,7 @@ const LedgerConfirmationModal = ({
           break;
       }
       if (ledgerError !== LedgerCommunicationErrors.UserRefusedConfirmation) {
-        AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
+        trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
           device_type: 'Ledger',
           error: `${ledgerError}`,
         });
@@ -195,6 +193,12 @@ const LedgerConfirmationModal = ({
             subtitle: strings('ledger.location_access_blocked_error'),
           });
           break;
+        case BluetoothPermissionErrors.NearbyDevicesAccessBlocked:
+          setErrorDetails({
+            title: strings('ledger.nearbyDevices_access_blocked'),
+            subtitle: strings('ledger.nearbyDevices_access_blocked_message'),
+          });
+          break;
         case BluetoothPermissionErrors.BluetoothAccessBlocked:
           setErrorDetails({
             title: strings('ledger.bluetooth_access_blocked'),
@@ -203,7 +207,7 @@ const LedgerConfirmationModal = ({
           break;
       }
       setPermissionErrorShown(true);
-      AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
+      trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
         device_type: 'Ledger',
         error: 'LEDGER_BLUETOOTH_PERMISSION_ERR',
       });
@@ -214,7 +218,7 @@ const LedgerConfirmationModal = ({
         title: strings('ledger.bluetooth_off'),
         subtitle: strings('ledger.bluetooth_off_message'),
       });
-      AnalyticsV2.trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
+      trackEvent(MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR, {
         device_type: 'Ledger',
         error: 'LEDGER_BLUETOOTH_CONNECTION_ERR',
       });

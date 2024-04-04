@@ -5,13 +5,13 @@ import { getContractFactory } from '@eth-optimism/contracts/dist/contract-defs';
 import { predeploys } from '@eth-optimism/contracts/dist/predeploys';
 import networksWithImages from 'images/image-icons';
 import {
-  GOERLI,
   MAINNET,
   NETWORKS_CHAIN_ID,
   SEPOLIA,
   RPC,
   LINEA_GOERLI,
   LINEA_MAINNET,
+  LINEA_SEPOLIA,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
@@ -26,9 +26,8 @@ export { handleNetworkSwitch };
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
-const goerliLogo = require('../../images/goerli-logo-dark.png');
 const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
-const lineaGoerliLogo = require('../../images/linea-testnet-logo.png');
+const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
 
 /* eslint-enable */
@@ -40,6 +39,7 @@ import {
   getEtherscanTransactionUrl,
 } from '../etherscan';
 import { LINEA_FAUCET, SEPOLIA_FAUCET } from '../../constants/urls';
+import { getNonceLock } from '../../util/transaction-controller';
 
 /**
  * List of the supported networks
@@ -67,15 +67,6 @@ const NetworkList = {
     networkType: 'linea-mainnet',
     imageSource: lineaMainnetLogo,
   },
-  [GOERLI]: {
-    name: 'Goerli Test Network',
-    shortName: 'Goerli',
-    networkId: 5,
-    chainId: toHex('5'),
-    color: '#3099f2',
-    networkType: 'goerli',
-    imageSource: goerliLogo,
-  },
   [SEPOLIA]: {
     name: 'Sepolia Test Network',
     shortName: 'Sepolia',
@@ -92,7 +83,16 @@ const NetworkList = {
     chainId: toHex('59140'),
     color: '#61dfff',
     networkType: 'linea-goerli',
-    imageSource: lineaGoerliLogo,
+    imageSource: lineaTestnetLogo,
+  },
+  [LINEA_SEPOLIA]: {
+    name: 'Linea Sepolia Test Network',
+    shortName: 'Linea Sepolia',
+    networkId: 59141,
+    chainId: toHex('59141'),
+    color: '#61dfff',
+    networkType: 'linea-sepolia',
+    imageSource: lineaTestnetLogo,
   },
   [RPC]: {
     name: 'Private Network',
@@ -112,6 +112,7 @@ export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.OPTIMISM,
   NETWORKS_CHAIN_ID.AVAXCCHAIN,
   NETWORKS_CHAIN_ID.LINEA_MAINNET,
+  NETWORKS_CHAIN_ID.SEPOLIA,
 ];
 
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
@@ -121,6 +122,7 @@ export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
   [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
   [NETWORKS_CHAIN_ID.LINEA_MAINNET]: 'Linea',
+  [NETWORKS_CHAIN_ID.SEPOLIA]: 'Sepolia',
 };
 
 export default NetworkList;
@@ -170,23 +172,23 @@ export const isMultiLayerFeeNetwork = (chainId) =>
  */
 export const getTestNetImage = (networkType) => {
   if (
-    networkType === GOERLI ||
     networkType === SEPOLIA ||
-    networkType === LINEA_GOERLI
+    networkType === LINEA_GOERLI ||
+    networkType === LINEA_SEPOLIA
   ) {
     return networksWithImages?.[networkType.toUpperCase()];
   }
 };
 
 export const getTestNetImageByChainId = (chainId) => {
-  if (NETWORKS_CHAIN_ID.GOERLI === chainId) {
-    return networksWithImages?.GOERLI;
-  }
   if (NETWORKS_CHAIN_ID.SEPOLIA === chainId) {
     return networksWithImages?.SEPOLIA;
   }
   if (NETWORKS_CHAIN_ID.LINEA_GOERLI === chainId) {
     return networksWithImages?.['LINEA-GOERLI'];
+  }
+  if (NETWORKS_CHAIN_ID.LINEA_SEPOLIA === chainId) {
+    return networksWithImages?.['LINEA-SEPOLIA'];
   }
 };
 
@@ -194,9 +196,9 @@ export const getTestNetImageByChainId = (chainId) => {
  * A list of chain IDs for known testnets
  */
 const TESTNET_CHAIN_IDS = [
-  ChainId[NetworkType.goerli],
   ChainId[NetworkType.sepolia],
   ChainId[NetworkType['linea-goerli']],
+  ChainId[NetworkType['linea-sepolia']],
 ];
 
 /**
@@ -205,6 +207,7 @@ const TESTNET_CHAIN_IDS = [
 export const TESTNET_FAUCETS = {
   [ChainId[NetworkType.sepolia]]: SEPOLIA_FAUCET,
   [ChainId[NetworkType['linea-goerli']]]: LINEA_FAUCET,
+  [ChainId[NetworkType['linea-sepolia']]]: LINEA_FAUCET,
 };
 
 export const isTestNetworkWithFaucet = (chainId) =>
@@ -336,11 +339,7 @@ export function isPrefixedFormattedHexString(value) {
 }
 
 export const getNetworkNonce = async ({ from }) => {
-  const { TransactionController } = Engine.context;
-
-  const { nextNonce, releaseLock } = await TransactionController.getNonceLock(
-    from,
-  );
+  const { nextNonce, releaseLock } = await getNonceLock(from);
 
   releaseLock();
 

@@ -1,4 +1,3 @@
-import TestHelpers from '../../helpers';
 import {
   NetworksViewSelectorsIDs,
   NetworkViewSelectorsText,
@@ -13,6 +12,34 @@ class NetworkView {
 
   get rpcContainer() {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_CONTAINER);
+  }
+
+  get noMatchingText() {
+    return Matchers.getElementByText(
+      NetworkViewSelectorsText.NO_MATCHING_SEARCH_RESULTS,
+    );
+  }
+
+  get emptyPopularNetworksText() {
+    return Matchers.getElementByText(
+      NetworkViewSelectorsText.EMPTY_POPULAR_NETWORKS,
+    );
+  }
+
+  get closeIcon() {
+    return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
+  }
+
+  get deleteNetworkButton() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON,
+    );
+  }
+
+  get networkSearchInput() {
+    return Matchers.getElementByID(
+      NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
+    );
   }
 
   get addNetworkButton() {
@@ -75,6 +102,9 @@ class NetworkView {
     return Matchers.getElementByText(NetworkViewSelectorsText.REMOVE_NETWORK);
   }
 
+  async getnetworkName(networkName) {
+    return Matchers.getElementByText(networkName);
+  }
   async tapAddNetworkButton() {
     await Gestures.waitAndTap(this.addNetworkButton);
   }
@@ -83,10 +113,35 @@ class NetworkView {
     await Gestures.waitAndTap(this.customNetworkTab);
   }
 
-  async tapPopularNetworkByName(networkName) {
-    const element = Matchers.getElementByText(networkName);
-    await TestHelpers.tapByText(element);
+  async tapNetworkByName(networkName) {
+    const network = this.getnetworkName(networkName);
+    await Gestures.waitAndTap(network);
   }
+
+  async SearchNetworkName(networkName) {
+    await Gestures.typeTextAndHideKeyboard(
+      this.networkSearchInput,
+      networkName,
+    );
+  }
+  async longPressToRemoveNetwork(networkName) {
+    const network = this.getnetworkName(networkName);
+    await Gestures.tapAndLongPress(network);
+    await Gestures.waitAndTap(this.removeNetwork);
+  }
+
+  async tapDeleteButton() {
+    await Gestures.waitAndTap(this.deleteNetworkButton);
+  }
+
+  async tapClearSearch() {
+    await Gestures.waitAndTap(this.closeIcon);
+  }
+  async closePopularNetwork() {
+    await Gestures.waitAndTap(this.closeIcon);
+  }
+
+  // CUSTOM NETWORK SCREEN
   async typeInNetworkName(networkName) {
     await Gestures.typeTextAndHideKeyboard(this.networkNameInput, networkName);
   }
@@ -115,12 +170,6 @@ class NetworkView {
   async swipeToRPCTitleAndDismissKeyboard() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
     await Gestures.waitAndTap(this.blockExplorer);
-  }
-
-  async tapRemoveNetwork(networkName) {
-    const network = Matchers.getElementByText(networkName);
-    await Gestures.tapAndLongPress(network);
-    await Gestures.waitAndTap(this.removeNetwork);
   }
 }
 

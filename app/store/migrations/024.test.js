@@ -1,7 +1,6 @@
 import migrate from './024';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
 import { captureException } from '@sentry/react-native';
 
 jest.mock('@sentry/react-native', () => ({
@@ -54,54 +53,38 @@ describe('Migration #24', () => {
   it('should migrate loading network state', () => {
     const state = {
       engine: {
-        backgroundState: merge({}, initialBackgroundState, {
+        backgroundState: {
           NetworkController: {
             network: 'loading',
           },
-        }),
+        },
       },
     };
 
     const newState = migrate(state);
 
     expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
-      networkConfigurations: {},
-      networkDetails: {
-        EIPS: {},
-      },
       networkId: null,
       networkStatus: 'unknown',
-      providerConfig: {
-        chainId: '0x1',
-        type: 'mainnet',
-      },
     });
   });
 
   it('should migrate non-loading network state', () => {
     const state = {
       engine: {
-        backgroundState: merge({}, initialBackgroundState, {
+        backgroundState: {
           NetworkController: {
             network: '1',
           },
-        }),
+        },
       },
     };
 
     const newState = migrate(state);
 
     expect(newState.engine.backgroundState.NetworkController).toStrictEqual({
-      networkConfigurations: {},
-      networkDetails: {
-        EIPS: {},
-      },
       networkId: '1',
       networkStatus: 'available',
-      providerConfig: {
-        chainId: '0x1',
-        type: 'mainnet',
-      },
     });
   });
 });

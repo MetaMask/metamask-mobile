@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方可能会拿走您的所有资产。",
-    "attribution": "技术支持：",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "如果您批准此请求，则有人可以窃取您列于Blur上的资产。",
     "deceptive_request_title": "此请求属欺骗性质",
     "failed_title": "此请求可能不安全",
     "failed_description": "由于出现错误，安全服务提供商未验证此请求。请谨慎操作。",
     "loading_title": "正在检查安全提醒......",
-    "loading_complete_title": "未收到提醒",
+    "loading_complete_title": "未收到提醒。在批准请求之前，请务必自行作出审慎调查。",
     "malicious_domain_description": "您正在与恶意网域交互。如果您批准此请求，可能会遭受资产损失。",
     "other_description": "如果您批准此请求，可能会遭受资产损失。",
     "raw_signature_farming_description": "如果您批准此请求，可能会有资产损失。",
@@ -377,10 +375,13 @@
     "nfts_autodetection_title": "NFT 检测",
     "nfts_autodetection_desc": "允许 MetaMask 自动检测 OpenSea 的 NFT，并显示在您的 MetaMask 钱包里。",
     "network_details_check": "网络详情检查",
-    "network_with_chain_id": "The network with chain ID",
-    "use_the_currency_symbol": "uses the currency symbol",
-    "use_correct_symbol": "Make sure you’re using the correct symbol before continuing",
-    "chain_id_currently_used": "This Chain ID is currently used by the",
+    "network_with_chain_id": "网络及其链 ID",
+    "potential_scam": "这可能是欺诈",
+    "network_not_matching": "此网络与其关联的链 ID 或名称不匹配。很多热门代币均使用该名称，",
+    "target_scam_network": "这使其成为欺诈目标。骗子可能会诱骗您将更有价值的货币转给他们作为回报。在继续之前请先验证所有信息。",
+    "use_the_currency_symbol": "使用货币符号",
+    "use_correct_symbol": "确保您使用正确的符号才能继续",
+    "chain_id_currently_used": "此链 ID 目前的使用者是",
     "network_check_validation_desc": "减少您连接到恶意或错误网络的机会。",
     "nfts_autodetection_cta": "在设置中打开 NFT 检测",
     "learn_more": "了解更多",
@@ -888,17 +889,37 @@
     "network_provider": "网络提供商",
     "token_nft_ens_subheading": "代币、NFT 和 ENS（Ethereum 域名服务）自动检测",
     "security_check_subheading": "安全检查",
-    "symbol_required": "Symbol is required."
+    "symbol_required": "需要符号。",
+    "blockaid": "Blockaid",
+    "security_alerts": "安全提醒",
+    "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。"
   },
   "sdk": {
     "disconnect_title": "要断开所有网站的连接吗?",
     "disconnect_all_info": "如果您移除了与所有网站的连接，需要授予权限才能重新连接。",
     "disconnect": "断开连接",
     "disconnect_all": "断开所有连接",
+    "disconnect_all_accounts": "断开所有账户的连接",
+    "manage_connections": "管理连接",
+    "manage": "管理",
     "cancel": "取消",
     "loading": "正在连接MetaMask…...",
     "unkown_dapp": "去中心化应用（DAPP）名称不可用",
-    "no_connections": "找不到连接"
+    "no_connections": "无连接",
+    "no_connections_desc": "如果您将账户连接到网站或应用程序，您可在此处查看。"
+  },
+  "sdk_session_item": {
+    "connected_accounts": "{{accountsLength}} 账户已连接。"
+  },
+  "sdk_disconnect_modal": {
+    "disconnect_all": "要断开所有网站的连接吗？",
+    "disconnect_all_desc": "如果您断开账户与所有网站的连接，则需要授予许可才能重新连接。",
+    "disconnect_account": "断开账户的连接？",
+    "disconnect_all_accounts": "断开所有账户的连接",
+    "disconnect_all_accounts_desc": "如果断开所有账户与 {{dapp}} 的连接，则需要授予许可才能重新连接。",
+    "disconnect_account_desc": "如果断开 {{account}} 与 {{dapp}} 的连接，则需要授予许可才能重新连接。",
+    "disconnect_confirm": "断开连接",
+    "cancel": "取消"
   },
   "sdk_return_to_app_modal": {
     "title": "返回应用程序",
@@ -1463,7 +1484,7 @@
     "add": "添加",
     "cancel": "取消",
     "approve": "批准",
-    "edit_network_details": "Edit network details",
+    "edit_network_details": "编辑网络详情",
     "malicious_network_warning": "恶意网络提供商可能会谎报区块链的状态，并记录您的网络活动。仅添加您信任的自定义网络。",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "网络信息",
@@ -1483,7 +1504,9 @@
     "add_network": "手动添加更多网络。",
     "select_network": "选择网络",
     "show_test_networks": "显示测试网络",
-    "deprecated_goerli": "由于以太坊协议的变化：Goerli 测试网络可能无法可靠工作，很快就会弃用。"
+    "deprecated_goerli": "由于以太坊协议的变化：Goerli 测试网络可能无法可靠工作，很快就会弃用。",
+    "network_deprecated_title": "该网络已弃用",
+    "network_deprecated_description": "您尝试连接的网络在 Metamask 上不再受支持。"
   },
   "select": {
     "cancel": "取消",
@@ -1841,11 +1864,7 @@
     "wallet_connect_dapps_desc": "查看活动 WalletConnect 会话的列表",
     "wallet_connect_dapps_cta": "查看会话",
     "network_not_supported": "不支持当前网络",
-    "security_alerts": "安全警报",
-    "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
     "select_provider": "选择您的首选提供商",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "隐私保护 - 不会与第三方共享任何数据。适用于 Arbitrum、Avalanche、BNB Chain、以太坊主网、Optimism 和 Polygon。",
     "switch_network": "请切换为 mainnet 或 sepolia"
   },
   "walletconnect_sessions": {
@@ -2036,9 +2055,13 @@
     "fetching_new_quotes": "正在获取新报价……",
     "quotes_expire_in": "报价将在以下时间过期：",
     "get_new_quotes": "获取新报价",
+    "explore_more_options": "探索更多选项",
+    "one_more_option": "还有 1 个选项",
+    "more_options": "还有 {{count}} 个选项",
+    "previously_used": "先前使用的",
     "quotes_timeout": "报价超时",
     "request_new_quotes": "请重新请求报价，以获得最新的最佳价格。",
-    "terms_of_service": "Terms of Service",
+    "terms_of_service": "服务条款",
     "amount_to_buy": "要买入的金额",
     "amount_to_sell": "要卖出的金额",
     "want_to_buy": "您想购买",
@@ -2383,7 +2406,6 @@
       "title": "安全警报助您确保安全",
       "description_1": "通过由 Blockaid 提供的安全提醒避免受到已知欺诈，同时保护您的隐私。目前所有 MetaMask 用户默认启用此功能。",
       "description_2": "在批准请求之前，必须自行作出审慎调查。",
-      "description_3": "可在 Arbitrum、Avalanche、BNB Chain、以太坊主网、Linea、Optimism 和 Polygon 上使用。",
       "got_it": "知道了"
     },
     "sell": {

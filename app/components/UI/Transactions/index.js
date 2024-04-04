@@ -69,6 +69,11 @@ import {
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { TOKEN_OVERVIEW_TXN_SCREEN } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import {
+  speedUpTransaction,
+  updateIncomingTransactions,
+} from '../../../util/transaction-controller';
+import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -326,11 +331,9 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
-    const { TransactionController } = Engine.context;
-
     this.setState({ refreshing: true });
 
-    await TransactionController.updateIncomingTransactions();
+    await updateIncomingTransactions();
 
     this.setState({ refreshing: false });
   };
@@ -529,7 +532,7 @@ class Transactions extends PureComponent {
           },
         });
       } else {
-        await Engine.context.TransactionController.speedUpTransaction(
+        await speedUpTransaction(
           this.speedUpTxId,
           transactionObject?.suggestedMaxFeePerGasHex && {
             maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
@@ -865,8 +868,7 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),
-  gasFeeEstimates:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimates,
+  gasFeeEstimates: selectGasFeeEstimates(state),
   primaryCurrency: state.settings.primaryCurrency,
   tokens: selectTokensByAddress(state),
   gasEstimateType:

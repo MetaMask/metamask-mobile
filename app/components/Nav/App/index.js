@@ -30,9 +30,7 @@ import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
 import { routingInstrumentation } from '../../../util/sentry/utils';
-import Analytics from '../../../core/Analytics/Analytics';
 import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
@@ -88,7 +86,6 @@ import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
-import BlockaidIndicator from '../../Views/Settings/ExperimentalSettings/BlockaidIndicator';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
@@ -100,6 +97,12 @@ import AsyncStorage from '../../../store/async-storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../../../app/components/Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
+import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectModal/SDKDisconnectModal';
+import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
+import { MetaMetrics } from '../../../core/Analytics';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
+import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -240,9 +243,7 @@ const App = ({ userLoggedIn }) => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
-  const sdkInit = useRef(false);
-  const sdkPostInit = useRef(false);
-  const [postInitReady, setPostInitReady] = useState(false);
+  const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
@@ -352,7 +353,7 @@ const App = ({ userLoggedIn }) => {
             Logger.error('Error from Branch: ' + error);
           }
 
-          if (sdkPostInit.current === true) {
+          if (sdkInit.current) {
             handleDeeplink(opts);
           } else {
             queueOfHandleDeeplinkFunctions.current =
@@ -367,25 +368,40 @@ const App = ({ userLoggedIn }) => {
   }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
-    const initAnalytics = async () => {
-      await Analytics.init();
+    const initMetrics = async () => {
+      const metrics = MetaMetrics.getInstance();
+      await metrics.configure();
+      // identify user with the latest traits
+      // run only after the MetaMetrics is configured
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      await metrics.addTraitsToUser(consolidatedTraits);
     };
 
-    initAnalytics().catch((err) => {
-      Logger.error(err, 'Error initializing analytics');
+    initMetrics().catch((err) => {
+      Logger.error(err, 'Error initializing MetaMetrics');
     });
   }, []);
 
   useEffect(() => {
     // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
     async function initSDKConnect() {
-      if (navigator?.getCurrentRoute && onboarded && !sdkInit.current) {
+      if (
+        navigator?.getCurrentRoute &&
+        onboarded &&
+        sdkInit.current === undefined &&
+        userLoggedIn
+      ) {
+        sdkInit.current = false;
         try {
           const sdkConnect = SDKConnect.getInstance();
           await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
-          setPostInitReady(true);
+          await SDKConnect.getInstance().postInit();
           sdkInit.current = true;
         } catch (err) {
+          sdkInit.current = undefined;
           console.error(`Cannot initialize SDKConnect`, err);
         }
       }
@@ -393,29 +409,7 @@ const App = ({ userLoggedIn }) => {
     initSDKConnect().catch((err) => {
       Logger.error(err, 'Error initializing SDKConnect');
     });
-  }, [navigator, onboarded]);
-
-  useEffect(() => {
-    // Handle post-init process separately.
-    async function handlePostInit() {
-      if (
-        sdkInit.current &&
-        !sdkPostInit.current &&
-        postInitReady &&
-        userLoggedIn
-      ) {
-        try {
-          await SDKConnect.getInstance().postInit();
-          sdkPostInit.current = true;
-        } catch (err) {
-          console.error(`Cannot postInit SDKConnect`, err);
-        }
-      }
-    }
-    handlePostInit().catch((err) => {
-      Logger.error(err, 'Error postInit SDKConnect');
-    });
-  }, [userLoggedIn, postInitReady, queueOfHandleDeeplinkFunctions]);
+  }, [navigator, onboarded, userLoggedIn]);
 
   useEffect(() => {
     if (isWC2Enabled) {
@@ -551,6 +545,14 @@ const App = ({ userLoggedIn }) => {
         component={SDKFeedbackModal}
       />
       <Stack.Screen
+        name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
+        component={SDKSessionModal}
+      />
+      <Stack.Screen
+        name={Routes.SHEET.SDK_DISCONNECT}
+        component={SDKDisconnectModal}
+      />
+      <Stack.Screen
         name={Routes.SHEET.ACCOUNT_CONNECT}
         component={AccountConnect}
       />
@@ -565,10 +567,6 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
         component={ReturnToAppModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.BLOCKAID_INDICATOR}
-        component={BlockaidIndicator}
       />
       <Stack.Screen
         name={Routes.SHEET.AMBIGUOUS_ADDRESS}

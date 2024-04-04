@@ -22,9 +22,7 @@ import {
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
-import useLedgerBluetooth, {
-  LedgerCommunicationErrors,
-} from '../../hooks/Ledger/useLedgerBluetooth';
+import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import { showSimpleNotification } from '../../../actions/notification';
 import LedgerConnectionError, {
   LedgerConnectionErrorProps,
@@ -32,13 +30,15 @@ import LedgerConnectionError, {
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
 import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
 
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import { getSystemVersion } from 'react-native-device-info';
+import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
 const createStyles = (theme: any) =>
   StyleSheet.create({
@@ -114,6 +114,7 @@ const createStyles = (theme: any) =>
 const LedgerConnect = () => {
   const { AccountTrackerController } = Engine.context as any;
   const theme = useAppThemeFromContext() ?? mockTheme;
+  const { trackEvent } = useMetrics();
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
@@ -121,6 +122,8 @@ const LedgerConnect = () => {
   const [loading, setLoading] = useState(false);
   const [retryTimes, setRetryTimes] = useState(0);
   const dispatch = useDispatch();
+
+  const deviceOSVersion = Number(getSystemVersion()) || 0;
 
   useEffect(() => {
     navigation.setOptions(
@@ -137,13 +140,13 @@ const LedgerConnect = () => {
 
   const connectLedger = () => {
     setLoading(true);
-    AnalyticsV2.trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
+    trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
       device_type: 'Ledger',
     });
     ledgerLogicToRun(async () => {
       const account = await unlockLedgerDefaultAccount(true);
       await AccountTrackerController.syncBalanceWithAddresses([account]);
-      AnalyticsV2.trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
+      trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
         device_type: 'Ledger',
       });
       navigation.dispatch(StackActions.pop(2));
@@ -163,6 +166,13 @@ const LedgerConnect = () => {
       },
     });
   };
+
+  const permissionText = useMemo(() => {
+    if (deviceOSVersion >= 12) {
+      return strings('ledger.ledger_reminder_message_step_four_Androidv12plus');
+    }
+    return strings('ledger.ledger_reminder_message_step_four');
+  }, [deviceOSVersion]);
 
   const openHowToInstallEthApp = () => {
     navigation.navigate('Webview', {
@@ -287,9 +297,12 @@ const LedgerConnect = () => {
               </Text>
               {Device.isAndroid() && (
                 <Text style={styles.ledgerInstructionText}>
-                  {strings('ledger.ledger_reminder_message_step_four')}
+                  {permissionText}
                 </Text>
               )}
+              <Text style={styles.ledgerInstructionText}>
+                {strings('ledger.ledger_reminder_message_step_five')}
+              </Text>
               <Text
                 style={styles.howToInstallEthAppText}
                 bold
