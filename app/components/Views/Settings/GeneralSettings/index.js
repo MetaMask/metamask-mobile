@@ -36,6 +36,7 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 
+import { GeneralViewSelectorIDs } from '../../../../../e2e/selectors/GeneralView.selectors';
 const diameter = 40;
 const spacing = 8;
 
@@ -295,7 +296,10 @@ class Settings extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <ScrollView style={styles.wrapper}>
+      <ScrollView
+        style={styles.wrapper}
+        testID={GeneralViewSelectorIDs.SCROLL_ELEMENT}
+      >
         <View style={styles.inner}>
           <View style={[styles.setting, styles.firstSetting]}>
             <Text variant={TextVariant.BodyLGMedium}>
@@ -402,6 +406,7 @@ class Settings extends PureComponent {
               </Text>
               <View style={styles.toggle}>
                 <Switch
+                  testID={GeneralViewSelectorIDs.ZERO_BALANCE_TOGGLE}
                   value={hideZeroBalanceTokens}
                   onValueChange={this.toggleHideZeroBalanceTokens}
                   trackColor={{

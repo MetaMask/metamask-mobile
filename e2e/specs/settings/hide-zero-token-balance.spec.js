@@ -1,5 +1,4 @@
 'use strict';
-import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -18,7 +17,7 @@ import GeneralView from '../../pages/Settings/GeneralView';
 
 const TOKEN_SYMBOL = 'TST';
 
-describe(Regression('enables hide tokens with zero balance'), () => {
+describe('enables hide tokens with zero balance', () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -67,6 +66,14 @@ describe(Regression('enables hide tokens with zero balance'), () => {
         // should go to settings then security & privacy
         await TabBarComponent.tapSettings();
         await SettingsView.tapGeneralSettings();
+
+        await GeneralView.scrollToZeroBalanceToggle();
+
+        await GeneralView.tapZeroBalanceToggle();
+
+        await TabBarComponent.tapWallet();
+
+        await Assertions.checkIfNotVisible(token);
       },
     );
   });
