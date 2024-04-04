@@ -23,7 +23,7 @@ describe('URL Check Functions', () => {
       expect(isPortfolioUrl(url)).toBe(false);
     });
 
-    it('should return false for invalid URLs', () => {
+    it('returns false for invalid URLs', () => {
       const url = 'invalid url';
       expect(isPortfolioUrl(url)).toBe(false);
     });
