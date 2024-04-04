@@ -79,6 +79,13 @@ jest.mock('../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(),
+    dispatch: jest.fn(),
+  },
+}));
+
 jest.mock('../../core/NotificationManager');
 
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
@@ -173,6 +180,14 @@ NativeModules.RNCNetInfo = {
 
 NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
+};
+
+NativeModules.Aes = {
+  sha256: jest.fn().mockImplementation((address) => {
+    const uniqueAddressChar = address[2]; // Assuming 0x prefix is present, so actual third character is at index 2
+    const hashBase = '012345678987654';
+    return Promise.resolve(hashBase + uniqueAddressChar);
+  }),
 };
 
 jest.mock(
