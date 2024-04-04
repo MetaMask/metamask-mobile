@@ -1,32 +1,26 @@
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
-import {
-  TAB_BAR_ACTION_BUTTON,
-  TAB_BAR_BROWSER_BUTTON,
-  TAB_BAR_SETTING_BUTTON,
-  TAB_BAR_WALLET_BUTTON,
-  TAB_BAR_ACTIVITY_BUTTON,
-} from '../../wdio/screen-objects/testIDs/Components/TabBar.testIds';
+import { TabBarSelectorIDs } from '../selectors/TabBar.selectors';
 
 class TabBarComponent {
   get tabBarBrowserButton() {
-    return Matchers.getElementByID(TAB_BAR_BROWSER_BUTTON);
+    return Matchers.getElementByID(TabBarSelectorIDs.BROWSER);
   }
 
   get tabBarWalletButton() {
-    return Matchers.getElementByID(TAB_BAR_WALLET_BUTTON);
+    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
   }
 
   get tabBarActionButton() {
-    return Matchers.getElementByID(TAB_BAR_ACTION_BUTTON);
+    return Matchers.getElementByID(TabBarSelectorIDs.ACTIONS);
   }
 
   get tabBarSettingButton() {
-    return Matchers.getElementByID(TAB_BAR_SETTING_BUTTON);
+    return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
   }
 
   get tabBarActivityButton() {
-    return Matchers.getElementByID(TAB_BAR_ACTIVITY_BUTTON);
+    return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
   }
 
   async tapBrowser() {
