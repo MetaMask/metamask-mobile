@@ -63,6 +63,8 @@ With the correct Node version installed, Yarn v1 can be installed sudo-less in y
 npm install -g yarn
 ```
 
+Ensure that the installed version is within the range of supported versions specified in the `engines` section of [package.json](https://github.com/MetaMask/metamask-mobile/blob/main/package.json).
+
 ## Android
 
 Install [Android Studio](https://developer.android.com/studio)
