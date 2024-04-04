@@ -2830,5 +2830,8 @@
     "okay_action": "OK",
     "error_title": "Install failed",
     "error_description": "Installation of {{snap}} failed."
+  },
+  "stake": {
+    "stake": "Stake"
   }
 }

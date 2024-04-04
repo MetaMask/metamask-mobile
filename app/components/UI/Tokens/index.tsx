@@ -55,6 +55,7 @@ import {
 } from '../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import Button, {
@@ -70,7 +71,7 @@ import SkeletonText from '../Ramp/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
-import {
+import Icon, {
   IconColor,
   IconName,
   IconSize,
@@ -78,6 +79,7 @@ import {
 
 import {
   PORTFOLIO_BUTTON,
+  STAKE_BUTTON,
   TOTAL_BALANCE_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
@@ -215,6 +217,58 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       </Box>
     </Modal>
   );
+
+  const renderStakeButton = (asset: TokenI) => {
+    const onStakeButtonPress = () => {
+      const STAKE_URL = `${AppConstants.PORTFOLIO_URL}/stake`;
+      const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
+        tab.url.match(new RegExp(STAKE_URL)),
+      );
+      let existingTabId;
+      let newTabUrl;
+      if (existingStakeTab) {
+        existingTabId = existingStakeTab.id;
+      } else {
+        newTabUrl = `${STAKE_URL}?metamaskEntry=mobile`;
+      }
+      const params = {
+        ...(newTabUrl && { newTabUrl }),
+        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+        timestamp: Date.now(),
+      };
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params,
+      });
+      trackEvent(MetaMetricsEvents.STAKE_BUTTON_CLICKED, {
+        chain_id: getDecimalChainId(chainId),
+        location: 'Home Screen',
+        text: 'Stake',
+        token_symbol: asset.symbol,
+        url: STAKE_URL,
+      });
+    };
+    
+    return (
+      <TouchableOpacity
+        style={styles.stakeButton}
+        onPress={onStakeButtonPress}
+        {...generateTestId(Platform, STAKE_BUTTON)}
+      >
+        <Text>
+          <Text>
+            {' • '}
+          </Text>
+          <Text color={TextColor.Primary} variant={TextVariant.BodyMD}>{`${strings('stake.stake')} `}</Text>
+          <Icon
+            name={IconName.Stake}
+            size={IconSize.Sm}
+            color={IconColor.Primary}
+          />
+        </Text>
+      </TouchableOpacity>
+    )
+  }
 
   const goToAddToken = () => {
     setIsAddTokenEnabled(false);
@@ -402,8 +456,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
            * The reason for this is that the wallet_watchAsset doesn't return the name
            * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
            */}
-          <Text variant={TextVariant.BodyLGMedium}>
-            {asset.name || asset.symbol}
+          <Text>
+            <Text variant={TextVariant.BodyLGMedium}>
+              {asset.name || asset.symbol}
+            </Text>
+            {/** Add link to Portfolio Stake if token is mainnet ETH */}
+            {asset.isETH && isMainnet && renderStakeButton(asset)}
           </Text>
 
           <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
