@@ -55,7 +55,7 @@ describe('URL Check Functions', () => {
       expect(isBridgeUrl(url)).toBe(false);
     });
 
-    it('should return false for invalid URLs', () => {
+    it('returns false for invalid URLs', () => {
       const url = 'invalid url';
       expect(isBridgeUrl(url)).toBe(false);
     });
