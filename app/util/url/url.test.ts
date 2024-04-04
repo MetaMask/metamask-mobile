@@ -8,7 +8,7 @@ describe('URL Check Functions', () => {
       expect(isPortfolioUrl(url)).toBe(true);
     });
 
-    it('should return false for URLs similar to portfolio', () => {
+    it('returns false for URLs that were false positive with previous regex implementation', () => {
       const url = 'https://portfolioxmetamask.io';
       expect(isPortfolioUrl(url)).toBe(false);
     });
