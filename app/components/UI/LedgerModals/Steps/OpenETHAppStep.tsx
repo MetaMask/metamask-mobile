@@ -9,6 +9,8 @@ import { useAssetFromTheme } from '../../../../util/theme';
 import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
 
+import { OPEN_ETH_APP_STEP } from './Steps.constants';
+
 const createStyles = () =>
   StyleSheet.create({
     modalTitle: {
@@ -49,7 +51,7 @@ const OpenETHAppStep = ({ onReject }: OpenETHAppStepProps) => {
         style={styles.ledgerImageStyle}
         resizeMode="contain"
       />
-      <View style={styles.modalTitle}>
+      <View style={styles.modalTitle} testID={OPEN_ETH_APP_STEP}>
         <Text bold big>
           {strings('ledger.open_eth_app')}
         </Text>
