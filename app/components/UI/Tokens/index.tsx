@@ -222,7 +222,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     const onStakeButtonPress = () => {
       const STAKE_URL = `${AppConstants.PORTFOLIO_URL}/stake`;
       const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.match(new RegExp(STAKE_URL)),
+        tab.url.includes(STAKE_URL),
       );
       let existingTabId;
       let newTabUrl;
@@ -248,7 +248,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         url: STAKE_URL,
       });
     };
-    
+
     return (
       <TouchableOpacity
         style={styles.stakeButton}
@@ -256,10 +256,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         {...generateTestId(Platform, STAKE_BUTTON)}
       >
         <Text>
-          <Text>
-            {' • '}
-          </Text>
-          <Text color={TextColor.Primary} variant={TextVariant.BodyMD}>{`${strings('stake.stake')} `}</Text>
+          <Text>{' • '}</Text>
+          <Text
+            color={TextColor.Primary}
+            variant={TextVariant.BodyMD}
+          >{`${strings('stake.stake')} `}</Text>
           <Icon
             name={IconName.Stake}
             size={IconSize.Sm}
@@ -267,8 +268,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           />
         </Text>
       </TouchableOpacity>
-    )
-  }
+    );
+  };
 
   const goToAddToken = () => {
     setIsAddTokenEnabled(false);
@@ -460,7 +461,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <Text variant={TextVariant.BodyLGMedium}>
               {asset.name || asset.symbol}
             </Text>
-            {/** Add link to Portfolio Stake if token is mainnet ETH */}
+            {/** Add button link to Portfolio Stake if token is mainnet ETH */}
             {asset.isETH && isMainnet && renderStakeButton(asset)}
           </Text>
 

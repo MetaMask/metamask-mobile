@@ -673,14 +673,94 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     Object {
                                       "color": "#24272A",
                                       "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
-                                  Ethereum
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Ethereum
+                                  </Text>
+                                  <TouchableOpacity
+                                    onPress={[Function]}
+                                    style={
+                                      Object {
+                                        "paddingTop": 4,
+                                      }
+                                    }
+                                    testID="stake-button"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          Object {
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                         • 
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          Object {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        Stake 
+                                      </Text>
+                                      <SvgMock
+                                        color="#0376C9"
+                                        height={16}
+                                        name="Stake"
+                                        style={
+                                          Object {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        width={16}
+                                      />
+                                    </Text>
+                                  </TouchableOpacity>
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -893,14 +973,28 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     Object {
                                       "color": "#24272A",
                                       "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
-                                  Bat
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Bat
+                                  </Text>
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -1728,14 +1822,94 @@ exports[`Tokens should render correctly 1`] = `
                                     Object {
                                       "color": "#24272A",
                                       "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
-                                  Ethereum
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Ethereum
+                                  </Text>
+                                  <TouchableOpacity
+                                    onPress={[Function]}
+                                    style={
+                                      Object {
+                                        "paddingTop": 4,
+                                      }
+                                    }
+                                    testID="stake-button"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          Object {
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                         • 
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          Object {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        Stake 
+                                      </Text>
+                                      <SvgMock
+                                        color="#0376C9"
+                                        height={16}
+                                        name="Stake"
+                                        style={
+                                          Object {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        width={16}
+                                      />
+                                    </Text>
+                                  </TouchableOpacity>
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -1948,14 +2122,28 @@ exports[`Tokens should render correctly 1`] = `
                                     Object {
                                       "color": "#24272A",
                                       "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
-                                  Bat
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Bat
+                                  </Text>
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -2791,14 +2979,94 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     Object {
                                       "color": "#24272A",
                                       "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
-                                  Ethereum
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Ethereum
+                                  </Text>
+                                  <TouchableOpacity
+                                    onPress={[Function]}
+                                    style={
+                                      Object {
+                                        "paddingTop": 4,
+                                      }
+                                    }
+                                    testID="stake-button"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 14,
+                                          "fontWeight": "400",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          Object {
+                                            "color": "#24272A",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                         • 
+                                      </Text>
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          Object {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      >
+                                        Stake 
+                                      </Text>
+                                      <SvgMock
+                                        color="#0376C9"
+                                        height={16}
+                                        name="Stake"
+                                        style={
+                                          Object {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        width={16}
+                                      />
+                                    </Text>
+                                  </TouchableOpacity>
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -3011,14 +3279,28 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     Object {
                                       "color": "#24272A",
                                       "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
-                                  Bat
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Bat
+                                  </Text>
                                 </Text>
                                 <Text
                                   accessibilityRole="text"
@@ -3231,14 +3513,28 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     Object {
                                       "color": "#24272A",
                                       "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
-                                  Link
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      Object {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Link
+                                  </Text>
                                 </Text>
                                 <Text
                                   accessibilityRole="text"

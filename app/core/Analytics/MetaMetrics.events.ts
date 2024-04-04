@@ -399,7 +399,7 @@ enum ACTIONS {
   ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP = 'eth_sign_input_seen',
   ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
   ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
-  STAKE = 'Stake'
+  STAKE = 'Stake',
 }
 
 const events = {
