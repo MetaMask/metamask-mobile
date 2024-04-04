@@ -18,7 +18,7 @@ describe('URL Check Functions', () => {
       expect(isBridgeUrl(url)).toBe(true);
     });
 
-    it('should return false for non-portfolio URLs', () => {
+    it('returns false for non-portfolio URLs', () => {
       const url = 'http://www.example.com';
       expect(isPortfolioUrl(url)).toBe(false);
     });
