@@ -50,7 +50,7 @@ describe('URL Check Functions', () => {
       expect(isBridgeUrl(url)).toBe(true);
     });
 
-    it('should return false for non-bridge URLs', () => {
+    it('returns false for non-bridge URLs', () => {
       const url = 'http://www.example.com';
       expect(isBridgeUrl(url)).toBe(false);
     });
