@@ -857,23 +857,12 @@ function decodeSwapsTx(args) {
  * @param {*} args - Should contain tx, selectedAddress, ticker, conversionRate,
  * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens
  */
-export default async function decodeTransaction(args, i) {
+export default async function decodeTransaction(args) {
   const { tx, selectedAddress, ticker, chainId, swapsTransactions = {} } = args;
   const { isTransfer } = tx || {};
 
   const actionKey = await getActionKey(tx, selectedAddress, ticker, chainId);
   let transactionElement, transactionDetails;
-
-  if (i === 0) {
-    console.log(
-      'STX decodeTransaction tx',
-      getSwapsContractAddress(chainId),
-      tx.transaction.to.toLowerCase(),
-      swapsTransactions[tx.id],
-      tx.transaction.to?.toLowerCase() === getSwapsContractAddress(chainId),
-      Boolean(swapsTransactions[tx.id]),
-    );
-  }
 
   if (
     tx.transaction.to?.toLowerCase() === getSwapsContractAddress(chainId) ||
@@ -883,13 +872,6 @@ export default async function decodeTransaction(args, i) {
       ...args,
       actionKey,
     });
-
-    console.log(
-      'STX decodeTransaction decodeSwapsTx',
-      !!transactionElement,
-      !!transactionDetails,
-      swapsTransactions[tx.id],
-    );
 
     if (transactionElement && transactionDetails)
       return [transactionElement, transactionDetails];
