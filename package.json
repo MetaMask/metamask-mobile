@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.18.0",
+  "version": "7.19.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -57,14 +57,12 @@
     "test:unit:update": "time jest -u ./app/",
     "test:e2e": "yarn test:e2e:ios && yarn test:e2e:android",
     "test:e2e:ios": "detox build -c ios.sim.release && detox test -c ios.sim.release",
-    "test:e2e:ios:debug": "IS_TEST='true' detox build -c ios.sim.debug && detox test -c ios.sim.debug",
-    "test:e2e:ios:bitrise:build": "IS_TEST='true' detox build -c ios.sim.debug",
-    "test:e2e:ios:bitrise:run": "IS_TEST='true' detox test -c ios.sim.debug",
-    "test:e2e:ios:debug:single": "detox test -c ios.sim.debug",
-    "test:e2e:android:debug": "IS_TEST='true' detox build -c android.emu.debug && detox test -c android.emu.debug",
+    "test:e2e:ios:debug:build": "IS_TEST='true' detox build -c ios.sim.debug",
+    "test:e2e:ios:debug:run": "IS_TEST='true' detox test -c ios.sim.debug",
+    "test:e2e:android:debug:build": "IS_TEST='true' detox build -c android.emu.debug",
     "test:e2e:android:bitrise:build": "IS_TEST='true' detox build -c android.emu.bitrise.debug",
+    "test:e2e:android:debug:run": "IS_TEST='true' detox test -c android.emu.debug",
     "test:e2e:android:bitrise:run": "IS_TEST='true' detox test -c android.emu.bitrise.debug --headless",
-    "test:e2e:android:debug:single": "detox test -c android.emu.debug",
     "test:e2e:android": "detox build -c android.emu.release && detox test -c android.emu.release --record-videos failing",
     "test:e2e:android:qa": "detox build -c android.emu.release.qa && detox test -c android.emu.release.qa --record-videos failing",
     "test:wdio:ios": "yarn wdio ./wdio/config/ios.config.debug.js",
@@ -121,7 +119,8 @@
     "tough-cookie": "4.1.3",
     "crypto-js": "4.2.0",
     "axios": "1.6.0",
-    "react-native-ble-plx": "3.1.2"
+    "react-native-ble-plx": "3.1.2",
+    "**/babel-runtime/regenerator-runtime": "^0.13.8"
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
@@ -134,7 +133,7 @@
     "@keystonehq/bc-ur-registry-eth": "^0.7.7",
     "@keystonehq/metamask-airgapped-keyring": "^0.3.0",
     "@keystonehq/ur-decoder": "^0.6.1",
-    "@ledgerhq/react-native-hw-transport-ble": "^6.29.5",
+    "@ledgerhq/react-native-hw-transport-ble": "^6.32.3",
     "@metamask/accounts-controller": "^10.0.0",
     "@metamask/address-book-controller": "^3.0.0",
     "@metamask/approval-controller": "3.5.0",
@@ -159,7 +158,7 @@
     "@metamask/preferences-controller": "^4.0.0",
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/scure-bip39": "^2.1.0",
-    "@metamask/sdk-communication-layer": "^0.12.0",
+    "@metamask/sdk-communication-layer": "^0.18.1",
     "@metamask/signature-controller": "5.3.1",
     "@metamask/slip44": "3.1.0",
     "@metamask/snaps-controllers": "^5.0.0",
@@ -191,11 +190,11 @@
     "@sentry/react-native": "5.11.1",
     "@tradle/react-native-http": "2.0.1",
     "@walletconnect/client": "^1.7.1",
-    "@walletconnect/core": "^2.11.0",
+    "@walletconnect/core": "2.11.3",
     "@walletconnect/jsonrpc-types": "^1.0.2",
-    "@walletconnect/react-native-compat": "^2.11.0",
-    "@walletconnect/se-sdk": "^1.7.0",
-    "@walletconnect/utils": "2.11.0",
+    "@walletconnect/react-native-compat": "2.11.3",
+    "@walletconnect/se-sdk": "1.7.1",
+    "@walletconnect/utils": "2.11.3",
     "@xmldom/xmldom": "^0.8.10",
     "appium-adb": "^9.11.4",
     "asyncstorage-down": "4.2.0",
@@ -550,7 +549,9 @@
       "husky": false,
       "react-native-inappbrowser-reborn": false,
       "react-native-svg-asset-plugin>sharp": true,
-      "ts-node>@swc/core": false
+      "ts-node>@swc/core": false,
+      "@metamask/sdk-communication-layer>bufferutil": false,
+      "@metamask/sdk-communication-layer>utf-8-validate": false
     }
   }
 }
