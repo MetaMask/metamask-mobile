@@ -202,14 +202,6 @@ class TransactionElement extends PureComponent {
     );
     this.mounted = true;
     this.mounted && this.setState({ transactionElement, transactionDetails });
-
-    if (this.props.i === 0) {
-      console.log(
-        'STX transactionElement',
-        transactionElement,
-        transactionDetails,
-      );
-    }
   };
 
   componentWillUnmount() {
