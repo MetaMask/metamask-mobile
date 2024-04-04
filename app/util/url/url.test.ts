@@ -40,7 +40,7 @@ describe('URL Check Functions', () => {
       expect(isPortfolioUrl(url)).toBe(false);
     });
 
-    it('should return true for bridge URLs with additional params', () => {
+    it('returns true for bridge URLs with additional params', () => {
       const url = `${AppConstants.BRIDGE.URL}?foo=bar`;
       expect(isBridgeUrl(url)).toBe(true);
     });
