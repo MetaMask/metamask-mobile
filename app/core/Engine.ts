@@ -175,7 +175,7 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
-import { isHardwareAccount } from '../util/address';
+import { isHardwareAccount, safeToChecksumAddress } from '../util/address';
 import { ledgerSignTypedMessage } from './Ledger/Ledger';
 import ExtendedKeyringTypes from '../constants/keyringTypes';
 import {
@@ -508,7 +508,9 @@ class Engine {
             const prevState = preferencesController.state;
             listener({
               ...prevState,
-              selectedAddress: newlySelectedInternalAccount.address,
+              selectedAddress: safeToChecksumAddress(
+                newlySelectedInternalAccount.address,
+              ),
             });
           },
         ),
@@ -1064,7 +1066,9 @@ class Engine {
               const prevState = preferencesController.state;
               listener({
                 ...prevState,
-                selectedAddress: newlySelectedInternalAccount.address,
+                selectedAddress: safeToChecksumAddress(
+                  newlySelectedInternalAccount.address,
+                ),
               });
             },
           ),
