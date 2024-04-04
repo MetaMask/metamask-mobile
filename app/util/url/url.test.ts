@@ -3,7 +3,7 @@ import AppConstants from '../../core/AppConstants';
 
 describe('URL Check Functions', () => {
   describe('isPortfolioUrl', () => {
-    it('should return true for portfolio URLs', () => {
+    it('returns true for portfolio URLs', () => {
       const url = AppConstants.PORTFOLIO.URL;
       expect(isPortfolioUrl(url)).toBe(true);
     });
