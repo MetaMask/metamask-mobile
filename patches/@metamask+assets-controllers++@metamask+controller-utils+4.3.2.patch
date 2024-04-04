@@ -1,0 +1,26 @@
+diff --git a/node_modules/@metamask/assets-controllers/node_modules/@metamask/controller-utils/dist/constants.d.ts b/node_modules/@metamask/assets-controllers/node_modules/@metamask/controller-utils/dist/constants.d.ts
+index dd0be20..b6dc625 100644
+--- a/node_modules/@metamask/assets-controllers/node_modules/@metamask/controller-utils/dist/constants.d.ts
++++ b/node_modules/@metamask/assets-controllers/node_modules/@metamask/controller-utils/dist/constants.d.ts
+@@ -74,7 +74,7 @@ export declare const BUILT_IN_NETWORKS: {
+         readonly rpcPrefs: undefined;
+     };
+ };
+-export declare const OPENSEA_PROXY_URL = "https://proxy.metafi.codefi.network/opensea/v1/api/v1";
++export declare const OPENSEA_PROXY_URL = "https://proxy.metafi.codefi.network/opensea/v1/api/v2";
+ export declare const OPENSEA_API_URL = "https://api.opensea.io/api/v1";
+ export declare const OPENSEA_TEST_API_URL = "https://testnets-api.opensea.io/api/v1";
+ export declare const ORIGIN_METAMASK = "metamask";
+diff --git a/node_modules/@metamask/assets-controllers/node_modules/@metamask/controller-utils/dist/constants.js b/node_modules/@metamask/assets-controllers/node_modules/@metamask/controller-utils/dist/constants.js
+index 90ede0b..1e99924 100644
+--- a/node_modules/@metamask/assets-controllers/node_modules/@metamask/controller-utils/dist/constants.js
++++ b/node_modules/@metamask/assets-controllers/node_modules/@metamask/controller-utils/dist/constants.js
+@@ -85,7 +85,7 @@ exports.BUILT_IN_NETWORKS = {
+     },
+ };
+ // APIs
+-exports.OPENSEA_PROXY_URL = 'https://proxy.metafi.codefi.network/opensea/v1/api/v1';
++exports.OPENSEA_PROXY_URL = 'https://proxy.metafi.codefi.network/opensea/v1/api/v2';
+ exports.OPENSEA_API_URL = 'https://api.opensea.io/api/v1';
+ exports.OPENSEA_TEST_API_URL = 'https://testnets-api.opensea.io/api/v1';
+ // Default origin for controllers
