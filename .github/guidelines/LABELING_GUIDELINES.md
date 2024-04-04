@@ -21,6 +21,9 @@ Every PR shall include one the QA labels below:
 Once PR has been tested by QA (only if the PR was labeled with `needs-qa`):
 - **QA Passed**: If the PR was labeled with `needs-qa`, this label must be added once QA has signed off
 
+### Optional labels:
+- **regression-develop**: This label can manually be added to a bug report issue at the time of its creation if the bug is present on development branch (i.e. `main`), but is not yet released in production.
+
 ### Labels prohibited when PR needs to be merged:
 Any PR that includes one of the following labels can not be merged:
 
