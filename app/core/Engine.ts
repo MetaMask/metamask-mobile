@@ -508,9 +508,7 @@ class Engine {
             const prevState = preferencesController.state;
             listener({
               ...prevState,
-              selectedAddress: safeToChecksumAddress(
-                newlySelectedInternalAccount.address,
-              ),
+              selectedAddress: newlySelectedInternalAccount.address,
             });
           },
         ),
@@ -804,7 +802,8 @@ class Engine {
             const accountsMissingIdentities = accounts.filter((address) => {
               const checkSummedAddress = safeToChecksumAddress(address);
               return !internalAccounts.some(
-                (account) => safeToChecksumAddress(account.address) === checkSummedAddress,
+                (account) =>
+                  safeToChecksumAddress(account.address) === checkSummedAddress,
               );
             });
             const keyringTypesWithMissingIdentities =
@@ -1066,9 +1065,7 @@ class Engine {
               const prevState = preferencesController.state;
               listener({
                 ...prevState,
-                selectedAddress: safeToChecksumAddress(
-                  newlySelectedInternalAccount.address,
-                ),
+                selectedAddress: newlySelectedInternalAccount.address,
               });
             },
           ),
