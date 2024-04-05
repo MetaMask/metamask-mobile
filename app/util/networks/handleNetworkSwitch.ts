@@ -52,6 +52,7 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
 
   if (networkType) {
     currencyRateController.setNativeCurrency('ETH');
+    // TODO: Align mobile and core types to remove this type cast
     networkController.setProviderType(networkType as InfuraNetworkType);
     return networkType;
   }
