@@ -87,8 +87,8 @@ const createStyles = (colors: Colors) =>
     centered: {
       textAlign: 'center',
     },
-    stakeButton: {
-      paddingTop: 4,
+    assetName: {
+      flexDirection: 'row',
     },
     networth: {
       flexDirection: 'row',

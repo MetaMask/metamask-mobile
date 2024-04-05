@@ -251,12 +251,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     return (
       <TouchableOpacity
-        style={styles.stakeButton}
         onPress={onStakeButtonPress}
         {...generateTestId(Platform, STAKE_BUTTON)}
       >
-        <Text>
-          <Text variant={TextVariant.BodyLGMedium}>{' • '}</Text>
+        <Text variant={TextVariant.BodyLGMedium}>{' • '}
           <Text
             color={TextColor.Primary}
             variant={TextVariant.BodyLGMedium}
@@ -457,13 +455,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
            * The reason for this is that the wallet_watchAsset doesn't return the name
            * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
            */}
-          <Text>
+          <View style={styles.assetName}>
             <Text variant={TextVariant.BodyLGMedium}>
               {asset.name || asset.symbol}
             </Text>
             {/** Add button link to Portfolio Stake if token is mainnet ETH */}
             {asset.isETH && isMainnet && renderStakeButton(asset)}
-          </Text>
+          </View>
 
           <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
             {mainBalance === TOKEN_BALANCE_LOADING ? (
