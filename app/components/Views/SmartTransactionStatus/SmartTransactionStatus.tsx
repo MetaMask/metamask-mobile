@@ -29,6 +29,8 @@ import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import Routes from '../../../constants/navigation/Routes';
+import TransactionBackgroundTop from '../../../images/transaction-background-top.svg';
+import TransactionBackgroundBottom from '../../../images/transaction-background-bottom.svg';
 
 interface Props {
   requestState: {
@@ -326,12 +328,11 @@ const SmartTransactionStatus = ({
         <Icon name={IconName.Close} />
       </TouchableOpacity>
 
+      <TransactionBackgroundTop name="TransactionBackgroundTop" />
       <View style={styles.content}>
         <Icon name={icon} color={iconColor} size={IconSize.Xl} />
-
         <Text style={styles.header}>{header}</Text>
         {isStxPending && <ProgressBar percentComplete={percentComplete} />}
-
         <View style={styles.textWrapper}>
           {description && <Text style={styles.desc}>{description}</Text>}
           {txHash && (
@@ -343,6 +344,7 @@ const SmartTransactionStatus = ({
           )}
         </View>
       </View>
+      <TransactionBackgroundBottom name="TransactionBackgroundBottom" />
 
       <View style={styles.buttonWrapper}>
         {onPrimaryButtonPress && (
