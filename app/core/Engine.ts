@@ -185,7 +185,6 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
-import { lowerCase } from 'lodash';
 
 const NON_EMPTY = 'NON_EMPTY';
 
