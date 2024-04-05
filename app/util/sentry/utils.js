@@ -5,6 +5,7 @@ import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import DefaultPreference from 'react-native-default-preference';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
+import { isTest } from '../test/utils';
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation
 const METAMASK_BUILD_TYPE = process.env['METAMASK_BUILD_TYPE'] || 'main'; // eslint-disable-line dot-notation
@@ -196,7 +197,7 @@ export function deriveSentryEnvironment(
 // Setup sentry remote error reporting
 export function setupSentry() {
   // Disable Sentry for E2E tests
-  if (process.env.IS_TEST === 'true') {
+  if (isTest) {
     return;
   }
 
@@ -225,7 +226,7 @@ export function setupSentry() {
               }),
             ]
           : integrations,
-      tracesSampleRate: 0.05,
+      tracesSampleRate: 0.04,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
