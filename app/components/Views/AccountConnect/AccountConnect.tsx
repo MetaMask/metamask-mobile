@@ -47,7 +47,6 @@ import { Account, useAccounts } from '../../hooks/useAccounts';
 import { StyleSheet } from 'react-native';
 import URLParse from 'url-parse';
 import AppConstants from '../../../../app/core/AppConstants';
-import DevLogger from '../../../../app/core/SDKConnect/utils/DevLogger';
 import { RootState } from '../../../../app/reducers';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -284,11 +283,6 @@ const AccountConnect = (props: AccountConnectProps) => {
       },
       approvedAccounts: selectedAccounts,
     };
-
-    DevLogger.log(
-      `Accepting permission Request: `,
-      JSON.stringify(request, null, 2),
-    );
 
     const connectedAccountLength = selectedAccounts.length;
     const activeAddress = selectedAccounts[0].address;
