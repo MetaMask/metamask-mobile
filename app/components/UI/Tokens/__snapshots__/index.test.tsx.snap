@@ -706,7 +706,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         }
                                       }
                                     >
-                                        • 
+                                       • 
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -942,16 +942,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
@@ -970,7 +964,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   >
                                     Bat
                                   </Text>
-                                </Text>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -1830,7 +1824,7 @@ exports[`Tokens should render correctly 1`] = `
                                         }
                                       }
                                     >
-                                        • 
+                                       • 
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -2066,16 +2060,10 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
@@ -2094,7 +2082,7 @@ exports[`Tokens should render correctly 1`] = `
                                   >
                                     Bat
                                   </Text>
-                                </Text>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -2962,7 +2950,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         }
                                       }
                                     >
-                                        • 
+                                       • 
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -3198,16 +3186,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
@@ -3226,7 +3208,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   >
                                     Bat
                                   </Text>
-                                </Text>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -3432,16 +3414,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
@@ -3460,7 +3436,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   >
                                     Link
                                   </Text>
-                                </Text>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
