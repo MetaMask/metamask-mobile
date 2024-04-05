@@ -1,6 +1,21 @@
 # Changelog
 
 ## Current Main Branch
+- [#5093](https://github.com/MetaMask/metamask-mobile/pull/5093): Bump pify from 4.0.1 to 6.1.0
+- [#9146](https://github.com/MetaMask/metamask-mobile/pull/9146): test: Refactor Tab bar page object
+- [#9133](https://github.com/MetaMask/metamask-mobile/pull/9133): chore(deps-dev): bump chromedriver from 99.0.0 to 123.0.1
+- [#9135](https://github.com/MetaMask/metamask-mobile/pull/9135): chore: Update dependabot.yml to use new team label
+- [#8603](https://github.com/MetaMask/metamask-mobile/pull/8603): fix: nft detection running too many times
+- [#9045](https://github.com/MetaMask/metamask-mobile/pull/9045): feat: sdk connection dependency upgrade
+- [#9123](https://github.com/MetaMask/metamask-mobile/pull/9123): fix: Revert Update controller utils to 5.0.2
+- [#9125](https://github.com/MetaMask/metamask-mobile/pull/9125): fix: add display warning for mumbai
+- [#8645](https://github.com/MetaMask/metamask-mobile/pull/8645): chore(deps): bump ip from 1.1.5 to 1.1.9
+- [#9062](https://github.com/MetaMask/metamask-mobile/pull/9062): chore(deps): bump express from 4.18.2 to 4.19.2
+- [#9028](https://github.com/MetaMask/metamask-mobile/pull/9028): chore(deps): bump webpack-dev-middleware from 6.1.1 to 6.1.2
+- [#8958](https://github.com/MetaMask/metamask-mobile/pull/8958): fix: unit test metametrics at app startup
+- [#8745](https://github.com/MetaMask/metamask-mobile/pull/8745): fix: request location permission after it is rejected during Ledger connection
+- [#9110](https://github.com/MetaMask/metamask-mobile/pull/9110): feat: patch linea token pricing
+- [#9106](https://github.com/MetaMask/metamask-mobile/pull/9106): test: fix secrets for tenderly
 
 ## 7.19.0 - Mar 19, 2024
 ### Added
