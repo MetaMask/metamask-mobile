@@ -1,76 +1,7 @@
 # Changelog
 
+
 ## Current Main Branch
-### Added
-- [#9079](https://github.com/MetaMask/metamask-mobile/pull/9079): feat: Update controller utils to 5.0.2 (#9079)
-- [#8982](https://github.com/MetaMask/metamask-mobile/pull/8982): feat: Update gas fee controller to version 6.1.2 (#8982)
-- [#8989](https://github.com/MetaMask/metamask-mobile/pull/8989): feat: Signature Controller v5.3.1 (#8989)
-- [#9007](https://github.com/MetaMask/metamask-mobile/pull/9007): feat: Assets controller updated to version 12.0.0 (#9007)
-- [#9005](https://github.com/MetaMask/metamask-mobile/pull/9005): feat: Update network controller to version 12.2.0 (#9005)
-- [#8952](https://github.com/MetaMask/metamask-mobile/pull/8952): feat: Network Controller update to v12.1.2 (#8952)
-- [#8981](https://github.com/MetaMask/metamask-mobile/pull/8981): feat: Minor update of phishing-controller (#8981)
-- [#8986](https://github.com/MetaMask/metamask-mobile/pull/8986): feat: Updated Assets Controllers to v11.1.0 (#8986)
-- [#8759](https://github.com/MetaMask/metamask-mobile/pull/8759): feat: Accounts controller integration (#8759)
-- [#9036](https://github.com/MetaMask/metamask-mobile/pull/9036): feat: Adding blockaid validations for sepolia network (#9036)
-- [#8668](https://github.com/MetaMask/metamask-mobile/pull/8668): feat: PPOM Version update to download files only before transaction (#8668)
-- [#9033](https://github.com/MetaMask/metamask-mobile/pull/9033): "Revert ""feat: migrate to native primary currency (#8720)"" (#9033)"
-- [#8720](https://github.com/MetaMask/metamask-mobile/pull/8720): feat: migrate to native primary currency (#8720)
-- [#8920](https://github.com/MetaMask/metamask-mobile/pull/8920): feat: add the 'eth_phishing_detection' logic to the connect accounts flow (#8920)
-
-### Changed
-- [#8967](https://github.com/MetaMask/metamask-mobile/pull/8967): chore: Handle async migrations & add migration tests (#8967)
-- [#9038](https://github.com/MetaMask/metamask-mobile/pull/9038): chore: Consolidate and simplify isTest condition (#9038)
-- [#9098](https://github.com/MetaMask/metamask-mobile/pull/9098): chore: fix ses crash resolution (#9098)
-- [#9094](https://github.com/MetaMask/metamask-mobile/pull/9094): test: stabilize swaps e2e tests (#9094)
-- [#9085](https://github.com/MetaMask/metamask-mobile/pull/9085): chore: cherry-pick #9023 (#9085)
-- [#9069](https://github.com/MetaMask/metamask-mobile/pull/9069): test: clean up detox build/run scripts (#9069)
-- [#9078](https://github.com/MetaMask/metamask-mobile/pull/9078): chore: Sentry reduce traceSample rate to 0.04 (#9078)
-- [#9064](https://github.com/MetaMask/metamask-mobile/pull/9064): chore: Version bump to 1288 (#9064)
-- [#9001](https://github.com/MetaMask/metamask-mobile/pull/9001): fix: (#8617): Reduce enzyme usage in unit test by 25% - [2/3] (#8823) (#9001)
-- [#8842](https://github.com/MetaMask/metamask-mobile/pull/8842): ci: Create Bitrise status check for commits (#8842)
-- [#8990](https://github.com/MetaMask/metamask-mobile/pull/8990): chore: Remove unnecessary react native animate fox patch (#8990)
-- [#8959](https://github.com/MetaMask/metamask-mobile/pull/8959): Migrate another (3/3) batch of unit tests away from enzyme (#8959)
-- [#9000](https://github.com/MetaMask/metamask-mobile/pull/9000): "fix: Revert ""test: [android] run tests on the first emulator in your list … (#9000)"
-- [#8998](https://github.com/MetaMask/metamask-mobile/pull/8998): "fix: Revert ""fix: hardcode emulator name to fix failing android tests on C… (#8998)"
-- [#8995](https://github.com/MetaMask/metamask-mobile/pull/8995): fix: hardcode emulator name to fix failing android tests on CI (#8995)
-- [#9027](https://github.com/MetaMask/metamask-mobile/pull/9027): chore: cherry-pick #9023 (#9027)
-- [#8993](https://github.com/MetaMask/metamask-mobile/pull/8993): chore: cherry-pick #8932 (#8993)
-- [#7591](https://github.com/MetaMask/metamask-mobile/pull/7591): chore(deps-dev): bump @babel/traverse from 7.22.6 to 7.23.2 in /ppom (#7591)
-- [#9022](https://github.com/MetaMask/metamask-mobile/pull/9022): chore: cherry-pick #test/revert-8305 (#9022)
-- [#9039](https://github.com/MetaMask/metamask-mobile/pull/9039): refactor(ramp): persist and format amount in build quote view (#9039)
-- [#9066](https://github.com/MetaMask/metamask-mobile/pull/9066): fix: dedupe dependencies (#9066)
-- [#9008](https://github.com/MetaMask/metamask-mobile/pull/9008): chore(ramp): upgrade sdk to 1.26.8 (#9008)
-- [#8987](https://github.com/MetaMask/metamask-mobile/pull/8987): chore: adding code owner for confirmation domain's code (#8987)
-- [#8826](https://github.com/MetaMask/metamask-mobile/pull/8826): refactor: update Ledger connection instructions (#8826)
-- [#8918](https://github.com/MetaMask/metamask-mobile/pull/8918): ci: Simplify PR template (#8918)
-
-### Fixed
-- [#9082](https://github.com/MetaMask/metamask-mobile/pull/9082): fix: Check for missing identities on migration 36 (#9082)
-- [#9042](https://github.com/MetaMask/metamask-mobile/pull/9042): fix: Refactor SDK initialization (#9042)
-- [#9021](https://github.com/MetaMask/metamask-mobile/pull/9021): fix: Network not updating when changing account connected the first time on a DAPP (#9021)
-- [#9014](https://github.com/MetaMask/metamask-mobile/pull/9014): fix: Migration 29 isEIP1559Compatible issue cherry pick (#9014)
-- [#9013](https://github.com/MetaMask/metamask-mobile/pull/9013): fix: isEIP1559 is undefined migration 29 issue (#9013)
-- [#8980](https://github.com/MetaMask/metamask-mobile/pull/8980): fix: analytics on Account Right Button analytics (#8980)
-- [#8991](https://github.com/MetaMask/metamask-mobile/pull/8991): fix: add Referer to Dapp Viewed events (#8991)
-- [#9080](https://github.com/MetaMask/metamask-mobile/pull/9080): fix: check for preferences controller in 036 migration (#9080)
-- [#9031](https://github.com/MetaMask/metamask-mobile/pull/9031): fix: Remove prefix from origin before sending request to ppom (#9031)
-- [#9053](https://github.com/MetaMask/metamask-mobile/pull/9053): fix: update ppom npm package to version 1.4.5 (#9053)
-- [#8977](https://github.com/MetaMask/metamask-mobile/pull/8977): fix: Remove wallet connect and sdk connect prefix from ppom domain (#8977)
-- [#8751](https://github.com/MetaMask/metamask-mobile/pull/8751): fix: removes addSubjectMetadata and improves Snaps Execution Environment Webview origin restriction. (#8751)
-- [#8975](https://github.com/MetaMask/metamask-mobile/pull/8975): fix: remove call to private/internal methods from the `@metamask/keyring-controller` (#8975)
-- [#8932](https://github.com/MetaMask/metamask-mobile/pull/8932): fix: breaking change from `@metamask/transaction-controller` regarding Ledger transactions (#8932)
-- [#9023](https://github.com/MetaMask/metamask-mobile/pull/9023): fix: improve SVG Validation and Error Handling in AvatarFavicon Component (#9023)
-
-### Other
-- [#](): updated changelog
-- [#9089](https://github.com/MetaMask/metamask-mobile/pull/9089): Bump build from 1288 to 1289 (#9089)
-- [#9015](https://github.com/MetaMask/metamask-mobile/pull/9015): Have postinstall script create env files (#9015)
-- [#](): updated format of changelog
-- [#](): 7.20.0
-- [#8984](https://github.com/MetaMask/metamask-mobile/pull/8984): 7.19.0 (#8984)
-- [#](): 7.19.0
-- [#9063](https://github.com/MetaMask/metamask-mobile/pull/9063): cherry-pick: update ppom npm package to version 1.4.5 (#9053) (#9063)
-- [#Ariella Vu](Ariella Vu): "fix: Remove duplicate  i18n
 
 
 ## 7.19.0 - Mar 19, 2024

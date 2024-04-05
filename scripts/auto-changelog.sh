@@ -45,6 +45,11 @@ insert_new_entries() {
     # Split the existing CHANGELOG at the marker line
     head -n "$line_num" "$CHANGELOG_BACKUP" > "$temp_changelog"
 
+    # Append the release header
+    echo "" >> "$temp_changelog"
+    echo "## <Enter Release Number> - <Date>" >> "$temp_changelog"
+    echo "" >> "$temp_changelog"
+
     # Append new entries for each change type if they exist
     for change_type in Added Changed Fixed Other; do
         if [[ -s "$NEW_ENTRIES-$change_type" ]]; then
