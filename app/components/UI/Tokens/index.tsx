@@ -256,10 +256,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         {...generateTestId(Platform, STAKE_BUTTON)}
       >
         <Text>
-          <Text>{' • '}</Text>
+          <Text variant={TextVariant.BodyLGMedium}>{' • '}</Text>
           <Text
             color={TextColor.Primary}
-            variant={TextVariant.BodyMD}
+            variant={TextVariant.BodyLGMedium}
           >{`${strings('stake.stake')} `}</Text>
           <Icon
             name={IconName.Stake}

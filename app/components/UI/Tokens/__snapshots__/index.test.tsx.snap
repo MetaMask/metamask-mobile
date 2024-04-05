@@ -723,10 +723,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "Euclid Circular B",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
                                             "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "lineHeight": 24,
                                           }
                                         }
                                       >
@@ -738,10 +738,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                           Object {
                                             "color": "#0376C9",
                                             "fontFamily": "Euclid Circular B",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
                                             "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "lineHeight": 24,
                                           }
                                         }
                                       >
@@ -1872,10 +1872,10 @@ exports[`Tokens should render correctly 1`] = `
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "Euclid Circular B",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
                                             "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "lineHeight": 24,
                                           }
                                         }
                                       >
@@ -1887,10 +1887,10 @@ exports[`Tokens should render correctly 1`] = `
                                           Object {
                                             "color": "#0376C9",
                                             "fontFamily": "Euclid Circular B",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
                                             "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "lineHeight": 24,
                                           }
                                         }
                                       >
@@ -3029,10 +3029,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                           Object {
                                             "color": "#24272A",
                                             "fontFamily": "Euclid Circular B",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
                                             "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "lineHeight": 24,
                                           }
                                         }
                                       >
@@ -3044,10 +3044,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                           Object {
                                             "color": "#0376C9",
                                             "fontFamily": "Euclid Circular B",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
                                             "letterSpacing": 0,
-                                            "lineHeight": 22,
+                                            "lineHeight": 24,
                                           }
                                         }
                                       >
