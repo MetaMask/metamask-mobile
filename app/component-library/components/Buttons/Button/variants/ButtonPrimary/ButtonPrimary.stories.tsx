@@ -1,57 +1,57 @@
-/* eslint-disable no-console */
-
-// Third party dependencies.
-import React from 'react';
-import { select, text, boolean } from '@storybook/addon-knobs';
-
 // External dependencies.
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { IconName } from '../../../../Icon';
-import { ButtonSize } from '../../Button.types';
+import { IconName } from '../../../../Icons/Icon';
+import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
 
 // Internal dependencies.
-import ButtonPrimary from './ButtonPrimary';
-import {
-  ButtonPrimaryVariants,
-  ButtonPrimaryProps,
-} from './ButtonPrimary.types';
+import { default as ButtonPrimaryComponent } from './ButtonPrimary';
+import { SAMPLE_BUTTONPRIMARY_PROPS } from './ButtonPrimary.constants';
 
-export const getButtonPrimaryStoryProps = (): ButtonPrimaryProps => {
-  const sizeSelector = select(
-    'size',
-    ButtonSize,
-    ButtonSize.Md,
-    storybookPropsGroupID,
-  );
-  const labelSelector = text('label', 'Click Me!', storybookPropsGroupID);
-  const ButtonPrimaryVariantsSelector = select(
-    'ButtonPrimaryVariants',
-    ButtonPrimaryVariants,
-    ButtonPrimaryVariants.Normal,
-    storybookPropsGroupID,
-  );
-  const includesIcon = boolean('includesIcon', false, storybookPropsGroupID);
-
-  const buttonPrimaryStoryProps: ButtonPrimaryProps = {
-    size: sizeSelector,
-    label: labelSelector,
-    buttonPrimaryVariants: ButtonPrimaryVariantsSelector,
-    onPress: () => console.log("I'm clicked!"),
-  };
-  if (includesIcon) {
-    const iconNameSelector = select(
-      'iconName',
-      IconName,
-      IconName.AddSquareFilled,
-      storybookPropsGroupID,
-    );
-    buttonPrimaryStoryProps.iconName = iconNameSelector;
-  }
-  return buttonPrimaryStoryProps;
+const ButtonPrimaryMeta = {
+  title: 'Component Library / Buttons',
+  component: ButtonPrimaryComponent,
+  argTypes: {
+    label: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_BUTTONPRIMARY_PROPS.label,
+    },
+    startIconName: {
+      options: IconName,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONPRIMARY_PROPS.startIconName,
+    },
+    endIconName: {
+      options: IconName,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONPRIMARY_PROPS.endIconName,
+    },
+    size: {
+      options: ButtonSize,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONPRIMARY_PROPS.size,
+    },
+    isDanger: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_BUTTONPRIMARY_PROPS.isDanger,
+    },
+    isDisabled: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_BUTTONPRIMARY_PROPS.isDisabled,
+    },
+    width: {
+      options: ButtonWidthTypes,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONPRIMARY_PROPS.width,
+    },
+  },
 };
+export default ButtonPrimaryMeta;
 
-const ButtonPrimaryStory = () => (
-  <ButtonPrimary {...getButtonPrimaryStoryProps()} />
-);
-
-export default ButtonPrimaryStory;
+export const ButtonPrimary = {};

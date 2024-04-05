@@ -23,6 +23,17 @@ const styleSheet = StyleSheet.create({
   label: {
     marginLeft: 'auto',
   },
+  accountNameLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  accountNameLabelText: {
+    marginLeft: 4,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderRadius: 8,
+  },
 });
 
 export default styleSheet;

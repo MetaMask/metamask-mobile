@@ -12,24 +12,7 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
     <TokenIcon />
   </View>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
-    centered={false}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     primary={true}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
-    underline={false}
-    upper={false}
   >
     Select a token
   </Text>
@@ -50,24 +33,7 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
     />
   </View>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
-    centered={false}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     primary={true}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
-    underline={false}
-    upper={false}
   >
     ETH
   </Text>
@@ -88,24 +54,7 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
     />
   </View>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
-    centered={false}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     primary={true}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
-    underline={false}
-    upper={false}
   >
     cDAI
   </Text>
@@ -127,24 +76,7 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
     />
   </View>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
-    centered={false}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     primary={true}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
-    underline={false}
-    upper={false}
   >
     DAI
   </Text>
@@ -168,24 +100,7 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
     />
   </View>
   <Text
-    bigger={false}
-    black={false}
-    blue={false}
-    bold={false}
-    centered={false}
-    disclaimer={false}
-    green={false}
-    link={false}
-    modal={false}
-    muted={false}
     primary={true}
-    red={false}
-    reset={false}
-    right={false}
-    small={false}
-    strikethrough={false}
-    underline={false}
-    upper={false}
   >
     DAI
   </Text>

@@ -1,10 +1,12 @@
 # Card
 
+![Card](./Card.png)
+
 Card is a wrapper component typically used for displaying Card Content.
 
 ## Props
 
-This component extends React Native's [View](https://reactnative.dev/docs/view) component.
+This component extends React Native's [TouchableOpacityProps](https://reactnative.dev/docs/touchableopacity) component.
 
 ### `children`
 

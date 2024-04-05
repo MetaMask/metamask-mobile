@@ -1,45 +1,51 @@
 import React from 'react';
-import AccountApproval from './';
-import { shallow } from 'enzyme';
-import configureMockStore from 'redux-mock-store';
-import { ROPSTEN } from '../../../constants/network';
-import { Provider } from 'react-redux';
+import AccountApproval from '.';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
-const mockStore = configureMockStore();
-const initialState = {
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PhishingController: {
+      maybeUpdateState: jest.fn(),
+      test: jest.fn((url: string) => {
+        if (url === 'phishing.com') return { result: true };
+        return { result: false };
+      }),
+    },
+    KeyringController: {
+      getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
+    },
+  },
+}));
+
+const mockInitialState = {
   engine: {
     backgroundState: {
-      AccountTrackerController: {
-        accounts: { '0x2': { balance: '0' } },
-      },
-      NetworkController: {
-        provider: {
-          type: ROPSTEN,
-        },
-      },
-      TokensController: {
-        tokens: [],
-      },
-      PreferencesController: {
-        selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-        identities: {
-          '0xe7E125654064EEa56229f273dA586F10DF96B0a1': { name: 'Account 1' },
-        },
-      },
+      ...initialBackgroundState,
     },
   },
 };
-const store = mockStore(initialState);
 
 describe('AccountApproval', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <AccountApproval
-          currentPageInformation={{ icon: '', url: '', title: '' }}
-        />
-      </Provider>,
+    const container = renderWithProvider(
+      <AccountApproval
+        currentPageInformation={{ icon: '', url: '', title: '' }}
+      />,
+      { state: mockInitialState },
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should render a warning banner if the hostname is included in phishing list', () => {
+    const { getByText } = renderWithProvider(
+      <AccountApproval
+        currentPageInformation={{ icon: '', url: 'phishing.com', title: '' }}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(getByText('Deceptive site ahead')).toBeTruthy();
   });
 });

@@ -1,4 +1,3 @@
-/android/app/src/main/assets/InpageBridgeWeb3.js
 /app/core/InpageBridgeWeb3.js
 /app/util/blockies.js
 __snapshots__
@@ -11,3 +10,12 @@ CHANGELOG.md
 # Ignore auto generated file used for react-native-storybook-loader
 /storybook/storyLoader.js
 wdio
+wdio.conf.js
+scripts
+.detoxrc.js
+.prettierignore
+locales
+.storybook
+/ppom
+app/lib/ppom/ppom.html.js
+/app/lib/ppom/blockaid-version.js

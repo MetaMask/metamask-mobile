@@ -6,34 +6,13 @@ exports[`AssetElement should render correctly 1`] = `
   onPress={[Function]}
   style={
     Object {
-      "borderBottomColor": "#D6D9DC",
-      "borderBottomWidth": 0.5,
+      "alignItems": "flex-start",
       "flex": 1,
       "flexDirection": "row",
       "paddingHorizontal": 15,
       "paddingVertical": 10,
     }
   }
->
-  <View
-    styles={
-      Object {
-        "alignSelf": "flex-end",
-        "flex": 1,
-      }
-    }
-  >
-    <Icon
-      allowFontScaling={false}
-      color="#6A737D"
-      name="ios-arrow-forward"
-      size={24}
-      style={
-        Object {
-          "marginTop": 16,
-        }
-      }
-    />
-  </View>
-</TouchableOpacity>
+  testID="asset-DAI"
+/>
 `;

@@ -1,23 +1,51 @@
 import TestHelpers from '../helpers';
-
-const TRANSACTION_INPUT_ID = 'txn-amount-input';
-const TRANSACTION_NEXT_BUTTON_ID = 'txn-amount-next-button';
-const TRANSACTION_INSUFFICIENT_FUNDS_ERROR_ID = 'amount-error';
+import { CURRENCY_SWITCH } from '../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds';
+import {
+  AmountViewSelectorsIDs,
+  AmountViewSelectorsText,
+} from '../selectors/SendFlow/AmountView.selectors';
 
 export default class AmountView {
   static async tapNextButton() {
-    await TestHelpers.tap(TRANSACTION_NEXT_BUTTON_ID);
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(AmountViewSelectorsIDs.NEXT_BUTTON);
+    } else {
+      await TestHelpers.waitAndTapByLabel(AmountViewSelectorsIDs.NEXT_BUTTON);
+    }
   }
 
   static async typeInTransactionAmount(amount) {
-    await TestHelpers.replaceTextInField(TRANSACTION_INPUT_ID, amount);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.typeTextAndHideKeyboard(
+        AmountViewSelectorsIDs.AMOUNT_INPUT,
+        amount,
+      );
+    } else {
+      await TestHelpers.replaceTextInField(
+        AmountViewSelectorsIDs.AMOUNT_INPUT,
+        amount,
+      );
+    }
+  }
+
+  static async tapCurrencySwitch() {
+    if (device.getPlatform() === 'ios') {
+      await TestHelpers.waitAndTap(CURRENCY_SWITCH);
+    } else {
+      /* In this particular instance the test is unable to tap on the currency switch button
+      because the keyboard is obstructing the element from being tappable.
+      Unfortunately, the android keyboard does not close with the new line character.
+      Here is random tap on the screen to close the keyboard
+      */
+      await element(by.id(CURRENCY_SWITCH)).tap({ x: 150, y: 100 });
+
+      await TestHelpers.waitAndTap(CURRENCY_SWITCH);
+    }
   }
 
   static async isVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible('Amount');
-  }
-
-  static async isInsufficientFundsErrorVisible() {
-    await TestHelpers.checkIfVisible(TRANSACTION_INSUFFICIENT_FUNDS_ERROR_ID);
+    await TestHelpers.checkIfElementWithTextIsVisible(
+      AmountViewSelectorsText.SCREEN_TITLE,
+    );
   }
 }

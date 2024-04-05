@@ -1,8 +1,8 @@
 // External dependencies.
-import { IconSize } from '../../../component-library/components/Icon';
+import { IconSize } from '../../../component-library/components/Icons/Icon';
 import {
   TextProps,
-  TextVariants,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text/Text.types';
 
 /**
@@ -11,8 +11,8 @@ import {
 export type TextEstimatedProps = TextProps;
 
 /**
- * Mapping of IconSize by TextVariants.
+ * Mapping of IconSize by TextVariant.
  */
-export type TildeIconSizeByTextVariants = {
-  [key in TextVariants]: IconSize;
+export type TildeIconSizeByTextVariant = {
+  [key in TextVariant]: IconSize;
 };

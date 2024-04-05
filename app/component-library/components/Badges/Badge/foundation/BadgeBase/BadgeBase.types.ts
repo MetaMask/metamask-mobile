@@ -13,6 +13,6 @@ export interface BadgeBaseProps extends ViewProps {
 }
 
 /**
- * Style sheet input parameters.
+ * Style sheet BadgeBase parameters.
  */
 export type BadgeBaseStyleSheetVars = Pick<BadgeBaseProps, 'style'>;

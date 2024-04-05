@@ -22,14 +22,27 @@ import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import NotificationManager from '../../../core/NotificationManager';
 import AppConstants from '../../../core/AppConstants';
-import { Token as TokenType } from '@metamask/controllers';
+import { Token as TokenType } from '@metamask/assets-controllers';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
-import WarningMessage from '../SendFlow/WarningMessage';
+import WarningMessage from '../confirmations/SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import Routes from '../../../constants/navigation/Routes';
+import {
+  selectChainId,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectTokens } from '../../../selectors/tokensController';
+import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -91,35 +104,20 @@ interface Props {
 const AssetDetails = (props: Props) => {
   const { address } = props.route.params;
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const network = useSelector(
-    (state: any) => state.engine.backgroundState.NetworkController,
-  );
-  const tokens = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokensController.tokens as TokenType[],
-  );
-  const conversionRate = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.conversionRate,
-  );
-  const currentCurrency = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  );
+  const providerConfig = useSelector(selectProviderConfig);
+  const tokens = useSelector(selectTokens);
+  const conversionRate = useSelector(selectConversionRate);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const chainId = useSelector(selectChainId);
   const primaryCurrency = useSelector(
     (state: any) => state.settings.primaryCurrency,
   );
-  const tokenBalances = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokenBalancesController.contractBalances,
-  );
-  const tokenExchangeRates = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  );
+  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenBalances = useSelector(selectContractBalances);
   const token = useMemo(
     () => tokens.find((rawToken) => rawToken.address === address),
     [tokens, address],
@@ -128,11 +126,11 @@ const AssetDetails = (props: Props) => {
 
   const getNetworkName = () => {
     let name = '';
-    if (network.provider.nickname) {
-      name = network.provider.nickname;
+    if (providerConfig.nickname) {
+      name = providerConfig.nickname;
     } else {
       name =
-        (Networks as any)[network.provider.type]?.name ||
+        (Networks as any)[providerConfig.type]?.name ||
         { ...Networks.rpc, color: null }.name;
     }
     return name;
@@ -164,34 +162,35 @@ const AssetDetails = (props: Props) => {
   };
 
   const triggerHideToken = () => {
-    const { TokensController, NetworkController } = Engine.context as any;
-    navigation.navigate('AssetHideConfirmation', {
-      onConfirm: () => {
-        navigation.navigate('WalletView');
-        InteractionManager.runAfterInteractions(async () => {
-          try {
-            await TokensController.ignoreTokens([address]);
-            NotificationManager.showSimpleNotification({
-              status: `simple_notification`,
-              duration: 5000,
-              title: strings('wallet.token_toast.token_hidden_title'),
-              description: strings('wallet.token_toast.token_hidden_desc', {
-                tokenSymbol: symbol,
-              }),
-            });
-            AnalyticsV2.trackEvent(AnalyticsV2.ANALYTICS_EVENTS.TOKENS_HIDDEN, {
-              location: 'token_details',
-              token_standard: 'ERC20',
-              asset_type: 'token',
-              tokens: [`${symbol} - ${address}`],
-              chain_id: getDecimalChainId(
-                NetworkController?.state?.provider?.chainId,
-              ),
-            });
-          } catch (err) {
-            Logger.log(err, 'AssetDetails: Failed to hide token!');
-          }
-        });
+    const { TokensController } = Engine.context as any;
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: 'AssetHideConfirmation',
+      params: {
+        onConfirm: () => {
+          navigation.navigate('WalletView');
+          InteractionManager.runAfterInteractions(async () => {
+            try {
+              await TokensController.ignoreTokens([address]);
+              NotificationManager.showSimpleNotification({
+                status: `simple_notification`,
+                duration: 5000,
+                title: strings('wallet.token_toast.token_hidden_title'),
+                description: strings('wallet.token_toast.token_hidden_desc', {
+                  tokenSymbol: symbol,
+                }),
+              });
+              trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
+                location: 'token_details',
+                token_standard: 'ERC20',
+                asset_type: 'token',
+                tokens: [`${symbol} - ${address}`],
+                chain_id: getDecimalChainId(chainId),
+              });
+            } catch (err) {
+              Logger.log(err, 'AssetDetails: Failed to hide token!');
+            }
+          });
+        },
       },
     });
   };

@@ -1,7 +1,51 @@
 import Engine from './Engine';
 import Logger from '../util/Logger';
 import { syncPrefs, syncAccounts } from '../util/sync';
-import { KeyringTypes } from '@metamask/controllers';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { getLedgerKeyring } from './Ledger/Ledger';
+
+/**
+ * Restores the QR keyring if it exists.
+ */
+export const restoreQRKeyring = async (qrKeyring) => {
+  const { KeyringController } = Engine.context;
+
+  if (qrKeyring) {
+    try {
+      const serializedQRKeyring = await qrKeyring.serialize();
+      await KeyringController.restoreQRKeyring(serializedQRKeyring);
+    } catch (e) {
+      Logger.error(
+        e,
+        'error while trying to get qr accounts on recreate vault',
+      );
+    }
+  }
+};
+
+/**
+ * Restores the Ledger keyring if it exists.
+ */
+export const restoreLedgerKeyring = async (keyring) => {
+  const { KeyringController, PreferencesController } = Engine.context;
+
+  if (keyring) {
+    try {
+      const serializedLedgerKeyring = await keyring.serialize();
+      (await getLedgerKeyring()).deserialize(serializedLedgerKeyring);
+
+      await KeyringController.persistAllKeyrings();
+      PreferencesController.updateIdentities(
+        await KeyringController.getAccounts(),
+      );
+    } catch (e) {
+      Logger.error(
+        e,
+        'error while trying to restore Ledger accounts on recreate vault',
+      );
+    }
+  }
+};
 
 /**
  * Returns current vault seed phrase
@@ -10,10 +54,7 @@ import { KeyringTypes } from '@metamask/controllers';
  */
 export const getSeedPhrase = async (password = '') => {
   const { KeyringController } = Engine.context;
-  const mnemonic = await KeyringController.exportSeedPhrase(
-    password,
-  ).toString();
-  return JSON.stringify(mnemonic).replace(/"/g, '');
+  return await KeyringController.exportSeedPhrase(password);
 };
 
 /**
@@ -23,7 +64,6 @@ export const getSeedPhrase = async (password = '') => {
  * @param newPassword - new password
  * @param selectedAddress
  */
-
 export const recreateVaultWithNewPassword = async (
   password,
   newPassword,
@@ -57,17 +97,20 @@ export const recreateVaultWithNewPassword = async (
     );
   }
 
-  const qrKeyring = await KeyringController.getOrAddQRKeyring();
-  const serializedQRKeyring = await qrKeyring.serialize();
-
-  // Recreate keyring with password given to this method
-  await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
-
   // Get props to restore vault
   const hdKeyring = KeyringController.state.keyrings[0];
   const existingAccountCount = hdKeyring.accounts.length;
 
-  await KeyringController.restoreQRKeyring(serializedQRKeyring);
+  const ledgerKeyring = await getLedgerKeyring();
+  const qrKeyring = (
+    await KeyringController.getKeyringsByType(KeyringTypes.qr)
+  )[0];
+
+  // Recreate keyring with password given to this method
+  await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
+
+  await restoreQRKeyring(qrKeyring);
+  await restoreLedgerKeyring(ledgerKeyring);
 
   // Create previous accounts again
   for (let i = 0; i < existingAccountCount - 1; i++) {
@@ -100,14 +143,14 @@ export const recreateVaultWithNewPassword = async (
   const recreatedKeyrings = KeyringController.state.keyrings;
   // Reselect previous selected account if still available
   for (const keyring of recreatedKeyrings) {
-    if (keyring.accounts.includes(selectedAddress)) {
-      PreferencesController.setSelectedAddress(selectedAddress);
+    if (keyring.accounts.includes(selectedAddress.toLowerCase())) {
+      Engine.setSelectedAddress(selectedAddress);
       return;
     }
   }
 
   // Default to first account as fallback
-  PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
+  Engine.setSelectedAddress(hdKeyring.accounts[0]);
 };
 
 /**

@@ -271,7 +271,7 @@
     "collectibles": "NFTs",
     "transactions": "TRANSAÇÕES",
     "no_collectibles": "Não está vendo seu NFT?",
-    "add_tokens": "ADICIONAR TOKENS",
+    "add_tokens": "Adicionar Tokens",
     "no_tokens": "Você não tem nenhum token!",
     "no_nfts_yet": "Nenhum NFT ainda",
     "learn_more": "Saiba mais",
@@ -420,8 +420,6 @@
     "save_rpc_url": "SALVAR",
     "invalid_rpc_prefix": "Os URIs precisam do prefixo HTTPS adequado",
     "invalid_rpc_url": "URL inválido da RPC",
-    "sync_with_extension": "Sincronizar com a extensão do MetaMask",
-    "sync_with_extension_desc": "Isso importará todas as contas de extensão a este dispositivo.",
     "sync": "SINCRONIZAR",
     "clear_approved_dapps": "LIMPAR DAPPS APROVADOS",
     "clear_browser_history": "LIMPAR HISTÓRICO DO NAVEGADOR",
@@ -717,8 +715,6 @@
     "minimum": "Mínimo de 1,00 {{tokenSymbol}}",
     "cancel": "Cancelar",
     "approve": "Aprovar",
-    "allow_to_access": "Dar a este site permissão para acessar seus(suas) {{tokenSymbol}}?",
-    "allow_to_address_access": "Dar a este endereço acesso ao seu {{tokenSymbol}}?",
     "you_trust_this_site": "Você confia neste site? Ao conceder essa permissão, você permite que este site tenha acesso aos seus fundos.",
     "you_trust_this_address": "Você confia nesse endereço? Ao conceder essa permissão, você permite que este endereço tenha acesso aos seus fundos.",
     "edit_permission": "Editar permissão",
@@ -877,35 +873,6 @@
     "title": "Transação enviada",
     "your_tx_hash_is": "O hash da sua transação é:",
     "view_on_etherscan": "Exibir no Etherscan"
-  },
-  "sync_with_extension": {
-    "title": "Sincronizar dados da extensão",
-    "short_title": "Sincronizar com a extensão",
-    "label": "Abrir a extensão do MetaMask no seu navegador da área de trabalho e ir para \"Configurações\" > \"Avançadas\", clicar em \"Sincronizar com Dispositivo Móvel\" e informar sua senha para ver o Código QR",
-    "button_continue": "Continuar",
-    "please_wait": "Aguarde enquanto sincronizamos seus dados...",
-    "error_title": "Puxa vida!",
-    "error_message": "Deu algo errado... Tente novamente",
-    "warning_title": "Advertência!",
-    "warning_message": "Isso sobrescreverá o histórico de todas as contas e transações atuais que constam no seu celular. Tem certeza?",
-    "warning_ok_button": "SIM",
-    "warning_cancel_button": "NÃO",
-    "invalid_qr_code": "Código QR inválido",
-    "invalid_qr_code_desc": "Esse não é o código QR certo! Para sincronizar com a extensão do seu navegador, acesse \"Configurações\" > \"Avançadas\" > Sincronizar com Dispositivo Móvel na extensão do navegador e ler o Código QR aí",
-    "outdated_qr_code": "Código QR expirado",
-    "outdated_qr_code_desc": "Parece que esse código QR está expirado!  Tente ler um novo",
-    "something_wrong": "Ops! Deu algo errado...",
-    "something_wrong_desc": "Estamos tendo problemas ao tentar sincronizar a sua carteira. Tente novamente mais tarde ou importe a carteira usando a sua Frase de Recuperação Secreta",
-    "allow_biometrics_title": "Deseja habilitar {{biometrics}}?",
-    "allow_biometrics_desc": "Você pode usar {{biometrics}} para autenticar o MetaMask"
-  },
-  "sync_with_extension_success": {
-    "title": "Carteira importada",
-    "sync_complete_1": "Lembre-se: o MetaMask não consegue recuperar a sua Frase de Recuperação Secreta caso você a perca. A Frase de Recuperação Secreta pode ser encontrada em",
-    "sync_complete_2": "Configurações > Segurança & privacidade",
-    "button_continue": "Concluído",
-    "password_tip": "A senha para desbloquear a carteira móvel é a mesma definida para a extensão.",
-    "learn_more": "Saiba mais."
   },
   "networks": {
     "title": "Redes",
@@ -1356,14 +1323,6 @@
     "wyre_total_label": "Wyre (via MetaMask)",
     "buy_with": "Comprar com",
     "plus_fee": "Mais uma taxa de {{fee}}",
-    "notifications": {
-      "purchase_failed_title": "Falha na compra de {{currency}}! Tente novamente. Desculpe-nos pela inconveniência!",
-      "purchase_cancelled_title": "Sua compra foi cancelada",
-      "purchase_completed_title": "Tudo certo com sua compra de {{amount}} {{currency}}!",
-      "purchase_completed_description": "Seu(sua) {{currency}} já está disponível",
-      "purchase_pending_title": "Processando sua compra de {{currency}}",
-      "purchase_pending_description": "Deve demorar apenas alguns minutos..."
-    },
     "date": "Data",
     "from": "De",
     "to": "Até",
@@ -1397,6 +1356,16 @@
         "subtitle_5": "e ver quanto gas ela custa.",
         "cta": "Prossiga para comprar {{ticker}}"
       }
+    }
+  },
+  "fiat_on_ramp_aggregator": {
+    "notifications": {
+      "purchase_failed_title": "Falha na compra de {{currency}}! Tente novamente. Desculpe-nos pela inconveniência!",
+      "purchase_cancelled_title": "Sua compra foi cancelada",
+      "purchase_completed_title": "Tudo certo com sua compra de {{amount}} {{currency}}!",
+      "purchase_completed_description": "Seu(sua) {{currency}} já está disponível",
+      "purchase_pending_title": "Processando sua compra de {{currency}}",
+      "purchase_pending_description": "Deve demorar apenas alguns minutos..."
     }
   },
   "swaps": {
@@ -1469,7 +1438,6 @@
     "i_understand": "Eu entendo",
     "quotes_expire_in": "Cotações expiram em",
     "saving": "Salvando",
-    "using_best_quote": "Usando a melhor cotação",
     "view_details": "Exibir detalhes",
     "estimated_gas_fee": "Taxa estimada de gas",
     "max_gas_fee": "Taxa máxima de gas",
@@ -1482,10 +1450,6 @@
     "completed_swap": "Swap!",
     "metamask_swap_fee": "Taxa de Swap do MetaMask",
     "fee_text": {
-      "get_the": "Obtenha o",
-      "best_price": "melhor preço",
-      "from_the": "das",
-      "top_liquidity": "principais fontes de liquidez todas as vezes.",
       "fee_is_applied": "Uma taxa de {{fee}} é automaticamente levada em conta em cada cotação, o que é compatível com o desenvolvimento contínuo para deixar o MetaMask ainda melhor."
     },
     "enable": {
@@ -1569,10 +1533,7 @@
     "ok": "OK"
   },
   "whats_new": {
-    "title": "Confira as novidades",
-    "feature_security_settings_title": "Configurações de segurança aperfeiçoadas",
-    "feature_security_settings_text": "Agora, você poderá alterar a sua senha do app MetaMask & ver como fazer uma cópia de segurança da Frase de Recuperação Secreta da sua carteira em Configurações > Segurança & Privacidade.",
-    "feature_security_settings_button": "Exibir em Configurações"
+    "title": "Confira as novidades"
   },
   "invalid_network": {
     "title": "O ID da chain da rede personalizada \n %{network} \n precisa ser inserido novamente.",

@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TemplateConfirmationModal renders if approval type is error result 1`] = `
+<ApprovalModal
+  isVisible={true}
+>
+  <TemplateConfirmation
+    approvalRequest={
+      Object {
+        "requestData": Object {
+          "test": "value",
+        },
+        "type": "result_error",
+      }
+    }
+  />
+</ApprovalModal>
+`;
+
+exports[`TemplateConfirmationModal renders if approval type is success result 1`] = `
+<ApprovalModal
+  isVisible={true}
+>
+  <TemplateConfirmation
+    approvalRequest={
+      Object {
+        "requestData": Object {
+          "test": "value",
+        },
+        "type": "result_success",
+      }
+    }
+  />
+</ApprovalModal>
+`;
+
+exports[`TemplateConfirmationModal renders nothing if incorrect approval request type 1`] = `""`;
+
+exports[`TemplateConfirmationModal renders nothing if no approval request 1`] = `""`;

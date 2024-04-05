@@ -1,4 +1,6 @@
-# Accordion
+# [Accordion](https://metamask-consensys.notion.site/Accordion-f43e500b92754d9bb06bc72553c44494)
+
+![Accordion](./Accordion.png)
 
 Accordion is a single component, used to hide certain contents under an Accordion Header, and can be triggered to show when clicking an Accordion Header.
 
@@ -38,6 +40,14 @@ Optional Function to trigger when pressing the Accordion Header.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | Function                                            | Yes                                                     |
 
+### `horizontalAlignment`
+
+Optional prop to control the horizontal alignment of the AccordionHeader.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| AccordionHeaderHorizontalAlignment                   | No                                                     | AccordionHeaderHorizontalAlignment.Center              |
+
 ## Usage
 
 ```javascript
@@ -47,7 +57,8 @@ import Accordion from 'app/component-library/components/Accordions/Accordion/Acc
 <Accordion 
   title={TITLE} 
   isExpanded 
-  onPress={ONPRESS_HANDLER}>
+  onPress={ONPRESS_HANDLER}
+  horizontalAlignment={AccordionHeaderHorizontalAlignment.Center}>
     <ACCORDION_CONTENT/>
 </Accordion>;
 ```

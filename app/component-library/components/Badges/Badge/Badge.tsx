@@ -3,15 +3,21 @@ import React from 'react';
 
 // External dependencies.
 import BadgeNetwork from './variants/BadgeNetwork';
+import BadgeStatus from './variants/BadgeStatus';
 
 // Internal dependencies.
-import { BadgeProps, BadgeVariants } from './Badge.types';
-import { BADGE_NETWORK_TEST_ID } from './Badge.constants';
+import { BadgeProps, BadgeVariant } from './Badge.types';
+import {
+  BADGE_BADGENETWORK_TEST_ID,
+  BADGE_BADGESTATUS_TEST_ID,
+} from './Badge.constants';
 
-const Badge = (badgeProps: BadgeProps) => {
-  switch (badgeProps.variant) {
-    case BadgeVariants.Network:
-      return <BadgeNetwork testID={BADGE_NETWORK_TEST_ID} {...badgeProps} />;
+const Badge = ({ variant, ...props }: BadgeProps) => {
+  switch (variant) {
+    case BadgeVariant.Network:
+      return <BadgeNetwork testID={BADGE_BADGENETWORK_TEST_ID} {...props} />;
+    case BadgeVariant.Status:
+      return <BadgeStatus testID={BADGE_BADGESTATUS_TEST_ID} {...props} />;
     default:
       throw new Error('Invalid Badge Variant');
   }

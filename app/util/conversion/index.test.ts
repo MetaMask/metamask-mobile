@@ -7,7 +7,7 @@ describe('conversion utils', () => {
       const result = addCurrencies(3, 9, {
         aBase: 10,
         bBase: 10,
-      });
+      }) as BigNumber;
       expect(result.toNumber()).toStrictEqual(12);
     });
 
@@ -15,7 +15,7 @@ describe('conversion utils', () => {
       const result = addCurrencies(1.3, 1.9, {
         aBase: 10,
         bBase: 10,
-      });
+      }) as BigNumber;
       expect(result.toNumber()).toStrictEqual(3.2);
     });
 
@@ -23,7 +23,7 @@ describe('conversion utils', () => {
       const result = addCurrencies(1 / 3, 1 / 9, {
         aBase: 10,
         bBase: 10,
-      });
+      }) as BigNumber;
       expect(result.toNumber()).toStrictEqual(0.4444444444444444);
     });
   });
@@ -33,11 +33,20 @@ describe('conversion utils', () => {
       const conv1 = conversionUtil(1000000000000000000, {
         fromNumericBase: 'dec',
         toNumericBase: 'hex',
+        fromDenomination: undefined,
+        toDenomination: undefined,
+        numberOfDecimals: undefined,
+        conversionRate: undefined,
+        invertConversionRate: undefined,
       });
       const conv2 = conversionUtil(1, {
         fromNumericBase: 'dec',
         fromDenomination: 'ETH',
         toDenomination: 'WEI',
+        numberOfDecimals: undefined,
+        conversionRate: undefined,
+        invertConversionRate: undefined,
+        toNumericBase: undefined,
       });
       expect(typeof conv1 === 'string').toStrictEqual(true);
       expect(conv2 instanceof BigNumber).toStrictEqual(true);
@@ -47,12 +56,22 @@ describe('conversion utils', () => {
         conversionUtil('1000000000000000000', {
           fromNumericBase: 'dec',
           toNumericBase: 'hex',
+          fromDenomination: undefined,
+          toDenomination: undefined,
+          numberOfDecimals: undefined,
+          conversionRate: undefined,
+          invertConversionRate: undefined,
         }),
       ).toStrictEqual('de0b6b3a7640000');
       expect(
         conversionUtil('1500000000000000000', {
           fromNumericBase: 'dec',
           toNumericBase: 'hex',
+          fromDenomination: undefined,
+          toDenomination: undefined,
+          numberOfDecimals: undefined,
+          conversionRate: undefined,
+          invertConversionRate: undefined,
         }),
       ).toStrictEqual('14d1120d7b160000');
     });
@@ -61,12 +80,22 @@ describe('conversion utils', () => {
         conversionUtil('0xde0b6b3a7640000', {
           fromNumericBase: 'hex',
           toNumericBase: 'dec',
+          fromDenomination: undefined,
+          toDenomination: undefined,
+          numberOfDecimals: undefined,
+          conversionRate: undefined,
+          invertConversionRate: undefined,
         }),
       ).toStrictEqual('1000000000000000000');
       expect(
         conversionUtil('0x14d1120d7b160000', {
           fromNumericBase: 'hex',
           toNumericBase: 'dec',
+          fromDenomination: undefined,
+          toDenomination: undefined,
+          numberOfDecimals: undefined,
+          conversionRate: undefined,
+          invertConversionRate: undefined,
         }),
       ).toStrictEqual('1500000000000000000');
     });
@@ -77,6 +106,9 @@ describe('conversion utils', () => {
           toNumericBase: 'dec',
           fromDenomination: 'WEI',
           toDenomination: 'ETH',
+          numberOfDecimals: undefined,
+          conversionRate: undefined,
+          invertConversionRate: undefined,
         }),
       ).toStrictEqual('1');
       expect(
@@ -85,39 +117,66 @@ describe('conversion utils', () => {
           toNumericBase: 'dec',
           fromDenomination: 'WEI',
           toDenomination: 'ETH',
+          numberOfDecimals: undefined,
+          conversionRate: undefined,
+          invertConversionRate: undefined,
         }),
       ).toStrictEqual('1.5');
     });
     it('converts ETH to WEI', () => {
       expect(
-        conversionUtil('1', {
-          fromNumericBase: 'dec',
-          fromDenomination: 'ETH',
-          toDenomination: 'WEI',
-        }).toNumber(),
+        (
+          conversionUtil('1', {
+            fromNumericBase: 'dec',
+            fromDenomination: 'ETH',
+            toDenomination: 'WEI',
+            toNumericBase: undefined,
+            numberOfDecimals: undefined,
+            conversionRate: undefined,
+            invertConversionRate: undefined,
+          }) as BigNumber
+        ).toNumber(),
       ).toStrictEqual(1000000000000000000);
       expect(
-        conversionUtil('1.5', {
-          fromNumericBase: 'dec',
-          fromDenomination: 'ETH',
-          toDenomination: 'WEI',
-        }).toNumber(),
+        (
+          conversionUtil('1.5', {
+            fromNumericBase: 'dec',
+            fromDenomination: 'ETH',
+            toDenomination: 'WEI',
+            toNumericBase: undefined,
+            numberOfDecimals: undefined,
+            conversionRate: undefined,
+            invertConversionRate: undefined,
+          }) as BigNumber
+        ).toNumber(),
       ).toStrictEqual(1500000000000000000);
     });
     it('converts ETH to GWEI', () => {
       expect(
-        conversionUtil('1', {
-          fromNumericBase: 'dec',
-          fromDenomination: 'ETH',
-          toDenomination: 'GWEI',
-        }).toNumber(),
+        (
+          conversionUtil('1', {
+            fromNumericBase: 'dec',
+            fromDenomination: 'ETH',
+            toDenomination: 'GWEI',
+            toNumericBase: undefined,
+            numberOfDecimals: undefined,
+            conversionRate: undefined,
+            invertConversionRate: undefined,
+          }) as BigNumber
+        ).toNumber(),
       ).toStrictEqual(1000000000);
       expect(
-        conversionUtil('1.5', {
-          fromNumericBase: 'dec',
-          fromDenomination: 'ETH',
-          toDenomination: 'GWEI',
-        }).toNumber(),
+        (
+          conversionUtil('1.5', {
+            fromNumericBase: 'dec',
+            fromDenomination: 'ETH',
+            toDenomination: 'GWEI',
+            toNumericBase: undefined,
+            numberOfDecimals: undefined,
+            conversionRate: undefined,
+            invertConversionRate: undefined,
+          }) as BigNumber
+        ).toNumber(),
       ).toStrictEqual(1500000000);
     });
     it('converts ETH to USD', () => {
@@ -128,6 +187,9 @@ describe('conversion utils', () => {
           toCurrency: 'usd',
           conversionRate: 468.58,
           numberOfDecimals: 2,
+          fromDenomination: undefined,
+          toDenomination: undefined,
+          invertConversionRate: undefined,
         }),
       ).toStrictEqual('468.58');
       expect(
@@ -137,6 +199,9 @@ describe('conversion utils', () => {
           toCurrency: 'usd',
           conversionRate: 468.58,
           numberOfDecimals: 2,
+          fromDenomination: undefined,
+          toDenomination: undefined,
+          invertConversionRate: undefined,
         }),
       ).toStrictEqual('702.87');
     });
@@ -149,6 +214,8 @@ describe('conversion utils', () => {
           conversionRate: 468.58,
           numberOfDecimals: 2,
           invertConversionRate: true,
+          fromDenomination: undefined,
+          toDenomination: undefined,
         }),
       ).toStrictEqual('1');
       expect(
@@ -159,6 +226,8 @@ describe('conversion utils', () => {
           conversionRate: 468.58,
           numberOfDecimals: 2,
           invertConversionRate: true,
+          fromDenomination: undefined,
+          toDenomination: undefined,
         }),
       ).toStrictEqual('1.5');
     });

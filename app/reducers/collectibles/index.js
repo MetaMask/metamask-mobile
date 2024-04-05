@@ -1,36 +1,32 @@
 import { createSelector } from 'reselect';
+import { selectChainId } from '../../selectors/networkController';
+import {
+  selectAllNftContracts,
+  selectAllNfts,
+} from '../../selectors/nftController';
+import { selectSelectedAddress } from '../../selectors/preferencesController';
 import { compareTokenIds } from '../../util/tokens';
 
-const addressSelector = (state) =>
-  state.engine.backgroundState.PreferencesController.selectedAddress;
-const chainIdSelector = (state) =>
-  state.engine.backgroundState.NetworkController.provider.chainId;
 const favoritesSelector = (state) => state.collectibles.favorites;
 
-const allCollectibleContractsSelector = (state) =>
-  state.engine.backgroundState.CollectiblesController.allCollectibleContracts;
-const allCollectiblesSelector = (state) =>
-  state.engine.backgroundState.CollectiblesController.allCollectibles;
-
 export const collectibleContractsSelector = createSelector(
-  addressSelector,
-  chainIdSelector,
-  allCollectibleContractsSelector,
-  (address, chainId, allCollectibleContracts) =>
-    allCollectibleContracts[address]?.[chainId] || [],
+  selectSelectedAddress,
+  selectChainId,
+  selectAllNftContracts,
+  (address, chainId, allNftContracts) =>
+    allNftContracts[address]?.[chainId] || [],
 );
 
 export const collectiblesSelector = createSelector(
-  addressSelector,
-  chainIdSelector,
-  allCollectiblesSelector,
-  (address, chainId, allCollectibles) =>
-    allCollectibles[address]?.[chainId] || [],
+  selectSelectedAddress,
+  selectChainId,
+  selectAllNfts,
+  (address, chainId, allNfts) => allNfts[address]?.[chainId] || [],
 );
 
 export const favoritesCollectiblesSelector = createSelector(
-  addressSelector,
-  chainIdSelector,
+  selectSelectedAddress,
+  selectChainId,
   favoritesSelector,
   (address, chainId, favorites) => favorites[address]?.[chainId] || [],
 );

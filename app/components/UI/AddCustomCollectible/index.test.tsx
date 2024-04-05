@@ -3,15 +3,12 @@ import { shallow } from 'enzyme';
 import AddCustomCollectible from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: {
-      PreferencesController: {
-        selectedAddress: '0x1',
-      },
-    },
+    backgroundState: initialBackgroundState,
   },
 };
 const store = mockStore(initialState);

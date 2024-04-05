@@ -1,38 +1,28 @@
-/* eslint-disable no-console */
-
-// Third party dependencies.
+/* eslint-disable react/display-name */
 import React from 'react';
-import { ImageSourcePropType, StyleSheet } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
-import { boolean, text } from '@storybook/addon-knobs';
 
 // Internal dependencies.
-import PickerNetwork from './PickerNetwork';
-import { TEST_IMAGE_URL } from './PickerNetwork.constants';
+import { default as PickerNetworkComponent } from './PickerNetwork';
+import { SAMPLE_PICKERNETWORK_PROPS } from './PickerNetwork.constants';
 
-const styles = StyleSheet.create({
-  networkPicker: {
-    alignSelf: 'flex-start',
+const PickerNetworkMeta = {
+  title: 'Component Library / Pickers',
+  component: PickerNetworkComponent,
+  argTypes: {
+    label: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_PICKERNETWORK_PROPS.label,
+    },
   },
-});
+};
+export default PickerNetworkMeta;
 
-storiesOf('Component Library / PickerNetwork', module).add('Default', () => {
-  const groupId = 'Props';
-  const networkLabelSelector = text('label', 'Ethereum Mainnet', groupId);
-  const includesImage = boolean('Includes image', true, groupId);
-  const imageUrl = text('imageSource.uri', TEST_IMAGE_URL, groupId);
-  const imageSource = (includesImage && {
-    uri: imageUrl,
-  }) as ImageSourcePropType;
-
-  return (
-    <PickerNetwork
-      onPress={() => {
-        console.log('Picking network!');
-      }}
-      label={networkLabelSelector}
-      imageSource={imageSource}
-      style={styles.networkPicker}
+export const PickerNetwork = {
+  render: (args: any) => (
+    <PickerNetworkComponent
+      {...args}
+      imageSource={SAMPLE_PICKERNETWORK_PROPS.imageSource}
+      onPress={SAMPLE_PICKERNETWORK_PROPS.onPress}
     />
-  );
-});
+  ),
+};

@@ -1,4 +1,24 @@
 /**
+ * Browser actions for Redux
+ */
+export const BrowserActionTypes = {
+  ADD_TO_VIEWED_DAPP: 'ADD_TO_VIEWED_DAPP',
+};
+
+/**
+ * Adds a new entry to viewed dapps
+ *
+ * @param {string} hostname - Dapp hostname
+ * @returns
+ */
+export function addToViewedDapp(hostname) {
+  return {
+    type: BrowserActionTypes.ADD_TO_VIEWED_DAPP,
+    hostname,
+  };
+}
+
+/**
  * Adds a new entry to the browser history
  *
  * @param {Object} website - The website that has been visited
@@ -92,5 +112,20 @@ export function updateTab(id, data) {
     type: 'UPDATE_TAB',
     id,
     data,
+  };
+}
+
+/**
+ * Stores the favicon url using the origin as key
+ * @param {Object} favicon - favicon to store
+ * @param {string} favicon.origin - the origin of the favicon as key
+ * @param {string} favicon.url - the favicon image url
+ * @returns {{favicon, type: string}}
+ */
+export function storeFavicon({ origin, url }) {
+  return {
+    type: 'STORE_FAVICON_URL',
+    origin,
+    url,
   };
 }

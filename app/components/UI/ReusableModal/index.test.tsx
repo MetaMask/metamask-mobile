@@ -7,7 +7,7 @@ describe('ReusableModal', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <SafeAreaView>
-        <ReusableModal />
+        <ReusableModal>{null}</ReusableModal>
       </SafeAreaView>,
     );
     expect(wrapper).toMatchSnapshot();

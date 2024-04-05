@@ -1,8 +1,8 @@
 const mm = 'MetaMask';
 const prefix = `@${mm}:`;
+const USE_TERMS_VERSION = 'v1.0';
 
 export const EXISTING_USER = `${prefix}existingUser`;
-export const NEXT_MAKER_REMINDER = `${prefix}nextMakerReminder`;
 export const BIOMETRY_CHOICE = `${prefix}biometryChoice`;
 export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 
@@ -13,9 +13,19 @@ export const ONBOARDING_WIZARD = `${prefix}onboardingWizard`;
 export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
 export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
 export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;
-export const METAMETRICS_SEGMENT_REGULATION_ID = `${prefix}MetaMetricsSegmentRegulationId`;
+export const METAMETRICS_DELETION_REGULATION_ID = `${prefix}MetaMetricsDeletionRegulationId`;
 export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
 export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
+
+/**
+ * @deprecated, use {@link METAMETRICS_ID} instead
+ * Keeping MIXPANEL_METAMETRICS_ID for backward compatibility
+ *
+ * TODO remove MIXPANEL_METAMETRICS_ID:
+ * - add a migration
+ * - remove the legacy id test from {@link MetaMetrics}.#getMetaMetricsId()
+ * @see https://github.com/MetaMask/metamask-mobile/issues/8833
+ */
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
 
 export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;
@@ -49,3 +59,5 @@ export const REVIEW_EVENT_COUNT = 'reviewEventCount';
 export const REVIEW_SHOWN_TIME = 'reviewShownTime';
 
 export const themeAppearanceLight = 'light';
+
+export const USE_TERMS = `${prefix}UserTermsAccepted${USE_TERMS_VERSION}`;

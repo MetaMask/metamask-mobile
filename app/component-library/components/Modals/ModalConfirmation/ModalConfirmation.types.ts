@@ -1,21 +1,8 @@
 /**
- * ModalConfirmation variants.
- */
-export enum ModalConfirmationVariants {
-  Normal = 'Normal',
-  Danger = 'Danger',
-}
-
-/**
  * Object that holds the props that are passed in while navigating.
  */
 export interface ModalConfirmationRoute {
   params: {
-    /**
-     * Optional variant to set on the modal.
-     * @default Normal
-     */
-    variant?: ModalConfirmationVariants;
     /**
      * Title to show in modal.
      */
@@ -40,6 +27,10 @@ export interface ModalConfirmationRoute {
      * Optional label to set on the confirm button.
      */
     confirmLabel?: string;
+    /**
+     * Optional boolean to show the danger state of the modal.
+     */
+    isDanger?: boolean;
   };
 }
 

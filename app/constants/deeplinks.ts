@@ -20,6 +20,9 @@ export enum ACTIONS {
   FOCUS = 'focus',
   WC = 'wc',
   CONNECT = 'connect',
+  ANDROID_SDK = 'bind',
+  BUY_CRYPTO = 'buy-crypto',
+  SELL_CRYPTO = 'sell-crypto',
   EMPTY = '',
 }
 
@@ -29,5 +32,11 @@ export const PREFIXES = {
   [ACTIONS.APPROVE]: 'ethereum:',
   [ACTIONS.FOCUS]: '',
   [ACTIONS.EMPTY]: '',
+  [ACTIONS.PAYMENT]: '',
+  [ACTIONS.WC]: '',
+  [ACTIONS.CONNECT]: '',
+  [ACTIONS.ANDROID_SDK]: '',
+  [ACTIONS.BUY_CRYPTO]: '',
+  [ACTIONS.SELL_CRYPTO]: '',
   METAMASK: 'metamask://',
 };

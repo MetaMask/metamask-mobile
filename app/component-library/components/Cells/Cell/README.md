@@ -1,6 +1,6 @@
 # Cell
 
-This component is a union component, which consists of [CellDisplay](../CellDisplay/CellDisplay.tsx), [CellSelect](../CellSelect/CellSelect.tsx), and [CellMultiselect](../CellMultiselect/CellMultiselect.tsx)
+This component is a union component, which consists of [CellDisplay](../CellDisplay/CellDisplay.tsx), [CellSelect](../CellSelect/CellSelect.tsx), and [CellMultiSelect](../CellMultiSelect/CellMultiSelect.tsx)
 
 ## Common props
 
@@ -10,7 +10,7 @@ Variant of Cell.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellVariants](./Cell.types.ts#L9)                                              | No                                                     |
+| [CellVariant](./Cell.types.ts#L9)                                              | Yes                                                     |
 
 ### `avatarProps`
 
@@ -60,7 +60,7 @@ Optional accessory that can be inserted on the right of Cell.
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | ReactNode                                           | Yes                                                     |
 
-## CellMultiselect and CellSelect only props
+## CellMultiSelect and CellSelect only props
 
 ### `onPress`
 
@@ -79,21 +79,54 @@ Default: false
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
 | boolean                                             | No                                                      | false                                                  |
 
+### `isDisabled`
+
+Optional boolean to show disabled state in Cell.
+Default: false
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| boolean                                             | No                                                      | false                                                  |
+
 ## Usage
 
 ```javascript
-// Change import path to relative path.
-import Cell from 'app/component-library/components/Cells/Cell';
-import { CellVariants} from 'app/component-library/components/Cells/Cell.types';
-
+// Cell Display
 <Cell
-  variant={CellVariants.Multiselect}
+  variant={CellVariant.Display}
   avatarProps={AVATAR_PROPS}
   title={TITLE}
   secondaryText={SECONDARY_TEXT}
   tertiaryText={TERTIARY_TEXT}
   tagLabel={TAG_LABEL}
   isSelected={false}
+  isDisabled={false}
+  onPress={() => Alert.alert('Pressed account Cell!')}
+/>;
+
+// Cell MultiSelect
+<Cell
+  variant={CellVariant.MultiSelect}
+  avatarProps={AVATAR_PROPS}
+  title={TITLE}
+  secondaryText={SECONDARY_TEXT}
+  tertiaryText={TERTIARY_TEXT}
+  tagLabel={TAG_LABEL}
+  isSelected={false}
+  isDisabled={false}
+  onPress={() => Alert.alert('Pressed account Cell!')}
+/>;
+
+// Cell Select
+<Cell
+  variant={CellVariant.Select}
+  avatarProps={AVATAR_PROPS}
+  title={TITLE}
+  secondaryText={SECONDARY_TEXT}
+  tertiaryText={TERTIARY_TEXT}
+  tagLabel={TAG_LABEL}
+  isSelected={false}
+  isDisabled={false}
   onPress={() => Alert.alert('Pressed account Cell!')}
 />;
 ```

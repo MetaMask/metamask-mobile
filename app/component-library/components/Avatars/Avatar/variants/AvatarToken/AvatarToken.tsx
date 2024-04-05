@@ -1,24 +1,33 @@
 // Third party dependencies.
 import React, { useState } from 'react';
 import { Image, ImageBackground, ImageSourcePropType } from 'react-native';
+import { useSelector } from 'react-redux';
 
 // External dependencies.
+import { selectIsIpfsGatewayEnabled } from '../../../../../../selectors/preferencesController';
+import { isIPFSUri } from '../../../../../../util/general';
 import AvatarBase from '../../foundation/AvatarBase';
-import { AvatarSize } from '../../Avatar.types';
-import Text, { TextVariants } from '../../../../Texts/Text';
+import Text from '../../../../Texts/Text';
 import { useStyles } from '../../../../../hooks';
+import { TEXTVARIANT_BY_AVATARSIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import { AvatarTokenProps } from './AvatarToken.types';
 import stylesheet from './AvatarToken.styles';
-import { TOKEN_AVATAR_IMAGE_ID } from './AvatarToken.constants';
+import {
+  DEFAULT_AVATARTOKEN_SIZE,
+  DEFAULT_AVATARTOKEN_ERROR_TEXT,
+  AVATARTOKEN_IMAGE_TESTID,
+} from './AvatarToken.constants';
 
 const AvatarToken = ({
-  size,
+  size = DEFAULT_AVATARTOKEN_SIZE,
   style,
   name,
   imageSource,
   isHaloEnabled,
+  isIpfsGatewayCheckBypassed = false,
+  ...props
 }: AvatarTokenProps) => {
   const [showFallback, setShowFallback] = useState(!imageSource);
 
@@ -28,19 +37,27 @@ const AvatarToken = ({
     isHaloEnabled,
     showFallback,
   });
+  let isIpfsGatewayEnabled = false;
 
-  const textVariants =
-    size === AvatarSize.Sm || size === AvatarSize.Xs
-      ? TextVariants.lBodySM
-      : TextVariants.lBodyMD;
-  const tokenNameFirstLetter = name?.[0] ?? '?';
+  if (!isIpfsGatewayCheckBypassed) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  }
+
+  const tokenNameFirstLetter = name?.[0] ?? DEFAULT_AVATARTOKEN_ERROR_TEXT;
 
   const onError = () => setShowFallback(true);
 
+  const imageUri =
+    imageSource && Image.resolveAssetSource(imageSource as ImageSourcePropType);
+  const isIpfsDisabledAndUriIsIpfs = imageUri
+    ? !isIpfsGatewayEnabled && isIPFSUri(imageUri.uri)
+    : false;
+
   const tokenImage = () => (
-    <AvatarBase size={size} style={styles.base}>
-      {showFallback ? (
-        <Text style={styles.label} variant={textVariants}>
+    <AvatarBase size={size} style={styles.base} {...props}>
+      {showFallback || isIpfsDisabledAndUriIsIpfs ? (
+        <Text style={styles.label} variant={TEXTVARIANT_BY_AVATARSIZE[size]}>
           {tokenNameFirstLetter}
         </Text>
       ) : (
@@ -48,14 +65,14 @@ const AvatarToken = ({
           source={imageSource as ImageSourcePropType}
           style={styles.image}
           onError={onError}
-          testID={TOKEN_AVATAR_IMAGE_ID}
+          testID={AVATARTOKEN_IMAGE_TESTID}
           resizeMode={'contain'}
         />
       )}
     </AvatarBase>
   );
 
-  return !isHaloEnabled || showFallback ? (
+  return !isHaloEnabled || showFallback || isIpfsDisabledAndUriIsIpfs ? (
     tokenImage()
   ) : (
     <ImageBackground

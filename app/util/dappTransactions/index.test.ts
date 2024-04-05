@@ -1,10 +1,12 @@
+import { BN } from 'ethereumjs-util';
+
 import { strings } from '../../../locales/i18n';
+import Engine from '../../core/Engine';
 import {
   validateCollectibleOwnership,
   validateEtherAmount,
   validateTokenAmount,
 } from '.';
-import { BN } from 'ethereumjs-util';
 
 const TEST_VALUE = new BN('0');
 const TEST_INVALID_VALUE = '0';
@@ -13,6 +15,7 @@ const TEST_INVALID_FROM = null;
 const TEST_GAS = new BN('0');
 const TEST_INVALID_GAS = null;
 const TEST_SELECTED_ASSET = { address: '0x', decimals: '0', symbol: 'ETH' };
+const TEST_SELECTED_ADDRESS = '0x0';
 const TEST_CONTRACT_BALANCES = {};
 
 describe('Dapp Transactions utils :: validateEtherAmount', () => {
@@ -38,6 +41,7 @@ describe('Dapp Transactions utils :: validateTokenAmount', () => {
         TEST_GAS,
         TEST_FROM,
         TEST_SELECTED_ASSET,
+        TEST_SELECTED_ADDRESS,
         TEST_CONTRACT_BALANCES,
         false,
       ),
@@ -51,6 +55,7 @@ describe('Dapp Transactions utils :: validateTokenAmount', () => {
         TEST_INVALID_GAS as unknown as BN,
         TEST_FROM,
         TEST_SELECTED_ASSET,
+        TEST_SELECTED_ADDRESS,
         TEST_CONTRACT_BALANCES,
         false,
       ),
@@ -64,6 +69,7 @@ describe('Dapp Transactions utils :: validateTokenAmount', () => {
         TEST_GAS,
         TEST_INVALID_FROM as unknown as string,
         TEST_SELECTED_ASSET,
+        TEST_SELECTED_ADDRESS,
         TEST_CONTRACT_BALANCES,
         false,
       ),
@@ -77,9 +83,48 @@ describe('Dapp Transactions utils :: validateTokenAmount', () => {
         TEST_GAS,
         TEST_FROM,
         TEST_SELECTED_ASSET,
+        TEST_SELECTED_ADDRESS,
         TEST_CONTRACT_BALANCES,
       ),
     ).toBeUndefined();
+  });
+
+  it('should check value from contractBalances if selectedAddress is from address', async () => {
+    const mockGetERC20BalanceOf = jest.fn().mockReturnValue('0x0');
+    Engine.context.AssetsContractController = {
+      getERC20BalanceOf: mockGetERC20BalanceOf,
+    };
+    expect(
+      await validateTokenAmount(
+        new BN(5),
+        TEST_GAS,
+        TEST_FROM,
+        TEST_SELECTED_ASSET,
+        TEST_FROM,
+        { '0x': '10' },
+        false,
+      ),
+    ).toEqual(undefined);
+    expect(mockGetERC20BalanceOf).toBeCalledTimes(0);
+  });
+
+  it('should call AssetsContractController.getERC20BalanceOf to get user balance if selectedAddress is not from address', async () => {
+    const mockGetERC20BalanceOf = jest.fn().mockReturnValue('0x0');
+    Engine.context.AssetsContractController = {
+      getERC20BalanceOf: mockGetERC20BalanceOf,
+    };
+
+    const result = await validateTokenAmount(
+      new BN(5),
+      TEST_GAS,
+      TEST_FROM,
+      TEST_SELECTED_ASSET,
+      TEST_SELECTED_ADDRESS,
+      { '0x': '10' },
+      false,
+    );
+    expect(mockGetERC20BalanceOf).toBeCalledTimes(1);
+    expect(result).toEqual(strings('transaction.insufficient'));
   });
 });
 

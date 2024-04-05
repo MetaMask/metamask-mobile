@@ -1,45 +1,36 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { GestureResponderEvent } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
 import Button from '../../foundation/ButtonBase';
+import Text from '../../../../Texts/Text/Text';
 
 // Internal dependencies.
-import {
-  ButtonPrimaryProps,
-  ButtonPrimaryVariants,
-} from './ButtonPrimary.types';
+import { ButtonPrimaryProps } from './ButtonPrimary.types';
 import styleSheet from './ButtonPrimary.styles';
+import {
+  DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT,
+  DEFAULT_BUTTONPRIMARY_LABEL_COLOR,
+} from './ButtonPrimary.constants';
 
 const ButtonPrimary = ({
   style,
   onPressIn,
   onPressOut,
-  buttonPrimaryVariants = ButtonPrimaryVariants.Normal,
+  isDanger = false,
+  label,
   ...props
 }: ButtonPrimaryProps) => {
   const [pressed, setPressed] = useState(false);
-  const { styles, theme } = useStyles(styleSheet, {
+  const { styles } = useStyles(styleSheet, {
     style,
-    buttonPrimaryVariants,
+    isDanger,
     pressed,
   });
-  const labelColor = useMemo(() => {
-    let color: string;
-    switch (buttonPrimaryVariants) {
-      case ButtonPrimaryVariants.Normal:
-        color = theme.colors.primary.inverse;
-        break;
-      case ButtonPrimaryVariants.Danger:
-        color = theme.colors.error.inverse;
-        break;
-    }
-    return color;
-  }, [theme, buttonPrimaryVariants]);
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {
@@ -57,10 +48,23 @@ const ButtonPrimary = ({
     [setPressed, onPressOut],
   );
 
+  const renderLabel = () =>
+    typeof label === 'string' ? (
+      <Text
+        variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
+        color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
+      >
+        {label}
+      </Text>
+    ) : (
+      label
+    );
+
   return (
     <Button
       style={styles.base}
-      labelColor={labelColor}
+      label={renderLabel()}
+      labelColor={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
       onPressIn={triggerOnPressedIn}
       onPressOut={triggerOnPressedOut}
       {...props}

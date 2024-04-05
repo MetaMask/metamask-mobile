@@ -11,13 +11,18 @@ import ActionView from '../ActionView';
 import AssetSearch from '../AssetSearch';
 import AssetList from '../AssetList';
 import Engine from '../../../core/Engine';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+
 import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
 import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
+import { selectChainId } from '../../../selectors/networkController';
+import { selectUseTokenDetection } from '../../../selectors/preferencesController';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -49,26 +54,17 @@ interface Props {
  * Component that provides ability to add searched assets with metadata.
  */
 const SearchTokenAutocomplete = ({ navigation }: Props) => {
+  const { trackEvent } = useMetrics();
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAsset, setSelectedAsset] = useState({});
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const { address, symbol, decimals, image } = selectedAsset as any;
+  const { address, symbol, decimals, iconUrl, name } = selectedAsset as any;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const isTokenDetectionEnabled = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.PreferencesController.useTokenDetection,
-  );
-  const chainId = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.chainId,
-  );
-  const networkType = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.NetworkController.provider.type,
-  );
+  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
+  const chainId = useSelector(selectChainId);
 
   const setFocusState = useCallback(
     (isFocused: boolean) => {
@@ -83,14 +79,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       return {
         token_address: address,
         token_symbol: symbol,
-        network_name: networkType,
-        chain_id: chainId,
+        chain_id: getDecimalChainId(chainId),
         source: 'Add token dropdown',
       };
     } catch (error) {
       return {};
     }
-  }, [address, symbol, chainId, networkType]);
+  }, [address, symbol, chainId]);
 
   const cancelAddToken = useCallback(() => {
     navigation.goBack();
@@ -113,12 +108,12 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const addToken = useCallback(async () => {
     const { TokensController } = Engine.context as any;
-    await TokensController.addToken(address, symbol, decimals, image);
+    await TokensController.addToken(address, symbol, decimals, {
+      image: iconUrl,
+      name,
+    });
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.TOKEN_ADDED as any,
-      getAnalyticsParams(),
-    );
+    trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
 
     // Clear state before closing
     setSearchResults([]);
@@ -140,12 +135,14 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     address,
     symbol,
     decimals,
-    image,
+    iconUrl,
     setSearchResults,
     setSearchQuery,
     setSelectedAsset,
     navigation,
     getAnalyticsParams,
+    name,
+    trackEvent,
   ]);
 
   const renderTokenDetectionBanner = useCallback(() => {
@@ -175,12 +172,9 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
             suppressHighlighting
             onPress={() => {
               navigation.navigate('SettingsView', {
-                screen: 'SettingsFlow',
+                screen: 'AdvancedSettings',
                 params: {
-                  screen: 'AdvancedSettings',
-                  params: {
-                    scrollToBottom: true,
-                  },
+                  scrollToBottom: true,
                 },
               });
             }}
@@ -201,7 +195,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   ]);
 
   return (
-    <View style={styles.wrapper} testID={'search-token-screen'}>
+    <View style={styles.wrapper}>
       <ActionView
         cancelText={strings('add_asset.tokens.cancel_add_token')}
         confirmText={strings('add_asset.tokens.add_token')}

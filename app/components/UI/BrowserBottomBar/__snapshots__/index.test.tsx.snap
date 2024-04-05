@@ -1,18 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`BrowserBottomBar should render correctly 1`] = `
-<ElevatedView
-  elevation={11}
+<View
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "#D6D9DC",
-      "borderTopWidth": 0.5,
-      "flex": 0,
-      "flexDirection": "row",
-      "justifyContent": "space-between",
-      "paddingBottom": 18,
-    }
+    Array [
+      Object {
+        "shadowOffset": Object {
+          "height": 6.6,
+        },
+        "shadowOpacity": 0.1965,
+        "shadowRadius": 5.94,
+      },
+      Object {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#D6D9DC",
+        "borderTopWidth": 0.5,
+        "flex": 0,
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+      },
+    ]
   }
 >
   <TouchableOpacity
@@ -30,24 +37,36 @@ exports[`BrowserBottomBar should render correctly 1`] = `
         "width": 24,
       }
     }
-    testID="go-back-button"
+    testID="back-arrow-button"
   >
-    <Icon
+    <Text
       allowFontScaling={false}
-      name="angle-left"
-      size={24}
       style={
         Array [
           Object {
-            "color": "#24272A",
-            "height": 24,
-            "textAlign": "center",
-            "width": 24,
+            "color": undefined,
+            "fontSize": 24,
+          },
+          Array [
+            Object {
+              "color": "#24272A",
+              "height": 24,
+              "textAlign": "center",
+              "width": 24,
+            },
+            Object {},
+          ],
+          Object {
+            "fontFamily": "FontAwesome",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
           },
           Object {},
         ]
       }
-    />
+    >
+      
+    </Text>
   </TouchableOpacity>
   <TouchableOpacity
     disabled={true}
@@ -66,24 +85,36 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     }
     testID="go-forward-button"
   >
-    <Icon
+    <Text
       allowFontScaling={false}
-      name="angle-right"
-      size={24}
       style={
         Array [
           Object {
-            "color": "#24272A",
-            "height": 24,
-            "textAlign": "center",
-            "width": 24,
+            "color": undefined,
+            "fontSize": 24,
           },
+          Array [
+            Object {
+              "color": "#24272A",
+              "height": 24,
+              "textAlign": "center",
+              "width": 24,
+            },
+            Object {
+              "color": "#BBC0C5",
+            },
+          ],
           Object {
-            "color": "#BBC0C5",
+            "fontFamily": "FontAwesome",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
           },
+          Object {},
         ]
       }
-    />
+    >
+      
+    </Text>
   </TouchableOpacity>
   <TouchableOpacity
     onPress={[Function]}
@@ -101,19 +132,31 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     }
     testID="search-button"
   >
-    <Icon
+    <Text
       allowFontScaling={false}
-      name="search"
-      size={24}
       style={
-        Object {
-          "color": "#24272A",
-          "height": 24,
-          "textAlign": "center",
-          "width": 24,
-        }
+        Array [
+          Object {
+            "color": undefined,
+            "fontSize": 24,
+          },
+          Object {
+            "color": "#24272A",
+            "height": 24,
+            "textAlign": "center",
+            "width": 24,
+          },
+          Object {
+            "fontFamily": "Feather",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          Object {},
+        ]
       }
-    />
+    >
+      
+    </Text>
   </TouchableOpacity>
   <TouchableOpacity
     onPress={[Function]}
@@ -131,15 +174,41 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     }
     testID="show-tabs-button"
   >
-    <Connect(TabCountIcon)
+    <View
       style={
-        Object {
-          "height": 24,
-          "marginTop": 0,
-          "width": 24,
-        }
+        Array [
+          Object {
+            "alignItems": "center",
+            "borderColor": "#535A61",
+            "borderRadius": 6,
+            "borderWidth": 2,
+            "justifyContent": "center",
+          },
+          Object {
+            "height": 24,
+            "marginTop": 0,
+            "width": 24,
+          },
+        ]
       }
-    />
+    >
+      <Text
+        style={
+          Object {
+            "alignSelf": "center",
+            "color": "#535A61",
+            "flex": 0,
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 15,
+            "fontWeight": "400",
+            "textAlign": "center",
+          }
+        }
+        testID="show-tabs-number"
+      >
+        0
+      </Text>
+    </View>
   </TouchableOpacity>
   <TouchableOpacity
     onPress={[Function]}
@@ -157,19 +226,31 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     }
     testID="home-button"
   >
-    <Icon
+    <Text
       allowFontScaling={false}
-      name="home"
-      size={22}
       style={
-        Object {
-          "color": "#24272A",
-          "height": 24,
-          "textAlign": "center",
-          "width": 24,
-        }
+        Array [
+          Object {
+            "color": undefined,
+            "fontSize": 22,
+          },
+          Object {
+            "color": "#24272A",
+            "height": 24,
+            "textAlign": "center",
+            "width": 24,
+          },
+          Object {
+            "fontFamily": "simple-line-icons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          Object {},
+        ]
       }
-    />
+    >
+      
+    </Text>
   </TouchableOpacity>
   <TouchableOpacity
     onPress={[Function]}
@@ -187,19 +268,31 @@ exports[`BrowserBottomBar should render correctly 1`] = `
     }
     testID="options-button"
   >
-    <Icon
+    <Text
       allowFontScaling={false}
-      name="more-horiz"
-      size={22}
       style={
-        Object {
-          "color": "#24272A",
-          "height": 24,
-          "textAlign": "center",
-          "width": 24,
-        }
+        Array [
+          Object {
+            "color": undefined,
+            "fontSize": 22,
+          },
+          Object {
+            "color": "#24272A",
+            "height": 24,
+            "textAlign": "center",
+            "width": 24,
+          },
+          Object {
+            "fontFamily": "Material Icons",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          Object {},
+        ]
       }
-    />
+    >
+      
+    </Text>
   </TouchableOpacity>
-</ElevatedView>
+</View>
 `;

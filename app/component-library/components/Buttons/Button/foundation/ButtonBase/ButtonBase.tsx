@@ -5,42 +5,77 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 
 // External dependencies.
-import Text, { TextVariants } from '../../../../Texts/Text';
-import Icon, { IconSize } from '../../../../Icon';
+import Text from '../../../../Texts/Text';
+import Icon from '../../../../Icons/Icon';
 import { useStyles } from '../../../../../hooks';
 
 // Internal dependencies.
-import { ButtonBaseProps, ButtonSize } from './ButtonBase.types';
+import { ButtonBaseProps } from './ButtonBase.types';
 import styleSheet from './ButtonBase.styles';
+import {
+  DEFAULT_BUTTONBASE_LABEL_COLOR,
+  DEFAULT_BUTTONBASE_SIZE,
+  DEFAULT_BUTTONBASE_WIDTH,
+  DEFAULT_BUTTONBASE_ICON_SIZE,
+  DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
+} from './ButtonBase.constants';
 
 const ButtonBase = ({
   label,
-  iconName,
-  size = ButtonSize.Md,
+  labelColor = DEFAULT_BUTTONBASE_LABEL_COLOR,
+  startIconName,
+  endIconName,
+  size = DEFAULT_BUTTONBASE_SIZE,
   onPress,
   style,
-  labelColor,
+  width = DEFAULT_BUTTONBASE_WIDTH,
+  isDisabled,
   ...props
 }: ButtonBaseProps) => {
-  const { styles } = useStyles(styleSheet, { style, size, labelColor });
+  const { styles } = useStyles(styleSheet, {
+    style,
+    size,
+    width,
+    isDisabled,
+  });
+
   return (
     <TouchableOpacity
+      disabled={isDisabled}
       activeOpacity={1}
       onPress={onPress}
       style={styles.base}
+      accessibilityRole="button"
+      accessible
       {...props}
     >
-      {iconName && (
+      {startIconName && (
         <Icon
-          color={labelColor}
-          name={iconName}
-          size={IconSize.Sm}
-          style={styles.icon}
+          color={labelColor.toString()}
+          name={startIconName}
+          size={DEFAULT_BUTTONBASE_ICON_SIZE}
+          style={styles.startIcon}
         />
       )}
-      <Text variant={TextVariants.sBodyMD} style={styles.label}>
-        {label}
-      </Text>
+      {typeof label === 'string' ? (
+        <Text
+          variant={DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT}
+          style={styles.label}
+          accessibilityRole="none"
+        >
+          {label}
+        </Text>
+      ) : (
+        label
+      )}
+      {endIconName && (
+        <Icon
+          color={labelColor.toString()}
+          name={endIconName}
+          size={DEFAULT_BUTTONBASE_ICON_SIZE}
+          style={styles.endIcon}
+        />
+      )}
     </TouchableOpacity>
   );
 };

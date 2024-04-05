@@ -1,20 +1,46 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ChoosePassword should render correctly 1`] = `
-<ChoosePassword
-  logIn={[Function]}
-  passwordSet={[Function]}
-  passwordUnset={[Function]}
-  route={
+<ContextProvider
+  value={
     Object {
-      "params": Array [
-        "onboarding",
-        "protect",
-      ],
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
     }
   }
-  seedphraseNotBackedUp={[Function]}
-  selectedAddress="0xe7E125654064EEa56229f273dA586F10DF96B0a1"
-  setLockTime={[Function]}
-/>
+>
+  <Component
+    route={
+      Object {
+        "params": Array [
+          "onboarding",
+          "protect",
+        ],
+      }
+    }
+  />
+</ContextProvider>
 `;

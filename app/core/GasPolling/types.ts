@@ -108,30 +108,36 @@ export interface GasFeeOptions {
   };
 }
 
-export interface UseGasTransactionProps extends GasTransactionProps {
+export interface UseGasTransactionProps {
   /**
-   * The selected gas value (low, medium, high). Gas value can be null when the advanced option is modified.
+   * The gasSelected property is optional, as it is only relevant for 1559 transactions and not for legacy transactions.
+   * When it is present, it can take values of ['low', 'medium', 'high', null].
+   * If the value is null, it indicates that the advanced option is enabled.
    */
-  gasSelected: string | null;
+  gasSelected?: string | null;
   onlyGas?: boolean;
+
   /**
    * The type of transaction (EIP1559, legacy)
    */
   legacy?: boolean;
   /**
-   * the gas transaction props
-   */
-  gasData: GasTransactionProps;
-  /**
    * gas object for calculating the gas transaction cost
    */
-  gasObject: {
-    legacyGasLimit: string;
-    suggestedGasPrice: any;
-    suggestedGasLimit?: string;
+  gasObject?: {
+    suggestedGasLimit: string;
     suggestedMaxFeePerGas: string;
     suggestedMaxPriorityFeePerGas: string;
   };
+  /**
+   * When legacy transaction gas limit or gas price values are updated in the edit mode, pass those values to this object.
+   */
+  gasObjectLegacy?: {
+    legacyGasLimit?: string;
+    suggestedGasPrice?: string;
+  };
+
+  multiLayerL1FeeTotal?: string;
 }
 
 export interface TransactionSharedProps {
@@ -151,31 +157,30 @@ export interface TransactionSharedProps {
    * For UpdateEIP1559Transaction, the transactionState are undefined.
    */
   transactionState: {
-    assetType: string | undefined;
-    ensRecipient: string | undefined;
-    id: string | undefined;
-    nonce: string | undefined;
-    paymentRequest: string | undefined;
-    proposedNonce: string | undefined;
-    readableValue: string | undefined;
+    assetType?: string;
+    ensRecipient?: string;
+    id?: string;
+    nonce?: string;
+    proposedNonce?: string;
+    readableValue?: string;
     selectedAsset: Record<string, unknown>;
-    symbol: string | undefined;
+    symbol?: string;
     transaction: {
-      data: string | undefined;
-      from: string | undefined;
-      gas: string | undefined;
-      gasPrice: string | undefined;
-      maxFeePerGas: string | undefined;
-      maxPriorityFeePerGas: string | undefined;
-      to: string | undefined;
-      value: string | undefined;
+      data?: string;
+      from?: string;
+      gas?: string;
+      gasPrice?: string;
+      maxFeePerGas?: string;
+      maxPriorityFeePerGas?: string;
+      to?: string;
+      value?: string;
     };
-    transactionFromName: string | undefined;
-    transactionTo: string | undefined;
-    transactionToName: string | undefined;
-    transactionValue: string | undefined;
-    type: string | undefined;
-    warningGasPriceHigh: string | undefined;
+    transactionFromName?: string;
+    transactionTo?: string;
+    transactionToName?: string;
+    transactionValue?: string;
+    type?: string;
+    warningGasPriceHigh?: string;
   };
   contractExchangeRates: Record<string, unknown>;
 }
@@ -210,5 +215,9 @@ export interface LegacyProps {
   transactionState: any;
   ticker: string;
   onlyGas?: boolean;
-  gas: any;
+  multiLayerL1FeeTotal?: string;
+  gas: {
+    suggestedGasLimit: string;
+    suggestedGasPrice?: string;
+  };
 }

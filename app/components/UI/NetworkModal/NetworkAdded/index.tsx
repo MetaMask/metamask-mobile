@@ -4,10 +4,7 @@ import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
-import {
-  NEW_NETWORK_ADDED_CLOSE_BUTTON_ID,
-  NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID,
-} from '../../../../constants/test-ids';
+import { NetworkAddedModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/NetworkAddedModal.selectors';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
@@ -48,14 +45,14 @@ const NetworkAdded = (props: NetworkAddedProps) => {
       </Text>
       <Text centered>
         <Text bold>{`"${strings('networks.network_name', {
-          networkName: nickname,
+          networkName: nickname ?? '',
         })}"`}</Text>
         <Text>{strings('networks.network_added')}</Text>
       </Text>
       <View style={styles.buttonView}>
         <StyledButton
           type={'cancel'}
-          testID={NEW_NETWORK_ADDED_CLOSE_BUTTON_ID}
+          testID={NetworkAddedModalSelectorsIDs.CLOSE_NETWORK_BUTTON}
           onPress={closeModal}
           containerStyle={[styles.button, styles.cancel]}
         >
@@ -64,7 +61,7 @@ const NetworkAdded = (props: NetworkAddedProps) => {
         <StyledButton
           type={'confirm'}
           onPress={switchNetwork}
-          testID={NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID}
+          testID={NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON}
           containerStyle={[styles.button, styles.confirm]}
         >
           {strings('networks.switch_network')}

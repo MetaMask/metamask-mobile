@@ -7,21 +7,20 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
   style={
     Object {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
       "flexDirection": "row",
       "height": 24,
       "justifyContent": "center",
     }
   }
-  testID="accordion-header"
+  testID="accordionheader"
 >
   <Text
     style={
       Object {
-        "color": "#037DD6",
+        "color": "#0376C9",
       }
     }
-    testID="accordion-header-title"
+    testID="accordionheader-title"
     variant="sBodyMD"
   >
     Sample Accordion Header Title
@@ -41,13 +40,13 @@ exports[`AccordionHeader - Snapshot should render a rotated down Arrow if isExpa
         },
       ]
     }
-    testID="accordion-header-arrow-icon-animation"
+    testID="accordionheader-arrow-icon-animation"
   >
     <Icon
-      color="#037DD6"
-      name="ArrowUpOutline"
+      color="#0376C9"
+      name="ArrowDown"
       size="16"
-      testID="accordion-header-arrow-icon"
+      testID="accordionheader-arrow-icon"
     />
   </View>
 </TouchableOpacity>
@@ -60,21 +59,20 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
   style={
     Object {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
       "flexDirection": "row",
       "height": 24,
       "justifyContent": "center",
     }
   }
-  testID="accordion-header"
+  testID="accordionheader"
 >
   <Text
     style={
       Object {
-        "color": "#037DD6",
+        "color": "#0376C9",
       }
     }
-    testID="accordion-header-title"
+    testID="accordionheader-title"
     variant="sBodyMD"
   >
     Sample Accordion Header Title
@@ -94,13 +92,13 @@ exports[`AccordionHeader - Snapshot should render default settings correctly 1`]
         },
       ]
     }
-    testID="accordion-header-arrow-icon-animation"
+    testID="accordionheader-arrow-icon-animation"
   >
     <Icon
-      color="#037DD6"
-      name="ArrowUpOutline"
+      color="#0376C9"
+      name="ArrowDown"
       size="16"
-      testID="accordion-header-arrow-icon"
+      testID="accordionheader-arrow-icon"
     />
   </View>
 </TouchableOpacity>

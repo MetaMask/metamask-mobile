@@ -6,7 +6,7 @@ import { ImageSourcePropType, TouchableOpacityProps } from 'react-native';
  */
 export interface PickerNetworkProps extends TouchableOpacityProps {
   /**
-   * Network image from either a local or remote source.
+   * Optional Network image from either a local or remote source.
    */
   imageSource: ImageSourcePropType;
   /**
@@ -16,7 +16,7 @@ export interface PickerNetworkProps extends TouchableOpacityProps {
   /**
    * Callback to trigger when picker is pressed.
    */
-  onPress: () => void;
+  onPress?: () => void;
 }
 
 export type PickerNetworkStyleSheetVars = Pick<PickerNetworkProps, 'style'>;

@@ -6,10 +6,11 @@ exports[`ButtonBase should render correctly 1`] = `
     Array [
       Object {
         "backgroundColor": "#FFFFFF",
-        "borderColor": "#F66A0A",
+        "borderColor": "#BF5208",
         "borderRadius": 8,
         "bottom": 20,
         "left": 16,
+        "paddingBottom": 16,
         "position": "absolute",
         "right": 16,
       },
@@ -30,23 +31,8 @@ exports[`ButtonBase should render correctly 1`] = `
     type="Warning"
   >
     <Text
-      bigger={false}
-      black={false}
-      blue={false}
-      bold={false}
-      centered={false}
-      disclaimer={false}
-      green={false}
-      link={false}
-      modal={false}
-      muted={false}
       noMargin={true}
       primary={true}
-      red={false}
-      reset={false}
-      right={false}
-      small={false}
-      strikethrough={false}
       style={
         Object {
           "color": "#24272A",
@@ -54,8 +40,6 @@ exports[`ButtonBase should render correctly 1`] = `
           "paddingLeft": 4,
         }
       }
-      underline={false}
-      upper={false}
     >
       test
     </Text>

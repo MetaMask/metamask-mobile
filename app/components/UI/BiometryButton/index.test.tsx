@@ -1,10 +1,18 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import BiometryButton from './';
+import { render } from '@testing-library/react-native';
+import BiometryButton from './BiometryButton';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 
 describe('BiometryButton', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<BiometryButton />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = render(
+      <BiometryButton
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onPress={() => {}}
+        hidden={false}
+        biometryType={AUTHENTICATION_TYPE.BIOMETRIC}
+      />,
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 });

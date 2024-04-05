@@ -4,12 +4,12 @@ exports[`TextEstimated - Snapshot should render default settings correctly 1`] =
 <TextWithPrefixIcon
   iconProps={
     Object {
-      "name": "TildeOutline",
+      "name": "Tilde",
       "size": "12",
     }
   }
   testID="text-estimated"
-  variant="lBodyMD"
+  variant="sHeadingSMRegular"
 >
   Sample Text
 </TextWithPrefixIcon>

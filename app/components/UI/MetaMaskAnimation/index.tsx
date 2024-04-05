@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import LottieView from 'lottie-react-native';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../../../../wdio/features/testIDs/Components/MetaMaskAnimation.testIds';
+import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../../../../wdio/screen-objects/testIDs/Components/MetaMaskAnimation.testIds';
 
 const LOGO_SIZE = 175;
 const LOGO_PADDING = 25;
@@ -56,12 +56,12 @@ const createStyles = (colors: any) =>
 
 const MetaMaskAnimation = ({
   opacity,
-  animation,
+  animationRef,
   animationName,
   onAnimationFinish,
 }: {
   opacity: number;
-  animation: any;
+  animationRef: any;
   animationName: any;
   onAnimationFinish: () => void;
 }): JSX.Element => {
@@ -78,7 +78,8 @@ const MetaMaskAnimation = ({
             {...generateTestId(Platform, SPLASH_SCREEN_METAMASK_ANIMATION_ID)}
           >
             <LottieView
-              ref={animation}
+              autoPlay={false}
+              ref={animationRef}
               style={styles.animation}
               loop={false}
               // eslint-disable-next-line
@@ -86,6 +87,7 @@ const MetaMaskAnimation = ({
               onAnimationFinish={onAnimationFinish}
             />
             <LottieView
+              autoPlay={false}
               ref={animationName}
               style={styles.metamaskName}
               loop={false}

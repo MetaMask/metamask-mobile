@@ -1,0 +1,15 @@
+name: "Conventional Commit Validation PR Title"
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened,edited]
+
+jobs:
+  pr-title-linter:
+    runs-on: ubuntu-latest
+    steps:
+    # v5.2.0
+    - uses: amannn/action-semantic-pull-request@c3cd5d1ea3580753008872425915e343e351ab54
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

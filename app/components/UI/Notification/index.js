@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import Animated, { EasingNode } from 'react-native-reanimated';
 import { useNavigationState } from '@react-navigation/native';
 import {
   removeCurrentNotification,
@@ -14,6 +13,12 @@ import { currentNotificationSelector } from '../../../reducers/notification';
 
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import usePrevious from '../../hooks/usePrevious';
+import {
+  useSharedValue,
+  withTiming,
+  Easing,
+  runOnJS,
+} from 'react-native-reanimated';
 
 const { TRANSACTION, SIMPLE } = notificationTypes;
 
@@ -22,22 +27,20 @@ const BROWSER_ROUTE = 'BrowserView';
 function Notification({
   currentNotification,
   currentNotificationIsVisible,
-  navigation,
   hideCurrentNotification,
   removeCurrentNotification,
 }) {
-  const notificationAnimated = useRef(new Animated.Value(200)).current;
+  const notificationAnimated = useSharedValue(200);
   const routes = useNavigationState((state) => state.routes);
 
   const prevNotificationIsVisible = usePrevious(currentNotificationIsVisible);
 
   const animatedTimingStart = useCallback((animatedRef, toValue, callback) => {
-    Animated.timing(animatedRef, {
+    animatedRef.value = withTiming(
       toValue,
-      duration: 500,
-      easing: EasingNode.linear,
-      useNativeDriver: true,
-    }).start(({ finished }) => finished && callback?.());
+      { duration: 500, easing: Easing.linear },
+      () => callback && runOnJS(callback)(),
+    );
   }, []);
 
   const isInBrowserView = useMemo(
@@ -103,7 +106,6 @@ function Notification({
 }
 
 Notification.propTypes = {
-  navigation: PropTypes.object,
   currentNotification: PropTypes.object,
   currentNotificationIsVisible: PropTypes.bool,
   hideCurrentNotification: PropTypes.func,

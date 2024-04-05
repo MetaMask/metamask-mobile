@@ -6,6 +6,7 @@ import StyledButton from '../StyledButton'; // eslint-disable-line  import/no-un
 import AssetIcon from '../AssetIcon';
 import { fontStyles } from '../../../styles/common';
 import Text from '../../Base/Text';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/ImportTokenView.selectors';
 
 const styles = StyleSheet.create({
   rowWrapper: {
@@ -60,11 +61,9 @@ export default class AssetList extends PureComponent {
     const { searchResults = [], handleSelectAsset, selectedAsset } = this.props;
 
     return (
-      <View style={styles.rowWrapper} testID={'add-searched-token-screen'}>
+      <View style={styles.rowWrapper}>
         {searchResults.length > 0 ? (
-          <Text style={styles.normalText} testID={'select-token-title'}>
-            {strings('token.select_token')}
-          </Text>
+          <Text style={styles.normalText}>{strings('token.select_token')}</Text>
         ) : null}
         {searchResults.length === 0 && this.props.searchQuery.length ? (
           <Text style={styles.normalText}>
@@ -81,7 +80,7 @@ export default class AssetList extends PureComponent {
               containerStyle={styles.item}
               onPress={() => handleSelectAsset(searchResults[i])} // eslint-disable-line
               key={i}
-              testID={'searched-token-result'}
+              testID={ImportTokenViewSelectorsIDs.CONTAINER}
             >
               <View style={styles.assetListElement}>
                 <AssetIcon address={address} logo={iconUrl} />

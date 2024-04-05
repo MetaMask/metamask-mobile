@@ -1,5 +1,5 @@
 import Logger from './Logger';
-import { trackErrorAsAnalytics } from './analyticsV2';
+import trackErrorAsAnalytics from './metrics/TrackError/trackErrorAsAnalytics';
 
 /**
  * List of rpc errors caused by the user rejecting a certain action.
@@ -97,6 +97,7 @@ export function createLoggerMiddleware(opts) {
               message: 'Error in RPC response',
               orginalError: error,
               res: resWithoutError,
+              req,
             };
 
             if (error.message) {

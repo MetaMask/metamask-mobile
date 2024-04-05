@@ -12,6 +12,8 @@ interface Security {
   More information on this interface can be found here: https://github.com/MetaMask/metamask-mobile/tree/gh-pages
   - this interface should match the this api: https://github.com/MetaMask/metamask-mobile/tree/gh-pages#app-config-api
 */
-export default interface AppConfig {
+interface AppConfig {
   security: Security;
 }
+
+export default AppConfig;

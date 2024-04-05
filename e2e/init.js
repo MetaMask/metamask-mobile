@@ -1,22 +1,11 @@
-const config = require('../package.json').detox; // eslint-disable-line
+import Utilities from './utils/Utilities';
 
-import detox from 'detox';
-import adapter from 'detox/runners/jest/adapter';
-
-jest.setTimeout(2250000);
-jasmine.getEnv().addReporter(adapter);
-
+/**
+ * Before all tests, modify the app launch arguments to include the blacklistURLs.
+ * This sets up the environment for Detox tests.
+ */
 beforeAll(async () => {
-  await detox.init(config);
-  await device.launchApp();
-});
-
-beforeEach(async () => {
-  await adapter.beforeEach();
-});
-
-afterAll(async () => {
-  await adapter.afterAll();
-  await detox.cleanup();
-  jest.setTimeout(3000);
+  device.appLaunchArgs.modify({
+    detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+  });
 });

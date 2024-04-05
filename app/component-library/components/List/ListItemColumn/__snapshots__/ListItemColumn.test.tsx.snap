@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ListItemColumn should render snapshot correctly 1`] = `
+<View
+  style={
+    Object {
+      "flex": -1,
+    }
+  }
+  testID="listitemcolumn"
+>
+  <View />
+</View>
+`;

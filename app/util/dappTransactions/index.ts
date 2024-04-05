@@ -6,6 +6,7 @@ import { toLowerCaseEquals } from '../general';
 import { strings } from '../../../locales/i18n';
 import { BN } from 'ethereumjs-util';
 import { lt } from '../lodash';
+import { estimateGas as controllerEstimateGas } from '../transaction-controller';
 
 interface opts {
   amount?: string;
@@ -66,7 +67,6 @@ export const estimateGas = async (
   opts: opts,
   transaction: Transaction,
 ): Promise<EstimatedGas> => {
-  const { TransactionController }: any = Engine.context;
   const { from, selectedAsset } = transaction;
   const {
     amount = transaction.value,
@@ -75,7 +75,7 @@ export const estimateGas = async (
   } = opts;
   let estimation;
   try {
-    estimation = await TransactionController.estimateGas({
+    estimation = await controllerEstimateGas({
       amount,
       from,
       data,
@@ -123,6 +123,7 @@ export const validateTokenAmount = async (
   gas: BN,
   from: string,
   selectedAsset: SelectedAsset,
+  selectedAddress: string,
   contractBalances: ContractBalances,
   allowEmpty = true,
 ): Promise<string | undefined> => {
@@ -143,13 +144,13 @@ export const validateTokenAmount = async (
     // If user trying to send a token that doesn't own, validate balance querying contract
     // If it fails, skip validation
     let contractBalanceForAddress;
-    if (contractBalances[selectedAsset.address]) {
+    if (selectedAddress === from && contractBalances[selectedAsset.address]) {
       contractBalanceForAddress = hexToBN(
         contractBalances[selectedAsset.address].toString(),
       );
     } else {
-      const { AssetsContractController }: any = Engine.context;
       try {
+        const { AssetsContractController }: any = Engine.context;
         contractBalanceForAddress =
           await AssetsContractController.getERC20BalanceOf(
             selectedAsset.address,
@@ -216,6 +217,7 @@ export const validateAmount = async (
         gas,
         from,
         selectedAsset,
+        selectedAddress,
         contractBalances,
         allowEmpty,
       ),
@@ -231,14 +233,12 @@ interface GasAnalyticsParams {
   dapp_url: string;
   active_currency: { value: string; anonymous: boolean };
   gas_estimate_type: string;
-  network_name: string;
 }
 
 export const getGasAnalyticsParams = (
   transaction: Transaction,
   activeTabUrl: string,
   gasEstimateType: string,
-  networkType: string,
 ): GasAnalyticsParams | Record<string, never> => {
   try {
     const { selectedAsset, origin } = transaction;
@@ -247,7 +247,6 @@ export const getGasAnalyticsParams = (
       dapp_url: activeTabUrl,
       active_currency: { value: selectedAsset?.symbol, anonymous: true },
       gas_estimate_type: gasEstimateType,
-      network_name: networkType,
     };
   } catch (error) {
     return {};

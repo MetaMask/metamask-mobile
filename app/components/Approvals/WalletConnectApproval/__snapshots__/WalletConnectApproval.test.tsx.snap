@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WalletConnectApproval populates page information using request data 1`] = `
+<ApprovalModal
+  isVisible={true}
+>
+  <Component
+    currentPageInformation={
+      Object {
+        "icon": "testIcon",
+        "title": "testName",
+        "url": "testUrl",
+      }
+    }
+    walletConnectRequest={true}
+  />
+</ApprovalModal>
+`;
+
+exports[`WalletConnectApproval renders 1`] = `
+<ApprovalModal
+  isVisible={true}
+>
+  <Component
+    currentPageInformation={
+      Object {
+        "icon": undefined,
+        "title": undefined,
+        "url": undefined,
+      }
+    }
+    walletConnectRequest={true}
+  />
+</ApprovalModal>
+`;
+
+exports[`WalletConnectApproval sets isVisible to false if incorrect approval request type 1`] = `
+<ApprovalModal
+  isVisible={false}
+>
+  <Component
+    currentPageInformation={
+      Object {
+        "icon": undefined,
+        "title": undefined,
+        "url": undefined,
+      }
+    }
+    walletConnectRequest={true}
+  />
+</ApprovalModal>
+`;
+
+exports[`WalletConnectApproval sets isVisible to false if no approval request 1`] = `
+<ApprovalModal
+  isVisible={false}
+>
+  <Component
+    currentPageInformation={
+      Object {
+        "icon": undefined,
+        "title": undefined,
+        "url": undefined,
+      }
+    }
+    walletConnectRequest={true}
+  />
+</ApprovalModal>
+`;

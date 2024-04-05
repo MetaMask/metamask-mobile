@@ -1,6 +1,6 @@
 /* eslint-disable import/no-commonjs */
 const Through = require('through2');
-const ObjectMultiplex = require('obj-multiplex');
+const ObjectMultiplex = require('@metamask/object-multiplex');
 const pump = require('pump');
 
 /**

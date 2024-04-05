@@ -4,23 +4,15 @@ CellDisplay is a component used for displaying cell displays.
 
 ## Props
 
-This component extends [CellDisplayContainerProps](../CellDisplayContainer/CellDisplayContainer/CellDisplayContainer.types.ts) and [CellBase](../CellBase/CellBase.types.ts#L17).
-
-### `variant`
-
-Variant of Cell.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellVariants](../../Cell.types.ts#L9)                                              | No                                                     |
+This component extends [CellBase](../../foundation/CellBase/CellBase.types.ts#L13).
 
 ### `avatarProps`
 
 Props for the [Avatar](../../../../Avatars/Avatar.tsx) component (with the exception of size). Avatar size is restricted to size Md(32x32) for Cells
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19)                                              | Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :----------------------------------------------------- | :------------------------------------------------------ |
+| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19) | Yes                                                     |
 
 ### `title`
 
@@ -54,27 +46,14 @@ Optional label (using [Tag](../../../../Tags/Tag/Tag.tsx) component) below the t
 | :-------------------------------------------------- | :------------------------------------------------------ |
 | string                                              | No                                                      |
 
-### `children`
-
-Optional accessory that can be inserted on the right of Cell.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                           | Yes                                                     |
-
 ## Usage
 
 ```javascript
-// Change import path to relative path.
-import CellDisplay from 'app/component-library/components/Cells/variants/CellDisplay/CellDisplay';
-import { CellVariants } from 'app/component-library/components/Cells/Cell.types';
-
 <CellDisplay
-  variant={CellVariants.Display}
-  avatarProps={AVATAR_PROPS}
-  title={TITLE}
-  secondaryText={SECONDARY_TEXT}
-  tertiaryText={TERTIARY_TEXT}
-  tagLabel={TAG_LABEL}
+  avatarProps={SAMPLE_AVATAR_PROPS}
+  title={SAMPLE_TITLE}
+  secondaryText={SAMPLE_SECONDARY_TEXT}
+  tertiaryText={SAMPLE_TERTIARY_TEXT}
+  tagLabel={SAMPLE_TAG_LABEL}
 />;
 ```

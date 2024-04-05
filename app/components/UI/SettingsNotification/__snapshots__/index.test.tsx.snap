@@ -35,7 +35,7 @@ exports[`SettingsNotification should render correctly as warning 1`] = `
         "width": "100%",
       },
       Object {
-        "backgroundColor": "#D73A4919",
+        "backgroundColor": "#D7384719",
       },
     ]
   }

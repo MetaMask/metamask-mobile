@@ -2,11 +2,11 @@
 import { ImageSourcePropType } from 'react-native';
 import {
   AvatarProps,
-  AvatarVariants,
+  AvatarVariant,
 } from '../../../components/Avatars/Avatar/Avatar.types';
 import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
 import {
-  BadgeVariants,
+  BadgeVariant,
   BadgeProps,
 } from '../../../components/Badges/Badge/Badge.types';
 
@@ -28,13 +28,13 @@ export const TEST_REMOTE_IMAGE_SOURCE: ImageSourcePropType = {
 };
 
 export const TEST_AVATAR_PROPS: AvatarProps = {
-  variant: AvatarVariants.Account,
+  variant: AvatarVariant.Account,
   accountAddress: TEST_ACCOUNT_ADDRESS,
   type: AvatarAccountType.JazzIcon,
 };
 
 export const BADGE_PROPS: BadgeProps = {
-  variant: BadgeVariants.Network,
+  variant: BadgeVariant.Network,
   name: 'Ethereum',
   imageSource: TEST_REMOTE_IMAGE_SOURCE,
 };

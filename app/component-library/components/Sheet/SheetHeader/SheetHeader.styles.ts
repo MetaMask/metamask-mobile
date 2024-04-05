@@ -20,7 +20,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
+      margin: 16,
       backgroundColor: colors.background.default,
       height: 32,
     },

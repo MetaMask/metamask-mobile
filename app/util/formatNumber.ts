@@ -1,4 +1,6 @@
-const formatNumber = (value: number) =>
-  value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+import BigNumber from 'bignumber.js';
+
+const formatNumber = (value: number | string) =>
+  new BigNumber(value).toFormat();
 
 export default formatNumber;

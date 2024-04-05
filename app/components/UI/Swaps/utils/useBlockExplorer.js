@@ -8,7 +8,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { getEtherscanBaseUrl } from '../../../../util/etherscan';
 
-function useBlockExplorer(provider, frequentRpcList) {
+function useBlockExplorer(providerConfig, networkConfigurations) {
   const [explorer, setExplorer] = useState({
     name: '',
     value: null,
@@ -18,11 +18,11 @@ function useBlockExplorer(provider, frequentRpcList) {
   });
 
   useEffect(() => {
-    if (provider.type === RPC) {
+    if (providerConfig.type === RPC) {
       try {
         const blockExplorer = findBlockExplorerForRpc(
-          provider.rpcTarget,
-          frequentRpcList,
+          providerConfig.rpcUrl,
+          networkConfigurations,
         );
         if (!blockExplorer) {
           throw new Error('No block explorer url');
@@ -54,13 +54,13 @@ function useBlockExplorer(provider, frequentRpcList) {
     } else {
       setExplorer({
         name: 'Etherscan',
-        value: provider.chainId,
+        value: providerConfig.chainId,
         isValid: true,
         isRPC: false,
-        baseUrl: getEtherscanBaseUrl(provider.type),
+        baseUrl: getEtherscanBaseUrl(providerConfig.type),
       });
     }
-  }, [frequentRpcList, provider]);
+  }, [networkConfigurations, providerConfig]);
 
   const tx = useCallback(
     (hash) => {

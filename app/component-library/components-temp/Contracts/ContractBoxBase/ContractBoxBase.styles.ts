@@ -18,9 +18,14 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
+    imageContainer: {
+      marginRight: 16,
+    },
+    icon: {
+      paddingHorizontal: 6,
+    },
     iconContainer: {
       flexDirection: 'row',
-      width: 60,
       alignItems: 'center',
       justifyContent: 'space-between',
     },

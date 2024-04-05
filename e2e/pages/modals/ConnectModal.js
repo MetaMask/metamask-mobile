@@ -1,24 +1,66 @@
-import TestHelpers from '../../helpers';
 import {
-  ACCOUNT_APROVAL_MODAL_CONTAINER_ID,
-  CANCEL_BUTTON_ID,
-  CONNECT_BUTTON_ID,
-} from '../../../app/constants/test-ids';
+  ConnectAccountModalSelectorsIDs,
+  ConnectAccountModalSelectorsText,
+} from '../../selectors/Modals/ConnectAccountModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class ConnectModal {
-  static async tapCancelButton() {
-    await TestHelpers.tap(CANCEL_BUTTON_ID);
+class ConnectModal {
+  get container() {
+    return Matchers.getElementByID(ConnectAccountModalSelectorsIDs.CONTAINER);
   }
 
-  static async tapConnectButton() {
-    await TestHelpers.tap(CONNECT_BUTTON_ID);
+  get connectButton() {
+    return Matchers.getElementByID(ConnectAccountModalSelectorsIDs.CONTAINER);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(ACCOUNT_APROVAL_MODAL_CONTAINER_ID);
+  get connectAccountsButton() {
+    return Matchers.getElementByText(
+      ConnectAccountModalSelectorsText.CONNECT_ACCOUNTS,
+    );
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ACCOUNT_APROVAL_MODAL_CONTAINER_ID);
+  get importButton() {
+    return Matchers.getElementByText(
+      ConnectAccountModalSelectorsText.IMPORT_ACCOUNT,
+    );
+  }
+
+  get selectAllButton() {
+    return Matchers.getElementByText(
+      ConnectAccountModalSelectorsText.SELECT_ALL,
+    );
+  }
+
+  get selectMultiButton() {
+    return Matchers.getElementByID(
+      ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
+    );
+  }
+
+  async tapConnectButton() {
+    await Gestures.waitAndTap(this.connectButton);
+  }
+
+  async tapConnectMultipleAccountsButton() {
+    await Gestures.waitAndTap(this.connectAccountsButton);
+  }
+
+  async tapImportAccountOrHWButton() {
+    await Gestures.waitAndTap(this.importButton);
+  }
+
+  async tapSelectAllButton() {
+    await Gestures.waitAndTap(this.selectAllButton);
+  }
+
+  async tapAccountConnectMultiSelectButton() {
+    await Gestures.waitAndTap(this.selectMultiButton);
+  }
+
+  async scrollToBottomOfModal() {
+    await Gestures.swipe(this.container, 'down', 'slow');
   }
 }
+
+export default new ConnectModal();

@@ -1,28 +1,39 @@
-import TestHelpers from '../../helpers';
-import {
-  ENTER_ALIAS_INPUT_BOX_ID,
-  ADD_ADDRESS_MODAL_CONTAINER_ID,
-} from '../../../app/constants/test-ids';
+import { AddAddressModalSelectorsIDs } from '../../selectors/Modals/AddAddressModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-export default class AddAddressModal {
-  static async typeInAlias(name) {
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.replaceTextInField(ENTER_ALIAS_INPUT_BOX_ID, name);
-      await element(by.id(ENTER_ALIAS_INPUT_BOX_ID)).tapReturnKey();
-    } else {
-      await TestHelpers.typeTextAndHideKeyboard(ENTER_ALIAS_INPUT_BOX_ID, name);
-    }
+class AddAddressModal {
+  get container() {
+    return Matchers.getElementByID(AddAddressModalSelectorsIDs.CONTAINER);
   }
 
-  static async tapSaveButton() {
-    await TestHelpers.tapByText('Save');
+  get aliasInput() {
+    return Matchers.getElementByID(
+      AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT,
+    );
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(ADD_ADDRESS_MODAL_CONTAINER_ID);
+  get saveButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(AddAddressModalSelectorsIDs.SAVE_BUTTON)
+      : Matchers.getElementByID(AddAddressModalSelectorsIDs.SAVE_BUTTON);
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(ADD_ADDRESS_MODAL_CONTAINER_ID);
+  get title() {
+    return Matchers.getElementByID(AddAddressModalSelectorsIDs.TITLE);
+  }
+
+  async typeInAlias(name) {
+    await Gestures.typeTextAndHideKeyboard(this.aliasInput, name);
+  }
+
+  async tapSaveButton() {
+    await Gestures.waitAndTap(this.saveButton);
+  }
+
+  async tapTitle() {
+    await Gestures.waitAndTap(this.title);
   }
 }
+
+export default new AddAddressModal();

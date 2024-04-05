@@ -1,11 +1,12 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { Theme } from '../../../../../../util/theme/models';
+import { colors } from '../../../../../../styles/common';
 
 // Internal dependencies.
 import { ButtonLinkStyleSheetVars } from './ButtonLink.types';
+
 /**
  * Style sheet function for ButtonLink component.
  *
@@ -14,18 +15,16 @@ import { ButtonLinkStyleSheetVars } from './ButtonLink.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: {
-  theme: Theme;
-  vars: ButtonLinkStyleSheetVars;
-}) => {
-  const { theme, vars } = params;
+const styleSheet = (params: { vars: ButtonLinkStyleSheetVars }) => {
+  const { vars } = params;
   const { style } = vars;
+
   return StyleSheet.create({
     base: Object.assign(
-      {},
-      { color: theme.colors.primary.default } as TextStyle,
+      { backgroundColor: colors.transparent },
       style,
-    ) as TextStyle,
+    ) as ViewStyle,
+    pressedText: { textDecorationLine: 'underline' },
   });
 };
 

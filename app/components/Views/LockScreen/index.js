@@ -11,18 +11,18 @@ import {
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
-import Engine from '../../../core/Engine';
-import SecureKeychain from '../../../core/SecureKeychain';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import { trackErrorAsAnalytics } from '../../../util/analyticsV2';
-import { logOut } from '../../../actions/user';
+import { Authentication } from '../../../core';
 import {
   getAssetFromTheme,
   mockTheme,
   ThemeContext,
 } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { CommonActions } from '@react-navigation/native';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 
 const LOGO_SIZE = 175;
 const createStyles = (colors) =>
@@ -76,103 +76,85 @@ class LockScreen extends PureComponent {
      * The navigator object
      */
     navigation: PropTypes.object,
-    /**
-     * Boolean flag that determines if password has been set
-     */
-    passwordSet: PropTypes.bool,
-    logOut: PropTypes.func,
+    selectedAddress: PropTypes.string,
     appTheme: PropTypes.string,
+    /**
+     * ID associated with each biometric session.
+     * This is used by the biometric sagas to handle actions with the matching ID.
+     */
+    bioStateMachineId: PropTypes.string,
   };
 
   state = {
     ready: false,
   };
 
-  appState = 'active';
   locked = true;
   timedOut = false;
   firstAnimation = React.createRef();
   secondAnimation = React.createRef();
   animationName = React.createRef();
   opacity = new Animated.Value(1);
-  unlockAttempts = 0;
+  appStateListener;
 
   componentDidMount() {
-    // Check if is the app is launching or it went to background mode
-    this.appState = 'background';
-    AppState.addEventListener('change', this.handleAppStateChange);
-    this.mounted = true;
+    this.appStateListener = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
   }
 
   handleAppStateChange = async (nextAppState) => {
-    // Try to unlock when coming from the background
-    if (
-      this.locked &&
-      this.appState !== 'active' &&
-      nextAppState === 'active'
-    ) {
-      this.firstAnimation.play();
-      this.appState = nextAppState;
-      // Avoid trying to unlock with the app in background
+    // Trigger biometrics
+    if (nextAppState === 'active') {
+      this.firstAnimation?.play();
       this.unlockKeychain();
+      this.appStateListener?.remove();
     }
   };
 
   componentWillUnmount() {
-    this.mounted = false;
-    AppState.removeEventListener('change', this.handleAppStateChange);
+    this.appStateListener?.remove();
   }
 
-  logOut = () => {
-    this.props.navigation.navigate(Routes.ONBOARDING.LOGIN);
-    this.props.logOut();
+  lock = () => {
+    // TODO: Consolidate navigation action for locking app
+    // Reset action reverts the nav state back to original state prior to logging in.
+    // Reset is used intentionally. Do not use navigate.
+    const resetAction = CommonActions.reset({
+      index: 0,
+      routes: [{ name: Routes.ONBOARDING.LOGIN }],
+    });
+    this.props.navigation.dispatch(resetAction);
+    // Do not need to await since it's the last action.
+    Authentication.lockApp(false);
   };
 
   async unlockKeychain() {
-    this.unlockAttempts++;
-    let credentials = null;
+    const { bioStateMachineId } = this.props;
     try {
-      // Retreive the credentials
+      // Retrieve the credentials
       Logger.log('Lockscreen::unlockKeychain - getting credentials');
-      credentials = await SecureKeychain.getGenericPassword();
-      if (credentials) {
-        Logger.log(
-          'Lockscreen::unlockKeychain - got credentials',
-          !!credentials.password,
-        );
 
-        // Restore vault with existing credentials
-        const { KeyringController } = Engine.context;
-        Logger.log('Lockscreen::unlockKeychain - submitting password');
-
-        await KeyringController.submitPassword(credentials.password);
-        Logger.log('Lockscreen::unlockKeychain - keyring unlocked');
-
-        this.locked = false;
-        await this.setState({ ready: true });
-        Logger.log('Lockscreen::unlockKeychain - state: ready');
-        this.secondAnimation && this.secondAnimation.play();
-        this.animationName && this.animationName.play();
-        Logger.log('Lockscreen::unlockKeychain - playing animations');
-      } else if (this.props.passwordSet) {
-        this.logOut();
-      } else {
-        this.props.navigation.navigate('OnboardingRootNav', {
-          screen: Routes.ONBOARDING.NAV,
-          params: { screen: 'Onboarding' },
-        });
+      // Log to provide insights into bug research.
+      // Check https://github.com/MetaMask/mobile-planning/issues/1507
+      const { selectedAddress } = this.props;
+      if (typeof selectedAddress !== 'string') {
+        Logger.error('unlockKeychain error', 'selectedAddress is not a string');
       }
+      await Authentication.appTriggeredAuth({
+        selectedAddress: this.props.selectedAddress,
+        bioStateMachineId,
+        disableAutoLogout: true,
+      });
+      this.setState({ ready: true });
+      Logger.log('Lockscreen::unlockKeychain - state: ready');
     } catch (error) {
-      if (this.unlockAttempts <= 3) {
-        this.unlockKeychain();
-      } else {
-        trackErrorAsAnalytics(
-          'Lockscreen: Max Attempts Reached',
-          error?.message,
-          `Unlock attempts: ${this.unlockAttempts}`,
-        );
-        this.logOut();
-      }
+      this.lock();
+      trackErrorAsAnalytics(
+        'Lockscreen: Authentication failed',
+        error?.message,
+      );
     }
   }
 
@@ -184,7 +166,9 @@ class LockScreen extends PureComponent {
         useNativeDriver: true,
         isInteraction: false,
       }).start(() => {
-        this.props.navigation.goBack();
+        this.props.navigation.navigate(Routes.ONBOARDING.HOME_NAV, {
+          screen: Routes.WALLET_VIEW,
+        });
       });
     }, 100);
   };
@@ -257,14 +241,31 @@ class LockScreen extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  passwordSet: state.user.passwordSet,
+  selectedAddress: selectSelectedAddress(state),
   appTheme: state.user.appTheme,
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  logOut: () => dispatch(logOut()),
 });
 
 LockScreen.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(LockScreen);
+const ConnectedLockScreen = connect(mapStateToProps)(LockScreen);
+
+// Wrapper that forces LockScreen to re-render when bioStateMachineId changes.
+const LockScreenFCWrapper = (props) => {
+  const { bioStateMachineId } = props.route.params;
+  return (
+    <ConnectedLockScreen
+      key={bioStateMachineId}
+      bioStateMachineId={bioStateMachineId}
+      {...props}
+    />
+  );
+};
+
+LockScreenFCWrapper.propTypes = {
+  /**
+   * Navigation object that holds params including bioStateMachineId.
+   */
+  route: PropTypes.object,
+};
+
+export default LockScreenFCWrapper;

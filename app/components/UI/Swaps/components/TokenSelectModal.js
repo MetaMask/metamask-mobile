@@ -8,7 +8,6 @@ import {
   View,
   TouchableWithoutFeedback,
   ActivityIndicator,
-  InteractionManager,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -41,9 +40,26 @@ import useBlockExplorer from '../utils/useBlockExplorer';
 import useFetchTokenMetadata from '../utils/useFetchTokenMetadata';
 import useModalHandler from '../../../Base/hooks/useModalHandler';
 import TokenImportModal from './TokenImportModal';
-import Analytics from '../../../../core/Analytics/Analytics';
-import { ANALYTICS_EVENT_OPTS } from '../../../../util/analytics';
+
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
+
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
+import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { getDecimalChainId } from '../../../../util/networks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -136,15 +152,17 @@ function TokenSelectModal({
   conversionRate,
   tokenExchangeRates,
   chainId,
-  provider,
-  frequentRpcList,
+  providerConfig,
+  networkConfigurations,
   balances,
 }) {
   const navigation = useNavigation();
+  const { trackEvent } = useMetrics();
+
   const searchInput = useRef(null);
   const list = useRef();
   const [searchString, setSearchString] = useState('');
-  const explorer = useBlockExplorer(provider, frequentRpcList);
+  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const [isTokenImportVisible, , showTokenImportModal, hideTokenImportModal] =
     useModalHandler(false);
   const { colors, themeAppearance } = useTheme();
@@ -285,17 +303,15 @@ function TokenSelectModal({
   const handlePressImportToken = useCallback(
     (item) => {
       const { address, symbol } = item;
-      InteractionManager.runAfterInteractions(() => {
-        Analytics.trackEventWithParameters(
-          ANALYTICS_EVENT_OPTS.CUSTOM_TOKEN_IMPORTED,
-          { address, symbol, chain_id: chainId },
-          true,
-        );
+      trackEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
+        address,
+        symbol,
+        chain_id: getDecimalChainId(chainId),
       });
       hideTokenImportModal();
       onItemPress(item);
     },
-    [chainId, hideTokenImportModal, onItemPress],
+    [chainId, hideTokenImportModal, onItemPress, trackEvent],
   );
 
   const handleBlockExplorerPress = useCallback(() => {
@@ -398,6 +414,7 @@ function TokenSelectModal({
               value={searchString}
               onChangeText={handleSearchTextChange}
               keyboardAppearance={themeAppearance}
+              testID={SWAP_SEARCH_TOKEN}
             />
             {searchString.length > 0 && (
               <TouchableOpacity onPress={handleClearSearch}>
@@ -539,31 +556,25 @@ TokenSelectModal.propTypes = {
    */
   chainId: PropTypes.string,
   /**
-   * Current Network provider
+   * Current network provider configuration
    */
-  provider: PropTypes.object,
+  providerConfig: PropTypes.object,
   /**
-   * Frequent RPC list from PreferencesController
+   * Network configurations
    */
-  frequentRpcList: PropTypes.array,
+  networkConfigurations: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
-  accounts: state.engine.backgroundState.AccountTrackerController.accounts,
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  balances:
-    state.engine.backgroundState.TokenBalancesController.contractBalances,
-  tokenExchangeRates:
-    state.engine.backgroundState.TokenRatesController.contractExchangeRates,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  provider: state.engine.backgroundState.NetworkController.provider,
-  frequentRpcList:
-    state.engine.backgroundState.PreferencesController.frequentRpcList,
+  accounts: selectAccounts(state),
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  selectedAddress: selectSelectedAddress(state),
+  tokenExchangeRates: selectContractExchangeRates(state),
+  balances: selectContractBalances(state),
+  chainId: selectChainId(state),
+  providerConfig: selectProviderConfig(state),
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 export default connect(mapStateToProps)(TokenSelectModal);

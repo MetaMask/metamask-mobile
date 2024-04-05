@@ -1,51 +1,56 @@
-import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import React, { PureComponent } from 'react';
 import {
-  ScrollView,
-  TextInput,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
   InteractionManager,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { swapsUtils } from '@metamask/swaps-controller';
 import { connect } from 'react-redux';
-import Engine from '../../../core/Engine';
-import Analytics from '../../../core/Analytics/Analytics';
-import AnalyticsV2 from '../../../util/analyticsV2';
-import AppConstants from '../../../core/AppConstants';
 import { strings } from '../../../../locales/i18n';
-
-import { swapsLivenessSelector } from '../../../reducers/swaps';
-import { showAlert } from '../../../actions/alert';
-import { protectWalletModalVisible } from '../../../actions/user';
 import {
-  toggleAccountsModal,
-  toggleReceiveModal,
-} from '../../../actions/modals';
+  WALLET_ACCOUNT_ICON,
+  WALLET_ACCOUNT_NAME_LABEL_INPUT,
+  WALLET_ACCOUNT_NAME_LABEL_TEXT,
+} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import generateTestId from '../../../../wdio/utils/generateTestId';
+import { showAlert } from '../../../actions/alert';
+import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
-
-import Device from '../../../util/device';
-import { ANALYTICS_EVENT_OPTS } from '../../../util/analytics';
-import { renderFiat } from '../../../util/number';
-import { isQRHardwareAccount, renderAccountName } from '../../../util/address';
-import { getEther } from '../../../util/transactions';
+import { protectWalletModalVisible } from '../../../actions/user';
+import Routes from '../../../constants/navigation/Routes';
+import ClipboardManager from '../../../core/ClipboardManager';
+import { fontStyles } from '../../../styles/common';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
 } from '../../../util/ENSUtils';
-import { isSwapsAllowed } from '../Swaps/utils';
-
-import Identicon from '../Identicon';
-import AssetActionButton from '../AssetActionButton';
-import EthereumAddress from '../EthereumAddress';
-import { fontStyles, baseStyles } from '../../../styles/common';
-import { allowedToBuy } from '../FiatOrders';
-import AssetSwapButton from '../Swaps/components/AssetSwapButton';
-import ClipboardManager from '../../../core/ClipboardManager';
+import {
+  getLabelTextByAddress,
+  renderAccountName,
+} from '../../../util/address';
+import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import Routes from '../../../constants/navigation/Routes';
+import EthereumAddress from '../EthereumAddress';
+import Identicon from '../Identicon';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
+import Engine from '../../../core/Engine';
+import { selectChainId } from '../../../selectors/networkController';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
+import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
+import { regex } from '../../../util/regex';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -91,8 +96,6 @@ const createStyles = (colors) =>
       borderRadius: 14,
     },
     tagText: {
-      fontSize: 12,
-      ...fontStyles.bold,
       minWidth: 32,
       textAlign: 'center',
       color: colors.text.default,
@@ -136,6 +139,13 @@ const createStyles = (colors) =>
       alignItems: 'flex-start',
       flexDirection: 'row',
     },
+    netWorthContainer: {
+      justifyItems: 'center',
+      alignItems: 'center',
+      flexDirection: 'row',
+    },
+    portfolioLink: { marginLeft: 5 },
+    portfolioIcon: { color: colors.primary.default },
   });
 
 /**
@@ -165,10 +175,6 @@ class AccountOverview extends PureComponent {
     */
     showAlert: PropTypes.func,
     /**
-     * Action that toggles the accounts modal
-     */
-    toggleAccountsModal: PropTypes.func,
-    /**
      * whether component is being rendered from onboarding wizard
      */
     onboardingWizard: PropTypes.bool,
@@ -194,21 +200,17 @@ class AccountOverview extends PureComponent {
      */
     toggleReceiveModal: PropTypes.func,
     /**
-     * Chain id
+     * The chain ID for the current selected network
      */
     chainId: PropTypes.string,
     /**
-     * Wether Swaps feature is live or not
+     * Current opens tabs in browser
      */
-    swapsIsLive: PropTypes.bool,
+    browserTabs: PropTypes.array,
     /**
-     * ID of the current network
+     * Metrics injected by withMetricsAwareness HOC
      */
-    network: PropTypes.string,
-    /**
-     * Current provider ticker
-     */
-    ticker: PropTypes.string,
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -222,17 +224,10 @@ class AccountOverview extends PureComponent {
   scrollViewContainer = React.createRef();
   mainView = React.createRef();
 
-  animatingAccountsModal = false;
-
-  toggleAccountsModal = () => {
-    const { onboardingWizard } = this.props;
-    if (!onboardingWizard && !this.animatingAccountsModal) {
-      this.animatingAccountsModal = true;
-      this.props.toggleAccountsModal();
-      setTimeout(() => {
-        this.animatingAccountsModal = false;
-      }, 500);
-    }
+  openAccountSelector = () => {
+    const { onboardingWizard, navigation } = this.props;
+    !onboardingWizard &&
+      navigation.navigate(...createAccountSelectorNavDetails({}));
   };
 
   isAccountLabelDefined = (accountLabel) =>
@@ -258,7 +253,7 @@ class AccountOverview extends PureComponent {
   componentDidUpdate(prevProps) {
     if (
       prevProps.account.address !== this.props.account.address ||
-      prevProps.network !== this.props.network
+      prevProps.chainId !== this.props.chainId
     ) {
       requestAnimationFrame(() => {
         this.doENSLookup();
@@ -268,11 +263,10 @@ class AccountOverview extends PureComponent {
 
   setAccountLabel = () => {
     const { PreferencesController } = Engine.context;
-    const { selectedAddress } = this.props;
+    const { selectedAddress, identities } = this.props;
     const { accountLabel } = this.state;
 
-    const lastAccountLabel =
-      PreferencesController.state.identities[selectedAddress].name;
+    const lastAccountLabel = identities[selectedAddress].name;
 
     PreferencesController.setAccountLabel(
       selectedAddress,
@@ -312,91 +306,73 @@ class AccountOverview extends PureComponent {
       data: { msg: strings('account_details.account_copied_to_clipboard') },
     });
     setTimeout(() => this.props.protectWalletModalVisible(), 2000);
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEvent(ANALYTICS_EVENT_OPTS.WALLET_COPIED_ADDRESS);
-    });
+
+    this.props.metrics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
   };
-
-  onReceive = () => this.props.toggleReceiveModal();
-
-  onSend = () => {
-    const { newAssetTransaction, navigation, ticker } = this.props;
-    newAssetTransaction(getEther(ticker));
-    navigation.navigate('SendFlowView');
-  };
-
-  onBuy = () => {
-    this.props.navigation.navigate(Routes.FIAT_ON_RAMP_AGGREGATOR.ID);
-    InteractionManager.runAfterInteractions(() => {
-      Analytics.trackEventWithParameters(
-        AnalyticsV2.ANALYTICS_EVENTS.BUY_BUTTON_CLICKED,
-        {
-          text: 'Buy',
-          location: 'Wallet',
-          chain_id_destination: this.props.chainId,
-        },
-      );
-    });
-  };
-
-  goToSwaps = () =>
-    this.props.navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-      },
-    });
 
   doENSLookup = async () => {
-    const { network, account } = this.props;
+    const { chainId, account } = this.props;
     try {
-      const ens = await doENSReverseLookup(account.address, network);
+      const ens = await doENSReverseLookup(account.address, chainId);
       this.setState({ ens });
       // eslint-disable-next-line no-empty
     } catch {}
   };
 
+  onOpenPortfolio = () => {
+    const { navigation, browserTabs } = this.props;
+    const existingPortfolioTab = browserTabs.find((tab) =>
+      tab.url.match(regex.portfolioUrl),
+    );
+    let existingTabId;
+    let newTabUrl;
+    if (existingPortfolioTab) {
+      existingTabId = existingPortfolioTab.id;
+    } else {
+      newTabUrl = `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`;
+    }
+    const params = {
+      ...(newTabUrl && { newTabUrl }),
+      ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+      timestamp: Date.now(),
+    };
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params,
+    });
+    this.props.metrics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
+      portfolioUrl: AppConstants.PORTFOLIO_URL,
+    });
+  };
+
   render() {
     const {
       account: { address, name },
-      currentCurrency,
       onboardingWizard,
-      chainId,
-      swapsIsLive,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
 
-    const fiatBalance = `${renderFiat(
-      Engine.getTotalFiatAccountBalance(),
-      currentCurrency,
-    )}`;
-
     if (!address) return null;
     const { accountLabelEditable, accountLabel, ens } = this.state;
 
-    const isQRHardwareWalletAccount = isQRHardwareAccount(address);
+    const accountLabelTag = getLabelTextByAddress(address);
 
     return (
-      <View
-        style={baseStyles.flexGrow}
-        ref={this.scrollViewContainer}
-        collapsable={false}
-      >
+      <View ref={this.scrollViewContainer} collapsable={false}>
         <ScrollView
           bounces={false}
           keyboardShouldPersistTaps={'never'}
           style={styles.scrollView}
           contentContainerStyle={styles.wrapper}
-          testID={'account-overview'}
         >
           <View style={styles.info} ref={this.mainView}>
             <TouchableOpacity
               style={styles.identiconBorder}
               disabled={onboardingWizard}
-              onPress={this.toggleAccountsModal}
-              testID={'wallet-account-identicon'}
+              onPress={this.openAccountSelector}
+              {...generateTestId(Platform, WALLET_ACCOUNT_ICON)}
             >
               <Identicon
                 address={address}
@@ -423,7 +399,7 @@ class AccountOverview extends PureComponent {
                   onChangeText={this.onAccountLabelChange}
                   onSubmitEditing={this.setAccountLabel}
                   onBlur={this.setAccountLabel}
-                  testID={'account-label-text-input'}
+                  {...generateTestId(Platform, WALLET_ACCOUNT_NAME_LABEL_INPUT)}
                   value={accountLabel}
                   selectTextOnFocus
                   ref={this.input}
@@ -448,22 +424,28 @@ class AccountOverview extends PureComponent {
                         },
                       ]}
                       numberOfLines={1}
-                      testID={'edit-account-label'}
+                      {...generateTestId(
+                        Platform,
+                        WALLET_ACCOUNT_NAME_LABEL_TEXT,
+                      )}
                     >
                       {isDefaultAccountName(name) && ens ? ens : name}
                     </Text>
                   </TouchableOpacity>
-                  {isQRHardwareWalletAccount && (
+                  {accountLabelTag && (
                     <View style={styles.tag}>
-                      <Text style={styles.tagText}>
-                        {strings('transaction.hardware')}
+                      <Text
+                        variant={TextVariant.BodySMBold}
+                        style={styles.tagText}
+                      >
+                        {strings(accountLabelTag)}
                       </Text>
                     </View>
                   )}
                 </View>
               )}
             </View>
-            <Text style={styles.amountFiat}>{fiatBalance}</Text>
+
             <TouchableOpacity
               style={styles.addressWrapper}
               onPress={this.copyAccountToClipboard}
@@ -474,35 +456,6 @@ class AccountOverview extends PureComponent {
                 type={'short'}
               />
             </TouchableOpacity>
-
-            <View style={styles.actions}>
-              <AssetActionButton
-                icon="receive"
-                onPress={this.onReceive}
-                label={strings('asset_overview.receive_button')}
-              />
-              {allowedToBuy(chainId) && (
-                <AssetActionButton
-                  icon="buy"
-                  onPress={this.onBuy}
-                  label={strings('asset_overview.buy_button')}
-                />
-              )}
-              <AssetActionButton
-                testID={'token-send-button'}
-                icon="send"
-                onPress={this.onSend}
-                label={strings('asset_overview.send_button')}
-              />
-              {AppConstants.SWAPS.ACTIVE && (
-                <AssetSwapButton
-                  isFeatureLive={swapsIsLive}
-                  isNetworkAllowed={isSwapsAllowed(chainId)}
-                  onPress={this.goToSwaps}
-                  isAssetAllowed
-                />
-              )}
-            </View>
           </View>
         </ScrollView>
       </View>
@@ -511,20 +464,15 @@ class AccountOverview extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  identities: state.engine.backgroundState.PreferencesController.identities,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
-  network: state.engine.backgroundState.NetworkController.network,
-  swapsIsLive: swapsLivenessSelector(state),
+  selectedAddress: selectSelectedAddress(state),
+  identities: selectIdentities(state),
+  currentCurrency: selectCurrentCurrency(state),
+  chainId: selectChainId(state),
+  browserTabs: state.browser.tabs,
 });
 
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
-  toggleAccountsModal: () => dispatch(toggleAccountsModal()),
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
@@ -533,4 +481,7 @@ const mapDispatchToProps = (dispatch) => ({
 
 AccountOverview.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(AccountOverview);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(AccountOverview));

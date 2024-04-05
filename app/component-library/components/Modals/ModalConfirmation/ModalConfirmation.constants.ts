@@ -1,7 +1,10 @@
+/* eslint-disable no-console */
 /* eslint-disable import/prefer-default-export */
 
-// Internal dependencies.
-import { ModalConfirmationVariants } from './ModalConfirmation.types';
+import {
+  ModalConfirmationRoute,
+  ModalConfirmationProps,
+} from './ModalConfirmation.types';
 
 export const MODAL_CONFIRMATION_NORMAL_BUTTON_ID =
   'modal-confirmation-normal-button';
@@ -9,7 +12,23 @@ export const MODAL_CONFIRMATION_NORMAL_BUTTON_ID =
 export const MODAL_CONFIRMATION_DANGER_BUTTON_ID =
   'modal-confirmation-danger-button';
 
-export const BUTTON_TEST_ID_BY_VARIANT = {
-  [ModalConfirmationVariants.Normal]: MODAL_CONFIRMATION_NORMAL_BUTTON_ID,
-  [ModalConfirmationVariants.Danger]: MODAL_CONFIRMATION_DANGER_BUTTON_ID,
+// Sample consts
+const SAMPLE_MODALCONFIRMATION_ROUTE_PROPS: ModalConfirmationRoute = {
+  params: {
+    title: 'Sample ModalConfirmation Title',
+    description: 'Sample ModalConfirmation description',
+    onConfirm: () => {
+      console.log('Modal Confirmation clicked');
+    },
+    onCancel: () => {
+      console.log('Modal Confirmation cancelled');
+    },
+    cancelLabel: 'ModalConfirmation Cancel',
+    confirmLabel: 'ModalConfirmation Label',
+    isDanger: false,
+  },
+};
+
+export const SAMPLE_MODALCONFIRMATION_PROPS: ModalConfirmationProps = {
+  route: SAMPLE_MODALCONFIRMATION_ROUTE_PROPS,
 };

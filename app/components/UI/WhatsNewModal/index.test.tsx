@@ -7,7 +7,7 @@ describe('WhatsNewModal', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
       <NavigationContainer>
-        <WhatsNewModal navigation={jest.fn} />
+        <WhatsNewModal />
       </NavigationContainer>,
     );
     expect(wrapper).toMatchSnapshot();

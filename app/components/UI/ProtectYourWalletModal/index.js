@@ -1,13 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  InteractionManager,
-} from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import ActionModal from '../ActionModal';
 import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
@@ -15,8 +8,11 @@ import { protectWalletModalNotVisible } from '../../../actions/user';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ProtectWalletModal.selectors';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 
 const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -93,6 +89,10 @@ class ProtectYourWalletModal extends PureComponent {
      * Boolean that determines if the user has set a password before
      */
     passwordSet: PropTypes.bool,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   goToBackupFlow = () => {
@@ -101,15 +101,13 @@ class ProtectYourWalletModal extends PureComponent {
       'SetPasswordFlow',
       this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_ENGAGED,
-        {
-          wallet_protection_required: false,
-          source: 'Modal',
-        },
-      );
-    });
+    this.props.metrics.trackEvent(
+      MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
+      {
+        wallet_protection_required: false,
+        source: 'Modal',
+      },
+    );
   };
 
   onLearnMore = () => {
@@ -125,15 +123,13 @@ class ProtectYourWalletModal extends PureComponent {
 
   onDismiss = () => {
     this.props.protectWalletModalNotVisible();
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_PROTECT_DISMISSED,
-        {
-          wallet_protection_required: false,
-          source: 'Modal',
-        },
-      );
-    });
+    this.props.metrics.trackEvent(
+      MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
+      {
+        wallet_protection_required: false,
+        source: 'Modal',
+      },
+    );
   };
 
   render() {
@@ -152,7 +148,10 @@ class ProtectYourWalletModal extends PureComponent {
         confirmButtonMode={'transparent-blue'}
         verticalButtons
       >
-        <View style={styles.wrapper} testID={'protect-wallet-modal'}>
+        <View
+          style={styles.wrapper}
+          testID={ProtectWalletModalSelectorsIDs.CONTAINER}
+        >
           <View style={styles.titleWrapper}>
             <View style={styles.auxCenter} />
             <Text style={styles.title}>
@@ -203,4 +202,4 @@ ProtectYourWalletModal.contextType = ThemeContext;
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(ProtectYourWalletModal);
+)(withMetricsAwareness(ProtectYourWalletModal));

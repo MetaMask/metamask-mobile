@@ -2,19 +2,19 @@
 
 exports[`AvatarIcon should render correctly 1`] = `
 <AvatarBase
-  size="40"
+  size="32"
   style={
     Object {
       "alignItems": "center",
-      "backgroundColor": "#037DD619",
+      "backgroundColor": "#FFFFFF",
       "justifyContent": "center",
     }
   }
 >
   <Icon
-    color="#037DD6"
-    name="AddSquareFilled"
-    size="24"
+    color="Default"
+    name="AddSquare"
+    size="20"
   />
 </AvatarBase>
 `;

@@ -1,24 +1,44 @@
-import TestHelpers from '../../helpers';
 import {
-  NEW_NETWORK_ADDED_CLOSE_BUTTON_ID,
-  NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID,
-} from '../../../app/constants/test-ids';
-import { strings } from '../../../locales/i18n';
+  NetworkAddedModalSelectorsIDs,
+  NetworkAddedModalSelectorsText,
+} from '../../selectors/Modals/NetworkAddedModal.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-const switchToNetworkText = strings('networks.new_network');
-
-export default class NetworkAddedModal {
-  static async tapSwitchToNetwork() {
-    await TestHelpers.tap(NEW_NETWORK_ADDED_SWITCH_TO_NETWORK_BUTTON_ID);
-  }
-  static async tapCloseButton() {
-    await TestHelpers.tap(NEW_NETWORK_ADDED_CLOSE_BUTTON_ID);
+class NetworkAddedModal {
+  get switchNetwork() {
+    return Matchers.getElementByText(
+      NetworkAddedModalSelectorsText.SWITCH_NETWORK,
+    );
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible(switchToNetworkText);
+  get switchNetworkButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(
+          NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON,
+        )
+      : Matchers.getElementByID(
+          NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON,
+        );
   }
-  static async isNotVisible() {
-    await TestHelpers.checkIfElementWithTextIsVisible(switchToNetworkText);
+
+  get closeNetworkButton() {
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(
+          NetworkAddedModalSelectorsIDs.CLOSE_NETWORK_BUTTON,
+        )
+      : Matchers.getElementByID(
+          NetworkAddedModalSelectorsIDs.CLOSE_NETWORK_BUTTON,
+        );
+  }
+
+  async tapSwitchToNetwork() {
+    await Gestures.waitAndTap(this.switchNetworkButton);
+  }
+
+  async tapCloseButton() {
+    await Gestures.waitAndTap(this.closeNetworkButton);
   }
 }
+
+export default new NetworkAddedModal();

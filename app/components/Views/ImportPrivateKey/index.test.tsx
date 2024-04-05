@@ -1,10 +1,13 @@
-import React from 'react';
-import { shallow } from 'enzyme';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportPrivateKey from './';
 
 describe('ImportPrivateKey', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<ImportPrivateKey route={{ params: {} }} />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderScreen(
+      ImportPrivateKey,
+      { name: 'ImportPrivateKey' },
+      { state: {} },
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 });

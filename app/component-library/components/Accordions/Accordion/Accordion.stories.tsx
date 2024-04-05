@@ -1,25 +1,48 @@
-/* eslint-disable no-console, react-native/no-inline-styles */
-
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react/display-name */
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
-import { boolean, text } from '@storybook/addon-knobs';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
+import { SAMPLE_ACCORDIONHEADER_PROPS } from './foundation/AccordionHeader/AccordionHeader.constants';
+import { AccordionHeaderHorizontalAlignment } from './foundation/AccordionHeader/AccordionHeader.types';
 
 // Internal dependencies.
-import Accordion from './Accordion';
-import { TEST_ACCORDION_HEADER_TITLE } from './foundation/AccordionHeader/AccordionHeader.constants';
+import { default as AccordionComponent } from './Accordion';
+import { AccordionProps } from './Accordion.types';
 
-storiesOf('Component Library / Accordion', module).add('Default', () => {
-  const groupId = 'Props';
-  const titleText = text('title', TEST_ACCORDION_HEADER_TITLE, groupId);
-  const isExpanded = boolean('isExpanded', false, groupId);
-  return (
-    <Accordion title={titleText} isExpanded={isExpanded}>
+const AccordionMeta = {
+  title: 'Component Library / Accordions',
+  component: AccordionComponent,
+  argTypes: {
+    title: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_ACCORDIONHEADER_PROPS.title,
+    },
+    isExpanded: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_ACCORDIONHEADER_PROPS.isExpanded,
+    },
+    horizontalAlignment: {
+      options: AccordionHeaderHorizontalAlignment,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_ACCORDIONHEADER_PROPS.horizontalAlignment,
+    },
+  },
+};
+export default AccordionMeta;
+
+export const Accordion = {
+  render: (
+    args: JSX.IntrinsicAttributes &
+      AccordionProps & { children?: React.ReactNode },
+  ) => (
+    <AccordionComponent {...args}>
       <View
         style={{
           backgroundColor: mockTheme.colors.background.alternative,
@@ -27,8 +50,8 @@ storiesOf('Component Library / Accordion', module).add('Default', () => {
           justifyContent: 'center',
         }}
       >
-        <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
+        <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
       </View>
-    </Accordion>
-  );
-});
+    </AccordionComponent>
+  ),
+};

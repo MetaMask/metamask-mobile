@@ -3,9 +3,7 @@ export const CLIENT_OPTIONS = {
     // Required
     description: 'MetaMask Mobile app',
     url: 'https://metamask.io',
-    icons: [
-      'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
-    ],
+    icons: [],
     name: 'MetaMask',
     ssl: true,
   },

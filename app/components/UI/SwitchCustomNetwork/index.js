@@ -7,7 +7,7 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import Text from '../../Base/Text';
 import { useTheme } from '../../../util/theme';
-import { CANCEL_BUTTON_ID } from '../../../constants/test-ids';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -149,7 +149,7 @@ const SwitchCustomNetwork = ({
           type={'cancel'}
           onPress={cancel}
           containerStyle={[styles.button, styles.cancel]}
-          testID={CANCEL_BUTTON_ID}
+          testID={CommonSelectorsIDs.CANCEL_BUTTON}
         >
           {strings('switch_custom_network.cancel')}
         </StyledButton>
@@ -157,7 +157,7 @@ const SwitchCustomNetwork = ({
           type={'confirm'}
           onPress={confirm}
           containerStyle={[styles.button, styles.confirm]}
-          testID={'connect-approve-button'}
+          testID={CommonSelectorsIDs.CONNECT_BUTTON}
         >
           {strings('switch_custom_network.switch')}
         </StyledButton>

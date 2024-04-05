@@ -4,10 +4,11 @@ import GeneralSettings from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { AppThemeKey } from '../../../../util/theme/models';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 
 const mockStore = configureMockStore();
 const initialState = {
-  privacy: { approvedHosts: [], privacyMode: true },
+  privacy: { approvedHosts: [] },
   browser: { history: [] },
   settings: {
     lockTime: 1000,
@@ -15,15 +16,7 @@ const initialState = {
     useBlockieIcon: true,
   },
   engine: {
-    backgroundState: {
-      CurrencyRateController: { currentCurrency: 'USD' },
-      NetworkController: {
-        provider: {
-          type: 'mainnet',
-        },
-      },
-      PreferencesController: { selectedAddress: '0x0' },
-    },
+    backgroundState: initialBackgroundState,
   },
   user: { appTheme: AppThemeKey.light },
 };
@@ -36,6 +29,6 @@ describe('GeneralSettings', () => {
         <GeneralSettings />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

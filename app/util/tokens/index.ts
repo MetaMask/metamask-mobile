@@ -1,5 +1,4 @@
-/* eslint-disable import/prefer-default-export */
-import { TokenListMap } from '@metamask/controllers';
+import { TokenListMap } from '@metamask/assets-controllers';
 
 /**
  * Convert token list object to token list array

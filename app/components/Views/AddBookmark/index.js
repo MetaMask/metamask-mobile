@@ -7,6 +7,8 @@ import ActionView from '../../UI/ActionView';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
+import { AddBookmarkViewSelectorsIDs } from '../../../../e2e/selectors/AddBookmarkView.selectors';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -117,10 +119,13 @@ export default class AddBookmark extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <SafeAreaView style={styles.wrapper} testID={'add-bookmark-screen'}>
+      <SafeAreaView
+        style={styles.wrapper}
+        testID={AddBookmarkViewSelectorsIDs.CONTAINER}
+      >
         <ActionView
-          cancelTestID={'add-bookmark-cancel-button'}
-          confirmTestID={'add-bookmark-confirm-button'}
+          cancelTestID={AddBookmarkViewSelectorsIDs.CANCEL_BUTTON}
+          confirmTestID={AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON}
           cancelText={strings('add_favorite.cancel_button')}
           confirmText={strings('add_favorite.add_button')}
           onCancelPress={this.cancelAddBookmark}
@@ -137,7 +142,7 @@ export default class AddBookmark extends PureComponent {
                 placeholderTextColor={colors.text.muted}
                 value={this.state.title}
                 onChangeText={this.onTitleChange}
-                testID={'add-bookmark-title'}
+                testID={AddBookmarkViewSelectorsIDs.BOOKMARK_TITLE}
                 onSubmitEditing={this.jumpToUrl}
                 returnKeyType={'next'}
                 keyboardAppearance={themeAppearance}
@@ -153,7 +158,7 @@ export default class AddBookmark extends PureComponent {
                 placeholder={''}
                 value={this.state.url}
                 onChangeText={this.onUrlChange}
-                testID={'add-bookmark-url'}
+                testID={AddBookmarkViewSelectorsIDs.URL_TEXT}
                 ref={this.urlInput}
                 onSubmitEditing={this.addToken}
                 returnKeyType={'done'}

@@ -52,7 +52,6 @@ const transactionReducer = (state = initialState, action) => {
       };
     case 'RESET_TRANSACTION':
       return {
-        ...state,
         ...initialState,
       };
     case 'NEW_ASSET_TRANSACTION':
@@ -151,6 +150,23 @@ const transactionReducer = (state = initialState, action) => {
         assetType: 'ERC721',
         type: 'CONTRACT_COLLECTIBLE_TRANSACTION',
       };
+    case 'SET_TRANSACTION_SECURITY_ALERT_RESPONSE': {
+      const { transactionId, securityAlertResponse } = action;
+      return {
+        ...state,
+        currentTransactionSecurityAlertResponse: {
+          id: transactionId,
+          response: securityAlertResponse,
+        },
+      };
+    }
+    case 'SET_TRANSACTION_ID': {
+      const { transactionId } = action;
+      return {
+        ...state,
+        id: transactionId,
+      };
+    }
     default:
       return state;
   }

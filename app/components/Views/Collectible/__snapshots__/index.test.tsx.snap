@@ -1,25 +1,45 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Collectible should render correctly 1`] = `
-<Collectible
-  collectibleContractModalVisible={false}
-  collectibles={
-    Array [
-      Object {
-        "address": "0x0",
-        "image": "image",
-        "name": "collectible",
-        "tokenId": 0,
-      },
-    ]
-  }
-  route={
+<ContextProvider
+  value={
     Object {
-      "params": Object {
-        "address": "0x1",
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
       },
     }
   }
-  toggleCollectibleContractModal={[Function]}
-/>
+>
+  <Component
+    route={
+      Object {
+        "params": Object {
+          "address": "0x1",
+        },
+      }
+    }
+  />
+</ContextProvider>
 `;

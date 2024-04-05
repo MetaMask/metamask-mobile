@@ -8,7 +8,6 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -22,8 +21,11 @@ import ActionModal from '../../UI/ActionModal';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+
 import { useTheme } from '../../../util/theme';
+import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -203,17 +205,17 @@ const AccountBackupStep1B = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
+  const track = (event, properties) => {
+    trackOnboarding(event, properties);
+  };
+
   useEffect(() => {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
   }, [navigation, route, colors]);
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
-    InteractionManager.runAfterInteractions(() => {
-      AnalyticsV2.trackEvent(
-        AnalyticsV2.ANALYTICS_EVENTS.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
-      );
-    });
+    track(MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED);
   };
 
   const learnMore = () => {
@@ -240,9 +242,11 @@ const AccountBackupStep1B = (props) => {
       <ScrollView
         contentContainerStyle={styles.scrollviewWrapper}
         style={styles.mainWrapper}
-        testID={'account-backup-step-1-screen'}
       >
-        <View style={styles.wrapper} testID={'protect-your-account-screen'}>
+        <View
+          style={styles.wrapper}
+          testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
+        >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
           <View style={styles.content}>
             <Text style={styles.titleIcon}>🔒</Text>
@@ -318,7 +322,6 @@ const AccountBackupStep1B = (props) => {
               containerStyle={styles.button}
               type={'confirm'}
               onPress={goNext}
-              testID={'submit-button'}
             >
               {strings('account_backup_step_1B.cta_text')}
             </StyledButton>

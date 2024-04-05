@@ -19,6 +19,21 @@ import {
 import { safeToChecksumAddress } from '../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
+import {
+  selectChainId,
+  selectNetworkId,
+  selectProviderType,
+} from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../../../selectors/currencyRateController';
+import { selectTokens } from '../../../selectors/tokensController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../selectors/preferencesController';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -41,13 +56,11 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
-  const network = useSelector(
-    (state) => state.engine.backgroundState.NetworkController.network,
-  );
+  const networkId = useSelector(selectNetworkId);
 
   const filterTransactions = useCallback(
-    (network) => {
-      if (network === 'loading') return;
+    (networkId) => {
+      if (networkId === null) return;
 
       let accountAddedTimeInsertPointFound = false;
       const addedAccountTime = identities[selectedAddress]?.importTime;
@@ -67,8 +80,8 @@ const TransactionsView = ({
           tx,
           tokens,
           selectedAddress,
+          networkId,
           chainId,
-          network,
         );
 
         if (!filter) return false;
@@ -143,12 +156,15 @@ const TransactionsView = ({
     so the effect will not be noticeable if the user is in this screen.
     */
     InteractionManager.runAfterInteractions(() => {
-      filterTransactions(network);
+      filterTransactions(networkId);
     });
-  }, [filterTransactions, network]);
+  }, [filterTransactions, networkId]);
 
   return (
-    <View style={styles.wrapper} testID={'wallet-screen'}>
+    <View
+      style={styles.wrapper}
+      testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+    >
       <Transactions
         navigation={navigation}
         transactions={allTransactions}
@@ -204,17 +220,14 @@ TransactionsView.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
-  tokens: state.engine.backgroundState.TokensController.tokens,
-  identities: state.engine.backgroundState.PreferencesController.identities,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  tokens: selectTokens(state),
+  selectedAddress: selectSelectedAddress(state),
+  identities: selectIdentities(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
-  networkType: state.engine.backgroundState.NetworkController.provider.type,
-  chainId: state.engine.backgroundState.NetworkController.provider.chainId,
+  networkType: selectProviderType(state),
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

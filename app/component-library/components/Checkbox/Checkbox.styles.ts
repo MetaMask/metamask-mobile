@@ -1,6 +1,9 @@
 // Third party dependencies.
 import { StyleSheet, ViewStyle } from 'react-native';
 
+// External dependencies.
+import { Theme } from '../../../util/theme/models';
+
 // Internal dependencies.
 import { CheckboxStyleSheetVars } from './Checkbox.types';
 
@@ -12,11 +15,63 @@ import { CheckboxStyleSheetVars } from './Checkbox.types';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { vars: CheckboxStyleSheetVars }) => {
-  const { vars } = params;
-  const { style } = vars;
+const styleSheet = (params: { theme: Theme; vars: CheckboxStyleSheetVars }) => {
+  const { vars, theme } = params;
+  const {
+    style,
+    isChecked,
+    isIndeterminate,
+    isDisabled,
+    isReadOnly,
+    isDanger,
+  } = vars;
+
+  const backgroundColor = isReadOnly
+    ? theme.colors.background.alternative
+    : isDanger
+    ? isChecked || isIndeterminate
+      ? theme.colors.error.default
+      : theme.colors.background.default
+    : isChecked || isIndeterminate
+    ? theme.colors.primary.default
+    : theme.colors.background.default;
+
+  const borderColor = isReadOnly
+    ? theme.colors.background.alternative
+    : isDanger
+    ? theme.colors.error.default
+    : isChecked || isIndeterminate
+    ? theme.colors.primary.default
+    : theme.colors.icon.default;
+
   return StyleSheet.create({
-    base: Object.assign({} as ViewStyle, style) as ViewStyle,
+    base: Object.assign(
+      {
+        height: 24,
+        flexDirection: 'row',
+        alignItems: 'center',
+        opacity: isDisabled ? 0.5 : 1,
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
+    checkbox: {
+      width: 20,
+      height: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 4,
+      borderWidth: 2,
+      backgroundColor,
+      borderColor,
+    },
+    icon: {
+      color: isReadOnly
+        ? theme.colors.icon.alternative
+        : theme.colors.primary.inverse,
+    },
+    label: {
+      marginLeft: 12,
+    },
   });
 };
 

@@ -1,18 +1,29 @@
-/* eslint-disable no-console, react-native/no-inline-styles */
-
-// Third party dependencies.
-import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { boolean, text } from '@storybook/addon-knobs';
-
 // Internal dependencies.
-import AccordionHeader from './AccordionHeader';
-import { TEST_ACCORDION_HEADER_TITLE } from './AccordionHeader.constants';
+import { default as AccordionHeaderComponent } from './AccordionHeader';
+import { SAMPLE_ACCORDIONHEADER_PROPS } from './AccordionHeader.constants';
+import { AccordionHeaderHorizontalAlignment } from './AccordionHeader.types';
 
-storiesOf('Component Library / AccordionHeader', module).add('Default', () => {
-  const groupId = 'Props';
-  const titleText = text('title', TEST_ACCORDION_HEADER_TITLE, groupId);
-  const isExpanded = boolean('isExpanded', false, groupId);
+const AccordionHeaderMeta = {
+  title: 'Component Library / Accordions',
+  component: AccordionHeaderComponent,
+  argTypes: {
+    title: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_ACCORDIONHEADER_PROPS.title,
+    },
+    isExpanded: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_ACCORDIONHEADER_PROPS.isExpanded,
+    },
+    horizontalAlignment: {
+      options: AccordionHeaderHorizontalAlignment,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_ACCORDIONHEADER_PROPS.horizontalAlignment,
+    },
+  },
+};
+export default AccordionHeaderMeta;
 
-  return <AccordionHeader title={titleText} isExpanded={isExpanded} />;
-});
+export const AccordionHeader = {};

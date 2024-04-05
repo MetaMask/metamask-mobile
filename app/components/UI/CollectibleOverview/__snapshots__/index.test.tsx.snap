@@ -1,20 +1,47 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CollectibleOverview should render correctly 1`] = `
-<CollectibleOverview
-  addFavoriteCollectible={[Function]}
-  chainId={1}
-  collectible={
+<ContextProvider
+  value={
     Object {
-      "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
-      "externalLink": "https://nft.example.com",
-      "name": "Leopard",
-      "tokenId": 6904,
-      "tradable": true,
+      "store": Object {
+        "clearActions": [Function],
+        "dispatch": [Function],
+        "getActions": [Function],
+        "getState": [Function],
+        "replaceReducer": [Function],
+        "subscribe": [Function],
+      },
+      "subscription": Subscription {
+        "handleChangeWrapper": [Function],
+        "listeners": Object {
+          "notify": [Function],
+        },
+        "onStateChange": [Function],
+        "parentSub": undefined,
+        "store": Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        },
+        "unsubscribe": null,
+      },
     }
   }
-  isInFavorites={false}
-  removeFavoriteCollectible={[Function]}
-  selectedAddress="0x1"
-/>
+>
+  <Component
+    collectible={
+      Object {
+        "address": "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d",
+        "externalLink": "https://nft.example.com",
+        "name": "Leopard",
+        "tokenId": 6904,
+        "tradable": true,
+      }
+    }
+  />
+</ContextProvider>
 `;

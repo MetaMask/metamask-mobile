@@ -117,6 +117,7 @@ export default class TransactionSummary extends PureComponent {
                 disabled={!gasEstimationReady}
                 onPress={onEditPress}
                 key="transactionFeeEdit"
+                testID=""
               >
                 <Text small link>
                   {'  '}

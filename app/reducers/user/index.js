@@ -8,21 +8,15 @@ const initialState = {
   backUpSeedphraseVisible: false,
   protectWalletModalVisible: false,
   gasEducationCarouselSeen: false,
-  nftDetectionDismissed: false,
   userLoggedIn: false,
   isAuthChecked: false,
   initialScreen: '',
   appTheme: AppThemeKey.os,
+  ambiguousAddressEntries: {},
 };
 
 const userReducer = (state = initialState, action) => {
   switch (action.type) {
-    case 'CHECKED_AUTH':
-      return {
-        ...state,
-        isAuthChecked: true,
-        initialScreen: action.payload.initialScreen,
-      };
     case 'LOGIN':
       return {
         ...state,
@@ -93,11 +87,6 @@ const userReducer = (state = initialState, action) => {
       return {
         ...state,
         gasEducationCarouselSeen: true,
-      };
-    case 'SET_NFT_DETECTION_DISMISSED':
-      return {
-        ...state,
-        nftDetectionDismissed: true,
       };
     case 'SET_APP_THEME':
       return {

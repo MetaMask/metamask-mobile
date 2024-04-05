@@ -1,21 +1,27 @@
+/* eslint-disable react/display-name */
 /* eslint-disable no-console, react-native/no-inline-styles */
 
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
-import Text, { TextVariants } from '../../Texts/Text';
+import Text, { TextVariant } from '../../Texts/Text';
 
 // Internal dependencies.
-import Card from './Card';
+import { default as CardComponent } from './Card';
 
-storiesOf('Component Library / Card', module)
-  .addDecorator((getStory) => getStory())
-  .add('Default', () => (
-    <Card>
+const CardStoryMeta = {
+  title: 'Component Library / Cards',
+  component: CardComponent,
+};
+
+export default CardStoryMeta;
+
+export const Card = {
+  render: () => (
+    <CardComponent>
       <View
         style={{
           height: 50,
@@ -24,7 +30,8 @@ storiesOf('Component Library / Card', module)
           justifyContent: 'center',
         }}
       >
-        <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
+        <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
       </View>
-    </Card>
-  ));
+    </CardComponent>
+  ),
+};

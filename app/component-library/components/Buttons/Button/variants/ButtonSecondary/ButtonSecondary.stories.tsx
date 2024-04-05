@@ -1,57 +1,57 @@
-/* eslint-disable no-console */
-
-// Third party dependencies.
-import React from 'react';
-import { select, text, boolean } from '@storybook/addon-knobs';
-
 // External dependencies.
-import { storybookPropsGroupID } from '../../../../../constants/storybook.constants';
-import { IconName } from '../../../../Icon';
-import { ButtonSize } from '../../Button.types';
+import { IconName } from '../../../../Icons/Icon';
+import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
 
 // Internal dependencies.
-import ButtonSecondary from './ButtonSecondary';
-import {
-  ButtonSecondaryVariants,
-  ButtonSecondaryProps,
-} from './ButtonSecondary.types';
+import { default as ButtonSecondaryComponent } from './ButtonSecondary';
+import { SAMPLE_BUTTONSECONDARY_PROPS } from './ButtonSecondary.constants';
 
-export const getButtonSecondaryStoryProps = (): ButtonSecondaryProps => {
-  const sizeSelector = select(
-    'size',
-    ButtonSize,
-    ButtonSize.Md,
-    storybookPropsGroupID,
-  );
-  const labelSelector = text('label', 'Click Me!', storybookPropsGroupID);
-  const ButtonSecondaryVariantsSelector = select(
-    'ButtonSecondaryVariants',
-    ButtonSecondaryVariants,
-    ButtonSecondaryVariants.Normal,
-    storybookPropsGroupID,
-  );
-  const includesIcon = boolean('includesIcon', false, storybookPropsGroupID);
-
-  const buttonSecondaryStoryProps: ButtonSecondaryProps = {
-    size: sizeSelector,
-    label: labelSelector,
-    buttonSecondaryVariants: ButtonSecondaryVariantsSelector,
-    onPress: () => console.log("I'm clicked!"),
-  };
-  if (includesIcon) {
-    const iconNameSelector = select(
-      'iconName',
-      IconName,
-      IconName.AddSquareFilled,
-      storybookPropsGroupID,
-    );
-    buttonSecondaryStoryProps.iconName = iconNameSelector;
-  }
-  return buttonSecondaryStoryProps;
+const ButtonSecondaryMeta = {
+  title: 'Component Library / Buttons',
+  component: ButtonSecondaryComponent,
+  argTypes: {
+    label: {
+      control: { type: 'text' },
+      defaultValue: SAMPLE_BUTTONSECONDARY_PROPS.label,
+    },
+    startIconName: {
+      options: IconName,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONSECONDARY_PROPS.startIconName,
+    },
+    endIconName: {
+      options: IconName,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONSECONDARY_PROPS.endIconName,
+    },
+    size: {
+      options: ButtonSize,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONSECONDARY_PROPS.size,
+    },
+    isDanger: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_BUTTONSECONDARY_PROPS.isDanger,
+    },
+    isDisabled: {
+      control: { type: 'boolean' },
+      defaultValue: SAMPLE_BUTTONSECONDARY_PROPS.isDisabled,
+    },
+    width: {
+      options: ButtonWidthTypes,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BUTTONSECONDARY_PROPS.width,
+    },
+  },
 };
+export default ButtonSecondaryMeta;
 
-const ButtonSecondaryStory = () => (
-  <ButtonSecondary {...getButtonSecondaryStoryProps()} />
-);
-
-export default ButtonSecondaryStory;
+export const ButtonSecondary = {};

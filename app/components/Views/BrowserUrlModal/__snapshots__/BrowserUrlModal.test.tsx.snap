@@ -71,7 +71,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#037DD6",
+            "color": "#0376C9",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -82,7 +82,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
       </Text>
     </TouchableOpacity>
   </View>
-  <Connect(UrlAutocomplete)
+  <Component
     onDismiss={[Function]}
     onSubmit={[Function]}
   />

@@ -6,14 +6,6 @@ CellBase is a base component used for all cells.
 
 This component extends React Native's [ViewProps](https://reactnative.dev/docs/view).
 
-### `variant`
-
-Variant of Cell.
-
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [CellVariants](../../Cell.types.ts#L9)                                              | No                                                     |
-
 ### `avatarProps`
 
 Props for the [Avatar](../../../../Avatars/Avatar.tsx) component (with the exception of size). Avatar size is restricted to size Md(32x32) for Cells

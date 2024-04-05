@@ -1,17 +1,23 @@
-import TestHelpers from '../../helpers';
+import { ManualBackUpStepsSelectorsIDs } from '../../selectors/Onboarding/ManualBackUpSteps.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
-const PROTECT_YOUR_WALLET_CONTAINER_ID = 'protect-your-account-screen';
-const REMIND_ME_LATER_BUTTON_ID = 'remind-me-later-button';
-export default class ProtectYourWalletView {
-  static async tapOnRemindMeLaterButton() {
-    await TestHelpers.tap(REMIND_ME_LATER_BUTTON_ID);
+class ProtectYourWalletView {
+  get container() {
+    return Matchers.getElementByID(
+      ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER,
+    );
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(PROTECT_YOUR_WALLET_CONTAINER_ID);
+  get remindMeLaterButton() {
+    return Matchers.getElementByID(
+      ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
+    );
   }
 
-  static async isNotVisible() {
-    await TestHelpers.checkIfNotVisible(PROTECT_YOUR_WALLET_CONTAINER_ID);
+  async tapOnRemindMeLaterButton() {
+    await Gestures.waitAndTap(this.remindMeLaterButton);
   }
 }
+
+export default new ProtectYourWalletView();

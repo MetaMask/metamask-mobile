@@ -10,7 +10,6 @@ const styleSheet = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginHorizontal: 10,
   },
 });
 

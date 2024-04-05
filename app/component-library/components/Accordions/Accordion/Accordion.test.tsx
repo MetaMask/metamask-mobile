@@ -3,20 +3,18 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { View } from 'react-native';
 
-// External dependencies.
-import { TEST_ACCORDION_HEADER_TITLE } from './foundation/AccordionHeader/AccordionHeader.constants';
-
 // Internal dependencies.
 import Accordion from './Accordion';
 import {
-  ACCORDION_TEST_ID,
-  ACCORDION_CONTENT_TEST_ID,
+  TESTID_ACCORDION,
+  TESTID_ACCORDION_CONTENT,
+  SAMPLE_ACCORDION_TITLE,
 } from './Accordion.constants';
 
 describe('Accordion - Snapshot', () => {
   it('should render default settings correctly', () => {
     const wrapper = shallow(
-      <Accordion title={TEST_ACCORDION_HEADER_TITLE}>
+      <Accordion title={SAMPLE_ACCORDION_TITLE}>
         <View />
       </Accordion>,
     );
@@ -24,7 +22,7 @@ describe('Accordion - Snapshot', () => {
   });
   it('should render a proper expanded state', () => {
     const wrapper = shallow(
-      <Accordion title={TEST_ACCORDION_HEADER_TITLE} isExpanded>
+      <Accordion title={SAMPLE_ACCORDION_TITLE} isExpanded>
         <View />
       </Accordion>,
     );
@@ -35,36 +33,36 @@ describe('Accordion - Snapshot', () => {
 describe('Accordion', () => {
   it('should render Accordion', () => {
     const wrapper = shallow(
-      <Accordion title={TEST_ACCORDION_HEADER_TITLE}>
+      <Accordion title={SAMPLE_ACCORDION_TITLE}>
         <View />
       </Accordion>,
     );
     const AccordionComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === ACCORDION_TEST_ID,
+      (node) => node.prop('testID') === TESTID_ACCORDION,
     );
     expect(AccordionComponent.exists()).toBe(true);
   });
 
   it('should render Accordion content if isExpanded = true', () => {
     const wrapper = shallow(
-      <Accordion title={TEST_ACCORDION_HEADER_TITLE} isExpanded>
+      <Accordion title={SAMPLE_ACCORDION_TITLE} isExpanded>
         <View />
       </Accordion>,
     );
     const AccordionContentComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === ACCORDION_CONTENT_TEST_ID,
+      (node) => node.prop('testID') === TESTID_ACCORDION_CONTENT,
     );
     expect(AccordionContentComponent.exists()).toBe(true);
   });
 
   it('should NOT render Accordion content if isExpanded = false', () => {
     const wrapper = shallow(
-      <Accordion title={TEST_ACCORDION_HEADER_TITLE}>
+      <Accordion title={SAMPLE_ACCORDION_TITLE}>
         <View />
       </Accordion>,
     );
     const AccordionContentComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === ACCORDION_CONTENT_TEST_ID,
+      (node) => node.prop('testID') === TESTID_ACCORDION_CONTENT,
     );
     expect(AccordionContentComponent.exists()).toBe(false);
   });

@@ -3,6 +3,7 @@ import { StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
+import { TextColor } from '../Text/Text.types';
 
 // Internal dependencies.
 import { TextWithPrefixIconStyleSheetVars } from './TextWithPrefixIcon.types';
@@ -20,15 +21,54 @@ const styleSheet = (params: {
   vars: TextWithPrefixIconStyleSheetVars;
 }) => {
   const { theme, vars } = params;
-  const { style } = vars;
+  const { style, color } = vars;
+  let iconColor;
+  switch (color) {
+    case TextColor.Default:
+      iconColor = theme.colors.text.default;
+      break;
+    case TextColor.Inverse:
+      iconColor = theme.colors.primary.inverse;
+      break;
+    case TextColor.Alternative:
+      iconColor = theme.colors.text.alternative;
+      break;
+    case TextColor.Muted:
+      iconColor = theme.colors.text.muted;
+      break;
+    case TextColor.Primary:
+      iconColor = theme.colors.primary.default;
+      break;
+    case TextColor.PrimaryAlternative:
+      iconColor = theme.colors.primary.alternative;
+      break;
+    case TextColor.Success:
+      iconColor = theme.colors.success.default;
+      break;
+    case TextColor.Error:
+      iconColor = theme.colors.error.default;
+      break;
+    case TextColor.ErrorAlternative:
+      iconColor = theme.colors.error.alternative;
+      break;
+    case TextColor.Warning:
+      iconColor = theme.colors.warning.default;
+      break;
+    case TextColor.Info:
+      iconColor = theme.colors.info.default;
+      break;
+    default:
+      iconColor = theme.colors.text.default;
+  }
+
   return StyleSheet.create({
     base: {
       flexDirection: 'row',
       alignItems: 'center',
     },
-    text: Object.assign(
+    icon: Object.assign(
       {
-        color: theme.colors.text.default,
+        color: iconColor,
       },
       style,
     ) as TextStyle,

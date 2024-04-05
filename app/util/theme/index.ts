@@ -1,9 +1,17 @@
-import React, { useContext } from 'react';
-import { useColorScheme, StatusBar, ColorSchemeName } from 'react-native';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
+import {
+  useColorScheme,
+  StatusBar,
+  ColorSchemeName,
+  Appearance,
+  Platform,
+} from 'react-native';
+import { throttle } from 'lodash';
 import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
 import { lightTheme, darkTheme } from '@metamask/design-tokens';
 import Device from '../device';
+import brandColors from './temp-tokens/brandColors';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
@@ -11,9 +19,10 @@ import Device from '../device';
  */
 export const mockTheme = {
   colors: lightTheme.colors,
-  themeAppearance: 'light',
+  themeAppearance: 'light' as AppThemeKey.light,
   typography: lightTheme.typography,
   shadows: lightTheme.shadows,
+  brandColors,
 };
 
 export const ThemeContext = React.createContext<any>(undefined);
@@ -50,8 +59,46 @@ export const getAssetFromTheme = (
   return asset;
 };
 
+/**
+ * Custom useColorScheme hook that throttles updating the system theme color.
+ * Replaces RN's useColorScheme hook, which has a bug where it resolves briefly to the wrong color.
+ * https://github.com/expo/expo/issues/10815#issuecomment-719113200
+ * This only affects iOS so we apply 0 delay on Android.
+ *
+ * @param delay - Optional delay for throttling setting the system theme.
+ * @returns - The system's theme, light or dark.
+ */
+/* eslint-disable */
+const useColorSchemeCustom = (
+  delay = Platform.select({ android: 0, ios: 350 }),
+) => {
+  const [colorScheme, setColorScheme] = useState(Appearance.getColorScheme());
+  const onColorSchemeChange = useCallback(
+    throttle(
+      ({ colorScheme }) => {
+        setColorScheme(colorScheme);
+      },
+      delay,
+      {
+        leading: false,
+      },
+    ),
+    [],
+  );
+  useEffect(() => {
+    const appearanceStateListener =
+      Appearance.addChangeListener(onColorSchemeChange);
+    return () => {
+      onColorSchemeChange.cancel();
+      appearanceStateListener?.remove();
+    };
+  }, []);
+  return colorScheme;
+};
+/* eslint-enable */
+
 export const useAppTheme = (): Theme => {
-  const osThemeName = useColorScheme();
+  const osThemeName = useColorSchemeCustom();
   const appTheme: AppThemeKey = useSelector(
     (state: any) => state.user.appTheme,
   );
@@ -120,7 +167,7 @@ export const useAppTheme = (): Theme => {
       setLightStatusBar();
   }
 
-  return { colors, themeAppearance, typography, shadows };
+  return { colors, themeAppearance, typography, shadows, brandColors };
 };
 
 export const useAppThemeFromContext = (): Theme => {

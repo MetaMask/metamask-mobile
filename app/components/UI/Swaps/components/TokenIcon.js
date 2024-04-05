@@ -8,7 +8,7 @@ import { useTheme } from '../../../../util/theme';
 import imageIcons from '../../../../images/image-icons';
 
 /* eslint-disable import/no-commonjs */
-const ethLogo = require('../../../../images/eth-logo.png');
+const ethLogo = require('../../../../images/eth-logo-new.png');
 /* eslint-enable import/no-commonjs */
 
 const REGULAR_SIZE = 24;

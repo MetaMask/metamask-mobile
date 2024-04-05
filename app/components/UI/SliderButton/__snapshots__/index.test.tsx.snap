@@ -7,7 +7,7 @@ exports[`SliderButton should render correctly 1`] = `
     Array [
       Object {
         "elevation": 0,
-        "shadowColor": "#037DD633",
+        "shadowColor": "#0376C933",
         "shadowOffset": Object {
           "height": 2,
           "width": 0,
@@ -18,6 +18,7 @@ exports[`SliderButton should render correctly 1`] = `
       undefined,
     ]
   }
+  testID="swipe-to-swap-button"
 >
   <View
     style={
@@ -37,7 +38,9 @@ exports[`SliderButton should render correctly 1`] = `
       resizeMode="stretch"
       source={
         Object {
-          "testUri": "../../../app/components/UI/SliderButton/assets/slider_button_gradient.png",
+          "default": Object {
+            "uri": "MockImage",
+          },
         }
       }
       style={
@@ -55,7 +58,9 @@ exports[`SliderButton should render correctly 1`] = `
       resizeMode="contain"
       source={
         Object {
-          "testUri": "../../../app/components/UI/SliderButton/assets/slider_button_shine.png",
+          "default": Object {
+            "uri": "MockImage",
+          },
         }
       }
       style={
@@ -86,7 +91,7 @@ exports[`SliderButton should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#FCFCFC",
+            "color": "#FFFFFF",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -132,7 +137,7 @@ exports[`SliderButton should render correctly 1`] = `
       <Text
         style={
           Object {
-            "color": "#FCFCFC",
+            "color": "#FFFFFF",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -159,7 +164,7 @@ exports[`SliderButton should render correctly 1`] = `
     style={
       Array [
         Object {
-          "backgroundColor": "#FCFCFC",
+          "backgroundColor": "#FFFFFF",
           "borderColor": "#0260A4",
           "borderRadius": 60,
           "borderWidth": 9.6,

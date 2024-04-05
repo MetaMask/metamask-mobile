@@ -1,5 +1,19 @@
 /* eslint-disable import/no-nodejs-modules */
 import { decode, encode } from 'base-64';
+import {
+  FIXTURE_SERVER_PORT,
+  isTest,
+  testConfig,
+} from './app/util/test/utils.js';
+import { LaunchArguments } from 'react-native-launch-arguments';
+
+// In a testing environment, assign the fixtureServerPort to use a deterministic port
+if (isTest) {
+  const raw = LaunchArguments.value();
+  testConfig.fixtureServerPort = raw?.fixtureServerPort
+    ? raw.fixtureServerPort
+    : FIXTURE_SERVER_PORT;
+}
 
 if (!global.btoa) {
   global.btoa = encode;

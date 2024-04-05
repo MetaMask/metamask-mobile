@@ -1,7 +1,5 @@
 const initialState = {
   approvedHosts: {},
-  privacyMode: true,
-  thirdPartyApiMode: true,
   revealSRPTimestamps: [],
 };
 
@@ -26,16 +24,6 @@ const privacyReducer = (state = initialState, action) => {
       return {
         ...state,
         approvedHosts: {},
-      };
-    case 'SET_PRIVACY_MODE':
-      return {
-        ...state,
-        privacyMode: action.enabled,
-      };
-    case 'SET_THIRD_PARTY_API_MODE':
-      return {
-        ...state,
-        thirdPartyApiMode: action.enabled,
       };
     case 'RECORD_SRP_REVEAL_TIMESTAMP':
       return {

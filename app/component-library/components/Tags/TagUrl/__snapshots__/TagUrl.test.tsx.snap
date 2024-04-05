@@ -5,6 +5,7 @@ exports[`TagUrl should render correctly 1`] = `
   style={
     Object {
       "alignItems": "center",
+      "alignSelf": "center",
       "backgroundColor": "#FFFFFF",
       "borderColor": "#BBC0C5",
       "borderRadius": 99,
@@ -23,13 +24,20 @@ exports[`TagUrl should render correctly 1`] = `
       }
     }
     size="32"
+    style={
+      Object {
+        "height": 24,
+        "marginRight": 8,
+        "width": 24,
+      }
+    }
     variant="Favicon"
   />
   <Text
     style={
       Object {
         "color": "#535A61",
-        "marginLeft": 8,
+        "flexShrink": 1,
       }
     }
     variant="sBodyMD"

@@ -9,6 +9,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
+import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -166,7 +167,6 @@ const BaseNotification = ({
       <View style={styles.floatingBackground}>
         <TouchableOpacity
           style={styles.defaultFlashFloating}
-          testID={'press-notification-button'}
           onPress={onPress}
           activeOpacity={0.8}
         >
@@ -174,7 +174,10 @@ const BaseNotification = ({
             {getIcon(status, colors, styles)}
           </View>
           <View style={styles.flashLabel}>
-            <Text style={styles.flashTitle} testID={'notification-title'}>
+            <Text
+              style={styles.flashTitle}
+              testID={CommonSelectorsIDs.TOAST_NOTIFICATION_TITLE}
+            >
               {!title ? getTitle(status, data) : title}
             </Text>
             <Text style={styles.flashText}>

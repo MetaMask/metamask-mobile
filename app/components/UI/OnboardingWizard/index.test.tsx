@@ -9,6 +9,9 @@ const initialState = {
   wizard: {
     step: 1,
   },
+  security: {
+    isAutomaticSecurityChecksModalOpen: false,
+  },
 };
 const store = mockStore(initialState);
 
@@ -19,6 +22,6 @@ describe('OnboardingWizard', () => {
         <OnboardingWizard />
       </Provider>,
     );
-    expect(wrapper.dive()).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });

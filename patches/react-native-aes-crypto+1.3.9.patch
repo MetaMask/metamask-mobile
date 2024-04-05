@@ -1,27 +1,40 @@
+diff --git a/node_modules/react-native-aes-crypto/android/build.gradle b/node_modules/react-native-aes-crypto/android/build.gradle
+index a68c5b7..2cb6ef1 100644
+--- a/node_modules/react-native-aes-crypto/android/build.gradle
++++ b/node_modules/react-native-aes-crypto/android/build.gradle
+@@ -20,7 +20,7 @@ buildscript {
+ }
+ 
+ apply plugin: 'com.android.library'
+-apply plugin: 'maven'
++apply plugin: 'maven-publish'
+ 
+ // Matches values in recent template from React Native 0.59 / 0.60
+ // https://github.com/facebook/react-native/blob/0.59-stable/template/android/build.gradle#L5-L9
 diff --git a/node_modules/react-native-aes-crypto/android/src/main/java/com/tectiv3/aes/RCTAes.java b/node_modules/react-native-aes-crypto/android/src/main/java/com/tectiv3/aes/RCTAes.java
-index 6843507..86ae4c6 100755
+index 6843507..a13ec93 100755
 --- a/node_modules/react-native-aes-crypto/android/src/main/java/com/tectiv3/aes/RCTAes.java
 +++ b/node_modules/react-native-aes-crypto/android/src/main/java/com/tectiv3/aes/RCTAes.java
-@@ -81,6 +81,14 @@ public class RCTAes extends ReactContextBaseJavaModule {
-         } catch (Exception e) {
-             promise.reject("-1", e.getMessage());
+@@ -83,6 +83,14 @@ public class RCTAes extends ReactContextBaseJavaModule {
          }
-+	}
-+	
+     }
+ 
 +	@ReactMethod(isBlockingSynchronousMethod = true)
 +	public String pbkdf2Sync(String pwd, String salt, Integer cost, Integer length)
 +	throws NoSuchAlgorithmException, InvalidKeySpecException, UnsupportedEncodingException
 +	{
-+        	String strs = pbkdf2(pwd, salt, cost, length);
++      String strs = pbkdf2(pwd, salt, cost, length);
 +			return strs;
-     }
- 
++   }
++
      @ReactMethod
+     public void hmac256(String data, String pwd, Promise promise) {
+         try {
 diff --git a/node_modules/react-native-aes-crypto/ios/RCTAes/RCTAes.m b/node_modules/react-native-aes-crypto/ios/RCTAes/RCTAes.m
-index ded93b6..6bc1b0b 100755
+index ded93b6..c3a6461 100755
 --- a/node_modules/react-native-aes-crypto/ios/RCTAes/RCTAes.m
 +++ b/node_modules/react-native-aes-crypto/ios/RCTAes/RCTAes.m
-@@ -51,6 +51,13 @@ @implementation RCTAes
+@@ -51,6 +51,12 @@ @implementation RCTAes
      }
  }
  
@@ -30,7 +43,6 @@ index ded93b6..6bc1b0b 100755
 +	
 +	return [AesCrypt pbkdf2:password salt:salt cost:cost length:length];
 +}
-+
 +
  RCT_EXPORT_METHOD(hmac256:(NSString *)base64 key:(NSString *)key
                    resolver:(RCTPromiseResolveBlock)resolve

@@ -1,6 +1,6 @@
 import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Engine from '../../core/Engine';
-import { BN } from '@metamask/controllers';
+import { BN } from '@metamask/assets-controllers';
 
 /**
  * Hook to handle the balance of ERC20 tokens

@@ -28,10 +28,12 @@ import { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
 import Alert, { AlertType } from '../../Base/Alert';
-import AnalyticsV2 from '../../../util/analyticsV2';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 interface IQRSigningDetails {
   QRState: IQRState;
@@ -44,6 +46,7 @@ interface IQRSigningDetails {
   showHint?: boolean;
   shouldStartAnimated?: boolean;
   bypassAndroidCameraAccessCheck?: boolean;
+  fromAddress: string;
 }
 
 const createStyles = (colors: any) =>
@@ -122,8 +125,10 @@ const QRSigningDetails = ({
   showHint = true,
   shouldStartAnimated = true,
   bypassAndroidCameraAccessCheck = true,
+  fromAddress,
 }: IQRSigningDetails) => {
   const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const KeyringController = useMemo(() => {
@@ -169,9 +174,12 @@ const QRSigningDetails = ({
   }, [checkAndroidCamera]);
 
   useEffect(() => {
-    AppState.addEventListener('change', handleAppState);
+    const appStateListener = AppState.addEventListener(
+      'change',
+      handleAppState,
+    );
     return () => {
-      AppState.removeEventListener('change', handleAppState);
+      appStateListener.remove();
     };
   }, [handleAppState]);
 
@@ -223,13 +231,10 @@ const QRSigningDetails = ({
         setSentOrCanceled(true);
         successCallback?.();
       } else {
-        AnalyticsV2.trackEvent(
-          AnalyticsV2.ANALYTICS_EVENTS.HARDWARE_WALLET_ERROR,
-          {
-            error:
-              'received signature request id is not matched with origin request',
-          },
-        );
+        trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
+          error:
+            'received signature request id is not matched with origin request',
+        });
         setErrorMessage(strings('transaction.mismatched_qr_request_id'));
         failureCallback?.(strings('transaction.mismatched_qr_request_id'));
       }
@@ -239,6 +244,7 @@ const QRSigningDetails = ({
       QRState.sign.request?.requestId,
       failureCallback,
       successCallback,
+      trackEvent,
     ],
   );
   const onScanError = useCallback(
@@ -288,7 +294,10 @@ const QRSigningDetails = ({
               ]}
             >
               <View style={styles.accountInfoCardWrapper}>
-                <AccountInfoCard showFiatBalance={false} />
+                <AccountInfoCard
+                  showFiatBalance={false}
+                  fromAddress={fromAddress}
+                />
               </View>
               {renderAlert()}
               {renderCameraAlert()}

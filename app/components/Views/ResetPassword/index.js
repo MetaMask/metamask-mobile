@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
   Alert,
-  Text,
   View,
   TextInput,
   SafeAreaView,
@@ -15,13 +14,13 @@ import {
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import AsyncStorage from '../../../store/async-storage-wrapper';
 import { connect } from 'react-redux';
-import {
-  passwordSet,
-  passwordUnset,
-  seedphraseNotBackedUp,
-} from '../../../actions/user';
+import { passwordSet, seedphraseNotBackedUp } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
@@ -29,34 +28,33 @@ import Device from '../../../util/device';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import SecureKeychain from '../../../core/SecureKeychain';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
 import zxcvbn from 'zxcvbn';
-import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
-  EXISTING_USER,
   TRUE,
   BIOMETRY_CHOICE_DISABLED,
+  PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import {
   getPasswordStrengthWord,
   passwordRequirementsMet,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
+import {
+  passcodeType,
+  updateAuthTypeStorageFlags,
+} from '../../../util/authentication';
+import { Authentication } from '../../../core';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import AnimatedFox from 'react-native-animated-fox';
-import {
-  CREATE_PASSWORD_CONTAINER_ID,
-  CREATE_PASSWORD_INPUT_BOX_ID,
-  CONFIRM_PASSWORD_INPUT_BOX_ID,
-  IOS_I_UNDERSTAND_BUTTON_ID,
-  ANDROID_I_UNDERSTAND_BUTTON_ID,
-  CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID,
-} from '../../../constants/test-ids';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultWithNewPassword } from '../../../core/Vault';
+import Logger from '../../../util/Logger';
+import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -68,10 +66,8 @@ const createStyles = (colors) =>
       flexGrow: 1,
     },
     confirm_title: {
-      fontSize: 32,
       marginTop: 10,
       marginBottom: 10,
-      color: colors.text.default,
       justifyContent: 'center',
       textAlign: 'left',
       ...fontStyles.normal,
@@ -86,9 +82,6 @@ const createStyles = (colors) =>
       color: colors.text.default,
     },
     confirm_label: {
-      fontSize: 16,
-      lineHeight: 23,
-      color: colors.text.default,
       textAlign: 'left',
       ...fontStyles.normal,
     },
@@ -127,21 +120,17 @@ const createStyles = (colors) =>
       alignItems: 'flex-start',
     },
     title: {
-      fontSize: 24,
       marginTop: 20,
       marginBottom: 20,
-      color: colors.text.default,
       justifyContent: 'center',
       textAlign: 'center',
       width: '100%',
       ...fontStyles.normal,
     },
     subtitle: {
-      fontSize: 16,
       lineHeight: 23,
-      color: colors.text.default,
       textAlign: 'center',
-      ...fontStyles.normal,
+      fontWeight: '400',
     },
     text: {
       marginBottom: 10,
@@ -170,7 +159,6 @@ const createStyles = (colors) =>
       lineHeight: 18,
     },
     learnMore: {
-      color: colors.primary.default,
       textDecorationLine: 'underline',
       textDecorationColor: colors.primary.default,
     },
@@ -192,10 +180,6 @@ const createStyles = (colors) =>
       marginTop: 20,
       paddingHorizontal: 10,
     },
-    errorMsg: {
-      color: colors.error.default,
-      ...fontStyles.normal,
-    },
     biometrics: {
       position: 'relative',
       marginTop: 20,
@@ -214,14 +198,11 @@ const createStyles = (colors) =>
       right: 0,
     },
     hintLabel: {
-      height: 20,
       marginTop: 14,
-      fontSize: 12,
-      color: colors.text.default,
       textAlign: 'left',
-      ...fontStyles.normal,
     },
     showPassword: {
+      marginTop: 14,
       position: 'absolute',
       top: 0,
       right: 0,
@@ -253,8 +234,6 @@ const createStyles = (colors) =>
     },
     warningMessageText: {
       paddingVertical: 10,
-      color: colors.error.default,
-      ...fontStyles.normal,
     },
     keyboardAvoidingView: {
       flex: 1,
@@ -331,13 +310,27 @@ class ResetPassword extends PureComponent {
 
   async componentDidMount() {
     this.updateNavBar();
-    const biometryType = await SecureKeychain.getSupportedBiometryType();
 
     const state = { view: CONFIRM_PASSWORD };
-    if (biometryType) {
-      state.biometryType = Device.isAndroid() ? 'biometrics' : biometryType;
-      state.biometryChoice = true;
-    }
+    const authData = await Authentication.getType();
+    const previouslyDisabled = await AsyncStorage.getItem(
+      BIOMETRY_CHOICE_DISABLED,
+    );
+    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+      PASSCODE_DISABLED,
+    );
+    if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE)
+      this.setState({
+        biometryType: passcodeType(authData.currentAuthType),
+        biometryChoice: !(
+          passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
+        ),
+      });
+    else if (authData.availableBiometryType)
+      this.setState({
+        biometryType: authData.availableBiometryType,
+        biometryChoice: !(previouslyDisabled && previouslyDisabled === TRUE),
+      });
 
     this.setState(state);
 
@@ -389,27 +382,20 @@ class ResetPassword extends PureComponent {
 
       await this.recreateVault();
       // Set biometrics for new password
-      await SecureKeychain.resetGenericPassword();
+      await Authentication.resetPassword();
       try {
-        if (this.state.biometryType && this.state.biometryChoice) {
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.BIOMETRICS,
-          );
-        } else if (this.state.rememberMe) {
-          await SecureKeychain.setGenericPassword(
-            password,
-            SecureKeychain.TYPES.REMEMBER_ME,
-          );
-        }
+        // compute and store the new authentication method
+        const authData = await Authentication.componentAuthenticationType(
+          this.state.biometryChoice,
+          this.state.rememberMe,
+        );
+        await Authentication.storePassword(password, authData.currentAuthType);
       } catch (error) {
         Logger.error(error);
       }
 
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
-      this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
-
+      this.props.passwordSet();
       this.setState({ loading: false });
       InteractionManager.runAfterInteractions(() => {
         this.props.navigation.navigate('SecuritySettings');
@@ -440,26 +426,12 @@ class ResetPassword extends PureComponent {
    */
   recreateVault = async () => {
     const { originalPassword, password: newPassword } = this.state;
+    // Recreate keyring with password
     await recreateVaultWithNewPassword(
       originalPassword,
       newPassword,
       this.props.selectedAddress,
     );
-  };
-
-  /**
-   * Returns current vault seed phrase
-   * It does it using an empty password or a password set by the user
-   * depending on the state the app is currently in
-   */
-  getSeedPhrase = async () => {
-    const { KeyringController } = Engine.context;
-    const { originalPassword } = this.state;
-    const keychainPassword = originalPassword;
-    const mnemonic = await KeyringController.exportSeedPhrase(
-      keychainPassword,
-    ).toString();
-    return JSON.stringify(mnemonic).replace(/"/g, '');
   };
 
   jumpToConfirmPassword = () => {
@@ -468,11 +440,7 @@ class ResetPassword extends PureComponent {
   };
 
   updateBiometryChoice = async (biometryChoice) => {
-    if (!biometryChoice) {
-      await AsyncStorage.setItem(BIOMETRY_CHOICE_DISABLED, TRUE);
-    } else {
-      await AsyncStorage.removeItem(BIOMETRY_CHOICE_DISABLED);
-    }
+    await updateAuthTypeStorageFlags(biometryChoice);
     this.setState({ biometryChoice });
   };
 
@@ -569,11 +537,17 @@ class ResetPassword extends PureComponent {
         <KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
           <View style={styles.confirmPasswordWrapper}>
             <View style={[styles.content, styles.passwordRequiredContent]}>
-              <Text style={styles.confirm_title}>
+              <Text
+                variant={TextVariant.DisplayMD}
+                style={styles.confirm_title}
+              >
                 {strings('manual_backup_step_1.confirm_password')}
               </Text>
               <View style={styles.text}>
-                <Text style={styles.confirm_label}>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  style={styles.confirm_label}
+                >
                   {strings('manual_backup_step_1.before_continiuing')}
                 </Text>
               </View>
@@ -584,11 +558,11 @@ class ResetPassword extends PureComponent {
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 onSubmitEditing={this.tryUnlock}
-                testID={CONFIRM_CHANGE_PASSWORD_INPUT_BOX_ID}
+                testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 keyboardAppearance={themeAppearance}
               />
               {warningIncorrectPassword && (
-                <Text style={styles.warningMessageText}>
+                <Text color={TextColor.Error} style={styles.warningMessageText}>
                   {warningIncorrectPassword}
                 </Text>
               )}
@@ -598,7 +572,7 @@ class ResetPassword extends PureComponent {
                 containerStyle={styles.button}
                 type={'confirm'}
                 onPress={this.tryUnlock}
-                testID={'submit-button'}
+                testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
               >
                 {strings('manual_backup_step_1.confirm')}
               </StyledButton>
@@ -644,42 +618,46 @@ class ResetPassword extends PureComponent {
               )}
             </View>
             <ActivityIndicator size="large" color={colors.icon.default} />
-            <Text style={styles.title}>
+            <Text variant={TextVariant.HeadingLG} style={styles.title}>
               {strings(
                 previousScreen === ONBOARDING
                   ? 'create_wallet.title'
                   : 'secure_your_wallet.creating_password',
               )}
             </Text>
-            <Text style={styles.subtitle}>
+            <Text variant={TextVariant.BodyLGMedium} style={styles.subtitle}>
               {strings('create_wallet.subtitle')}
             </Text>
           </View>
         ) : (
-          <View style={styles.wrapper} testID={'choose-password-screen'}>
+          <View style={styles.wrapper}>
             <KeyboardAwareScrollView
               style={styles.scrollableWrapper}
               contentContainerStyle={styles.keyboardScrollableWrapper}
               resetScrollToCoords={{ x: 0, y: 0 }}
             >
-              <View testID={CREATE_PASSWORD_CONTAINER_ID}>
+              <View testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}>
                 <View style={styles.content}>
-                  <Text style={styles.title}>
+                  <Text variant={TextVariant.HeadingLG} style={styles.title}>
                     {strings('reset_password.title')}
                   </Text>
                   <View style={styles.text}>
-                    <Text style={styles.subtitle}>
+                    <Text
+                      variant={TextVariant.BodyLGMedium}
+                      style={styles.subtitle}
+                    >
                       {strings('reset_password.subtitle')}
                     </Text>
                   </View>
                 </View>
                 <View style={styles.field}>
-                  <Text style={styles.hintLabel}>
+                  <Text variant={TextVariant.BodySM} style={styles.hintLabel}>
                     {strings('reset_password.password')}
                   </Text>
                   <Text
                     onPress={this.toggleShowHide}
-                    style={[styles.hintLabel, styles.showPassword]}
+                    variant={TextVariant.BodySM}
+                    style={styles.showPassword}
                   >
                     {strings(
                       `reset_password.${secureTextEntry ? 'show' : 'hide'}`,
@@ -692,26 +670,34 @@ class ResetPassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder=""
                     placeholderTextColor={colors.text.muted}
-                    testID={CREATE_PASSWORD_INPUT_BOX_ID}
+                    testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                   />
                   {(password !== '' && (
-                    <Text style={styles.hintLabel}>
+                    <Text variant={TextVariant.BodySM} style={styles.hintLabel}>
                       {strings('reset_password.password_strength')}
-                      <Text style={styles[`strength_${passwordStrengthWord}`]}>
+                      <Text
+                        variant={TextVariant.BodySM}
+                        style={styles[`strength_${passwordStrengthWord}`]}
+                      >
                         {' '}
                         {strings(
                           `reset_password.strength_${passwordStrengthWord}`,
                         )}
                       </Text>
                     </Text>
-                  )) || <Text style={styles.hintLabel} />}
+                  )) || (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      style={styles.hintLabel}
+                    />
+                  )}
                 </View>
                 <View style={styles.field}>
-                  <Text style={styles.hintLabel}>
+                  <Text variant={TextVariant.BodySM} style={styles.hintLabel}>
                     {strings('reset_password.confirm_password')}
                   </Text>
                   <TextInput
@@ -722,7 +708,9 @@ class ResetPassword extends PureComponent {
                     secureTextEntry={secureTextEntry}
                     placeholder={''}
                     placeholderTextColor={colors.text.muted}
-                    testID={CONFIRM_PASSWORD_INPUT_BOX_ID}
+                    testID={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
                     zasdfasfasf
                     onSubmitEditing={this.onPressCreate}
                     returnKeyType={'done'}
@@ -738,7 +726,7 @@ class ResetPassword extends PureComponent {
                       />
                     ) : null}
                   </View>
-                  <Text style={styles.hintLabel}>
+                  <Text variant={TextVariant.BodySM} style={styles.hintLabel}>
                     {strings('reset_password.must_be_at_least', { number: 8 })}
                   </Text>
                 </View>
@@ -753,28 +741,37 @@ class ResetPassword extends PureComponent {
                       false: colors.border.default,
                     }}
                     boxType="square"
-                    testID={IOS_I_UNDERSTAND_BUTTON_ID}
+                    testID={
+                      ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
+                    }
                   />
                   <Text
+                    variant={TextVariant.BodyMD}
                     style={styles.label}
                     onPress={this.setSelection}
-                    testID={ANDROID_I_UNDERSTAND_BUTTON_ID}
+                    testID={
+                      ChoosePasswordSelectorsIDs.ANDROID_I_UNDERSTAND_BUTTON_ID
+                    }
                   >
                     {strings('reset_password.i_understand')}{' '}
-                    <Text onPress={this.learnMore} style={styles.learnMore}>
+                    <Text
+                      color={TextColor.Info}
+                      onPress={this.learnMore}
+                      style={styles.learnMore}
+                    >
                       {strings('reset_password.learn_more')}
                     </Text>
                   </Text>
                 </View>
 
-                {!!error && <Text style={styles.errorMsg}>{error}</Text>}
+                {!!error && <Text color={TextColor.Error}>{error}</Text>}
               </View>
 
               <View style={styles.ctaWrapper}>
                 <StyledButton
                   type={'blue'}
                   onPress={this.onPressCreate}
-                  testID={'submit-button'}
+                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
                   disabled={!canSubmit}
                 >
                   {strings('reset_password.reset_button')}
@@ -812,13 +809,11 @@ class ResetPassword extends PureComponent {
 ResetPassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  selectedAddress:
-    state.engine.backgroundState.PreferencesController.selectedAddress,
+  selectedAddress: selectSelectedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
   passwordSet: () => dispatch(passwordSet()),
-  passwordUnset: () => dispatch(passwordUnset()),
   setLockTime: (time) => dispatch(setLockTime(time)),
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
 });

@@ -1,7 +1,9 @@
+import { ViewProps } from 'react-native';
+
 /**
  * SheetBottom component props.
  */
-export interface SheetBottomProps {
+export interface SheetBottomProps extends ViewProps {
   /**
    * Content to wrap for multiselect.
    */
@@ -9,12 +11,17 @@ export interface SheetBottomProps {
   /**
    * Optional callback that gets triggered when sheet is dismissed.
    */
-  onDismissed?: () => void;
+  onDismissed?: (hasPendingAction: boolean) => void;
   /**
-   * Boolean that indicates if sheet is swippable. This affects whether or not tapping on the overlay will dismiss the sheet as well.
+   * Optional boolean that indicates if sheet is swippable. This affects whether or not tapping on the overlay will dismiss the sheet as well.
    * @default true
    */
   isInteractable?: boolean;
+  /**
+   * Optional number for the minimum spacing reserved for the overlay tappable area.
+   * @default 250
+   */
+  reservedMinOverlayHeight?: number;
 }
 
 export type SheetBottomPostCallback = () => void;
@@ -28,4 +35,5 @@ export interface SheetBottomRef {
  */
 export interface SheetBottomStyleSheetVars {
   maxSheetHeight: number;
+  screenBottomPadding: number;
 }

@@ -1,30 +1,41 @@
 import TestHelpers from '../helpers';
-
-const CUSTOM_TOKEN_CONTAINER_ID = 'add-custom-token-screen';
-const TOKEN_INPUT_BOX_ID = 'input-search-asset';
-const NFT_BACK_BUTTON = 'asset-back-button';
-const TOKEN_RESULTS_LIST_ID = 'searched-token-result';
+import { CUSTOM_TOKEN_CONTAINER_ID } from '../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
+import {
+  ASSET_BACK_BUTTON,
+  TOKEN_INPUT_BOX_ID,
+} from '../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
+import {
+  ImportTokenViewSelectorsIDs,
+  ImportTokenViewSelectorsText,
+} from '../selectors/ImportTokenView.selectors';
 
 export default class ImportTokensView {
   static async tapImportButton() {
-    await TestHelpers.tapByText('IMPORT');
+    await TestHelpers.swipe(TOKEN_INPUT_BOX_ID, 'up', 'fast');
+
+    await TestHelpers.tapByText(ImportTokenViewSelectorsText.IMPORT_BUTTON);
   }
   static async tapBackButton() {
-    await TestHelpers.tap(NFT_BACK_BUTTON);
+    await TestHelpers.tap(ASSET_BACK_BUTTON);
   }
 
   static async typeInTokenName(tokenName) {
+    await TestHelpers.checkIfExists(TOKEN_INPUT_BOX_ID);
+
     await TestHelpers.typeTextAndHideKeyboard(TOKEN_INPUT_BOX_ID, tokenName);
   }
   static async tapOnToken() {
-    await TestHelpers.tapItemAtIndex(TOKEN_RESULTS_LIST_ID);
-  }
-  static async tapOnImportButton() {
-    await TestHelpers.tapByText('IMPORT');
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.tapItemAtIndexByLabel(
+        ImportTokenViewSelectorsIDs.CONTAINER,
+      );
+    } else {
+      await TestHelpers.tapItemAtIndex(ImportTokenViewSelectorsIDs.CONTAINER);
+    }
   }
 
   static async tapOnCancelButton() {
-    await TestHelpers.tapByText('CANCEL');
+    await TestHelpers.tapByText(ImportTokenViewSelectorsText.CANCEL_BUTTON);
   }
 
   static async isVisible() {

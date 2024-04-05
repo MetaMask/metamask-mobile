@@ -2,7 +2,8 @@ import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
 import humanizeDuration from 'humanize-duration';
-import { util } from '@metamask/controllers';
+import { query, isSmartContractCode } from '@metamask/controller-utils';
+import { isEIP1559Transaction } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -31,6 +32,7 @@ import {
   decGWEIToHexWEI,
   getValueFromWeiHex,
   formatETHFee,
+  sumHexWEIs,
 } from '../conversions';
 import {
   addEth,
@@ -42,6 +44,7 @@ import {
 } from '../confirm-tx';
 
 import Logger from '../../util/Logger';
+import { handleMethodData } from '../../util/transaction-controller';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -73,6 +76,7 @@ export const TRANSACTION_TYPES = {
   RECEIVED_TOKEN: 'transaction_received_token',
   RECEIVED_COLLECTIBLE: 'transaction_received_collectible',
   SITE_INTERACTION: 'transaction_site_interaction',
+  SWAPS_TRANSACTION: 'swaps_transaction',
   APPROVE: 'transaction_approve',
 };
 
@@ -124,9 +128,9 @@ const actionKeys = {
  * @param {Object} opts - Optional asset parameters
  * @returns {String} - String containing the generated transfer data
  */
-export function generateTransferData(type, opts) {
+export function generateTransferData(type = undefined, opts = {}) {
   if (!type) {
-    throw new Error('[transactions] type must be defined');
+    throw new TypeError('[transactions] type must be defined');
   }
   switch (type) {
     case 'transfer':
@@ -203,13 +207,13 @@ const BASE = 4 * 16;
  *
  * @param {String} type - Method to use to generate data
  * @param {String} data - Data to decode
- * @returns {Object} - Object containing the decoded transfer data
+ * @returns {Array} - Object containing the decoded transfer data
  */
 export function decodeTransferData(type, data) {
   switch (type) {
     case 'transfer': {
-      const encodedAddress = data.substr(10, BASE);
-      const encodedAmount = data.substr(74, BASE);
+      const encodedAddress = data.substring(10, BASE + 10);
+      const encodedAmount = data.substring(74, BASE + 74);
       const bufferEncodedAddress = rawEncode(
         ['address'],
         [addHexPrefix(encodedAddress)],
@@ -221,9 +225,9 @@ export function decodeTransferData(type, data) {
       ];
     }
     case 'transferFrom': {
-      const encodedFromAddress = data.substr(10, BASE);
-      const encodedToAddress = data.substr(74, BASE);
-      const encodedTokenId = data.substr(138, BASE);
+      const encodedFromAddress = data.substring(10, BASE + 10);
+      const encodedToAddress = data.substring(74, BASE + 74);
+      const encodedTokenId = data.substring(138, BASE + 138);
       const bufferEncodedFromAddress = rawEncode(
         ['address'],
         [addHexPrefix(encodedFromAddress)],
@@ -242,10 +246,15 @@ export function decodeTransferData(type, data) {
 }
 
 /**
+ * @typedef {Object} MethodData
+ * @property {string} name - The method name
+ */
+
+/**
  * Returns method data object for a transaction dat
  *
  * @param {string} data - Transaction data
- * @returns {object} - Method data object containing the name if is valid
+ * @returns {MethodData} - Method data object containing the name if is valid
  */
 export async function getMethodData(data) {
   if (data.length < 10) return {};
@@ -259,12 +268,9 @@ export async function getMethodData(data) {
   } else if (data.substr(0, 32) === CONTRACT_CREATION_SIGNATURE) {
     return { name: CONTRACT_METHOD_DEPLOY };
   }
-  const { TransactionController } = Engine.context;
   // If it's a new method, use on-chain method registry
   try {
-    const registryObject = await TransactionController.handleMethodData(
-      fourByteSignature,
-    );
+    const registryObject = await handleMethodData(fourByteSignature);
     if (registryObject) {
       return registryObject.parsedRegistryMethod;
     }
@@ -279,7 +285,7 @@ export async function getMethodData(data) {
  *
  * @param {string} address - Ethereum address
  * @param {string} chainId - Current chainId
- * @returns {boolean} - Whether the given address is a contract
+ * @returns {Promise<boolean>} - Whether the given address is a contract
  */
 export async function isSmartContractAddress(address, chainId) {
   if (!address) return false;
@@ -293,9 +299,9 @@ export async function isSmartContractAddress(address, chainId) {
   }
   const { TransactionController } = Engine.context;
   const code = address
-    ? await util.query(TransactionController.ethQuery, 'getCode', [address])
+    ? await query(TransactionController.ethQuery, 'getCode', [address])
     : undefined;
-  const isSmartContract = util.isSmartContractCode(code);
+  const isSmartContract = isSmartContractCode(code);
   return isSmartContract;
 }
 
@@ -441,7 +447,7 @@ export function getEther(ticker) {
     name: 'Ether',
     address: '',
     symbol: ticker || strings('unit.eth'),
-    logo: '../images/eth-logo.png',
+    logo: '../images/eth-logo-new.png',
     isETH: true,
   };
 }
@@ -451,7 +457,7 @@ export function getEther(ticker) {
  *
  * @param {object} config
  * @param {object} config.addressBook - Object of address book entries
- * @param {string} config.network - network id
+ * @param {string} config.chainId - network id
  * @param {string} config.toAddress - hex address of tx recipient
  * @param {object} config.identities - object of identities
  * @param {string} config.ensRecipient - name of ens recipient
@@ -459,7 +465,7 @@ export function getEther(ticker) {
  */
 export function getTransactionToName({
   addressBook,
-  network,
+  chainId,
   toAddress,
   identities,
   ensRecipient,
@@ -468,7 +474,7 @@ export function getTransactionToName({
     return ensRecipient;
   }
 
-  const networkAddressBook = addressBook[network];
+  const networkAddressBook = addressBook[chainId];
   const checksummedToAddress = toChecksumAddress(toAddress);
 
   const transactionToName =
@@ -498,7 +504,9 @@ export function addAccountTimeFlagFilter(
 }
 
 export function getNormalizedTxState(state) {
-  return { ...state.transaction, ...state.transaction.transaction };
+  return state.transaction
+    ? { ...state.transaction, ...state.transaction.transaction }
+    : undefined;
 }
 
 export const getActiveTabUrl = ({ browser = {} }) =>
@@ -649,7 +657,7 @@ export const calculateEIP1559Times = ({
 }) => {
   let timeEstimate = strings('times_eip1559.unknown');
   let timeEstimateColor = 'grey';
-  let timeEstimateId = AppConstants.GAS_TIMES.UNKNOWN;
+  let timeEstimateId;
 
   const LOW = AppConstants.GAS_OPTIONS.LOW;
   const MEDIUM = AppConstants.GAS_OPTIONS.MEDIUM;
@@ -715,6 +723,20 @@ export const calculateEIP1559Times = ({
         hasTime = true;
       }
 
+      if (
+        Number(suggestedMaxPriorityFeePerGas) >=
+        Number(gasFeeEstimates[HIGH].suggestedMaxPriorityFeePerGas)
+      ) {
+        timeEstimate = `${strings(
+          'times_eip1559.likely_in',
+        )} ${humanizeDuration(
+          gasFeeEstimates[HIGH].minWaitTimeEstimate,
+          timeParams,
+        )}`;
+        timeEstimateColor = 'orange';
+        timeEstimateId = AppConstants.GAS_TIMES.VERY_LIKELY;
+      }
+
       if (hasTime) {
         return { timeEstimate, timeEstimateColor, timeEstimateId };
       }
@@ -775,6 +797,9 @@ export const calculateEIP1559Times = ({
     }
   } catch (error) {
     Logger.log('ERROR ESTIMATING TIME', error);
+  }
+  if (!timeEstimateId) {
+    timeEstimate = AppConstants.GAS_TIMES.UNKNOWN;
   }
 
   return { timeEstimate, timeEstimateColor, timeEstimateId };
@@ -1175,15 +1200,21 @@ export const parseTransactionLegacy = (
     },
     ticker,
     selectedGasFee,
+    multiLayerL1FeeTotal,
   },
   { onlyGas } = {},
 ) => {
   const gasLimit = new BN(selectedGasFee.suggestedGasLimit);
   const gasLimitHex = BNToHex(new BN(selectedGasFee.suggestedGasLimit));
 
-  const weiTransactionFee =
+  let weiTransactionFee =
     gasLimit &&
     gasLimit.mul(hexToBN(decGWEIToHexWEI(selectedGasFee.suggestedGasPrice)));
+  if (multiLayerL1FeeTotal) {
+    weiTransactionFee = hexToBN(
+      sumHexWEIs([BNToHex(weiTransactionFee), multiLayerL1FeeTotal]),
+    );
+  }
 
   const suggestedGasPriceHex = decGWEIToHexWEI(
     selectedGasFee.suggestedGasPrice,
@@ -1198,7 +1229,7 @@ export const parseTransactionLegacy = (
   const parsedTicker = getTicker(ticker);
   const transactionFee = `${renderFromWei(weiTransactionFee)} ${parsedTicker}`;
 
-  const totalHex = valueBN.add(hexToBN(weiTransactionFee));
+  const totalHex = valueBN.add(weiTransactionFee);
 
   if (onlyGas) {
     return {
@@ -1237,9 +1268,8 @@ export const parseTransactionLegacy = (
       conversionRate,
       currentCurrency,
     );
-  } else {
+  } else if (data) {
     const { address, symbol = 'ERC20', decimals } = selectedAsset;
-
     const [, , rawAmount] = decodeTransferData('transfer', data);
     const rawAmountString = parseInt(rawAmount, 16).toLocaleString('fullwide', {
       useGrouping: false,
@@ -1296,7 +1326,7 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
     let gasPrice = transaction.transaction.gasPrice;
     const transactionToCheck = transaction.transaction;
 
-    if (util.isEIP1559Transaction(transactionToCheck)) {
+    if (isEIP1559Transaction(transactionToCheck)) {
       gasPrice = transactionToCheck.maxFeePerGas;
     }
 

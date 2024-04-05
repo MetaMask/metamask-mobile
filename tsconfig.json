@@ -38,6 +38,7 @@
 
     /* Module Resolution Options */
     "moduleResolution": "node" /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */,
+    "resolveJsonModule": true /* Allows importing JSON files */,
     "baseUrl": "." /* Base directory to resolve non-absolute module names. */,
     "paths": {
       "images/*": ["./app/images/*"]
@@ -48,7 +49,7 @@
     "allowSyntheticDefaultImports": true /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */,
     "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
     // "preserveSymlinks": true,              /* Do not resolve the real path of symlinks. */
-    "skipLibCheck": false /* Skip type checking of declaration files. */
+    "skipLibCheck": true /* Skip type checking of declaration files. */
 
     /* Source Map Options */
     // "sourceRoot": "./",                    /* Specify the location where debugger should locate TypeScript files instead of source locations. */
@@ -60,6 +61,11 @@
     // "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
   },
+  "include": [
+    "app/**/*",
+    "node_modules/expect-webdriverio",
+    "node_modules/expect-webdriverio/jest"
+  ],
   "exclude": [
     "node_modules",
     "babel.config.js",

@@ -1,11 +1,17 @@
 import Engine from '../Engine';
 import { ethErrors } from 'eth-json-rpc-errors';
 import {
+  getDecimalChainId,
   getDefaultNetworkByChainId,
   isPrefixedFormattedHexString,
-  isSafeChainId,
 } from '../../util/networks';
-import AnalyticsV2 from '../../util/analyticsV2';
+import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../selectors/networkController';
+import { store } from '../../store';
+import { isSafeChainId } from '@metamask/controller-utils';
 
 const wallet_switchEthereumChain = async ({
   req,
@@ -13,8 +19,7 @@ const wallet_switchEthereumChain = async ({
   requestUserApproval,
   analytics,
 }) => {
-  const { PreferencesController, CurrencyRateController, NetworkController } =
-    Engine.context;
+  const { CurrencyRateController, NetworkController } = Engine.context;
   const params = req.params?.[0];
 
   if (!params || typeof params !== 'object') {
@@ -46,45 +51,45 @@ const wallet_switchEthereumChain = async ({
     );
   }
 
-  if (!isSafeChainId(parseInt(_chainId, 16))) {
+  if (!isSafeChainId(_chainId)) {
     throw ethErrors.rpc.invalidParams(
       `Invalid chain ID "${_chainId}": numerical value greater than max safe value. Received:\n${chainId}`,
     );
   }
 
-  const chainIdDecimal = parseInt(_chainId, 16).toString(10);
-
-  const frequentRpcList = PreferencesController.state.frequentRpcList;
-  const existingNetworkDefault = getDefaultNetworkByChainId(chainIdDecimal);
-  const existingNetworkRPC = frequentRpcList.find(
-    (rpc) => rpc.chainId === chainIdDecimal,
+  const networkConfigurations = selectNetworkConfigurations(store.getState());
+  const existingNetworkDefault = getDefaultNetworkByChainId(_chainId);
+  const existingEntry = Object.entries(networkConfigurations).find(
+    ([, networkConfiguration]) => networkConfiguration.chainId === _chainId,
   );
-  if (existingNetworkRPC || existingNetworkDefault) {
-    const currentChainId = NetworkController.state.provider.chainId;
-    if (currentChainId === chainIdDecimal) {
+  if (existingEntry || existingNetworkDefault) {
+    const currentChainId = selectChainId(store.getState());
+    if (currentChainId === _chainId) {
       res.result = null;
       return;
     }
 
+    let networkConfigurationId, networkConfiguration;
+    if (existingEntry) {
+      [networkConfigurationId, networkConfiguration] = existingEntry;
+    }
+
     let requestData;
     let analyticsParams = {
-      chain_id: _chainId,
+      chain_id: getDecimalChainId(_chainId),
       source: 'Switch Network API',
       ...analytics,
     };
-    if (existingNetworkRPC) {
+    if (networkConfiguration) {
       requestData = {
-        rpcUrl: existingNetworkRPC.rpcUrl,
+        rpcUrl: networkConfiguration.rpcUrl,
         chainId: _chainId,
-        chainName: existingNetworkRPC.nickname,
-        ticker: existingNetworkRPC.ticker,
+        chainName: networkConfiguration.nickname,
+        ticker: networkConfiguration.ticker,
       };
       analyticsParams = {
         ...analyticsParams,
-        rpc_url: existingNetworkRPC?.rpcUrl,
-        symbol: existingNetworkRPC?.ticker,
-        block_explorer_url: existingNetworkRPC?.blockExplorerUrl,
-        network_name: 'rpc',
+        symbol: networkConfiguration?.ticker,
       };
     } else {
       requestData = {
@@ -95,7 +100,6 @@ const wallet_switchEthereumChain = async ({
       };
       analyticsParams = {
         ...analyticsParams,
-        network_name: existingNetworkDefault?.shortName,
       };
     }
 
@@ -104,21 +108,16 @@ const wallet_switchEthereumChain = async ({
       requestData: { ...requestData, type: 'switch' },
     });
 
-    if (existingNetworkRPC) {
-      CurrencyRateController.setNativeCurrency(existingNetworkRPC.ticker);
-      NetworkController.setRpcTarget(
-        existingNetworkRPC.rpcUrl,
-        chainIdDecimal,
-        existingNetworkRPC.ticker,
-        existingNetworkRPC.nickname,
-      );
+    if (networkConfiguration) {
+      CurrencyRateController.setNativeCurrency(networkConfiguration.ticker);
+      NetworkController.setActiveNetwork(networkConfigurationId);
     } else {
       CurrencyRateController.setNativeCurrency('ETH');
       NetworkController.setProviderType(existingNetworkDefault.networkType);
     }
 
-    AnalyticsV2.trackEvent(
-      AnalyticsV2.ANALYTICS_EVENTS.NETWORK_SWITCHED,
+    MetaMetrics.getInstance().trackEvent(
+      MetaMetricsEvents.NETWORK_SWITCHED,
       analyticsParams,
     );
 

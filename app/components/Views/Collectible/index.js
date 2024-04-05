@@ -77,8 +77,8 @@ class Collectible extends PureComponent {
 
   onRefresh = async () => {
     this.setState({ refreshing: true });
-    const { CollectibleDetectionController } = Engine.context;
-    await CollectibleDetectionController.detectCollectibles();
+    const { NftDetectionController } = Engine.context;
+    await NftDetectionController.detectNfts();
     this.setState({ refreshing: false });
   };
 
@@ -125,7 +125,7 @@ class Collectible extends PureComponent {
           }
           style={styles.wrapper}
         >
-          <View testID={'collectible'}>
+          <View>
             <View style={styles.assetOverviewWrapper}>
               <CollectibleContractOverview
                 navigation={navigation}

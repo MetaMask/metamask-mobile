@@ -1,22 +1,58 @@
-/* eslint-disable no-console */
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react/display-name */
 // Third party dependencies.
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
 
 // External dependencies.
-import {
-  TEST_REMOTE_IMAGE_SOURCE,
-  TEST_NETWORK_NAME,
-} from '../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
-import { BadgeVariants } from './Badge.types';
+import { SAMPLE_BADGENETWORK_PROPS } from './variants/BadgeNetwork/BadgeNetwork.constants';
+import { SAMPLE_BADGESTATUS_PROPS } from './variants/BadgeStatus/BadgeStatus.constants';
 
 // Internal dependencies.
-import Badge from './Badge';
+import { BadgeVariant } from './Badge.types';
+import { default as BadgeComponent } from './Badge';
+import { View } from 'react-native';
 
-storiesOf('Component Library / Badge', module).add('Default', () => (
-  <Badge
-    variant={BadgeVariants.Network}
-    name={TEST_NETWORK_NAME}
-    imageSource={TEST_REMOTE_IMAGE_SOURCE}
-  />
-));
+const BadgeMeta = {
+  title: 'Component Library / Badges',
+  component: BadgeComponent,
+  argTypes: {
+    variant: {
+      options: BadgeVariant,
+      control: {
+        type: 'select',
+      },
+      defaultValue: BadgeVariant.Network,
+    },
+  },
+};
+export default BadgeMeta;
+
+export const Badge = {
+  render: (args: { variant: BadgeVariant }) => {
+    switch (args.variant) {
+      case BadgeVariant.Network:
+        return (
+          <View
+            style={{
+              height: 50,
+              width: 50,
+            }}
+          >
+            <BadgeComponent
+              variant={BadgeVariant.Network}
+              {...SAMPLE_BADGENETWORK_PROPS}
+            />
+          </View>
+        );
+      case BadgeVariant.Status:
+        return (
+          <BadgeComponent
+            variant={BadgeVariant.Status}
+            {...SAMPLE_BADGESTATUS_PROPS}
+          />
+        );
+      default:
+        throw new Error('Invalid Badge Variant');
+    }
+  },
+};

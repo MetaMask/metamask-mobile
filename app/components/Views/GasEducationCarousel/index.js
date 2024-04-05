@@ -19,7 +19,7 @@ import Text from '../../Base/Text';
 import { connect } from 'react-redux';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
-import { GAS_ESTIMATE_TYPES } from '@metamask/controllers';
+import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import AppConstants from '../../../core/AppConstants';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { BNToHex, hexToBN } from '../../../util/number';
@@ -31,6 +31,12 @@ import Engine from '../../../core/Engine';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { formatCurrency, getTransactionFee } from '../../../util/confirm-tx';
 import Logger from '../../../util/Logger';
+import { selectTicker } from '../../../selectors/networkController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeCurrency,
+} from '../../../selectors/currencyRateController';
 
 const IMAGE_3_RATIO = 281 / 354;
 const IMAGE_2_RATIO = 353 / 416;
@@ -239,13 +245,7 @@ const GasEducationCarousel = ({
     if (key === 1) {
       return (
         <View style={styles.tab}>
-          <Text
-            noMargin
-            bold
-            black
-            style={styles.title}
-            testID={`carousel-screen-${key}`}
-          >
+          <Text noMargin bold black style={styles.title}>
             {strings('fiat_on_ramp.gas_education_carousel.step_1.title', {
               ticker: getTicker(ticker),
             })}
@@ -277,13 +277,7 @@ const GasEducationCarousel = ({
     if (key === 2) {
       return (
         <View style={styles.tab}>
-          <Text
-            noMargin
-            bold
-            black
-            style={styles.title}
-            testID={`carousel-screen-${key}`}
-          >
+          <Text noMargin bold black style={styles.title}>
             {strings('fiat_on_ramp.gas_education_carousel.step_2.title')}
           </Text>
           <Text grey noMargin style={styles.subtitle}>
@@ -305,13 +299,7 @@ const GasEducationCarousel = ({
     if (key === 3) {
       return (
         <View style={styles.tab}>
-          <Text
-            noMargin
-            bold
-            black
-            style={styles.title}
-            testID={`carousel-screen-${key}`}
-          >
+          <Text noMargin bold black style={styles.title}>
             {strings('fiat_on_ramp.gas_education_carousel.step_3.title')}
           </Text>
           <Text noMargin bold style={styles.subheader}>
@@ -333,7 +321,7 @@ const GasEducationCarousel = ({
   };
 
   return (
-    <View style={baseStyles.flexGrow} testID={'gas-education-carousel-screen'}>
+    <View style={baseStyles.flexGrow}>
       <OnboardingScreenWithBg screen={'carousel'}>
         <ScrollView
           style={baseStyles.flexGrow}
@@ -355,7 +343,6 @@ const GasEducationCarousel = ({
                         source={carousel_images[index]}
                         style={[styles.carouselImage, styles[imgStyleKey]]}
                         resizeMethod={'auto'}
-                        testID={`carousel-${value}-image`}
                       />
                     </View>
                     <View style={baseStyles.flexGrow}>
@@ -366,7 +353,6 @@ const GasEducationCarousel = ({
                             <StyledButton
                               type={'confirm'}
                               onPress={onPresGetStarted}
-                              testID={'gas-education-fiat-on-ramp-start'}
                             >
                               {strings(
                                 'fiat_on_ramp.gas_education_carousel.step_3.cta',
@@ -431,13 +417,10 @@ GasEducationCarousel.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  conversionRate:
-    state.engine.backgroundState.CurrencyRateController.conversionRate,
-  currentCurrency:
-    state.engine.backgroundState.CurrencyRateController.currentCurrency,
-  nativeCurrency:
-    state.engine.backgroundState.CurrencyRateController.nativeCurrency,
-  ticker: state.engine.backgroundState.NetworkController.provider.ticker,
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  nativeCurrency: selectNativeCurrency(state),
+  ticker: selectTicker(state),
 });
 
 export default connect(mapStateToProps)(GasEducationCarousel);

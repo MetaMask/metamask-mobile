@@ -62,7 +62,9 @@ const styleSheet = (params: {
       overflow: 'hidden',
       borderRadius: haloSize / 2,
     },
-    label: size === AvatarSize.Xs ? { lineHeight: 16 } : {},
+    label:
+      // Temporarily lower font size in XS size to prevent cut off
+      size === AvatarSize.Xs ? { lineHeight: undefined, fontSize: 10 } : {},
     image: {
       flex: 1,
       height: undefined,

@@ -1,41 +1,115 @@
-/* eslint-disable no-console */
-// Third party dependencies.
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable react/display-name */
 import React from 'react';
-import { storiesOf } from '@storybook/react-native';
-import { View } from 'react-native';
 
 // External dependencies.
 import { mockTheme } from '../../../../util/theme';
-import {
-  TEST_NETWORK_NAME,
-  TEST_REMOTE_IMAGE_SOURCE,
-} from '../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
-import { BadgeProps, BadgeVariants } from '../Badge/Badge.types';
-import Text, { TextVariants } from '../../Texts/Text';
+import { BadgeProps, BadgeVariant } from '../Badge/Badge.types';
+import { SAMPLE_BADGENETWORK_PROPS } from '../Badge/variants/BadgeNetwork/BadgeNetwork.constants';
+import { SAMPLE_BADGESTATUS_PROPS } from '../Badge/variants/BadgeStatus/BadgeStatus.constants';
+import Badge from '../Badge/Badge';
+import Text, { TextVariant, TextColor } from '../../Texts/Text';
 
 // Internal dependencies.
-import BadgeWrapper from './BadgeWrapper';
+import { default as BadgeWrapperComponent } from './BadgeWrapper';
+import { SAMPLE_BADGEWRAPPER_PROPS } from './BadgeWrapper.constants';
+import { BadgeAnchorElementShape, BadgePosition } from './BadgeWrapper.types';
+import { View } from 'react-native';
 
-storiesOf('Component Library / BadgeWrapper', module).add('Default', () => {
-  const badgeProps: BadgeProps = {
-    variant: BadgeVariants.Network,
-    name: TEST_NETWORK_NAME,
-    imageSource: TEST_REMOTE_IMAGE_SOURCE,
-  };
+enum BadgeSelectorOptions {
+  NetworkImage = 'network-image',
+  NetworkInitial = 'network-initial',
+  Status = 'status',
+}
 
-  return (
-    <BadgeWrapper badgeProps={badgeProps}>
+const BadgeWrapperMeta = {
+  title: 'Component Library / Badges',
+  component: BadgeWrapperComponent,
+  argTypes: {
+    anchorElementShape: {
+      options: BadgeAnchorElementShape,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BADGEWRAPPER_PROPS.anchorElementShape,
+    },
+    badgePosition: {
+      options: BadgePosition,
+      control: {
+        type: 'select',
+      },
+      defaultValue: SAMPLE_BADGEWRAPPER_PROPS.badgePosition,
+    },
+    badge: {
+      options: BadgeSelectorOptions,
+      control: {
+        type: 'select',
+      },
+      defaultValue: BadgeSelectorOptions.NetworkInitial,
+    },
+  },
+};
+export default BadgeWrapperMeta;
+
+export const BadgeWrapper = {
+  // eslint-disable-next-line react/prop-types
+  render: (args: { [x: string]: any; badge: any; anchorElementShape: any }) => {
+    const { badge, anchorElementShape, ...props } = args;
+    let badgeProps: BadgeProps;
+    switch (badge) {
+      case BadgeSelectorOptions.NetworkImage:
+        badgeProps = {
+          variant: BadgeVariant.Network,
+          ...SAMPLE_BADGENETWORK_PROPS,
+        };
+        break;
+      case BadgeSelectorOptions.NetworkInitial:
+        badgeProps = {
+          variant: BadgeVariant.Network,
+          name: SAMPLE_BADGENETWORK_PROPS.name,
+        };
+        break;
+      case BadgeSelectorOptions.Status:
+        badgeProps = {
+          variant: BadgeVariant.Status,
+          ...SAMPLE_BADGESTATUS_PROPS,
+        };
+        break;
+      default:
+        badgeProps = {
+          variant: BadgeVariant.Network,
+          ...SAMPLE_BADGENETWORK_PROPS,
+        };
+        break;
+    }
+    const BadgeElement = <Badge {...badgeProps} />;
+    return (
       <View
-        // eslint-disable-next-line react-native/no-inline-styles
         style={{
-          height: 50,
-          backgroundColor: mockTheme.colors.background.default,
-          alignItems: 'center',
-          justifyContent: 'center',
+          margin: 10,
         }}
       >
-        <Text variant={TextVariants.sBodySM}>{'Wrapped Content'}</Text>
+        <BadgeWrapperComponent badgeElement={BadgeElement} {...props}>
+          <View
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={{
+              height: 24,
+              width: 24,
+              borderRadius:
+                anchorElementShape === BadgeAnchorElementShape.Circular
+                  ? 12
+                  : 2,
+              backgroundColor: mockTheme.colors.primary.default,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text variant={TextVariant.BodySM} color={TextColor.Inverse}>
+              {'C'}
+            </Text>
+          </View>
+        </BadgeWrapperComponent>
       </View>
-    </BadgeWrapper>
-  );
-});
+    );
+  },
+};

@@ -2,44 +2,26 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
-import { BadgeVariants } from '../../Badge.types';
 import { BadgeBaseProps } from '../../foundation/BadgeBase/BadgeBase.types';
-
-/**
- * Enum that represents the position of the network badge.
- */
-export enum BadgeNetworkPosition {
-  TopRight = 'TopRight',
-  BottomRight = 'BottomRight',
-}
 
 /**
  * BadgeNetwork component props.
  */
 export interface BadgeNetworkProps extends Omit<BadgeBaseProps, 'children'> {
   /**
-   * Variant of badge.
+   * Optional prop for name of the network.
    */
-  variant: BadgeVariants.Network;
+  name?: string;
   /**
-   * Name of the network.
+   * Optional prop to control the image source of the network
+   * from either a local or remote source.
    */
-  name: string;
-  /**
-   * Image of the network from either a local or remote source.
-   */
-  imageSource: ImageSourcePropType;
-  /**
-   * Enum that represents the position of the network badge.
-   * @defaults TopRight
-   */
-  position?: BadgeNetworkPosition;
+  imageSource?: ImageSourcePropType;
 }
 
 /**
- * Style sheet input parameters.
+ * Style sheet BadgeNetwork parameters.
  */
-export type BadgeNetworkStyleSheetVars = Pick<
-  BadgeNetworkProps,
-  'style' | 'position'
->;
+export type BadgeNetworkStyleSheetVars = Pick<BadgeNetworkProps, 'style'> & {
+  containerSize: { width: number; height: number } | null;
+};

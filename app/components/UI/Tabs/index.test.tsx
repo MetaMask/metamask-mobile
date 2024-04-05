@@ -1,14 +1,12 @@
-jest.useFakeTimers();
-
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import Tabs from './';
 
 describe('Tabs', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = renderWithProvider(
       <Tabs tabs={[{ id: 1, url: 'about:blank', image: '' }]} />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

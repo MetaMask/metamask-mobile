@@ -1,7 +1,32 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TermsAndConditions should render correctly 1`] = `
-<TermsAndConditions
-  action="import"
-/>
+<TouchableOpacity
+  onPress={[Function]}
+  testID="terms-and-conditions-button-id"
+>
+  <Text
+    style={
+      Object {
+        "color": "#535A61",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 10,
+        "fontWeight": "400",
+        "textAlign": "center",
+      }
+    }
+  >
+    By proceeding, you agree to these 
+    <Text
+      style={
+        Object {
+          "textDecorationLine": "underline",
+        }
+      }
+    >
+      Terms and Conditions
+    </Text>
+    .
+  </Text>
+</TouchableOpacity>
 `;

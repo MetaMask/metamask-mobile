@@ -1,4 +1,8 @@
 # Badge
+[BadgeNetwork](https://metamask-consensys.notion.site/Badge-Network-94a679c50cb446f4844dc624b4f74946)
+![BadgeNetwork](./variants/BadgeNetwork/BadgeNetwork.png)
+[BadgeStatus](https://metamask-consensys.notion.site/Badge-Status-5caf000de32549f8ad67c0b89469ce4d)
+![BadgeStatus](./variants/BadgeStatus/BadgeStatus.png)
 
 Badge is a union component, which currently only consist of [BadgeNetwork](./variants/BadgeNetwork/BadgeNetwork.tsx)
 
@@ -10,13 +14,13 @@ Variant of badge.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [BadgeVariants](../../Badge.types.ts#L7)                                           | Yes                                                     |
+| [BadgeVariant](../../Badge.types.ts)                                           | Yes                                                     |
 
 ## BadgeNetwork Props
 
 ### `name`
 
-Name of the network.
+Optional prop for name of the network.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
@@ -24,31 +28,43 @@ Name of the network.
 
 ### `imageSource`
 
-Image of the network from either a local or remote source.
+Optional prop to control the image source of the network from either a local or remote source.
 
 | <span style="color:gray;font-size:14px">TYPE</span>                   | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------------------------- | :------------------------------------------------------ |
-| [ImageSourcePropType](https://reactnative.dev/docs/image#imagesource) | Yes                                                     |
+| [ImageSourcePropType](https://reactnative.dev/docs/image#imagesource) | Yes                                                     |                                      |
 
-### `position`
+## BadgeStatus Props
 
-Optional enum that represents the position of the network badge.
+### `state`
+
+Optional prop to control the status of BadgeStatus.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [BadgeNetworkPosition](./BadgeNetwork.types.ts#L11)  | No                                                      | TopRight                                               |
+| [BadgeStatusState](./BadgeStatus.types.ts)  | No                                                      | Disconnected                                               |
+
+### `borderColor`
+
+Optional prop to change the color of the border.
+
+| <span style="color:gray;font-size:14px">TYPE</span>                   | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :-------------------------------------------------------------------- | :------------------------------------------------------ |
+| ColorValue                                            | No                                                     |
 
 ## Usage
 
 ```javascript
-// Change import path to relative path.
-import Badge from 'app/component-library/components/Badges/Badge';
-import {BadgeVariants} from 'app/component-library/components/Badges/Badge.types';
-
+// Badge Network
 <Badge
-  variant={BadgeVariants.Network}
+  variant={BadgeVariant.Network}
   name={NETWORK_NAME}
   imageSource={NETWORK_IMAGE_SOURCE}
-  position={BadgeNetworkPosition.TopRight}
+/>;
+
+// Badge Status
+<Badge
+  variant={BadgeVariant.Status}
+  state={BadgeStatusState.Disconnected}
 />;
 ```

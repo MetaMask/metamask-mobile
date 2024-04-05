@@ -3,27 +3,26 @@ import React from 'react';
 
 // External dependencies.
 import CellDisplay from './variants/CellDisplay';
-import CellMultiselect from './variants/CellMultiselect';
+import CellMultiSelect from './variants/CellMultiSelect';
 import CellSelect from './variants/CellSelect';
+import { CellModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/CellModal.selectors';
 
 // Internal dependencies.
-import { CellProps, CellVariants } from './Cell.types';
-import {
-  CELL_DISPLAY_TEST_ID,
-  CELL_MULTI_SELECT_TEST_ID,
-  CELL_SELECT_TEST_ID,
-} from './Cell.constants';
+import { CellProps, CellVariant } from './Cell.types';
 
-const Cell = (cellProps: CellProps) => {
-  switch (cellProps.variant) {
-    case CellVariants.Display:
-      return <CellDisplay testID={CELL_DISPLAY_TEST_ID} {...cellProps} />;
-    case CellVariants.Multiselect:
+const Cell = ({ variant, ...props }: CellProps) => {
+  switch (variant) {
+    case CellVariant.Display:
+      return <CellDisplay testID={CellModalSelectorsIDs.DISPLAY} {...props} />;
+    case CellVariant.MultiSelect:
       return (
-        <CellMultiselect testID={CELL_MULTI_SELECT_TEST_ID} {...cellProps} />
+        <CellMultiSelect
+          testID={CellModalSelectorsIDs.MULTISELECT}
+          {...props}
+        />
       );
-    case CellVariants.Select:
-      return <CellSelect testID={CELL_SELECT_TEST_ID} {...cellProps} />;
+    case CellVariant.Select:
+      return <CellSelect testID={CellModalSelectorsIDs.SELECT} {...props} />;
     default:
       throw new Error('Invalid Cell Variant');
   }

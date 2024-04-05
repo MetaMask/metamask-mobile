@@ -11,6 +11,7 @@ export default {
   fs: {
     writeFile: () => Promise.resolve(),
     exists: () => Promise.resolve(),
+    mkdir: () => Promise.resolve(),
     dirs: {
       CacheDir: noop,
       DocumentDir: noop,

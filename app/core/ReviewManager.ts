@@ -5,13 +5,12 @@ import { NavigationContainerRef } from '@react-navigation/core';
 import InAppReview from 'react-native-in-app-review';
 import DefaultPreference from 'react-native-default-preference';
 import { REVIEW_EVENT_COUNT, REVIEW_SHOWN_TIME } from '../constants/storage';
-import AppConstants from './AppConstants';
 import Logger from '../util/Logger';
+import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../constants/urls';
 
 const EVENT_THRESHOLD = 6;
 const TIME_THRESHOLD = 10519200000; // 4 months in milliseconds
-const MM_APP_STORE_DEEPLINK = `itms-apps://apps.apple.com/app/id${AppConstants.BUNDLE_IDS.IOS}?action=write-review`;
-const MM_PLAY_STORE_DEEPLINK = `market://details?id=${AppConstants.BUNDLE_IDS.ANDROID}`;
+const MM_APP_STORE_DEEPLINK = `${MM_APP_STORE_LINK}?action=write-review`;
 
 class ReviewManager {
   navigationRef?: React.MutableRefObject<NavigationContainerRef>;
@@ -91,7 +90,7 @@ class ReviewManager {
     const storeDeepLink =
       Platform.select({
         ios: MM_APP_STORE_DEEPLINK,
-        android: MM_PLAY_STORE_DEEPLINK,
+        android: MM_PLAY_STORE_LINK,
       }) || '';
     try {
       await Linking.openURL(storeDeepLink);

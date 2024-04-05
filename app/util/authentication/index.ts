@@ -1,2 +1,3 @@
 // eslint-disable-next-line import/prefer-default-export
-export { default as checkIfUsingRememberMe } from './checkIfUsingRememberMe';
+export { passcodeType } from './passcodeType';
+export { updateAuthTypeStorageFlags } from './updateAuthTypeStorageFlags';

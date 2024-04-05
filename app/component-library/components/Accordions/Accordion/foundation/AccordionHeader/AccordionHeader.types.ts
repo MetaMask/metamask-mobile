@@ -2,6 +2,15 @@
 import { TouchableOpacityProps } from 'react-native';
 
 /**
+ * AccordionHeader Alignment options.
+ */
+export enum AccordionHeaderHorizontalAlignment {
+  Start = 'Start',
+  Center = 'Center',
+  End = 'End',
+}
+
+/**
  * AccordionHeader component props.
  */
 export interface AccordionHeaderProps extends TouchableOpacityProps {
@@ -18,9 +27,19 @@ export interface AccordionHeaderProps extends TouchableOpacityProps {
    * @default false
    */
   isExpanded?: boolean;
+  /**
+   * Optional prop to control the horizontal alignment of the AccordionHeader.
+   * @default AccordionHeaderHorizontalAlignment.Center
+   */
+  horizontalAlignment?: AccordionHeaderHorizontalAlignment;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type AccordionHeaderStyleSheetVars = Pick<AccordionHeaderProps, 'style'>;
+export type AccordionHeaderStyleSheetVars = Pick<
+  AccordionHeaderProps,
+  'style'
+> & {
+  horizontalAlignment: AccordionHeaderHorizontalAlignment;
+};

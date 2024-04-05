@@ -1,26 +1,24 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 
 // External dependencies.
 import { ButtonSize } from '../../Button.types';
-import { IconName } from '../../../../Icon';
+import { IconName } from '../../../../Icons/Icon';
 
 // Internal dependencies.
 import ButtonSecondary from './ButtonSecondary';
-import { ButtonSecondaryVariants } from './ButtonSecondary.types';
 
 describe('ButtonSecondary', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const { toJSON } = render(
       <ButtonSecondary
-        iconName={IconName.BankFilled}
+        startIconName={IconName.Bank}
         size={ButtonSize.Md}
         label={'Click me!'}
         onPress={() => null}
-        buttonSecondaryVariants={ButtonSecondaryVariants.Normal}
       />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

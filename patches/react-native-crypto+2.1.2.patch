@@ -1,0 +1,23 @@
+diff --git a/node_modules/react-native-crypto/index.js b/node_modules/react-native-crypto/index.js
+index 5c15698..ae45a48 100644
+--- a/node_modules/react-native-crypto/index.js
++++ b/node_modules/react-native-crypto/index.js
+@@ -1,6 +1,7 @@
+ 'use strict'
+ 
+ import { randomBytes } from 'react-native-randombytes'
++var rf = require('randomfill')
+ exports.randomBytes = exports.rng = exports.pseudoRandomBytes = exports.prng = randomBytes
+ 
+ // implement window.getRandomValues(), for packages that rely on it
+@@ -23,6 +24,10 @@ if (typeof window === 'object') {
+   }
+ }
+ 
++// Export missing crypto utils. Needed by nanoid package.
++exports.randomFill = rf.randomFill
++exports.randomFillSync = rf.randomFillSync
++
+ exports.createHash = exports.Hash = require('create-hash')
+ exports.createHmac = exports.Hmac = require('create-hmac')
+ 

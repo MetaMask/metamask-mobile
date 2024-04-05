@@ -1,17 +1,23 @@
 import './shim.js';
 
+// Needed to polyfill random number generation.
+import 'react-native-get-random-values';
+import '@walletconnect/react-native-compat';
+
 import 'react-native-gesture-handler';
 import 'react-native-url-polyfill/auto';
 
 import crypto from 'crypto'; // eslint-disable-line import/no-nodejs-modules, no-unused-vars
 require('react-native-browser-polyfill'); // eslint-disable-line import/no-commonjs
 
-import { setupSentry } from './app/util/sentryUtils';
+import * as Sentry from '@sentry/react-native'; // eslint-disable-line import/no-namespace
+import { setupSentry } from './app/util/sentry/utils';
 setupSentry();
 
 import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.json';
+import { isTest } from './app/util/test/utils.js';
 
 // List of warnings that we're ignoring
 LogBox.ignoreLogs([
@@ -59,13 +65,25 @@ LogBox.ignoreLogs([
   'Module TcpSockets requires main queue setup',
   'Module RCTSearchApiManager requires main queue setup',
   'PushNotificationIOS has been extracted', // RNC PushNotification iOS issue - https://github.com/react-native-push-notification/ios/issues/43
+  "ViewPropTypes will be removed from React Native, along with all other PropTypes. We recommend that you migrate away from PropTypes and switch to a type system like TypeScript. If you need to continue using ViewPropTypes, migrate to the 'deprecated-react-native-prop-types' package.",
+  'ReactImageView: Image source "null"',
+  'Warning: componentWillReceiveProps has been renamed',
 ]);
 
+const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;
+// Ignore box logs, useful for QA testing in development builds
+if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
+  LogBox.ignoreAllLogs();
+}
+
 /* Uncomment and comment regular registration below */
-// import Storybook from './storybook';
+// import Storybook from './.storybook';
 // AppRegistry.registerComponent(name, () => Storybook);
 
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () => Root);
+AppRegistry.registerComponent(name, () =>
+  // Disable Sentry for E2E tests
+  isTest ? Root : Sentry.wrap(Root),
+);

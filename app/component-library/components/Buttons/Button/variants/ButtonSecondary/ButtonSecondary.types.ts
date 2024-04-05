@@ -1,36 +1,18 @@
 // External dependencies.
 import { ButtonBaseProps } from '../../foundation/ButtonBase';
-import { ButtonVariants } from '../../Button.types';
-
-/**
- * Enum used to select between variants.
- */
-export enum ButtonSecondaryVariants {
-  Normal = 'Normal',
-  Danger = 'Danger',
-}
 
 /**
  * ButtonSecondary component props.
  */
-export interface ButtonSecondaryProps
-  extends Omit<ButtonBaseProps, 'labelColor'> {
-  /**
-   * Optional enum use to select between variants.
-   * @default Normal
-   */
-  buttonSecondaryVariants?: ButtonSecondaryVariants;
-  /**
-   * Variant of Button.
-   */
-  variant?: ButtonVariants.Secondary;
-}
+export type ButtonSecondaryProps = Omit<ButtonBaseProps, 'labelColor'>;
 
 /**
  * Style sheet input parameters.
  */
-export interface ButtonSecondaryStyleSheetVars
-  extends Pick<ButtonSecondaryProps, 'style'> {
-  buttonSecondaryVariants: ButtonSecondaryVariants;
+export type ButtonSecondaryStyleSheetVars = Pick<
+  ButtonSecondaryProps,
+  'style'
+> & {
+  isDanger: boolean;
   pressed: boolean;
-}
+};
