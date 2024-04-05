@@ -35,12 +35,12 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import WalletConnect from './WalletConnect';
+import extractApprovedAccounts from './extractApprovedAccounts';
 import METHODS_TO_REDIRECT from './wc-config';
 import parseWalletConnectUri, {
   hideWCLoadingState,
   showWCLoadingState,
 } from './wc-utils';
-import extractApprovedAccounts from './extractApprovedAccounts';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -162,17 +162,13 @@ class WalletConnect2Session {
     DevLogger.log(`WC2::redirect isDeeplink=${this.deeplink}`);
     if (!this.deeplink) return;
 
+    const navigation = this.navigation;
     setTimeout(() => {
-      DevLogger.log(`WC2::redirect goBack()`, this.navigation);
       if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-        DevLogger.log(
-          `WC2::redirect -- skip goBack on ios17`,
-          Routes.SHEET.RETURN_TO_DAPP_MODAL,
-        );
         // TODO: implement uri scheme redirection where available
-        // this.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        //   screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-        // });
+        navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        });
       } else {
         Minimizer.goBack();
       }
@@ -180,7 +176,6 @@ class WalletConnect2Session {
   };
 
   needsRedirect = (id: string) => {
-    DevLogger.log(`WC2::needsRedirect id=${id}`, this.requestsToRedirect);
     if (this.requestsToRedirect[id]) {
       delete this.requestsToRedirect[id];
       this.redirect();
@@ -200,7 +195,7 @@ class WalletConnect2Session {
         const { chainId } = params[0] as { chainId: string };
 
         if (chainId) {
-          // Wait 1 sec, check if modal is still open
+          // TODO: check what happens after adding a new network -- waiting was initially made to handle that scenario
           DevLogger.log(`SKIP: waitForNetworkModalOnboarding`);
           // await waitForNetworkModalOnboarding({
           //   chainId: parseInt(chainId) + '',
@@ -230,10 +225,6 @@ class WalletConnect2Session {
     const hasPendingSignRequest =
       requests[0]?.params?.request?.method === 'personal_sign';
 
-    DevLogger.log(
-      `WC2::approveRequest hasPendingSignRequest=${hasPendingSignRequest} initialRequest`,
-      initialRequest,
-    );
     if (!hasPendingSignRequest) {
       this.needsRedirect(id);
     }
@@ -285,20 +276,12 @@ class WalletConnect2Session {
         console.warn(
           `WC2::updateSession invalid accounts --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
         );
-        DevLogger.log(
-          `session.topic=${this.session.topic} pariingTopic=${this.session.pairingTopic}`,
-        );
         const permissionController = (
           Engine.context as {
             PermissionController: PermissionController<any, any>;
           }
         ).PermissionController;
-        DevLogger.log(
-          `Permission controller state`,
-          permissionController.state,
-        );
         const origin = this.session.peer.metadata.url;
-        DevLogger.log(`WC2::updateSession origin=${origin}`);
         // Try to find matching permitted accounts
         const approvedAccounts = await getPermittedAccounts(origin);
         if (approvedAccounts.length > 0) {
@@ -624,17 +607,6 @@ export class WC2Manager {
     return this.instance;
   }
 
-  public async debugPermissions() {
-    const permissionsController = (
-      Engine.context as { PermissionController: PermissionController<any, any> }
-    ).PermissionController;
-
-    DevLogger.log(
-      `WC2::debugPermissions()`,
-      JSON.stringify(permissionsController.state, null, 2),
-    );
-  }
-
   public static async getInstance(): Promise<WC2Manager> {
     let waitCount = 1;
     return new Promise((resolve) => {
@@ -759,15 +731,13 @@ export class WC2Manager {
     const icons = metadata.icons;
     const icon = icons?.[0] ?? '';
     // Save Connection info to redux store to be retrieved in ui.
-    store.dispatch(
-      updateWC2Metadata({ url, name, icon, id: `${id}`, sessionTopic: '' }),
-    );
+    store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
 
     try {
       await permissionsController.requestPermissions(
         { origin: url },
         { eth_accounts: {} },
-        { id: undefined }, // Don't set id here, it will be set after session is created, identify via origin.
+        // { id: undefined }, // Don't set id here, it will be set after session is created, identify via origin.
       );
       // Permissions approved.
     } catch (err) {

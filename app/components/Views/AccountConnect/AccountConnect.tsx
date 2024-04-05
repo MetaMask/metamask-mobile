@@ -47,6 +47,7 @@ import { Account, useAccounts } from '../../hooks/useAccounts';
 import { StyleSheet } from 'react-native';
 import URLParse from 'url-parse';
 import AppConstants from '../../../../app/core/AppConstants';
+import DevLogger from '../../../../app/core/SDKConnect/utils/DevLogger';
 import { RootState } from '../../../../app/reducers';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -67,7 +68,6 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
-import DevLogger from '../../../../app/core/SDKConnect/utils/DevLogger';
 const createStyles = () =>
   StyleSheet.create({
     fullScreenModal: {
@@ -276,10 +276,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     const selectedAccounts: SelectedAccount[] = selectedAddresses.map(
       (address, index) => ({ address, lastUsed: Date.now() - index }),
     );
-    DevLogger.log(
-      `Selected accounts: ${JSON.stringify(selectedAccounts)}`,
-      wc2Metadata,
-    );
     const request = {
       ...hostInfo,
       metadata: {
@@ -346,7 +342,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [
     selectedAddresses,
     hostInfo,
-    wc2Metadata,
     accounts,
     ensByAccountAddress,
     accountAvatarType,

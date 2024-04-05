@@ -14,7 +14,10 @@ import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
-import { permissionRpcMethods } from '@metamask/permission-controller';
+import {
+  PermissionController,
+  permissionRpcMethods,
+} from '@metamask/permission-controller';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -122,17 +125,19 @@ export const checkActiveAccountAndChainId = async ({
       '',
     );
 
+    const permissionsController = (
+      Engine.context as { PermissionController: PermissionController<any, any> }
+    ).PermissionController;
     DevLogger.log(
-      `checkActiveAccountAndChainId channelId=${channelId} validHostname=${validHostname}`,
+      `checkActiveAccountAndChainId channelId=${channelId} isWalletConnect=${isWalletConnect} validHostname=${validHostname}`,
+      permissionsController.state,
     );
+
     let accounts: string[] = [];
     if (isWalletConnect) {
       accounts = await getPermittedAccounts(validHostname);
     } else {
       accounts = (await getPermittedAccounts(channelId ?? validHostname)) ?? [];
-    }
-    if (channelId) {
-      accounts = await getPermittedAccounts(channelId);
     }
 
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
@@ -154,6 +159,9 @@ export const checkActiveAccountAndChainId = async ({
     }
   }
 
+  DevLogger.log(
+    `checkActiveAccountAndChainId isInvalidAccount=${isInvalidAccount}`,
+  );
   if (chainId) {
     const providerConfig = selectProviderConfig(store.getState());
     const networkType = providerConfig.type as NetworkType;
