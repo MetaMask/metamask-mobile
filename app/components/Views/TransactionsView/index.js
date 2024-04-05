@@ -36,7 +36,6 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.sel
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
-import { TransactionType } from '@metamask/transaction-controller';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -241,7 +240,9 @@ const mapStateToProps = (state) => {
 
   const filteredSmartTransactions =
     smartTransactions
-      ?.filter((stx) => stx.status !== 'success' && stx.status)
+      ?.filter(
+        (stx) => stx.status && stx.status !== SmartTransactionStatuses.SUCCESS,
+      )
       .map((stx) => ({
         ...stx,
         // stx.uuid is one from sentinel API, not the same as tx.id which is generated client side
@@ -249,8 +250,8 @@ const mapStateToProps = (state) => {
         // However, this does make it impossible to read Swap data from TxController.swapsTransactions as that relies on tx.id
         id: stx.uuid,
         isSmartTransaction: true,
-        status: stx.status?.startsWith('cancelled')
-          ? SmartTransactionStatuses.cancelled
+        status: stx.status?.startsWith(SmartTransactionStatuses.CANCELLED)
+          ? SmartTransactionStatuses.CANCELLED
           : stx.status,
       })) ?? [];
 
