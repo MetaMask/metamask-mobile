@@ -38,14 +38,11 @@ import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
-import { AndroidClient } from './android-sdk-types';
+import { DappClient, DappConnections } from './dapp-sdk-types';
 
-export interface AndroidConnections {
-  [clientId: string]: AndroidClient;
-}
 export default class AndroidService extends EventEmitter2 {
   private communicationClient = NativeModules.CommunicationClient;
-  private connections: AndroidConnections = {};
+  private connections: DappConnections = {};
   private rpcQueueManager = new RPCQueueManager();
   private bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
   private eventHandler: AndroidSDKEventHandler;
@@ -55,6 +52,7 @@ export default class AndroidService extends EventEmitter2 {
 
   constructor() {
     super();
+
     this.eventHandler = new AndroidSDKEventHandler();
     this.setupEventListeners()
       .then(() => {
@@ -81,7 +79,7 @@ export default class AndroidService extends EventEmitter2 {
 
       DevLogger.log(`AndroidService::setupEventListeners loading connections`);
       const rawConnections =
-        await SDKConnect.getInstance().loadAndroidConnections();
+        await SDKConnect.getInstance().loadDappConnections();
 
       if (rawConnections) {
         Object.values(rawConnections).forEach((connection) => {
@@ -125,7 +123,7 @@ export default class AndroidService extends EventEmitter2 {
 
   private setupOnClientsConnectedListener() {
     this.eventHandler.onClientsConnected((sClientInfo: string) => {
-      const clientInfo: AndroidClient = JSON.parse(sClientInfo);
+      const clientInfo: DappClient = JSON.parse(sClientInfo);
 
       DevLogger.log(`AndroidService::clients_connected`, clientInfo);
       if (this.connections?.[clientInfo.clientId]) {
@@ -188,7 +186,7 @@ export default class AndroidService extends EventEmitter2 {
               originatorInfo: clientInfo.originatorInfo,
               validUntil: clientInfo.validUntil,
             };
-            await SDKConnect.getInstance().addAndroidConnection({
+            await SDKConnect.getInstance().addDappConnection({
               id: clientInfo.clientId,
               lastAuthorized: Date.now(),
               origin: AppConstants.MM_SDK.ANDROID_SDK,
@@ -420,7 +418,7 @@ export default class AndroidService extends EventEmitter2 {
     }
   }
 
-  private setupBridge(clientInfo: AndroidClient) {
+  private setupBridge(clientInfo: DappClient) {
     DevLogger.log(
       `AndroidService::setupBridge for id=${clientInfo.clientId} exists=${!!this
         .bridgeByClientId[clientInfo.clientId]}}`,

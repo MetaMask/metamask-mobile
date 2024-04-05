@@ -51,7 +51,7 @@ const asyncInit = async ({
     }
     instance.state.connections = sdk.connections;
     instance.state.approvedHosts = sdk.approvedHosts;
-    instance.state.androidConnections = sdk.androidConnections;
+    instance.state.dappConnections = sdk.dappConnections;
 
     // Update store with valid connection
     store.dispatch({
