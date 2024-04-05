@@ -195,6 +195,17 @@ export async function publishHook(request: Request) {
     const uuid = submitTransactionResponse?.uuid;
     const returnTxHashAsap = featureFlags?.smartTransactions.returnTxHashAsap;
 
+    // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
+    if (isSwapTransaction) {
+      const newSwapsTransactions =
+        // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
+        transactionController.state.swapsTransactions || {};
+
+      newSwapsTransactions[uuid] = newSwapsTransactions[transactionMeta.id];
+      // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
+      transactionController.update({ swapsTransactions: newSwapsTransactions });
+    }
+
     if (!uuid) {
       throw new Error(`${LOG_PREFIX} - No smart transaction UUID`);
     }
