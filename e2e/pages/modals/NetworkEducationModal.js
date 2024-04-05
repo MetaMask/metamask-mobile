@@ -13,6 +13,7 @@ export default class NetworkEducationModal {
     } else {
       await TestHelpers.waitAndTapByLabel(
         NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
+        20000,
       );
     }
   }
