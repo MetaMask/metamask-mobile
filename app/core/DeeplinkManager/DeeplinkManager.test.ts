@@ -2,13 +2,16 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import DeeplinkManager from './DeeplinkManager';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
+import handleRampUrl from './Handlers/handleRampUrl';
 import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
+import { RampType } from '../../reducers/fiatOrders/types';
 
 jest.mock('./TransactionManager/approveTransaction');
 jest.mock('./Handlers/handleEthereumUrl');
 jest.mock('./Handlers/handleBrowserUrl');
+jest.mock('./Handlers/handleRampUrl');
 jest.mock('./ParseManager/parseDeeplink');
 jest.mock('./Handlers/switchNetwork');
 
@@ -96,13 +99,27 @@ describe('DeeplinkManager', () => {
   });
 
   it('should handle buy crypto action correctly', () => {
-    deeplinkManager._handleBuyCrypto();
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('RampBuy');
+    const rampPath = '/example/path?and=params';
+    deeplinkManager._handleBuyCrypto(rampPath);
+    expect(handleRampUrl).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rampPath,
+        navigation: mockNavigation,
+        rampType: RampType.BUY,
+      }),
+    );
   });
 
   it('should handle sell crypto action correctly', () => {
-    deeplinkManager._handleSellCrypto();
-    expect(mockNavigation.navigate).toHaveBeenCalledWith('RampSell');
+    const rampPath = '/example/path?and=params';
+    deeplinkManager._handleSellCrypto(rampPath);
+    expect(handleRampUrl).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rampPath,
+        navigation: mockNavigation,
+        rampType: RampType.SELL,
+      }),
+    );
   });
 
   it('should parse deeplinks correctly', () => {
