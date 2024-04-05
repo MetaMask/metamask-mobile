@@ -215,6 +215,7 @@ export class BackgroundBridge extends EventEmitter {
   }
 
   notifyChainChanged(params) {
+    DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
       params,
@@ -223,10 +224,17 @@ export class BackgroundBridge extends EventEmitter {
 
   async notifySelectedAddressChanged(selectedAddress) {
     try {
-      let approvedAccounts = await getPermittedAccounts(
-        this.channelId ?? this.hostname,
+      let approvedAccounts = [];
+      DevLogger.log(
+        `notifySelectedAddressChanged: ${selectedAddress} wc=${this.isWalletConnect} url=${this.url}`,
       );
-
+      if (this.isWalletConnect) {
+        approvedAccounts = await getPermittedAccounts(this.url);
+      } else {
+        approvedAccounts = await getPermittedAccounts(
+          this.channelId ?? this.hostname,
+        );
+      }
       // Check if selectedAddress is approved
       const found = approvedAccounts
         .map((addr) => addr.toLowerCase())
@@ -242,7 +250,7 @@ export class BackgroundBridge extends EventEmitter {
         ];
       }
       DevLogger.log(
-        `notifySelectedAddressChanged hostname: ${this.hostname}: ${selectedAddress}`,
+        `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
         approvedAccounts,
       );
       this.sendNotification({

@@ -67,6 +67,7 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
+import DevLogger from '../../../../app/core/SDKConnect/utils/DevLogger';
 const createStyles = () =>
   StyleSheet.create({
     fullScreenModal: {
@@ -275,6 +276,10 @@ const AccountConnect = (props: AccountConnectProps) => {
     const selectedAccounts: SelectedAccount[] = selectedAddresses.map(
       (address, index) => ({ address, lastUsed: Date.now() - index }),
     );
+    DevLogger.log(
+      `Selected accounts: ${JSON.stringify(selectedAccounts)}`,
+      wc2Metadata,
+    );
     const request = {
       ...hostInfo,
       metadata: {
@@ -283,6 +288,11 @@ const AccountConnect = (props: AccountConnectProps) => {
       },
       approvedAccounts: selectedAccounts,
     };
+
+    DevLogger.log(
+      `Accepting permission Request: `,
+      JSON.stringify(request, null, 2),
+    );
 
     const connectedAccountLength = selectedAccounts.length;
     const activeAddress = selectedAccounts[0].address;
@@ -336,6 +346,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [
     selectedAddresses,
     hostInfo,
+    wc2Metadata,
     accounts,
     ensByAccountAddress,
     accountAvatarType,
