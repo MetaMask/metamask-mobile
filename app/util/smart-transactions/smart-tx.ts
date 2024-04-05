@@ -14,6 +14,7 @@ import {
   getShouldUpdateFlow,
   getTxType,
 } from './utils';
+import { TX_PENDING } from '../../constants/transaction';
 
 // TODO import these from tx controller
 export declare type Hex = `0x${string}`;
@@ -218,7 +219,7 @@ export async function publishHook(request: Request) {
         // can also be read from approvalController.state.pendingApprovals[approvalId].requestState
         requestState: {
           smartTransaction: {
-            status: 'pending',
+            status: TX_PENDING,
             creationTime: Date.now(),
           },
           isDapp,
@@ -250,7 +251,7 @@ export async function publishHook(request: Request) {
           Logger.log(LOG_PREFIX, 'smartTransaction event', smartTransaction);
 
           const { status, statusMetadata } = smartTransaction;
-          if (!status || status === 'pending') {
+          if (!status || status === TX_PENDING) {
             return;
           }
 
