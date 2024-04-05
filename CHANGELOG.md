@@ -2666,7 +2666,7 @@ access
 - [#1047](https://github.com/MetaMask/metamask-mobile/pull/1047): bugfix: token transfer deeplink (#1047)
 - [#1049](https://github.com/MetaMask/metamask-mobile/pull/1049): Migrate to yarn (#1049)
 - [#1045](https://github.com/MetaMask/metamask-mobile/pull/1045): More UIWebview cleanup (#1045)
-- [#1044](https://github.com/MetaMask/metamask-mobile/pull/1044): remove uiwebview ocurrences (#1044)
+- [#1044](https://github.com/MetaMask/metamask-mobile/pull/1044): remove uiwebview occurrences (#1044)
 
 ## v0.2.4 - Aug 28 2019
 - [#1038](https://github.com/MetaMask/metamask-mobile/pull/1038): Fix Approval (#1038)
