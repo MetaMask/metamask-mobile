@@ -57,6 +57,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          git commit -am "Updated app version ${{ github.event.inputs.semver-version }}"
+          git push
           git checkout chore/auto-generate-changelist
           node ./scripts/generate-rc-commits.js v7.19.0 "release/7.20.0"
           ./scripts/auto-changelog.sh
