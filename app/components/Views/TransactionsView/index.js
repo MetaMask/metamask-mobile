@@ -226,7 +226,7 @@ TransactionsView.propTypes = {
 const mapStateToProps = (state) => {
   const chainId = selectChainId(state);
   const nonSmartTransactions =
-    state.engine.backgroundState.TransactionController.transactions;
+    state.engine.backgroundState.TransactionController.transactions; // these are transactionMeta objs
   const smartTransactions =
     state.engine.backgroundState.SmartTransactionsController
       .smartTransactionsState.smartTransactions[chainId];
@@ -234,9 +234,9 @@ const mapStateToProps = (state) => {
   // TODO this will get resolved when TxController is upgraded to support tx.txHash
   // Bug with duplicate STX showing up
   // Duplicates have tx.txHash, originals have tx.transactionHash
-  // Remove ones with no tx.transactionHash
+  // Remove ones with txHash
   const filteredNonSmartTransactions = nonSmartTransactions.filter(
-    (tx) => tx.transactionHash,
+    (tx) => !Object.keys(tx).includes('txHash'),
   );
 
   const filteredSmartTransactions =
@@ -244,8 +244,11 @@ const mapStateToProps = (state) => {
       ?.filter((stx) => stx.status !== 'success' && stx.status)
       .map((stx) => ({
         ...stx,
+        // stx.uuid is one from sentinel API, not the same as tx.id which is generated client side
+        // Doesn't matter too much because we only care about the pending stx, confirmed txs are handled like normal
+        // However, this does make it impossible to read Swap data from TxController.swapsTransactions as that relies on tx.id
         id: stx.uuid,
-        transactionType: TransactionType.smart,
+        isSmartTransaction: true,
         status: stx.status?.startsWith('cancelled')
           ? SmartTransactionStatuses.cancelled
           : stx.status,
