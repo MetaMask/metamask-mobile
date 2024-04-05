@@ -31,6 +31,7 @@ import Button, {
 import Routes from '../../../constants/navigation/Routes';
 import TransactionBackgroundTop from '../../../images/transaction-background-top.svg';
 import TransactionBackgroundBottom from '../../../images/transaction-background-bottom.svg';
+import LoopingScrollAnimation from './LoopingScrollAnimation';
 
 interface Props {
   requestState: {
@@ -328,7 +329,10 @@ const SmartTransactionStatus = ({
         <Icon name={IconName.Close} />
       </TouchableOpacity>
 
-      <TransactionBackgroundTop name="TransactionBackgroundTop" />
+      <LoopingScrollAnimation width={817}>
+        <TransactionBackgroundTop name="TransactionBackgroundTop" />
+      </LoopingScrollAnimation>
+
       <View style={styles.content}>
         <Icon name={icon} color={iconColor} size={IconSize.Xl} />
         <Text style={styles.header}>{header}</Text>
@@ -344,7 +348,9 @@ const SmartTransactionStatus = ({
           )}
         </View>
       </View>
-      <TransactionBackgroundBottom name="TransactionBackgroundBottom" />
+      <LoopingScrollAnimation width={800}>
+        <TransactionBackgroundBottom name="TransactionBackgroundBottom" />
+      </LoopingScrollAnimation>
 
       <View style={styles.buttonWrapper}>
         {onPrimaryButtonPress && (
