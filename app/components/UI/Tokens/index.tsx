@@ -254,7 +254,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         onPress={onStakeButtonPress}
         {...generateTestId(Platform, STAKE_BUTTON)}
       >
-        <Text variant={TextVariant.BodyLGMedium}>{' • '}
+        <Text variant={TextVariant.BodyLGMedium}>
+          {' • '}
           <Text
             color={TextColor.Primary}
             variant={TextVariant.BodyLGMedium}

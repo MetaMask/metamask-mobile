@@ -667,16 +667,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
@@ -697,11 +691,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   </Text>
                                   <TouchableOpacity
                                     onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "paddingTop": 4,
-                                      }
-                                    }
                                     testID="stake-button"
                                   >
                                     <Text
@@ -710,28 +699,14 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         Object {
                                           "color": "#24272A",
                                           "fontFamily": "Euclid Circular B",
-                                          "fontSize": 14,
-                                          "fontWeight": "400",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "Euclid Circular B",
-                                            "fontSize": 16,
-                                            "fontWeight": "500",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                         • 
-                                      </Text>
+                                        • 
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -761,7 +736,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       />
                                     </Text>
                                   </TouchableOpacity>
-                                </Text>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -1816,16 +1791,10 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
@@ -1846,11 +1815,6 @@ exports[`Tokens should render correctly 1`] = `
                                   </Text>
                                   <TouchableOpacity
                                     onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "paddingTop": 4,
-                                      }
-                                    }
                                     testID="stake-button"
                                   >
                                     <Text
@@ -1859,28 +1823,14 @@ exports[`Tokens should render correctly 1`] = `
                                         Object {
                                           "color": "#24272A",
                                           "fontFamily": "Euclid Circular B",
-                                          "fontSize": 14,
-                                          "fontWeight": "400",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "Euclid Circular B",
-                                            "fontSize": 16,
-                                            "fontWeight": "500",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                         • 
-                                      </Text>
+                                        • 
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -1910,7 +1860,7 @@ exports[`Tokens should render correctly 1`] = `
                                       />
                                     </Text>
                                   </TouchableOpacity>
-                                </Text>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -2973,16 +2923,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
                                     Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
@@ -3003,11 +2947,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   </Text>
                                   <TouchableOpacity
                                     onPress={[Function]}
-                                    style={
-                                      Object {
-                                        "paddingTop": 4,
-                                      }
-                                    }
                                     testID="stake-button"
                                   >
                                     <Text
@@ -3016,28 +2955,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         Object {
                                           "color": "#24272A",
                                           "fontFamily": "Euclid Circular B",
-                                          "fontSize": 14,
-                                          "fontWeight": "400",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          Object {
-                                            "color": "#24272A",
-                                            "fontFamily": "Euclid Circular B",
-                                            "fontSize": 16,
-                                            "fontWeight": "500",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                         • 
-                                      </Text>
+                                        • 
                                       <Text
                                         accessibilityRole="text"
                                         style={
@@ -3067,7 +2992,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       />
                                     </Text>
                                   </TouchableOpacity>
-                                </Text>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
