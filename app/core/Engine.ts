@@ -501,17 +501,7 @@ class Engine {
 
     const tokensController = new TokensController({
       // TODO: The tokens controller currently does not support internalAccounts. This is done to match the behavior of the previous tokens controller subscription.
-      onPreferencesStateChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          `AccountsController:selectedAccountChange`,
-          (newlySelectedInternalAccount) => {
-            const prevState = preferencesController.state;
-            listener({
-              ...prevState,
-              selectedAddress: newlySelectedInternalAccount.address,
-            });
-          },
-        ),
+      onPreferencesStateChange: (listener) =>  preferencesController.subscribe(listener),
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -1057,17 +1047,7 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
-        onPreferencesStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            `AccountsController:selectedAccountChange`,
-            (newlySelectedInternalAccount) => {
-              const prevState = preferencesController.state;
-              listener({
-                ...prevState,
-                selectedAddress: newlySelectedInternalAccount.address,
-              });
-            },
-          ),
+        onPreferencesStateChange: (listener) =>  preferencesController.subscribe(listener),
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
         selectedAddress: accountsController.getSelectedAccount().address,
