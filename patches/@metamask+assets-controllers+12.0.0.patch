@@ -1,6 +1,6 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/.patch.txt b/node_modules/@metamask/assets-controllers/dist/.patch.txt
 new file mode 100644
-index 0000000..550de56
+index 0000000..8197c83
 --- /dev/null
 +++ b/node_modules/@metamask/assets-controllers/dist/.patch.txt
 @@ -0,0 +1,14 @@
@@ -871,7 +871,7 @@ index e75c004..1bbd8ab 100644
 +{"version":3,"file":"NftDetectionController.d.ts","sourceRoot":"","sources":["../src/NftDetectionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
-index f5df1af..b30b79f 100644
+index f5df1af..7432085 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 +++ b/node_modules/@metamask/assets-controllers/dist/NftDetectionController.js
 @@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
@@ -897,7 +897,16 @@ index f5df1af..b30b79f 100644
          super(config, state);
          /**
           * Name of this controller used during composition
-@@ -74,31 +77,40 @@ class NftDetectionController extends base_controller_1.BaseController {
+@@ -57,8 +60,6 @@ class NftDetectionController extends base_controller_1.BaseController {
+             if (selectedAddress !== previouslySelectedAddress ||
+                 !useNftDetection !== disabled) {
+                 this.configure({ selectedAddress, disabled: !useNftDetection });
+-            }
+-            if (useNftDetection !== undefined) {
+                 if (useNftDetection) {
+                     this.start();
+                 }
+@@ -74,31 +75,40 @@ class NftDetectionController extends base_controller_1.BaseController {
          });
          this.getOpenSeaApiKey = getOpenSeaApiKey;
          this.addNft = addNft;
@@ -2623,10 +2632,10 @@ index 0000000..b07b8c0
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js b/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js
 new file mode 100644
-index 0000000..fedd210
+index 0000000..2e07fa7
 --- /dev/null
 +++ b/node_modules/@metamask/assets-controllers/dist/token-prices-service/codefi-v2.js
-@@ -0,0 +1,329 @@
+@@ -0,0 +1,331 @@
 +"use strict";
 +var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
 +    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -2852,6 +2861,8 @@ index 0000000..fedd210
 +    '0x4e454152',
 +    // Harmony Mainnet Shard 0
 +    '0x63564c40',
++    // Linea Mainnet
++    '0xe708'
 +];
 +/**
 + * All requests to V2 of the Price API start with this.
