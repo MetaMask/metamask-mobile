@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import SmartTransactionsOptInModal from './SmartTranactionsOptInModal';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -49,7 +48,7 @@ const initialState = {
   },
 };
 
-function wait(ms) {
+function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -66,14 +65,16 @@ describe('SmartTransactionsOptInModal', () => {
     const header = getByText(strings('whats_new.stx.header'));
     expect(header).toBeDefined();
 
-    const title = getByText(strings('whats_new.stx.title'));
-    expect(title).toBeDefined();
-
     const description1 = getByText(strings('whats_new.stx.description_1'));
     expect(description1).toBeDefined();
 
     const description2 = getByText(strings('whats_new.stx.description_2'));
     expect(description2).toBeDefined();
+
+    const description3 = getByText(strings('whats_new.stx.description_3'), {
+      exact: false,
+    });
+    expect(description3).toBeDefined();
 
     const primaryButton = getByText(strings('whats_new.stx.primary_button'));
     expect(primaryButton).toBeDefined();
