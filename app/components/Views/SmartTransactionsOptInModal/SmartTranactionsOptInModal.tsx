@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, View, ScrollView, Linking } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import AsyncStorage from '../../../store/async-storage-wrapper';
@@ -13,9 +13,7 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import Icon, {
-  IconColor,
   IconName,
-  IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { Colors } from '../../../util/theme/models';
@@ -23,9 +21,11 @@ import { SmartTransactionsOptInModalSelectorsIDs } from '../../../../e2e/selecto
 import { useNavigation } from '@react-navigation/native';
 import { shouldShowWhatsNewModal } from '../../../util/onboarding';
 import Routes from '../../../constants/navigation/Routes';
-import img from '../../../images/metamask-smart-transactions.png';
-import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
+import Button, {
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
+import AppConstants from '../../../core/AppConstants';
 
 const modalMargin = 24;
 const modalPadding = 24;
@@ -33,46 +33,28 @@ const screenWidth = Device.getDeviceWidth();
 const screenHeight = Device.getDeviceHeight();
 const itemWidth = screenWidth - modalMargin * 2;
 const maxItemHeight = screenHeight - 200;
-const imageWidth = itemWidth - modalPadding * 2;
-const imageAspectRatio = 128 / 264;
-const imageHeight = imageWidth * imageAspectRatio;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    content: {
+    scroll: {
       maxHeight: maxItemHeight,
     },
+    content: {
+      gap: 16,
+    },
+    buttons: {
+      gap: 10,
+      justifyContent: 'center',
+    },
     button: {
-      marginTop: 8,
+      width: '100%',
+      textAlign: 'center',
     },
     header: {
-      flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 20,
-      paddingHorizontal: modalPadding,
     },
-    headerClose: {
-      flex: 1,
-      alignItems: 'flex-end',
-    },
-    imageContainer: {
-      flexDirection: 'row',
-      borderRadius: 10,
-      marginBottom: 24,
-    },
-    image: {
-      flex: 1,
-      borderRadius: 10,
-      width: imageWidth,
-      height: imageHeight,
-    },
-    title: {
-      marginBottom: 12,
-    },
-    description: {
-      lineHeight: 20,
-      marginBottom: 24,
+    descriptions: {
+      gap: 16,
     },
     screen: { justifyContent: 'center', alignItems: 'center' },
     modal: {
@@ -85,8 +67,54 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: modalPadding,
       paddingVertical: 32,
       paddingBottom: 16,
+      gap: 16,
+    },
+    benefits: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+    },
+    benefit: {
+      width: '33%',
+      gap: 4,
+      alignItems: 'center',
+    },
+    benefitIcon: {
+      width: 35,
+      height: 35,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 50,
+      backgroundColor: colors.primary.muted,
+    },
+    benefitText: {
+      textAlign: 'center',
     },
   });
+
+interface Props {
+  iconName: IconName;
+  text: string;
+}
+const Benefit = ({ iconName, text }: Props) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
+  return (
+    <View style={styles.benefit}>
+      <View style={styles.benefitIcon}>
+        <Icon name={iconName} color={colors.primary.default} />
+      </View>
+      <Text
+        color={TextColor.Alternative}
+        variant={TextVariant.BodySM}
+        style={styles.benefitText}
+      >
+        {text}
+      </Text>
+    </View>
+  );
+};
 
 const SmartTransactionsOptInModal = () => {
   const navigation = useNavigation();
@@ -146,62 +174,63 @@ const SmartTransactionsOptInModal = () => {
             <Text color={TextColor.Default} variant={TextVariant.HeadingSM}>
               {strings('whats_new.stx.header')}
             </Text>
-            <View style={styles.headerClose}>
-              <TouchableOpacity
-                onPress={() => dismissModal()}
-                hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-                testID={SmartTransactionsOptInModalSelectorsIDs.CLOSE_BUTTON}
-              >
-                <Icon
-                  name={IconName.Close}
-                  size={IconSize.Md}
-                  color={IconColor.Default}
-                />
-              </TouchableOpacity>
-            </View>
           </View>
 
           {/* Content */}
-          <View style={styles.content}>
-            <View style={styles.imageContainer}>
-              <Image source={img} style={styles.image} resizeMode={'contain'} />
+          <ScrollView>
+            <View style={styles.content}>
+              <View style={styles.benefits}>
+                <Benefit
+                  iconName={IconName.Confirmation}
+                  text={strings('whats_new.stx.benefit_1')}
+                />
+                <Benefit
+                  iconName={IconName.SecurityTick}
+                  text={strings('whats_new.stx.benefit_2')}
+                />
+                <Benefit
+                  iconName={IconName.Clock}
+                  text={strings('whats_new.stx.benefit_3')}
+                />
+              </View>
+
+              <View style={styles.descriptions}>
+                <Text>{strings('whats_new.stx.description_1')}</Text>
+                <Text>{strings('whats_new.stx.description_2')}</Text>
+                <Text>
+                  {strings('whats_new.stx.description_3')}{' '}
+                  <Text
+                    color={TextColor.Primary}
+                    onPress={() => {
+                      Linking.openURL(AppConstants.URLS.SMART_TXS);
+                    }}
+                  >
+                    {strings('whats_new.stx.learn_more')}
+                  </Text>
+                </Text>
+              </View>
+
+              <View style={styles.buttons}>
+                <Button
+                  style={styles.button}
+                  variant={ButtonVariants.Primary}
+                  onPress={optIn}
+                  label={strings('whats_new.stx.primary_button')}
+                >
+                  {strings('whats_new.stx.primary_button')}
+                </Button>
+
+                <Button
+                  style={styles.button}
+                  variant={ButtonVariants.Link}
+                  onPress={optOut}
+                  label={strings('whats_new.stx.secondary_button')}
+                >
+                  {strings('whats_new.stx.secondary_button')}
+                </Button>
+              </View>
             </View>
-
-            <Text
-              color={TextColor.Default}
-              variant={TextVariant.BodyMDBold}
-              style={styles.title}
-            >
-              {strings('whats_new.stx.title')}
-            </Text>
-
-            <Text
-              color={TextColor.Default}
-              variant={TextVariant.HeadingSMRegular}
-              style={styles.description}
-            >
-              {strings('whats_new.stx.description_1')}
-            </Text>
-            <Text
-              color={TextColor.Default}
-              variant={TextVariant.HeadingSMRegular}
-              style={styles.description}
-            >
-              {strings('whats_new.stx.description_2')}
-            </Text>
-
-            <View style={styles.button}>
-              <StyledButton type={'transparent-blue'} onPress={optOut}>
-                {strings('whats_new.stx.secondary_button')}
-              </StyledButton>
-            </View>
-
-            <View style={styles.button}>
-              <StyledButton type={'blue'} onPress={optIn}>
-                {strings('whats_new.stx.primary_button')}
-              </StyledButton>
-            </View>
-          </View>
+          </ScrollView>
         </View>
       </View>
     </ReusableModal>
