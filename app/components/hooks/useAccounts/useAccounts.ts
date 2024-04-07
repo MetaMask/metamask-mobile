@@ -32,6 +32,7 @@ import {
   selectIsMultiAccountBalancesEnabled,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import getSelectedInternalAccount from '../../../selectors/accountsController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -51,7 +52,8 @@ const useAccounts = ({
   const identities = useSelector(selectIdentities);
   const chainId = useSelector(selectChainId);
   const accountInfoByAddress = useSelector(selectAccounts, isEqual);
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedInternalAccount = useSelector(getSelectedInternalAccount);
+  console.log(JSON.stringify(selectedInternalAccount, null, 2));
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
@@ -128,7 +130,10 @@ const useAccounts = ({
       }: { accounts: string[]; type: KeyringTypes } = keyring;
       for (const index in accountAddresses) {
         const checksummedAddress = toChecksumAddress(accountAddresses[index]);
-        const isSelected = selectedAddress === checksummedAddress;
+        console.log('checksummedAddress', checksummedAddress);
+        const isSelected =
+          toChecksumAddress(selectedInternalAccount.address) ===
+          checksummedAddress;
         if (isSelected) {
           selectedIndex = result.length;
         }
@@ -179,7 +184,7 @@ const useAccounts = ({
     fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
     /* eslint-disable-next-line */
   }, [
-    selectedAddress,
+    selectedInternalAccount.address,
     identities,
     fetchENSNames,
     accountInfoByAddress,
