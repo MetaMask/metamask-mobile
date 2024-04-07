@@ -243,13 +243,24 @@ class WalletConnect2Session {
     chainId,
     accounts,
   }: {
-    chainId: string;
+    chainId: number;
     accounts: string[];
   }) => {
     try {
+      if (chainId === 0 || accounts.length === 0) {
+        DevLogger.log(
+          `WC2::updateSession invalid chainId or accounts --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
+        );
+        // overwrite chainId with actual value.
+        const selectedChainId = parseInt(selectChainId(store.getState()));
+        DevLogger.log(
+          `WC2::updateSession overwrite invalid chain Id with selectedChainId=${selectedChainId}`,
+        );
+        chainId = selectedChainId;
+      }
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
-        chainId: parseInt(chainId),
+        chainId,
         accounts,
       });
     } catch (err) {
@@ -270,10 +281,17 @@ class WalletConnect2Session {
 
     let method = requestEvent.params.request.method;
     const chainId = parseInt(requestEvent.params.chainId);
-    const methodParams = requestEvent.params.request.params as any;
-    Logger.log(
+    const beforeMethodParams = requestEvent.params.request.params as any;
+    // Replace blockExplorerUrls with blockExplorerUrl
+    const methodParams = {
+      ...beforeMethodParams,
+      // blockExplorerUrl: beforeMethodParams.blockExplorerUrls,
+      // test: 'test',
+    };
+
+    DevLogger.log(
       `WalletConnect2Session::handleRequest chainId=${chainId} method=${method}`,
-      methodParams,
+      JSON.stringify(methodParams, null, 2),
     );
 
     // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
@@ -387,6 +405,9 @@ export class WC2Manager {
     const selectedAddress = preferencesController.state.selectedAddress;
     // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
     const chainId = selectChainId(store.getState());
+    DevLogger.log(
+      `[WC2Manager::constructor chainId=${chainId} type=${typeof chainId}`,
+    );
 
     Object.keys(sessions).forEach(async (sessionKey) => {
       try {
@@ -401,7 +422,7 @@ export class WC2Manager {
         });
 
         await this.sessions[sessionKey].updateSession({
-          chainId,
+          chainId: parseInt(chainId),
           accounts: [selectedAddress],
         });
       } catch (err) {
