@@ -320,5 +320,6 @@ global.crypto = {
     for (let i = 0; i < arr.length; i++) {
       arr[i] = Math.floor(Math.random() * (uint8Max + 1));
     }
+    return arr;
   },
 };
