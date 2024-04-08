@@ -1,11 +1,7 @@
 import Engine from '../core/Engine';
 import ENS from 'ethjs-ens';
 import { toLowerCaseEquals } from '../util/general';
-import {
-  ChainId,
-  InfuraNetworkType,
-  NetworkType,
-} from '@metamask/controller-utils';
+import { NetworkId, ChainId, NetworkType } from '@metamask/controller-utils';
 const ENS_NAME_NOT_DEFINED_ERROR = 'ENS name not defined';
 const INVALID_ENS_NAME_ERROR = 'invalid ENS name';
 // One hour cache threshold.
@@ -32,19 +28,11 @@ export class ENSCache {
 const ENS_SUPPORTED_CHAIN_IDS = [ChainId[NetworkType.mainnet]];
 
 /**
- * We still need it to support the legacy ENS library that we are using.
- */
-const ENS_SUPPORTED_NETWORK_IDS = {
-  [InfuraNetworkType.mainnet]: '1',
-};
-
-/**
  * A map of chain ID to network ID for networks supported by the current
  * legacy ENS library we are using.
  */
 const CHAIN_ID_TO_NETWORK_ID = {
-  [ChainId[NetworkType.mainnet]]:
-    ENS_SUPPORTED_NETWORK_IDS[NetworkType.mainnet],
+  [ChainId[NetworkType.mainnet]]: NetworkId[NetworkType.mainnet],
 };
 
 /**
