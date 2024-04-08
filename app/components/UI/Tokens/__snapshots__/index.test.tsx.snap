@@ -719,6 +719,12 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     onResponderTerminate={[Function]}
                                     onResponderTerminationRequest={[Function]}
                                     onStartShouldSetResponder={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
+                                    }
                                     testID="stake-button"
                                   >
                                     <Text
@@ -750,19 +756,19 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       >
                                         Stake 
                                       </Text>
-                                      <SvgMock
-                                        color="#0376C9"
-                                        height={16}
-                                        name="Plant"
-                                        style={
-                                          Object {
-                                            "height": 16,
-                                            "width": 16,
-                                          }
-                                        }
-                                        width={16}
-                                      />
                                     </Text>
+                                    <SvgMock
+                                      color="#0376C9"
+                                      height={16}
+                                      name="Plant"
+                                      style={
+                                        Object {
+                                          "height": 16,
+                                          "width": 16,
+                                        }
+                                      }
+                                      width={16}
+                                    />                                    
                                   </View>
                                 </View>
                                 <Text
@@ -1865,6 +1871,12 @@ exports[`Tokens should render correctly 1`] = `
                                     onResponderTerminate={[Function]}
                                     onResponderTerminationRequest={[Function]}
                                     onStartShouldSetResponder={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
+                                    }
                                     testID="stake-button"
                                   >
                                     <Text
@@ -1896,19 +1908,19 @@ exports[`Tokens should render correctly 1`] = `
                                       >
                                         Stake 
                                       </Text>
-                                      <SvgMock
-                                        color="#0376C9"
-                                        height={16}
-                                        name="Plant"
-                                        style={
-                                          Object {
-                                            "height": 16,
-                                            "width": 16,
-                                          }
-                                        }
-                                        width={16}
-                                      />
                                     </Text>
+                                    <SvgMock
+                                      color="#0376C9"
+                                      height={16}
+                                      name="Plant"
+                                      style={
+                                        Object {
+                                          "height": 16,
+                                          "width": 16,
+                                        }
+                                      }
+                                      width={16}
+                                    />
                                   </View>
                                 </View>
                                 <Text
@@ -3019,6 +3031,12 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     onResponderTerminate={[Function]}
                                     onResponderTerminationRequest={[Function]}
                                     onStartShouldSetResponder={[Function]}
+                                    style={
+                                      Object {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
+                                    }
                                     testID="stake-button"
                                   >
                                     <Text
@@ -3050,19 +3068,19 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       >
                                         Stake 
                                       </Text>
-                                      <SvgMock
-                                        color="#0376C9"
-                                        height={16}
-                                        name="Plant"
-                                        style={
-                                          Object {
-                                            "height": 16,
-                                            "width": 16,
-                                          }
-                                        }
-                                        width={16}
-                                      />
                                     </Text>
+                                    <SvgMock
+                                      color="#0376C9"
+                                      height={16}
+                                      name="Plant"
+                                      style={
+                                        Object {
+                                          "height": 16,
+                                          "width": 16,
+                                        }
+                                      }
+                                      width={16}
+                                    />                                    
                                   </View>
                                 </View>
                                 <Text

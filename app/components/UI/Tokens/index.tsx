@@ -254,19 +254,19 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       <Pressable
         onPress={onStakeButtonPress}
         {...generateTestId(Platform, STAKE_BUTTON)}
+        style={styles.stakeButton}
       >
         <Text variant={TextVariant.BodyLGMedium}>
           {' • '}
-          <Text
-            color={TextColor.Primary}
-            variant={TextVariant.BodyLGMedium}
-          >{`${strings('stake.stake')} `}</Text>
-          <Icon
-            name={IconName.Plant}
-            size={IconSize.Sm}
-            color={IconColor.Primary}
-          />
+          <Text color={TextColor.Primary} variant={TextVariant.BodyLGMedium}>
+            {`${strings('stake.stake')} `}
+          </Text>
         </Text>
+        <Icon
+          name={IconName.Plant}
+          size={IconSize.Sm}
+          color={IconColor.Primary}
+        />
       </Pressable>
     );
   };
