@@ -689,8 +689,36 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   >
                                     Ethereum
                                   </Text>
-                                  <TouchableOpacity
-                                    onPress={[Function]}
+                                  <View
+                                    accessibilityState={
+                                      Object {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      Object {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     testID="stake-button"
                                   >
                                     <Text
@@ -725,7 +753,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       <SvgMock
                                         color="#0376C9"
                                         height={16}
-                                        name="Stake"
+                                        name="Plant"
                                         style={
                                           Object {
                                             "height": 16,
@@ -735,7 +763,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         width={16}
                                       />
                                     </Text>
-                                  </TouchableOpacity>
+                                  </View>
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -1807,8 +1835,36 @@ exports[`Tokens should render correctly 1`] = `
                                   >
                                     Ethereum
                                   </Text>
-                                  <TouchableOpacity
-                                    onPress={[Function]}
+                                  <View
+                                    accessibilityState={
+                                      Object {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      Object {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     testID="stake-button"
                                   >
                                     <Text
@@ -1843,7 +1899,7 @@ exports[`Tokens should render correctly 1`] = `
                                       <SvgMock
                                         color="#0376C9"
                                         height={16}
-                                        name="Stake"
+                                        name="Plant"
                                         style={
                                           Object {
                                             "height": 16,
@@ -1853,7 +1909,7 @@ exports[`Tokens should render correctly 1`] = `
                                         width={16}
                                       />
                                     </Text>
-                                  </TouchableOpacity>
+                                  </View>
                                 </View>
                                 <Text
                                   accessibilityRole="text"
@@ -2933,8 +2989,36 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   >
                                     Ethereum
                                   </Text>
-                                  <TouchableOpacity
-                                    onPress={[Function]}
+                                  <View
+                                    accessibilityState={
+                                      Object {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      Object {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
                                     testID="stake-button"
                                   >
                                     <Text
@@ -2969,7 +3053,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       <SvgMock
                                         color="#0376C9"
                                         height={16}
-                                        name="Stake"
+                                        name="Plant"
                                         style={
                                           Object {
                                             "height": 16,
@@ -2979,7 +3063,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         width={16}
                                       />
                                     </Text>
-                                  </TouchableOpacity>
+                                  </View>
                                 </View>
                                 <Text
                                   accessibilityRole="text"

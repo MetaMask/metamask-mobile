@@ -139,7 +139,6 @@ import Snaps from './assets/snaps.svg';
 import Sparkle from './assets/sparkle.svg';
 import Speedometer from './assets/speedometer.svg';
 import Square from './assets/square.svg';
-import Stake from './assets/stake.svg';
 import Star from './assets/star.svg';
 import Student from './assets/student.svg';
 import SwapHorizontal from './assets/swap-horizontal.svg';
@@ -308,7 +307,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Sparkle]: Sparkle,
   [IconName.Speedometer]: Speedometer,
   [IconName.Square]: Square,
-  [IconName.Stake]: Stake,
   [IconName.Star]: Star,
   [IconName.Student]: Student,
   [IconName.SwapHorizontal]: SwapHorizontal,

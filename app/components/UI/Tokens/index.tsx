@@ -6,6 +6,7 @@ import {
   Platform,
   FlatList,
   RefreshControl,
+  Pressable,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
@@ -250,7 +251,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     };
 
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={onStakeButtonPress}
         {...generateTestId(Platform, STAKE_BUTTON)}
       >
@@ -261,12 +262,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             variant={TextVariant.BodyLGMedium}
           >{`${strings('stake.stake')} `}</Text>
           <Icon
-            name={IconName.Stake}
+            name={IconName.Plant}
             size={IconSize.Sm}
             color={IconColor.Primary}
           />
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
