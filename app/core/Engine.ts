@@ -1599,6 +1599,21 @@ class Engine {
       throw new Error(`No account found for address: ${address}`);
     }
   }
+
+  /**
+   * This should be used instead of directly calling PreferencesController.setAccountLabel or AccountsController.setAccountName in order to keep the names in sync
+   * We are currently incrementally migrating the accounts data to the AccountsController so we must keep these values
+   * in sync until the migration is complete.
+   */
+  setAccountLabel(address: string, label: string) {
+    const { AccountsController, PreferencesController } = this.context;
+    const accountToBeNamed = AccountsController.getAccountByAddress(address);
+    if (accountToBeNamed === undefined) {
+      throw new Error(`No account found for address: ${address}`);
+    }
+    AccountsController.setAccountName(accountToBeNamed.id, label);
+    PreferencesController.setAccountLabel(address, label);
+  }
 }
 
 /**
@@ -1738,5 +1753,9 @@ export default {
   setSelectedAddress: (address: string) => {
     assertEngineExists(instance);
     instance.setSelectedAccount(address);
+  },
+  setAccountLabel: (address: string, label: string) => {
+    assertEngineExists(instance);
+    instance.setAccountLabel(address, label);
   },
 };
