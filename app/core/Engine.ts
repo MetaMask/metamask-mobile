@@ -518,7 +518,7 @@ class Engine {
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
-        selectedAddress: accountsController.getSelectedAccount().address,
+        selectedAddress: preferencesController.state.selectedAddress,
       },
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
