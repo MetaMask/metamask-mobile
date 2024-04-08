@@ -32,7 +32,10 @@ import {
   selectIsMultiAccountBalancesEnabled,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
-import getSelectedInternalAccount from '../../../selectors/accountsController';
+import {
+  getInternalAccounts,
+  getSelectedInternalAccount,
+} from '../../../selectors/accountsController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -49,7 +52,10 @@ const useAccounts = ({
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
 
-  const identities = useSelector(selectIdentities);
+  const identitiesFromOld = useSelector(selectIdentities);
+  console.log('identitiesFromOld', JSON.stringify(identitiesFromOld, null, 2));
+  const identities = useSelector(getInternalAccounts);
+  console.log('identities', JSON.stringify(identities, null, 2));
   const chainId = useSelector(selectChainId);
   const accountInfoByAddress = useSelector(selectAccounts, isEqual);
   const selectedInternalAccount = useSelector(getSelectedInternalAccount);
@@ -137,7 +143,7 @@ const useAccounts = ({
         if (isSelected) {
           selectedIndex = result.length;
         }
-        const identity = identities[checksummedAddress];
+        const identity = identitiesFromOld[checksummedAddress];
         if (!identity) continue;
         const { name } = identity;
         // TODO - Improve UI to either include loading and/or balance load failures.

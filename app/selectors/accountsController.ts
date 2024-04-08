@@ -13,7 +13,7 @@ export const getSelectedInternalAccount = createSelector(
   },
 );
 
-export const getInternalAccount = createSelector(
+export const getInternalAccounts = createSelector(
   selectAccountsControllerState,
   (accountsControllerState: AccountsControllerState) => {
     return accountsControllerState.internalAccounts;

@@ -1,7 +1,7 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import {
   getSelectedInternalAccount,
-  getInternalAccount,
+  getInternalAccounts,
 } from './accountsController';
 
 const ACCOUNTS_CONTROLLER_STATE_MOCK: AccountsControllerState = {
@@ -85,10 +85,10 @@ describe('Accounts Controller Selectors', () => {
     });
   });
 
-  describe('getInternalAccount', () => {
+  describe('getInternalAccounts', () => {
     it('returns all internal accounts', () => {
       expect(
-        getInternalAccount({
+        getInternalAccounts({
           engine: {
             backgroundState: {
               AccountsController: ACCOUNTS_CONTROLLER_STATE_MOCK,
