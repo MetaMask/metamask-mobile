@@ -768,7 +768,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         }
                                       }
                                       width={16}
-                                    />                                    
+                                    />
                                   </View>
                                 </View>
                                 <Text
@@ -3080,7 +3080,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         }
                                       }
                                       width={16}
-                                    />                                    
+                                    />
                                   </View>
                                 </View>
                                 <Text
