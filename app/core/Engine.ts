@@ -524,11 +524,10 @@ class Engine {
       messenger: this.controllerMessenger.getRestricted<
         'TokensController',
         'ApprovalController:addRequest',
-        'AccountsController:selectedAccountChange'
+        never
       >({
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
-        allowedEvents: ['AccountsController:selectedAccountChange'],
       }),
       getERC20TokenName: assetsContractController.getERC20TokenName.bind(
         assetsContractController,
@@ -1033,8 +1032,7 @@ class Engine {
         {
           onTokensStateChange: (listener) =>
             tokensController.subscribe(listener),
-          getSelectedAddress: () =>
-            accountsController.getSelectedAccount().address,
+          getSelectedAddress: () => preferencesController.state.selectedAddress,
           getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
             assetsContractController,
           ),
