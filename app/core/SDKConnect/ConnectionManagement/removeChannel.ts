@@ -43,24 +43,23 @@ function removeChannel({
     } catch (err) {
       console.error(`Can't remove connection ${channelId}`, err);
     }
-
-    delete instance.state.connected[channelId];
-    delete instance.state.connections[channelId];
-    delete instance.state.approvedHosts[
-      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId
-    ];
-
-    delete instance.state.disabledHosts[
-      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId
-    ];
-
-    store.dispatch(removeConnection(channelId));
-    store.dispatch(removeApprovedHost(channelId));
   }
-  // Remove matching permissions from controller
+  delete instance.state.connected[channelId];
+  delete instance.state.connections[channelId];
+  delete instance.state.approvedHosts[
+    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId
+  ];
+
+  delete instance.state.disabledHosts[
+    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + channelId
+  ];
+
+  store.dispatch(removeConnection(channelId));
+  store.dispatch(removeApprovedHost(channelId));
 
   delete instance.state.connecting[channelId];
   if (engine) {
+    // Remove matching permissions from controller
     const permissionsController = (
       engine.context as { PermissionController: PermissionController<any, any> }
     ).PermissionController;
