@@ -1,4 +1,7 @@
-import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
+import {
+  LedgerKeyring,
+  LedgerMobileBridge,
+} from '@metamask/eth-ledger-bridge-keyring';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
@@ -43,8 +46,11 @@ export const connectLedgerHardware = async (
   deviceId: string,
 ): Promise<string> => {
   const keyring = await getLedgerKeyring();
-  keyring.setTransport(transport as unknown as any, deviceId);
-  const { appName } = await keyring.getAppAndVersion();
+  keyring.setHdPath("m/44'/60'/0'/0");
+  const bridge = keyring.bridge as LedgerMobileBridge;
+  bridge.updateTransportMethod(transport);
+  // keyring.setTransport(transport as unknown as any, deviceId);
+  const { appName } = await bridge.getAppNameAndVersion();
   return appName;
 };
 
@@ -66,10 +72,10 @@ export const unlockLedgerDefaultAccount = async (
   if (isAccountImportReq) {
     await keyringController.addNewAccountForKeyring(keyring);
   }
-  const address = await keyring.getDefaultAccount();
+  const address = await keyring.getFirstPage();
 
   return {
-    address,
+    address: address[0].address,
     balance: `0x0`,
   };
 };
@@ -79,7 +85,8 @@ export const unlockLedgerDefaultAccount = async (
  */
 export const openEthereumAppOnLedger = async (): Promise<void> => {
   const keyring = await getLedgerKeyring();
-  await keyring.openEthApp();
+  const bridge = keyring.bridge as LedgerMobileBridge;
+  await bridge.openEthApp();
 };
 
 /**
@@ -87,7 +94,8 @@ export const openEthereumAppOnLedger = async (): Promise<void> => {
  */
 export const closeRunningAppOnLedger = async (): Promise<void> => {
   const keyring = await getLedgerKeyring();
-  await keyring.quitApp();
+  const bridge = keyring.bridge as LedgerMobileBridge;
+  await bridge.closeApps();
 };
 
 /**
@@ -110,7 +118,8 @@ export const forgetLedger = async (): Promise<void> => {
  */
 export const getDeviceId = async (): Promise<string> => {
   const ledgerKeyring = await getLedgerKeyring();
-  return ledgerKeyring.deviceId;
+  const bridge = ledgerKeyring.bridge as LedgerMobileBridge;
+  return bridge.deviceId;
 };
 
 /**

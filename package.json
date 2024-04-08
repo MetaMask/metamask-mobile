@@ -123,7 +123,7 @@
     "**/babel-runtime/regenerator-runtime": "^0.13.8"
   },
   "dependencies": {
-    "@consensys/ledgerhq-metamask-keyring": "0.0.9",
+    "@metamask/eth-ledger-bridge-keyring": "3.0.0",
     "@consensys/on-ramp-sdk": "1.26.8",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
