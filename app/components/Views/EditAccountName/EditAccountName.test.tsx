@@ -7,12 +7,18 @@ import EditAccountName from './EditAccountName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
-const mockSetAccountLabel = jest.fn();
+const mockPreferencesSetAccountLabel = jest.fn();
+const mockEngineSetAccountLabel = jest.fn();
+const mockAccountsControllerSetAccountName = jest.fn();
 
 jest.mock('../../../core/Engine', () => ({
+  setAccountLabel: () => mockEngineSetAccountLabel,
   context: {
     PreferencesController: {
-      setAccountLabel: () => mockSetAccountLabel,
+      setAccountLabel: () => mockPreferencesSetAccountLabel,
+    },
+    AccountsController: {
+      setAccountName: () => mockAccountsControllerSetAccountName,
     },
   },
 }));
@@ -28,10 +34,37 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            '30313233-3435-4637-b839-383736353430': {
+              address: '0x0',
+              id: '30313233-3435-4637-b839-383736353430',
+              options: {},
+              metadata: {
+                name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              methods: [
+                'personal_sign',
+                'eth_sign',
+                'eth_signTransaction',
+                'eth_signTypedData_v1',
+                'eth_signTypedData_v3',
+                'eth_signTypedData_v4',
+              ],
+              type: 'eip155:eoa',
+            },
+          },
+        },
+        selectedAccount: '30313233-3435-4637-b839-383736353430',
+      },
       PreferencesController: {
-        selectedAddress: '0x',
+        selectedAddress: '0x0',
         identities: {
-          '0x': { name: 'Account 1', address: '0x' },
+          '0x0': { name: 'Account 1', address: '0x0' },
         },
       },
     },
@@ -69,6 +102,9 @@ describe('EditAccountName', () => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockSetOptions.mockClear();
+    mockPreferencesSetAccountLabel.mockClear();
+    mockEngineSetAccountLabel.mockClear();
+    mockAccountsControllerSetAccountName.mockClear();
   });
   it('should render correctly', () => {
     const { getByText, toJSON } = renderComponent(mockInitialState);
