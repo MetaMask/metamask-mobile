@@ -160,7 +160,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const goToNetworkEdit = () => {
     navigation.navigate(Routes.ADD_NETWORK, {
       network: rpcUrl,
-      isEdit: true,
     });
 
     setShowScamWarningModal(false);

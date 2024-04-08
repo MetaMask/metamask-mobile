@@ -159,9 +159,15 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     inlineWarning: {
-      paddingVertical: 8,
+      paddingVertical: 2,
       fontSize: 14,
       color: colors.text.default,
+      ...typography.sBodyMD,
+    },
+    inlineWarningMessage: {
+      paddingVertical: 2,
+      fontSize: 14,
+      color: colors.warning.default,
       ...typography.sBodyMD,
     },
     buttonsWrapper: {
@@ -307,7 +313,6 @@ class NetworkSettings extends PureComponent {
     showNetworkDetailsModal: false,
     isNameFieldFocused: false,
     isSymbolFieldFocused: false,
-    isEdit: false,
     networkList: [],
   };
 
@@ -353,7 +358,6 @@ class NetworkSettings extends PureComponent {
 
     const isCustomMainnet = route.params?.isCustomMainnet;
     const networkTypeOrRpcUrl = route.params?.network;
-    const isEdit = route.params?.isEdit ?? false;
 
     // if network is main, don't show popular network
     let blockExplorerUrl, chainId, nickname, ticker, editable, rpcUrl;
@@ -400,7 +404,6 @@ class NetworkSettings extends PureComponent {
         ticker,
         editable,
         initialState,
-        isEdit,
       });
     } else {
       this.setState({ addMode: true });
@@ -414,21 +417,18 @@ class NetworkSettings extends PureComponent {
   };
 
   componentDidUpdate = (prevProps) => {
-    const { isEdit, chainId } = this.state;
+    const { chainId } = this.state;
 
     this.updateNavBar();
     if (this.props.matchedChainNetwork !== prevProps.matchedChainNetwork) {
-      if (isEdit) {
-        const chainToMatch =
-          this.props.matchedChainNetwork?.safeChainsList?.find(
-            (network) => network.chainId === parseInt(chainId),
-          );
+      const chainToMatch = this.props.matchedChainNetwork?.safeChainsList?.find(
+        (network) => network.chainId === parseInt(chainId),
+      );
 
-        this.updateNetworkList(chainToMatch);
+      this.updateNetworkList(chainToMatch);
 
-        this.validateName(chainToMatch);
-        this.validateSymbol(chainToMatch);
-      }
+      this.validateName(chainToMatch);
+      this.validateSymbol(chainToMatch);
     }
   };
 
@@ -454,6 +454,22 @@ class NetworkSettings extends PureComponent {
     }
     return parseInt(chainId, 16).toString(10);
   }
+
+  validateRpcAndChainId = () => {
+    const { rpcUrl, chainId } = this.state;
+
+    if (rpcUrl && chainId) {
+      const { chainId } = this.state;
+
+      const chainToMatch = this.props.matchedChainNetwork?.safeChainsList?.find(
+        (network) => network.chainId === parseInt(chainId),
+      );
+
+      this.updateNetworkList(chainToMatch);
+      this.validateName(chainToMatch);
+      this.validateSymbol(chainToMatch);
+    }
+  };
 
   /**
    * Validates the chain ID by checking it against the `eth_chainId` return
@@ -682,6 +698,9 @@ class NetworkSettings extends PureComponent {
       return false;
     }
     this.setState({ validatedRpcURL: true, warningRpcUrl: undefined });
+
+    this.validateRpcAndChainId();
+
     return true;
   };
 
@@ -729,6 +748,7 @@ class NetworkSettings extends PureComponent {
       });
     }
 
+    this.validateRpcAndChainId();
     this.setState({ warningChainId: undefined, validatedChainId: true });
   };
 
@@ -736,32 +756,33 @@ class NetworkSettings extends PureComponent {
    * Validates that symbol match with the chainId, setting a warningSymbol if is invalid
    */
   validateSymbol = (chainToMatch = null) => {
-    const { isEdit, ticker, networkList } = this.state;
-    if (isEdit) {
-      const { useSafeChainsListValidation } = this.props;
+    const { ticker, networkList } = this.state;
 
-      if (!useSafeChainsListValidation) {
-        return;
-      }
+    const { useSafeChainsListValidation } = this.props;
 
-      const symbol = chainToMatch
-        ? chainToMatch?.nativeCurrency?.symbol ?? null
-        : networkList?.nativeCurrency?.symbol ?? null;
-
-      const symbolToUse = symbol === ticker ? undefined : symbol;
-
-      this.setState({
-        warningSymbol: symbolToUse,
-      });
+    if (!useSafeChainsListValidation) {
       return;
     }
+
+    const symbol = chainToMatch
+      ? chainToMatch?.nativeCurrency?.symbol ?? null
+      : networkList?.nativeCurrency?.symbol ?? null;
+
+    const symbolToUse = symbol === ticker ? undefined : symbol;
+
     if (!ticker) {
       return this.setState({
-        warningSymbol: strings('app_settings.symbol_required'),
-        validatedSymbol: true,
+        warningSymbol: symbolToUse,
+        validatedSymbol: false,
       });
     }
-    this.setState({ warningSymbol: undefined, validatedSymbol: true });
+
+    return this.setState({
+      warningSymbol: symbolToUse,
+      validatedSymbol: true,
+    });
+
+    // this.setState({ warningSymbol: undefined, validatedSymbol: true });
   };
 
   /**
@@ -987,7 +1008,6 @@ class NetworkSettings extends PureComponent {
       inputWidth,
       isNameFieldFocused,
       isSymbolFieldFocused,
-      isEdit,
     } = this.state;
     const { route } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
@@ -1014,7 +1034,7 @@ class NetworkSettings extends PureComponent {
     ];
 
     const inputErrorNameStyle = [
-      warningName && isEdit
+      warningName
         ? isNameFieldFocused
           ? styles.inputWithFocus
           : styles.input
@@ -1024,7 +1044,7 @@ class NetworkSettings extends PureComponent {
     ];
 
     const inputErrorSymbolStyle = [
-      warningSymbol && isEdit
+      warningSymbol
         ? isSymbolFieldFocused
           ? styles.inputWithFocus
           : styles.inputWithError
@@ -1056,30 +1076,41 @@ class NetworkSettings extends PureComponent {
       route.params?.shouldNetworkSwitchPopToWallet ?? true;
 
     const renderWarningSymbol = () => {
+      const { validatedSymbol } = this.state;
       if (warningSymbol) {
-        if (isEdit) {
+        if (validatedSymbol) {
           return (
             <View>
               <Text style={styles.inlineWarning}>
-                {strings('wallet.network_with_chain_id')} {chainId}{' '}
-                {strings('wallet.use_the_currency_symbol')}{' '}
+                {strings('wallet.suggested_token_symbol')}{' '}
                 <Text
                   style={styles.link}
                   onPress={() => {
                     this.autoFillSymbolField(warningSymbol);
                   }}
                 >
-                  {`(${warningSymbol})`}
+                  {warningSymbol}
                 </Text>
-                {'. '}
-                {strings('wallet.use_correct_symbol')}
+              </Text>
+              <Text style={styles.inlineWarningMessage}>
+                {strings('wallet.chain_list_returned_different_ticker_symbol')}
               </Text>
             </View>
           );
         }
         return (
-          <View style={styles.warningContainer}>
-            <Text style={styles.warningText}>{warningSymbol}</Text>
+          <View>
+            <Text style={styles.inlineWarning}>
+              {strings('wallet.suggested_token_symbol')}{' '}
+              <Text
+                style={styles.link}
+                onPress={() => {
+                  this.autoFillSymbolField(warningSymbol);
+                }}
+              >
+                {warningSymbol}
+              </Text>
+            </Text>
           </View>
         );
       }
@@ -1101,7 +1132,7 @@ class NetworkSettings extends PureComponent {
         style={styles.wrapper}
         testID={NetworksViewSelectorsIDs.CONTAINER}
       >
-        <KeyboardAwareScrollView style={styles.informationCustomWrapper}>
+        <View style={styles.informationCustomWrapper}>
           {!networkTypeOrRpcUrl ? (
             <WarningMessage
               style={styles.warningContainer}
@@ -1130,7 +1161,7 @@ class NetworkSettings extends PureComponent {
               testID={NetworksViewSelectorsIDs.NETWORK_NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
-            {warningName && isEdit ? (
+            {warningName ? (
               <View>
                 <Text style={styles.inlineWarning}>
                   {strings('wallet.chain_id_currently_used')}{' '}
@@ -1296,7 +1327,7 @@ class NetworkSettings extends PureComponent {
               </View>
             )
           )}
-        </KeyboardAwareScrollView>
+        </View>
       </SafeAreaView>
     );
   };
