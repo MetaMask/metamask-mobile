@@ -1,8 +1,6 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",
-    "attribution": "Fourni par",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Si vous approuvez cette demande, quelqu’un pourrait s’emparer de vos actifs répertoriés sur Blur.",
     "deceptive_request_title": "Cette demande est trompeuse",
     "failed_title": "Cette demande peut présenter des risques",
@@ -893,7 +891,6 @@
     "security_check_subheading": "Contrôles de sécurité",
     "symbol_required": "Le symbole est requis.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Protection de la vie privée : aucune donnée n’est partagée avec des tiers. Disponible sur Arbitrum, Avalanche, BNB chain, Optimism, Polygon et le réseau principal Ethereum.",
     "security_alerts": "Alertes de sécurité",
     "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos demandes de transaction et de signature. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité. En l’activant, vous acceptez les conditions d’utilisation du fournisseur."
   },
@@ -2409,7 +2406,6 @@
       "title": "Restez en sécurité grâce aux alertes de sécurité",
       "description_1": "Évitez les arnaques les plus courantes et protégez vos données privées grâce aux alertes de sécurité fournies par Blockaid. Cette fonctionnalité est désormais activée par défaut pour tous les utilisateurs de MetaMask.",
       "description_2": "Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande.",
-      "description_3": "Disponible sur Arbitrum, Avalanche, BNB chain, Linea, Optimism, Polygon et le réseau principal Ethereum.",
       "got_it": "D’accord"
     },
     "sell": {

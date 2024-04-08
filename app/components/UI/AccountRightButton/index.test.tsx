@@ -1,24 +1,30 @@
-import React from 'react';
-import { shallow } from 'enzyme';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import AccountRightButton from './';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
-const mockStore = configureMockStore();
-const store = mockStore({
+const mockInitialState = {
+  settings: {},
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState: {
+      ...initialBackgroundState,
+      NetworkController: {
+        providerConfig: {
+          chainId: 0x1,
+        },
+      },
+    },
   },
-});
+};
 
 describe('AccountRightButton', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <AccountRightButton selectedAddress={'0x0'} onPress={jest.fn} />
-      </Provider>,
+    const { toJSON } = renderScreen(
+      AccountRightButton,
+      {
+        name: 'AccountRightButton',
+      },
+      { state: mockInitialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
