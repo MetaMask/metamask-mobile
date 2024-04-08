@@ -2,6 +2,7 @@
 //@ts-ignore
 import bundleJs from '@metamask/bip32-example-snap/dist/bundle.js';
 import manifestJson from '@metamask/bip32-example-snap/snap.manifest.json';
+import getPreinstalledSnap from '../../util/snaps/getPreinstalledSnap';
 
 let icon;
 try {
@@ -19,7 +20,7 @@ export const PREINSTALLED_SNAPS = Object([
     [
       {
         path: 'images/icon.svg',
-        value: icon, //TODO: we could use a default icon in case the snap doesn't have one.
+        value: icon,
       },
       {
         path: 'dist/bundle.js',
@@ -28,18 +29,5 @@ export const PREINSTALLED_SNAPS = Object([
     ],
   ),
 ]);
-
-function getPreinstalledSnap(
-  npmPackage: string,
-  manifest: string,
-  files: { path: string; value: string }[],
-) {
-  return {
-    snapId: `npm:${npmPackage}`,
-    manifest: JSON.parse(manifest),
-    files,
-    removable: false,
-  };
-}
 
 export default PREINSTALLED_SNAPS;
