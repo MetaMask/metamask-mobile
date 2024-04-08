@@ -39,7 +39,12 @@ async function updateSDKLoadingState({
       screen: Routes.SHEET.SDK_LOADING,
     });
   } else {
-    await instance.hideLoadingState();
+    instance.hideLoadingState().catch((err) => {
+      DevLogger.log(
+        err,
+        `SDKConnect::updateSDKLoadingState - can't hide loading state`,
+      );
+    });
   }
 }
 
