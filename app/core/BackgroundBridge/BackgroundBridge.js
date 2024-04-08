@@ -223,18 +223,6 @@ export class BackgroundBridge extends EventEmitter {
 
   async notifySelectedAddressChanged(selectedAddress) {
     try {
-      // Remove following specific walletconnect block once WalletConnect has migrated away from DefaultPreferences
-      if (this.isWalletConnect) {
-        DevLogger.log(
-          `notifySelectedAddressChanged walletconnect hostname: ${this.hostname}: ${selectedAddress}`,
-        );
-        this.sendNotification({
-          method: NOTIFICATION_NAMES.accountsChanged,
-          params: [selectedAddress],
-        });
-        return;
-      }
-
       let approvedAccounts = await getPermittedAccounts(
         this.channelId ?? this.hostname,
       );
@@ -274,9 +262,9 @@ export class BackgroundBridge extends EventEmitter {
 
     // Check if update already sent
     if (
-      this.chainIdSent !== publicState.chainId &&
-      this.networkVersionSent !== publicState.networkVersion &&
-      publicState.networkVersion !== 'loading'
+      this.chainIdSent !== publicState.chainId ||
+      (this.networkVersionSent !== publicState.networkVersion &&
+        publicState.networkVersion !== 'loading')
     ) {
       this.chainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;

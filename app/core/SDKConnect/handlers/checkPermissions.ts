@@ -22,6 +22,9 @@ export const checkPermissions = async ({
   const OTPExpirationDuration =
     Number(process.env.OTP_EXPIRATION_DURATION_IN_MS) || HOUR_IN_MS;
 
+  // close poientially open loading modal
+  connection.setLoading(false);
+
   const channelWasActiveRecently =
     !!lastAuthorized && Date.now() - lastAuthorized < OTPExpirationDuration;
 
@@ -50,8 +53,15 @@ export const checkPermissions = async ({
   ).PermissionController;
 
   if (connection.approvalPromise) {
-    DevLogger.log(`checkPermissions approvalPromise exists`);
+    const currentRouteName = connection.navigation?.getCurrentRoute()?.name;
+    DevLogger.log(
+      `checkPermissions approvalPromise exists currentRouteName=${currentRouteName}`,
+    );
+    // Make sure the window is displayed.
+    const match = permissionsController.hasPermissions(connection.channelId);
+    DevLogger.log(`checkPermissions match`, match);
     // Wait for result and clean the promise afterwards.
+
     await connection.approvalPromise;
     connection.approvalPromise = undefined;
     return true;
@@ -74,7 +84,6 @@ export const checkPermissions = async ({
     return true;
   }
 
-  DevLogger.log(`checkPermissions request permissions`, acc);
   connection.approvalPromise = permissionsController.requestPermissions(
     { origin },
     { eth_accounts: {} },

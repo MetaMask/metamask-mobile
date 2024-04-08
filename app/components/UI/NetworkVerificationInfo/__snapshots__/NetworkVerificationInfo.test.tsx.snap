@@ -93,32 +93,33 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         <View
           style={
             Object {
-              "alignItems": "center",
-              "backgroundColor": "#F2F4F6",
+              "backgroundColor": "#FFFFFF",
               "borderRadius": 8,
-              "borderWidth": 1,
               "height": 16,
-              "justifyContent": "center",
               "overflow": "hidden",
               "width": 16,
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={
               Object {
-                "color": "#24272A",
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 10,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": undefined,
+                "default": Object {
+                  "uri": "MockImage",
+                },
               }
             }
-          >
-            T
-          </Text>
+            style={
+              Object {
+                "flex": 1,
+                "height": undefined,
+                "width": undefined,
+              }
+            }
+            testID="network-avatar-image"
+          />
         </View>
         <Text
           accessibilityRole="text"
@@ -353,7 +354,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               }
             }
           >
-            1
+            10
           </Text>
           <Text
             accessibilityRole="text"
@@ -384,7 +385,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               }
             }
           >
-            http:/
+            http://test.com
           </Text>
           <TouchableOpacity
             activeOpacity={0.5}

@@ -44,9 +44,7 @@ pipelines:
   release_e2e_pipeline:
     stages:
       - build_e2e_ios_android_stage: {}
-      - run_e2e_ios_android_stage: {}
-      # - build_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully.
-      # - run_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully.
+      - run_release_e2e_ios_android_stage: {}
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
@@ -130,6 +128,16 @@ stages:
     workflows:
       - ios_run_regression_tests: {}
       - android_run_regression_tests: {}
+  run_release_e2e_ios_android_stage:
+    workflows:
+      - ios_run_regression_tests: {}
+      - android_run_regression_tests: {}
+      - run_tag_smoke_confirmations_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
+      - run_tag_smoke_core_ios: {}
+      - run_tag_smoke_core_android: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -695,7 +703,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -751,7 +759,7 @@ workflows:
                 #!/usr/bin/env bash
                 if [ -n "$TEST_SUITE_FOLDER" ]; then
                   echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi                
+                fi
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -764,7 +772,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
           title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
@@ -1300,16 +1308,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.17.0
+      VERSION_NAME: 7.19.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1267
+      VERSION_NUMBER: 1292
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.17.0
+      FLASK_VERSION_NAME: 7.19.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1267
+      FLASK_VERSION_NUMBER: 1292
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

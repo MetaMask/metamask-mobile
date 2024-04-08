@@ -8,6 +8,6 @@ describe('SheetActionView', () => {
       <SheetActionView onCancel={() => null} onConfirm={() => null} />,
       { state: {} },
     );
-    expect(toJSON).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

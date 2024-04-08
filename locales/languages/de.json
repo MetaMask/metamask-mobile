@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Dritte, die für Betrügereien bekannt sind, alle Ihre Assets an sich reißen.",
-    "attribution": "Unterstützt durch",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Wenn Sie diese Anfrage genehmigen, kann jemand Ihre auf Blur aufgeführten Assets stehlen.",
     "deceptive_request_title": "Dies ist eine betrügerische Anfrage.",
     "failed_title": "Anfrage ist möglicherweise nicht sicher",
     "failed_description": "Aufgrund eines Fehlers wurde diese Anfrage vom Sicherheitsanbieter nicht überprüft. Gehen Sie mit Bedacht vor.",
     "loading_title": "Suche nach Sicherheitsbenachrichtigungen ...",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "Führen Sie immer Ihre eigene Due-Diligence-Prüfung durch, bevor Sie Anfragen genehmigen.",
     "malicious_domain_description": "Sie haben es mit einer bösartigen Domain zu tun. Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "other_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
     "raw_signature_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
@@ -893,7 +891,6 @@
     "security_check_subheading": "Sicherheitsprüfungen",
     "symbol_required": "Symbol ist erforderlich.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Wahrung der Privatsphäre – keine Daten werden an Dritte weitergegeben. Verfügbar auf Arbitrum, Avalanche, BNB Chain, Ethereum Mainnet, Optimism und Polygon.",
     "security_alerts": "Sicherheitsbenachrichtigungen",
     "security_alerts_desc": "Diese Funktion warnt Sie vor bösartigen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie Anfragen genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden."
   },
@@ -902,27 +899,27 @@
     "disconnect_all_info": "Wenn Sie Ihre Verbindungen mit allen Seiten trennen, müssen Sie die Genehmigung dazu erteilen, sich erneut zu verbinden.",
     "disconnect": "Trennen",
     "disconnect_all": "Alle trennen",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "Alle Konten trennen",
+    "manage_connections": "Verbindungen verwalten",
+    "manage": "Verwalten",
     "cancel": "Stornieren",
     "loading": "Verbindung mit MetaMask wird hergestellt ...",
     "unkown_dapp": "DAPP-Name nicht verfügbar",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "Keine Verbindungen",
+    "no_connections_desc": "Wenn Sie ein Konto mit einer Website oder einer App verbinden, wird es hier angezeigt."
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "{{accountsLength}} Konto/Konten verbunden."
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "Verbindung mit allen Websites trennen?",
+    "disconnect_all_desc": "Wenn Sie die Ihre Konten von allen Websites trennen, müssen Sie die Genehmigung für die erneute Verbindung erteilen.",
+    "disconnect_account": "Konto trennen?",
+    "disconnect_all_accounts": "Alle Konten trennen",
+    "disconnect_all_accounts_desc": "Wenn Sie alle Konten von {{dapp}} trennen, müssen Sie die Genehmigung für die erneute Verbindung erteilen.",
+    "disconnect_account_desc": "Wenn Sie {{account}} von {{dapp}} trennen, müssen Sie die Genehmigung für die erneute Verbindung erteilen.",
+    "disconnect_confirm": "Trennen",
+    "cancel": "Abbrechen"
   },
   "sdk_return_to_app_modal": {
     "title": "Zur App zurückkehren",
@@ -1508,8 +1505,8 @@
     "select_network": "Netzwerk wählen",
     "show_test_networks": "Testnetzwerke anzeigen",
     "deprecated_goerli": "Aufgrund der Protokolländerungen von Ethereum: Das Goerli-Testnetzwerk funktioniert möglicherweise nicht mehr so zuverlässig und wird demnächst abgeschaltet.",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "Dieses Netzwerk ist veraltet",
+    "network_deprecated_description": "Das Netzwerk, zu dem Sie eine Verbindung herstellen möchten, wird von Metamask nicht mehr unterstützt."
   },
   "select": {
     "cancel": "Stornieren",
@@ -2058,6 +2055,10 @@
     "fetching_new_quotes": "Es werden neue Angebote eingeholt ...",
     "quotes_expire_in": "Angebote laufen ab in",
     "get_new_quotes": "Neue Angebote einholen",
+    "explore_more_options": "Weitere Optionen entdecken",
+    "one_more_option": "1 weitere Option",
+    "more_options": "{{count}} weitere Optionen",
+    "previously_used": "Zuvor verwendet",
     "quotes_timeout": "Angebote-Timeout",
     "request_new_quotes": "Bitte fragen Sie neue Angebote an, um den besten Kurs zu bekommen.",
     "terms_of_service": "Nutzungsbedingungen",
@@ -2405,7 +2406,6 @@
       "title": "Gehen Sie mit Sicherheitsbenachrichtigungen auf Nummer sicher.",
       "description_1": "Mit den Sicherheitswarnungen von Blockaid sind Sie vor bekannten Betrügereien sicher und schützen gleichzeitig Ihre Privatsphäre. Diese Funktion ist jetzt standardmäßig für alle MetaMask-Benutzer aktiviert.",
       "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen.",
-      "description_3": "Verfügbar auf Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism und Polygon.",
       "got_it": "Verstanden"
     },
     "sell": {
