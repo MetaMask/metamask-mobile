@@ -1143,13 +1143,17 @@ class Engine {
         messenger: this.controllerMessenger.getRestricted<
           'SignatureController',
           | 'ApprovalController:addRequest'
-          | 'KeyringController:signPersonalMessage',
+          | 'KeyringController:signPersonalMessage'
+          | 'KeyringController:signMessage'
+          | 'KeyringController:signTypedMessage',
           never
         >({
           name: 'SignatureController',
           allowedActions: [
             `${approvalController.name}:addRequest`,
             `${keyringController.name}:signPersonalMessage`,
+            `${keyringController.name}:signMessage`,
+            `${keyringController.name}:signTypedMessage`,
           ],
         }),
         isEthSignEnabled: () =>
