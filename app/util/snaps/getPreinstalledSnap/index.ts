@@ -6,7 +6,10 @@ export default function getPreinstalledSnap(
   return {
     snapId: `npm:${npmPackage}`,
     manifest: JSON.parse(manifest),
-    files,
+    files: files.map((file) => ({
+      path: file.path,
+      value: file.value,
+    })),
     removable: false,
   };
 }
