@@ -1052,7 +1052,7 @@ class Engine {
           preferencesController.subscribe(listener),
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
-        selectedAddress: accountsController.getSelectedAccount().address,
+        selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
       }),
