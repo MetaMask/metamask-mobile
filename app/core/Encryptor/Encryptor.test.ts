@@ -88,7 +88,7 @@ describe('Encryptor', () => {
       {
         lib: ENCRYPTION_LIBRARY.original,
         expectedKey: 'mockedAesKey',
-        expectedPBKDF2Args: ['testPassword', 'mockedSalt', 900000, 256],
+        expectedPBKDF2Args: ['testPassword', 'mockedSalt', 600000, 256],
         description:
           'with original library and default iterations number for key generation',
         keyMetadata: DEFAULT_DERIVATION_PARAMS,

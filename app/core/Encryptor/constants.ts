@@ -15,6 +15,6 @@ export enum KeyDerivationIteration {
 export const DEFAULT_DERIVATION_PARAMS: KeyDerivationOptions = {
   algorithm: 'PBKDF2',
   params: {
-    iterations: KeyDerivationIteration.Default,
+    iterations: KeyDerivationIteration.Minimum,
   },
 };
