@@ -1011,11 +1011,13 @@
     "change_password": "Change password"
   },
   "asset_overview": {
+    "earn_button": "Earn",
     "send_button": "Send",
     "buy_button": "Buy",
     "sell_button": "Sell",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
+    "more_button": "More",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
