@@ -208,6 +208,7 @@ exports[`Accounts should render correctly 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>

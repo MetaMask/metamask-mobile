@@ -185,6 +185,7 @@ exports[`Regions View renders correctly 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -1009,6 +1010,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -1615,6 +1617,7 @@ exports[`Regions View renders correctly with error 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -2295,6 +2298,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -2901,6 +2905,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -3581,6 +3586,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -4403,6 +4409,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -5601,6 +5608,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -6799,6 +6807,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>

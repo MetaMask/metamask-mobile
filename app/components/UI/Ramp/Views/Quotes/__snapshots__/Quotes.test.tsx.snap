@@ -809,6 +809,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -1547,6 +1548,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -3052,6 +3054,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -5010,6 +5013,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -5799,6 +5803,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -6588,6 +6593,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -7377,6 +7383,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         "fontWeight": "400",
                       }
                     }
+                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
