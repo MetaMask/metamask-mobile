@@ -681,7 +681,10 @@ function decodeSwapsTx(args) {
     contractExchangeRates,
     assetSymbol,
   } = args;
-  const swapTransaction = (swapsTransactions && swapsTransactions[id]) || {};
+  const swapTransaction =
+    (swapsTransactions &&
+      (swapsTransactions[id] || swapsTransactions[transactionHash])) ||
+    {};
   const totalGas = calculateTotalGas({
     ...txParams,
     gas: swapTransaction.gasUsed || gas,
