@@ -281,7 +281,7 @@ class Asset extends PureComponent {
   ethFilter = (tx) => {
     const { selectedAddress, chainId, networkId } = this.props;
     const {
-      transaction: { from, to },
+      txParams: { from, to },
       isTransfer,
       transferInformation,
     } = tx;
@@ -305,7 +305,7 @@ class Asset extends PureComponent {
     const { chainId, networkId, swapsTransactions, selectedAddress } =
       this.props;
     const {
-      transaction: { to, from },
+      txParams: { to, from },
       isTransfer,
       transferInformation,
     } = tx;
@@ -379,7 +379,7 @@ class Asset extends PureComponent {
         return filterResult;
       });
 
-      submittedTxs = submittedTxs.filter(({ transaction: { from, nonce } }) => {
+      submittedTxs = submittedTxs.filter(({ txParams: { from, nonce } }) => {
         if (!toLowerCaseEquals(from, selectedAddress)) {
           return false;
         }

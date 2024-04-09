@@ -399,6 +399,7 @@ class Approval extends PureComponent {
       transactions,
       transaction: { assetType, selectedAsset },
       showCustomNonce,
+      chainId,
     } = this.props;
     let { transaction } = this.props;
     const { nonce } = transaction;
@@ -456,10 +457,10 @@ class Approval extends PureComponent {
 
       const updatedTx = {
         ...fullTx,
-        chainId: transaction.chainId,
+        chainId,
         txParams: {
           ...transaction,
-          chainId: transaction.chainId,
+          chainId,
         },
       };
       await updateTransaction(updatedTx);
