@@ -157,7 +157,7 @@ function TokenSelectModal({
   balances,
 }) {
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackAnonymousEvent } = useMetrics();
 
   const searchInput = useRef(null);
   const list = useRef();
@@ -303,7 +303,7 @@ function TokenSelectModal({
   const handlePressImportToken = useCallback(
     (item) => {
       const { address, symbol } = item;
-      trackEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
+      trackAnonymousEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
         address,
         symbol,
         chain_id: getDecimalChainId(chainId),
@@ -311,7 +311,7 @@ function TokenSelectModal({
       hideTokenImportModal();
       onItemPress(item);
     },
-    [chainId, hideTokenImportModal, onItemPress, trackEvent],
+    [chainId, hideTokenImportModal, onItemPress, trackAnonymousEvent],
   );
 
   const handleBlockExplorerPress = useCallback(() => {
