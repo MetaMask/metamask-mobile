@@ -5,7 +5,7 @@ import { RootState } from '../reducers';
 const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
 
-export const getSelectedInternalAccount = createSelector(
+const selectSelectedInternalAccount = createSelector(
   selectAccountsControllerState,
   (accountsControllerState: AccountsControllerState) => {
     const accountId = accountsControllerState.internalAccounts.selectedAccount;
@@ -13,9 +13,4 @@ export const getSelectedInternalAccount = createSelector(
   },
 );
 
-export const getInternalAccounts = createSelector(
-  selectAccountsControllerState,
-  (accountsControllerState: AccountsControllerState) => {
-    return accountsControllerState.internalAccounts;
-  },
-);
+export default selectSelectedInternalAccount; 

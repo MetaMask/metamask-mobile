@@ -27,11 +27,11 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
-import { selectIsMultiAccountBalancesEnabled } from '../../../selectors/preferencesController';
 import {
-  getInternalAccounts,
-  getSelectedInternalAccount,
-} from '../../../selectors/accountsController';
+  selectIdentities,
+  selectIsMultiAccountBalancesEnabled,
+} from '../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../selectors/accountsController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -47,11 +47,11 @@ const useAccounts = ({
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
-  const internalAccounts = useSelector(getInternalAccounts);
-  console.log('internalAccounts', JSON.stringify(internalAccounts, null, 2));
+
+  const identities = useSelector(selectIdentities);
   const chainId = useSelector(selectChainId);
   const accountInfoByAddress = useSelector(selectAccounts, isEqual);
-  const selectedInternalAccount = useSelector(getSelectedInternalAccount);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
@@ -134,14 +134,10 @@ const useAccounts = ({
         if (isSelected) {
           selectedIndex = result.length;
         }
-        // const identity = identitiesFromOld[checksummedAddress];
-        const identity = Object.values(internalAccounts.accounts).find(
-          (account) =>
-            toChecksumAddress(account.address) === checksummedAddress,
-        );
+        const identity = identities[checksummedAddress];
 
         if (!identity) continue;
-        const { name } = identity.metadata;
+        const { name } = identity;
         // TODO - Improve UI to either include loading and/or balance load failures.
         const balanceWeiHex =
           accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
@@ -187,7 +183,6 @@ const useAccounts = ({
     /* eslint-disable-next-line */
   }, [
     selectedInternalAccount.address,
-    internalAccounts,
     fetchENSNames,
     accountInfoByAddress,
     conversionRate,
