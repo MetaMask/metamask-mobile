@@ -8,12 +8,12 @@ import Networks, { getDecimalChainId } from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { withNavigation } from '@react-navigation/compat';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -148,7 +148,7 @@ class NavbarTitle extends PureComponent {
           <Text
             numberOfLines={1}
             style={styles.networkName}
-            testID={NAVBAR_TITLE_NETWORKS_TEXT}
+            testID={CommonSelectorsIDs.NAVBAR_TITLE_NETWORKS_TEXT}
           >
             {name}
           </Text>
