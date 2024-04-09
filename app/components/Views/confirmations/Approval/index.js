@@ -459,7 +459,7 @@ class Approval extends PureComponent {
         ...fullTx,
         chainId,
         txParams: {
-          ...transaction,
+          ...transaction.transaction,
           chainId,
         },
       };

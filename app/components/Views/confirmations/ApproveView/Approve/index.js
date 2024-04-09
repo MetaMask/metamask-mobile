@@ -544,7 +544,7 @@ class Approve extends PureComponent {
         ...fullTx,
         chainId,
         txParams: {
-          ...transaction,
+          ...transaction.transaction,
           chainId,
         },
       };
