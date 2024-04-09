@@ -412,12 +412,12 @@ const App = ({ userLoggedIn }) => {
   }, [navigator, onboarded, userLoggedIn]);
 
   useEffect(() => {
-    if (isWC2Enabled) {
-      WC2Manager.init().catch((err) => {
+    if (isWC2Enabled && navigator?.getCurrentRoute) {
+      WC2Manager.init({ navigation: navigator }).catch((err) => {
         console.error('Cannot initialize WalletConnect Manager.', err);
       });
     }
-  }, []);
+  }, [navigator]);
 
   useEffect(() => {
     async function checkExisting() {

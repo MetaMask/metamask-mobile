@@ -503,16 +503,7 @@ class Engine {
     const tokensController = new TokensController({
       // TODO: The tokens controller currently does not support internalAccounts. This is done to match the behavior of the previous tokens controller subscription.
       onPreferencesStateChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          `AccountsController:selectedAccountChange`,
-          (newlySelectedInternalAccount) => {
-            const prevState = preferencesController.state;
-            listener({
-              ...prevState,
-              selectedAddress: newlySelectedInternalAccount.address,
-            });
-          },
-        ),
+        preferencesController.subscribe(listener),
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -528,17 +519,16 @@ class Engine {
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
-        selectedAddress: accountsController.getSelectedAccount().address,
+        selectedAddress: preferencesController.state.selectedAddress,
       },
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'TokensController',
         'ApprovalController:addRequest',
-        'AccountsController:selectedAccountChange'
+        never
       >({
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
-        allowedEvents: ['AccountsController:selectedAccountChange'],
       }),
       getERC20TokenName: assetsContractController.getERC20TokenName.bind(
         assetsContractController,
@@ -1044,8 +1034,7 @@ class Engine {
         {
           onTokensStateChange: (listener) =>
             tokensController.subscribe(listener),
-          getSelectedAddress: () =>
-            accountsController.getSelectedAccount().address,
+          getSelectedAddress: () => preferencesController.state.selectedAddress,
           getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
             assetsContractController,
           ),
@@ -1060,19 +1049,10 @@ class Engine {
             listener,
           ),
         onPreferencesStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            `AccountsController:selectedAccountChange`,
-            (newlySelectedInternalAccount) => {
-              const prevState = preferencesController.state;
-              listener({
-                ...prevState,
-                selectedAddress: newlySelectedInternalAccount.address,
-              });
-            },
-          ),
+          preferencesController.subscribe(listener),
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
-        selectedAddress: accountsController.getSelectedAccount().address,
+        selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
       }),
@@ -1599,6 +1579,21 @@ class Engine {
       throw new Error(`No account found for address: ${address}`);
     }
   }
+
+  /**
+   * This should be used instead of directly calling PreferencesController.setAccountLabel or AccountsController.setAccountName in order to keep the names in sync
+   * We are currently incrementally migrating the accounts data to the AccountsController so we must keep these values
+   * in sync until the migration is complete.
+   */
+  setAccountLabel(address: string, label: string) {
+    const { AccountsController, PreferencesController } = this.context;
+    const accountToBeNamed = AccountsController.getAccountByAddress(address);
+    if (accountToBeNamed === undefined) {
+      throw new Error(`No account found for address: ${address}`);
+    }
+    AccountsController.setAccountName(accountToBeNamed.id, label);
+    PreferencesController.setAccountLabel(address, label);
+  }
 }
 
 /**
@@ -1738,5 +1733,9 @@ export default {
   setSelectedAddress: (address: string) => {
     assertEngineExists(instance);
     instance.setSelectedAccount(address);
+  },
+  setAccountLabel: (address: string, label: string) => {
+    assertEngineExists(instance);
+    instance.setAccountLabel(address, label);
   },
 };
