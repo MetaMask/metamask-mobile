@@ -15,6 +15,7 @@ import {
   getTxType,
 } from './utils';
 import { TX_PENDING } from '../../constants/transaction';
+import { InteractionManager } from 'react-native';
 
 // TODO import these from tx controller
 export declare type Hex = `0x${string}`;
@@ -144,11 +145,13 @@ export async function publishHook(request: Request) {
   });
 
   if (shouldStartFlow) {
-    const { id } = approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
-    smartTransactionStatusApprovalId = id;
+    InteractionManager.runAfterInteractions(() => {
+      const { id } = approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
+      smartTransactionStatusApprovalId = id;
 
-    Logger.log(LOG_PREFIX, 'Started approval flow', {
-      smartTransactionStatusApprovalId,
+      Logger.log(LOG_PREFIX, 'Started approval flow', {
+        smartTransactionStatusApprovalId,
+      });
     });
   }
 
