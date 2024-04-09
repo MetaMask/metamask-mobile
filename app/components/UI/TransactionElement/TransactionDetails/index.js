@@ -301,7 +301,6 @@ class TransactionDetails extends PureComponent {
     const {
       chainId,
       transactionObject: { status, time, txParams },
-      transactionObject,
     } = this.props;
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
