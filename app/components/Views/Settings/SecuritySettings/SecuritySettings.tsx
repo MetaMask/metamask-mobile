@@ -992,20 +992,18 @@ const Settings: React.FC = () => {
         <RevealPrivateKey />
         {isBlockaidFeatureEnabled() && <BlockaidSettings />}
         <Heading>{strings('app_settings.privacy_heading')}</Heading>
-        {process.env.BASIC_FUNCTIONALITY ? (
-          <View>
-            <Text
-              variant={TextVariant.BodyLGMedium}
-              color={TextColor.Alternative}
-              style={{ ...styles.subHeading, ...styles.firstSetting }}
-            >
-              {strings('app_settings.general_heading')}
-            </Text>
-            <BasicFunctionalityComponent
-              handleSwitchToggle={toggleBasicFunctionality}
-            />
-          </View>
-        ) : null}
+        <View>
+          <Text
+            variant={TextVariant.BodyLGMedium}
+            color={TextColor.Alternative}
+            style={{ ...styles.subHeading, ...styles.firstSetting }}
+          >
+            {strings('app_settings.general_heading')}
+          </Text>
+          <BasicFunctionalityComponent
+            handleSwitchToggle={toggleBasicFunctionality}
+          />
+        </View>
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

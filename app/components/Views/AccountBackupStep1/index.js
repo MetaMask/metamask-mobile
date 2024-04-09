@@ -193,19 +193,11 @@ const AccountBackupStep1 = (props) => {
     track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED);
     // Get onboarding wizard state
     const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
-    const goToSuccessFlow = () => {
-      props.navigation.reset({
-        index: 1,
-        routes: [{ name: Routes.ONBOARDING.SUCCESS }],
-      });
-    };
-
-    const goToHomeNav = () => {
-      !onboardingWizard && props.setOnboardingWizardStep(1);
-      props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
-    };
-
-    process.env.BASIC_FUNCTIONALITY ? goToSuccessFlow() : goToHomeNav();
+    !onboardingWizard && props.setOnboardingWizardStep(1);
+    props.navigation.reset({
+      index: 1,
+      routes: [{ name: Routes.ONBOARDING.SUCCESS }],
+    });
   };
 
   const showWhatIsSeedphrase = () => setWhatIsSeedphraseModal(true);

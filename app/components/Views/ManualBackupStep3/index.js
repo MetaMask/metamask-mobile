@@ -233,42 +233,7 @@ class ManualBackupStep3 extends PureComponent {
             />
           </View>
         ) : null}
-        {process.env.BASIC_FUNCTIONALITY ? (
-          <OnboardingSuccess onDone={this.done} backedUpSRP />
-        ) : (
-          <ActionView
-            confirmTestID={ManualBackUpStepsSelectorsIDs.DONE_BUTTON}
-            confirmText={strings('manual_backup_step_3.done')}
-            onConfirmPress={this.done}
-            showCancelButton={false}
-            confirmButtonMode={'confirm'}
-            style={styles.actionView}
-          >
-            : (
-            <View style={styles.wrapper}>
-              <Emoji name="tada" style={styles.emoji} />
-              <Text style={styles.congratulations}>
-                {strings('manual_backup_step_3.congratulations')}
-              </Text>
-              <Text style={[styles.baseText, styles.successText]}>
-                {strings('manual_backup_step_3.success')}
-              </Text>
-              <TouchableOpacity onPress={this.toggleHint}>
-                <Text style={[styles.baseText, styles.hintText]}>
-                  {strings('manual_backup_step_3.hint')}
-                </Text>
-              </TouchableOpacity>
-              <Text style={[styles.baseText, styles.recoverText]}>
-                {strings('manual_backup_step_3.recover')}
-              </Text>
-              <TouchableOpacity onPress={this.learnMore}>
-                <Text style={[styles.baseText, styles.learnText]}>
-                  {strings('manual_backup_step_3.learn')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </ActionView>
-        )}
+        <OnboardingSuccess onDone={this.done} backedUpSRP />
         {Device.isAndroid() && (
           <AndroidBackHandler customBackPress={this.props.navigation.pop} />
         )}
