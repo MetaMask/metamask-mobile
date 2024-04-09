@@ -108,7 +108,10 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const addToken = useCallback(async () => {
     const { TokensController } = Engine.context as any;
-    await TokensController.addToken(address, symbol, decimals, {
+    await TokensController.addToken({
+      address,
+      symbol,
+      decimals,
       image: iconUrl,
       name,
     });

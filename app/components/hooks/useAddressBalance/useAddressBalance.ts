@@ -47,7 +47,10 @@ const useAddressBalance = (
       }
 
       if (!contractBalances[contractAddress] && !dontWatchAsset) {
-        TokensController.addToken(contractAddress, symbol, decimals, {
+        TokensController.addToken({
+          address: contractAddress,
+          symbol,
+          decimals,
           image,
           name,
         });
