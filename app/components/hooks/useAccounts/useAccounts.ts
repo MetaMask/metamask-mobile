@@ -27,11 +27,7 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
-import {
-  selectIdentities,
-  selectIsMultiAccountBalancesEnabled,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectIsMultiAccountBalancesEnabled } from '../../../selectors/preferencesController';
 import {
   getInternalAccounts,
   getSelectedInternalAccount,
@@ -51,15 +47,11 @@ const useAccounts = ({
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
-
-  const identitiesFromOld = useSelector(selectIdentities);
-  console.log('identitiesFromOld', JSON.stringify(identitiesFromOld, null, 2));
-  const identities = useSelector(getInternalAccounts);
-  console.log('identities', JSON.stringify(identities, null, 2));
+  const internalAccounts = useSelector(getInternalAccounts);
+  console.log('internalAccounts', JSON.stringify(internalAccounts, null, 2));
   const chainId = useSelector(selectChainId);
   const accountInfoByAddress = useSelector(selectAccounts, isEqual);
   const selectedInternalAccount = useSelector(getSelectedInternalAccount);
-  console.log(JSON.stringify(selectedInternalAccount, null, 2));
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
@@ -136,16 +128,20 @@ const useAccounts = ({
       }: { accounts: string[]; type: KeyringTypes } = keyring;
       for (const index in accountAddresses) {
         const checksummedAddress = toChecksumAddress(accountAddresses[index]);
-        console.log('checksummedAddress', checksummedAddress);
         const isSelected =
           toChecksumAddress(selectedInternalAccount.address) ===
           checksummedAddress;
         if (isSelected) {
           selectedIndex = result.length;
         }
-        const identity = identitiesFromOld[checksummedAddress];
+        // const identity = identitiesFromOld[checksummedAddress];
+        const identity = Object.values(internalAccounts.accounts).find(
+          (account) =>
+            toChecksumAddress(account.address) === checksummedAddress,
+        );
+
         if (!identity) continue;
-        const { name } = identity;
+        const { name } = identity.metadata;
         // TODO - Improve UI to either include loading and/or balance load failures.
         const balanceWeiHex =
           accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
@@ -191,7 +187,7 @@ const useAccounts = ({
     /* eslint-disable-next-line */
   }, [
     selectedInternalAccount.address,
-    identities,
+    internalAccounts,
     fetchENSNames,
     accountInfoByAddress,
     conversionRate,

@@ -87,10 +87,10 @@ const ImportFromSecretRecoveryPhrase = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [password, setPassword] = useState('12345678');
+  const [confirmPassword, setConfirmPassword] = useState('12345678');
   const [passwordStrength, setPasswordStrength] = useState();
-  const [seed, setSeed] = useState('');
+  const [seed, setSeed] = useState('loan sorry legend spot loyal system loud right income pair immune notable');
   const [biometryType, setBiometryType] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
