@@ -53,6 +53,7 @@ import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
 import Toast, {
   ToastContext,
+  ToastVariants,
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
@@ -90,6 +91,7 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
+import { AvatarAccountType } from '../../../../app/component-library/components/Avatars/Avatar';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
@@ -433,6 +435,23 @@ const App = ({ userLoggedIn }) => {
       Logger.error(error, 'Error checking existing user');
     });
     /* eslint-disable react-hooks/exhaustive-deps */
+  }, []);
+
+  useEffect(() => {
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: 'We’ve updated our privacy policy',
+          isBold: false,
+        },
+      ],
+      linkButtonOptions: {
+        label: 'Read more',
+        onPress: () => {},
+      },
+      disableTimeout: false,
+    });
   }, []);
 
   useEffect(() => {

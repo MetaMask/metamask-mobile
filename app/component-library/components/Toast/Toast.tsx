@@ -66,8 +66,10 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const showToast = (options: ToastOptions) => {
     let timeoutDuration = 0;
     if (toastOptions) {
-      // Reset animation.
-      cancelAnimation(translateYProgress);
+      // Reset animation unless the toast is meant to stay on
+      if (!options.disableTimeout) {
+        cancelAnimation(translateYProgress);
+      }
       timeoutDuration = 100;
     }
     setTimeout(() => {
@@ -87,20 +89,27 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       const translateYToValue = -(bottomPadding + bottomNotchSpacing);
 
       translateYProgress.value = height;
-      translateYProgress.value = withTiming(
-        translateYToValue,
-        { duration: animationDuration },
-        () => {
-          translateYProgress.value = withDelay(
-            visibilityDuration,
-            withTiming(
-              height,
-              { duration: animationDuration },
-              runOnJS(resetState),
-            ),
-          );
-        },
-      );
+
+      if (toastOptions.disableTimeout) {
+        translateYProgress.value = withTiming(translateYToValue, {
+          duration: animationDuration,
+        });
+      } else {
+        translateYProgress.value = withTiming(
+          translateYToValue,
+          { duration: animationDuration },
+          () => {
+            translateYProgress.value = withDelay(
+              visibilityDuration,
+              withTiming(
+                height,
+                { duration: animationDuration },
+                runOnJS(resetState),
+              ),
+            );
+          },
+        );
+      }
     }
   };
 

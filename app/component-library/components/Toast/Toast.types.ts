@@ -33,6 +33,7 @@ export interface ToastLinkButtonOptions {
  * Common toast option shared between all other options.
  */
 interface BaseToastVariants {
+  disableTimeout: boolean;
   labelOptions: ToastLabelOptions;
   linkButtonOptions?: ToastLinkButtonOptions;
 }
