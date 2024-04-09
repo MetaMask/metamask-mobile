@@ -323,6 +323,18 @@ export async function publishHook(request: Request) {
     }
 
     Logger.log(LOG_PREFIX, 'Returning tx hash', transactionHash);
+    // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
+    // The original STX gets replaced by another tx, which has a different tx.id, so we need to associate the TxController.state.swapsTransactions somehow
+    if (transactionHash) {
+      const newSwapsTransactions =
+        // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
+        transactionController.state.swapsTransactions || {};
+
+      newSwapsTransactions[transactionHash] =
+        newSwapsTransactions[transactionMeta.id];
+      // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
+      transactionController.update({ swapsTransactions: newSwapsTransactions });
+    }
 
     return { transactionHash };
   } catch (error) {
