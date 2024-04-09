@@ -1280,7 +1280,7 @@ class Engine {
     );
 
     this.controllerMessenger.subscribe(
-      'NetworkController:networkDidChange',
+      AppConstants.NETWORK_STATE_CHANGE_EVENT,
       async () => {
         try {
           const networkId = await deprecatedGetNetworkId();
