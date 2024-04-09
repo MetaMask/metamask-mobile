@@ -1118,18 +1118,12 @@ class Engine {
         getNonceLock: this.txController.getNonceLock.bind(this.txController),
         confirmExternalTransaction:
           this.txController.confirmExternalTransaction.bind(this.txController),
-        provider: networkController.getProviderAndBlockTracker().provider,
+        provider: networkController.getProviderAndBlockTracker()
+          .provider as any,
+        // @ts-expect-error txController.getTransactions only uses txMeta.status and txMeta.transactionHash, which v8 TxController has
         getTransactions: this.txController.getTransactions.bind(
           this.txController,
         ),
-
-        // STX controller will call it like this:
-        // Looks like this for MM swap, send
-        // this.trackMetaMetricsEvent({
-        //   event: 'STX Confirmed',
-        //   category: 'Transactions',
-        //   sensitiveProperties, // seems optional
-        // });
         trackMetaMetricsEvent: (params: {
           event: string;
           category: string;
