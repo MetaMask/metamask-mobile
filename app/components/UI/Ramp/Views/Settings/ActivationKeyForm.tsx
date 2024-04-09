@@ -8,6 +8,8 @@ import ScreenLayout from '../../components/ScreenLayout';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import TextField from '../../../../../component-library/components/Form/TextField';
+import Label from '../../../../../component-library/components/Form/Label';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -25,8 +27,6 @@ import { regex } from '../../../../../util/regex';
 
 // Internal dependencies
 import styles from './Settings.styles';
-import Label from '../../../../../component-library/components/Form/Label';
-import TextField from '../../../../../component-library/components/Form/TextField';
 
 interface ActivationKeyFormParams {
   onSubmit: (key: string, label: string, active: boolean) => void;
