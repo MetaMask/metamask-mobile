@@ -230,15 +230,12 @@ const mapStateToProps = (state) => {
     state.engine.backgroundState.SmartTransactionsController
       .smartTransactionsState.smartTransactions[chainId];
 
-  // TODO this will get resolved when TxController is upgraded to support tx.txHash
-  // Bug with duplicate STX showing up
-  // Duplicates have tx.txHash, originals have tx.transactionHash
-  // Remove ones with txHash
+  // Remove duplicate confirmed STX
   const filteredNonSmartTransactions = nonSmartTransactions.filter(
-    (tx) => !Object.keys(tx).includes('txHash'),
+    (tx) => !(tx.replacedBy && tx.replacedById),
   );
 
-  const filteredSmartTransactions =
+  const filteredPendingSmartTransactions =
     smartTransactions
       ?.filter(
         (stx) => stx.status && stx.status !== SmartTransactionStatuses.SUCCESS,
@@ -247,9 +244,9 @@ const mapStateToProps = (state) => {
         ...stx,
         // stx.uuid is one from sentinel API, not the same as tx.id which is generated client side
         // Doesn't matter too much because we only care about the pending stx, confirmed txs are handled like normal
-        // However, this does make it impossible to read Swap data from TxController.swapsTransactions as that relies on tx.id
+        // However, this does make it impossible to read Swap data from TxController.swapsTransactions as that relies on client side tx.id
+        // To fix that we do transactionController.update({ swapsTransactions: newSwapsTransactions }) in app/util/smart-transactions/smart-tx.ts
         id: stx.uuid,
-        isSmartTransaction: true,
         status: stx.status?.startsWith(SmartTransactionStatuses.CANCELLED)
           ? SmartTransactionStatuses.CANCELLED
           : stx.status,
@@ -263,7 +260,7 @@ const mapStateToProps = (state) => {
     identities: selectIdentities(state),
     transactions: [
       ...filteredNonSmartTransactions,
-      ...filteredSmartTransactions,
+      ...filteredPendingSmartTransactions,
     ].sort((a, b) => b.time - a.time),
     networkType: selectProviderType(state),
     chainId,
