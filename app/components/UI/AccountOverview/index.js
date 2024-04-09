@@ -43,8 +43,9 @@ import { selectChainId } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import {
   selectIdentities,
-  selectSelectedAddress,
+  // selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../selectors/accountsController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import Text, {
   TextVariant,
@@ -157,7 +158,7 @@ class AccountOverview extends PureComponent {
     /**
      * String that represents the selected address
      */
-    selectedAddress: PropTypes.string,
+    selectedAccount: PropTypes.object,
     /**
     /* Identities object required to get account name
     */
@@ -236,8 +237,8 @@ class AccountOverview extends PureComponent {
   input = React.createRef();
 
   componentDidMount = () => {
-    const { identities, selectedAddress, onRef } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, identities);
+    const { identities, selectedAccount, onRef } = this.props;
+    const accountLabel = renderAccountName(selectedAccount.address, identities);
     this.setState({ accountLabel });
     onRef && onRef(this);
     InteractionManager.runAfterInteractions(() => {
@@ -245,7 +246,7 @@ class AccountOverview extends PureComponent {
     });
 
     if (!this.isAccountLabelDefined(accountLabel)) {
-      Engine.setAccountLabel(selectedAddress, 'Account');
+      Engine.setAccountLabel(selectedAccount.address, 'Account');
     }
   };
 
@@ -261,13 +262,13 @@ class AccountOverview extends PureComponent {
   }
 
   setAccountLabel = () => {
-    const { selectedAddress, identities } = this.props;
+    const { selectedAccount, identities } = this.props;
     const { accountLabel } = this.state;
 
-    const lastAccountLabel = identities[selectedAddress].name;
+    const lastAccountLabel = identities[selectedAccount.address].name;
 
     Engine.setAccountLabel(
-      selectedAddress,
+      selectedAccount.address,
       this.isAccountLabelDefined(accountLabel)
         ? accountLabel
         : lastAccountLabel,
@@ -280,8 +281,8 @@ class AccountOverview extends PureComponent {
   };
 
   setAccountLabelEditable = () => {
-    const { identities, selectedAddress } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, identities);
+    const { identities, selectedAccount } = this.props;
+    const accountLabel = renderAccountName(selectedAccount.address, identities);
     this.setState({ accountLabelEditable: true, accountLabel });
     setTimeout(() => {
       this.input && this.input.current && this.input.current.focus();
@@ -289,14 +290,14 @@ class AccountOverview extends PureComponent {
   };
 
   cancelAccountLabelEdition = () => {
-    const { identities, selectedAddress } = this.props;
-    const accountLabel = renderAccountName(selectedAddress, identities);
+    const { identities, selectedAccount } = this.props;
+    const accountLabel = renderAccountName(selectedAccount.address, identities);
     this.setState({ accountLabelEditable: false, accountLabel });
   };
 
   copyAccountToClipboard = async () => {
-    const { selectedAddress } = this.props;
-    await ClipboardManager.setString(selectedAddress);
+    const { selectedAccount } = this.props;
+    await ClipboardManager.setString(selectedAccount.address);
     this.props.showAlert({
       isVisible: true,
       autodismiss: 1500,
@@ -462,7 +463,7 @@ class AccountOverview extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedAccount: selectSelectedInternalAccount(state),
   identities: selectIdentities(state),
   currentCurrency: selectCurrentCurrency(state),
   chainId: selectChainId(state),
