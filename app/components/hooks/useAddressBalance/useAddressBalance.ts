@@ -12,7 +12,7 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { selectTicker } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
 
 const useAddressBalance = (
@@ -22,11 +22,11 @@ const useAddressBalance = (
 ) => {
   const [addressBalance, setAddressBalance] = useState('0');
 
-  const { accounts, contractBalances, selectedAddress } = useSelector(
+  const { accounts, contractBalances, selectedAccount } = useSelector(
     (state: any) => ({
       accounts: selectAccounts(state),
       contractBalances: selectContractBalances(state),
-      selectedAddress: selectSelectedAddress(state),
+      selectedAccount: selectSelectedInternalAccount(state),
     }),
   );
   const ticker = useSelector(selectTicker);
@@ -92,7 +92,10 @@ const useAddressBalance = (
       if (!contractAddress) {
         return;
       }
-      if (selectedAddress === address && contractBalances[contractAddress]) {
+      if (
+        safeToChecksumAddress(selectedAccount.address) === address &&
+        contractBalances[contractAddress]
+      ) {
         fromAccBalance = `${renderFromTokenMinimalUnit(
           contractBalances[contractAddress]
             ? contractBalances[contractAddress]
@@ -119,7 +122,14 @@ const useAddressBalance = (
         })();
       }
     }
-  }, [accounts, address, asset, contractBalances, selectedAddress, ticker]);
+  }, [
+    accounts,
+    address,
+    asset,
+    contractBalances,
+    selectedAccount.address,
+    ticker,
+  ]);
   return { addressBalance };
 };
 

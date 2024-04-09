@@ -13,4 +13,4 @@ const selectSelectedInternalAccount = createSelector(
   },
 );
 
-export default selectSelectedInternalAccount; 
+export default selectSelectedInternalAccount;
