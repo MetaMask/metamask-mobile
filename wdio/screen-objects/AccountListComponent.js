@@ -7,11 +7,11 @@ import {
 
 class AccountListComponent {
   get accountListContainer() {
-    return Selectors.getElementByPlatform(ACCOUNT_LIST_ID);
+    return Selectors.getXpathElementByResourceId(ACCOUNT_LIST_ID);
   }
 
   get addAccountButton() {
-    return Selectors.getElementByPlatform(ACCOUNT_LIST_ADD_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(ACCOUNT_LIST_ADD_BUTTON_ID);
   }
 
   async tapAddAccountButton() {
@@ -19,7 +19,8 @@ class AccountListComponent {
   }
 
   async isComponentDisplayed() {
-    await expect(await this.accountListContainer).toBeDisplayed();
+    const container = await this.accountListContainer;
+    await container.waitForDisplayed();
   }
 
   async isComponentNotDisplayed() {

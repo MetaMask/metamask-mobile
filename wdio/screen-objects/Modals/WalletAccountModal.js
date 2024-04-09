@@ -9,7 +9,7 @@ import Gestures from '../../helpers/Gestures';
 
 class WalletAccountModal {
   get accountNameLabelText() {
-    return Selectors.getElementByPlatform(WALLET_ACCOUNT_NAME_LABEL_TEXT);
+    return Selectors.getXpathElementByResourceId(WALLET_ACCOUNT_NAME_LABEL_TEXT);
   }
 
   get accountNameLabelInput() {

@@ -7,11 +7,11 @@ import {
 
 class ImportAccountScreen {
   get container() {
-    return Selectors.getElementByPlatform(IMPORT_SUCESS_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(IMPORT_SUCESS_SCREEN_ID);
   }
 
   get closeButton() {
-    return Selectors.getElementByPlatform(IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID);
   }
 
   async tapCloseButton() {

@@ -37,18 +37,6 @@ Then(/^I am on the wallet screen/, async () => {
 Then(/^I am on the wallet view/, async () => {
   await WalletMainScreen.isMainWalletViewVisible();
 });
-When(/^I tap on the Identicon/, async () => {
-  // should be in a commons-step file
-  const setTimeout = 1500;
-  await driver.pause(setTimeout);
-  await WalletMainScreen.tapIdenticon();
-});
-
-When(/^the account list should be visible/, async () => {
-  // should be in a common-step file
-  await driver.pause(3000);
-  await AccountListComponent.isComponentDisplayed();
-});
 
 When(/^I long press to remove "([^"]*)"/, async (accountName) => {
   // should be in a common-step file
