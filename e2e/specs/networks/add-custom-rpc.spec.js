@@ -141,7 +141,9 @@ describe(Regression('Custom RPC Tests'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
     await Assertions.checkIfVisible(NetworkView.networkContainer);
-    await device.disableSynchronization();
+    if (device.getPlatform() === 'android'){
+      await device.disableSynchronization();
+    }
     await NetworkView.longPressToRemoveNetwork(
       CustomNetworks.Gnosis.providerConfig.nickname,
     ); // Tap on xDai to remove network
