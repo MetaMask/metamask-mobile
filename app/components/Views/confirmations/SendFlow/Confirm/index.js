@@ -837,8 +837,6 @@ class Confirm extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
-      await this.persistTransactionParameters(transaction);
-
       if (isLedgerAccount) {
         const ledgerKeyring = await getLedgerKeyring();
         this.setState({ transactionConfirmed: false });
@@ -1146,7 +1144,15 @@ class Confirm extends PureComponent {
 
     controllerTransactionMeta.transaction = transactionParams;
 
-    await updateTransaction(controllerTransactionMeta);
+    const updatedTx = {
+      ...controllerTransactionMeta,
+      chainId: controllerTransactionMeta.chainId,
+      txParams: {
+        ...controllerTransactionMeta.transaction,
+        chainId: controllerTransactionMeta.chainId,
+      },
+    };
+    await updateTransaction(updatedTx);
   }
 
   render = () => {

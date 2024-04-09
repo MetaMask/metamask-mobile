@@ -453,7 +453,15 @@ class Approval extends PureComponent {
       );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
-      const updatedTx = { ...fullTx, transaction };
+
+      const updatedTx = {
+        ...fullTx,
+        chainId: transaction.chainId,
+        txParams: {
+          ...transaction,
+          chainId: transaction.chainId,
+        },
+      };
       await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 

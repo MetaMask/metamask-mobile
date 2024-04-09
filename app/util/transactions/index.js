@@ -503,7 +503,6 @@ export function addAccountTimeFlagFilter(
 
 //Leaving here a comment to re-visit this function since it's probably be possible to deprecate
 export function getNormalizedTxState(state) {
-  console.log('ENTER State transaction', state.transaction);
   return state.transaction
     ? { ...state.transaction, ...state.transaction.transaction }
     : undefined;
