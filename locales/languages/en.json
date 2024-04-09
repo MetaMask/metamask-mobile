@@ -1801,6 +1801,16 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "stake_completed": "Stake completed",
+    "withdrawal_completed": "Withdrawal completed",
+    "unstake_completed": "Unstake completed",
+    "withdrawal_requested": "Withdrawal requested",
+    "stake_ready_to_be_withdrawn": "Stake ready to be withdrawn",
+    "swap_completed": "Swapped {{from}} for {{to}}",
+    "sent": "Sent to {{address}}",
+    "received": "Received from {{address}}",
+    "sent_nft": "Sent NFT to {{address}}",
+    "received_nft": "Received NFT from {{address}}",
     "pending_title": "Transaction submitted",
     "pending_deposit_title": "Deposit in progress!",
     "pending_withdrawal_title": "Withdrawal in progress!",

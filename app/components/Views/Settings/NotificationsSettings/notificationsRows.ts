@@ -1,17 +1,17 @@
 import { strings } from '../../../../../locales/i18n';
-import { NotificationActionBadgeSource } from '../../Notifications/utils';
+import { getNotificationBadge } from '../../Notifications/utils';
 import { NotificationsActionsTypes } from './NotificationsSettings.constants';
 
 const notificationsRows = [
   {
-    icon: NotificationActionBadgeSource(NotificationsActionsTypes.SENT),
+    icon: getNotificationBadge(NotificationsActionsTypes.SENT),
     title: strings(`app_settings.notifications_opts.assets_sent_title`),
     description: strings(`app_settings.notifications_opts.assets_sent_desc`),
     disabled: false,
     value: true,
   },
   {
-    icon: NotificationActionBadgeSource(NotificationsActionsTypes.RECEIVED),
+    icon: getNotificationBadge(NotificationsActionsTypes.RECEIVED),
     title: strings(`app_settings.notifications_opts.assets_received_title`),
     description: strings(
       `app_settings.notifications_opts.assets_received_desc`,
@@ -20,21 +20,21 @@ const notificationsRows = [
     value: true,
   },
   {
-    icon: NotificationActionBadgeSource(NotificationsActionsTypes.DEFI),
+    icon: getNotificationBadge(NotificationsActionsTypes.DEFI),
     title: strings(`app_settings.notifications_opts.defi_title`),
     description: strings(`app_settings.notifications_opts.defi_desc`),
     disabled: false,
     value: true,
   },
   {
-    icon: NotificationActionBadgeSource(NotificationsActionsTypes.SNAPS),
+    icon: getNotificationBadge(NotificationsActionsTypes.SNAPS),
     title: strings(`app_settings.notifications_opts.snaps_title`),
     description: strings(`app_settings.notifications_opts.snaps_desc`),
     disabled: false,
     value: true,
   },
   {
-    icon: NotificationActionBadgeSource(NotificationsActionsTypes.FCM),
+    icon: getNotificationBadge(NotificationsActionsTypes.FCM),
     title: strings(
       `app_settings.notifications_opts.products_announcements_title`,
     ),

@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 
-import NotificationTypes from '../../../../util/notifications';
+import { Notification } from '../../../../util/notifications';
 import { useTheme } from '../../../../util/theme';
 
 import ClipboardManager from '../../../../core/ClipboardManager';
@@ -27,7 +27,6 @@ import { showAlert } from '../../../../actions/alert';
 import { protectWalletModalVisible } from '../../../../actions/user';
 
 import { createStyles } from './styles';
-import { Notification } from '../types';
 import { formatDate } from '../utils';
 
 import renderFCMDetails from './FcmView';

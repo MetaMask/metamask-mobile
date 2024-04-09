@@ -49,7 +49,7 @@ import { balanceToFiat } from '../../../../util/number';
 import { Theme } from '../../../../util/theme/models';
 import EthereumAddress from '../../../UI/EthereumAddress';
 import { NotificationsActionsTypes } from '../../Settings/NotificationsSettings/NotificationsSettings.constants';
-import { Notification, Transaction } from '../types';
+import { Notification, Transaction } from '../types-old';
 import { TxStatus, returnAvatarProps } from '../utils';
 import GasDetails from './GasDetails';
 import { createStyles } from './styles';

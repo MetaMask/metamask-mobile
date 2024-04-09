@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react';
 import { View, TouchableOpacity, Image } from 'react-native';
 import Text, {
@@ -14,11 +15,9 @@ import AvatarToken from '../../../../component-library/components/Avatars/Avatar
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 import NetworkMainAssetLogo from '../../../../components/UI/NetworkMainAssetLogo';
-import NotificationTypes from '../../../../util/notifications';
-import { Notification } from '../types';
+import { Notification, TRIGGER_TYPES } from '../../../../util/notifications';
 import { createStyles } from './styles';
-import { NotificationActionBadgeSource, formatDate } from '../utils';
-import { formatAddress } from '../../../../util/address';
+import { getRowDetails } from '../utils';
 import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
@@ -27,39 +26,55 @@ const metamask_fox = require('../../../../images/fox.png'); // eslint-disable-li
 
 interface NotificationRowProps {
   notification: Notification;
-  onPress?: (notification: Notification) => void;
+  navigation: any;
+  onPress: (notification: Notification) => void;
 }
+//TODO: make usage of notification.isRead
 
-const Row = ({ notification, onPress }: NotificationRowProps) => {
+const Row = ({ notification, navigation, onPress }: NotificationRowProps) => {
   const theme = useTheme();
   const styles = createStyles(theme);
+
   const handleOnPress = () => {
     onPress?.(notification);
   };
 
+  const handleCTAPress = () => {
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url:
+          // @ts-ignore
+          notification.data?.link?.linkUrl ||
+          // @ts-ignore
+          notification.data?.action?.actionUrl,
+      },
+    });
+  };
+
+  const { avatarBadge, createdAt, imageUri, asset, title, value } =
+    getRowDetails(notification) || {};
+
   return (
     <TouchableOpacity onPress={handleOnPress} style={styles.wrapper}>
       <View style={styles.itemWrapper}>
-        {notification.type !== NotificationTypes.FCM ? (
+        {notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT ? (
           <BadgeWrapper
             badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
             badgeElement={
               <Badge
                 variant={BadgeVariant.NotificationsActions}
-                iconName={NotificationActionBadgeSource(
-                  notification.actionsType,
-                )}
+                iconName={avatarBadge}
               />
             }
             style={styles.badgeWrapper}
           >
-            {notification?.data?.transaction?.asset?.isETH ? (
+            {notification.type.includes('ETH') ? (
               <NetworkMainAssetLogo style={styles.ethLogo} />
             ) : (
               <AvatarToken
-                name={notification?.data?.transaction?.asset?.symbol}
                 imageSource={{
-                  uri: notification?.data?.transaction?.asset?.logo,
+                  uri: imageUri,
                 }}
                 size={AvatarSize.Md}
               />
@@ -78,31 +93,28 @@ const Row = ({ notification, onPress }: NotificationRowProps) => {
         <View style={styles.rowContainer}>
           <View style={styles.rowInsider}>
             <Text color={TextColor.Muted} variant={TextVariant.BodySM}>
-              {notification.data?.transaction
-                ? formatAddress(notification.data?.transaction.from, 'short')
-                : notification.title}
+              {title}
             </Text>
             <Text color={TextColor.Muted} variant={TextVariant.BodySM}>
-              {formatDate(notification.timestamp).toString()}
+              {createdAt?.toString()}
             </Text>
           </View>
           <View style={styles.rowInsider}>
             <Text style={styles.textBox} variant={TextVariant.BodyMD}>
-              {notification.data?.transaction
-                ? notification.data?.transaction?.asset?.name
-                : notification.message}
+              {asset?.name || asset?.symbol}
             </Text>
-            <Text variant={TextVariant.BodyMD}>
-              {notification.data?.transaction?.value}
-            </Text>
+            <Text variant={TextVariant.BodyMD}>{value}</Text>
           </View>
         </View>
       </View>
-      {notification?.cta && (
+      {notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT && (
         <Button
           variant={ButtonVariants.Secondary}
-          label={notification.cta.label}
-          onPress={notification.cta.onPress}
+          label={
+            (notification.data?.link as { linkText?: string })?.linkText ||
+            (notification.data?.action as { actionText?: string })?.actionText
+          }
+          onPress={handleCTAPress}
           style={styles.button}
           endIconName={IconName.Arrow2Right}
         />

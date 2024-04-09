@@ -3,9 +3,11 @@ import {
   IconColor,
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
-import { NotificationsActionsTypes } from '../../Settings/NotificationsSettings/NotificationsSettings.constants';
+import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import { Theme } from '../../../../util/theme/models';
+import { Notification, TRIGGER_TYPES } from '../../../../util/notifications';
+import { formatAddress } from '../../../../util/address';
 
 interface ViewOnEtherscanProps {
   navigation: any;
@@ -21,35 +23,55 @@ interface ViewOnEtherscanProps {
   close?: () => void;
 }
 
-export const sortNotifications = (notifications: any[]): any[] =>
+interface NotificationRowProps {
+  createdAt: string;
+  title: string;
+
+  avatarBadge?: IconName;
+  imageUri?: string;
+  asset?: {
+    symbol?: string;
+    name?: string;
+  };
+  value?: string;
+}
+
+export const sortNotifications = (
+  notifications: Notification[],
+): Notification[] =>
   notifications.sort((a, b) =>
-    a.timestamp > b.timestamp ? -1 : b.timestamp > a.timestamp ? 1 : 0,
+    a.createdAt > b.createdAt ? -1 : b.createdAt > a.createdAt ? 1 : 0,
   );
 
-export const NotificationActionBadgeSource = (action: string) => {
-  switch (action) {
-    case NotificationsActionsTypes.SENT:
+export const getNotificationBadge = (trigger_type: string) => {
+  switch (trigger_type) {
+    case TRIGGER_TYPES.ERC20_SENT:
+    case TRIGGER_TYPES.ERC721_SENT:
+    case TRIGGER_TYPES.ERC1155_SENT:
+    case TRIGGER_TYPES.ETH_SENT:
       return IconName.Arrow2Upright;
-    case NotificationsActionsTypes.RECEIVED:
+    case TRIGGER_TYPES.ERC20_RECEIVED:
+    case TRIGGER_TYPES.ERC721_RECEIVED:
+    case TRIGGER_TYPES.ERC1155_RECEIVED:
+    case TRIGGER_TYPES.ETH_RECEIVED:
       return IconName.Received;
-    case NotificationsActionsTypes.SWAPED:
+    case TRIGGER_TYPES.METAMASK_SWAP_COMPLETED:
       return IconName.SwapHorizontal;
-    case NotificationsActionsTypes.DEFI:
+    case TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED:
+    case TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED:
+    case TRIGGER_TYPES.LIDO_STAKE_COMPLETED:
+    case TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN:
+    case TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED:
+    case TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED:
       return IconName.Plant;
-    case NotificationsActionsTypes.SNAPS:
-      return IconName.SnapsMobile;
-    case NotificationsActionsTypes.BRIDGED:
-      return IconName.Bridge;
-    case NotificationsActionsTypes.BOUGHT:
-      return IconName.Card;
     default:
       return IconName.Sparkle;
   }
 };
 
-export function formatDate(timestamp: string) {
+export function formatDate(createdAt: Date) {
   const now = new Date();
-  const date = new Date(timestamp);
+  const date = createdAt;
 
   const isToday =
     date.getDate() === now.getDate() &&
@@ -120,6 +142,133 @@ export function viewOnEtherscan(props: ViewOnEtherscanProps, state: any) {
       networkID,
     });
   }
+}
+
+function formatRowTitle(input: string): string {
+  const words = input.split('_');
+  words.shift();
+  return words.join('_');
+}
+
+export function getRowDetails(
+  notification: Notification,
+): NotificationRowProps | null {
+  if (!notification.data) {
+    return null;
+  }
+
+  if (notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
+    switch (notification.data.kind) {
+      case 'lido_stake_completed':
+      case 'lido_withdrawal_completed':
+      case 'rocketpool_stake_completed':
+      case 'rocketpool_unstake_completed':
+      case 'lido_withdrawal_requested':
+        return {
+          avatarBadge: getNotificationBadge(notification.type),
+          createdAt: formatDate(notification.createdAt),
+          imageUri: notification.data.stake_out.image,
+          asset: {
+            symbol: notification.data.stake_out.symbol,
+            name: notification.data.stake_out.name,
+          },
+          title: strings(formatRowTitle(notification.data.kind)),
+          value: `${notification.data.stake_out.amount} ${notification.data.stake_out.symbol}`,
+        };
+      case 'lido_stake_ready_to_be_withdrawn':
+        return {
+          avatarBadge: getNotificationBadge(notification.type),
+          createdAt: formatDate(notification.createdAt),
+          imageUri: notification.data.staked_eth.image,
+          asset: {
+            symbol: notification.data.staked_eth.symbol,
+            name: notification.data.staked_eth.name,
+          },
+          title: strings(formatRowTitle(notification.data.kind)),
+          value: `${notification.data.staked_eth.amount} ${notification.data.staked_eth.symbol}`,
+        };
+      case 'metamask_swap_completed':
+        return {
+          avatarBadge: getNotificationBadge(notification.type),
+          createdAt: formatDate(notification.createdAt),
+          imageUri: notification.data.token_out.image,
+          asset: {
+            symbol: notification.data.token_out.symbol,
+            name: notification.data.token_out.name,
+          },
+          title: strings(formatRowTitle(notification.data.kind), {
+            from: notification.data.token_in.symbol,
+          }),
+          value: `${notification.data.token_out.amount} ${notification.data.token_out.symbol}`,
+        };
+      case 'eth_sent':
+      case 'eth_received':
+        return {
+          avatarBadge: getNotificationBadge(notification.type),
+          createdAt: formatDate(notification.createdAt),
+          title: strings(formatRowTitle(notification.data.kind), {
+            address: formatAddress(
+              notification.data.kind.includes('sent')
+                ? notification.data.to
+                : notification.data.from,
+              'short',
+            ),
+          }),
+          value: `${notification.data.amount.eth} ETH`,
+        };
+      case 'erc20_sent':
+      case 'erc20_received':
+        return {
+          avatarBadge: getNotificationBadge(notification.type),
+          createdAt: formatDate(notification.createdAt),
+          imageUri: notification.data.token.image,
+          asset: {
+            symbol: notification.data.token.symbol,
+            name: notification.data.token.name,
+          },
+          title: strings(formatRowTitle(notification.data.kind), {
+            address: formatAddress(
+              notification.data.kind.includes('sent')
+                ? notification.data.to
+                : notification.data.from,
+              'short',
+            ),
+          }),
+          value: `${notification.data.token.amount} ${notification.data.token.symbol}`,
+        };
+      case 'erc721_sent':
+      case 'erc721_received':
+      case 'erc1155_sent':
+      case 'erc1155_received':
+        return {
+          avatarBadge: getNotificationBadge(notification.type),
+          createdAt: formatDate(notification.createdAt),
+          imageUri: notification.data?.nft?.image,
+          asset: {
+            symbol: notification.data?.nft?.collection.symbol,
+            name: notification.data?.nft?.collection.name,
+          },
+          title: strings(formatRowTitle(notification.data.kind), {
+            address: formatAddress(
+              notification.data.kind.includes('sent')
+                ? notification.data.to
+                : notification.data.from,
+              'short',
+            ),
+          }),
+          value: `#${notification.data?.nft?.token_id}`,
+        };
+
+      default:
+        return null;
+    }
+  }
+
+  return {
+    title: notification.data.title,
+    asset: { name: notification.data.shortDescription },
+    createdAt: formatDate(notification.createdAt),
+  };
 }
 
 export enum AvatarType {

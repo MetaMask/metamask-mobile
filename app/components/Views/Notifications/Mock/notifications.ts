@@ -2,7 +2,7 @@
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import NotificationTypes from '../../../../util/notifications';
 import { NotificationsActionsTypes } from '../../Settings/NotificationsSettings/NotificationsSettings.constants';
-import { Notification } from '../types';
+import { Notification } from '../types-old';
 
 const mockNotifications: Notification[] = Array(9)
   .fill(null)

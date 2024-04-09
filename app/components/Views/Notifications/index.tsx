@@ -2,14 +2,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { InteractionManager, View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
-
 import { useFocusEffect } from '@react-navigation/native';
+
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import { createStyles } from './styles';
 import Notifications from './List';
-import { Notification } from './types';
+import { Notification, TRIGGER_TYPES } from '../../../util/notifications';
 import mockNotifications from './Mock/notifications';
-import NotificationTypes from '../../../util/notifications';
 import { sortNotifications } from './utils';
 import Icon, {
   IconName,
@@ -69,19 +68,16 @@ const NotificationsView = ({
       setAllTransactions(allNotificationsSorted);
 
       /**
-       * Based on a sorted and nonduplicated list of notifications, filter notifications by type to populate different tabs
+       * Based on a sorted and deduplicated list of notifications, filter notifications by type to populate different tabs
        */
 
       allNotificationsSorted.filter((notification) => {
         switch (notification.type) {
-          case NotificationTypes.TRANSACTION:
-            wallet.push(notification);
-            return false;
-          case NotificationTypes.WEB3:
+          case TRIGGER_TYPES.FEATURES_ANNOUNCEMENT:
             web3.push(notification);
             break;
           default:
-            break;
+            wallet.push(notification);
         }
         return notification;
       });
@@ -104,7 +100,6 @@ const NotificationsView = ({
   useFocusEffect(
     React.useCallback(() => {
       if (!isNotificationEnabled) navigation.navigate('WalletView');
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navigation, isNotificationEnabled]),
   );
 

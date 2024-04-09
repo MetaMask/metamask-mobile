@@ -11,7 +11,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 
 import { networkFeeDetails } from '../../utils';
-import { Transaction } from '../../types';
+import { Transaction } from '../../types-old';
 
 const GasDetails = ({
   sheetRef,

@@ -11,7 +11,7 @@ import { createStyles } from './styles';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import Row from '../Row';
-import { Notification } from '../types';
+import { Notification } from '../../../../util/notifications';
 
 interface NotificationsList {
   navigation: any;
@@ -94,13 +94,15 @@ const Notifications = ({
         data={list}
         ListEmptyComponent={<Empty />}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => <Row notification={item} onPress={onPress} />}
+        renderItem={({ item }) => (
+          <Row notification={item} onPress={onPress} navigation={navigation} />
+        )}
         initialNumToRender={10}
         maxToRenderPerBatch={2}
         onEndReachedThreshold={0.5}
       />
     ),
-    [combinedLists, onPress, styles.list],
+    [combinedLists, navigation, onPress, styles.list],
   );
 
   return (

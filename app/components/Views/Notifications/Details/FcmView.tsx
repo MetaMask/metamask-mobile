@@ -10,7 +10,7 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 
-import { Notification } from '../types';
+import { Notification } from '../types-old';
 
 import FCMPlaceholder from '../../../../images/drawer-bg.png';
 
