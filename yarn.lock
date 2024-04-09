@@ -4123,7 +4123,7 @@
     "@metamask/controller-utils" "^4.3.2"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^7.3.1", "@metamask/message-manager@^7.3.5":
+"@metamask/message-manager@^7.3.2", "@metamask/message-manager@^7.3.5":
   version "7.3.9"
   resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-7.3.9.tgz#4d416998bbdda30d80ebbb50b5efc7475b816ec9"
   integrity sha512-B0+Qa1bPGMuVdBDaq8zcAKkRXWAt1CYAXW2NXzfO85a2ePFCUIrIhF9W8LflatXDXqesE5Y8Dij0sHGmsUfF8w==
@@ -4427,15 +4427,15 @@
     utf-8-validate "^6.0.3"
     uuid "^8.3.2"
 
-"@metamask/signature-controller@5.3.1":
-  version "5.3.1"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-5.3.1.tgz#1a55b7b60435f0bbf74c54fbcfa42bcada0a8450"
-  integrity sha512-BCmocdIlSsxDguLwawGQpaq5rY1OLVGyDnB1JS6ubiyympTWUVGC7bTXg2hDoPWBZgRNSC4H8gEMZqg+J/0i0w==
+"@metamask/signature-controller@6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-6.0.0.tgz#631a286816cc7aef56d7e8d67c36820999be9ef3"
+  integrity sha512-wNggr7S/2OK62hn5e11WM0IzWHjn/uE1K7R9+9TuDcumpC/uGIoQKAWQ21zUlBDnzWXj0NXt9YC43tm5VaBJGg==
   dependencies:
     "@metamask/approval-controller" "^3.5.1"
     "@metamask/base-controller" "^3.2.1"
     "@metamask/controller-utils" "^4.3.2"
-    "@metamask/message-manager" "^7.3.1"
+    "@metamask/message-manager" "^7.3.2"
     "@metamask/utils" "^6.2.0"
     eth-rpc-errors "^4.0.2"
     ethereumjs-util "^7.0.10"
