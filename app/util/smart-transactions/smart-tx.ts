@@ -341,9 +341,6 @@ export async function publishHook(request: Request) {
     Logger.log(LOG_PREFIX, 'publish hook error', error);
     Logger.error(error, '');
 
-    // TODO
-    // Handle this error "'[MetaMask DEBUG]:', 'STX - publish hook Error', [Error: Fetch error:{\"status\":400,\"balanceNeededWei\":46537225590111300,\"currentBalanceWei\":41178644117206340,\"error\":\"not_enough_funds\",\"errorDetails\":\"'Not enough funds. Balance is only 41178644117206340 wei and we need 46537225590111300 wei at the very least.'\"}]"
-
     throw error;
   } finally {
     try {
