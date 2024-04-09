@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useCallback, useMemo } from 'react';
-import { ActivityIndicator, StyleSheet, View, TextStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  View,
+  TextStyle,
+  InteractionManager,
+} from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -29,6 +35,7 @@ import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
+  getIsNetworkOnboarded,
   getNetworkImageSource,
   getNetworkNameFromProviderConfig,
 } from '../../../util/networks';
@@ -152,6 +159,13 @@ const Wallet = ({ navigation }: any) => {
   const { accounts, ensByAccountAddress } = useAccounts();
 
   /**
+   * Network onboarding state
+   */
+  const networkOnboardingState = useSelector(
+    (state: any) => state.networkOnboarded.networkOnboardedState,
+  );
+
+  /**
    * An object representing the currently selected account.
    */
   const selectedAccount = useMemo(() => {
@@ -207,8 +221,13 @@ const Wallet = ({ navigation }: any) => {
    * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
    */
   useEffect(() => {
-    if (wizardStep > 0) {
-      // Do not check since it will conflict with the onboarding wizard
+    const networkOnboarded = getIsNetworkOnboarded(
+      providerConfig.chainId,
+      networkOnboardingState,
+    );
+
+    if (wizardStep > 0 || !networkOnboarded) {
+      // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
 
@@ -249,8 +268,16 @@ const Wallet = ({ navigation }: any) => {
       }
     };
 
-    checkSmartTransactionsOptInModal();
-  }, [wizardStep, navigation, providerConfig.chainId, providerConfig.rpcUrl]);
+    InteractionManager.runAfterInteractions(() => {
+      checkSmartTransactionsOptInModal();
+    });
+  }, [
+    wizardStep,
+    navigation,
+    providerConfig.chainId,
+    providerConfig.rpcUrl,
+    networkOnboardingState,
+  ]);
 
   useEffect(
     () => {
