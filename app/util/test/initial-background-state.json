@@ -17,6 +17,12 @@
       "0x1": {}
     }
   },
+  "AccountsController": {
+     "internalAccounts": {
+       "accounts": {},
+       "selectedAccount": ""
+     }
+  },
   "AddressBookController": {
     "addressBook": {}
   },
@@ -42,12 +48,6 @@
   "TokenDetectionController": {},
   "NftDetectionController": {},
   "PPOMController": {
-    "chainStatus": {
-      "0x1": {
-        "chainId": "0x1",
-        "versionInfo": []
-      }
-    },
     "storageMetadata": [],
     "versionFileETag": "",
     "versionInfo": []
@@ -69,11 +69,10 @@
       "chainId": "0x1",
       "ticker": "ETH"
     },
-    "networkDetails": {
-      "EIPS": {}
+    "networksMetadata": {
+      "mainnet":{  "EIPS": {},"status": "unknown"}
     },
-    "networkId": null,
-    "networkStatus": "unknown"
+    "selectedNetworkClientId": "mainnet"
   },
   "PhishingController": {
     "phishingLists": [],
