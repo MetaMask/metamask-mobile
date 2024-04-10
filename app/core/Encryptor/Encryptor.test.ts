@@ -77,7 +77,7 @@ describe('Encryptor', () => {
       },
       {
         lib: 'random-lib', // Assuming not using "original" should lead to AesForked
-        expectedKey: 'mockedAesForkedKey',
+        expectedKeyValue: 'mockedAesForkedKey',
         expectedPBKDF2Args: ['testPassword', 'mockedSalt'],
         description:
           'with library different to "original" and legacy iterations number for key generation',
@@ -90,6 +90,12 @@ describe('Encryptor', () => {
           cipher: 'mockedCipher',
           iv: 'mockedIV',
           salt: 'mockedSalt',
+          lib,
+        };
+
+        const expectedKey: EncryptionKey = {
+          key: expectedKeyValue,
+          keyMetadata: keyMetadata ?? KEY_DERIVATION_LEGACY_OPTIONS,
           lib,
         };
 

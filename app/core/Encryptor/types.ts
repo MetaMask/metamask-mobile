@@ -24,6 +24,19 @@ export interface EncryptionResult {
 }
 
 /**
+ * Key used by the encryptor.
+ * @interface EncryptionKey
+ * @property key - The key value.
+ * @property lib - The library or algorithm used for generating the key.
+ * @property keyMetadata - Metadata about the key derivation, if key derivation was used.
+ */
+export interface EncryptionKey {
+  key: string;
+  lib: string;
+  keyMetadata: KeyDerivationOptions;
+}
+
+/**
  * Defines the structure for a generic encryption utility.
  * This utility provides methods for encrypting and decrypting objects
  * using a specified password. It may also include an optional method
@@ -32,10 +45,10 @@ export interface EncryptionResult {
  */
 export interface GenericEncryptor<Data = Json> {
   /**
-   * Encrypts the given object with the given password.
+   * Encrypts the given data with the given password.
    *
    * @param password - The password to encrypt with.
-   * @param object - The object to encrypt.
+   * @param data - The data to encrypt.
    * @returns The encrypted string.
    */
   encrypt: (password: string, data: Data) => Promise<string>;
@@ -43,8 +56,8 @@ export interface GenericEncryptor<Data = Json> {
    * Decrypts the given encrypted string with the given password.
    *
    * @param password - The password to decrypt with.
-   * @param encryptedString - The encrypted string to decrypt.
-   * @returns The decrypted object.
+   * @param text - The encrypted string to decrypt.
+   * @returns The decrypted data.
    */
   decrypt: (password: string, text: string) => Promise<unknown>;
   /**
@@ -60,3 +73,26 @@ export interface GenericEncryptor<Data = Json> {
     targetDerivationParams?: KeyDerivationOptions,
   ) => boolean;
 }
+
+/**
+ * An encryptor interface that supports encrypting and decrypting
+ * serializable data with a password, and exporting and importing keys.
+ */
+export type WithKeyEncryptor<Key, Data> = GenericEncryptor<Data> & {
+  /**
+   * Encrypts the given object with the given encryption key.
+   *
+   * @param key - The encryption key to encrypt with.
+   * @param object - The object to encrypt.
+   * @returns The encryption result.
+   */
+  encryptWithKey: (key: Key, data: Data) => Promise<EncryptionResult>;
+  /**
+   * Decrypts the given encrypted string with the given encryption key.
+   *
+   * @param key - The encryption key to decrypt with.
+   * @param encryptedString - The encrypted string to decrypt.
+   * @returns The decrypted object.
+   */
+  decryptWithKey: (key: Key, payload: EncryptionResult) => Promise<unknown>;
+};
