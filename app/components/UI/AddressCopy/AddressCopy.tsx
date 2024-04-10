@@ -8,7 +8,7 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { formatAddress } from '../../../util/address';
+import { formatAddress, safeToChecksumAddress } from '../../../util/address';
 import Icon, {
   IconColor,
   IconName,
@@ -26,11 +26,10 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
 import { AddressCopyProps } from './AddressCopy.types';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -51,20 +50,23 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   /**
    * An object containing each identity in the format address => account
    */
   const identities = useSelector(selectIdentities);
+  const checksummedSelectedAddress = toChecksumAddress(
+    selectedInternalAccount.address,
+  );
 
   const account = {
-    ...identities[selectedAddress],
-    address: selectedAddress,
+    ...identities[checksummedSelectedAddress],
+    address: checksummedSelectedAddress,
   };
 
   const copyAccountToClipboard = async () => {
-    await ClipboardManager.setString(selectedAddress);
+    await ClipboardManager.setString(checksummedSelectedAddress);
     handleShowAlert({
       isVisible: true,
       autodismiss: 1500,
