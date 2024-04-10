@@ -83,20 +83,21 @@ const EditAccountName = () => {
   };
 
   const saveAccountName = async () => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setAccountLabel(selectedAddress, accountName);
-    navigate('WalletView');
+    if (accountName && accountName.length > 0) {
+      Engine.setAccountLabel(selectedAddress, accountName);
+      navigate('WalletView');
 
-    try {
-      const analyticsProperties = async () => {
-        const accountType = getAddressAccountType(selectedAddress);
-        const account_type = accountType === 'QR' ? 'hardware' : accountType;
-        return { account_type, chain_id: getDecimalChainId(chainId) };
-      };
-      const analyticsProps = await analyticsProperties();
-      trackEvent(MetaMetricsEvents.ACCOUNT_RENAMED, analyticsProps);
-    } catch {
-      return {};
+      try {
+        const analyticsProperties = async () => {
+          const accountType = getAddressAccountType(selectedAddress);
+          const account_type = accountType === 'QR' ? 'hardware' : accountType;
+          return { account_type, chain_id: getDecimalChainId(chainId) };
+        };
+        const analyticsProps = await analyticsProperties();
+        trackEvent(MetaMetricsEvents.ACCOUNT_RENAMED, analyticsProps);
+      } catch {
+        return {};
+      }
     }
   };
 
