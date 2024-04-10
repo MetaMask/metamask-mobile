@@ -359,15 +359,13 @@ export default class AndroidService extends EventEmitter2 {
             NetworkController: NetworkController;
           }
         ).NetworkController;
-        const networkId = networkController.state.networkId ?? 1; // default to mainnet;
-        // transform networkId to 0x value
-        const hexChainId = `0x${networkId.toString(16)}`;
+        const chainId = networkController.state.providerConfig.chainId;
 
         this.currentClientId = sessionId;
         // Handle custom rpc method
         const processedRpc = await handleCustomRpcCalls({
           batchRPCManager: this.batchRPCManager,
-          selectedChainId: hexChainId,
+          selectedChainId: chainId,
           selectedAddress,
           rpc: { id: data.id, method: data.method, params: data.params },
         });
