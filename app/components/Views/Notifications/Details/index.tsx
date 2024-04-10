@@ -7,7 +7,8 @@ import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { Notification } from '../../../../util/notifications';
+import { Notification, TRIGGER_TYPES } from '../../../../util/notifications';
+
 import { useTheme } from '../../../../util/theme';
 
 import ClipboardManager from '../../../../core/ClipboardManager';
@@ -100,8 +101,8 @@ const NotificationsDetails = (props: Props) => {
 
   return (
     <ScrollView contentContainerStyle={styles.contentContainerWrapper}>
-      {notification.type === NotificationTypes.FCM
-        ? renderFCMDetails(notification, styles)
+      {notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
+        ? renderFCMDetails(notification, styles, navigation)
         : renderTXDetails({
             notification,
             styles,
@@ -136,9 +137,9 @@ NotificationsDetails.navigationOptions = ({
   headerTitle: () => (
     <NotificationsDetailsHeader
       title={capitalize(
-        route.params.notification.type === NotificationTypes.FCM
+        route.params.notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
           ? route.params.notification.title
-          : route.params.notification.actionsType,
+          : route.params.notification.type,
       )}
       subtitle={formatDate(route.params.notification.timestamp)}
     />

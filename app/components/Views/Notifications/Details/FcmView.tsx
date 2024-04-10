@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react';
 import { Image, View } from 'react-native';
 
@@ -10,35 +11,63 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 
-import { Notification } from '../types-old';
-
-import FCMPlaceholder from '../../../../images/drawer-bg.png';
+import { FeatureAnnouncementRawNotification } from '../../../../util/notifications';
+import { IconName } from 'app/component-library/components/Icons/Icon';
 
 // eslint-disable-next-line react-hooks/rules-of-hooks
-const renderFCMDetails = (notification: Notification, styles: any) => (
-  <View style={styles.renderFCMContainer}>
-    <View style={styles.renderFCMCard}>
-      {/* <Image source={{ uri: notification.imageUri }} /> */}
-      <Image source={FCMPlaceholder} style={styles.FCMImage} />
+const renderFCMDetails = (
+  notification: FeatureAnnouncementRawNotification,
+  styles: any,
+  navigation: any,
+) => {
+  const handleCTAPress = () => {
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url:
+          // @ts-ignore
+          notification.data?.link?.linkUrl ||
+          // @ts-ignore
+          notification.data?.action?.actionUrl,
+      },
+    });
+  };
+
+  return (
+    <View style={styles.renderFCMContainer}>
+      <View style={styles.renderFCMCard}>
+        <Image
+          // @ts-ignore
+          source={{ uri: notification.data.image }}
+          style={styles.FCMImage}
+        />
+      </View>
+      {notification.data.title && (
+        <Text variant={TextVariant.BodyLGMedium}>
+          {notification.data.title}
+        </Text>
+      )}
+
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        {notification.data.longDescription}
+      </Text>
+
+      {notification.data.link ||
+        (notification.data.action && (
+          <Button
+            variant={ButtonVariants.Secondary}
+            label={
+              (notification.data?.link as unknown as { linkText?: string })
+                ?.linkText ||
+              (notification.data?.action as { actionText?: string })?.actionText
+            }
+            onPress={handleCTAPress}
+            style={styles.ctaBtn}
+            endIconName={IconName.Arrow2Right}
+          />
+        ))}
     </View>
-    {notification.title && (
-      <Text variant={TextVariant.BodyLGMedium}>{notification.title}</Text>
-    )}
-
-    <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-      {notification.message}
-    </Text>
-
-    {notification?.cta && (
-      <Button
-        variant={ButtonVariants.Secondary}
-        label={notification.cta.label}
-        onPress={notification.cta.onPress}
-        style={styles.ctaBtn}
-        endIconName={notification.cta.icon}
-      />
-    )}
-  </View>
-);
+  );
+};
 
 export default renderFCMDetails;

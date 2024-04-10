@@ -49,13 +49,16 @@ import { balanceToFiat } from '../../../../util/number';
 import { Theme } from '../../../../util/theme/models';
 import EthereumAddress from '../../../UI/EthereumAddress';
 import { NotificationsActionsTypes } from '../../Settings/NotificationsSettings/NotificationsSettings.constants';
-import { Notification, Transaction } from '../types-old';
+import {
+  HalRawNotification,
+  TRIGGER_TYPES,
+} from '../../../../util/notifications';
 import { TxStatus, returnAvatarProps } from '../utils';
 import GasDetails from './GasDetails';
 import { createStyles } from './styles';
 
 interface Props {
-  notification: Notification;
+  notification: HalRawNotification;
   styles: any;
   theme: Theme;
   accountAvatarType?: AvatarAccountType;
@@ -78,11 +81,12 @@ const TXDetails: React.FC<Props> = ({
   const currentCurrency = useSelector(selectCurrentCurrency);
   const contractExchangeRates = useSelector(selectContractExchangeRates);
 
-  const { transaction } = notification.data as { transaction: Transaction };
-  const nftSourceURI = { uri: transaction.asset.nftUri };
+  const nftSourceURI = {
+    uri: notification.data?.nft.image,
+  };
 
-  const isMainnet = isMainnetByChainId(transaction.chainId);
-  const isLineaMainnet = isLineaMainnetByChainId(transaction.chainId);
+  const isMainnet = isMainnetByChainId(notification.chain_id);
+  const isLineaMainnet = isLineaMainnetByChainId(notification.chain_id);
 
   const NetworkBadgeSource = (chainId: Hex) => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -91,8 +95,8 @@ const TXDetails: React.FC<Props> = ({
 
     if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-    return transaction.asset.ticker
-      ? images[transaction.asset.ticker]
+    return notification.data.token.symbol
+      ? images[notification.data.token.symbol]
       : undefined;
   };
 
@@ -101,7 +105,7 @@ const TXDetails: React.FC<Props> = ({
       <View style={styles.renderTxContainer}>
         <Badge
           variant={BadgeVariant.Network}
-          imageSource={NetworkBadgeSource(transaction.chainId)}
+          imageSource={NetworkBadgeSource(`0x${notification.chain_id}`)}
           style={styles.nftBadgeWrapper}
         />
         <RemoteImage
@@ -112,7 +116,7 @@ const TXDetails: React.FC<Props> = ({
       </View>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [transaction],
+    [notification],
   );
   // const renderCollection = (NFT: any) => ();
   const renderAddress = useCallback(
@@ -134,7 +138,7 @@ const TXDetails: React.FC<Props> = ({
           <Avatar
             variant={AvatarVariant.Account}
             type={accountAvatarType}
-            accountAddress={transaction.from || '0x1234567890'}
+            accountAddress={notification.data.from}
             size={AvatarSize.Md}
             style={styles.badgeWrapper}
           />
@@ -175,7 +179,7 @@ const TXDetails: React.FC<Props> = ({
         </View>
       );
     },
-    [accountAvatarType, copyToClipboard, navigation, transaction.from, styles],
+    [accountAvatarType, copyToClipboard, navigation, notification, styles],
   );
   const renderStatus = useCallback(
     (status: TxStatus) => (
@@ -197,7 +201,7 @@ const TXDetails: React.FC<Props> = ({
         </View>
         <Pressable
           style={styles.rightSection}
-          onPress={() => copyToClipboard('transaction', transaction?.id)}
+          onPress={() => copyToClipboard('transaction', notification.tx_hash)}
           hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
         >
           <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
@@ -213,7 +217,7 @@ const TXDetails: React.FC<Props> = ({
       </View>
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [copyToClipboard, transaction, theme],
+    [copyToClipboard, notification, theme],
   );
   const renderNetwork = useCallback(
     () => (
@@ -222,7 +226,7 @@ const TXDetails: React.FC<Props> = ({
           variant={AvatarVariant.Network}
           size={AvatarSize.Md}
           style={styles.badgeWrapper}
-          imageSource={NetworkBadgeSource(transaction.chainId)}
+          imageSource={NetworkBadgeSource(`0x${notification.chain_id}`)}
         />
 
         <View style={styles.boxLeft}>
@@ -260,18 +264,18 @@ const TXDetails: React.FC<Props> = ({
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(transaction.chainId)}
+                imageSource={NetworkBadgeSource(`0x${notification.chain_id}`)}
               />
             }
             style={styles.badgeWrapper}
           >
-            {notification?.data?.transaction?.asset?.isETH ? (
+            {notification?.data?.token?.isETH ? (
               <NetworkMainAssetLogo style={styles.ethLogo} />
             ) : (
               <AvatarToken
-                name={notification?.data?.transaction?.asset?.symbol}
+                name={notification?.data?.token?.symbol}
                 imageSource={{
-                  uri: notification?.data?.transaction?.asset?.logo,
+                  uri: notification?.data?.token?.image,
                 }}
                 size={AvatarSize.Lg}
               />
@@ -283,13 +287,13 @@ const TXDetails: React.FC<Props> = ({
             </Text>
 
             <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-              {notification?.data?.transaction?.asset?.name}
+              {notification?.data?.token?.name}
             </Text>
           </View>
           <View style={[styles.boxLeft, styles.boxRight]}>
             <Text variant={TextVariant.BodyLGMedium}>
-              {notification?.data?.transaction?.value ||
-                0 + ' ' + notification?.data?.transaction?.asset?.symbol}
+              {notification?.data?.token?.amount ||
+                0 + ' ' + notification?.data?.token?.symbol}
             </Text>
             <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
               {balanceFiat}
@@ -299,7 +303,7 @@ const TXDetails: React.FC<Props> = ({
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [transaction, notification],
+    [notification],
   );
   const renderNetworkFee = useCallback(
     () => (
