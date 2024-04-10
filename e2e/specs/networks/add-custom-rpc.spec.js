@@ -141,7 +141,7 @@ describe(Regression('Custom RPC Tests'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
     await Assertions.checkIfVisible(NetworkView.networkContainer);
-    if (device.getPlatform() === 'android'){
+    if (device.getPlatform() === 'android') {
       await device.disableSynchronization();
     }
     await NetworkView.longPressToRemoveNetwork(
