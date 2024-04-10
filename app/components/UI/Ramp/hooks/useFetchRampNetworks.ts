@@ -23,7 +23,7 @@ function useFetchRampNetworks() {
       setError(undefined);
       setIsLoading(true);
       const networks = await SDK.getNetworks();
-      dispatch(updateOnRampNetworks(networks));
+      dispatch(updateOnRampNetworks(networks ?? []));
     } catch (requestError) {
       setError(requestError as Error);
       Logger.error(
