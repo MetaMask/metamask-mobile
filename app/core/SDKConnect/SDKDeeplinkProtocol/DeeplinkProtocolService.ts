@@ -569,8 +569,8 @@ export default class DeeplinkProtocolService {
       );
 
       this.rpcQueueManager.add({
-        id: processedRpc?.id ?? data.id,
-        method: processedRpc?.method ?? data.method,
+        id: data.id,
+        method: data.method,
       });
 
       bridge.onMessage({ name: 'metamask-provider', data: processedRpc });
