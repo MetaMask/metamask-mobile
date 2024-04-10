@@ -459,8 +459,6 @@ class NetworkSettings extends PureComponent {
     const { rpcUrl, chainId } = this.state;
 
     if (rpcUrl && chainId) {
-      const { chainId } = this.state;
-
       const chainToMatch = this.props.matchedChainNetwork?.safeChainsList?.find(
         (network) => network.chainId === parseInt(chainId),
       );
@@ -781,8 +779,6 @@ class NetworkSettings extends PureComponent {
       warningSymbol: symbolToUse,
       validatedSymbol: true,
     });
-
-    // this.setState({ warningSymbol: undefined, validatedSymbol: true });
   };
 
   /**
