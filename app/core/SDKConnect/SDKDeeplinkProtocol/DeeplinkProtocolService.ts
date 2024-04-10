@@ -10,7 +10,7 @@ import Engine from '../../../core/Engine';
 import getRpcMethodMiddleware from '../../../core/RPCMethods/RPCMethodMiddleware';
 import Logger from '../../../util/Logger';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
-import { DappConnections } from '../AndroidSDK/dapp-sdk-types';
+import { DappClient, DappConnections } from '../AndroidSDK/dapp-sdk-types';
 import BatchRPCManager from '../BatchRPCManager';
 import { ECIES } from '../ECIES/ECIES';
 import RPCQueueManager from '../RPCQueueManager';
@@ -24,7 +24,6 @@ import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
-import { toHexadecimal } from '../../../util/number';
 
 export default class DeeplinkProtocolService {
   private connections: DappConnections = {};
@@ -46,14 +45,15 @@ export default class DeeplinkProtocolService {
     DevLogger.log('DeeplinkProtocolService:: initialized');
   }
 
-  private setupBridge(clientInfo: {
-    clientId: string;
-    originatorInfo: OriginatorInfo;
-  }) {
+  private setupBridge(clientInfo: DappClient) {
     DevLogger.log(
       `DeeplinkProtocolService::setupBridge for id=${
         clientInfo.clientId
-      } exists=${!!this.bridgeByClientId[clientInfo.clientId]}}`,
+      } exists=${!!this.bridgeByClientId[
+        clientInfo.clientId
+      ]}} originatorInfo=${clientInfo.originatorInfo.url}\n${
+        clientInfo.originatorInfo.title
+      }`,
     );
 
     if (this.bridgeByClientId[clientInfo.clientId]) {
@@ -130,6 +130,8 @@ export default class DeeplinkProtocolService {
       this.encryptionManagerByClientId[this.currentClientId ?? ''];
 
     const id = message?.data?.id;
+
+    DevLogger.log(`DeeplinkProtocolService::sendMessage id=${id}`);
 
     let rpcMethod = this.rpcQueueManager.getId(id);
 
@@ -285,7 +287,7 @@ export default class DeeplinkProtocolService {
     url: string;
     scheme: string;
     channelId: string;
-    originatorInfo?: OriginatorInfo;
+    originatorInfo?: string;
   }) {
     if (!params.originatorInfo) {
       Logger.error(
@@ -303,9 +305,21 @@ export default class DeeplinkProtocolService {
 
     this.encryptionManagerByClientId[params.channelId] = new ECIES();
 
-    const clientInfo = {
+    const originatorObject = JSON.parse(params.originatorInfo);
+    const originatorInfo = originatorObject.originatorInfo;
+
+    Logger.log(
+      `DeeplinkProtocolService::originatorInfo string: ${originatorInfo}`,
+    );
+
+    Logger.log(
+      `DeeplinkProtocolService::originatorInfo: ${originatorInfo.url}  ${originatorInfo.title}`,
+    );
+
+    const clientInfo: DappClient = {
       clientId: params.channelId,
-      originatorInfo: params.originatorInfo,
+      originatorInfo,
+      connected: true,
       validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
     };
 
@@ -380,7 +394,7 @@ export default class DeeplinkProtocolService {
             lastAuthorized: Date.now(),
             origin: AppConstants.MM_SDK.IOS_SDK,
             originatorInfo: clientInfo.originatorInfo,
-            otherPublicKey: '',
+            otherPublicKey: this.dappPublicKeyByClientId[clientInfo.clientId],
             validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
           });
         }
@@ -463,13 +477,23 @@ export default class DeeplinkProtocolService {
       encryptionManager,
     );
 
+    DevLogger.log('DeeplinkProtocolService:: message', params.message);
+
     const decryptedMessage = encryptionManager.decrypt(params.message);
 
+    DevLogger.log(
+      'DeeplinkProtocolService:: decryptedMessage',
+      decryptedMessage,
+    );
+
     const handleEventAsync = async () => {
-      let parsedMsg: {
+      let data: {
         id: string;
-        message: string;
+        method: string;
+        params?: any;
       };
+
+      let sessionId: string;
 
       try {
         await wait(200); // Extra wait to make sure ui is ready
@@ -486,14 +510,16 @@ export default class DeeplinkProtocolService {
         Logger.log(error, `DeeplinkProtocolService::onMessageReceived error`);
       }
 
-      let sessionId: string,
-        message: string,
-        data: { id: string; jsonrpc: string; method: string; params: any };
       try {
-        parsedMsg = JSON.parse(decryptedMessage); // handle message and redirect to corresponding bridge
-        sessionId = parsedMsg.id;
-        message = parsedMsg.message;
+        const message = JSON.parse(decryptedMessage); // handle message and redirect to corresponding bridge
+        DevLogger.log('DeeplinkProtocolService:: parsed message:-', message);
         data = JSON.parse(message);
+        DevLogger.log('DeeplinkProtocolService:: data:', data);
+        DevLogger.log('DeeplinkProtocolService:: typeof data', typeof data);
+        DevLogger.log('DeeplinkProtocolService:: data id:', data.id);
+        DevLogger.log('DeeplinkProtocolService:: data method:', data.method);
+        DevLogger.log('DeeplinkProtocolService:: data params:', data.params);
+        sessionId = params.channelId;
 
         // Update connected state
         this.connections[sessionId] = {

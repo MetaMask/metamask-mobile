@@ -4,6 +4,8 @@ import UrlParser from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
+import Logger from '../../../util/Logger';
 
 export interface DeeplinkUrlParams {
   uri: string;
@@ -13,7 +15,7 @@ export interface DeeplinkUrlParams {
   pubkey: string;
   scheme?: string;
   message?: string;
-  originatorInfo?: OriginatorInfo;
+  originatorInfo?: string;
 }
 
 function extractURLParams(url: string) {
@@ -31,16 +33,18 @@ function extractURLParams(url: string) {
     comm: '',
   };
 
+  DevLogger.log(`extractParams:: urlObj`, urlObj);
+
   if (urlObj.query.length) {
     try {
       params = qs.parse(
         urlObj.query.substring(1),
       ) as unknown as DeeplinkUrlParams;
 
-      if (params.originatorInfo) {
-        params.originatorInfo = JSON.parse(
-          params.originatorInfo as unknown as string,
-        );
+      if (params.message) {
+        Logger.log('extractParams:: message before...: ', params.message);
+        params.message = params.message?.replace(/ /g, '+');
+        Logger.log('extractParams:: message after: ', params.message);
       }
     } catch (e) {
       if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
