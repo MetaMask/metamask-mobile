@@ -2,7 +2,6 @@ import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 import { SEPOLIA } from '../../constants/network';
 import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
-import { NetworkState } from '@metamask/network-controller';
 import NetworkList from '../../util/networks';
 
 export default async function migrate(stateAsync: unknown) {
@@ -32,12 +31,20 @@ export default async function migrate(stateAsync: unknown) {
     );
     return state;
   }
-  const networkControllerState = state.engine.backgroundState
-    .NetworkController as NetworkState;
+  const networkControllerState = state.engine.backgroundState.NetworkController;
   if (!isObject(networkControllerState)) {
     captureException(
       new Error(
         `Migration 33: Invalid NetworkController state error: '${typeof networkControllerState}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (!isObject(networkControllerState.providerConfig)) {
+    captureException(
+      new Error(
+        `Migration 33: NetworkController providerConfig not found: '${networkControllerState.providerConfig}'`,
       ),
     );
     return state;
