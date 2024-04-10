@@ -421,7 +421,6 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          //@ts-expect-error AssetsController needs to be updated to v14 for this error disappears
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
@@ -436,7 +435,6 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            //@ts-expect-error AssetsController needs to be updated to v14 for this error disappears
             listener,
           ),
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -543,7 +541,6 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          //@ts-expect-error AssetsController needs to be updated to v14 for this error disappears
           listener,
         ),
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
