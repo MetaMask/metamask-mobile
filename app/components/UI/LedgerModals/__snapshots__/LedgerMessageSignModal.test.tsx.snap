@@ -394,7 +394,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                 "backgroundColor": "#FFFFFF",
                                 "borderTopLeftRadius": 10,
                                 "borderTopRightRadius": 10,
-                                "height": 400,
+                                "height": 450,
                               }
                             }
                           >
@@ -414,6 +414,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     "flex": 1,
                                   }
                                 }
+                                testID="searching-for-device-step"
                               >
                                 <Image
                                   resizeMode="contain"
@@ -663,6 +664,47 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     }
                                   >
                                     3. Enable Bluetooth
+                                  </Text>
+                                  <Text
+                                    style={
+                                      Array [
+                                        Object {
+                                          "color": "#24272A",
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 30,
+                                          "fontWeight": "400",
+                                          "marginVertical": 2,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        Object {
+                                          "paddingLeft": 7,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    5. Do not disturb must be turned off
                                   </Text>
                                 </View>
                                 <TouchableOpacity

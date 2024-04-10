@@ -47,6 +47,7 @@ function handleClientsDisconnected({
     instance.receivedDisconnect = true;
     // Reset connection state
     instance.isReady = false;
+    instance.approvalPromise = undefined;
     instance.receivedClientsReady = false;
     DevLogger.log(
       `Connection::CLIENTS_DISCONNECTED id=${instance.channelId} switch isReady ==> false`,
