@@ -12,7 +12,6 @@ import Logger from '../../../util/Logger';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { DappClient, DappConnections } from '../AndroidSDK/dapp-sdk-types';
 import BatchRPCManager from '../BatchRPCManager';
-import { ECIES } from '../ECIES/ECIES';
 import RPCQueueManager from '../RPCQueueManager';
 import SDKConnect from '../SDKConnect';
 import {
@@ -28,7 +27,6 @@ import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 export default class DeeplinkProtocolService {
   private connections: DappConnections = {};
   private bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
-  private encryptionManagerByClientId: { [clientId: string]: ECIES } = {};
   private rpcQueueManager = new RPCQueueManager();
   private batchRPCManager: BatchRPCManager = new BatchRPCManager('deeplink');
   // To keep track in order to get the associated bridge to handle batch rpc calls
@@ -126,9 +124,6 @@ export default class DeeplinkProtocolService {
   }
 
   async sendMessage(message: any, forceRedirect?: boolean) {
-    const encryptionManager =
-      this.encryptionManagerByClientId[this.currentClientId ?? ''];
-
     const id = message?.data?.id;
 
     DevLogger.log(`DeeplinkProtocolService::sendMessage id=${id}`);
@@ -213,19 +208,17 @@ export default class DeeplinkProtocolService {
         )}`,
       );
 
-      const encryptedMessage = encryptionManager.encrypt(
-        JSON.stringify(message),
-        dappPublicKey,
-      );
+      const jsonMessage = JSON.stringify(message);
+      const base64Message = Buffer.from(jsonMessage).toString('base64');
 
       // TODO: Remove this log after testing
       DevLogger.log(
         `DeeplinkProtocolService::sendMessage sending deeplink`,
-        encryptedMessage,
+        base64Message,
         this.currentClientId,
       );
 
-      this.openDeeplink(encryptedMessage, this.currentClientId ?? '').catch(
+      this.openDeeplink(base64Message, this.currentClientId ?? '').catch(
         (err) => {
           Logger.log(
             err,
@@ -243,21 +236,12 @@ export default class DeeplinkProtocolService {
 
   private async openDeeplink(message: string, clientId: string) {
     const scheme = this.schemeByClientId[clientId];
-    const encryptionManager = this.encryptionManagerByClientId[clientId];
-
-    const walletPublicKey = encryptionManager.getPublicKey();
-
-    const dappPublicKey = this.dappPublicKeyByClientId[clientId];
-
-    DevLogger.log(
-      `DeeplinkProtocolService::openDeeplink walletPublicKey=${walletPublicKey} dappPublicKey=${dappPublicKey}`,
-    );
 
     DevLogger.log(
       `DeeplinkProtocolService::openDeeplink message=${message} clientId=${clientId}`,
     );
 
-    const deeplink = `${scheme}://mmsdk?pubkey=${walletPublicKey}&message=${message}`;
+    const deeplink = `${scheme}://mmsdk?message=${message}`;
 
     DevLogger.log(
       `DeeplinkProtocolService::openDeeplink deeplink=${deeplink} clientId=${clientId}`,
@@ -302,8 +286,6 @@ export default class DeeplinkProtocolService {
     this.schemeByClientId[params.channelId] = params.scheme;
 
     Logger.log('DeeplinkProtocolService::handleConnection params', params);
-
-    this.encryptionManagerByClientId[params.channelId] = new ECIES();
 
     const originatorObject = JSON.parse(params.originatorInfo);
     const originatorInfo = originatorObject.originatorInfo;
@@ -464,27 +446,13 @@ export default class DeeplinkProtocolService {
   }) {
     DevLogger.log('DeeplinkProtocolService:: params from deeplink', params);
 
-    const encryptionManager =
-      this.encryptionManagerByClientId[this.currentClientId ?? ''];
-
-    DevLogger.log(
-      'DeeplinkProtocolService:: typeof encryptionManager from deeplink',
-      typeof encryptionManager,
-    );
-
-    DevLogger.log(
-      'DeeplinkProtocolService:: encryptionManager from deeplink',
-      encryptionManager,
-    );
-
     DevLogger.log('DeeplinkProtocolService:: message', params.message);
 
-    const decryptedMessage = encryptionManager.decrypt(params.message);
-
-    DevLogger.log(
-      'DeeplinkProtocolService:: decryptedMessage',
-      decryptedMessage,
+    const parsedMessage = Buffer.from(params.message, 'base64').toString(
+      'utf-8',
     );
+
+    DevLogger.log('DeeplinkProtocolService:: parsedMessage', parsedMessage);
 
     const handleEventAsync = async () => {
       let data: {
@@ -511,14 +479,9 @@ export default class DeeplinkProtocolService {
       }
 
       try {
-        const message = JSON.parse(decryptedMessage); // handle message and redirect to corresponding bridge
+        const message = JSON.parse(parsedMessage); // handle message and redirect to corresponding bridge
         DevLogger.log('DeeplinkProtocolService:: parsed message:-', message);
         data = JSON.parse(message);
-        DevLogger.log('DeeplinkProtocolService:: data:', data);
-        DevLogger.log('DeeplinkProtocolService:: typeof data', typeof data);
-        DevLogger.log('DeeplinkProtocolService:: data id:', data.id);
-        DevLogger.log('DeeplinkProtocolService:: data method:', data.method);
-        DevLogger.log('DeeplinkProtocolService:: data params:', data.params);
         sessionId = params.channelId;
 
         // Update connected state
