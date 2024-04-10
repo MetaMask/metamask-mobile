@@ -2,7 +2,7 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import { zeroAddress } from 'ethereumjs-util';
+import { toChecksumAddress, zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
 import { RootStateOrAny, useDispatch, useSelector } from 'react-redux';
@@ -28,7 +28,7 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../selectors/accountsController';
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
@@ -70,7 +70,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const primaryCurrency = useSelector(
     (state: RootStateOrAny) => state.settings.primaryCurrency,
   );
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const checksummedSelectedAddress = toChecksumAddress(
+    selectedInternalAccount.address,
+  );
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
   const chainId = useSelector((state: RootStateOrAny) => selectChainId(state));
@@ -167,11 +170,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   let balance, balanceFiat;
   if (asset.isETH) {
     balance = renderFromWei(
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+      accountsByChainId[toHexadecimal(chainId)][checksummedSelectedAddress]
+        ?.balance,
     );
     balanceFiat = weiToFiat(
       hexToBN(
-        accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+        accountsByChainId[toHexadecimal(chainId)][checksummedSelectedAddress]
+          ?.balance,
       ),
       conversionRate,
       currentCurrency,
