@@ -30,7 +30,7 @@ describe('URL Check Functions', () => {
   });
 
   describe('isBridgeUrl', () => {
-    it('should return true for bridge URLs', () => {
+    it('returns true for bridge URLs', () => {
       const url = AppConstants.BRIDGE.URL;
       expect(isBridgeUrl(url)).toBe(true);
     });
