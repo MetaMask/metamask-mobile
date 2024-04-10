@@ -31,6 +31,7 @@ function removeChannel({
 
   if (isDappConnection) {
     instance.state.androidService?.removeConnection(channelId);
+    instance.state.deeplinkingService?.removeConnection(channelId);
   }
 
   if (instance.state.connected[channelId]) {

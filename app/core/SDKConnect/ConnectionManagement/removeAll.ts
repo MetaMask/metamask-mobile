@@ -25,6 +25,7 @@ async function removeAll(instance: SDKConnect) {
   instance.state.approvedHosts = {};
   instance.state.disabledHosts = {};
   instance.state.connections = {};
+  instance.state.dappConnections = {};
   instance.state.connected = {};
   instance.state.connecting = {};
   instance.state.paused = false;

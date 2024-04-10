@@ -71,7 +71,8 @@ export interface SDKConnectState {
   androidSDKStarted: boolean;
   androidSDKBound: boolean;
   androidService?: AndroidService;
-  deeplinkingService: DeeplinkProtocolService;
+  deeplinkingServiceStarted: boolean;
+  deeplinkingService?: DeeplinkProtocolService;
   dappConnections: SDKSessions;
   connecting: { [channelId: string]: boolean };
   approvedHosts: ApprovedHosts;
@@ -105,13 +106,14 @@ export class SDKConnect {
     dappConnections: {},
     androidSDKStarted: false,
     androidSDKBound: false,
+    deeplinkingServiceStarted: false,
     androidService: undefined,
+    deeplinkingService: undefined,
     connecting: {},
     approvedHosts: {},
     sdkLoadingState: {},
     disabledHosts: {},
     rpcqueueManager: new RPCQueueManager(),
-    deeplinkingService: new DeeplinkProtocolService(),
     appStateListener: undefined,
     socketServerUrl: AppConstants.MM_SDK.SERVER_URL,
   };

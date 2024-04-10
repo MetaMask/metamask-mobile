@@ -89,7 +89,7 @@ const sdkReducer = (
           [action.channelId]: action.validUntil,
         },
       };
-    case ActionType.UPDATE_ANDROID_CONNECTION:
+    case ActionType.UPDATE_DAPP_CONNECTION:
       return {
         ...state,
         dappConnections: {
@@ -97,7 +97,7 @@ const sdkReducer = (
           [action.channelId]: action.connection,
         },
       };
-    case ActionType.REMOVE_ANDROID_CONNECTION: {
+    case ActionType.REMOVE_DAPP_CONNECTION: {
       const { [action.channelId]: _, ...dappConnections } =
         state.dappConnections;
       return {
@@ -105,7 +105,7 @@ const sdkReducer = (
         dappConnections,
       };
     }
-    case ActionType.RESET_ANDROID_CONNECTIONS:
+    case ActionType.RESET_DAPP_CONNECTIONS:
       return {
         ...state,
         dappConnections: action.connections,

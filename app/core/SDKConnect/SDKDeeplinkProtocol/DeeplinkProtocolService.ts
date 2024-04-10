@@ -39,8 +39,46 @@ export default class DeeplinkProtocolService {
     [clientId: string]: string;
   } = {};
 
+  private isInitialized = false;
+
   public constructor() {
-    DevLogger.log('DeeplinkProtocolService:: initialized');
+    if (!this.isInitialized) {
+      this.init()
+        .then(() => {
+          this.isInitialized = true;
+          DevLogger.log('DeeplinkProtocolService:: initialized');
+        })
+        .catch((err) => {
+          this.isInitialized = false;
+          Logger.log(err, 'DeeplinkProtocolService:: error initializing');
+        });
+    }
+  }
+
+  private async init() {
+    if (this.isInitialized) {
+      return;
+    }
+
+    const rawConnections = await SDKConnect.getInstance().loadDappConnections();
+
+    if (rawConnections) {
+      Object.values(rawConnections).forEach((connection) => {
+        DevLogger.log(
+          `DeeplinkProtocolService::init recover client: ${connection.id}`,
+        );
+        this.connections[connection.id] = {
+          connected: false,
+          clientId: connection.id,
+          originatorInfo: connection.originatorInfo as OriginatorInfo,
+          validUntil: connection.validUntil,
+        };
+      });
+    } else {
+      DevLogger.log(
+        `DeeplinkProtocolService::init no previous connections found`,
+      );
+    }
   }
 
   private setupBridge(clientInfo: DappClient) {
@@ -302,7 +340,7 @@ export default class DeeplinkProtocolService {
     );
   }
 
-  public handleConnection(params: {
+  public async handleConnection(params: {
     dappPublicKey: string;
     url: string;
     scheme: string;
@@ -348,6 +386,8 @@ export default class DeeplinkProtocolService {
 
     if (this.connections?.[clientInfo.clientId]) {
       // Skip existing client -- bridge has been setup
+      const bridge = this.bridgeByClientId[clientInfo.clientId];
+
       Logger.log(
         `DeeplinkProtocolService::clients_connected - existing client, sending ready`,
       );
@@ -358,20 +398,53 @@ export default class DeeplinkProtocolService {
         connected: true,
       };
 
-      this.sendMessage(
-        {
-          data: {
-            chainId: this.getChainId(),
-            accounts: this.getSelectedAccounts(),
+      if (params.request) {
+        const requestObject = JSON.parse(params.request) as {
+          id: string;
+          method: string;
+          params: any;
+        };
+
+        // Handle custom rpc method
+        const processedRpc = await handleCustomRpcCalls({
+          batchRPCManager: this.batchRPCManager,
+          selectedChainId: this.getChainId(),
+          selectedAddress: this.getSelectedAddress(),
+          rpc: {
+            id: requestObject.id,
+            method: requestObject.method,
+            params: requestObject.params,
           },
-        },
-        true,
-      ).catch((err) => {
-        Logger.log(
-          `DeeplinkProtocolService::clients_connected - error sending ready message to client ${clientInfo.clientId}`,
-          err,
+        });
+
+        DevLogger.log(
+          `DeeplinkProtocolService::onMessageReceived processedRpc`,
+          processedRpc,
         );
-      });
+
+        this.rpcQueueManager.add({
+          id: requestObject.id,
+          method: requestObject.method,
+        });
+
+        bridge.onMessage({ name: 'metamask-provider', data: processedRpc });
+      } else {
+        this.sendMessage(
+          {
+            data: {
+              chainId: this.getChainId(),
+              accounts: this.getSelectedAccounts(),
+            },
+          },
+          true,
+        ).catch((err) => {
+          Logger.log(
+            `DeeplinkProtocolService::clients_connected - error sending ready message to client ${clientInfo.clientId}`,
+            err,
+          );
+        });
+      }
+
       return;
     }
 
@@ -748,5 +821,21 @@ export default class DeeplinkProtocolService {
         `DeeplinkProtocolService::onMessageReceived error handling event`,
       );
     });
+  }
+
+  removeConnection(channelId: string) {
+    try {
+      if (this.connections[channelId]) {
+        DevLogger.log(
+          `DeeplinkProtocolService::remove client ${channelId} exists --- remove bridge`,
+        );
+
+        delete this.bridgeByClientId[channelId];
+      }
+
+      delete this.connections[channelId];
+    } catch (err) {
+      Logger.log(err, `DeeplinkProtocolService::remove error`);
+    }
   }
 }
