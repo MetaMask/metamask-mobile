@@ -161,14 +161,39 @@ export default class DeeplinkProtocolService {
         chainRPCs,
       );
 
+      const hasError = !!message?.data?.error;
+
       if (!isLastRpcOrError) {
         DevLogger.log(
           `DeeplinkProtocolService::sendMessage NOT last rpc --- skip goBack()`,
           chainRPCs,
         );
         this.rpcQueueManager.remove(id);
+
         // Only continue processing the message and goback if all rpcs in the batch have been handled
-        return;
+
+        if (hasError) {
+          const jsonMessage = JSON.stringify(message);
+          const base64Message = Buffer.from(jsonMessage).toString('base64');
+
+          // TODO: Remove this log after testing
+          DevLogger.log(
+            `DeeplinkProtocolService::sendMessage sending deeplink`,
+            base64Message,
+            this.currentClientId,
+          );
+
+          this.openDeeplink(base64Message, this.currentClientId ?? '').catch(
+            (err) => {
+              Logger.log(
+                err,
+                `DeeplinkProtocolService::sendMessage error sending deeplink`,
+              );
+            },
+          );
+
+          return;
+        }
       }
 
       // Always set the method to metamask_batch otherwise it may not have been set correctly because of the batch rpc flow.
@@ -466,6 +491,33 @@ export default class DeeplinkProtocolService {
           );
         });
 
+        const message = {
+          data: {
+            error,
+            jsonrpc: '2.0',
+          },
+          name: 'metamask-provider',
+        };
+
+        const jsonMessage = JSON.stringify(message);
+        const base64Message = Buffer.from(jsonMessage).toString('base64');
+
+        // TODO: Remove this log after testing
+        DevLogger.log(
+          `DeeplinkProtocolService::sendMessage sending deeplink`,
+          base64Message,
+          this.currentClientId,
+        );
+
+        this.openDeeplink(base64Message, this.currentClientId ?? '').catch(
+          (err) => {
+            Logger.log(
+              err,
+              `DeeplinkProtocolService::sendMessage error sending deeplink`,
+            );
+          },
+        );
+
         return;
       }
     };
@@ -623,6 +675,7 @@ export default class DeeplinkProtocolService {
             `DeeplinkProtocolService::onMessageReceived error sending jsonrpc error message to client ${sessionId}`,
           );
         });
+
         return;
       }
 
