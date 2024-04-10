@@ -178,7 +178,7 @@ export default class DeeplinkProtocolService {
 
           // TODO: Remove this log after testing
           DevLogger.log(
-            `DeeplinkProtocolService::sendMessage sending deeplink`,
+            `DeeplinkProtocolService::sendMessage hasError ===> sending deeplink`,
             base64Message,
             this.currentClientId,
           );
@@ -361,7 +361,6 @@ export default class DeeplinkProtocolService {
       this.sendMessage(
         {
           data: {
-            id: clientInfo?.clientId,
             chainId: this.getChainId(),
             accounts: this.getSelectedAccounts(),
           },
@@ -459,7 +458,6 @@ export default class DeeplinkProtocolService {
         this.sendMessage(
           {
             data: {
-              id: clientInfo?.clientId,
               chainId: this.getChainId(),
               accounts: this.getSelectedAccounts(),
             },
@@ -504,7 +502,7 @@ export default class DeeplinkProtocolService {
 
         // TODO: Remove this log after testing
         DevLogger.log(
-          `DeeplinkProtocolService::sendMessage sending deeplink`,
+          `DeeplinkProtocolService::sendMessage handleEventAsync hasError ===> sending deeplink`,
           base64Message,
           this.currentClientId,
         );
@@ -575,14 +573,14 @@ export default class DeeplinkProtocolService {
         address: string;
         lastUsed: number;
       }[]
-    ).map((caveat) => caveat.address);
+    )?.map((caveat) => caveat.address);
 
     DevLogger.log(
       `DeeplinkProtocolService::clients_connected connectedAddresses`,
       connectedAddresses,
     );
 
-    return connectedAddresses;
+    return connectedAddresses ?? [];
   }
 
   public getSelectedAddress() {
