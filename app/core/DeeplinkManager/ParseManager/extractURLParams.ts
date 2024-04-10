@@ -3,9 +3,8 @@ import { Alert } from 'react-native';
 import UrlParser from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
 import Logger from '../../../util/Logger';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 export interface DeeplinkUrlParams {
   uri: string;
@@ -16,6 +15,7 @@ export interface DeeplinkUrlParams {
   scheme?: string;
   message?: string;
   originatorInfo?: string;
+  request?: string;
 }
 
 function extractURLParams(url: string) {

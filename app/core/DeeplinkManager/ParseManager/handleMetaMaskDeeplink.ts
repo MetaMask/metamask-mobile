@@ -52,6 +52,7 @@ export function handleMetaMaskDeeplink({
           scheme: params.scheme ?? '',
           dappPublicKey: params.pubkey,
           originatorInfo: params.originatorInfo,
+          request: params.request,
         });
       } else {
         handleDeeplink({

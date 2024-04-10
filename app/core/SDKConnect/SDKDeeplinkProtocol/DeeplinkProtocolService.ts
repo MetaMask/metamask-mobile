@@ -2,7 +2,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
-import { MessageType, OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { Linking } from 'react-native';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../../core/AppConstants';
@@ -64,7 +64,18 @@ export default class DeeplinkProtocolService {
       isMMSDK: true,
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
-      sendMessage: this.sendMessage.bind(this),
+      sendMessage: (msg: any) => {
+        const response = {
+          ...msg,
+          data: {
+            ...msg.data,
+            chainId: this.getChainId(),
+            accounts: this.getSelectedAccounts(),
+          },
+        };
+
+        return this.sendMessage(response);
+      },
       getApprovedHosts: (host: string) => ({
         [host]: true,
       }),
@@ -272,6 +283,7 @@ export default class DeeplinkProtocolService {
     scheme: string;
     channelId: string;
     originatorInfo?: string;
+    request?: string;
   }) {
     if (!params.originatorInfo) {
       Logger.error(
@@ -321,12 +333,12 @@ export default class DeeplinkProtocolService {
         connected: true,
       };
 
-      DevLogger.log(`DeeplinkProtocolService::sendMessage 1`);
       this.sendMessage(
         {
-          type: MessageType.READY,
           data: {
             id: clientInfo?.clientId,
+            chainId: this.getChainId(),
+            accounts: this.getSelectedAccounts(),
           },
         },
         true,
@@ -382,11 +394,49 @@ export default class DeeplinkProtocolService {
         }
 
         DevLogger.log(`DeeplinkProtocolService::sendMessage 2`);
+
+        const bridge = this.bridgeByClientId[clientInfo.clientId];
+
+        if (params.request) {
+          const requestObject = JSON.parse(params.request) as {
+            id: string;
+            method: string;
+            params: any;
+          };
+
+          // Handle custom rpc method
+          const processedRpc = await handleCustomRpcCalls({
+            batchRPCManager: this.batchRPCManager,
+            selectedChainId: this.getChainId(),
+            selectedAddress: this.getSelectedAddress(),
+            rpc: {
+              id: requestObject.id,
+              method: requestObject.method,
+              params: requestObject.params,
+            },
+          });
+
+          DevLogger.log(
+            `DeeplinkProtocolService::onMessageReceived processedRpc`,
+            processedRpc,
+          );
+
+          this.rpcQueueManager.add({
+            id: requestObject.id,
+            method: requestObject.method,
+          });
+
+          bridge.onMessage({ name: 'metamask-provider', data: processedRpc });
+
+          return;
+        }
+
         this.sendMessage(
           {
-            type: MessageType.READY,
             data: {
               id: clientInfo?.clientId,
+              chainId: this.getChainId(),
+              accounts: this.getSelectedAccounts(),
             },
           },
           true,
@@ -438,13 +488,78 @@ export default class DeeplinkProtocolService {
     // link to the RPCManager
   }
 
+  public getChainId() {
+    const networkController = (
+      Engine.context as {
+        NetworkController: NetworkController;
+      }
+    ).NetworkController;
+
+    const networkId = networkController.state.networkId ?? 1; // default to mainnet;
+    // transform networkId to 0x value
+    const hexChainId = `0x${networkId.toString(16)}`;
+
+    DevLogger.log(
+      `DeeplinkProtocolService::clients_connected hexChainId`,
+      hexChainId,
+    );
+
+    return hexChainId;
+  }
+
+  public getSelectedAccounts() {
+    const permissionController = (
+      Engine.context as {
+        PermissionController: PermissionController<any, any>;
+      }
+    ).PermissionController;
+
+    const permissions = permissionController.getPermissions(
+      this.currentClientId ?? '',
+    );
+
+    const connectedAddresses = (
+      permissions?.eth_accounts?.caveats?.[0]?.value as {
+        address: string;
+        lastUsed: number;
+      }[]
+    ).map((caveat) => caveat.address);
+
+    DevLogger.log(
+      `DeeplinkProtocolService::clients_connected connectedAddresses`,
+      connectedAddresses,
+    );
+
+    return connectedAddresses;
+  }
+
+  public getSelectedAddress() {
+    const preferencesController = (
+      Engine.context as {
+        PreferencesController: PreferencesController;
+      }
+    ).PreferencesController;
+
+    const selectedAddress = preferencesController.state.selectedAddress;
+
+    DevLogger.log(
+      `DeeplinkProtocolService::clients_connected selectedAddress`,
+      selectedAddress,
+    );
+
+    return selectedAddress;
+  }
+
   public handleMessage(params: {
     dappPublicKey: string;
     url: string;
     message: string;
     channelId: string;
   }) {
-    DevLogger.log('DeeplinkProtocolService:: params from deeplink', params);
+    DevLogger.log(
+      'DeeplinkProtocolService:: handleMessage params from deeplink',
+      params,
+    );
 
     DevLogger.log('DeeplinkProtocolService:: message', params.message);
 
