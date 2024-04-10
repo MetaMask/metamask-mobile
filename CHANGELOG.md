@@ -1,6 +1,17 @@
 # Changelog
 
 ## Current Main Branch
+- [#9098](https://github.com/MetaMask/metamask-mobile/pull/9098): chore: fix ses crash resolution
+- [#9089](https://github.com/MetaMask/metamask-mobile/pull/9089): Bump build from 1288 to 1289
+- [#9085](https://github.com/MetaMask/metamask-mobile/pull/9085): chore: cherry-pick #9023
+- [#9064](https://github.com/MetaMask/metamask-mobile/pull/9064): chore: Version bump to 1288
+- [#9063](https://github.com/MetaMask/metamask-mobile/pull/9063): cherry-pick: update ppom npm package to version 1.4.5 (#9053)
+- [#9027](https://github.com/MetaMask/metamask-mobile/pull/9027): chore: cherry-pick #9023
+- [#8993](https://github.com/MetaMask/metamask-mobile/pull/8993): chore: cherry-pick #8932
+- [#9022](https://github.com/MetaMask/metamask-mobile/pull/9022): chore: cherry-pick #test/revert-8305
+- [#9014](https://github.com/MetaMask/metamask-mobile/pull/9014): fix: Migration 29 isEIP1559Compatible issue cherry pick
+- updated format of changelog
+- 7.19.0
 
 ## 7.19.0 - Mar 19, 2024
 ### Added
