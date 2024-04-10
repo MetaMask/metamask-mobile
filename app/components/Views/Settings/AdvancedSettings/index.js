@@ -540,7 +540,18 @@ class AdvancedSettings extends PureComponent {
                 <View style={styles.toggle}>
                   <Switch
                     value={showFiatOnTestnets}
-                    onValueChange={setShowFiatOnTestnets}
+                    onValueChange={(showFiatOnTestnets) => {
+                      if (showFiatOnTestnets) {
+                        this.props.navigation.navigate(
+                          Routes.MODAL.ROOT_MODAL_FLOW,
+                          {
+                            screen: Routes.SHEET.FIAT_ON_TESTNETS_FRICTION,
+                          },
+                        );
+                      } else {
+                        setShowFiatOnTestnets(false);
+                      }
+                    }}
                     trackColor={{
                       true: colors.primary.default,
                       false: colors.border.muted,

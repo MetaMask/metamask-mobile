@@ -323,8 +323,7 @@ exports[`AccountApproval should render correctly 1`] = `
         >
           Balance:
            
-           
-          (0 ETH)
+          0 ETH
         </Text>
       </View>
     </View>
