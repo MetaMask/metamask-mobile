@@ -2880,6 +2880,9 @@
         "turn_on": "Turn on",
         "turn_off": "Turn off"
       }
-    }
+    },
+  },
+  "stake": {
+    "stake": "Stake"
   }
 }
