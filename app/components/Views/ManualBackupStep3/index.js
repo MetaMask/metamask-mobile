@@ -1,20 +1,10 @@
 import React, { PureComponent } from 'react';
-import {
-  Alert,
-  BackHandler,
-  Text,
-  View,
-  StyleSheet,
-  Keyboard,
-  TouchableOpacity,
-} from 'react-native';
+import { Alert, BackHandler, View, StyleSheet, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
-import Emoji from 'react-native-emoji';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import OnboardingProgress from '../../UI/OnboardingProgress';
-import ActionView from '../../UI/ActionView';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
 import AndroidBackHandler from '../AndroidBackHandler';
@@ -30,7 +20,6 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import OnboardingSuccess from '../Success';
 
