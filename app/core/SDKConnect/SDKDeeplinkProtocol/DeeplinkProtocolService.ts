@@ -481,7 +481,7 @@ export default class DeeplinkProtocolService {
       try {
         const message = JSON.parse(parsedMessage); // handle message and redirect to corresponding bridge
         DevLogger.log('DeeplinkProtocolService:: parsed message:-', message);
-        data = JSON.parse(message);
+        data = message;
         sessionId = params.channelId;
 
         // Update connected state
