@@ -223,6 +223,7 @@ TransactionsView.propTypes = {
 };
 
 const mapStateToProps = (state) => {
+  const selectedAddress = selectSelectedAddress(state);
   const chainId = selectChainId(state);
   const nonSmartTransactions =
     state.engine.backgroundState.TransactionController.transactions; // these are transactionMeta objs
@@ -237,9 +238,10 @@ const mapStateToProps = (state) => {
 
   const filteredPendingSmartTransactions =
     smartTransactions
-      ?.filter(
-        (stx) => stx.status && stx.status !== SmartTransactionStatuses.SUCCESS,
-      )
+      ?.filter((stx) => {
+        const { txParams } = stx;
+        return txParams?.from === selectedAddress && !stx.confirmed;
+      })
       .map((stx) => ({
         ...stx,
         // stx.uuid is one from sentinel API, not the same as tx.id which is generated client side
@@ -256,7 +258,7 @@ const mapStateToProps = (state) => {
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     tokens: selectTokens(state),
-    selectedAddress: selectSelectedAddress(state),
+    selectedAddress,
     identities: selectIdentities(state),
     transactions: [
       ...filteredNonSmartTransactions,
