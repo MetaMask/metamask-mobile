@@ -29,7 +29,7 @@ const PopularList = [
   },
   {
     chainId: toHex('56'),
-    nickname: 'BNB Smart Chain',
+    nickname: 'BNB Chain',
     rpcUrl: 'https://bsc-dataseed1.binance.org',
     ticker: 'BNB',
     warning: true,
