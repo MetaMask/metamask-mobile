@@ -214,13 +214,6 @@ export default class DeeplinkProtocolService {
           const jsonMessage = JSON.stringify(message);
           const base64Message = Buffer.from(jsonMessage).toString('base64');
 
-          // TODO: Remove this log after testing
-          DevLogger.log(
-            `DeeplinkProtocolService::sendMessage hasError ===> sending deeplink`,
-            base64Message,
-            this.currentClientId,
-          );
-
           this.openDeeplink(base64Message, this.currentClientId ?? '').catch(
             (err) => {
               Logger.log(
@@ -236,6 +229,7 @@ export default class DeeplinkProtocolService {
 
       // Always set the method to metamask_batch otherwise it may not have been set correctly because of the batch rpc flow.
       rpcMethod = RPC_METHODS.METAMASK_BATCH;
+
       DevLogger.log(
         `DeeplinkProtocolService::sendMessage chainRPCs=${chainRPCs} COMPLETED!`,
       );
@@ -266,15 +260,6 @@ export default class DeeplinkProtocolService {
       }
 
       DevLogger.log(`DeeplinkProtocolService::sendMessage empty --- goBack()`);
-
-      const dappPublicKey =
-        this.dappPublicKeyByClientId[this.currentClientId ?? ''];
-
-      DevLogger.log(
-        `DeeplinkProtocolService::sendMessage sending deeplink toHex`,
-        message,
-        dappPublicKey,
-      );
 
       DevLogger.log(
         `DeeplinkProtocolService::sendMessage sending deeplink message=${JSON.stringify(
@@ -311,9 +296,7 @@ export default class DeeplinkProtocolService {
   private async openDeeplink(message: string, clientId: string) {
     const scheme = this.schemeByClientId[clientId];
 
-    DevLogger.log(
-      `DeeplinkProtocolService::openDeeplink message=${message} clientId=${clientId}`,
-    );
+    DevLogger.log(`DeeplinkProtocolService::openDeeplink message=${message}`);
 
     const deeplink = `${scheme}://mmsdk?message=${message}`;
 
@@ -323,6 +306,7 @@ export default class DeeplinkProtocolService {
 
     return Linking.openURL(deeplink);
   }
+
   private async checkPermission({
     channelId,
   }: {
@@ -364,10 +348,6 @@ export default class DeeplinkProtocolService {
 
     const originatorObject = JSON.parse(params.originatorInfo);
     const originatorInfo = originatorObject.originatorInfo;
-
-    Logger.log(
-      `DeeplinkProtocolService::originatorInfo string: ${originatorInfo}`,
-    );
 
     Logger.log(
       `DeeplinkProtocolService::originatorInfo: ${originatorInfo.url}  ${originatorInfo.title}`,
@@ -548,7 +528,6 @@ export default class DeeplinkProtocolService {
           `DeeplinkProtocolService::clients_connected sending jsonrpc error to client - connection rejected`,
         );
 
-        DevLogger.log(`DeeplinkProtocolService::sendMessage 3`);
         this.sendMessage({
           data: {
             error,
@@ -599,16 +578,6 @@ export default class DeeplinkProtocolService {
         `DeeplinkProtocolService::clients_connected error handling event`,
       );
     });
-
-    // TODO implement deeplink callback
-    // copy logic from AndroidService.setupOnClientsConnectedListener
-
-    // Check if existing previous connection for this channelId
-    // If not, create a new connection, otherwise update the connection
-    // - check permissions
-    // - setup background bridge
-    // - send message response to the dapp
-    // link to the RPCManager
   }
 
   public getChainId() {
@@ -733,7 +702,6 @@ export default class DeeplinkProtocolService {
           `DeeplinkProtocolService::onMessageReceived invalid json param`,
         );
 
-        DevLogger.log(`DeeplinkProtocolService::sendMessage 4`);
         this.sendMessage({
           data: {
             error,
