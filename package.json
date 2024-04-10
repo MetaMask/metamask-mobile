@@ -177,8 +177,6 @@
     "@react-native-community/checkbox": "^0.5.12",
     "@react-native-community/netinfo": "6.0.0",
     "@react-native-cookies/cookies": "^6.2.1",
-    "@react-native-firebase/app": "^19.1.2",
-    "@react-native-firebase/messaging": "^19.1.2",
     "@react-native-masked-view/masked-view": "^0.2.6",
     "@react-native-picker/picker": "^2.2.1",
     "@react-navigation/bottom-tabs": "^5.11.11",
