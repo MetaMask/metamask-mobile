@@ -9414,10 +9414,10 @@
   dependencies:
     tslib "1.14.1"
 
-"@walletconnect/se-sdk@1.7.1":
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/@walletconnect/se-sdk/-/se-sdk-1.7.1.tgz#d38cc0431cc9d8a4eeb243b5e11229aea92eeb93"
-  integrity sha512-KEJXgOzUFs1+/7LFJLO2kedYDWAUBEzg+u1A3/7v02qumgUuRwhfi/RzUX7QKyW1V+JuCeoZeVVjbGcb7GEc2g==
+"@walletconnect/se-sdk@1.7.2":
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/@walletconnect/se-sdk/-/se-sdk-1.7.2.tgz#df98093f1a9350b5d69f7d8348f11914e4257290"
+  integrity sha512-Ty8GTAnO2nreXckOI2qcmHgM2xUuZo2Mqep522JtGHWvRtBnbf6AtTyxwM21Ho+3ZREYAtWofWegNpIzJUyAIw==
   dependencies:
     "@walletconnect/web3wallet" "1.10.3"
 
