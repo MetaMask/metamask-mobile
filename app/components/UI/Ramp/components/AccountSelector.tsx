@@ -9,10 +9,9 @@ import Text from '../../../Base/Text';
 import JSSelectorButton from '../../../Base/SelectorButton';
 import { useNavigation } from '@react-navigation/native';
 import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../../selectors/preferencesController';
+import { selectIdentities } from '../../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../../selectors/accountsController';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 // TODO: Convert into typescript and correctly type
 const SelectorButton = JSSelectorButton as any;
@@ -31,7 +30,10 @@ const styles = StyleSheet.create({
 
 const AccountSelector = () => {
   const navigation = useNavigation();
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const checksummedSelectedAddress = toChecksumAddress(
+    selectedInternalAccount.address,
+  );
 
   const identities = useSelector(selectIdentities);
 
@@ -40,13 +42,13 @@ const AccountSelector = () => {
 
   return (
     <SelectorButton onPress={openAccountSelector} style={styles.selector}>
-      <Identicon diameter={15} address={selectedAddress} />
+      <Identicon diameter={15} address={checksummedSelectedAddress} />
       <Text style={styles.accountText} primary centered numberOfLines={1}>
-        {identities[selectedAddress]?.name.length > 13
-          ? `${identities[selectedAddress]?.name.substr(0, 13)}...`
-          : identities[selectedAddress]?.name}{' '}
+        {identities[checksummedSelectedAddress]?.name.length > 13
+          ? `${identities[checksummedSelectedAddress]?.name.substr(0, 13)}...`
+          : identities[checksummedSelectedAddress]?.name}{' '}
         (
-        <EthereumAddress address={selectedAddress} type={'short'} />)
+        <EthereumAddress address={checksummedSelectedAddress} type={'short'} />)
       </Text>
     </SelectorButton>
   );
