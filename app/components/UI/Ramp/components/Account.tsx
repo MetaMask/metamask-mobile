@@ -7,10 +7,9 @@ import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { colors as importedColors } from '../../../../styles/common';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../../selectors/preferencesController';
+import { selectIdentities } from '../../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../../selectors/accountsController';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 // TODO: Convert into typescript and correctly type
 const Identicon = JSIdenticon as any;
@@ -48,16 +47,26 @@ const Account = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const checksummedSelectedAddress = toChecksumAddress(
+    selectedInternalAccount.address,
+  );
   const identities = useSelector(selectIdentities);
   return (
     <View
       style={[styles.container, transparent && styles.transparentContainer]}
     >
-      <Identicon diameter={15} address={address || selectedAddress} />
+      <Identicon
+        diameter={15}
+        address={address || checksummedSelectedAddress}
+      />
       <Text style={styles.accountText} primary centered numberOfLines={1}>
-        {identities[address || selectedAddress]?.name} (
-        <EthereumAddress address={address || selectedAddress} type={'short'} />)
+        {identities[address || checksummedSelectedAddress]?.name} (
+        <EthereumAddress
+          address={address || checksummedSelectedAddress}
+          type={'short'}
+        />
+        )
       </Text>
     </View>
   );
