@@ -1,9 +1,11 @@
-import notificationTypes from '../../util/notifications';
-const { TRANSACTION, SIMPLE } = notificationTypes;
-
 export const initialState = {
   notifications: [],
   notification: {},
+};
+
+export const notificationTypes = {
+  TRANSACTION: 'transaction',
+  SIMPLE: 'simple',
 };
 
 export const ACTIONS = {
@@ -75,7 +77,7 @@ const notificationReducer = (state = initialState, action) => {
                 autodismiss: action.autodismiss,
                 transaction: action.transaction,
                 status: action.status,
-                type: TRANSACTION,
+                type: notificationTypes.TRANSACTION,
               },
             },
             ...notifications.slice(index + 1),
@@ -90,7 +92,7 @@ const notificationReducer = (state = initialState, action) => {
           autodismiss: action.autodismiss,
           transaction: action.transaction,
           status: action.status,
-          type: TRANSACTION,
+          type: notificationTypes.SIMPLE,
         }),
       };
     }
@@ -110,7 +112,7 @@ const notificationReducer = (state = initialState, action) => {
                 title: action.title,
                 description: action.description,
                 status: action.status,
-                type: SIMPLE,
+                type: notificationTypes.SIMPLE,
               },
             },
             ...notifications.slice(index + 1),
@@ -126,7 +128,7 @@ const notificationReducer = (state = initialState, action) => {
           title: action.title,
           description: action.description,
           status: action.status,
-          type: SIMPLE,
+          type: notificationTypes.SIMPLE,
         }),
       };
     }
@@ -166,7 +168,7 @@ const notificationReducer = (state = initialState, action) => {
           title: action.title,
           description: action.description,
           status: action.status,
-          type: SIMPLE,
+          type: notificationTypes.SIMPLE,
         }),
       };
     }
@@ -179,7 +181,7 @@ const notificationReducer = (state = initialState, action) => {
           autodismiss: action.autodismiss || 5000,
           transaction: action.transaction,
           status: action.status,
-          type: TRANSACTION,
+          type: notificationTypes.TRANSACTION,
         }),
       };
     }
