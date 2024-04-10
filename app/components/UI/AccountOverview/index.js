@@ -244,9 +244,8 @@ class AccountOverview extends PureComponent {
       this.doENSLookup();
     });
 
-    const { PreferencesController } = Engine.context;
     if (!this.isAccountLabelDefined(accountLabel)) {
-      PreferencesController.setAccountLabel(selectedAddress, 'Account');
+      Engine.setAccountLabel(selectedAddress, 'Account');
     }
   };
 
@@ -262,13 +261,12 @@ class AccountOverview extends PureComponent {
   }
 
   setAccountLabel = () => {
-    const { PreferencesController } = Engine.context;
     const { selectedAddress, identities } = this.props;
     const { accountLabel } = this.state;
 
     const lastAccountLabel = identities[selectedAddress].name;
 
-    PreferencesController.setAccountLabel(
+    Engine.setAccountLabel(
       selectedAddress,
       this.isAccountLabelDefined(accountLabel)
         ? accountLabel
