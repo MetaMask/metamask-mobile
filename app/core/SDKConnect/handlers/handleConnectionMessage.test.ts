@@ -91,9 +91,8 @@ describe('handleConnectionMessage', () => {
         KeyringController: {} as unknown as KeyringController,
         NetworkController: {
           state: {
-            networkId: 1,
-            provider: {
-              chainId: '',
+            providerConfig: {
+              chainId: '0x1',
             },
           },
         } as unknown as NetworkController,
@@ -237,9 +236,8 @@ describe('handleConnectionMessage', () => {
         connection,
         selectedAddress:
           engine.context.PreferencesController.state.selectedAddress,
-        selectedChainId: `0x${engine.context.NetworkController.state.networkId.toString(
-          16,
-        )}`,
+        selectedChainId:
+          engine.context.NetworkController.state.providerConfig.chainId,
         rpc: {
           method: message.method,
           params: message.params,
