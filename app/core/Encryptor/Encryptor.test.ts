@@ -1,6 +1,9 @@
 import { NativeModules } from 'react-native';
 import { Encryptor } from './Encryptor';
-import { ENCRYPTION_LIBRARY, LEGACY_DERIVATION_PARAMS } from './constants';
+import {
+  ENCRYPTION_LIBRARY,
+  LEGACY_DERIVATION_OPTIONS,
+} from './constants';
 
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
@@ -9,7 +12,9 @@ describe('Encryptor', () => {
   let encryptor: Encryptor;
 
   beforeEach(() => {
-    encryptor = new Encryptor({ derivationParams: LEGACY_DERIVATION_PARAMS });
+    encryptor = new Encryptor({
+      keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
+    });
   });
 
   describe('encrypt', () => {
@@ -117,7 +122,7 @@ describe('Encryptor', () => {
             iv: 'mockedIV',
             salt: 'mockedSalt',
             lib: 'original',
-            keyMetadata: LEGACY_DERIVATION_PARAMS,
+            keyMetadata: LEGACY_DERIVATION_OPTIONS,
           }),
         ),
       ).toBe(true);
