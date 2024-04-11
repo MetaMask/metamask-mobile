@@ -10,7 +10,7 @@ import {
 import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import root from '../../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
 import Assertions from '../../utils/Assertions';
 
@@ -72,7 +72,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
         // Assert erc20 is approved
         await TestHelpers.checkIfElementByTextIsVisible(
-          root.transaction.confirmed,
+          enContent.transaction.confirmed,
         );
       },
     );
