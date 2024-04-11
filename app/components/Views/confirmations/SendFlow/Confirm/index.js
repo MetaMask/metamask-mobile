@@ -107,7 +107,7 @@ import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlo
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { getLedgerKeyring } from '../../../../../core/Ledger/Ledger';
 import {
-  getBlockaidTransactionMetricsParams,
+  getBlockaidMetricsParams,
   isBlockaidFeatureEnabled,
 } from '../../../../../util/blockaid';
 import ppomUtil from '../../../../../lib/ppom/ppom-util';
@@ -302,8 +302,23 @@ class Confirm extends PureComponent {
     }
   };
 
+  withBlockaidMetricsParams = () => {
+    let blockaidParams = {};
+
+    const { transaction } = this.props;
+    if (
+      transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
+    ) {
+      blockaidParams = getBlockaidMetricsParams(
+        transaction.currentTransactionSecurityAlertResponse?.response,
+      );
+    }
+
+    return blockaidParams;
+  };
+
   updateNavBar = () => {
-    const { navigation, route, resetTransaction, transaction } = this.props;
+    const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       getSendFlowTitle(
@@ -312,7 +327,6 @@ class Confirm extends PureComponent {
         route,
         colors,
         resetTransaction,
-        transaction,
       ),
     );
   };
@@ -841,7 +855,7 @@ class Confirm extends PureComponent {
                 assetType,
                 {
                   ...this.getAnalyticsParams(),
-                  ...getBlockaidTransactionMetricsParams(transaction),
+                  ...this.withBlockaidMetricsParams(),
                 },
               ),
             type: 'signTransaction',
@@ -870,7 +884,7 @@ class Confirm extends PureComponent {
           MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           {
             ...this.getAnalyticsParams(),
-            ...getBlockaidTransactionMetricsParams(transaction),
+            ...this.withBlockaidMetricsParams(),
           },
         );
         stopGasPolling();
@@ -1084,7 +1098,7 @@ class Confirm extends PureComponent {
     const { transaction } = this.props;
     const analyticsParams = {
       ...this.getAnalyticsParams(),
-      ...getBlockaidTransactionMetricsParams(transaction),
+      ...this.withBlockaidMetricsParams(transaction),
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
