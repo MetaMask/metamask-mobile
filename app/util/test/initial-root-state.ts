@@ -2,6 +2,7 @@ import type { RootState } from '../../reducers';
 import type { EngineState } from '../../core/Engine';
 import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrders';
 import { initialState as initialSecurityState } from '../../reducers/security';
+import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
 import initialBackgroundState from './initial-background-state.json';
 
 // Cast because TypeScript is incorrectly inferring the type of this JSON object
@@ -36,6 +37,7 @@ const initialRootState: RootState = {
   experimentalSettings: undefined,
   rpcEvents: undefined,
   accounts: undefined,
+  inpageProvider: initialInpageProvider,
 };
 
 export default initialRootState;
