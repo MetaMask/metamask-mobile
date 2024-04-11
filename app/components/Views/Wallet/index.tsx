@@ -172,6 +172,13 @@ const Wallet = ({
           isBold: false,
         },
       ],
+      closeButtonOptions: {
+        label: 'Accept',
+        onPress: () => {
+          storePrivacyPolicyClickedOrClosed();
+          currentToast?.closeToast();
+        },
+      },
       linkButtonOptions: {
         label: 'Read more',
         onPress: () => {

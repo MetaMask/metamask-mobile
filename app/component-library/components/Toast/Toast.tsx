@@ -32,6 +32,7 @@ import Button, { ButtonVariants } from '../Buttons/Button';
 
 // Internal dependencies.
 import {
+  ToastCloseButtonOptions,
   ToastLabelOptions,
   ToastLinkButtonOptions,
   ToastOptions,
@@ -147,6 +148,14 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       />
     );
 
+  const renderCloseButton = (closeButtonOptions?: ToastCloseButtonOptions) => (
+    <Button
+      variant={ButtonVariants.Primary}
+      onPress={() => closeButtonOptions?.onPress()}
+      label={closeButtonOptions?.label}
+    />
+  );
+
   const renderAvatar = () => {
     switch (toastOptions?.variant) {
       case ToastVariants.Plain:
@@ -182,7 +191,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   };
 
   const renderToastContent = (options: ToastOptions) => {
-    const { labelOptions, linkButtonOptions } = options;
+    const { labelOptions, linkButtonOptions, closeButtonOptions } = options;
 
     return (
       <>
@@ -194,6 +203,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           {renderLabel(labelOptions)}
           {renderButtonLink(linkButtonOptions)}
         </View>
+        {closeButtonOptions ? renderCloseButton(closeButtonOptions) : null}
       </>
     );
   };

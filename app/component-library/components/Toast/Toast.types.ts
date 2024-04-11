@@ -29,6 +29,11 @@ export interface ToastLinkButtonOptions {
   onPress: () => void;
 }
 
+export interface ToastCloseButtonOptions {
+  label: string;
+  onPress: () => void;
+}
+
 /**
  * Common toast option shared between all other options.
  */
@@ -36,6 +41,7 @@ interface BaseToastVariants {
   disableTimeout: boolean;
   labelOptions: ToastLabelOptions;
   linkButtonOptions?: ToastLinkButtonOptions;
+  closeButtonOptions?: ToastCloseButtonOptions;
 }
 
 /**
