@@ -35,7 +35,6 @@ import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
-  SignTypedDataVersion,
   KeyringControllerState,
   KeyringControllerActions,
   KeyringControllerEvents,
@@ -127,6 +126,7 @@ import {
   isMainnetByChainId,
   getDecimalChainId,
   fetchEstimatedMultiLayerL1Fee,
+  deprecatedGetNetworkId,
 } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
@@ -175,9 +175,6 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
-import { isHardwareAccount } from '../util/address';
-import { ledgerSignTypedMessage } from './Ledger/Ledger';
-import ExtendedKeyringTypes from '../constants/keyringTypes';
 import {
   AccountsController,
   AccountsControllerActions,
@@ -186,6 +183,10 @@ import {
 } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
+import {
+  networkIdUpdated,
+  networkIdWillUpdate,
+} from '../core/redux/slices/inpageProvider';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -420,6 +421,7 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          //@ts-expect-error AssetsController needs to be updated to v14 for this error disappears
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
@@ -434,6 +436,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            //@ts-expect-error AssetsController needs to be updated to v14 for this error disappears
             listener,
           ),
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -502,19 +505,11 @@ class Engine {
     const tokensController = new TokensController({
       // TODO: The tokens controller currently does not support internalAccounts. This is done to match the behavior of the previous tokens controller subscription.
       onPreferencesStateChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          `AccountsController:selectedAccountChange`,
-          (newlySelectedInternalAccount) => {
-            const prevState = preferencesController.state;
-            listener({
-              ...prevState,
-              selectedAddress: newlySelectedInternalAccount.address,
-            });
-          },
-        ),
+        preferencesController.subscribe(listener),
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          //@ts-expect-error AssetsController needs to be updated to v14 for this error disappears
           listener,
         ),
       onTokenListStateChange: (listener) =>
@@ -527,17 +522,16 @@ class Engine {
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
-        selectedAddress: accountsController.getSelectedAccount().address,
+        selectedAddress: preferencesController.state.selectedAddress,
       },
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'TokensController',
         'ApprovalController:addRequest',
-        'AccountsController:selectedAccountChange'
+        never
       >({
         name: 'TokensController',
         allowedActions: [`${approvalController.name}:addRequest`],
-        allowedEvents: ['AccountsController:selectedAccountChange'],
       }),
       getERC20TokenName: assetsContractController.getERC20TokenName.bind(
         assetsContractController,
@@ -549,6 +543,7 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          //@ts-expect-error AssetsController needs to be updated to v14 for this error disappears
           listener,
         ),
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -590,6 +585,7 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          //@ts-expect-error GasFeeController needs to be updated to v7 for this error disappears
           listener,
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
@@ -989,6 +985,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            //@ts-expect-error AssetsController needs to be updated to v14 for this error disappears
             listener,
           ),
         onTokenListStateChange: (listener) =>
@@ -1012,6 +1009,7 @@ class Engine {
         },
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
+        //@ts-expect-error AssetsController needs to be updated to v14 for this error disappears
         getNetworkState: () => networkController.state,
         getPreferencesState: () => preferencesController.state,
         getBalancesInSingleCall:
@@ -1026,6 +1024,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            //@ts-expect-error AssetsController needs to be updated to v14 for this error disappears
             listener,
           ),
         chainId: networkController.state.providerConfig.chainId,
@@ -1042,8 +1041,7 @@ class Engine {
         {
           onTokensStateChange: (listener) =>
             tokensController.subscribe(listener),
-          getSelectedAddress: () =>
-            accountsController.getSelectedAccount().address,
+          getSelectedAddress: () => preferencesController.state.selectedAddress,
           getERC20BalanceOf: assetsContractController.getERC20BalanceOf.bind(
             assetsContractController,
           ),
@@ -1055,22 +1053,14 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            //@ts-expect-error AssetsController needs to be updated to v14 for this error disappears
             listener,
           ),
         onPreferencesStateChange: (listener) =>
-          this.controllerMessenger.subscribe(
-            `AccountsController:selectedAccountChange`,
-            (newlySelectedInternalAccount) => {
-              const prevState = preferencesController.state;
-              listener({
-                ...prevState,
-                selectedAddress: newlySelectedInternalAccount.address,
-              });
-            },
-          ),
+          preferencesController.subscribe(listener),
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
-        selectedAddress: accountsController.getSelectedAccount().address,
+        selectedAddress: preferencesController.state.selectedAddress,
         tokenPricesService: codefiTokenApiV2,
         interval: 30 * 60 * 1000,
       }),
@@ -1079,6 +1069,7 @@ class Engine {
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
         getNetworkState: () => networkController.state,
         getSelectedAddress: () =>
           accountsController.getSelectedAccount().address,
@@ -1107,6 +1098,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
             listener,
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -1146,11 +1138,19 @@ class Engine {
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted<
           'SignatureController',
-          'ApprovalController:addRequest',
+          | 'ApprovalController:addRequest'
+          | 'KeyringController:signPersonalMessage'
+          | 'KeyringController:signMessage'
+          | 'KeyringController:signTypedMessage',
           never
         >({
           name: 'SignatureController',
-          allowedActions: [`${approvalController.name}:addRequest`],
+          allowedActions: [
+            `${approvalController.name}:addRequest`,
+            `${keyringController.name}:signPersonalMessage`,
+            `${keyringController.name}:signMessage`,
+            `${keyringController.name}:signTypedMessage`,
+          ],
         }),
         isEthSignEnabled: () =>
           Boolean(
@@ -1158,25 +1158,6 @@ class Engine {
           ),
         getAllState: () => store.getState(),
         getCurrentChainId: () => networkController.state.providerConfig.chainId,
-        keyringController: {
-          signMessage: keyringController.signMessage.bind(keyringController),
-          signPersonalMessage:
-            keyringController.signPersonalMessage.bind(keyringController),
-          signTypedMessage: (msgParams, { version }) => {
-            if (
-              isHardwareAccount(msgParams.from, [ExtendedKeyringTypes.ledger])
-            ) {
-              return ledgerSignTypedMessage(
-                msgParams,
-                version as SignTypedDataVersion,
-              );
-            }
-            return keyringController.signTypedMessage(
-              msgParams,
-              version as SignTypedDataVersion,
-            );
-          },
-        },
       }),
       new LoggingController({
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -1295,6 +1276,28 @@ class Engine {
             currentChainId = state.providerConfig.chainId;
           }, 500);
         }
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      AppConstants.NETWORK_STATE_CHANGE_EVENT,
+      async () => {
+        try {
+          const networkId = await deprecatedGetNetworkId();
+          store.dispatch(networkIdUpdated(networkId));
+        } catch (error) {
+          console.error(
+            error,
+            `Network ID not changed, current chainId: ${networkController.state.providerConfig.chainId}`,
+          );
+        }
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      'NetworkController:networkWillChange',
+      () => {
+        store.dispatch(networkIdWillUpdate());
       },
     );
 
@@ -1597,6 +1600,21 @@ class Engine {
       throw new Error(`No account found for address: ${address}`);
     }
   }
+
+  /**
+   * This should be used instead of directly calling PreferencesController.setAccountLabel or AccountsController.setAccountName in order to keep the names in sync
+   * We are currently incrementally migrating the accounts data to the AccountsController so we must keep these values
+   * in sync until the migration is complete.
+   */
+  setAccountLabel(address: string, label: string) {
+    const { AccountsController, PreferencesController } = this.context;
+    const accountToBeNamed = AccountsController.getAccountByAddress(address);
+    if (accountToBeNamed === undefined) {
+      throw new Error(`No account found for address: ${address}`);
+    }
+    AccountsController.setAccountName(accountToBeNamed.id, label);
+    PreferencesController.setAccountLabel(address, label);
+  }
 }
 
 /**
@@ -1736,5 +1754,9 @@ export default {
   setSelectedAddress: (address: string) => {
     assertEngineExists(instance);
     instance.setSelectedAccount(address);
+  },
+  setAccountLabel: (address: string, label: string) => {
+    assertEngineExists(instance);
+    instance.setAccountLabel(address, label);
   },
 };

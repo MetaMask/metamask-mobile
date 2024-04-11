@@ -1,4 +1,4 @@
-import messages from '../../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 export const AmountViewSelectorsIDs = {
   CONTAINER: 'amount-screen',
@@ -8,5 +8,5 @@ export const AmountViewSelectorsIDs = {
 };
 
 export const AmountViewSelectorsText = {
-  SCREEN_TITLE: messages.transaction.amount,
+  SCREEN_TITLE: enContent.transaction.amount,
 };
