@@ -1069,6 +1069,8 @@ class Engine {
 
     this.stxController = new SmartTransactionsController(
       {
+        // @ts-expect-error this fine, STX controller has been downgraded to network controller v8
+        getNetworkClientById: networkController.getNetworkClientById,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
