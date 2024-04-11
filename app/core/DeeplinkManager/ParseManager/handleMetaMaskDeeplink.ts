@@ -46,7 +46,7 @@ export function handleMetaMaskDeeplink({
           throw new Error(`DeepLinkManager failed to connect - Invalid scheme`);
         }
 
-        SDKConnect.getInstance().state.deeplinkingService.handleConnection({
+        SDKConnect.getInstance().state.deeplinkingService?.handleConnection({
           channelId: params.channelId,
           url,
           scheme: params.scheme ?? '',
@@ -70,16 +70,25 @@ export function handleMetaMaskDeeplink({
     return true;
   } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.MMSDK}`)) {
     if (!params.message) {
-      throw new Error(`DeepLinkManager failed to connect - Invalid message`);
+      throw new Error(
+        `DeepLinkManager: deeplinkingService failed to handleMessage - Invalid message`,
+      );
+    }
+
+    if (!params.scheme) {
+      throw new Error(
+        `DeepLinkManager: deeplinkingService failed to handleMessage - Invalid scheme`,
+      );
     }
 
     DevLogger.log('DeepLinkManager:: ===> params from deeplink', params);
 
-    SDKConnect.getInstance().state.deeplinkingService.handleMessage({
+    SDKConnect.getInstance().state.deeplinkingService?.handleMessage({
       channelId: params.channelId,
       url,
       message: params.message,
       dappPublicKey: params.pubkey,
+      scheme: params.scheme,
     });
   } else if (
     url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`) ||

@@ -35,10 +35,6 @@ export default class DeeplinkProtocolService {
     [clientId: string]: string;
   } = {};
 
-  private schemeByClientId: {
-    [clientId: string]: string;
-  } = {};
-
   private isInitialized = false;
 
   public constructor() {
@@ -67,12 +63,17 @@ export default class DeeplinkProtocolService {
         DevLogger.log(
           `DeeplinkProtocolService::init recover client: ${connection.id}`,
         );
-        this.connections[connection.id] = {
+        const clientInfo = {
           connected: false,
           clientId: connection.id,
           originatorInfo: connection.originatorInfo as OriginatorInfo,
           validUntil: connection.validUntil,
+          scheme: connection.scheme,
         };
+
+        this.connections[connection.id] = clientInfo;
+
+        this.setupBridge(clientInfo);
       });
     } else {
       DevLogger.log(
@@ -211,18 +212,10 @@ export default class DeeplinkProtocolService {
         // Only continue processing the message and goback if all rpcs in the batch have been handled
 
         if (hasError) {
-          const jsonMessage = JSON.stringify(message);
-          const base64Message = Buffer.from(jsonMessage).toString('base64');
-
-          this.openDeeplink(base64Message, this.currentClientId ?? '').catch(
-            (err) => {
-              Logger.log(
-                err,
-                `DeeplinkProtocolService::sendMessage error sending deeplink`,
-              );
-            },
-          );
-
+          this.openDeeplink({
+            message,
+            clientId: this.currentClientId ?? '',
+          });
           return;
         }
       }
@@ -267,24 +260,17 @@ export default class DeeplinkProtocolService {
         )}`,
       );
 
-      const jsonMessage = JSON.stringify(message);
-      const base64Message = Buffer.from(jsonMessage).toString('base64');
-
       // TODO: Remove this log after testing
       DevLogger.log(
         `DeeplinkProtocolService::sendMessage sending deeplink`,
-        base64Message,
+        message,
         this.currentClientId,
       );
 
-      this.openDeeplink(base64Message, this.currentClientId ?? '').catch(
-        (err) => {
-          Logger.log(
-            err,
-            `DeeplinkProtocolService::sendMessage error sending deeplink`,
-          );
-        },
-      );
+      this.openDeeplink({
+        message,
+        clientId: this.currentClientId ?? '',
+      });
     } catch (error) {
       Logger.log(
         error,
@@ -293,18 +279,39 @@ export default class DeeplinkProtocolService {
     }
   }
 
-  private async openDeeplink(message: string, clientId: string) {
-    const scheme = this.schemeByClientId[clientId];
+  private async openDeeplink({
+    message,
+    clientId,
+    scheme,
+  }: {
+    message: any;
+    clientId: string;
+    scheme?: string;
+  }) {
+    try {
+      const jsonMessage = JSON.stringify(message);
+      const base64Message = Buffer.from(jsonMessage).toString('base64');
+      const dappScheme = this.connections[clientId]?.scheme ?? scheme;
 
-    DevLogger.log(`DeeplinkProtocolService::openDeeplink message=${message}`);
+      DevLogger.log(
+        `DeeplinkProtocolService::openDeeplink scheme=${scheme} dappScheme=${dappScheme} clientId=${clientId}`,
+      );
 
-    const deeplink = `${scheme}://mmsdk?message=${message}`;
+      DevLogger.log(`DeeplinkProtocolService::openDeeplink message=${message}`);
 
-    DevLogger.log(
-      `DeeplinkProtocolService::openDeeplink deeplink=${deeplink} clientId=${clientId}`,
-    );
+      const deeplink = `${dappScheme}://mmsdk?message=${base64Message}`;
 
-    return Linking.openURL(deeplink);
+      DevLogger.log(
+        `DeeplinkProtocolService::openDeeplink deeplink=${deeplink} clientId=${clientId}`,
+      );
+
+      await Linking.openURL(deeplink);
+    } catch (error) {
+      Logger.error(
+        error,
+        `DeeplinkProtocolService::openDeeplink error opening deeplink`,
+      );
+    }
   }
 
   private async checkPermission({
@@ -342,12 +349,22 @@ export default class DeeplinkProtocolService {
     }
 
     this.dappPublicKeyByClientId[params.channelId] = params.dappPublicKey;
-    this.schemeByClientId[params.channelId] = params.scheme;
 
     Logger.log('DeeplinkProtocolService::handleConnection params', params);
 
-    const originatorObject = JSON.parse(params.originatorInfo);
-    const originatorInfo = originatorObject.originatorInfo;
+    const decodedOriginatorInfo = Buffer.from(
+      params.originatorInfo,
+      'base64',
+    ).toString('utf-8');
+
+    const originatorInfoJson = JSON.parse(decodedOriginatorInfo);
+
+    DevLogger.log(
+      `DeeplinkProtocolService::handleConnection originatorInfoJson`,
+      originatorInfoJson,
+    );
+
+    const originatorInfo = originatorInfoJson.originatorInfo;
 
     Logger.log(
       `DeeplinkProtocolService::originatorInfo: ${originatorInfo.url}  ${originatorInfo.title}`,
@@ -358,13 +375,16 @@ export default class DeeplinkProtocolService {
       originatorInfo,
       connected: true,
       validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
+      scheme: params.scheme,
     };
 
     this.currentClientId = params.channelId;
 
     DevLogger.log(`DeeplinkProtocolService::clients_connected`, clientInfo);
 
-    if (this.connections?.[clientInfo.clientId]) {
+    const isSessionExists = this.connections?.[clientInfo.clientId];
+
+    if (isSessionExists) {
       // Skip existing client -- bridge has been setup
       const bridge = this.bridgeByClientId[clientInfo.clientId];
 
@@ -458,6 +478,7 @@ export default class DeeplinkProtocolService {
             clientId: clientInfo.clientId,
             originatorInfo: clientInfo.originatorInfo,
             validUntil: clientInfo.validUntil,
+            scheme: clientInfo.scheme,
           };
 
           await SDKConnect.getInstance().addDappConnection({
@@ -467,6 +488,7 @@ export default class DeeplinkProtocolService {
             originatorInfo: clientInfo.originatorInfo,
             otherPublicKey: this.dappPublicKeyByClientId[clientInfo.clientId],
             validUntil: Date.now() + DEFAULT_SESSION_TIMEOUT_MS,
+            scheme: clientInfo.scheme,
           });
         }
 
@@ -549,24 +571,18 @@ export default class DeeplinkProtocolService {
           name: 'metamask-provider',
         };
 
-        const jsonMessage = JSON.stringify(message);
-        const base64Message = Buffer.from(jsonMessage).toString('base64');
-
         // TODO: Remove this log after testing
         DevLogger.log(
           `DeeplinkProtocolService::sendMessage handleEventAsync hasError ===> sending deeplink`,
-          base64Message,
+          message,
           this.currentClientId,
         );
 
-        this.openDeeplink(base64Message, this.currentClientId ?? '').catch(
-          (err) => {
-            Logger.log(
-              err,
-              `DeeplinkProtocolService::sendMessage error sending deeplink`,
-            );
-          },
-        );
+        this.openDeeplink({
+          message,
+          clientId: this.currentClientId ?? '',
+          scheme: clientInfo.scheme,
+        });
 
         return;
       }
@@ -587,9 +603,7 @@ export default class DeeplinkProtocolService {
       }
     ).NetworkController;
 
-    const networkId = networkController.state.networkId ?? 1; // default to mainnet;
-    // transform networkId to 0x value
-    const hexChainId = `0x${networkId.toString(16)}`;
+    const hexChainId = networkController.state.providerConfig.chainId ?? '0x'; // default to mainnet
 
     DevLogger.log(
       `DeeplinkProtocolService::clients_connected hexChainId`,
@@ -647,6 +661,7 @@ export default class DeeplinkProtocolService {
     url: string;
     message: string;
     channelId: string;
+    scheme: string;
   }) {
     DevLogger.log(
       'DeeplinkProtocolService:: handleMessage params from deeplink',
@@ -668,7 +683,7 @@ export default class DeeplinkProtocolService {
         params?: any;
       };
 
-      let sessionId: string;
+      const sessionId: string = params.channelId;
 
       try {
         await wait(200); // Extra wait to make sure ui is ready
@@ -689,13 +704,6 @@ export default class DeeplinkProtocolService {
         const message = JSON.parse(parsedMessage); // handle message and redirect to corresponding bridge
         DevLogger.log('DeeplinkProtocolService:: parsed message:-', message);
         data = message;
-        sessionId = params.channelId;
-
-        // Update connected state
-        this.connections[sessionId] = {
-          ...this.connections[sessionId],
-          connected: true,
-        };
       } catch (error) {
         Logger.log(
           error,
@@ -718,14 +726,53 @@ export default class DeeplinkProtocolService {
         return;
       }
 
+      const isSessionExists = this.connections?.[sessionId];
+
+      DevLogger.log(
+        `DeeplinkProtocolService::onMessageReceived connections=`,
+        this.connections,
+      );
+
+      DevLogger.log(
+        `DeeplinkProtocolService::onMessageReceived sessionId=${sessionId}`,
+      );
+
+      DevLogger.log(
+        `DeeplinkProtocolService::onMessageReceived isSessionExists`,
+        isSessionExists,
+      );
+
+      if (!isSessionExists) {
+        const message = {
+          data: {
+            id: data.id,
+            error: {
+              code: 4100,
+              message: 'Unauthorized request',
+            },
+            jsonrpc: '2.0',
+          },
+          name: 'metamask-provider',
+        };
+
+        this.openDeeplink({
+          message,
+          clientId: sessionId,
+          scheme: params.scheme,
+        });
+
+        return;
+      }
+
+      // Update connected state
+      this.connections[sessionId] = {
+        ...this.connections[sessionId],
+        connected: true,
+      };
+
       let bridge = this.bridgeByClientId[sessionId];
 
       if (!bridge) {
-        console.warn(
-          `DeeplinkProtocolService:: Bridge not found for client`,
-          `sessionId=${sessionId} data.id=${data.id}`,
-        );
-
         try {
           // Ask users permissions again - it probably means the channel was removed
           await this.checkPermission({
@@ -745,28 +792,12 @@ export default class DeeplinkProtocolService {
         }
       }
 
-      const preferencesController = (
-        Engine.context as {
-          PreferencesController: PreferencesController;
-        }
-      ).PreferencesController;
-      const selectedAddress = preferencesController.state.selectedAddress;
-
-      const networkController = (
-        Engine.context as {
-          NetworkController: NetworkController;
-        }
-      ).NetworkController;
-      const networkId = networkController.state.networkId ?? 1; // default to mainnet;
-      // transform networkId to 0x value
-      const hexChainId = `0x${networkId.toString(16)}`;
-
       this.currentClientId = sessionId;
       // Handle custom rpc method
       const processedRpc = await handleCustomRpcCalls({
         batchRPCManager: this.batchRPCManager,
-        selectedChainId: hexChainId,
-        selectedAddress,
+        selectedChainId: this.getChainId(),
+        selectedAddress: this.getSelectedAddress(),
         rpc: { id: data.id, method: data.method, params: data.params },
       });
 

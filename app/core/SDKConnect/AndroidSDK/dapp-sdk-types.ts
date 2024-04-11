@@ -5,6 +5,7 @@ export interface DappClient {
   clientId: string;
   connected: boolean;
   validUntil?: number;
+  scheme?: string;
 }
 
 export interface DappConnections {

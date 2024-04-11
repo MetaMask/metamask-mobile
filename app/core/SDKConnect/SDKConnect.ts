@@ -287,9 +287,7 @@ export class SDKConnect {
 
   public getConnection({ channelId }: { channelId: string }) {
     return (
-      this.state.connections[channelId] ??
-      this.state.dappConnections[channelId] ??
-      this.state.dappConnections[channelId]
+      this.state.connections[channelId] ?? this.state.dappConnections[channelId]
     );
   }
 
