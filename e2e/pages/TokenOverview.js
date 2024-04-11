@@ -8,15 +8,15 @@ import {
   TOKEN_OVERVIEW_SWAP_BUTTON,
   ASSET_BACK_BUTTON,
 } from '../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import messages from '../../locales/languages/en.json';
+import enContent from '../../locales/languages/en.json';
 
 const chartTimePeriod = [
-  messages.asset_overview.chart_time_period_navigation['1d'],
-  messages.asset_overview.chart_time_period_navigation['1w'],
-  messages.asset_overview.chart_time_period_navigation['1m'],
-  messages.asset_overview.chart_time_period_navigation['3m'],
-  messages.asset_overview.chart_time_period_navigation['1y'],
-  messages.asset_overview.chart_time_period_navigation['3y'],
+  enContent.asset_overview.chart_time_period_navigation['1d'],
+  enContent.asset_overview.chart_time_period_navigation['1w'],
+  enContent.asset_overview.chart_time_period_navigation['1m'],
+  enContent.asset_overview.chart_time_period_navigation['3m'],
+  enContent.asset_overview.chart_time_period_navigation['1y'],
+  enContent.asset_overview.chart_time_period_navigation['3y'],
 ];
 
 export default class TokenOverview {
@@ -48,7 +48,7 @@ export default class TokenOverview {
     for (const period of chartTimePeriod) {
       await this.selectChart(period);
       await TestHelpers.checkIfElementWithTextIsNotVisible(
-        messages.asset_overview.no_chart_data.title,
+        enContent.asset_overview.no_chart_data.title,
       );
     }
   }
@@ -59,7 +59,7 @@ export default class TokenOverview {
 
   static async ChartNotVisible() {
     await TestHelpers.checkIfElementWithTextIsVisible(
-      messages.asset_overview.no_chart_data.title,
+      enContent.asset_overview.no_chart_data.title,
     );
   }
   static async isReceiveButtonVisible() {
