@@ -251,6 +251,7 @@ const mapStateToProps = (state) => {
         status: stx.status?.startsWith(SmartTransactionStatuses.CANCELLED)
           ? SmartTransactionStatuses.CANCELLED
           : stx.status,
+        isSmartTransaction: true,
       })) ?? [];
 
   return {
