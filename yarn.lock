@@ -3279,17 +3279,6 @@
     hdkey "^2.0.1"
     uuid "^8.3.2"
 
-"@keystonehq/base-eth-keyring@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@keystonehq/base-eth-keyring/-/base-eth-keyring-0.4.0.tgz#7667d2b6e38fc90553ce934c0c60c89329315b92"
-  integrity sha512-CDlRNGdrHDHtBS0pAdrsjNNbyi7tn7mGrwmgiGQ6F8rhYXDZ/TcvYV1AXlzCe0eFyjPdMGdl+PgZRwBpVRtpQQ==
-  dependencies:
-    "@ethereumjs/tx" "3.0.0"
-    "@keystonehq/bc-ur-registry-eth" "^0.9.0"
-    ethereumjs-util "^7.0.8"
-    hdkey "^2.0.1"
-    uuid "^8.3.2"
-
 "@keystonehq/bc-ur-registry-eth@^0.19.1":
   version "0.19.1"
   resolved "https://registry.yarnpkg.com/@keystonehq/bc-ur-registry-eth/-/bc-ur-registry-eth-0.19.1.tgz#eac508b9d15d17c0abd00b107691585f9c789ffc"
@@ -3320,29 +3309,10 @@
     hdkey "^2.0.1"
     uuid "^8.3.2"
 
-"@keystonehq/bc-ur-registry-eth@^0.9.0":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@keystonehq/bc-ur-registry-eth/-/bc-ur-registry-eth-0.9.0.tgz#607428945029a06ec17ce3288caf53a0cbd8cc22"
-  integrity sha512-OVRT8Op+ZlOU9EBMxPBtQLrQZKzsV3DlfLq8P1T+Dq7WmGQNsRmQPchgju9qOlIIvmuAKaKdGXNN9W2qpTBAfA==
-  dependencies:
-    "@keystonehq/bc-ur-registry" "^0.5.0-alpha.5"
-    ethereumjs-util "^7.0.8"
-    hdkey "^2.0.1"
-    uuid "^8.3.2"
-
 "@keystonehq/bc-ur-registry@^0.4.4":
   version "0.4.4"
   resolved "https://registry.yarnpkg.com/@keystonehq/bc-ur-registry/-/bc-ur-registry-0.4.4.tgz#3073fdd4b33cdcbd04526a313a7685891a4b4583"
   integrity sha512-SBdKdAZfp3y14GTGrKjfJJHf4iXObjcm4/qKUZ92lj8HVR8mxHHGmHksjE328bJPTAsJPloLix4rTnWg+qgS2w==
-  dependencies:
-    "@ngraveio/bc-ur" "^1.1.5"
-    base58check "^2.0.0"
-    tslib "^2.3.0"
-
-"@keystonehq/bc-ur-registry@^0.5.0-alpha.5":
-  version "0.5.0-alpha.5"
-  resolved "https://registry.yarnpkg.com/@keystonehq/bc-ur-registry/-/bc-ur-registry-0.5.0-alpha.5.tgz#3d1a7eab980e8445c1596cdde704215c96d6b88a"
-  integrity sha512-T80XI+c8pWnkq9ZbuadlhFq/+8o4TcHtq+LQsK1XfjkhBqH75tcwim0310gKxavOhaSoC1i8dSqAnrFpj+5dJw==
   dependencies:
     "@ngraveio/bc-ur" "^1.1.5"
     base58check "^2.0.0"
@@ -3381,26 +3351,13 @@
     rlp "^2.2.6"
     uuid "^8.3.2"
 
-"@keystonehq/metamask-airgapped-keyring@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@keystonehq/metamask-airgapped-keyring/-/metamask-airgapped-keyring-0.3.0.tgz#3de02b268b28d9f2e2e728a10cad8cfc17870c3c"
-  integrity sha512-CkiQGRPYM8CBeb8GsrrsTXpdHACl9NnoeWGQDY7DXGiy3s6u7WQ6TXal7K+wAHdU4asBzTaK2SNPZ/eIvGiAfg==
-  dependencies:
-    "@ethereumjs/tx" "^3.3.0"
-    "@keystonehq/base-eth-keyring" "^0.4.0"
-    "@keystonehq/bc-ur-registry-eth" "^0.9.0"
-    "@metamask/obs-store" "^7.0.0"
-    rlp "^2.2.6"
-    uuid "^8.3.2"
-
-"@keystonehq/ur-decoder@^0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@keystonehq/ur-decoder/-/ur-decoder-0.6.1.tgz#1034da3ad459e053ed8e4e4c824e24a5e24a8589"
-  integrity sha512-ZYC4KNv0655ljOMOgMSDAUy741kYn8RNP0gdAHx8IMEbfiIRm5Paf4I7+5JcxwQ6N1vHf79btr3h/VSfSH2jDQ==
+"@keystonehq/ur-decoder@^0.12.2":
+  version "0.12.2"
+  resolved "https://registry.yarnpkg.com/@keystonehq/ur-decoder/-/ur-decoder-0.12.2.tgz#78707d95012bc6d31c947c76c27e076d4a1c071c"
+  integrity sha512-qFmNFR2fsk3YAs3bF6nFO2Ny79Cl0gaZC5S7fjzQPyClUxFL2OwuEYLBcFT+Q7n6mbInuH4rCBHU4UWXf3FKGg==
   dependencies:
     "@keystonehq/bc-ur-registry-eth" "^0.6.12"
     "@ngraveio/bc-ur" "^1.1.6"
-    typescript "^4.6.2"
 
 "@lavamoat/aa@^3.1.1":
   version "3.1.2"
@@ -27131,7 +27088,7 @@ typescript-tuple@^2.2.1:
   dependencies:
     typescript-compare "^0.0.2"
 
-typescript@^4.6.2, typescript@~4.8.4:
+typescript@~4.8.4:
   version "4.8.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.8.4.tgz#c464abca159669597be5f96b8943500b238e60e6"
   integrity sha512-QCh+85mCy+h0IGff8r5XWzOVSbBO+KfeYrMQh7NJ58QujwcE22u+NUSmUxqF+un70P9GXKxa2HCNiTTMJknyjQ==
