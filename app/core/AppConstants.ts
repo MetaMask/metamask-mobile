@@ -100,6 +100,9 @@ export default {
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
       'https://support.metamask.io/hc/articles/14764161421467',
+    WHAT_IS_SRP:
+      'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
+    PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -169,4 +172,13 @@ export default {
   FAVICON_CACHE_MAX_SIZE: 100,
   PPOM_INITIALISATION_STATE_CHANGE_EVENT:
     'PPOMController:initialisationStateChangeEvent',
+  BASIC_FUNCTIONALITY_BLOCK_LIST: [
+    'token-api',
+    'gas-api',
+    'price-api',
+    'phishing-detection',
+    'infura.io',
+    'static.metafi',
+    'config-api.metamask.io/featureFlags',
+  ],
 } as const;

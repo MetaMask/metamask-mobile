@@ -104,6 +104,9 @@ import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import OnboardingSuccess from '../../Views/Success';
+import DefaultSettings from '../../Views/Success/DefaultSettings';
+import BasicFunctionality from '../../Views/Success/DefaultSettings/BasicFunctionalitySheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -119,6 +122,43 @@ const clearStackNavigatorOptions = {
 };
 
 const Stack = createStackNavigator();
+
+const OnboardingSuccessComponent = () => (
+  <OnboardingSuccess
+    onDone={() =>
+      NavigationService.navigation.reset({ routes: [{ name: 'HomeNav' }] })
+    }
+  />
+);
+
+const OnboardingSuccessComponentNoSRP = () => (
+  <OnboardingSuccess
+    noSRP
+    onDone={() =>
+      NavigationService.navigation.reset({
+        routes: [{ name: 'HomeNav' }],
+      })
+    }
+  />
+);
+
+const OnboardingSuccessFlow = () => (
+  <Stack.Navigator
+    name={Routes.ONBOARDING.SUCCESS_FLOW}
+    initialRouteName={Routes.ONBOARDING.SUCCESS}
+  >
+    <Stack.Screen
+      name={Routes.ONBOARDING.SUCCESS}
+      component={OnboardingSuccessComponent} // Used in SRP flow
+      options={OnboardingSuccess.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
+      component={DefaultSettings}
+      options={DefaultSettings.navigationOptions}
+    />
+  </Stack.Navigator>
+);
 /**
  * Stack navigator responsible for the onboarding process
  * Create Wallet and Import from Secret Recovery Phrase
@@ -149,6 +189,21 @@ const OnboardingNav = () => (
       name="AccountBackupStep1B"
       component={AccountBackupStep1B}
       options={AccountBackupStep1B.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SUCCESS_FLOW}
+      component={OnboardingSuccessFlow}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SUCCESS}
+      component={OnboardingSuccessComponentNoSRP} // Used in SRP flow
+      options={OnboardingSuccess.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
+      component={DefaultSettings}
+      options={DefaultSettings.navigationOptions}
     />
     <Stack.Screen
       name="ManualBackupStep1"
@@ -570,6 +625,10 @@ const App = ({ userLoggedIn }) => {
         component={NetworkSelector}
       />
       <Stack.Screen
+        name={Routes.SHEET.BASIC_FUNCTIONALITY}
+        component={BasicFunctionality}
+      />
+      <Stack.Screen
         name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
         component={ReturnToAppModal}
       />
@@ -717,6 +776,11 @@ const App = ({ userLoggedIn }) => {
             <Stack.Screen
               name="OnboardingRootNav"
               component={OnboardingRootNav}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name={Routes.ONBOARDING.SUCCESS_FLOW}
+              component={OnboardingSuccessFlow}
               options={{ headerShown: false }}
             />
             {userLoggedIn && (
