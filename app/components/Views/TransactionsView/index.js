@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, InteractionManager } from 'react-native';
 import PropTypes from 'prop-types';
-import { connect, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import { withNavigation } from '@react-navigation/compat';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
@@ -21,7 +21,6 @@ import { addAccountTimeFlagFilter } from '../../../util/transactions';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
   selectChainId,
-  selectNetworkId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import {
@@ -34,6 +33,8 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
+import { store } from '../../../store';
+import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -56,11 +57,10 @@ const TransactionsView = ({
   const [submittedTxs, setSubmittedTxs] = useState([]);
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
-  const networkId = useSelector(selectNetworkId);
 
   const filterTransactions = useCallback(
     (networkId) => {
-      if (networkId === null) return;
+      if (networkId === NETWORK_ID_LOADING) return;
 
       let accountAddedTimeInsertPointFound = false;
       const addedAccountTime = identities[selectedAddress]?.importTime;
@@ -156,9 +156,10 @@ const TransactionsView = ({
     so the effect will not be noticeable if the user is in this screen.
     */
     InteractionManager.runAfterInteractions(() => {
+      const { networkId } = store.getState().inpageProvider;
       filterTransactions(networkId);
     });
-  }, [filterTransactions, networkId]);
+  }, [filterTransactions]);
 
   return (
     <View

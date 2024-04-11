@@ -1,4 +1,4 @@
-import messages from '../../locales/languages/en.json';
+import enContent from '../../locales/languages/en.json';
 
 export const AddCustomTokenViewSelectorsIDs = {
   CANCEL_BUTTON: 'add-custom-asset-cancel-button',
@@ -6,6 +6,6 @@ export const AddCustomTokenViewSelectorsIDs = {
 };
 
 export const AddCustomTokenViewSelectorsText = {
-  TOKEN_SYMBOL: messages.token.token_symbol,
-  IMPORT_BUTTON: messages.add_asset.tokens.add_token,
+  TOKEN_SYMBOL: enContent.token.token_symbol,
+  IMPORT_BUTTON: enContent.add_asset.tokens.add_token,
 };
