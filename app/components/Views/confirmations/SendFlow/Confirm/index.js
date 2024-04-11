@@ -1095,9 +1095,10 @@ class Confirm extends PureComponent {
   };
 
   onContactUsClicked = () => {
+    const { transaction } = this.props;
     const analyticsParams = {
       ...this.getAnalyticsParams(),
-      ...this.withBlockaidMetricsParams(),
+      ...this.withBlockaidMetricsParams(transaction),
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(

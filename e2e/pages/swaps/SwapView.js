@@ -1,13 +1,13 @@
 import TestHelpers from '../../helpers';
 import { SwapsViewSelectors } from '../../selectors/swaps/SwapsView.selectors.js';
 
-import messages from '../../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 import { waitFor } from 'detox';
 
 export default class SwapView {
   static async isVisible() {
     await TestHelpers.checkIfElementByTextIsVisible(
-      messages.swaps.fetching_quotes,
+      enContent.swaps.fetching_quotes,
     );
     await TestHelpers.checkIfVisible(SwapsViewSelectors.SWAP_QUOTE_SUMMARY);
     await TestHelpers.checkIfVisible(SwapsViewSelectors.SWAP_GAS_FEE);

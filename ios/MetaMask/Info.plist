@@ -43,6 +43,11 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>twitter</string>
+		<string>itms-apps</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -64,12 +69,12 @@
 	<string>MetaMask needs Bluetooth access to connect to external devices.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>MetaMask needs camera access to scan QR codes</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>MetaMask needs microphone access to record audio</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs to authenticate</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>MetaMask needs microphone access to record audio</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Allow MetaMask to save an image to your Photo Library</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -115,6 +120,11 @@
 		<string>EuclidCircularB-Semibold.otf</string>
 		<string>EuclidCircularB-SemiboldItalic.otf</string>
 	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
@@ -134,6 +144,8 @@
 		<key>test</key>
 		<string>$(MM_BRANCH_KEY_TEST)</string>
 	</dict>
+	<key>mixpanel_token</key>
+	<string>$(MM_MIXPANEL_TOKEN)</string>
 	<key>fox_code</key>
 	<string>$(MM_FOX_CODE)</string>
 	<key>LSApplicationQueriesSchemes</key>
