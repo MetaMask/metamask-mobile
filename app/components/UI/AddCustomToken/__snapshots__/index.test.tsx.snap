@@ -271,7 +271,7 @@ exports[`AddCustomToken should render correctly 1`] = `
                 }
               }
             >
-              Token Symbol
+              Token symbol
             </Text>
             <TextInput
               editable={true}
@@ -323,7 +323,7 @@ exports[`AddCustomToken should render correctly 1`] = `
                 }
               }
             >
-              Token Decimal
+              Token decimal
             </Text>
             <TextInput
               editable={true}
