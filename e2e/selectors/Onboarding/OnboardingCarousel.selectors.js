@@ -1,4 +1,4 @@
-import messages from '../../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 export const OnboardingCarouselSelectorIDs = {
   CONTAINER_ID: 'onboarding-carousel-screen',
@@ -10,7 +10,7 @@ export const OnboardingCarouselSelectorIDs = {
 };
 
 export const OnboardingCarouselSelectorText = {
-  TITLE_ONE: messages.onboarding_carousel.title1,
-  TITLE_TWO: messages.onboarding_carousel.title2,
-  TITLE_THREE: messages.onboarding_carousel.title3,
+  TITLE_ONE: enContent.onboarding_carousel.title1,
+  TITLE_TWO: enContent.onboarding_carousel.title2,
+  TITLE_THREE: enContent.onboarding_carousel.title3,
 };
