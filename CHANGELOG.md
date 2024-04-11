@@ -2,6 +2,10 @@
 
 ## Current Main Branch
 
+## 7.19.1 - Apr 10, 2024
+### Fixed
+- [#9193](https://github.com/MetaMask/metamask-mobile/pull/9193): fix(ramp): default networks state to array
+
 ## 7.19.0 - Mar 19, 2024
 ### Added
 - [#8935](https://github.com/MetaMask/metamask-mobile/pull/8935): feat: Remove powered by blockaid line
