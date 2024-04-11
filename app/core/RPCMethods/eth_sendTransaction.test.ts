@@ -2,7 +2,7 @@
 import { inspect } from 'util';
 import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
 import type {
-  Transaction,
+  TransactionParams,
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
@@ -99,7 +99,7 @@ function getMockAddTransaction({
 
   return jest.fn().mockImplementation(
     async (
-      transaction: Transaction,
+      transaction: TransactionParams,
       {
         origin,
         deviceConfirmedOn,

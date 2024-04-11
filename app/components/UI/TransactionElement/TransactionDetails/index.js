@@ -113,7 +113,6 @@ class TransactionDetails extends PureComponent {
      */
     showSpeedUpModal: PropTypes.func,
     showCancelModal: PropTypes.func,
-    transaction: PropTypes.object,
     selectedAddress: PropTypes.string,
     transactions: PropTypes.array,
     ticker: PropTypes.string,

@@ -17,7 +17,6 @@ import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
 import { store } from '../store';
-import { toHex } from '@metamask/controller-utils';
 
 const constructTitleAndMessage = (data) => {
   let title, message;

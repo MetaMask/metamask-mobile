@@ -179,7 +179,7 @@ index 53a9dd2..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index cb7df48..29da8e5 100644
+index cb7df48..413e141 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -372,7 +372,13 @@ index cb7df48..29da8e5 100644
                      releaseLock();
                      this.failTransaction(transactionMeta, new Error('No chainId defined.'));
                      return;
-@@ -764,7 +802,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -759,12 +797,12 @@ class TransactionController extends base_controller_1.BaseController {
+                 // if a nonce already exists on the transactionMeta it means this is a speedup or cancel transaction
+                 // so we want to reuse that nonce and hope that it beats the previous attempt to chain. Otherwise use a new locked nonce
+                 if (!nonceToUse) {
+-                    nonceLock = yield this.nonceTracker.getNonceLock(from);
++                    nonceLock = yield this.getNonceLock(from);
+                     nonceToUse = (0, ethereumjs_util_1.addHexPrefix)(nonceLock.nextNonce.toString(16));
                  }
                  transactionMeta.status = status;
                  transactionMeta.txParams.nonce = nonceToUse;
@@ -390,18 +396,20 @@ index cb7df48..29da8e5 100644
                  transactionMeta.hash = hash;
                  transactionMeta.status = types_1.TransactionStatus.submitted;
                  transactionMeta.submittedTime = new Date().getTime();
-@@ -794,10 +832,6 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -794,11 +832,10 @@ class TransactionController extends base_controller_1.BaseController {
                  this.failTransaction(transactionMeta, error);
              }
              finally {
 -                // must set transaction to submitted/failed before releasing lock
--                if (nonceLock) {
--                    nonceLock.releaseLock();
--                }
-                 releaseLock();
++                releaseLock();
+                 if (nonceLock) {
+                     nonceLock.releaseLock();
+                 }
+-                releaseLock();
              }
          });
-@@ -818,6 +852,18 @@ class TransactionController extends base_controller_1.BaseController {
+     }
+@@ -818,6 +855,18 @@ class TransactionController extends base_controller_1.BaseController {
          const transactions = this.state.transactions.filter(({ id }) => id !== transactionId);
          this.update({ transactions: this.trimTransactionsForState(transactions) });
      }
@@ -420,7 +428,7 @@ index cb7df48..29da8e5 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -929,9 +975,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -929,9 +978,17 @@ class TransactionController extends base_controller_1.BaseController {
                      }
                      /* istanbul ignore next */
                      if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
@@ -441,7 +449,7 @@ index cb7df48..29da8e5 100644
                      }
                      return [meta, false];
                  default:
-@@ -1014,14 +1068,15 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -1014,14 +1071,15 @@ class TransactionController extends base_controller_1.BaseController {
          const { networkId, providerConfig: { type: chain, chainId, nickname: name }, } = this.getNetworkState();
          if (chain !== controller_utils_1.RPC &&
              chain !== controller_utils_1.NetworkType['linea-goerli'] &&
@@ -459,7 +467,7 @@ index cb7df48..29da8e5 100644
          };
          return common_1.Common.custom(customChainParams);
      }
-@@ -1173,6 +1228,40 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -1173,6 +1231,40 @@ class TransactionController extends base_controller_1.BaseController {
              }
          });
      }
