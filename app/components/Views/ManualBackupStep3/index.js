@@ -66,11 +66,6 @@ const createStyles = (colors) =>
     recoverText: {
       marginBottom: 26,
     },
-    emoji: {
-      textAlign: 'center',
-      fontSize: 65,
-      marginBottom: 16,
-    },
   });
 
 const hardwareBackPress = () => ({});

@@ -29,6 +29,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../core/AppConstants';
+import Emoji from 'react-native-emoji';
 
 const styles = StyleSheet.create({
   root: {
@@ -44,8 +45,9 @@ const styles = StyleSheet.create({
     bottom: 50,
   },
   emoji: {
-    fontSize: 74,
-    alignSelf: 'center',
+    textAlign: 'center',
+    fontSize: 65,
+    marginBottom: 16,
   },
   title: {
     paddingTop: 20,
@@ -156,7 +158,7 @@ const OnboardingSuccess = ({
     if (backedUpSRP) {
       return (
         <>
-          <RNText style={styles.emoji}>🎉</RNText>
+          <Emoji name="tada" style={styles.emoji} />
           <Text style={styles.title}>
             {strings('onboarding_success.title')}
           </Text>
