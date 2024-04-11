@@ -58,8 +58,6 @@ const createStyles = (colors: Colors) =>
       gap: 70,
     },
     bottomContainer: {
-      flex: 1,
-      paddingTop: 32,
       bottom: 20,
     },
     assetIcon: {
