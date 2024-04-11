@@ -506,7 +506,8 @@ class Approve extends PureComponent {
   onConfirm = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
-    const { transactions, gasEstimateType, isSmartTransaction } = this.props;
+    const { transactions, gasEstimateType, isSmartTransaction, metrics } =
+      this.props;
     const {
       legacyGasTransaction,
       transactionConfirmed,
