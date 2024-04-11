@@ -1,24 +1,8 @@
-import type { Json } from '@metamask/utils';
+import { Json } from '@metamask/utils';
+import type { KeyDerivationOptions } from '@metamask/browser-passworder';
 
-/**
- * Parameters used for key derivation.
- * @interface KeyParams
- * @property iterations - The number of iterations to use in the key derivation process.
- */
-export interface KeyParams {
-  iterations: number;
-}
-
-/**
- * Options for key derivation, specifying the algorithm and parameters to use.
- * @interface KeyDerivationOptions
- * @property algorithm - The name of the algorithm to use for key derivation.
- * @property params - The parameters to use with the specified algorithm.
- */
-export interface KeyDerivationOptions {
-  algorithm: string;
-  params: KeyParams;
-}
+/** Key derivation function options. */
+export type { KeyDerivationOptions };
 
 /**
  * The result of an encryption operation.
@@ -30,10 +14,12 @@ export interface KeyDerivationOptions {
  * @property [keyMetadata] - Metadata about the key derivation, if key derivation was used.
  */
 export interface EncryptionResult {
-  cipher: string;
+  // NOTE: We do redefine our own type since some fields are named differently than the one
+  // defined in @metamask/browser-passworder. Plus, we also have additional logic here.
+  cipher: string; // Named `data` in @metamask/browser-passworder
   iv: string;
   salt?: string;
-  lib?: string;
+  lib?: string; // Specific to the mobile version
   keyMetadata?: KeyDerivationOptions;
 }
 
@@ -44,7 +30,7 @@ export interface EncryptionResult {
  * for checking if an encrypted vault is up to date with the desired
  * encryption algorithm and parameters.
  */
-export interface GenericEncryptor {
+export interface GenericEncryptor<Data = Json> {
   /**
    * Encrypts the given object with the given password.
    *
@@ -52,7 +38,7 @@ export interface GenericEncryptor {
    * @param object - The object to encrypt.
    * @returns The encrypted string.
    */
-  encrypt: (password: string, object: Json) => Promise<string>;
+  encrypt: (password: string, data: Data) => Promise<string>;
   /**
    * Decrypts the given encrypted string with the given password.
    *
@@ -60,7 +46,7 @@ export interface GenericEncryptor {
    * @param encryptedString - The encrypted string to decrypt.
    * @returns The decrypted object.
    */
-  decrypt: (password: string, encryptedString: string) => Promise<unknown>;
+  decrypt: (password: string, text: string) => Promise<unknown>;
   /**
    * Optional vault migration helper. Checks if the provided vault is up to date
    * with the desired encryption algorithm.

@@ -3690,6 +3690,13 @@
   dependencies:
     "@metamask/utils" "^8.2.0"
 
+"@metamask/browser-passworder@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-5.0.0.tgz#760923b176f5de5d35b8e543583b476d102ff681"
+  integrity sha512-L90OlWgugmL1RNgmL7SErAvh+LuPlLzWGL4m2qGrJ+vEkvRZlQXwWZx70rBnfH08GjyViVwSaRZgk0oozLlNTw==
+  dependencies:
+    "@metamask/utils" "^8.2.0"
+
 "@metamask/build-utils@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/build-utils/-/build-utils-1.0.0.tgz#19918f803422b054e5fcf79f68910b02ec97a83c"

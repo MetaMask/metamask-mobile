@@ -1,4 +1,4 @@
-import { KeyDerivationOptions } from './types';
+import type { KeyDerivationOptions } from './types';
 
 export const SALT_BYTES_COUNT = 32;
 export const SHA256_DIGEST_LENGTH = 256;
