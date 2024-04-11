@@ -347,7 +347,8 @@ export async function getTransactionActionKey(transaction, chainId) {
     return SWAPS_TRANSACTION_ACTION_KEY;
   let ret;
   // if data in transaction try to get method data
-  if (data && data !== '0x') {
+  // For pending smartTransactions do not try to getMethodData as there is a nonce lock and this will prevent it from showing up on TransactionsView
+  if (data && data !== '0x' && !transaction.isSmartTransaction) {
     const methodData = await getMethodData(data);
     const { name } = methodData;
     if (name) return name;
