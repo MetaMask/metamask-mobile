@@ -123,7 +123,6 @@
     "**/babel-runtime/regenerator-runtime": "^0.13.8"
   },
   "dependencies": {
-    "@metamask/eth-ledger-bridge-keyring": "3.0.0",
     "@consensys/on-ramp-sdk": "1.26.8",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/common": "^2.3.1",
@@ -143,6 +142,7 @@
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^4.0.0",
     "@metamask/design-tokens": "^2.0.0",
+    "@metamask/eth-ledger-bridge-keyring": "3.0.0",
     "@metamask/eth-sig-util": "^4.0.1",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/gas-fee-controller": "6.1.2",
@@ -551,7 +551,8 @@
       "react-native-svg-asset-plugin>sharp": true,
       "ts-node>@swc/core": false,
       "@metamask/sdk-communication-layer>bufferutil": false,
-      "@metamask/sdk-communication-layer>utf-8-validate": false
+      "@metamask/sdk-communication-layer>utf-8-validate": false,
+      "@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false
     }
   }
 }

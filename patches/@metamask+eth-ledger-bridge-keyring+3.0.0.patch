@@ -1,10 +1,10 @@
 diff --git a/node_modules/@metamask/eth-ledger-bridge-keyring/.DS_Store b/node_modules/@metamask/eth-ledger-bridge-keyring/.DS_Store
 new file mode 100644
-index 0000000..7a56c26
+index 0000000..abf44d3
 Binary files /dev/null and b/node_modules/@metamask/eth-ledger-bridge-keyring/.DS_Store differ
 diff --git a/node_modules/@metamask/eth-ledger-bridge-keyring/dist/.DS_Store b/node_modules/@metamask/eth-ledger-bridge-keyring/dist/.DS_Store
 new file mode 100644
-index 0000000..062174d
+index 0000000..3fdc246
 Binary files /dev/null and b/node_modules/@metamask/eth-ledger-bridge-keyring/dist/.DS_Store differ
 diff --git a/node_modules/@metamask/eth-ledger-bridge-keyring/dist/index.d.ts b/node_modules/@metamask/eth-ledger-bridge-keyring/dist/index.d.ts
 index b08ff49..34ffdbd 100644

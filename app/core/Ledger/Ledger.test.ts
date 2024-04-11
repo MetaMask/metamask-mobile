@@ -7,7 +7,6 @@ import {
   forgetLedger,
   ledgerSignTypedMessage,
   unlockLedgerDefaultAccount,
-  getDeviceId,
 } from './Ledger';
 import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -21,7 +20,6 @@ const ledgerKeyring = {
   quitApp: jest.fn(),
   forgetDevice: jest.fn(),
   deserialize: jest.fn(),
-  deviceId: 'deviceId',
   getName: jest.fn().mockResolvedValue('name'),
   openEthereumAppOnLedger: jest.fn(),
 };
@@ -29,7 +27,6 @@ const ledgerKeyring = {
 describe('Ledger core', () => {
   const ledgerKeyringClone = {
     ...ledgerKeyring,
-    deviceId: 'deviceIdClone',
   };
   const mockAddNewKeyring = jest.fn().mockReturnValue(ledgerKeyring);
   const mockGetKeyringsByType = jest.fn().mockReturnValue([ledgerKeyringClone]);
@@ -82,17 +79,17 @@ describe('Ledger core', () => {
   describe('connectLedgerHardware', () => {
     const mockTransport = 'foo' as unknown as BleTransport;
     it('should call keyring.setTransport', async () => {
-      await connectLedgerHardware(mockTransport, 'bar');
+      await connectLedgerHardware(mockTransport);
       expect(ledgerKeyring.setTransport).toHaveBeenCalled();
     });
 
     it('should call keyring.getAppAndVersion', async () => {
-      await connectLedgerHardware(mockTransport, 'bar');
+      await connectLedgerHardware(mockTransport);
       expect(ledgerKeyring.getAppAndVersion).toHaveBeenCalled();
     });
 
     it('should return app name', async () => {
-      const value = await connectLedgerHardware(mockTransport, 'bar');
+      const value = await connectLedgerHardware(mockTransport);
       expect(value).toBe('appName');
     });
   });
@@ -147,13 +144,6 @@ describe('Ledger core', () => {
       expect(mockUpdateIdentities).toBeCalledWith([
         '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
       ]);
-    });
-  });
-
-  describe('getDeviceId', () => {
-    it('should return deviceId', async () => {
-      const value = await getDeviceId();
-      expect(value).toBe('deviceId');
     });
   });
 

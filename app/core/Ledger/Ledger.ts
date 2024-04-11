@@ -38,17 +38,15 @@ export const getLedgerKeyring = async (): Promise<LedgerKeyring> => {
  * Connects to the ledger device by requesting some metadata from it.
  *
  * @param transport - The transport to use to connect to the device
- * @param deviceId - The device ID to connect to
  * @returns The name of the currently open application on the device
  */
 export const connectLedgerHardware = async (
   transport: BleTransport,
-  deviceId: string,
 ): Promise<string> => {
   const keyring = await getLedgerKeyring();
   keyring.setHdPath("m/44'/60'/0'/0");
   const bridge = keyring.bridge as LedgerMobileBridge;
-  bridge.updateTransportMethod(transport);
+  await bridge.updateTransportMethod(transport);
   // keyring.setTransport(transport as unknown as any, deviceId);
   const { appName } = await bridge.getAppNameAndVersion();
   return appName;
@@ -111,16 +109,16 @@ export const forgetLedger = async (): Promise<void> => {
   PreferencesController.updateIdentities(await KeyringController.getAccounts());
 };
 
-/**
- * Get DeviceId from Ledger Keyring
- *
- * @returns The DeviceId
- */
-export const getDeviceId = async (): Promise<string> => {
-  const ledgerKeyring = await getLedgerKeyring();
-  const bridge = ledgerKeyring.bridge as LedgerMobileBridge;
-  return bridge.deviceId;
-};
+// /**
+//  * Get DeviceId from Ledger Keyring
+//  *
+//  * @returns The DeviceId
+//  */
+// export const getDeviceId = async (): Promise<string> => {
+//   const ledgerKeyring = await getLedgerKeyring();
+//   const bridge = ledgerKeyring.bridge as LedgerMobileBridge;
+//   return bridge.deviceId;
+// };
 
 /**
  * signTypedMessage from Ledger Keyring

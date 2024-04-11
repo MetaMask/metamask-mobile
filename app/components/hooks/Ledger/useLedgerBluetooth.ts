@@ -33,7 +33,7 @@ const RESTART_LIMIT = 5;
 // Assumptions
 // 1. One big code block - logic all encapsulated in logicToRun
 // 2. logicToRun calls setUpBluetoothConnection
-function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
+function useLedgerBluetooth(): UseLedgerBluetoothHook {
   // This is to track if we are expecting code to run or connection operational
   const [isSendingLedgerCommands, setIsSendingLedgerCommands] =
     useState<boolean>(false);
@@ -74,16 +74,18 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
 
   // Sets up the Bluetooth transport
   const setUpBluetoothConnection = async () => {
-    if (transportRef.current && deviceId) {
+    if (transportRef.current) {
       setIsSendingLedgerCommands(true);
     }
 
-    if (!transportRef.current && deviceId) {
+    if (!transportRef.current) {
       try {
         const BluetoothTransport: any = await import(
           '@ledgerhq/react-native-hw-transport-ble'
         );
-        transportRef.current = await BluetoothTransport.default.open(deviceId);
+
+        //TODO - check if this is the correct way to open the transport
+        transportRef.current = await BluetoothTransport.default.open();
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         transportRef.current?.on('disconnect', (e: any) => {
           transportRef.current = undefined;
@@ -127,13 +129,12 @@ function useLedgerBluetooth(deviceId?: string): UseLedgerBluetoothHook {
       // Must do this at start of every code block to run to ensure transport is set
       await setUpBluetoothConnection();
 
-      if (!transportRef.current || !deviceId) {
+      if (!transportRef.current) {
         throw new Error('transportRef.current is undefined');
       }
       // Initialise the keyring and check for pre-conditions (is the correct app running?)
       const appName = await connectLedgerHardware(
         transportRef.current as unknown as BleTransport,
-        deviceId,
       );
 
       // BOLOS is the Ledger main screen app
