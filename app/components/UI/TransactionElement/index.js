@@ -37,7 +37,6 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
-import { getIsSmartTransaction } from '../../../selectors/smartTransactionsController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
