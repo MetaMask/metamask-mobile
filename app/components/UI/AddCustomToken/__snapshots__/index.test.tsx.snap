@@ -119,7 +119,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
               }
             }
           >
-            Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about
+            Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about 
           </Text>
           <Text
             onPress={[Function]}
