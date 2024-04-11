@@ -351,12 +351,17 @@
     "no_collectibles": "अपना NFT नहीं देखा?",
     "no_available_tokens": "अपना टोकन नहीं देखें?",
     "add_tokens": "टोकन इम्पोर्ट करें",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "इस खाते में {{tokenCount}} नया {{tokensLabel}} मिला",
     "token_toast": {
       "tokens_imported_title": "इंम्पोर्ट किए गए टोकन",
       "tokens_imported_desc": "{{tokenSymbols}} सफलतापूर्वक इम्पोर्ट किया गया",
       "token_imported_title": "इंम्पोर्ट किए गए टोकन",
       "token_imported_desc": "{{tokenSymbol}} सफलतापूर्वक इंपोर्ट किया गया",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "टोकन  छुपाना",
       "tokens_hidden_desc": "अपने वॉलेट से पता लगाए गए टोकन छिपाना",
       "token_hidden_title": "टोकन छुपाना",
@@ -376,6 +381,8 @@
     "nfts_autodetection_desc": "MetaMask को अनुमति दें ताकि OpenSea से NFT का अपनेआप पता लगा ले और आपके MetaMask वॉलेट में दिखे।",
     "network_details_check": "नेटवर्क डिटेल्स की जांच",
     "network_with_chain_id": "चेन ID के साथ वाला नेटवर्क",
+    "chain_list_returned_different_ticker_symbol": "यह टोकन सिंबल आपके द्वारा डाले गए नेटवर्क नाम या चेन ID से मैच नहीं कर रहा है। कई लोकप्रिय टोकन इसी तरह के सिंबल का उपयोग करते हैं, जिनका उपयोग स्कैमर्स आपको बदले में ज़्यादा कीमती टोकन भेजने का झांसा देने के लिए कर सकते हैं। आगे बढ़ने से पहले हर चीज़ अच्छे से वेरीफाई कर लें।",
+    "suggested_token_symbol": "सुझाया गया टिकर सिंबल:",
     "potential_scam": "यह एक बड़ा स्कैम है",
     "network_not_matching": "यह नेटवर्क अपने साथ जुड़ी हुई चेन ID या नाम से मेल नहीं खाता है। कई लोकप्रिय टोकन नाम का उपयोग करते हैं,",
     "target_scam_network": "जिससे इसमें स्कैम किया जा सकता है। स्कैम करने वाले आपको बदले में ज़्यादा कीमती करेंसी भेजने का झांसा दे सकते हैं। आगे बढ़ने से पहले सब कुछ वेरीफाई करें।",
@@ -439,8 +446,8 @@
   "add_asset": {
     "title": "इम्पोर्ट टोकन",
     "title_nft": "NFT इम्पोर्ट करें",
-    "search_token": "खोजें",
-    "custom_token": "कस्टम टोकन",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "रद्द करें",
       "add_token": "इम्पोर्ट"
@@ -497,14 +504,16 @@
     "resultPageErrorDefaultMessage": "परिचालन विफल रहा।"
   },
   "token": {
-    "token_symbol": "टोकन सिंबल",
+    "token_symbol": "Token symbol",
     "token_address": "टोकन का पता",
-    "token_decimal": "टोकन दशमलव",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "टोकन खोजें",
     "address_cant_be_empty": "टोकन का पता कभी खाली नहीं रह सकता।",
     "address_must_be_valid": "टोकन का पता एक मान्य पता होना चाहिए।",
     "symbol_cant_be_empty": "टोकन का प्रतीक खाली नहीं रह सकता।",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "टोकन का दशमलव खाली नहीं रह सकता।",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "हम उस नाम के साथ कोई टोकन नहीं ढ़ूंढ़ सके।",
     "select_token": "टोकन चुनें",
     "address_must_be_smart_contract": "व्यक्तिगत पता का पहचान हुई। टोकन अनुबंध पता दर्ज करें।"
@@ -541,10 +550,10 @@
   },
   "accounts": {
     "create_new_account": "नया खाता बनाएं",
-    "qr_hardware": "QR हार्डवेयर",
     "import_account": "एक खाता इम्पोर्ट करें",
     "connect_hardware": "हार्डवेयर वॉलेट कनेक्ट करें",
     "imported": "इम्पोर्ट किया गया",
+    "qr_hardware": "QR हार्डवेयर",
     "remove_account_title": "अकाउंट हटाया जाना",
     "remove_account_message": "क्या आप वास्तव में इस अकाउंट को हटाना चाहते हैं?",
     "no": "नहीं",
@@ -891,6 +900,7 @@
     "security_check_subheading": "सुरक्षा जाँचें",
     "symbol_required": "सिंबल की ज़रूरत है।",
     "blockaid": "Blockaid",
+    "blockaid_desc": "गोपनीयता को सुरक्षित रखना - कोई भी डेटा थर्ड पार्टी के साथ साझा नहीं किया जाता है। Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon और Sepolia पर उपलब्ध है।",
     "security_alerts": "सुरक्षा एलर्ट",
     "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।"
   },
@@ -1291,6 +1301,7 @@
     "contract": "अनुबंध ({{address}})",
     "contract_name": "अनुबंध का नाम:",
     "contract_address": "अनुबंध का पता:",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "भत्ता:",
     "data": "डेटा",
     "function_approve": "फंक्शन: स्वीकृति",
@@ -1786,6 +1797,9 @@
     "pending_deposit_message": "जमा पूरा होने का इंतजार करना",
     "pending_withdrawal_message": "निकासी पूरा होने का इंतजार करना",
     "error_message": "इस लेन-देन को देखने के लिए टैप करें",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "इस लेन-देन को देखने के लिए टैप करें",
     "speedup_message": "लेन-देन की गति बढ़ाने की कोशिश करना",
     "success_deposit_message": "आपके फंड उपयोग के लिए तैयार हैं",
@@ -2406,6 +2420,7 @@
       "title": "सुरक्षा चेतावनियों के माध्यम से सुरक्षित रहें",
       "description_1": "ब्लॉकएड द्वारा संचालित सिक्योरिटी अलर्ट के साथ अपनी गोपनीयता की रक्षा करते हुए पहचाने गए स्कैम से सुरक्षित रहें। यह सुविधा अब सभी MetaMask उपयोगकर्ताओं के लिए डिफ़ॉल्ट रूप से चालू है।",
       "description_2": "किसी भी रिक्वेस्ट को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें।",
+      "description_3": "Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon और Sepolia पर उपलब्ध है।",
       "got_it": "समझ गए"
     },
     "sell": {
@@ -2717,8 +2732,10 @@
     "bluetooth_off_message": "कृपया अपने डिवाइस के लिए ब्लूटूथ चालू करें",
     "bluetooth_access_blocked": "Ledger को आपके मोबाइल डिवाइस के साथ पेयर करने के लिए ब्लूटूथ एक्सेस की आवश्यकता होती है।",
     "bluetooth_access_blocked_message": "यदि आप अपने Ledger डिवाइस को पेयर करने के लिए ब्लूटूथ का उपयोग करना चाहते हैं, तो कृपया इसे सेटिंग्स में सक्षम करें और फिर से कोशिश करें।",
-    "location_access_blocked": "Ledger को आपके मोबाइल डिवाइस के साथ पेयर करने के लिए लोकेशन एक्सेस की आवश्यकता है।",
+    "location_access_blocked": "MetaMask को आपके Ledger के साथ पेयर करने के लिए लोकेशन एक्सेस की अनुमति चाहिए।",
     "location_access_blocked_message": "यदि आप अपने Ledger डिवाइस को पेयर करने के लिए ब्लूटूथ का उपयोग करना चाहते हैं, तो आपको सेटिंग्स में लोकेशन ऐक्सेस सक्षम करने और फिर से कोशिश करने की आवश्यकता है।",
+    "nearbyDevices_access_blocked": "MetaMask को आपके Ledger के साथ पेयर करने के लिए नज़दीकी डिवाइसों की अनुमति चाहिए।",
+    "nearbyDevices_access_blocked_message": "यदि आप अपने Ledger डिवाइस को पेयर करने के लिए ब्लूटूथ का उपयोग करना चाहते हैं, तो आपको सेटिंग्स में नज़दीकी डिवाइसें चालू करके दोबारा कोशिश करनी होगी।",
     "bluetooth_scanning_error": "डिवाइस स्कैन करते समय गड़बड़ी",
     "bluetooth_scanning_error_message": "कृपया सुनिश्चित करें कि आपका डिवाइस अनलॉक है और Ethereum ऐप चल रहा है",
     "bluetooth_connection_failed": "ब्लूटूथ कनेक्शन नही हो सका",
@@ -2738,10 +2755,12 @@
     "connect_ledger": "Ledger कनेक्ट करें",
     "looking_for_device": "डिवाइस खोज रहा है",
     "ledger_reminder_message": "कृपया पक्का करें कि आपका Ledger Nano X है:",
-    "ledger_reminder_message_step_one": "1. अनलॉक है",
-    "ledger_reminder_message_step_two": "2. Ethereum ऐप इंस्टॉल हो गया है",
-    "ledger_reminder_message_step_three": "3. ब्लूटूथ सक्षम है",
-    "ledger_reminder_message_step_four": "4. लोकेशन सक्षम है",
+    "ledger_reminder_message_step_one": "1. अपने Ledger Nano X को अनलॉक करें",
+    "ledger_reminder_message_step_two": "2. Ethereum ऐप को इनस्टॉल करें और खोलें",
+    "ledger_reminder_message_step_three": "3. ब्लूटूथ चालू करें",
+    "ledger_reminder_message_step_four": "4. सटीक लोकेशन के उपयोग के साथ लोकेशन चालू कर दी गई है",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. नज़दीकी डिवाइसें चालू कर दी गई हैं",
+    "ledger_reminder_message_step_five": "5. 'परेशान न करें' फ़ीचर को बंद कर देना चाहिए",
     "available_devices": "उपलब्ध डिवाइस",
     "retry": "फिर से कोशिश करें",
     "continue": "जारी रखें",
@@ -2824,5 +2843,8 @@
     "okay_action": "ठीक है",
     "error_title": "इंस्टॉल नहीं हो पाया",
     "error_description": "{{snap}} का इंस्टॉलेशन नहीं हो पाया।"
+  },
+  "stake": {
+    "stake": "Stake"
   }
 }
