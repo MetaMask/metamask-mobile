@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 'use strict';
 
 import PushNotification from 'react-native-push-notification';
@@ -359,20 +360,24 @@ class NotificationManager {
   watchSubmittedTransaction(transaction, speedUp = false) {
     if (transaction.silent) return false;
     const { TransactionController } = Engine.context;
-    const nonce = toHex(transaction.txParams.nonce);
+    const transactionMeta = TransactionController.state.transactions.find(
+      ({ id }) => id === transaction.id,
+    );
+
+    const nonce = transactionMeta.txParams.nonce;
     // First we show the pending tx notification if is not an speed up tx
     !speedUp &&
       this._showNotification({
         type: 'pending',
         autoHide: false,
         transaction: {
-          id: transaction.id,
+          id: transactionMeta.id,
         },
       });
 
     this._transactionsWatchTable[nonce]
-      ? this._transactionsWatchTable[nonce].push(transaction.id)
-      : (this._transactionsWatchTable[nonce] = [transaction.id]);
+      ? this._transactionsWatchTable[nonce].push(transactionMeta.id)
+      : (this._transactionsWatchTable[nonce] = [transactionMeta.id]);
 
     TransactionController.hub.once(
       `${transaction.id}:confirmed`,
