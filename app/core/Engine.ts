@@ -189,9 +189,9 @@ import { lowerCase } from 'lodash';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
 import { getIsSmartTransaction } from '../selectors/smartTransactionsController';
-import { publishHook as smartPublishHook } from '../util/smart-transactions/smart-tx';
 import { getSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { submitSmartTransactionHook } from '../util/smart-transactions/smart-tx2';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1038,7 +1038,7 @@ class Engine {
             isSmartTransaction,
           );
 
-          return smartPublishHook({
+          return submitSmartTransactionHook({
             transactionMeta,
             transactionController: this.txController,
             smartTransactionsController: this.stxController,
