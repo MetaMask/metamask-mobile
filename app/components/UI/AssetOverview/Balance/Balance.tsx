@@ -16,10 +16,8 @@ const Balance = ({ balance, fiatBalance }: BalanceProps) => {
   return (
     <View style={styles.wrapper}>
       <Text style={styles.text}>{strings('asset_overview.your_balance')}</Text>
-      <Title style={styles.fiatBalance}>
-        {fiatBalance || strings('asset_overview.unable_to_load_balance')}
-      </Title>
-      <Text style={styles.text}>{balance}</Text>
+      <Title style={styles.fiatBalance}>{fiatBalance || balance}</Title>
+      <Text style={styles.text}>{fiatBalance ? balance : ''}</Text>
     </View>
   );
 };
