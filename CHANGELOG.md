@@ -1,6 +1,52 @@
 # Changelog
 
 ## Current Main Branch
+- [#8992](https://github.com/MetaMask/metamask-mobile/pull/8992): chore: New Crowdin translations by Github Action
+- [#9206](https://github.com/MetaMask/metamask-mobile/pull/9206): fix: fix nfts displayed on account and refactor collectibles component
+- [#8988](https://github.com/MetaMask/metamask-mobile/pull/8988): feat: import tokens new UI
+- [#9199](https://github.com/MetaMask/metamask-mobile/pull/9199): chore: Chore/resolve xcode changes
+- [#9205](https://github.com/MetaMask/metamask-mobile/pull/9205): feat: translate multi import tokens
+- [#9114](https://github.com/MetaMask/metamask-mobile/pull/9114): feat: sdk deeplinking protocol
+- [#9185](https://github.com/MetaMask/metamask-mobile/pull/9185): fix: 9108 Keystone QR code can't send asset transaction
+- [#9197](https://github.com/MetaMask/metamask-mobile/pull/9197): test: Change instances of messages to enContent while importing from locales
+- [#8701](https://github.com/MetaMask/metamask-mobile/pull/8701): feat: notifications
+- [#9202](https://github.com/MetaMask/metamask-mobile/pull/9202): fix: Revert PR 9075
+- [#9075](https://github.com/MetaMask/metamask-mobile/pull/9075): fix: Send ppom metrics when transaction is cancelled.
+- [#9181](https://github.com/MetaMask/metamask-mobile/pull/9181): test: fix rpc test on Ci for Android
+- [#8674](https://github.com/MetaMask/metamask-mobile/pull/8674): refactor: Remove usage of regex for portfolio URLs
+- [#9190](https://github.com/MetaMask/metamask-mobile/pull/9190): chore(deps): bump tar from 6.2.0 to 6.2.1
+- [#9189](https://github.com/MetaMask/metamask-mobile/pull/9189): chore(deps): bump tar from 6.2.0 to 6.2.1 in /scripts/generate-attributions
+- [#9194](https://github.com/MetaMask/metamask-mobile/pull/9194): feat: 7.19.1
+- [#9065](https://github.com/MetaMask/metamask-mobile/pull/9065): feat: Update network controller to version 13.0.1
+- [#9161](https://github.com/MetaMask/metamask-mobile/pull/9161): feat: update popular network
+- [#9025](https://github.com/MetaMask/metamask-mobile/pull/9025): chore: improve yarn setup logs
+- [#9136](https://github.com/MetaMask/metamask-mobile/pull/9136): feat: add eth stake button
+- [#9188](https://github.com/MetaMask/metamask-mobile/pull/9188): feat: wc fixes + ux improvements
+- [#9124](https://github.com/MetaMask/metamask-mobile/pull/9124): chore: added new privacy file and identified reason for using privacy APIs
+- [#9166](https://github.com/MetaMask/metamask-mobile/pull/9166): feat: signature controller update to v6.0.0
+- [#9024](https://github.com/MetaMask/metamask-mobile/pull/9024): docs: Add xocde required config steps
+- [#9174](https://github.com/MetaMask/metamask-mobile/pull/9174): fix: change CUSTOM_TOKEN_IMPORTED tracking mode
+- [#9150](https://github.com/MetaMask/metamask-mobile/pull/9150): fix: wc connections and permissions system network improvement
+- [#9148](https://github.com/MetaMask/metamask-mobile/pull/9148): fix: Tokens disappearing when updating
+- [#9162](https://github.com/MetaMask/metamask-mobile/pull/9162): fix: Update account name in PreferencesController AND AccountsController
+- [#9165](https://github.com/MetaMask/metamask-mobile/pull/9165): feat: translate symbol warning text
+- [#5022](https://github.com/MetaMask/metamask-mobile/pull/5022): Bump buffer from 5.2.1 to 6.0.3
+- [#9139](https://github.com/MetaMask/metamask-mobile/pull/9139): chore(deps): bump es5-ext from 0.10.62 to 0.10.64
+- [#5093](https://github.com/MetaMask/metamask-mobile/pull/5093): Bump pify from 4.0.1 to 6.1.0
+- [#9146](https://github.com/MetaMask/metamask-mobile/pull/9146): test: Refactor Tab bar page object
+- [#9133](https://github.com/MetaMask/metamask-mobile/pull/9133): chore(deps-dev): bump chromedriver from 99.0.0 to 123.0.1
+- [#9135](https://github.com/MetaMask/metamask-mobile/pull/9135): chore: Update dependabot.yml to use new team label
+- [#8603](https://github.com/MetaMask/metamask-mobile/pull/8603): fix: nft detection running too many times
+- [#9045](https://github.com/MetaMask/metamask-mobile/pull/9045): feat: sdk connection dependency upgrade
+- [#9123](https://github.com/MetaMask/metamask-mobile/pull/9123): fix: Revert Update controller utils to 5.0.2
+- [#9125](https://github.com/MetaMask/metamask-mobile/pull/9125): fix: add display warning for mumbai
+- [#8645](https://github.com/MetaMask/metamask-mobile/pull/8645): chore(deps): bump ip from 1.1.5 to 1.1.9
+- [#9062](https://github.com/MetaMask/metamask-mobile/pull/9062): chore(deps): bump express from 4.18.2 to 4.19.2
+- [#9028](https://github.com/MetaMask/metamask-mobile/pull/9028): chore(deps): bump webpack-dev-middleware from 6.1.1 to 6.1.2
+- [#8958](https://github.com/MetaMask/metamask-mobile/pull/8958): fix: unit test metametrics at app startup
+- [#8745](https://github.com/MetaMask/metamask-mobile/pull/8745): fix: request location permission after it is rejected during Ledger connection
+- [#9110](https://github.com/MetaMask/metamask-mobile/pull/9110): feat: patch linea token pricing
+- [#9106](https://github.com/MetaMask/metamask-mobile/pull/9106): test: fix secrets for tenderly
 
 ## 7.19.1 - Apr 10, 2024
 ### Fixed
