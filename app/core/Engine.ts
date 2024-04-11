@@ -425,6 +425,7 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      // @ts-expect-error AssetsController needs to be updated to v14 for this error disappears
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
