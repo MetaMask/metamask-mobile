@@ -62,7 +62,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    * @param size - The number of bytes for the salt. Defaults to `constant.SALT_BYTES_COUNT`.
    * @returns The base64-encoded salt string.
    */
-  private generateSalt = (size = SALT_BYTES_COUNT) => {
+  generateSalt = (size = SALT_BYTES_COUNT) => {
     const view = new Uint8Array(size);
     // @ts-expect-error - globalThis is not recognized by TypeScript
     global.crypto.getRandomValues(view);
