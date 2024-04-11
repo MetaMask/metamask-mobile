@@ -1,4 +1,4 @@
-import messages from '../../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 export const NetworkAddedModalSelectorsIDs = {
   CLOSE_NETWORK_BUTTON: 'close-network-button',
@@ -6,5 +6,5 @@ export const NetworkAddedModalSelectorsIDs = {
 };
 
 export const NetworkAddedModalSelectorsText = {
-  SWITCH_NETWORK: messages.networks.new_network,
+  SWITCH_NETWORK: enContent.networks.new_network,
 };
