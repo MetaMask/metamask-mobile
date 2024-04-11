@@ -3,7 +3,6 @@ import { EventEmitter2 } from 'eventemitter2';
 import { NativeModules } from 'react-native';
 import Engine from '../../Engine';
 import { Minimizer } from '../../NativeModules';
-import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import { RPCQueueManager } from '../RPCQueueManager';
 
 import {
@@ -34,6 +33,7 @@ import {
   METHODS_TO_DELAY,
   RPC_METHODS,
 } from '../SDKConnectConstants';
+import getDefaultBridgeParams from './getDefaultBridgeParams';
 import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
@@ -350,6 +350,7 @@ export default class AndroidService extends EventEmitter2 {
             PreferencesController: PreferencesController;
           }
         ).PreferencesController;
+
         const selectedAddress = preferencesController.state.selectedAddress;
 
         const networkController = (
@@ -357,6 +358,7 @@ export default class AndroidService extends EventEmitter2 {
             NetworkController: NetworkController;
           }
         ).NetworkController;
+
         const chainId = networkController.state.providerConfig.chainId;
 
         this.currentClientId = sessionId;
@@ -426,6 +428,8 @@ export default class AndroidService extends EventEmitter2 {
       return;
     }
 
+    const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
+
     const bridge = new BackgroundBridge({
       webview: null,
       channelId: clientInfo.clientId,
@@ -433,59 +437,7 @@ export default class AndroidService extends EventEmitter2 {
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
       sendMessage: this.sendMessage.bind(this),
-      getApprovedHosts: (host: string) => ({
-        [host]: true,
-      }),
-      remoteConnHost:
-        clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
-      getRpcMethodMiddleware: ({
-        getProviderState,
-      }: {
-        hostname: string;
-        getProviderState: any;
-      }) =>
-        getRpcMethodMiddleware({
-          hostname:
-            clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
-          channelId: clientInfo.clientId,
-          getProviderState,
-          isMMSDK: true,
-          navigation: null, //props.navigation,
-          getApprovedHosts: (host: string) => ({
-            [host]: true,
-          }),
-          setApprovedHosts: () => true,
-          approveHost: () => ({}),
-          // Website info
-          url: {
-            current: clientInfo.originatorInfo?.url,
-          },
-          title: {
-            current: clientInfo.originatorInfo?.title,
-          },
-          icon: {
-            current: clientInfo.originatorInfo?.icon,
-          },
-          // Bookmarks
-          isHomepage: () => false,
-          // Show autocomplete
-          fromHomepage: { current: false },
-          // Wizard
-          wizardScrollAdjusted: { current: false },
-          tabId: '',
-          isWalletConnect: false,
-          analytics: {
-            isRemoteConn: true,
-            platform:
-              clientInfo.originatorInfo.platform ??
-              AppConstants.MM_SDK.UNKNOWN_PARAM,
-          },
-          toggleUrlModal: () => null,
-          injectHomePageScripts: () => null,
-        }),
-      isMainFrame: true,
-      isWalletConnect: false,
-      wcRequestActions: undefined,
+      ...defaultBridgeParams,
     });
 
     this.bridgeByClientId[clientInfo.clientId] = bridge;

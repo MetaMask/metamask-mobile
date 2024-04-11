@@ -7,7 +7,6 @@ import { Linking } from 'react-native';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
-import getRpcMethodMiddleware from '../../../core/RPCMethods/RPCMethodMiddleware';
 import Logger from '../../../util/Logger';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { DappClient, DappConnections } from '../AndroidSDK/dapp-sdk-types';
@@ -23,6 +22,7 @@ import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
+import getDefaultBridgeParams from '../AndroidSDK/getDefaultBridgeParams';
 
 export default class DeeplinkProtocolService {
   private connections: DappConnections = {};
@@ -97,6 +97,8 @@ export default class DeeplinkProtocolService {
       return;
     }
 
+    const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
+
     const bridge = new BackgroundBridge({
       webview: null,
       channelId: clientInfo.clientId,
@@ -115,59 +117,7 @@ export default class DeeplinkProtocolService {
 
         return this.sendMessage(response);
       },
-      getApprovedHosts: (host: string) => ({
-        [host]: true,
-      }),
-      remoteConnHost:
-        clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
-      getRpcMethodMiddleware: ({
-        getProviderState,
-      }: {
-        hostname: string;
-        getProviderState: any;
-      }) =>
-        getRpcMethodMiddleware({
-          hostname:
-            clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
-          channelId: clientInfo.clientId,
-          getProviderState,
-          isMMSDK: true,
-          navigation: null, //props.navigation,
-          getApprovedHosts: (host: string) => ({
-            [host]: true,
-          }),
-          setApprovedHosts: () => true,
-          approveHost: () => ({}),
-          // Website info
-          url: {
-            current: clientInfo.originatorInfo?.url,
-          },
-          title: {
-            current: clientInfo.originatorInfo?.title,
-          },
-          icon: {
-            current: clientInfo.originatorInfo?.icon,
-          },
-          // Bookmarks
-          isHomepage: () => false,
-          // Show autocomplete
-          fromHomepage: { current: false },
-          // Wizard
-          wizardScrollAdjusted: { current: false },
-          tabId: '',
-          isWalletConnect: false,
-          analytics: {
-            isRemoteConn: true,
-            platform:
-              clientInfo.originatorInfo.platform ??
-              AppConstants.MM_SDK.UNKNOWN_PARAM,
-          },
-          toggleUrlModal: () => null,
-          injectHomePageScripts: () => null,
-        }),
-      isMainFrame: true,
-      isWalletConnect: false,
-      wcRequestActions: undefined,
+      ...defaultBridgeParams,
     });
 
     this.bridgeByClientId[clientInfo.clientId] = bridge;
@@ -230,7 +180,9 @@ export default class DeeplinkProtocolService {
 
     this.rpcQueueManager.remove(id);
 
-    if (!rpcMethod && forceRedirect !== true) {
+    const shouldSkipGoBack = !rpcMethod && forceRedirect !== true;
+
+    if (shouldSkipGoBack) {
       DevLogger.log(
         `DeeplinkProtocolService::sendMessage no rpc method --- rpcMethod=${rpcMethod} forceRedirect=${forceRedirect} --- skip goBack()`,
       );
@@ -239,16 +191,21 @@ export default class DeeplinkProtocolService {
     }
 
     try {
-      if (METHODS_TO_DELAY[rpcMethod]) {
+      const shouldDelay = METHODS_TO_DELAY[rpcMethod];
+
+      if (shouldDelay) {
         // Add delay to see the feedback modal
         await wait(1000);
       }
 
-      if (!this.rpcQueueManager.isEmpty()) {
+      const isRpcQueueEmpty = this.rpcQueueManager.isEmpty();
+
+      if (!isRpcQueueEmpty) {
         DevLogger.log(
           `DeeplinkProtocolService::sendMessage NOT empty --- skip goBack()`,
           this.rpcQueueManager.get(),
         );
+
         return;
       }
 
@@ -258,13 +215,6 @@ export default class DeeplinkProtocolService {
         `DeeplinkProtocolService::sendMessage sending deeplink message=${JSON.stringify(
           message,
         )}`,
-      );
-
-      // TODO: Remove this log after testing
-      DevLogger.log(
-        `DeeplinkProtocolService::sendMessage sending deeplink`,
-        message,
-        this.currentClientId,
       );
 
       this.openDeeplink({
@@ -386,7 +336,6 @@ export default class DeeplinkProtocolService {
 
     if (isSessionExists) {
       // Skip existing client -- bridge has been setup
-      const bridge = this.bridgeByClientId[clientInfo.clientId];
 
       Logger.log(
         `DeeplinkProtocolService::clients_connected - existing client, sending ready`,
@@ -399,35 +348,7 @@ export default class DeeplinkProtocolService {
       };
 
       if (params.request) {
-        const requestObject = JSON.parse(params.request) as {
-          id: string;
-          method: string;
-          params: any;
-        };
-
-        // Handle custom rpc method
-        const processedRpc = await handleCustomRpcCalls({
-          batchRPCManager: this.batchRPCManager,
-          selectedChainId: this.getChainId(),
-          selectedAddress: this.getSelectedAddress(),
-          rpc: {
-            id: requestObject.id,
-            method: requestObject.method,
-            params: requestObject.params,
-          },
-        });
-
-        DevLogger.log(
-          `DeeplinkProtocolService::onMessageReceived processedRpc`,
-          processedRpc,
-        );
-
-        this.rpcQueueManager.add({
-          id: requestObject.id,
-          method: requestObject.method,
-        });
-
-        bridge.onMessage({ name: 'metamask-provider', data: processedRpc });
+        await this.processDappRpcRequest(params);
       } else {
         this.sendMessage(
           {
@@ -494,38 +415,8 @@ export default class DeeplinkProtocolService {
 
         DevLogger.log(`DeeplinkProtocolService::sendMessage 2`);
 
-        const bridge = this.bridgeByClientId[clientInfo.clientId];
-
         if (params.request) {
-          const requestObject = JSON.parse(params.request) as {
-            id: string;
-            method: string;
-            params: any;
-          };
-
-          // Handle custom rpc method
-          const processedRpc = await handleCustomRpcCalls({
-            batchRPCManager: this.batchRPCManager,
-            selectedChainId: this.getChainId(),
-            selectedAddress: this.getSelectedAddress(),
-            rpc: {
-              id: requestObject.id,
-              method: requestObject.method,
-              params: requestObject.params,
-            },
-          });
-
-          DevLogger.log(
-            `DeeplinkProtocolService::onMessageReceived processedRpc`,
-            processedRpc,
-          );
-
-          this.rpcQueueManager.add({
-            id: requestObject.id,
-            method: requestObject.method,
-          });
-
-          bridge.onMessage({ name: 'metamask-provider', data: processedRpc });
+          await this.processDappRpcRequest(params);
 
           return;
         }
@@ -594,6 +485,48 @@ export default class DeeplinkProtocolService {
         `DeeplinkProtocolService::clients_connected error handling event`,
       );
     });
+  }
+
+  private async processDappRpcRequest(params: {
+    dappPublicKey: string;
+    url: string;
+    scheme: string;
+    channelId: string;
+    originatorInfo?: string;
+    request?: string;
+  }) {
+    const bridge = this.bridgeByClientId[params.channelId];
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const requestObject = JSON.parse(params.request!) as {
+      id: string;
+      method: string;
+      params: any;
+    };
+
+    // Handle custom rpc method
+    const processedRpc = await handleCustomRpcCalls({
+      batchRPCManager: this.batchRPCManager,
+      selectedChainId: this.getChainId(),
+      selectedAddress: this.getSelectedAddress(),
+      rpc: {
+        id: requestObject.id,
+        method: requestObject.method,
+        params: requestObject.params,
+      },
+    });
+
+    DevLogger.log(
+      `DeeplinkProtocolService::onMessageReceived processedRpc`,
+      processedRpc,
+    );
+
+    this.rpcQueueManager.add({
+      id: requestObject.id,
+      method: requestObject.method,
+    });
+
+    bridge.onMessage({ name: 'metamask-provider', data: processedRpc });
   }
 
   public getChainId() {
