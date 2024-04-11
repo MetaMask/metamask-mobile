@@ -76,6 +76,7 @@ export type ToastOptions =
  */
 export interface ToastRef {
   showToast: (toastOptions: ToastOptions) => void;
+  closeToast: () => void;
 }
 
 /**

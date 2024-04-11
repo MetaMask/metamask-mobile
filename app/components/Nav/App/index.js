@@ -49,17 +49,11 @@ import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
-import {
-  shouldShowNewPrivacyToastSelector,
-  storePrivacyPolicyShownDate,
-  storePrivacyPolicyClickedOrClosed,
-} from '../../../reducers/legalNotices';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
+
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
 import Toast, {
   ToastContext,
-  ToastVariants,
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AccountConnect from '../../../components/Views/AccountConnect';
@@ -238,12 +232,7 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
-const App = ({
-  userLoggedIn,
-  storePrivacyPolicyShownDate,
-  shouldShowNewPrivacyToast,
-  storePrivacyPolicyClickedOrClosed,
-}) => {
+const App = ({ userLoggedIn }) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -446,37 +435,6 @@ const App = ({
     });
     /* eslint-disable react-hooks/exhaustive-deps */
   }, []);
-
-  useEffect(() => {
-    if (!shouldShowNewPrivacyToast || !userLoggedIn) return;
-
-    storePrivacyPolicyShownDate();
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: 'We’ve updated our privacy policy',
-          isBold: false,
-        },
-      ],
-      linkButtonOptions: {
-        label: 'Read more',
-        onPress: () => {
-          storePrivacyPolicyClickedOrClosed();
-          toastRef?.current?.closeToast();
-          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
-        },
-      },
-      disableTimeout: true,
-    });
-  }, [
-    userLoggedIn,
-    storePrivacyPolicyShownDate,
-    shouldShowNewPrivacyToast,
-    storePrivacyPolicyClickedOrClosed,
-    toastRef?.current,
-    CONSENSYS_PRIVACY_POLICY,
-  ]);
 
   useEffect(() => {
     async function startApp() {
@@ -843,14 +801,6 @@ const App = ({
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
-  shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
-  storePrivacyPolicyShownDate: () =>
-    dispatch(storePrivacyPolicyShownDate(Date.now())),
-  storePrivacyPolicyClickedOrClosed: () =>
-    dispatch(storePrivacyPolicyClickedOrClosed()),
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default connect(mapStateToProps)(App);
