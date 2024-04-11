@@ -238,8 +238,12 @@ const mapStateToProps = (state) => {
   const filteredPendingSmartTransactions =
     smartTransactions
       ?.filter((stx) => {
-        const { txParams } = stx;
-        return txParams?.from === selectedAddress && !stx.confirmed;
+        const { transaction } = stx;
+        return (
+          transaction?.from.toLowerCase() === selectedAddress.toLowerCase() &&
+          stx.status &&
+          stx.status !== SmartTransactionStatuses.SUCCESS
+        );
       })
       .map((stx) => ({
         ...stx,
