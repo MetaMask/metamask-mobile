@@ -1855,7 +1855,7 @@
     "list": {
       "0": "All",
       "1": "Wallet",
-      "2": "Web3"
+      "2": "Annoucements"
     },
     "address_copied_to_clipboard": "Address copied to clipboard",
     "transaction_id_copied_to_clipboard": "Transaction ID copied to clipboard",

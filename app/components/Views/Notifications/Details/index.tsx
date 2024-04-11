@@ -28,7 +28,7 @@ import { showAlert } from '../../../../actions/alert';
 import { protectWalletModalVisible } from '../../../../actions/user';
 
 import { createStyles } from './styles';
-import { formatDate } from '../utils';
+import { formatDate, formatNotificationTitle } from '../utils';
 
 import renderFCMDetails from './FcmView';
 import renderTXDetails from './TXView';
@@ -139,9 +139,9 @@ NotificationsDetails.navigationOptions = ({
       title={capitalize(
         route.params.notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
           ? route.params.notification.title
-          : route.params.notification.type,
+          : formatNotificationTitle(route.params.notification.type),
       )}
-      subtitle={formatDate(route.params.notification.timestamp)}
+      subtitle={formatDate(route.params.notification.createdAt)}
     />
   ),
 });

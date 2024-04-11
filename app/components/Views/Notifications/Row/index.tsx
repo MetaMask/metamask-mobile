@@ -40,20 +40,23 @@ const Row = ({ notification, navigation, onPress }: NotificationRowProps) => {
   };
 
   const handleCTAPress = () => {
+    let url = '';
+
+    notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT &&
+    notification.data?.action?.actionUrl
+      ? (url = notification.data.action.actionUrl)
+      : (url = notification.data.link.linkUrl);
+
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url:
-          // @ts-ignore
-          notification.data?.link?.linkUrl ||
-          // @ts-ignore
-          notification.data?.action?.actionUrl,
+        url,
       },
     });
   };
 
   const { avatarBadge, createdAt, imageUri, asset, title, value } =
-    getRowDetails(notification) || {};
+    getRowDetails(notification)?.row || {};
 
   return (
     <TouchableOpacity onPress={handleOnPress} style={styles.wrapper}>
@@ -69,7 +72,7 @@ const Row = ({ notification, navigation, onPress }: NotificationRowProps) => {
             }
             style={styles.badgeWrapper}
           >
-            {notification.type.includes('ETH') ? (
+            {notification.type.includes('eth') ? (
               <NetworkMainAssetLogo style={styles.ethLogo} />
             ) : (
               <AvatarToken

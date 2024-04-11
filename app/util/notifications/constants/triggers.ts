@@ -61,7 +61,7 @@ export enum TRIGGER_TYPES {
   ERC1155_RECEIVED = 'erc1155_received',
 }
 
-const chains = {
+export const chains = {
   ETHEREUM: `${ChainId.ETHEREUM}`,
   OPTIMISM: `${ChainId.OPTIMISM}`,
   BSC: `${ChainId.BSC}`,

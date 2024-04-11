@@ -6,7 +6,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import { Theme } from '../../../../util/theme/models';
-import { Notification, TRIGGER_TYPES } from '../../../../util/notifications';
+import { ChainId, HalRawNotification, Notification, TRIGGER_TYPES } from '../../../../util/notifications';
 import { formatAddress } from '../../../../util/address';
 
 interface ViewOnEtherscanProps {
@@ -24,16 +24,19 @@ interface ViewOnEtherscanProps {
 }
 
 interface NotificationRowProps {
-  createdAt: string;
-  title: string;
+  row: {
+    createdAt: string;
+    title: string;
 
-  avatarBadge?: IconName;
-  imageUri?: string;
-  asset?: {
-    symbol?: string;
-    name?: string;
+    avatarBadge?: IconName;
+    imageUri?: string;
+    asset?: {
+      symbol?: string;
+      name?: string;
+    };
+    value?: string;
   };
-  value?: string;
+  details: Record<string, any>;
 }
 
 export const sortNotifications = (
@@ -144,8 +147,12 @@ export function viewOnEtherscan(props: ViewOnEtherscanProps, state: any) {
   }
 }
 
-function formatRowTitle(input: string): string {
-  const words = input.split('_');
+function getNetwork(chain_id: HalRawNotification['chain_id']) {
+  return ChainId[chain_id]
+}
+
+export function formatNotificationTitle(rawTitle: string): string {
+  const words = rawTitle.split('_');
   words.shift();
   return words.join('_');
 }
@@ -165,109 +172,136 @@ export function getRowDetails(
       case 'rocketpool_unstake_completed':
       case 'lido_withdrawal_requested':
         return {
-          avatarBadge: getNotificationBadge(notification.type),
-          createdAt: formatDate(notification.createdAt),
-          imageUri: notification.data.stake_out.image,
-          asset: {
-            symbol: notification.data.stake_out.symbol,
-            name: notification.data.stake_out.name,
+          row: {
+            avatarBadge: getNotificationBadge(notification.type),
+            createdAt: formatDate(notification.createdAt),
+            imageUri: notification.data.stake_out.image,
+            asset: {
+              symbol: notification.data.stake_out.symbol,
+              name: notification.data.stake_out.name,
+            },
+            title: strings(formatNotificationTitle(notification.data.kind)),
+            value: `${notification.data.stake_out.amount} ${notification.data.stake_out.symbol}`,
           },
-          title: strings(formatRowTitle(notification.data.kind)),
-          value: `${notification.data.stake_out.amount} ${notification.data.stake_out.symbol}`,
+          details: {},
         };
       case 'lido_stake_ready_to_be_withdrawn':
         return {
-          avatarBadge: getNotificationBadge(notification.type),
-          createdAt: formatDate(notification.createdAt),
-          imageUri: notification.data.staked_eth.image,
-          asset: {
-            symbol: notification.data.staked_eth.symbol,
-            name: notification.data.staked_eth.name,
+          row: {
+            avatarBadge: getNotificationBadge(notification.type),
+            createdAt: formatDate(notification.createdAt),
+            imageUri: notification.data.staked_eth.image,
+            asset: {
+              symbol: notification.data.staked_eth.symbol,
+              name: notification.data.staked_eth.name,
+            },
+            title: strings(formatNotificationTitle(notification.data.kind)),
+            value: `${notification.data.staked_eth.amount} ${notification.data.staked_eth.symbol}`,
           },
-          title: strings(formatRowTitle(notification.data.kind)),
-          value: `${notification.data.staked_eth.amount} ${notification.data.staked_eth.symbol}`,
+          details: {},
         };
       case 'metamask_swap_completed':
         return {
-          avatarBadge: getNotificationBadge(notification.type),
-          createdAt: formatDate(notification.createdAt),
-          imageUri: notification.data.token_out.image,
-          asset: {
-            symbol: notification.data.token_out.symbol,
-            name: notification.data.token_out.name,
+          row: {
+            avatarBadge: getNotificationBadge(notification.type),
+            createdAt: formatDate(notification.createdAt),
+            imageUri: notification.data.token_out.image,
+            asset: {
+              symbol: notification.data.token_out.symbol,
+              name: notification.data.token_out.name,
+            },
+            title: strings(formatNotificationTitle(notification.data.kind), {
+              from: notification.data.token_in.symbol,
+            }),
+            value: `${notification.data.token_out.amount} ${notification.data.token_out.symbol}`,
           },
-          title: strings(formatRowTitle(notification.data.kind), {
-            from: notification.data.token_in.symbol,
-          }),
-          value: `${notification.data.token_out.amount} ${notification.data.token_out.symbol}`,
+          details: {},
         };
       case 'eth_sent':
       case 'eth_received':
         return {
-          avatarBadge: getNotificationBadge(notification.type),
-          createdAt: formatDate(notification.createdAt),
-          title: strings(formatRowTitle(notification.data.kind), {
-            address: formatAddress(
-              notification.data.kind.includes('sent')
-                ? notification.data.to
-                : notification.data.from,
-              'short',
-            ),
-          }),
-          value: `${notification.data.amount.eth} ETH`,
+          row: {
+            avatarBadge: getNotificationBadge(notification.type),
+            createdAt: formatDate(notification.createdAt),
+            title: strings(formatNotificationTitle(notification.data.kind), {
+              address: formatAddress(
+                notification.data.kind.includes('sent')
+                  ? notification.data.to
+                  : notification.data.from,
+                'short',
+              ),
+            }),
+            value: `${notification.data.amount.eth} ETH`,
+          },
+          details: {
+            from: notification.data.from,
+            to: notification.data.to,
+            status: notification.tx_hash,
+            asset:,
+            network: getNetwork(notification.chain_id),
+          },
         };
       case 'erc20_sent':
       case 'erc20_received':
         return {
-          avatarBadge: getNotificationBadge(notification.type),
-          createdAt: formatDate(notification.createdAt),
-          imageUri: notification.data.token.image,
-          asset: {
-            symbol: notification.data.token.symbol,
-            name: notification.data.token.name,
+          row: {
+            avatarBadge: getNotificationBadge(notification.type),
+            createdAt: formatDate(notification.createdAt),
+            imageUri: notification.data.token.image,
+            asset: {
+              symbol: notification.data.token.symbol,
+              name: notification.data.token.name,
+            },
+            title: strings(formatNotificationTitle(notification.data.kind), {
+              address: formatAddress(
+                notification.data.kind.includes('sent')
+                  ? notification.data.to
+                  : notification.data.from,
+                'short',
+              ),
+            }),
+            value: `${notification.data.token.amount} ${notification.data.token.symbol}`,
           },
-          title: strings(formatRowTitle(notification.data.kind), {
-            address: formatAddress(
-              notification.data.kind.includes('sent')
-                ? notification.data.to
-                : notification.data.from,
-              'short',
-            ),
-          }),
-          value: `${notification.data.token.amount} ${notification.data.token.symbol}`,
+          details: {},
         };
       case 'erc721_sent':
       case 'erc721_received':
       case 'erc1155_sent':
       case 'erc1155_received':
         return {
-          avatarBadge: getNotificationBadge(notification.type),
-          createdAt: formatDate(notification.createdAt),
-          imageUri: notification.data?.nft?.image,
-          asset: {
-            symbol: notification.data?.nft?.collection.symbol,
-            name: notification.data?.nft?.collection.name,
+          row: {
+            avatarBadge: getNotificationBadge(notification.type),
+            createdAt: formatDate(notification.createdAt),
+            imageUri: notification.data?.nft?.image,
+            asset: {
+              symbol: notification.data?.nft?.collection.symbol,
+              name: notification.data?.nft?.collection.name,
+            },
+            title: strings(formatNotificationTitle(notification.data.kind), {
+              address: formatAddress(
+                notification.data.kind.includes('sent')
+                  ? notification.data.to
+                  : notification.data.from,
+                'short',
+              ),
+            }),
+            value: `#${notification.data?.nft?.token_id}`,
           },
-          title: strings(formatRowTitle(notification.data.kind), {
-            address: formatAddress(
-              notification.data.kind.includes('sent')
-                ? notification.data.to
-                : notification.data.from,
-              'short',
-            ),
-          }),
-          value: `#${notification.data?.nft?.token_id}`,
+          details: {},
         };
 
       default:
-        return null;
+        return { row: {} as any, details: {} as any };
     }
   }
 
   return {
-    title: notification.data.title,
-    asset: { name: notification.data.shortDescription },
-    createdAt: formatDate(notification.createdAt),
+    row: {
+      title: notification.data.title,
+      asset: { name: notification.data.shortDescription },
+      createdAt: formatDate(notification.createdAt),
+    },
+    details: {},
   };
 }
 

@@ -14,10 +14,9 @@ import Text, {
 import { FeatureAnnouncementRawNotification } from '../../../../util/notifications';
 import { IconName } from 'app/component-library/components/Icons/Icon';
 
-// eslint-disable-next-line react-hooks/rules-of-hooks
 const renderFCMDetails = (
   notification: FeatureAnnouncementRawNotification,
-  styles: any,
+  styles: Record<string, any>,
   navigation: any,
 ) => {
   const handleCTAPress = () => {
@@ -37,8 +36,7 @@ const renderFCMDetails = (
     <View style={styles.renderFCMContainer}>
       <View style={styles.renderFCMCard}>
         <Image
-          // @ts-ignore
-          source={{ uri: notification.data.image }}
+          source={{ uri: notification.data.image.file.url }}
           style={styles.FCMImage}
         />
       </View>
@@ -52,20 +50,19 @@ const renderFCMDetails = (
         {notification.data.longDescription}
       </Text>
 
-      {notification.data.link ||
-        (notification.data.action && (
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={
-              (notification.data?.link as unknown as { linkText?: string })
-                ?.linkText ||
-              (notification.data?.action as { actionText?: string })?.actionText
-            }
-            onPress={handleCTAPress}
-            style={styles.ctaBtn}
-            endIconName={IconName.Arrow2Right}
-          />
-        ))}
+      {(notification.data.link || notification.data.action) && (
+        <Button
+          variant={ButtonVariants.Secondary}
+          label={
+            (notification.data?.link as unknown as { linkText?: string })
+              ?.linkText ||
+            (notification.data?.action as { actionText?: string })?.actionText
+          }
+          onPress={handleCTAPress}
+          style={styles.ctaBtn}
+          endIconName={IconName.Arrow2Right}
+        />
+      )}
     </View>
   );
 };

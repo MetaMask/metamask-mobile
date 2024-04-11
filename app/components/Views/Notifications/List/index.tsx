@@ -17,7 +17,7 @@ interface NotificationsList {
   navigation: any;
   allNotifications: Notification[];
   walletNotifications: Notification[];
-  web3Notifications: Notification[];
+  annoucementsNotifications: Notification[];
   loading: boolean;
 }
 
@@ -25,7 +25,7 @@ const Notifications = ({
   navigation,
   allNotifications,
   walletNotifications,
-  web3Notifications,
+  annoucementsNotifications,
   loading,
 }: NotificationsList) => {
   const theme = useTheme();
@@ -69,7 +69,7 @@ const Notifications = ({
           trackEvent(MetaMetricsEvents.WALLET_NOTIFICATIONS);
           break;
         case strings('notifications.web3'):
-          trackEvent(MetaMetricsEvents.WEB3_NOTIFICATIONS);
+          trackEvent(MetaMetricsEvents.ANNOUCEMENTS_NOTIFICATIONS);
           break;
         default:
           break;
@@ -79,8 +79,8 @@ const Notifications = ({
   );
 
   const combinedLists = useMemo(
-    () => [allNotifications, walletNotifications, web3Notifications],
-    [allNotifications, walletNotifications, web3Notifications],
+    () => [allNotifications, walletNotifications, annoucementsNotifications],
+    [allNotifications, walletNotifications, annoucementsNotifications],
   );
 
   const renderList = useCallback(

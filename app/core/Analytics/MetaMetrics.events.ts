@@ -356,7 +356,7 @@ enum EVENT_NAME {
   //Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
-  WEB3_NOTIFICATIONS = 'Web3 Notifications',
+  ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
 }
 
 enum ACTIONS {
@@ -407,7 +407,7 @@ enum ACTIONS {
   // Notifications
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
-  SELECTS_WEB3_NOTIFICATIONS = 'Selects Web3 Notifications',
+  SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
   STAKE = 'Stake',
 }
 
@@ -1412,9 +1412,9 @@ const legacyMetaMetricsEvents = {
     ACTIONS.SELECTS_WALLET_NOTIFICATIONS,
     DESCRIPTION.NOTIFICATIONS,
   ),
-  WEB3_NOTIFICATIONS: generateOpt(
-    EVENT_NAME.WEB3_NOTIFICATIONS,
-    ACTIONS.SELECTS_WEB3_NOTIFICATIONS,
+  ANNOUCEMENTS_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.ANNOUCEMENTS_NOTIFICATIONS,
+    ACTIONS.SELECTS_ANNOUCEMENTS_NOTIFICATIONS,
     DESCRIPTION.NOTIFICATIONS,
   ),
   STAKE_BUTTON_CLICKED: generateOpt(

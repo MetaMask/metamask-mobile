@@ -127,18 +127,18 @@ const TXDetails: React.FC<Props> = ({
     }: {
       key: string;
       address: string;
-      actionType: NotificationsActionsTypes;
+      actionType: TRIGGER_TYPES;
     }) => {
       const showsAddContact =
-        (actionType === NotificationsActionsTypes.RECEIVED && key === 'from') ||
-        (actionType === NotificationsActionsTypes.SENT && key === 'to');
+        (actionType.includes('received') && key === 'from') ||
+        (actionType.includes('sent') && key === 'to');
 
       return (
         <View style={styles.row}>
           <Avatar
             variant={AvatarVariant.Account}
             type={accountAvatarType}
-            accountAddress={notification.data.from}
+            accountAddress={notification.data?.from}
             size={AvatarSize.Md}
             style={styles.badgeWrapper}
           />
@@ -181,194 +181,217 @@ const TXDetails: React.FC<Props> = ({
     },
     [accountAvatarType, copyToClipboard, navigation, notification, styles],
   );
-  const renderStatus = useCallback(
-    (status: TxStatus) => (
-      <View style={styles.row}>
-        <Avatar
-          variant={AvatarVariant.Icon}
-          size={AvatarSize.Md}
-          style={styles.badgeWrapper}
-          {...returnAvatarProps(status, theme)}
-        />
-        <View style={styles.boxLeft}>
-          <Text variant={TextVariant.BodyLGMedium}>
-            {strings('transactions.status')}
-          </Text>
+  // const renderStatus = useCallback(
+  //   (status: TxStatus) => (
+  //     <View style={styles.row}>
+  //       <Avatar
+  //         variant={AvatarVariant.Icon}
+  //         size={AvatarSize.Md}
+  //         style={styles.badgeWrapper}
+  //         {...returnAvatarProps(status, theme)}
+  //       />
+  //       <View style={styles.boxLeft}>
+  //         <Text variant={TextVariant.BodyLGMedium}>
+  //           {strings('transactions.status')}
+  //         </Text>
 
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {strings(`transaction.${status}`)}
-          </Text>
-        </View>
-        <Pressable
-          style={styles.rightSection}
-          onPress={() => copyToClipboard('transaction', notification.tx_hash)}
-          hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
-        >
-          <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
-            {strings('transaction.transaction_id')}
-          </Text>
-          <Icon
-            color={IconColor.Primary}
-            style={styles.copyIconRight}
-            name={IconName.Copy}
-            size={IconSize.Md}
-          />
-        </Pressable>
-      </View>
-    ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [copyToClipboard, notification, theme],
-  );
-  const renderNetwork = useCallback(
-    () => (
-      <View style={styles.row}>
-        <Avatar
-          variant={AvatarVariant.Network}
-          size={AvatarSize.Md}
-          style={styles.badgeWrapper}
-          imageSource={NetworkBadgeSource(`0x${notification.chain_id}`)}
-        />
+  //         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+  //           {strings(`transaction.${status}`)}
+  //         </Text>
+  //       </View>
+  //       <Pressable
+  //         style={styles.rightSection}
+  //         onPress={() => copyToClipboard('transaction', notification.tx_hash)}
+  //         hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
+  //       >
+  //         <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
+  //           {strings('transaction.transaction_id')}
+  //         </Text>
+  //         <Icon
+  //           color={IconColor.Primary}
+  //           style={styles.copyIconRight}
+  //           name={IconName.Copy}
+  //           size={IconSize.Md}
+  //         />
+  //       </Pressable>
+  //     </View>
+  //   ),
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   [copyToClipboard, notification, theme],
+  // );
+  // const renderNetwork = useCallback(
+  //   () => (
+  //     <View style={styles.row}>
+  //       <Avatar
+  //         variant={AvatarVariant.Network}
+  //         size={AvatarSize.Md}
+  //         style={styles.badgeWrapper}
+  //         imageSource={NetworkBadgeSource(`0x${notification.chain_id}`)}
+  //       />
 
-        <View style={styles.boxLeft}>
-          <Text variant={TextVariant.BodyLGMedium}>
-            {strings('asset_details.network')}
-          </Text>
+  //       <View style={styles.boxLeft}>
+  //         <Text variant={TextVariant.BodyLGMedium}>
+  //           {strings('asset_details.network')}
+  //         </Text>
 
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            Ethereum
-          </Text>
-        </View>
-      </View>
-    ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
-  const renderAsset = useCallback(
-    () => {
-      const exchangeRate =
-        transaction.asset.address &&
-        contractExchangeRates[transaction.asset.address];
-      const balanceFiat = transaction
-        ? balanceToFiat(
-            transaction.value?.toString() || '0',
-            conversionRate,
-            exchangeRate || 0,
-            currentCurrency,
-          )
-        : undefined;
+  //         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+  //           Ethereum
+  //         </Text>
+  //       </View>
+  //     </View>
+  //   ),
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   [],
+  // );
 
-      return (
-        <View style={styles.row}>
-          <BadgeWrapper
-            badgePosition={DEFAULT_BADGEWRAPPER_BADGEPOSITION}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(`0x${notification.chain_id}`)}
-              />
-            }
-            style={styles.badgeWrapper}
-          >
-            {notification?.data?.token?.isETH ? (
-              <NetworkMainAssetLogo style={styles.ethLogo} />
-            ) : (
-              <AvatarToken
-                name={notification?.data?.token?.symbol}
-                imageSource={{
-                  uri: notification?.data?.token?.image,
-                }}
-                size={AvatarSize.Lg}
-              />
-            )}
-          </BadgeWrapper>
-          <View style={styles.boxLeft}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {strings('transaction.asset')}
-            </Text>
+  // const fetchNetworkFees = useCallback(async () => {
+  //   try {
+  //     const networkFees = await getNetworkFees(notification)
+  //     if (networkFees) {
+  //       setNetworkFees({
+  //         transactionFee: {
+  //           transactionFeeInEther: networkFees.transactionFeeInEth,
+  //           transactionFeeInUsd: networkFees.transactionFeeInUsd,
+  //         },
+  //         gasLimitUnits: networkFees.gasLimit,
+  //         gasUsedUnits: networkFees.gasUsed,
+  //         baseFee: networkFees.baseFee,
+  //         priorityFee: networkFees.priorityFee,
+  //         maxFeePerGas: networkFees.maxFeePerGas,
+  //       })
+  //     }
+  //   } catch (err) {
+  //     setNetworkFeesError(true)
+  //   }
+  // }, [notification])
 
-            <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-              {notification?.data?.token?.name}
-            </Text>
-          </View>
-          <View style={[styles.boxLeft, styles.boxRight]}>
-            <Text variant={TextVariant.BodyLGMedium}>
-              {notification?.data?.token?.amount ||
-                0 + ' ' + notification?.data?.token?.symbol}
-            </Text>
-            <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-              {balanceFiat}
-            </Text>
-          </View>
-        </View>
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [notification],
-  );
-  const renderNetworkFee = useCallback(
-    () => (
-      <View style={styles.row}>
-        <AvatarIcon
-          size={AvatarSize.Md}
-          name={IconName.Gas}
-          iconColor={IconColor.Info}
-          style={styles.badgeWrapper}
-        />
-        <View style={styles.boxLeft}>
-          <Text variant={TextVariant.BodyLGMedium}>
-            {strings('transactions.network_fee')}
-          </Text>
+  // const renderAsset = useCallback(
+  //   () => {
+  //     const exchangeRate =
+  //       transaction.asset.address &&
+  //       contractExchangeRates[transaction.asset.address];
+  //     const balanceFiat = transaction
+  //       ? balanceToFiat(
+  //           transaction.value?.toString() || '0',
+  //           conversionRate,
+  //           exchangeRate || 0,
+  //           currentCurrency,
+  //         )
+  //       : undefined;
 
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-            {transaction.gasUsed}
-          </Text>
-        </View>
-        <Pressable
-          style={styles.rightSection}
-          hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
-          onPress={() => {
-            setIsCollapsed(!isCollapsed);
-            sheetRef.current?.onOpenBottomSheet();
-          }}
-        >
-          <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
-            {strings('transactions.details')}
-          </Text>
-          <Icon
-            color={IconColor.Primary}
-            style={styles.copyIconRight}
-            name={IconName.ArrowDown}
-            size={IconSize.Md}
-          />
-        </Pressable>
-      </View>
-    ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [transaction],
-  );
+  //     return (
+  //       <View style={styles.row}>
+  //         <BadgeWrapper
+  //           badgePosition={DEFAULT_BADGEWRAPPER_BADGEPOSITION}
+  //           badgeElement={
+  //             <Badge
+  //               variant={BadgeVariant.Network}
+  //               imageSource={NetworkBadgeSource(`0x${notification.chain_id}`)}
+  //             />
+  //           }
+  //           style={styles.badgeWrapper}
+  //         >
+  //           {notification?.data?.token?.isETH ? (
+  //             <NetworkMainAssetLogo style={styles.ethLogo} />
+  //           ) : (
+  //             <AvatarToken
+  //               name={notification?.data?.token?.symbol}
+  //               imageSource={{
+  //                 uri: notification?.data?.token?.image,
+  //               }}
+  //               size={AvatarSize.Lg}
+  //             />
+  //           )}
+  //         </BadgeWrapper>
+  //         <View style={styles.boxLeft}>
+  //           <Text variant={TextVariant.BodyLGMedium}>
+  //             {strings('transaction.asset')}
+  //           </Text>
+
+  //           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+  //             {notification?.data?.token?.name}
+  //           </Text>
+  //         </View>
+  //         <View style={[styles.boxLeft, styles.boxRight]}>
+  //           <Text variant={TextVariant.BodyLGMedium}>
+  //             {notification?.data?.token?.amount ||
+  //               0 + ' ' + notification?.data?.token?.symbol}
+  //           </Text>
+  //           <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+  //             {balanceFiat}
+  //           </Text>
+  //         </View>
+  //       </View>
+  //     );
+  //   },
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   [notification],
+  // );
+
+  // const renderNetworkFee = useCallback(
+  //   () => (
+  //     <View style={styles.row}>
+  //       <AvatarIcon
+  //         size={AvatarSize.Md}
+  //         name={IconName.Gas}
+  //         iconColor={IconColor.Info}
+  //         style={styles.badgeWrapper}
+  //       />
+  //       <View style={styles.boxLeft}>
+  //         <Text variant={TextVariant.BodyLGMedium}>
+  //           {strings('transactions.network_fee')}
+  //         </Text>
+
+  //         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+  //           {notification.data?.network_fee.gas_price}
+  //         </Text>
+  //       </View>
+  //       <Pressable
+  //         style={styles.rightSection}
+  //         hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
+  //         onPress={() => {
+  //           setIsCollapsed(!isCollapsed);
+  //           sheetRef.current?.onOpenBottomSheet();
+  //         }}
+  //       >
+  //         <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
+  //           {strings('transactions.details')}
+  //         </Text>
+  //         <Icon
+  //           color={IconColor.Primary}
+  //           style={styles.copyIconRight}
+  //           name={IconName.ArrowDown}
+  //           size={IconSize.Md}
+  //         />
+  //       </Pressable>
+  //     </View>
+  //   ),
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   [notification],
+  // );
 
   return (
     <View style={styles.renderFCMContainer}>
-      {transaction?.asset?.isNFT && renderNFT()}
+      {notification.type.includes('721') && renderNFT()}
       {renderAddress({
         key: 'from',
-        address: transaction.from,
-        actionType: notification.actionsType,
+        address: notification.data.from,
+        actionType: notification.type,
       })}
       {renderAddress({
         key: 'to',
-        address: transaction.to,
-        actionType: notification.actionsType,
+        address: notification.data.to,
+        actionType: notification.type,
       })}
-      {renderStatus(transaction.status as TxStatus)}
+      {/* {renderStatus(transaction.status as TxStatus)} */}
       {/* {transaction?.asset?.isNFT && renderCollection(transaction.asset)} */}
-      {transaction?.asset && renderAsset()}
-      {renderNetwork()}
-      {renderNetworkFee()}
+      {/* {notification?.asset && renderAsset()} */}
+      {/* {renderNetwork()} */}
+      {/* {renderNetworkFee()} */}
       {!isCollapsed && (
         <GasDetails
           sheetRef={sheetRef}
-          transaction={transaction}
+          transaction={notification}
           styles={styles}
           onClosed={() => setIsCollapsed(true)}
         />

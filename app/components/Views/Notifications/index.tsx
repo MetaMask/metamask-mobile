@@ -37,9 +37,9 @@ const NotificationsView = ({
   const [walletNotifications, setWalletNotifications] = useState<
     Notification[]
   >([]);
-  const [web3Notifications, setWeb3Notifications] = useState<Notification[]>(
-    [],
-  );
+  const [annoucementsNotifications, setAnnoucementsNotifications] = useState<
+    Notification[]
+  >([]);
   const isNotificationEnabled = useSelector(
     (state: any) => state.notification.notificationsSettings?.isEnabled,
   );
@@ -53,7 +53,7 @@ const NotificationsView = ({
       }
 
       const wallet: any = [];
-      const web3: any = [];
+      const annoucements: any = [];
 
       /**
        * Sort notifications by time and remove duplicates
@@ -74,7 +74,7 @@ const NotificationsView = ({
       allNotificationsSorted.filter((notification) => {
         switch (notification.type) {
           case TRIGGER_TYPES.FEATURES_ANNOUNCEMENT:
-            web3.push(notification);
+            annoucements.push(notification);
             break;
           default:
             wallet.push(notification);
@@ -83,7 +83,7 @@ const NotificationsView = ({
       });
 
       setWalletNotifications(wallet);
-      setWeb3Notifications(web3);
+      setAnnoucementsNotifications(annoucements);
 
       setLoading(false);
     },
@@ -92,7 +92,7 @@ const NotificationsView = ({
   useEffect(() => {
     setLoading(true);
     InteractionManager.runAfterInteractions(() => {
-      filterNotifications('0X1234'); //TODO: When MM auth is ready, replace this with selectedAddress
+      filterNotifications(selectedAddress);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAddress]);
@@ -104,21 +104,21 @@ const NotificationsView = ({
   );
 
   /** Current address is an important piece of notification since it is
-   * used by MM auth snap to derivated the token/identifier and to MM storage to store notifications */
-
-  // TODO: Need to figure out the best place to fetch notifications from MM auth when user switches accounts, Maybe on the Engine and store it on the redux store
+   * used by MM auth snap to derivated the token/identifier and to MM storage to store notifications
+   * TODO: Need to figure out the best place to fetch notifications from MM auth when user switches accounts, Maybe on the Engine and store it on the redux store
+   */
 
   return (
     <View
       style={styles.wrapper}
       testID={NotificationsViewSelectorsIDs.NOTIFICATIONS_CONTAINER}
     >
-      {mockNotifications || isNotificationEnabled ? (
+      {isNotificationEnabled ? (
         <Notifications
           navigation={navigation}
           allNotifications={allNotifications}
           walletNotifications={walletNotifications}
-          web3Notifications={web3Notifications}
+          annoucementsNotifications={annoucementsNotifications}
           loading={loading}
         />
       ) : (
