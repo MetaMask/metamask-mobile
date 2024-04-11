@@ -369,12 +369,17 @@
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
     "add_tokens": "Import tokens",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved":"Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
     "token_toast": {
       "tokens_imported_title": "Imported Tokens",
       "tokens_imported_desc": "Successfully imported {{tokenSymbols}}",
       "token_imported_title": "Imported Token",
       "token_imported_desc": "Successfully imported {{tokenSymbol}}",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Hiding Tokens",
       "tokens_hidden_desc": "Hiding detected tokens from your wallet",
       "token_hidden_title": "Hiding Token",
@@ -464,8 +469,8 @@
   "add_asset": {
     "title": "Import tokens",
     "title_nft": "Import NFT",
-    "search_token": "SEARCH",
-    "custom_token": "CUSTOM TOKEN",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "CANCEL",
       "add_token": "IMPORT"
@@ -522,14 +527,16 @@
     "resultPageErrorDefaultMessage": "The operation failed."
   },
   "token": {
-    "token_symbol": "Token Symbol",
+    "token_symbol": "Token symbol",
     "token_address": "Token Address",
-    "token_decimal": "Token Decimal",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Search Tokens",
     "address_cant_be_empty": "Token address can't be empty.",
     "address_must_be_valid": "Token address must be a valid address.",
     "symbol_cant_be_empty": "Token symbol can't be empty.",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Token decimals can't be empty.",
+    "decimals_is_required":"Decimal is required. Find it on:",
     "no_tokens_found": "We couldn't find any tokens with that name.",
     "select_token": "Select Token",
     "address_must_be_smart_contract": "Personal address detected. Enter the token contract address."
@@ -1318,6 +1325,7 @@
     "contract": "Contract ({{address}})",
     "contract_name": "Contract name:",
     "contract_address": "Contract address:",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Allowance:",
     "data": "Data",
     "function_approve": "Function: Approve",

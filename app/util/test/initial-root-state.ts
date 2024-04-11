@@ -32,7 +32,7 @@ const initialRootState: RootState = {
   sdk: {
     connections: {},
     approvedHosts: {},
-    androidConnections: {},
+    dappConnections: {},
   },
   experimentalSettings: undefined,
   rpcEvents: undefined,

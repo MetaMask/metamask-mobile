@@ -1,5 +1,5 @@
 import {
-  resetAndroidConnections,
+  resetDappConnections,
   resetApprovedHosts,
   resetConnections,
 } from '../../../../app/actions/sdk';
@@ -14,7 +14,7 @@ async function removeAll(instance: SDKConnect) {
     });
   }
 
-  for (const id in await instance.loadAndroidConnections()) {
+  for (const id in await instance.loadDappConnections()) {
     instance.removeChannel({
       channelId: id,
       sendTerminate: true,
@@ -25,13 +25,14 @@ async function removeAll(instance: SDKConnect) {
   instance.state.approvedHosts = {};
   instance.state.disabledHosts = {};
   instance.state.connections = {};
+  instance.state.dappConnections = {};
   instance.state.connected = {};
   instance.state.connecting = {};
   instance.state.paused = false;
 
   store.dispatch(resetConnections({}));
   store.dispatch(resetApprovedHosts({}));
-  store.dispatch(resetAndroidConnections({}));
+  store.dispatch(resetDappConnections({}));
 }
 
 export default removeAll;
