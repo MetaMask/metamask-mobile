@@ -166,11 +166,6 @@ class TransactionElement extends PureComponent {
     isQRHardwareAccount: PropTypes.bool,
     isLedgerAccount: PropTypes.bool,
     signLedgerTransaction: PropTypes.func,
-
-    /**
-     * Boolean that indicates if the transaction is a smart transaction
-     */
-    isSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -323,8 +318,7 @@ class TransactionElement extends PureComponent {
       selectedAddress,
       isQRHardwareAccount,
       isLedgerAccount,
-      tx: { time, status },
-      isSmartTransaction,
+      tx: { time, status, isSmartTransaction },
     } = this.props;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
@@ -617,7 +611,6 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   swapsTokens: state.engine.backgroundState.SwapsController.tokens,
-  isSmartTransaction: getIsSmartTransaction(state),
 });
 
 TransactionElement.contextType = ThemeContext;
