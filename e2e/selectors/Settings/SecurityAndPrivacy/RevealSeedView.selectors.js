@@ -1,5 +1,4 @@
-import messages from '../../../../locales/languages/en.json';
-
+// eslint-disable-next-line import/prefer-default-export
 export const RevealSeedViewSelectorsIDs = {
   SECRET_RECOVERY_PHRASE_CONTAINER_ID: 'reveal-private-credential-screen',
   PASSWORD_INPUT: 'login-password-input',
@@ -14,8 +13,4 @@ export const RevealSeedViewSelectorsIDs = {
   SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID:
     'reveal-private-long-press-button',
   PASSWORD_INPUT_BOX_ID: 'private-credential-password-text-input',
-};
-
-export const RevealSeedViewSelectorsText = {
-  PASSWORD_WARNING: messages.reveal_credential.unknown_error,
 };
