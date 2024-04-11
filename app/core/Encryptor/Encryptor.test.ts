@@ -93,12 +93,6 @@ describe('Encryptor', () => {
           lib,
         };
 
-        const expectedKey: EncryptionKey = {
-          key: expectedKeyValue,
-          keyMetadata: keyMetadata ?? KEY_DERIVATION_LEGACY_OPTIONS,
-          lib,
-        };
-
         const decryptedObject = await encryptor.decrypt(
           password,
           JSON.stringify(mockVault),
@@ -109,7 +103,11 @@ describe('Encryptor', () => {
           lib === ENCRYPTION_LIBRARY.original
             ? decryptAesSpy
             : decryptAesForkedSpy,
-        ).toHaveBeenCalledWith(mockVault.cipher, expectedKey, mockVault.iv);
+        ).toHaveBeenCalledWith(
+          mockVault.cipher,
+          expectedKeyValue,
+          mockVault.iv,
+        );
         expect(
           lib === ENCRYPTION_LIBRARY.original
             ? pbkdf2AesSpy

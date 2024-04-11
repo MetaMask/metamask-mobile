@@ -1,8 +1,6 @@
-import { NativeModules } from 'react-native';
 import { hasProperty, isPlainObject, Json } from '@metamask/utils';
 import {
   SALT_BYTES_COUNT,
-  SHA256_DIGEST_LENGTH,
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
   KeyDerivationIteration,
@@ -13,9 +11,7 @@ import type {
   EncryptionResult,
   KeyDerivationOptions,
 } from './types';
-
-const Aes = NativeModules.Aes;
-const AesForked = NativeModules.AesForked;
+import { getEncryptionLibrary } from './lib';
 
 /**
  * Checks if the provided object is a `KeyDerivationOptions`.
@@ -81,17 +77,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   };
 
   /**
-   * Generates a random IV.
-   *
-   * @param size - The number of bytes for the IV.
-   * @returns The generated IV.
-   */
-  private generateIV = async (size: number): Promise<unknown> =>
-    // Naming isn't perfect here, but this is how the library generates random IV (and encodes it the right way)
-    // See: https://www.npmjs.com/package/react-native-aes-crypto#example
-    await Aes.randomKey(size);
-
-  /**
    * Generate an encryption key from a password and random salt, specifying
    * key derivation options.
    *
@@ -107,15 +92,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     opts: KeyDerivationOptions,
     lib = ENCRYPTION_LIBRARY.original,
   ): Promise<EncryptionKey> => {
-    const key =
-      lib === ENCRYPTION_LIBRARY.original
-        ? await Aes.pbkdf2(
-            password,
-            salt,
-            opts.params.iterations,
-            SHA256_DIGEST_LENGTH,
-          )
-        : await AesForked.pbkdf2(password, salt);
+    const key = await getEncryptionLibrary(lib).deriveKey(password, salt, opts);
 
     return {
       key,
@@ -135,14 +112,18 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     key: EncryptionKey,
     data: Json,
   ): Promise<EncryptionResult> => {
-    const iv = await this.generateIV(16);
+    const text = JSON.stringify(data);
 
-    return Aes.encrypt(data, key, iv).then((cipher: string) => ({
+    const lib = getEncryptionLibrary(key.lib);
+    const iv = await lib.generateIV(16);
+    const cipher = await lib.encrypt(text, key.key, iv);
+
+    return {
       cipher,
       iv,
       keyMetadata: key.keyMetadata,
       lib: key.lib,
-    }));
+    };
   };
 
   /**
@@ -157,10 +138,10 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     payload: EncryptionResult,
   ): Promise<unknown> => {
     // TODO: Check for key and payload compatiblity?
-    const text =
-      payload.lib === ENCRYPTION_LIBRARY.original
-        ? await Aes.decrypt(payload.cipher, key, payload.iv)
-        : await AesForked.decrypt(payload.cipher, key, payload.iv);
+
+    // We assume that both `payload.lib` and `key.lib` are the same here!
+    const lib = getEncryptionLibrary(payload.lib);
+    const text = await lib.decrypt(payload.cipher, key.key, payload.iv);
 
     return JSON.parse(text);
   };
@@ -187,7 +168,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     // NOTE: When re-encrypting, we always use the original library and the KDF parameters from
     // the encryptor itself. This makes sure we always re-encrypt with the "latest" and "best"
     // setup possible.
-    const result = await this.encryptWithKey(key, JSON.stringify(data));
+    const result = await this.encryptWithKey(key, data);
     result.lib = key.lib; // Use the same library than the one used for key generation!
     result.salt = salt;
     result.keyMetadata = key.keyMetadata;
