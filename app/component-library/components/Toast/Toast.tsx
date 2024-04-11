@@ -63,10 +63,11 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       [],
     );
 
+  const resetState = () => setToastOptions(undefined);
+
   const showToast = (options: ToastOptions) => {
     let timeoutDuration = 0;
     if (toastOptions) {
-      // Reset animation unless the toast is meant to stay on
       if (!options.disableTimeout) {
         cancelAnimation(translateYProgress);
       }
@@ -77,11 +78,20 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
     }, timeoutDuration);
   };
 
+  const closeToast = () => {
+    translateYProgress.value = withTiming(
+      screenHeight,
+      { duration: animationDuration },
+      () => {
+        runOnJS(resetState)();
+      },
+    );
+  };
+
   useImperativeHandle(ref, () => ({
     showToast,
+    closeToast,
   }));
-
-  const resetState = () => setToastOptions(undefined);
 
   const onAnimatedViewLayout = (e: LayoutChangeEvent) => {
     if (toastOptions) {

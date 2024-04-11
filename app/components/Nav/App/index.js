@@ -49,6 +49,12 @@ import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
+import {
+  shouldShowNewPrivacyToastSelector,
+  storePrivacyPolicyShownDate,
+  storePrivacyPolicyClickedOrClosed,
+} from '../../../reducers/legalNotices';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import Routes from '../../../constants/navigation/Routes';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
 import Toast, {
@@ -91,7 +97,6 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
-import { AvatarAccountType } from '../../../../app/component-library/components/Avatars/Avatar';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
@@ -233,7 +238,12 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
-const App = ({ userLoggedIn }) => {
+const App = ({
+  userLoggedIn,
+  storePrivacyPolicyShownDate,
+  shouldShowNewPrivacyToast,
+  storePrivacyPolicyClickedOrClosed,
+}) => {
   const animationRef = useRef(null);
   const animationNameRef = useRef(null);
   const opacity = useRef(new Animated.Value(1)).current;
@@ -438,6 +448,9 @@ const App = ({ userLoggedIn }) => {
   }, []);
 
   useEffect(() => {
+    if (!shouldShowNewPrivacyToast || !userLoggedIn) return;
+
+    storePrivacyPolicyShownDate();
     toastRef?.current?.showToast({
       variant: ToastVariants.Plain,
       labelOptions: [
@@ -448,11 +461,22 @@ const App = ({ userLoggedIn }) => {
       ],
       linkButtonOptions: {
         label: 'Read more',
-        onPress: () => {},
+        onPress: () => {
+          storePrivacyPolicyClickedOrClosed();
+          toastRef?.current?.closeToast();
+          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+        },
       },
-      disableTimeout: false,
+      disableTimeout: true,
     });
-  }, []);
+  }, [
+    userLoggedIn,
+    storePrivacyPolicyShownDate,
+    shouldShowNewPrivacyToast,
+    storePrivacyPolicyClickedOrClosed,
+    toastRef?.current,
+    CONSENSYS_PRIVACY_POLICY,
+  ]);
 
   useEffect(() => {
     async function startApp() {
@@ -819,6 +843,14 @@ const App = ({ userLoggedIn }) => {
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
+  shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
 });
 
-export default connect(mapStateToProps)(App);
+const mapDispatchToProps = (dispatch) => ({
+  storePrivacyPolicyShownDate: () =>
+    dispatch(storePrivacyPolicyShownDate(Date.now())),
+  storePrivacyPolicyClickedOrClosed: () =>
+    dispatch(storePrivacyPolicyClickedOrClosed()),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
