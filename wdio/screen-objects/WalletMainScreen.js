@@ -15,7 +15,8 @@ import {
   WALLET_ACCOUNT_ICON,
 } from './testIDs/Screens/WalletView.testIds';
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
-import { TAB_BAR_WALLET_BUTTON } from './testIDs/Components/TabBar.testIds';
+import { TabBarSelectorIDs } from '../../e2e/selectors/TabBar.selectors';
+
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 import { WalletViewSelectorsIDs } from "../../e2e/selectors/WalletView.selectors";
 
@@ -81,7 +82,7 @@ class WalletMainScreen {
   }
 
   get walletButton() {
-    return Selectors.getXpathElementByResourceId(TAB_BAR_WALLET_BUTTON);
+    return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.WALLET);
   }
 
   get goBackSimpleWebViewButton() {

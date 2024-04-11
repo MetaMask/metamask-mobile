@@ -1,33 +1,47 @@
-import TestHelpers from '../helpers';
-import {
-  TAB_BAR_ACTION_BUTTON,
-  TAB_BAR_BROWSER_BUTTON,
-  TAB_BAR_SETTING_BUTTON,
-  TAB_BAR_WALLET_BUTTON,
-  TAB_BAR_ACTIVITY_BUTTON,
-} from '../../wdio/screen-objects/testIDs/Components/TabBar.testIds';
+import Matchers from '../utils/Matchers';
+import Gestures from '../utils/Gestures';
+import { TabBarSelectorIDs } from '../selectors/TabBar.selectors';
 
-export default class TabBarComponent {
-  static async tapBrowser() {
-    await TestHelpers.delay(2500);
-    await TestHelpers.waitAndTap(TAB_BAR_BROWSER_BUTTON);
-    await TestHelpers.delay(1000);
+class TabBarComponent {
+  get tabBarBrowserButton() {
+    return Matchers.getElementByID(TabBarSelectorIDs.BROWSER);
   }
 
-  static async tapWallet() {
-    await TestHelpers.waitAndTap(TAB_BAR_WALLET_BUTTON);
+  get tabBarWalletButton() {
+    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
   }
 
-  static async tapActions() {
-    await TestHelpers.delay(3000);
-    await TestHelpers.waitAndTap(TAB_BAR_ACTION_BUTTON);
+  get tabBarActionButton() {
+    return Matchers.getElementByID(TabBarSelectorIDs.ACTIONS);
   }
 
-  static async tapSettings() {
-    await TestHelpers.waitAndTap(TAB_BAR_SETTING_BUTTON);
+  get tabBarSettingButton() {
+    return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
   }
 
-  static async tapActivity() {
-    await TestHelpers.waitAndTap(TAB_BAR_ACTIVITY_BUTTON);
+  get tabBarActivityButton() {
+    return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
+  }
+
+  async tapBrowser() {
+    await Gestures.waitAndTap(this.tabBarBrowserButton);
+  }
+
+  async tapWallet() {
+    await Gestures.waitAndTap(this.tabBarWalletButton);
+  }
+
+  async tapActions() {
+    await Gestures.waitAndTap(this.tabBarActionButton);
+  }
+
+  async tapSettings() {
+    await Gestures.waitAndTap(this.tabBarSettingButton);
+  }
+
+  async tapActivity() {
+    await Gestures.waitAndTap(this.tabBarActivityButton);
   }
 }
+
+export default new TabBarComponent();

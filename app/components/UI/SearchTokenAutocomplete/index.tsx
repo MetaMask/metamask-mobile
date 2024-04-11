@@ -7,9 +7,7 @@ import {
   LayoutAnimation,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import ActionView from '../ActionView';
 import AssetSearch from '../AssetSearch';
-import AssetList from '../AssetList';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
@@ -19,16 +17,31 @@ import { useSelector } from 'react-redux';
 import { FORMATTED_NETWORK_NAMES } from '../../../constants/on-ramp';
 import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+  selectTicker,
+} from '../../../selectors/networkController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  getNetworkNameFromProviderConfig,
+} from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { EngineState } from '../../../selectors/types';
+import Routes from '../../../constants/navigation/Routes';
+import MultiAssetListItems from '../MultiAssetListItems/MultiAssetListItems';
+import { ScrollView } from 'react-native-gesture-handler';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
-      backgroundColor: colors.background.default,
-      flex: 1,
+      height: '85%',
     },
     tokenDetectionBanner: {
       marginHorizontal: 20,
@@ -40,6 +53,16 @@ const createStyles = (colors: any) =>
     tokenDetectionIcon: {
       paddingTop: 4,
       paddingRight: 8,
+    },
+    alertBar: {
+      width: '100%',
+      marginBottom: 15,
+    },
+    button: {
+      padding: 16,
+    },
+    searchInput: {
+      paddingBottom: 16,
     },
   });
 
@@ -57,14 +80,15 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const { trackEvent } = useMetrics();
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedAsset, setSelectedAsset] = useState({});
+  const [selectedAsset, setSelectedAsset] = useState<any[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const { address, symbol, decimals, iconUrl, name } = selectedAsset as any;
+
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
+  const ticker = useSelector(selectTicker);
 
   const setFocusState = useCallback(
     (isFocused: boolean) => {
@@ -76,20 +100,16 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const getAnalyticsParams = useCallback(() => {
     try {
-      return {
-        token_address: address,
-        token_symbol: symbol,
+      return selectedAsset.map((asset) => ({
+        token_address: asset.address,
+        token_symbol: asset.symbol,
         chain_id: getDecimalChainId(chainId),
         source: 'Add token dropdown',
-      };
+      }));
     } catch (error) {
       return {};
     }
-  }, [address, symbol, chainId]);
-
-  const cancelAddToken = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  }, [selectedAsset, chainId]);
 
   const handleSearch = useCallback(
     (opts: any) => {
@@ -101,49 +121,98 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const handleSelectAsset = useCallback(
     (asset) => {
-      setSelectedAsset(asset);
+      const assetAddressLower = asset.address.toLowerCase();
+
+      const newSelectedAsset = selectedAsset.reduce(
+        (filteredAssets, currentAsset) => {
+          const currentAssetAddressLower = currentAsset.address.toLowerCase();
+          if (currentAssetAddressLower === assetAddressLower) {
+            return filteredAssets;
+          }
+
+          return [...filteredAssets, currentAsset];
+        },
+        [],
+      );
+
+      if (newSelectedAsset.length === selectedAsset.length) {
+        newSelectedAsset.push(asset);
+      }
+
+      setSelectedAsset(newSelectedAsset);
     },
-    [setSelectedAsset],
+    [selectedAsset, setSelectedAsset],
   );
 
-  const addToken = useCallback(async () => {
-    const { TokensController } = Engine.context as any;
-    await TokensController.addToken(address, symbol, decimals, {
-      image: iconUrl,
-      name,
+  const addToken = useCallback(
+    async ({ address, symbol, decimals, iconUrl, name }) => {
+      const { TokensController } = Engine.context as any;
+      await TokensController.addToken(address, symbol, decimals, {
+        image: iconUrl,
+        name,
+      });
+
+      trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
+    },
+    [getAnalyticsParams, trackEvent],
+  );
+
+  /**
+   * Go to wallet page
+   */
+  const goToWalletPage = useCallback(() => {
+    navigation.navigate(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
     });
+  }, [navigation]);
 
-    trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
+  const addTokenList = useCallback(async () => {
+    for (const asset of selectedAsset) {
+      await addToken({ ...asset });
+    }
 
-    // Clear state before closing
     setSearchResults([]);
     setSearchQuery('');
-    setSelectedAsset({});
+    setSelectedAsset([]);
 
     InteractionManager.runAfterInteractions(() => {
-      navigation.goBack();
+      goToWalletPage();
       NotificationManager.showSimpleNotification({
-        status: `simple_notification`,
+        status: `import_success`,
         duration: 5000,
         title: strings('wallet.token_toast.token_imported_title'),
-        description: strings('wallet.token_toast.token_imported_desc', {
-          tokenSymbol: symbol,
-        }),
+        description:
+          selectedAsset.length > 1
+            ? strings('wallet.token_toast.tokens_import_success_multiple', {
+                tokensNumber: selectedAsset.length,
+              })
+            : strings('wallet.token_toast.token_imported_desc_1'),
       });
     });
-  }, [
-    address,
-    symbol,
-    decimals,
-    iconUrl,
-    setSearchResults,
-    setSearchQuery,
-    setSelectedAsset,
-    navigation,
-    getAnalyticsParams,
-    name,
-    trackEvent,
-  ]);
+  }, [addToken, selectedAsset, goToWalletPage]);
+
+  const networkName = useSelector((state: EngineState) => {
+    const providerConfig = selectProviderConfig(state);
+    return getNetworkNameFromProviderConfig(providerConfig);
+  });
+
+  const goToConfirmAddToken = () => {
+    navigation.push('ConfirmAddAsset', {
+      selectedAsset,
+      networkName,
+      chainId,
+      ticker,
+      addTokenList,
+    });
+
+    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
+      source: 'manual',
+      chain_id: getDecimalChainId(chainId),
+    });
+  };
 
   const renderTokenDetectionBanner = useCallback(() => {
     if (isTokenDetectionEnabled || isSearchFocused) {
@@ -195,31 +264,41 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   ]);
 
   return (
-    <View style={styles.wrapper}>
-      <ActionView
-        cancelText={strings('add_asset.tokens.cancel_add_token')}
-        confirmText={strings('add_asset.tokens.add_token')}
-        onCancelPress={cancelAddToken}
-        onConfirmPress={addToken}
-        confirmDisabled={!(address && symbol && decimals)}
-      >
+    <View>
+      <ScrollView style={styles.wrapper}>
         <View>
           {renderTokenDetectionBanner()}
-          <AssetSearch
-            onSearch={handleSearch}
-            onFocus={() => {
-              setFocusState(true);
-            }}
-            onBlur={() => setFocusState(false)}
-          />
-          <AssetList
+
+          <View style={styles.searchInput}>
+            <AssetSearch
+              onSearch={handleSearch}
+              onFocus={() => {
+                setFocusState(true);
+              }}
+              onBlur={() => setFocusState(false)}
+            />
+          </View>
+          <MultiAssetListItems
             searchResults={searchResults}
             handleSelectAsset={handleSelectAsset}
             selectedAsset={selectedAsset}
             searchQuery={searchQuery}
+            chainId={chainId}
+            networkName={networkName}
           />
         </View>
-      </ActionView>
+      </ScrollView>
+      <View style={styles.button}>
+        <Button
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          label={strings('transaction.next')}
+          onPress={goToConfirmAddToken}
+          isDisabled={selectedAsset.length < 1}
+          testID="token-import-next-button"
+        />
+      </View>
     </View>
   );
 };

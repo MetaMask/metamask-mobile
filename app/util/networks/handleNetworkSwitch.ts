@@ -53,8 +53,6 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
   if (networkType) {
     currencyRateController.setNativeCurrency('ETH');
     // TODO: Align mobile and core types to remove this type cast
-    //@ts-expect-error - linea-sepolia is added via patch to controller-utils on v5,
-    // network controller will have controller util dependency on v5 on version 13
     networkController.setProviderType(networkType as InfuraNetworkType);
     return networkType;
   }

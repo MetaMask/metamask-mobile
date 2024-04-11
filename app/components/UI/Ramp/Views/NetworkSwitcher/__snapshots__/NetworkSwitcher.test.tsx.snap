@@ -140,6 +140,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -147,6 +148,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -178,6 +181,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -185,6 +189,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                     testID="navbar-title-networks"
@@ -1887,6 +1893,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -1894,6 +1901,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -1925,6 +1934,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -1932,6 +1942,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                     testID="navbar-title-networks"
@@ -3043,6 +3055,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -3050,6 +3063,8 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -3081,6 +3096,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -3088,6 +3104,8 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                     testID="navbar-title-networks"
@@ -4199,6 +4217,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -4206,6 +4225,8 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -4237,6 +4258,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -4244,6 +4266,8 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                     testID="navbar-title-networks"
@@ -5355,6 +5379,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -5362,6 +5387,8 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -5393,6 +5420,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -5400,6 +5428,8 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                     testID="navbar-title-networks"
@@ -6613,6 +6643,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -6620,6 +6651,8 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -6651,6 +6684,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -6658,6 +6692,8 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                     testID="navbar-title-networks"
@@ -7871,6 +7907,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -7878,6 +7915,8 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -7909,6 +7948,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -7916,6 +7956,8 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                     testID="navbar-title-networks"
@@ -8554,6 +8596,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -8561,6 +8604,8 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -8592,6 +8637,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -8599,6 +8645,8 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                     testID="navbar-title-networks"
@@ -9237,6 +9285,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -9244,6 +9293,8 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -9275,6 +9326,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -9282,6 +9334,8 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                     testID="navbar-title-networks"
