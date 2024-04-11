@@ -280,6 +280,9 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
 
+  // Stake
+  STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
+
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
   FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED = 'Force Upgrade Clicked Update to Latest Version',
@@ -405,6 +408,7 @@ enum ACTIONS {
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
   SELECTS_WEB3_NOTIFICATIONS = 'Selects Web3 Notifications',
+  STAKE = 'Stake',
 }
 
 const events = {
@@ -929,6 +933,7 @@ enum DESCRIPTION {
   BRIDGE = 'Bridge',
   // Notifications
   NOTIFICATIONS = 'Notifications',
+  STAKE = 'Stake',
 }
 
 const legacyMetaMetricsEvents = {
@@ -1411,6 +1416,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.WEB3_NOTIFICATIONS,
     ACTIONS.SELECTS_WEB3_NOTIFICATIONS,
     DESCRIPTION.NOTIFICATIONS,
+  ),
+  STAKE_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.STAKE_BUTTON_CLICKED,
+    ACTIONS.STAKE,
+    DESCRIPTION.STAKE,
   ),
 };
 
