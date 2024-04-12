@@ -596,7 +596,13 @@ class Engine {
         'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
     });
 
-    const phishingController = new PhishingController();
+    const phishingController = new PhishingController({
+      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'PhisingController',
+        allowedActions: ['PhishingController:maybeUpdateState'],
+      }),
+    });
     phishingController.maybeUpdateState();
 
     const qrKeyringBuilder = () => new QRHardwareKeyring();
