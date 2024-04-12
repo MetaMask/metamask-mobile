@@ -178,6 +178,12 @@ NativeModules.RNCNetInfo = {
   getCurrentState: jest.fn(() => Promise.resolve()),
 };
 
+NativeModules.NotifeeApiModule = {
+  addListener: jest.fn(),
+  eventsAddListener: jest.fn(),
+  eventsNotifyReady: jest.fn(),
+};
+
 NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
 };
@@ -240,27 +246,9 @@ jest.mock('@segment/analytics-react-native', () => ({
   createClient: jest.fn(() => initializeMockClient()),
 }));
 
-jest.mock('react-native-push-notification', () => ({
-  configure: jest.fn(),
-  localNotification: jest.fn(),
-  localNotificationSchedule: jest.fn(),
-  cancelLocalNotifications: jest.fn(),
-  cancelAllLocalNotifications: jest.fn(),
-  removeAllDeliveredNotifications: jest.fn(),
-  getDeliveredNotifications: jest.fn(),
-  getScheduledLocalNotifications: jest.fn(),
-  requestPermissions: jest.fn(),
-  abandonPermissions: jest.fn(),
-  checkPermissions: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  invokeApp: jest.fn(),
-  getChannels: jest.fn(),
-  createChannel: jest.fn(),
-  channelExists: jest.fn(),
-  deleteChannel: jest.fn(),
-  popInitialNotification: jest.fn(),
-}));
+jest.mock('@notifee/react-native', () =>
+  require('@notifee/react-native/jest-mock'),
+);
 
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,

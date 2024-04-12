@@ -60,7 +60,6 @@ def common_target_logic
   #     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
   # ```
   flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
-
   use_react_native!(
     :path => config[:reactNativePath],
     # to enable hermes on iOS, change `false` to `true` and then install pods
@@ -82,6 +81,13 @@ def common_target_logic
   # Pods for MetaMask
   pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
   pod 'ReactNativePayments', :path => '../node_modules/@exodus/react-native-payments/lib/ios/'
+
+    # Pods for Push Notifications
+  pod 'Firebase', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'FirebaseCore', :modular_headers => true
+
 
    # Comment the next line if you don't want to use dynamic frameworks
   # use_frameworks!

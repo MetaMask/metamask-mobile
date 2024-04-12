@@ -8,7 +8,7 @@ export interface WC2Metadata {
 export interface SDKState {
   connections: SDKSessions;
   approvedHosts: ApprovedHosts;
-  androidConnections: SDKSessions;
+  dappConnections: SDKSessions;
   // Link to metadata of last created wallet connect session.
   wc2Metadata?: WC2Metadata;
 }
