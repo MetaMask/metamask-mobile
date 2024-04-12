@@ -82,14 +82,16 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    *
    * @param password - The password to use to generate key.
    * @param salt - The salt string to use in key derivation.
-   * @param opts - The options to use for key derivation.
-   * @property [lib] - The library or algorithm used for encryption. Defaults to `ENCRYPTION_LIBRARY.original`.
+   * @param [exportable] - True if the key is exportable.
+   * @param [opts] - The options to use for key derivation.
+   * @param [lib] - The library or algorithm used for encryption. Defaults to `ENCRYPTION_LIBRARY.original`.
    * @returns An EncryptionKey for encryption and decryption.
    */
   keyFromPassword = async (
     password: string,
     salt: string,
-    opts: KeyDerivationOptions,
+    exportable = false,
+    opts: KeyDerivationOptions = this.keyDerivationOptions,
     lib = ENCRYPTION_LIBRARY.original,
   ): Promise<EncryptionKey> => {
     const key = await getEncryptionLibrary(lib).deriveKey(password, salt, opts);
@@ -97,6 +99,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     return {
       key,
       keyMetadata: opts,
+      exportable,
       lib,
     };
   };
@@ -161,6 +164,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const key = await this.keyFromPassword(
       password,
       salt,
+      false,
       this.keyDerivationOptions,
       ENCRYPTION_LIBRARY.original,
     );
@@ -195,6 +199,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const key = await this.keyFromPassword(
       password,
       payload.salt,
+      false,
       payload.keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
       payload.lib,
     );

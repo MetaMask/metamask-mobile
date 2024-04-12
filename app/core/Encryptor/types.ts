@@ -77,6 +77,7 @@ export interface EncryptionResult {
 export interface EncryptionKey {
   key: string;
   lib: string;
+  exportable: boolean;
   keyMetadata: KeyDerivationOptions;
 }
 

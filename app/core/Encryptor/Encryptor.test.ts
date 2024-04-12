@@ -130,4 +130,57 @@ describe('Encryptor', () => {
       ).toBe(false);
     });
   });
+
+  describe('keyFromPassword', () => {
+    it.each([
+      [
+        'exportable with original lib',
+        {
+          lib: ENCRYPTION_LIBRARY.original,
+          exportable: true,
+          keyMetadata: LEGACY_DERIVATION_OPTIONS,
+        },
+      ],
+      [
+        'non-exportable with original lib',
+        {
+          lib: ENCRYPTION_LIBRARY.original,
+          exportable: false,
+          keyMetadata: LEGACY_DERIVATION_OPTIONS,
+        },
+      ],
+      [
+        'exportable with random lib',
+        {
+          lib: 'random-lib',
+          exportable: true,
+          keyMetadata: LEGACY_DERIVATION_OPTIONS,
+        },
+      ],
+      [
+        'non-exportable with random lib',
+        {
+          lib: 'random-lib',
+          exportable: false,
+          keyMetadata: LEGACY_DERIVATION_OPTIONS,
+        },
+      ],
+    ])(
+      'generates a key with the right attributes: %s',
+      async (_, { lib, exportable, keyMetadata }) => {
+        const key = await encryptor.keyFromPassword(
+          'mockPassword',
+          encryptor.generateSalt(),
+          exportable,
+          keyMetadata,
+          lib,
+        );
+
+        expect(key.key).not.toBe(undefined);
+        expect(key.lib).toBe(lib);
+        expect(key.exportable).toBe(exportable);
+        expect(key.keyMetadata).toBe(keyMetadata);
+      },
+    );
+  });
 });
