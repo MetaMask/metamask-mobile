@@ -192,7 +192,7 @@ class AddCustomToken extends PureComponent {
     if (!(await this.validateCustomToken())) return;
     const { TokensController } = Engine.context;
     const { address, symbol, decimals, name } = this.state;
-    await TokensController.addToken(address, symbol, decimals, { name });
+    await TokensController.addToken({ address, symbol, decimals, name });
 
     this.props.metrics.trackEvent(
       MetaMetricsEvents.TOKEN_ADDED,
