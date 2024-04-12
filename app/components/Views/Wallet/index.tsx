@@ -55,6 +55,7 @@ import { selectAccountsByChainId } from '../../../selectors/accountTrackerContro
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useAccounts } from '../../hooks/useAccounts';
+import usePrevious from '../../hooks/usePrevious';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -134,7 +135,7 @@ const Wallet = ({ navigation }: any) => {
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
-
+  const prevChainId = usePrevious(providerConfig.chainId);
   /**
    * A list of all the user accounts and a mapping of ENS name to account address if they exist
    */
@@ -204,7 +205,10 @@ const Wallet = ({ navigation }: any) => {
       networkOnboardingState,
     );
 
-    if (wizardStep > 0 || !networkOnboarded) {
+    if (
+      wizardStep > 0 ||
+      (!networkOnboarded && prevChainId !== providerConfig.chainId)
+    ) {
       // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
@@ -255,6 +259,7 @@ const Wallet = ({ navigation }: any) => {
     providerConfig.chainId,
     providerConfig.rpcUrl,
     networkOnboardingState,
+    prevChainId,
   ]);
 
   useEffect(
