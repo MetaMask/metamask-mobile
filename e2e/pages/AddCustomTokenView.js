@@ -10,6 +10,7 @@ import {
   NFT_ADDRESS_INPUT_BOX_ID,
   NFT_ADDRESS_WARNING_MESSAGE_ID,
   NFT_IDENTIFIER_INPUT_BOX_ID,
+  NEXT_BUTTON_CUSTOM_IMPORT,
 } from '../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { AddCustomTokenViewSelectorsText } from '../selectors/AddCustomTokenView.selectors';
 
@@ -34,6 +35,10 @@ export default class AddCustomTokenView {
     await TestHelpers.tap(CUSTOM_TOKEN_BACK_BUTTON_ID);
   }
 
+  static async tapNextButton() {
+    await TestHelpers.tap(NEXT_BUTTON_CUSTOM_IMPORT);
+  }
+
   static async tapTokenSymbolInputBox() {
     await TestHelpers.waitAndTap(TOKEN_ADDRESS_SYMBOL_ID);
   }
@@ -51,7 +56,7 @@ export default class AddCustomTokenView {
       await TestHelpers.replaceTextInField(TOKEN_ADDRESS_INPUT_BOX_ID, address);
       await element(by.id(TOKEN_ADDRESS_INPUT_BOX_ID)).tapReturnKey();
     } else {
-      await TestHelpers.typeText(TOKEN_ADDRESS_INPUT_BOX_ID, address);
+      await TestHelpers.typeText(TOKEN_ADDRESS_INPUT_BOX_ID, address + '\n');
     }
   }
 
@@ -88,5 +93,11 @@ export default class AddCustomTokenView {
 
   static async isNFTAddressWarningVisible() {
     await TestHelpers.checkIfVisible(NFT_ADDRESS_WARNING_MESSAGE_ID);
+  }
+
+  static async switchToCustomTab() {
+    await TestHelpers.tapByText(
+      AddCustomTokenViewSelectorsText.CUSTOM_TOKEN_TAB,
+    );
   }
 }
