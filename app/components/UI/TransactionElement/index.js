@@ -37,6 +37,7 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -601,16 +602,36 @@ class TransactionElement extends PureComponent {
   }
 }
 
-const mapStateToProps = (state) => ({
-  ticker: selectTicker(state),
-  chainId: selectChainId(state),
-  identities: selectIdentities(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedAddress(state),
-  swapsTransactions:
-    state.engine.backgroundState.TransactionController.swapsTransactions || {},
-  swapsTokens: state.engine.backgroundState.SwapsController.tokens,
-});
+const mapStateToProps = (state) => {
+  const selectedAddress = selectSelectedAddress(state);
+  const chainId = selectChainId(state);
+  const smartTransactions =
+    state.engine.backgroundState.SmartTransactionsController
+      .smartTransactionsState.smartTransactions[chainId];
+
+  const isSmartTransactionPending =
+    smartTransactions?.filter((stx) => {
+      const { transaction } = stx;
+      return (
+        transaction?.from.toLowerCase() === selectedAddress.toLowerCase() &&
+        stx.status &&
+        stx.status !== SmartTransactionStatuses.SUCCESS
+      );
+    }).length > 0;
+
+  return {
+    ticker: selectTicker(state),
+    chainId,
+    identities: selectIdentities(state),
+    primaryCurrency: state.settings.primaryCurrency,
+    selectedAddress: selectSelectedAddress(state),
+    swapsTransactions:
+      state.engine.backgroundState.TransactionController.swapsTransactions ||
+      {},
+    swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+    isSmartTransactionPending,
+  };
+};
 
 TransactionElement.contextType = ThemeContext;
 
