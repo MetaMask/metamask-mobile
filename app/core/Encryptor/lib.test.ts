@@ -1,5 +1,9 @@
 import { getEncryptionLibrary, AesLib, AesForkedLib } from './lib';
-import { ENCRYPTION_LIBRARY, LEGACY_DERIVATION_OPTIONS, DERIVATION_OPTIONS_MINIMUM_OWASP2023 } from './constants';
+import {
+  ENCRYPTION_LIBRARY,
+  LEGACY_DERIVATION_OPTIONS,
+  DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+} from './constants';
 
 const mockPassword = 'mockPassword';
 const mockSalt = '00112233445566778899001122334455';

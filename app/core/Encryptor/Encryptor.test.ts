@@ -1,9 +1,6 @@
 import { NativeModules } from 'react-native';
 import { Encryptor } from './Encryptor';
-import {
-  ENCRYPTION_LIBRARY,
-  LEGACY_DERIVATION_OPTIONS,
-} from './constants';
+import { ENCRYPTION_LIBRARY, LEGACY_DERIVATION_OPTIONS } from './constants';
 
 const Aes = NativeModules.Aes;
 const AesForked = NativeModules.AesForked;
