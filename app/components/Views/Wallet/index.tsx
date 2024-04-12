@@ -61,6 +61,7 @@ import Text, {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useAccounts } from '../../hooks/useAccounts';
 import { RootState } from 'app/reducers';
+import usePrevious from '../../hooks/usePrevious';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -145,7 +146,7 @@ const Wallet = ({ navigation }: any) => {
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
-
+  const prevChainId = usePrevious(providerConfig.chainId);
   /**
    * Is basic functionality enabled
    */
@@ -226,7 +227,10 @@ const Wallet = ({ navigation }: any) => {
       networkOnboardingState,
     );
 
-    if (wizardStep > 0 || !networkOnboarded) {
+    if (
+      wizardStep > 0 ||
+      (!networkOnboarded && prevChainId !== providerConfig.chainId)
+    ) {
       // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
@@ -277,6 +281,7 @@ const Wallet = ({ navigation }: any) => {
     providerConfig.chainId,
     providerConfig.rpcUrl,
     networkOnboardingState,
+    prevChainId,
   ]);
 
   useEffect(
