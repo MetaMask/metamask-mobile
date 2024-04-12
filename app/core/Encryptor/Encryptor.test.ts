@@ -53,23 +53,25 @@ describe('Encryptor', () => {
     });
 
     it.each([
-      {
-        lib: ENCRYPTION_LIBRARY.original,
-        expectedKey: 'mockedAesKey',
-        expectedPBKDF2Args: ['testPassword', 'mockedSalt', 5000, 256],
-        description:
-          'with original library and legacy iterations number for key generation',
-      },
-      {
-        lib: 'random-lib', // Assuming not using "original" should lead to AesForked
-        expectedKeyValue: 'mockedKeyForked',
-        expectedPBKDF2Args: ['testPassword', 'mockedSalt'],
-        description:
-          'with library different to "original" and legacy iterations number for key generation',
-      },
+      [
+        'with original library and legacy iterations number for key generation',
+        {
+          lib: ENCRYPTION_LIBRARY.original,
+          expectedKeyValue: 'mockedKey',
+          expectedPBKDF2Args: ['testPassword', 'mockedSalt', 5000, 256],
+        },
+      ],
+      [
+        'with library different to "original" and legacy iterations number for key generation',
+        {
+          lib: 'random-lib', // Assuming not using "original" should lead to AesForked
+          expectedKeyValue: 'mockedKeyForked',
+          expectedPBKDF2Args: ['testPassword', 'mockedSalt'],
+        },
+      ],
     ])(
-      'decrypts a string correctly $description',
-      async ({ lib, expectedKey, expectedPBKDF2Args }) => {
+      'decrypts a string correctly %s',
+      async (_, { lib, expectedKeyValue, expectedPBKDF2Args }) => {
         const password = 'testPassword';
         const mockVault = {
           cipher: 'mockedCipher',
