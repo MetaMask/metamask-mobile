@@ -30,6 +30,7 @@ Install ruby version defined in the file `.ruby-version`
 
 With the correct version of ruby installed, CocoaPods can be installed sudo-less in your system using `gem`
 ```bash
+gem install bundler -v 2.5.8 && \
 gem install activesupport -v 7.0.8 && \
 gem install cocoapods -v 1.12.1
 ```
