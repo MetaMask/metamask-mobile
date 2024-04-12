@@ -9,19 +9,12 @@ import Icon, {
 import ProgressBar from './ProgressBar';
 import { useTheme } from '../../../util/theme';
 import {
+  Hex,
   SmartTransaction,
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller/dist/types';
-import {
-  findBlockExplorerForRpc,
-  getBlockExplorerTxUrl,
-} from '../../../util/networks';
 import { useSelector } from 'react-redux';
-import {
-  selectNetworkConfigurations,
-  selectProviderConfig,
-} from '../../../selectors/networkController';
-import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
+import { selectProviderConfig } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
 import { getSwapsChainFeatureFlags } from '../../../reducers/swaps';
 import Logger from '../../../util/Logger';
@@ -32,6 +25,12 @@ import Routes from '../../../constants/navigation/Routes';
 import TransactionBackgroundTop from '../../../images/transaction-background-top.svg';
 import TransactionBackgroundBottom from '../../../images/transaction-background-bottom.svg';
 import LoopingScrollAnimation from './LoopingScrollAnimation';
+import { hexToDecimal } from '../../../util/conversions';
+
+const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
+  const chainIdDec = hexToDecimal(chainId);
+  return `https://portfolio.metamask.io/networks/${chainIdDec}/smart-transactions/${uuid}?referrer=mobile`;
+};
 
 interface Props {
   requestState: {
@@ -63,9 +62,8 @@ const SmartTransactionStatus = ({
   origin,
   onConfirm,
 }: Props) => {
-  const { status, creationTime } = smartTransaction;
+  const { status, creationTime, uuid } = smartTransaction;
   const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const swapFeatureFlags = useSelector(getSwapsChainFeatureFlags);
 
   const navigation = useNavigation();
@@ -167,36 +165,17 @@ const SmartTransactionStatus = ({
   }, [isStxPending, isStxPastEstimatedDeadline, creationTime, stxDeadlineSec]);
 
   // Set block explorer link and show explorer on click
-  let rpcBlockExplorer;
-  let txUrl: string | null;
-  let txTitle: string | null;
-  const txHash = smartTransaction.statusMetadata?.minedHash;
-
-  if (providerConfig.type === RPC) {
-    rpcBlockExplorer =
-      findBlockExplorerForRpc(providerConfig.rpcUrl, networkConfigurations) ||
-      NO_RPC_BLOCK_EXPLORER;
-  }
-  if (txHash) {
-    ({ url: txUrl, title: txTitle } = getBlockExplorerTxUrl(
-      providerConfig.type,
-      txHash,
-      rpcBlockExplorer,
-    ));
-  }
+  const txUrl = getPortfolioStxLink(providerConfig.chainId, uuid);
 
   const onViewTransaction = () => {
-    if (txUrl && txTitle) {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: txUrl,
-          title: txTitle,
-        },
-      });
-      // Close SmartTransactionStatus
-      onConfirm();
-    }
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: txUrl,
+      },
+    });
+    // Close SmartTransactionStatus
+    onConfirm();
   };
 
   // Set icon, header, desc, and buttons
@@ -339,13 +318,12 @@ const SmartTransactionStatus = ({
         {isStxPending && <ProgressBar percentComplete={percentComplete} />}
         <View style={styles.textWrapper}>
           {description && <Text style={styles.desc}>{description}</Text>}
-          {txHash && (
-            <TouchableOpacity onPress={onViewTransaction}>
-              <Text style={styles.link}>
-                {strings('smart_transactions.view_transaction')}
-              </Text>
-            </TouchableOpacity>
-          )}
+
+          <TouchableOpacity onPress={onViewTransaction}>
+            <Text style={styles.link}>
+              {strings('smart_transactions.view_transaction')}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
       <LoopingScrollAnimation width={800}>
