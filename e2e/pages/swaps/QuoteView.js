@@ -5,11 +5,11 @@ import {
   SWAP_MAX_SLIPPAGE,
   SWAP_SEARCH_TOKEN,
 } from '../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
-import messages from '../../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 export default class QuoteView {
   static async isVisible() {
-    await TestHelpers.checkIfElementByTextIsVisible(messages.swaps.get_quotes);
+    await TestHelpers.checkIfElementByTextIsVisible(enContent.swaps.get_quotes);
   }
 
   static async findKeypadButton(digit) {
@@ -38,7 +38,7 @@ export default class QuoteView {
 
   static async tapOnGetQuotes() {
     await device.disableSynchronization();
-    await TestHelpers.waitAndTapText(messages.swaps.get_quotes);
+    await TestHelpers.waitAndTapText(enContent.swaps.get_quotes);
   }
 
   static async checkMaxSlippage(text) {

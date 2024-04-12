@@ -21,17 +21,17 @@ function removeChannel({
   instance: SDKConnect;
 }) {
   // check if it is an android sdk connection, if it doesn't belong to regular connections
-  const isAndroidConnection =
-    instance.state.connections[channelId] === undefined;
+  const isDappConnection = instance.state.connections[channelId] === undefined;
 
   DevLogger.log(
-    `SDKConnect::removeChannel ${channelId} sendTerminate=${sendTerminate} isAndroidConnection=${isAndroidConnection} connectedted=${
+    `SDKConnect::removeChannel ${channelId} sendTerminate=${sendTerminate} isDappConnection=${isDappConnection} connectedted=${
       instance.state.connected[channelId] !== undefined
     }`,
   );
 
-  if (isAndroidConnection) {
+  if (isDappConnection) {
     instance.state.androidService?.removeConnection(channelId);
+    instance.state.deeplinkingService?.removeConnection(channelId);
   }
 
   if (instance.state.connected[channelId]) {
