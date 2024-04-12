@@ -18,10 +18,6 @@ describe('Encryptor', () => {
   });
 
   describe('encrypt', () => {
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
     it('should encrypt an object correctly', async () => {
       const password = 'testPassword';
       const objectToEncrypt = { key: 'value' };
@@ -46,25 +42,14 @@ describe('Encryptor', () => {
       pbkdf2AesForkedSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      decryptAesSpy = jest
-        .spyOn(Aes, 'decrypt')
-        .mockResolvedValue('{"mockData": "mockedPlainText"}');
-      pbkdf2AesSpy = jest
-        .spyOn(Aes, 'pbkdf2')
-        .mockResolvedValue('mockedAesKey');
-      decryptAesForkedSpy = jest
-        .spyOn(AesForked, 'decrypt')
-        .mockResolvedValue('{"mockData": "mockedPlainText"}');
-      pbkdf2AesForkedSpy = jest
-        .spyOn(AesForked, 'pbkdf2')
-        .mockResolvedValue('mockedAesForkedKey');
+      decryptAesSpy = jest.spyOn(Aes, 'decrypt');
+      pbkdf2AesSpy = jest.spyOn(Aes, 'pbkdf2');
+      decryptAesForkedSpy = jest.spyOn(AesForked, 'decrypt');
+      pbkdf2AesForkedSpy = jest.spyOn(AesForked, 'pbkdf2');
     });
 
     afterEach(() => {
-      decryptAesSpy.mockRestore();
-      pbkdf2AesSpy.mockRestore();
-      decryptAesForkedSpy.mockRestore();
-      pbkdf2AesForkedSpy.mockRestore();
+      jest.clearAllMocks();
     });
 
     it.each([
@@ -77,7 +62,7 @@ describe('Encryptor', () => {
       },
       {
         lib: 'random-lib', // Assuming not using "original" should lead to AesForked
-        expectedKeyValue: 'mockedAesForkedKey',
+        expectedKeyValue: 'mockedKeyForked',
         expectedPBKDF2Args: ['testPassword', 'mockedSalt'],
         description:
           'with library different to "original" and legacy iterations number for key generation',
