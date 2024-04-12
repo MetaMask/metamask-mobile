@@ -118,7 +118,7 @@ const mainSetupTask = {
           podInstallTask.skip('Not macOS.');
         } else {
           try {
-            await $`pod install --project-directory=ios`;
+            await $`bundle exec pod install --project-directory=ios`;
           } catch (error) {
             throw new Error(error);
           }
