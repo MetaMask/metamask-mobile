@@ -75,7 +75,7 @@ const asyncInit = async ({
     );
     instance.state.connections = validConnections;
     instance.state.approvedHosts = validHosts;
-    instance.state.androidConnections = sdk.androidConnections;
+    instance.state.dappConnections = sdk.dappConnections;
 
     // Update store with valid connection
     store.dispatch(resetConnections(validConnections));

@@ -141,9 +141,13 @@ describe(Regression('Custom RPC Tests'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
     await Assertions.checkIfVisible(NetworkView.networkContainer);
+    if (device.getPlatform() === 'android') {
+      await device.disableSynchronization();
+    }
     await NetworkView.longPressToRemoveNetwork(
       CustomNetworks.Gnosis.providerConfig.nickname,
     ); // Tap on xDai to remove network
+    await TestHelpers.delay(3000);
     await NetworkEducationModal.tapGotItButton();
     await TabBarComponent.tapWallet();
     await WalletView.isVisible();
