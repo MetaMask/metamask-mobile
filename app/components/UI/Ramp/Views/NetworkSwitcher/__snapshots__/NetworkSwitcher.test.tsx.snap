@@ -193,7 +193,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     BNB Smart Chain
                   </Text>
@@ -1946,7 +1945,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     BNB Smart Chain
                   </Text>
@@ -3108,7 +3106,6 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     BNB Smart Chain
                   </Text>
@@ -4270,7 +4267,6 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     BNB Smart Chain
                   </Text>
@@ -5432,7 +5428,6 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     BNB Smart Chain
                   </Text>
@@ -6696,7 +6691,6 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     BNB Smart Chain
                   </Text>
@@ -7960,7 +7954,6 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     BNB Smart Chain
                   </Text>
@@ -8649,7 +8642,6 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     BNB Smart Chain
                   </Text>
@@ -9338,7 +9330,6 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     BNB Smart Chain
                   </Text>

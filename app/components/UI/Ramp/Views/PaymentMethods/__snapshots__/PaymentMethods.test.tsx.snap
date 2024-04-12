@@ -214,7 +214,6 @@ exports[`PaymentMethods View renders correctly 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -2279,7 +2278,6 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -4344,7 +4342,6 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -5780,7 +5777,6 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -6492,7 +6488,6 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -7204,7 +7199,6 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -7914,7 +7908,6 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -9350,7 +9343,6 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -11473,7 +11465,6 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -12160,7 +12151,6 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>

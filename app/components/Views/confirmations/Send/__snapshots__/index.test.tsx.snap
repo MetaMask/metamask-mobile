@@ -214,7 +214,6 @@ exports[`Accounts should render correctly 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>

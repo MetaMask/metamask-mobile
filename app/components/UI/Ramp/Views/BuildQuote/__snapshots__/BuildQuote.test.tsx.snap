@@ -214,7 +214,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -953,7 +952,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -1692,7 +1690,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -2402,7 +2399,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -3304,7 +3300,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -4014,7 +4009,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -4916,7 +4910,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -5626,7 +5619,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -6528,7 +6520,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -7238,7 +7229,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -8140,7 +8130,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -11378,7 +11367,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -14628,7 +14616,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -15338,7 +15325,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>

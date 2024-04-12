@@ -191,7 +191,6 @@ exports[`GetStarted renders correctly 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -867,7 +866,6 @@ exports[`GetStarted renders correctly 2`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -1543,7 +1541,6 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
@@ -1989,7 +1986,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    testID="navbar-title-networks"
                   >
                     Ethereum Main Network
                   </Text>
