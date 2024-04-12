@@ -56,6 +56,7 @@ class TabBarModal {
   }
 
   async tapSettingButton() {
+    await driver.pause(10000);
     await Gestures.waitAndTap(this.settingsButton);
   }
 

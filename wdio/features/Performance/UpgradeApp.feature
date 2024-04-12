@@ -1,5 +1,5 @@
 @androidApp
-@performance
+@upgrade
 @fixturesSkipOnboarding
 Feature: Measure the app launch times for warm starts
 
@@ -13,14 +13,13 @@ Feature: Measure the app launch times for warm starts
     When I tap on the Settings tab option
     And I scroll up
     And In settings I tap on "About MetaMask"
-    Then "MetaMask-QA v7.16.0 (1265)" is displayed
+    Then version "PRODUCTION_BUILD_STRING" is displayed for app upgrade step
     When I install upgrade the app
     And I relaunch the app
-    And the app displayed the splash animation
+    And the splash animation completes
     And I fill my password in the Login screen
     And I log into my wallet
     And I tap on the Settings tab option
-    And I scroll up
     And In settings I tap on "About MetaMask"
-    Then "MetaMask-QA v7.17.0 (1267)" is displayed
+    Then version "NEW_BUILD_STRING" is displayed for app upgrade step
     And removed test app
