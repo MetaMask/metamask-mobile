@@ -92,7 +92,7 @@ const LedgerConnectionError = ({
         />
         <View style={styles.errorHasOccuredTextContainer}>
           <Text bold big style={styles.errorHasOccuredText}>
-            {strings('ledger.error_occured')}
+            {strings('ledger.error_occurred')}
           </Text>
           <Text style={styles.errorTitle}>{errorTitle}</Text>
           <View style={styles.errorSubtitleContainer}>
