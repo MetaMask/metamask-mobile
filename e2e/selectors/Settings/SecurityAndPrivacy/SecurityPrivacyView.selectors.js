@@ -1,4 +1,4 @@
-import messages from '../../../../locales/languages/en.json';
+import enContent from '../../../../locales/languages/en.json';
 
 export const SecurityPrivacyViewSelectorsIDs = {
   CHANGE_PASSWORD_CONTAINER: 'change-password-section',
@@ -12,7 +12,7 @@ export const SecurityPrivacyViewSelectorsIDs = {
 };
 
 export const SecurityPrivacyViewSelectorsText = {
-  CLEAR_BROWSER_COOKIES: messages.app_settings.clear_browser_cookies_desc,
-  PRIVACY_HEADING: messages.app_settings.privacy_heading,
-  BACK_UP_NOW: messages.app_settings.back_up_now,
+  CLEAR_BROWSER_COOKIES: enContent.app_settings.clear_browser_cookies_desc,
+  PRIVACY_HEADING: enContent.app_settings.privacy_heading,
+  BACK_UP_NOW: enContent.app_settings.back_up_now,
 };

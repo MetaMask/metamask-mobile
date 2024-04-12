@@ -2,18 +2,6 @@
 
 ## iOS
 
-### Xcode Command Line Tools
-
-You'll be prompted to install it if the command below is not available.
-```bash
-git
-```
-
-If installed correctly the following command should return the installation path
-```bash
-xcode-select -p
-```
-
 ### Package Manager
 
 Install `brew` package manager. 
@@ -50,6 +38,16 @@ gem install cocoapods -v 1.12.1
 
 The easiest way to install Xcode is via the [Mac App Store](https://itunes.apple.com/us/app/xcode/id497799835?mt=12). Installing Xcode will also install the iOS Simulator and all the necessary tools to build your iOS app.
 
+### Xcode Command Line Tools
+
+You will also need to install the Xcode Command Line Tools. Open Xcode, then choose Settings... (or Preferences...) from the Xcode menu. Go to the Locations panel and install the tools by selecting the most recent version in the Command Line Tools dropdown.
+
+### Installing an iOS Simulator in Xcode
+
+To install a simulator, open Xcode > Settings... (or Preferences...) and select the Platforms (or Components) tab. Select a simulator with the corresponding version of iOS you wish to use.
+
+If you are using Xcode version 14.0 or greater than to install a simulator, open Xcode > Settings > Platforms tab, then click "+" icon and select iOS… option.
+
 ### Node
 
 It is recommended to install a Node version manager such as [nodenv](https://github.com/nodenv/nodenv?tab=readme-ov-file#installation), [nvm](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating), [asdf](https://asdf-vm.com/guide/getting-started.html#_3-install-asdf)
@@ -70,7 +68,7 @@ Install [Android Studio](https://developer.android.com/studio)
 Set environment variable `JAVA_HOME=/Applications/Android Studio.app/Contents/jbr/Contents/Home` to use java version shipped on the Android Studio App 
 
    
-   - Go to Settings > Appearance & Behavior > System Settings > Android SDK
+   - Go to Settings > Languages & Frameworks > Android SDK
    - Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
      - Select `SDK Tools` tab
      - Check `Show Package Details` option below the tools list to show available versions
