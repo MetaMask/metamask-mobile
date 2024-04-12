@@ -126,6 +126,7 @@ import {
   isMainnetByChainId,
   getDecimalChainId,
   fetchEstimatedMultiLayerL1Fee,
+  deprecatedGetNetworkId,
 } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
@@ -182,6 +183,10 @@ import {
 } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
+import {
+  networkIdUpdated,
+  networkIdWillUpdate,
+} from '../core/redux/slices/inpageProvider';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -509,7 +514,8 @@ class Engine {
           AppConstants.TOKEN_LIST_STATE_CHANGE_EVENT,
           listener,
         ),
-
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
       chainId: networkController.state.providerConfig.chainId,
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
@@ -576,6 +582,7 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          //@ts-expect-error GasFeeController needs to be updated to v7 for this error disappears
           listener,
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
@@ -1061,6 +1068,7 @@ class Engine {
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
         getNetworkState: () => networkController.state,
         getSelectedAddress: () =>
           accountsController.getSelectedAccount().address,
@@ -1089,6 +1097,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
             listener,
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -1266,6 +1275,28 @@ class Engine {
             currentChainId = state.providerConfig.chainId;
           }, 500);
         }
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      AppConstants.NETWORK_STATE_CHANGE_EVENT,
+      async () => {
+        try {
+          const networkId = await deprecatedGetNetworkId();
+          store.dispatch(networkIdUpdated(networkId));
+        } catch (error) {
+          console.error(
+            error,
+            `Network ID not changed, current chainId: ${networkController.state.providerConfig.chainId}`,
+          );
+        }
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      'NetworkController:networkWillChange',
+      () => {
+        store.dispatch(networkIdWillUpdate());
       },
     );
 

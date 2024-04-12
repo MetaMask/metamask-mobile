@@ -6,7 +6,7 @@ import { ActionType, Action } from '../../actions/sdk';
 export const initialState: Readonly<SDKState> = {
   connections: {},
   approvedHosts: {},
-  androidConnections: {},
+  dappConnections: {},
   wc2Metadata: undefined,
 };
 
@@ -89,26 +89,26 @@ const sdkReducer = (
           [action.channelId]: action.validUntil,
         },
       };
-    case ActionType.UPDATE_ANDROID_CONNECTION:
+    case ActionType.UPDATE_DAPP_CONNECTION:
       return {
         ...state,
-        androidConnections: {
-          ...state.androidConnections,
+        dappConnections: {
+          ...state.dappConnections,
           [action.channelId]: action.connection,
         },
       };
-    case ActionType.REMOVE_ANDROID_CONNECTION: {
-      const { [action.channelId]: _, ...androidConnections } =
-        state.androidConnections;
+    case ActionType.REMOVE_DAPP_CONNECTION: {
+      const { [action.channelId]: _, ...dappConnections } =
+        state.dappConnections;
       return {
         ...state,
-        androidConnections,
+        dappConnections,
       };
     }
-    case ActionType.RESET_ANDROID_CONNECTIONS:
+    case ActionType.RESET_DAPP_CONNECTIONS:
       return {
         ...state,
-        androidConnections: action.connections,
+        dappConnections: action.connections,
       };
     default:
       return state;
