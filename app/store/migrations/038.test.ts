@@ -3,8 +3,6 @@ import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
-import { LINEA_SEPOLIA } from '../../../app/constants/network';
-import NetworkList from '../../../app/util/networks';
 
 const oldState = {
   engine: {
@@ -13,8 +11,8 @@ const oldState = {
         isCustomNetwork: true,
         networkConfigurations: {},
         networkDetails: { EIPS: { '1559': true } },
-        networkId: CHAIN_IDS.LINEA_GOERLI,
         networkStatus: 'available',
+        selectedNetworkClientId: 'linea-goerli',
         providerConfig: {
           chainId: CHAIN_IDS.LINEA_GOERLI,
           rpcPrefs: { blockExplorerUrl: 'https://explorer.goerli.linea.build' },
@@ -33,12 +31,13 @@ const expectedNewState = {
         isCustomNetwork: true,
         networkConfigurations: {},
         networkDetails: { EIPS: { '1559': true } },
-        networkId: `${NetworkList[LINEA_SEPOLIA].networkId}`,
         networkStatus: 'available',
+        selectedNetworkClientId: 'linea-sepolia',
         providerConfig: {
           chainId: CHAIN_IDS.LINEA_SEPOLIA,
           ticker: 'LineaETH',
           type: 'linea-sepolia',
+          rpcPrefs: { blockExplorerUrl: 'https://sepolia.lineascan.build' },
         },
       },
     },

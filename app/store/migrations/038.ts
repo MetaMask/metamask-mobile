@@ -3,6 +3,7 @@ import { captureException } from '@sentry/react-native';
 import { isObject } from '@metamask/utils';
 import { NetworkState } from '@metamask/network-controller';
 import { NetworkType } from '@metamask/controller-utils';
+import { LINEA_SEPOLIA_BLOCK_EXPLORER } from '../../../app/constants/urls';
 
 export default async function migrate(stateAsync: unknown) {
   const state = await stateAsync;
@@ -58,8 +59,13 @@ export default async function migrate(stateAsync: unknown) {
     networkControllerState.providerConfig = {
       chainId: CHAIN_IDS.LINEA_SEPOLIA,
       ticker: 'LineaETH',
+      rpcPrefs: {
+        blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
+      },
       type: NetworkType['linea-sepolia'],
     };
+    networkControllerState.selectedNetworkClientId =
+      NetworkType['linea-sepolia'];
   }
   return state;
 }
