@@ -27,6 +27,19 @@ const isKeyDerivationOptions = (
   hasProperty(derivationOptions, 'params');
 
 /**
+ * Checks if the provided object is a `EncryptionKey`.
+ *
+ * @param key - The object to check.
+ * @returns Whether or not the object is a `EncryptionKey`.
+ */
+const isEncryptionKey = (key: unknown): key is EncryptionKey =>
+  isPlainObject(key) &&
+  hasProperty(key, 'key') &&
+  hasProperty(key, 'lib') &&
+  hasProperty(key, 'keyMetadata') &&
+  isKeyDerivationOptions(key.keyMetadata);
+
+/**
  * The Encryptor class provides methods for encrypting and
  * decrypting data objects using AES encryption with native libraries.
  * It supports generating a salt, deriving an encryption key from a
@@ -225,6 +238,42 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       keyMetadata.algorithm === targetDerivationParams.algorithm &&
       keyMetadata.params.iterations === targetDerivationParams.params.iterations
     );
+  };
+
+  /**
+   * Exports a key string from an `EncryptionKey` instance.
+   *
+   * @param key - The `EncryptionKey` to export.
+   * @returns A key string.
+   */
+  exportKey = async (key: EncryptionKey): Promise<string> => {
+    if (!key.exportable) {
+      throw new Error('Key is not exportable');
+    }
+
+    const json = JSON.stringify(key);
+    return Buffer.from(json).toString('base64');
+  };
+
+  /**
+   * Receives an exported EncryptionKey string and creates a key.
+   *
+   * @param keyString - The key string to import.
+   * @returns An EncryptionKey.
+   */
+  importKey = async (keyString: string): Promise<EncryptionKey> => {
+    let key;
+    try {
+      const json = Buffer.from(keyString, 'base64').toString();
+      key = JSON.parse(json);
+    } catch (error) {
+      throw new Error('Invalid exported key serialization format');
+    }
+
+    if (!isEncryptionKey(key)) {
+      throw new Error('Invalid exported key structure');
+    }
+    return key as EncryptionKey;
   };
 }
 

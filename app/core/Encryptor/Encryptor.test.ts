@@ -183,4 +183,100 @@ describe('Encryptor', () => {
       },
     );
   });
+
+  describe('exportKey', () => {
+    it('exports a key', async () => {
+      const key = await encryptor.keyFromPassword(
+        'mockPassword',
+        encryptor.generateSalt(),
+        true,
+      );
+
+      const exportedKey = await encryptor.exportKey(key);
+      expect(exportedKey).not.toBe(undefined);
+    });
+
+    it('does not export a key if not exportable', async () => {
+      const key = await encryptor.keyFromPassword(
+        'mockPassword',
+        encryptor.generateSalt(),
+        false,
+      );
+
+      expect(async () => await encryptor.exportKey(key)).rejects.toThrow(
+        'Key is not exportable',
+      );
+    });
+  });
+
+  describe('importKey', () => {
+    const serializeKey = (data: object) =>
+      Buffer.from(JSON.stringify(data)).toString('base64');
+
+    it('imports a key', async () => {
+      const testKey = await encryptor.keyFromPassword(
+        'mockPassword',
+        encryptor.generateSalt(),
+        true,
+      );
+      const exportedKey = await encryptor.exportKey(testKey);
+
+      const key = await encryptor.importKey(exportedKey);
+      expect(key).toStrictEqual(testKey);
+    });
+
+    it.each([
+      '',
+      '{}',
+      Buffer.from('').toString('base64'),
+      Buffer.from('{ not: json }').toString('base64'),
+    ])('does not import a bad serialized key: %s', async (badFormattedKey) => {
+      expect(
+        async () => await encryptor.importKey(badFormattedKey),
+      ).rejects.toThrow('Invalid exported key serialization format');
+    });
+
+    it.each([
+      [
+        'missing lib',
+        {
+          exportable: true,
+          key: 'a-key',
+          keyMetadata: LEGACY_DERIVATION_OPTIONS,
+        },
+      ],
+      [
+        'missing key',
+        {
+          lib: ENCRYPTION_LIBRARY.original,
+          exportable: true,
+          keyMetadata: LEGACY_DERIVATION_OPTIONS,
+        },
+      ],
+      [
+        'missing keyMetadata',
+        {
+          lib: ENCRYPTION_LIBRARY.original,
+          exportable: true,
+          key: 'a-key',
+        },
+      ],
+      [
+        'invalid keyMetadata',
+        {
+          lib: ENCRYPTION_LIBRARY.original,
+          exportable: true,
+          key: 'a-key',
+          keyMatadata: {},
+        },
+      ],
+    ])(
+      'does not import a bad structured key: %s',
+      async (_, badStructuredKey) => {
+        expect(
+          async () => await encryptor.importKey(serializeKey(badStructuredKey)),
+        ).rejects.toThrow('Invalid exported key structure');
+      },
+    );
+  });
 });
