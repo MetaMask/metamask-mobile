@@ -143,11 +143,13 @@ export default {
     WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',
     SDK_ANDROID: 'MetaMask-SDK-Android',
+    SDK_IOS: 'MetaMask-SDK-IOS',
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
     ANDROID_CONNECTIONS: 'androidConnections',
     ANDROID_SDK: 'AndroidSDK',
+    IOS_SDK: 'iOSSDK',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
     SERVER_URL: process.env.SDK_COMMLAYER_URL ?? DEFAULT_SERVER_URL,
     PLATFORM: 'metamask-mobile',

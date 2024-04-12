@@ -68,7 +68,7 @@ Install [Android Studio](https://developer.android.com/studio)
 Set environment variable `JAVA_HOME=/Applications/Android Studio.app/Contents/jbr/Contents/Home` to use java version shipped on the Android Studio App 
 
    
-   - Go to Settings > Appearance & Behavior > System Settings > Android SDK
+   - Go to Settings > Languages & Frameworks > Android SDK
    - Shortcut: Selecting `More Actions` > `SDK Manager` from the "Welcome to Android Studio" page will also bring you here.
      - Select `SDK Tools` tab
      - Check `Show Package Details` option below the tools list to show available versions

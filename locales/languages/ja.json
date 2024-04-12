@@ -351,12 +351,17 @@
     "no_collectibles": "NFTが見当たりませんか？",
     "no_available_tokens": "トークンが見当たりませんか？",
     "add_tokens": "トークンをインポート",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "このアカウントに{{tokenCount}}件の新しい{{tokensLabel}}が見つかりました",
     "token_toast": {
       "tokens_imported_title": "トークンをインポートしました",
       "tokens_imported_desc": "{{tokenSymbols}}がインポートされました",
       "token_imported_title": "トークンをインポートしました",
       "token_imported_desc": "{{tokenSymbol}}がインポートされました",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "トークンの非表示",
       "tokens_hidden_desc": "検出されたトークンをウォレットから非表示にしています",
       "token_hidden_title": "トークンの非表示",
@@ -376,6 +381,8 @@
     "nfts_autodetection_desc": "MetaMaskがOpenSeaからNFTを自動検出し、MetaMaskウォレットに表示できるように許可してください。",
     "network_details_check": "ネットワーク情報の確認",
     "network_with_chain_id": "チェーンIDを持つネットワーク",
+    "chain_list_returned_different_ticker_symbol": "このトークンシンボルは、入力されたネットワーク名またはチェーンIDと一致しません。人気のトークンの多くはシンボルが似ているため、詐欺師がそれを利用してより価値の高いトークンを送り返すように仕向ける可能性があります。続行する前にすべてを確認してください。",
+    "suggested_token_symbol": "推奨ティッカーシンボル:",
     "potential_scam": "これは詐欺の可能性があります",
     "network_not_matching": "このネットワークは、関連付けられたチェーンIDまたは名前と一致しません。人気のトークンの多くが「",
     "target_scam_network": "」という名前を使用しているため、詐欺の標的となっています。詐欺師は、より価値の高い通貨を送り返すように仕向ける可能性があります。続ける前にすべてを確認してください。",
@@ -439,8 +446,8 @@
   "add_asset": {
     "title": "トークンをインポート",
     "title_nft": "NFTをインポート",
-    "search_token": "検索",
-    "custom_token": "カスタムトークン",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "キャンセル",
       "add_token": "インポート"
@@ -497,14 +504,16 @@
     "resultPageErrorDefaultMessage": "操作に失敗しました。"
   },
   "token": {
-    "token_symbol": "トークンシンボル",
+    "token_symbol": "Token symbol",
     "token_address": "トークンアドレス",
-    "token_decimal": "トークンの小数桁数",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "トークンを検索",
     "address_cant_be_empty": "トークンアドレスは必須入力項目です。",
     "address_must_be_valid": "トークンアドレスは有効なアドレスである必要があります。",
     "symbol_cant_be_empty": "トークンシンボルは必須入力項目です。",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "トークンの小数点以下は必須入力項目です。",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "その名前のトークンは見つかりませんでした。",
     "select_token": "トークンを選択",
     "address_must_be_smart_contract": "パーソナルアドレスが検出されました。トークンのコントラクトアドレスを入力してください。"
@@ -541,10 +550,10 @@
   },
   "accounts": {
     "create_new_account": "新規アカウントの作成",
-    "qr_hardware": "QRハードウェア",
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
+    "qr_hardware": "QRハードウェア",
     "remove_account_title": "アカウントの削除",
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
@@ -891,6 +900,7 @@
     "security_check_subheading": "セキュリティチェック",
     "symbol_required": "シンボルが必要です",
     "blockaid": "Blockaid",
+    "blockaid_desc": "プライバシーを保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygon、Sepoliaで利用可能。",
     "security_alerts": "セキュリティアラート",
     "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。"
   },
@@ -1291,6 +1301,7 @@
     "contract": "コントラクト ({{address}})",
     "contract_name": "コントラクト名:",
     "contract_address": "コントラクトアドレス:",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "許容額:",
     "data": "データ",
     "function_approve": "関数: 承認",
@@ -1786,6 +1797,9 @@
     "pending_deposit_message": "入金の完了待ち",
     "pending_withdrawal_message": "出金の完了待ち",
     "error_message": "このトランザクションを表示するにはタップしてください",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "このトランザクションを表示するにはタップしてください",
     "speedup_message": "トランザクションの高速化を試みています",
     "success_deposit_message": "資金の使用準備ができました",
@@ -2406,6 +2420,7 @@
       "title": "セキュリティアラートで安全を確保",
       "description_1": "Blockaidのセキュリティアラートで、プライバシーを確保しつつ既知の詐欺から身を守ります。この機能は、MetaMaskユーザー全員を対象にデフォルトでオンになります。",
       "description_2": "要求を承認する前に、必ず独自のデューデリジェンスを行ってください。",
+      "description_3": "Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Linea、Optimism、Polygon、Sepoliaで利用できます。",
       "got_it": "了解"
     },
     "sell": {
@@ -2717,8 +2732,10 @@
     "bluetooth_off_message": "デバイスのBluetoothをオンにしてください",
     "bluetooth_access_blocked": "LedgerはモバイルデバイスとのペアリングにBluetoothが必要です。",
     "bluetooth_access_blocked_message": "BluetoothでLedgerデバイスをペアリングするには、設定で有効にしてからもう一度お試しください。",
-    "location_access_blocked": "Ledgerはモバイルデバイスとのペアリングに位置情報へのアクセスが必要です。",
+    "location_access_blocked": "MetaMaskがLedgerとのペアリングを行うには、位置情報へのアクセス許可が必要です。",
     "location_access_blocked_message": "BluetoothでLedgerデバイスをペアリングするには、設定で位置情報へのアクセスを有効にしてからもう一度お試しください。",
+    "nearbyDevices_access_blocked": "MetaMaskがLedgerとのペアリングを行うには、近くのデバイスへのアクセス許可が必要です。",
+    "nearbyDevices_access_blocked_message": "BluetoothでLedgerデバイスをペアリングするには、設定で近くのデバイスへのアクセスを有効にしてからもう一度お試しください。",
     "bluetooth_scanning_error": "デバイスのスキャン中にエラーが発生しました",
     "bluetooth_scanning_error_message": "デバイスのロックが解除されていて、イーサリアムアプリが実行されていることを確認してください。",
     "bluetooth_connection_failed": "Bluetooth接続に失敗しました",
@@ -2738,10 +2755,12 @@
     "connect_ledger": "Ledgerを接続する",
     "looking_for_device": "デバイスを検索中",
     "ledger_reminder_message": "Ledger Nano Xが次の状態であることを確認してください:",
-    "ledger_reminder_message_step_one": "1. ロック解除済み",
-    "ledger_reminder_message_step_two": "2. イーサリアムアプリがインストール済み",
-    "ledger_reminder_message_step_three": "3. Bluetoothが有効",
-    "ledger_reminder_message_step_four": "4. 位置情報が有効",
+    "ledger_reminder_message_step_one": "1. Ledger Nano Xのロックを解除します",
+    "ledger_reminder_message_step_two": "2. イーサリアムアプリをインストールして開きます",
+    "ledger_reminder_message_step_three": "3. Bluetoothを有効にします",
+    "ledger_reminder_message_step_four": "4. 位置情報は有効で、正確な位置情報の使用がオンになっています",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. 近くのデバイスは有効です",
+    "ledger_reminder_message_step_five": "5. サイレントモードがオフになっている必要があります",
     "available_devices": "利用可能なデバイス",
     "retry": "再試行",
     "continue": "続行",
@@ -2824,5 +2843,8 @@
     "okay_action": "OK",
     "error_title": "インストールに失敗しました",
     "error_description": "{{snap}}のインストールに失敗しました。"
+  },
+  "stake": {
+    "stake": "Stake"
   }
 }
