@@ -72,7 +72,7 @@ const createStyles = (colors: Colors) =>
     benefits: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
+      paddingHorizontal: 8,
     },
     benefit: {
       width: '33%',
@@ -107,7 +107,7 @@ const Benefit = ({ iconName, text }: Props) => {
       </View>
       <Text
         color={TextColor.Alternative}
-        variant={TextVariant.BodySM}
+        variant={TextVariant.BodyXS}
         style={styles.benefitText}
       >
         {text}
