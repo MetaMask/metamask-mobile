@@ -3,7 +3,7 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import TestHelpers from '../../helpers';
 
-class OnboardingView {
+class OnboardingSuccessView {
   get container() {
     return Matchers.getElementByID(OnboardingSuccessSelectorIDs.CONTAINER_ID);
   }
@@ -28,4 +28,4 @@ class OnboardingView {
   }
 }
 
-export default new OnboardingView();
+export default new OnboardingSuccessView();

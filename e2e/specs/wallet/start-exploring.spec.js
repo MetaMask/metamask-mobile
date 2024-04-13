@@ -7,7 +7,7 @@ import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView'
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../../pages/WalletView';
-import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSucessView';
+import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import Browser from '../../pages/Browser';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';

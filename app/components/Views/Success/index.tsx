@@ -6,7 +6,6 @@ import {
   Keyboard,
   TouchableOpacity,
   Text as RNText,
-  Platform,
 } from 'react-native';
 import Button from '../../../component-library/components/Buttons/Button';
 import {
@@ -31,7 +30,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../core/AppConstants';
 import Emoji from 'react-native-emoji';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 
 const styles = StyleSheet.create({
@@ -257,7 +255,7 @@ const OnboardingSuccess = ({
   return (
     <View
       style={styles.root}
-      {...generateTestId(Platform, OnboardingSuccessSelectorIDs.CONTAINER_ID)}
+      testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
     >
       <View style={styles.contentWrapper}>
         {renderContent()}
@@ -266,10 +264,7 @@ const OnboardingSuccess = ({
 
       <View style={styles.buttonWrapper}>
         <Button
-          {...generateTestId(
-            Platform,
-            OnboardingSuccessSelectorIDs.DONE_BUTTON,
-          )}
+          testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
           label={strings('onboarding_success.done')}
           variant={ButtonVariants.Primary}
           onPress={onDone}
