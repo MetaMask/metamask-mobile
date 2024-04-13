@@ -117,6 +117,7 @@ export const CreateNewWallet = async () => {
 
   //'Should dismiss Automatic Security checks screen'
   await TestHelpers.delay(3500);
+  await OnboardingSuccessView.tapDone();
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
