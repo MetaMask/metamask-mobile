@@ -28,3 +28,8 @@ export interface MarketingNotificationData {
   route?: string;
   routeProps?: string;
 }
+
+export enum NotificationsKindTypes {
+  SENT_ETH = 'transaction',
+  marketing = 'marketing',
+}
