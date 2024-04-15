@@ -3,6 +3,7 @@ import { EventEmitter2 } from 'eventemitter2';
 import { NativeModules } from 'react-native';
 import Engine from '../../Engine';
 import { Minimizer } from '../../NativeModules';
+import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import { RPCQueueManager } from '../RPCQueueManager';
 
 import {
@@ -33,16 +34,18 @@ import {
   METHODS_TO_DELAY,
   RPC_METHODS,
 } from '../SDKConnectConstants';
-import getDefaultBridgeParams from './getDefaultBridgeParams';
 import handleBatchRpcResponse from '../handlers/handleBatchRpcResponse';
 import handleCustomRpcCalls from '../handlers/handleCustomRpcCalls';
 import DevLogger from '../utils/DevLogger';
 import AndroidSDKEventHandler from './AndroidNativeSDKEventHandler';
-import { DappClient, DappConnections } from './dapp-sdk-types';
+import { AndroidClient } from './android-sdk-types';
 
+export interface AndroidConnections {
+  [clientId: string]: AndroidClient;
+}
 export default class AndroidService extends EventEmitter2 {
   private communicationClient = NativeModules.CommunicationClient;
-  private connections: DappConnections = {};
+  private connections: AndroidConnections = {};
   private rpcQueueManager = new RPCQueueManager();
   private bridgeByClientId: { [clientId: string]: BackgroundBridge } = {};
   private eventHandler: AndroidSDKEventHandler;
@@ -52,7 +55,6 @@ export default class AndroidService extends EventEmitter2 {
 
   constructor() {
     super();
-
     this.eventHandler = new AndroidSDKEventHandler();
     this.setupEventListeners()
       .then(() => {
@@ -79,7 +81,7 @@ export default class AndroidService extends EventEmitter2 {
 
       DevLogger.log(`AndroidService::setupEventListeners loading connections`);
       const rawConnections =
-        await SDKConnect.getInstance().loadDappConnections();
+        await SDKConnect.getInstance().loadAndroidConnections();
 
       if (rawConnections) {
         Object.values(rawConnections).forEach((connection) => {
@@ -123,7 +125,7 @@ export default class AndroidService extends EventEmitter2 {
 
   private setupOnClientsConnectedListener() {
     this.eventHandler.onClientsConnected((sClientInfo: string) => {
-      const clientInfo: DappClient = JSON.parse(sClientInfo);
+      const clientInfo: AndroidClient = JSON.parse(sClientInfo);
 
       DevLogger.log(`AndroidService::clients_connected`, clientInfo);
       if (this.connections?.[clientInfo.clientId]) {
@@ -186,7 +188,7 @@ export default class AndroidService extends EventEmitter2 {
               originatorInfo: clientInfo.originatorInfo,
               validUntil: clientInfo.validUntil,
             };
-            await SDKConnect.getInstance().addDappConnection({
+            await SDKConnect.getInstance().addAndroidConnection({
               id: clientInfo.clientId,
               lastAuthorized: Date.now(),
               origin: AppConstants.MM_SDK.ANDROID_SDK,
@@ -350,7 +352,6 @@ export default class AndroidService extends EventEmitter2 {
             PreferencesController: PreferencesController;
           }
         ).PreferencesController;
-
         const selectedAddress = preferencesController.state.selectedAddress;
 
         const networkController = (
@@ -358,14 +359,15 @@ export default class AndroidService extends EventEmitter2 {
             NetworkController: NetworkController;
           }
         ).NetworkController;
-
-        const chainId = networkController.state.providerConfig.chainId;
+        const networkId = networkController.state.networkId ?? 1; // default to mainnet;
+        // transform networkId to 0x value
+        const hexChainId = `0x${networkId.toString(16)}`;
 
         this.currentClientId = sessionId;
         // Handle custom rpc method
         const processedRpc = await handleCustomRpcCalls({
           batchRPCManager: this.batchRPCManager,
-          selectedChainId: chainId,
+          selectedChainId: hexChainId,
           selectedAddress,
           rpc: { id: data.id, method: data.method, params: data.params },
         });
@@ -418,7 +420,7 @@ export default class AndroidService extends EventEmitter2 {
     }
   }
 
-  private setupBridge(clientInfo: DappClient) {
+  private setupBridge(clientInfo: AndroidClient) {
     DevLogger.log(
       `AndroidService::setupBridge for id=${clientInfo.clientId} exists=${!!this
         .bridgeByClientId[clientInfo.clientId]}}`,
@@ -428,8 +430,6 @@ export default class AndroidService extends EventEmitter2 {
       return;
     }
 
-    const defaultBridgeParams = getDefaultBridgeParams(clientInfo);
-
     const bridge = new BackgroundBridge({
       webview: null,
       channelId: clientInfo.clientId,
@@ -437,7 +437,59 @@ export default class AndroidService extends EventEmitter2 {
       url: PROTOCOLS.METAMASK + '://' + AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
       isRemoteConn: true,
       sendMessage: this.sendMessage.bind(this),
-      ...defaultBridgeParams,
+      getApprovedHosts: (host: string) => ({
+        [host]: true,
+      }),
+      remoteConnHost:
+        clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
+      getRpcMethodMiddleware: ({
+        getProviderState,
+      }: {
+        hostname: string;
+        getProviderState: any;
+      }) =>
+        getRpcMethodMiddleware({
+          hostname:
+            clientInfo.originatorInfo.url ?? clientInfo.originatorInfo.title,
+          channelId: clientInfo.clientId,
+          getProviderState,
+          isMMSDK: true,
+          navigation: null, //props.navigation,
+          getApprovedHosts: (host: string) => ({
+            [host]: true,
+          }),
+          setApprovedHosts: () => true,
+          approveHost: () => ({}),
+          // Website info
+          url: {
+            current: clientInfo.originatorInfo?.url,
+          },
+          title: {
+            current: clientInfo.originatorInfo?.title,
+          },
+          icon: {
+            current: clientInfo.originatorInfo?.icon,
+          },
+          // Bookmarks
+          isHomepage: () => false,
+          // Show autocomplete
+          fromHomepage: { current: false },
+          // Wizard
+          wizardScrollAdjusted: { current: false },
+          tabId: '',
+          isWalletConnect: false,
+          analytics: {
+            isRemoteConn: true,
+            platform:
+              clientInfo.originatorInfo.platform ??
+              AppConstants.MM_SDK.UNKNOWN_PARAM,
+          },
+          toggleUrlModal: () => null,
+          injectHomePageScripts: () => null,
+        }),
+      isMainFrame: true,
+      isWalletConnect: false,
+      wcRequestActions: undefined,
     });
 
     this.bridgeByClientId[clientInfo.clientId] = bridge;

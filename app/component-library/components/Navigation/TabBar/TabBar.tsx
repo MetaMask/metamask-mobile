@@ -2,12 +2,14 @@
 
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+
 // External dependencies.
 import TabBarItem from '../TabBarItem';
 import { useStyles } from '../../../hooks';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -54,7 +56,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       //TODO: use another option on add it to the prop interface
       const callback = options.callback;
       const rootScreenName = options.rootScreenName;
-      const key = `tab-bar-item-${tabBarIconKey}`; // this key is also used to identify elements for e2e testing
+      const key = `tab-bar-item-${tabBarIconKey}`;
       const isSelected = state.index === index;
       const icon = ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
       const onPress = () => {
@@ -119,7 +121,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           iconSize={iconProps.size}
           iconBackgroundColor={iconProps.backgroundColor}
           iconColor={iconProps.color}
-          testID={key}
+          {...generateTestId(Platform, key)}
         />
       );
     },

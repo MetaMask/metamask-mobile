@@ -4,7 +4,6 @@ import AndroidService from '../AndroidSDK/AndroidService';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import asyncInit from './asyncInit';
-import DeeplinkProtocolService from '../SDKDeeplinkProtocol/DeeplinkProtocolService';
 
 async function init({
   navigation,
@@ -32,12 +31,6 @@ async function init({
     DevLogger.log(`SDKConnect::init() - starting android service`);
     instance.state.androidService = new AndroidService();
     instance.state.androidSDKStarted = true;
-  }
-
-  if (!instance.state.deeplinkingServiceStarted && Platform.OS === 'ios') {
-    DevLogger.log(`SDKConnect::init() - starting deeplinking service`);
-    instance.state.deeplinkingService = new DeeplinkProtocolService();
-    instance.state.deeplinkingServiceStarted = true;
   }
 
   instance.state._initializing = asyncInit({

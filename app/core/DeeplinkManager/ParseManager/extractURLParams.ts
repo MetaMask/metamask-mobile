@@ -3,20 +3,6 @@ import { Alert } from 'react-native';
 import UrlParser from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
-import Logger from '../../../util/Logger';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
-
-export interface DeeplinkUrlParams {
-  uri: string;
-  redirect: string;
-  channelId: string;
-  comm: string;
-  pubkey: string;
-  scheme?: string;
-  message?: string;
-  originatorInfo?: string;
-  request?: string;
-}
 
 function extractURLParams(url: string) {
   const urlObj = new UrlParser(
@@ -25,7 +11,13 @@ function extractURLParams(url: string) {
       .replace(`${PROTOCOLS.DAPP}/${PROTOCOLS.HTTP}://`, `${PROTOCOLS.DAPP}/`),
   );
 
-  let params: DeeplinkUrlParams = {
+  let params: {
+    uri: string;
+    redirect: string;
+    channelId: string;
+    comm: string;
+    pubkey: string;
+  } = {
     pubkey: '',
     uri: '',
     redirect: '',
@@ -33,19 +25,15 @@ function extractURLParams(url: string) {
     comm: '',
   };
 
-  DevLogger.log(`extractParams:: urlObj`, urlObj);
-
   if (urlObj.query.length) {
     try {
-      params = qs.parse(
-        urlObj.query.substring(1),
-      ) as unknown as DeeplinkUrlParams;
-
-      if (params.message) {
-        Logger.log('extractParams:: message before...: ', params.message);
-        params.message = params.message?.replace(/ /g, '+');
-        Logger.log('extractParams:: message after: ', params.message);
-      }
+      params = qs.parse(urlObj.query.substring(1)) as {
+        uri: string;
+        redirect: string;
+        channelId: string;
+        comm: string;
+        pubkey: string;
+      };
     } catch (e) {
       if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
     }

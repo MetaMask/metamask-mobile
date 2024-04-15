@@ -21,6 +21,9 @@ async function updateSDKLoadingState({
   }
 
   const loadingSessionsLen = Object.keys(instance.state.sdkLoadingState).length;
+  DevLogger.log(
+    `SDKConnect::updateSDKLoadingState channel=${channelId} loading=${loading} loadingSessions=${loadingSessionsLen}`,
+  );
   if (loadingSessionsLen > 0) {
     // Prevent loading state from showing if keychain is locked.
     const keyringController = (
@@ -36,12 +39,7 @@ async function updateSDKLoadingState({
       screen: Routes.SHEET.SDK_LOADING,
     });
   } else {
-    instance.hideLoadingState().catch((err) => {
-      DevLogger.log(
-        err,
-        `SDKConnect::updateSDKLoadingState - can't hide loading state`,
-      );
-    });
+    await instance.hideLoadingState();
   }
 }
 

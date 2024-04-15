@@ -90,18 +90,6 @@ describe('Migration #33', () => {
       state: merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            NetworkController: { providerConfig: null },
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 33: NetworkController providerConfig not found: 'null'",
-      scenario: 'providerConfig is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
             NetworkController: { providerConfig: { chainId: null } },
           },
         },

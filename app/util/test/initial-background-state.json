@@ -72,6 +72,7 @@
     "networksMetadata": {
       "mainnet":{  "EIPS": {},"status": "unknown"}
     },
+    "networkId": null,
     "selectedNetworkClientId": "mainnet"
   },
   "PhishingController": {

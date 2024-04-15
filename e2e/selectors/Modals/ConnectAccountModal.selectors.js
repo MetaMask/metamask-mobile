@@ -1,4 +1,4 @@
-import enContent from '../../../locales/languages/en.json';
+import messages from '../../../locales/languages/en.json';
 
 export const ConnectAccountModalSelectorsIDs = {
   CONTAINER: 'connect-account-modal',
@@ -6,7 +6,7 @@ export const ConnectAccountModalSelectorsIDs = {
 };
 
 export const ConnectAccountModalSelectorsText = {
-  CONNECT_ACCOUNTS: enContent.accounts.connect_multiple_accounts,
-  IMPORT_ACCOUNT: enContent.account_actions.add_account_or_hardware_wallet,
-  SELECT_ALL: enContent.accounts.select_all,
+  CONNECT_ACCOUNTS: messages.accounts.connect_multiple_accounts,
+  IMPORT_ACCOUNT: messages.account_actions.add_account_or_hardware_wallet,
+  SELECT_ALL: messages.accounts.select_all,
 };

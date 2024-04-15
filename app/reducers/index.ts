@@ -24,7 +24,6 @@ import { EngineState } from '../core/Engine';
 import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
-import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 /**
  * Infer state from a reducer
  *
@@ -68,7 +67,6 @@ export interface RootState {
   signatureRequest: any;
   rpcEvents: any;
   accounts: any;
-  inpageProvider: StateFromReducer<typeof inpageProviderReducer>;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -98,7 +96,6 @@ const rootReducer = combineReducers<RootState, any>({
   experimentalSettings: experimentalSettingsReducer,
   rpcEvents: rpcEventReducer,
   accounts: accountsReducer,
-  inpageProvider: inpageProviderReducer,
 });
 
 export default rootReducer;

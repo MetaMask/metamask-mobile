@@ -82,10 +82,10 @@ function handleUniversalLink({
     } else if (action === ACTIONS.WC) {
       // This is called from WC just to open the app and it's not supposed to do anything
       return;
-    } else if (PREFIXES[action as keyof typeof PREFIXES]) {
+    } else if (PREFIXES[action]) {
       const deeplinkUrl = urlObj.href.replace(
         `${DEEP_LINK_BASE}/${action}/`,
-        PREFIXES[action as keyof typeof PREFIXES],
+        PREFIXES[action],
       );
       // loops back to open the link with the right protocol
       instance.parse(deeplinkUrl, { browserCallBack, origin });

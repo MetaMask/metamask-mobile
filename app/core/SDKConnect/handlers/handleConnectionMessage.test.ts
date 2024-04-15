@@ -64,11 +64,7 @@ describe('handleConnectionMessage', () => {
 
   let connection = {} as unknown as Connection;
   let engine = {} as unknown as typeof Engine;
-  let message = {
-    id: '01',
-    method: 'eth_requestAccounts',
-    params: [],
-  } as unknown as CommunicationLayerMessage;
+  let message = {} as unknown as CommunicationLayerMessage;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -91,8 +87,9 @@ describe('handleConnectionMessage', () => {
         KeyringController: {} as unknown as KeyringController,
         NetworkController: {
           state: {
-            providerConfig: {
-              chainId: '0x1',
+            networkId: 1,
+            provider: {
+              chainId: '',
             },
           },
         } as unknown as NetworkController,
@@ -232,12 +229,11 @@ describe('handleConnectionMessage', () => {
       expect(mockHandleCustomRpcCalls).toHaveBeenCalledTimes(1);
       expect(mockHandleCustomRpcCalls).toHaveBeenCalledWith({
         batchRPCManager: connection.batchRPCManager,
-        navigation: undefined,
-        connection,
         selectedAddress:
           engine.context.PreferencesController.state.selectedAddress,
-        selectedChainId:
-          engine.context.NetworkController.state.providerConfig.chainId,
+        selectedChainId: `0x${engine.context.NetworkController.state.networkId.toString(
+          16,
+        )}`,
         rpc: {
           method: message.method,
           params: message.params,
@@ -294,7 +290,11 @@ describe('handleConnectionMessage', () => {
       it('should add processed RPC to the RPC queue', async () => {
         await handleConnectionMessage({ message, engine, connection });
 
-        expect(mockRpcQueueManagerAdd).toHaveBeenCalledTimes(0);
+        expect(mockRpcQueueManagerAdd).toHaveBeenCalledTimes(1);
+        expect(mockRpcQueueManagerAdd).toHaveBeenCalledWith({
+          id: message?.id,
+          method: message?.method,
+        });
       });
     });
   });

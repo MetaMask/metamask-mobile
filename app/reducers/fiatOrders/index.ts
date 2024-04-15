@@ -248,7 +248,7 @@ export const getHasOrders = createSelector(
 export const getRampNetworks: (
   state: RootState,
 ) => FiatOrdersState['networks'] = (state: RootState) =>
-  state.fiatOrders.networks || [];
+  state.fiatOrders.networks;
 
 export const networkShortNameSelector = createSelector(
   chainIdSelector,

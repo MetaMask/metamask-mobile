@@ -93,7 +93,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
     DevLogger.log(
       `OnConfirm: accountsLength=${accountsLength} channelId: ${channelId}, account: ${account}`,
     );
-    if (account && accountsLength && accountsLength <= 1 && channelId) {
+    if (account && accountsLength === 1 && channelId) {
       SDKConnect.getInstance().removeChannel({
         channelId,
         sendTerminate: true,

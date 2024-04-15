@@ -1,29 +1,33 @@
 import Selectors from '../../helpers/Selectors';
-
-import { TabBarSelectorIDs } from '../../../e2e/selectors/TabBar.selectors';
-
+import {
+  TAB_BAR_ACTION_BUTTON,
+  TAB_BAR_BROWSER_BUTTON,
+  TAB_BAR_SETTING_BUTTON,
+  TAB_BAR_WALLET_BUTTON,
+  TAB_BAR_ACTIVITY_BUTTON,
+} from '../testIDs/Components/TabBar.testIds';
 import Gestures from '../../helpers/Gestures';
 import BrowserScreen from '../BrowserObject/BrowserScreen';
 
 class TabBarModal {
   get walletButton() {
-    return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.WALLET);
+    return Selectors.getElementByPlatform(TAB_BAR_WALLET_BUTTON);
   }
 
   get browserButton() {
-    return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.BROWSER);
+    return Selectors.getXpathElementByResourceId(TAB_BAR_BROWSER_BUTTON);
   }
 
   get actionButton() {
-    return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.ACTIONS);
+    return Selectors.getElementByPlatform(TAB_BAR_ACTION_BUTTON);
   }
 
   get settingsButton() {
-    return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.SETTING);
+    return Selectors.getElementByPlatform(TAB_BAR_SETTING_BUTTON);
   }
 
   get activityButton() {
-    return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.ACTIVITY);
+    return Selectors.getElementByPlatform(TAB_BAR_ACTIVITY_BUTTON);
   }
 
   async tapWalletButton() {

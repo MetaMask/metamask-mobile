@@ -10,10 +10,10 @@ import {
 import TabBarComponent from '../../pages/TabBarComponent';
 import { TestDApp } from '../../pages/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import enContent from '../../../locales/languages/en.json';
+import root from '../../../locales/languages/en.json';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
-const SENT_TOKENS_MESSAGE_TEXT = enContent.transactions.sent_tokens;
+const SENT_TOKENS_MESSAGE_TEXT = root.transactions.sent_tokens;
 const WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID = 'transferTokens';
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {

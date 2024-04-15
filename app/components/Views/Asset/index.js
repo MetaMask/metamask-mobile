@@ -29,6 +29,7 @@ import {
 } from '../../../reducers/swaps';
 import {
   selectChainId,
+  selectNetworkId,
   selectNetworkConfigurations,
   selectRpcUrl,
 } from '../../../selectors/networkController';
@@ -64,7 +65,6 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
-import { store } from '../../../store';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -147,6 +147,10 @@ class Asset extends PureComponent {
      * A string that represents the selected address
      */
     selectedAddress: PropTypes.string,
+    /**
+     * The network ID for the current selected network
+     */
+    networkId: PropTypes.string,
     /**
      * The chain ID for the current selected network
      */
@@ -275,8 +279,7 @@ class Asset extends PureComponent {
     this.txsPending.length !== newTxsPending.length;
 
   ethFilter = (tx) => {
-    const { networkId } = store.getState().inpageProvider;
-    const { selectedAddress, chainId } = this.props;
+    const { selectedAddress, chainId, networkId } = this.props;
     const {
       transaction: { from, to },
       isTransfer,
@@ -299,9 +302,8 @@ class Asset extends PureComponent {
   };
 
   noEthFilter = (tx) => {
-    const { networkId } = store.getState().inpageProvider;
-
-    const { chainId, swapsTransactions, selectedAddress } = this.props;
+    const { chainId, networkId, swapsTransactions, selectedAddress } =
+      this.props;
     const {
       transaction: { to, from },
       isTransfer,
@@ -583,6 +585,7 @@ const mapStateToProps = (state) => ({
   identities: selectIdentities(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
+  networkId: selectNetworkId(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   rpcUrl: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),

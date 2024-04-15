@@ -189,6 +189,7 @@ export const loginToApp = async () => {
   await LoginView.isVisible();
   await LoginView.enterPassword(PASSWORD);
 
+  await WalletView.isVisible();
   await TestHelpers.delay(2500);
   try {
     await WhatsNewModal.isVisible();

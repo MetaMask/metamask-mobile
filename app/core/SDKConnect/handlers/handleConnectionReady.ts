@@ -91,6 +91,7 @@ export const handleConnectionReady = async ({
         engine,
         lastAuthorized: connection.lastAuthorized,
       });
+
       connection.sendAuthorized(true);
     } else if (
       !connection.initialConnection &&

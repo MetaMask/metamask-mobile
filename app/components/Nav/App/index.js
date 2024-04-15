@@ -90,7 +90,6 @@ import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
-import { DevLogger } from '../../../../app/core/SDKConnect/utils/DevLogger';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
@@ -413,16 +412,12 @@ const App = ({ userLoggedIn }) => {
   }, [navigator, onboarded, userLoggedIn]);
 
   useEffect(() => {
-    const currentRoute = navigator?.getCurrentRoute();
-    if (isWC2Enabled && currentRoute !== undefined) {
-      DevLogger.log(
-        `WalletConnect: Initializing WalletConnect Manager route=${currentRoute.name}`,
-      );
-      WC2Manager.init({ navigation: navigator }).catch((err) => {
+    if (isWC2Enabled) {
+      WC2Manager.init().catch((err) => {
         console.error('Cannot initialize WalletConnect Manager.', err);
       });
     }
-  }, [navigator]);
+  }, []);
 
   useEffect(() => {
     async function checkExisting() {

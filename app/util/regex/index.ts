@@ -1,3 +1,4 @@
+import AppConstants from '../../core/AppConstants';
 import { RegexTypes } from './index.types';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 
@@ -34,6 +35,7 @@ export const regex: RegexTypes = {
   nameInitial: /[a-z]/i,
   nonNumber: /[^0-9.]/g,
   number: /^(\d+(\.\d+)?)$/,
+  portfolioUrl: new RegExp(`${AppConstants.PORTFOLIO_URL}/(?![a-z])`),
   prefixedFormattedHexString: /^0x[1-9a-f][0-9a-f]*$/iu,
   privateCredentials: /"/g,
   protocol: /^[a-z]*:\/\//,

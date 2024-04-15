@@ -140,7 +140,6 @@ exports[`GetStarted renders correctly 1`] = `
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -148,8 +147,6 @@ exports[`GetStarted renders correctly 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -179,7 +176,6 @@ exports[`GetStarted renders correctly 1`] = `
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -187,8 +183,6 @@ exports[`GetStarted renders correctly 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -815,7 +809,6 @@ exports[`GetStarted renders correctly 2`] = `
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -823,8 +816,6 @@ exports[`GetStarted renders correctly 2`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -854,7 +845,6 @@ exports[`GetStarted renders correctly 2`] = `
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -862,8 +852,6 @@ exports[`GetStarted renders correctly 2`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1490,7 +1478,6 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -1498,8 +1485,6 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -1529,7 +1514,6 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -1537,8 +1521,6 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1935,7 +1917,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -1943,8 +1924,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -1974,7 +1953,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -1982,8 +1960,6 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >

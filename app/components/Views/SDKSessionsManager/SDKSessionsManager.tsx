@@ -69,11 +69,11 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
   const route =
     useRoute<RouteProp<{ params: { trigger?: number } }, 'params'>>();
 
-  const { connections, dappConnections } = useSelector(
+  const { connections, androidConnections } = useSelector(
     (state: RootState) => state.sdk,
   );
   const connectionsList = Object.values(connections);
-  const dappConnectionsList = Object.values(dappConnections);
+  const androidConnectionsList = Object.values(androidConnections);
   const { trigger } = route.params ?? { trigger: undefined };
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
@@ -109,7 +109,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
               connection={sdkSession}
             />
           ))}
-          {dappConnectionsList.map((androidSession, _index) => (
+          {androidConnectionsList.map((androidSession, _index) => (
             <SDKSessionItem
               key={`${_index}_${androidSession.id}`}
               connection={androidSession}
@@ -131,7 +131,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
     [
       connectionsList,
       trigger,
-      dappConnectionsList,
+      androidConnectionsList,
       styles,
       toggleClearMMSDKConnectionModal,
     ],
@@ -154,7 +154,7 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
       style={styles.wrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      {connectionsList.length + dappConnectionsList.length > 0
+      {connectionsList.length + androidConnectionsList.length > 0
         ? renderSDKSessions()
         : renderEmptyResult()}
     </View>

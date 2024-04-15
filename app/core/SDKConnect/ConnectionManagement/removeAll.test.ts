@@ -26,7 +26,7 @@ describe('removeAll', () => {
         paused: true,
       },
       removeChannel: mockRemoveChannel,
-      loadDappConnections: jest.fn().mockResolvedValue({}),
+      loadAndroidConnections: jest.fn().mockResolvedValue({}),
       emit: jest.fn(),
     } as unknown as SDKConnect;
   });

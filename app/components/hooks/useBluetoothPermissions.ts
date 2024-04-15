@@ -1,14 +1,13 @@
 import { useState, useRef, useLayoutEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { getSystemVersion } from 'react-native-device-info';
-import {
-  PERMISSIONS,
-  RESULTS,
-  request,
-  requestMultiple,
-} from 'react-native-permissions';
+import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 import Device from '../../util/device';
-import { BluetoothPermissionErrors } from '../../core/Ledger/ledgerErrors';
+
+export enum BluetoothPermissionErrors {
+  BluetoothAccessBlocked = 'BluetoothAccessBlocked',
+  LocationAccessBlocked = 'LocationAccessBlocked',
+}
 
 const useBluetoothPermissions = () => {
   const appState = useRef(AppState.currentState);
@@ -16,69 +15,58 @@ const useBluetoothPermissions = () => {
     useState<boolean>(false);
   const [bluetoothPermissionError, setBluetoothPermissionError] =
     useState<BluetoothPermissionErrors>();
-  const deviceOSVersion = Number(getSystemVersion()) || 0;
+  const deviceOSVersion = Number(getSystemVersion()) ?? '';
 
-  const checkIosPermission = async () => {
-    const bluetoothPermissionStatus = await request(
-      PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL,
-    );
-    const bluetoothAllowed = bluetoothPermissionStatus === RESULTS.GRANTED;
+  // Checking if app has required permissions every time the app becomes active
+  const checkPermissions = async () => {
+    setBluetoothPermissionError(undefined);
 
-    if (bluetoothAllowed) {
-      setHasBluetoothPermissions(true);
-      setBluetoothPermissionError(undefined);
-    } else {
-      setBluetoothPermissionError(
-        BluetoothPermissionErrors.BluetoothAccessBlocked,
+    if (Device.isIos()) {
+      const bluetoothPermissionStatus = await request(
+        PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL,
       );
-    }
-  };
-
-  const checkAndroidPermission = async () => {
-    let hasError = false;
-
-    if (deviceOSVersion >= 12) {
-      const result = await requestMultiple([
-        PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
-        PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
-      ]);
-
-      if (
-        result[PERMISSIONS.ANDROID.BLUETOOTH_CONNECT] !== RESULTS.GRANTED ||
-        result[PERMISSIONS.ANDROID.BLUETOOTH_SCAN] !== RESULTS.GRANTED
-      ) {
+      const bluetoothAllowed = bluetoothPermissionStatus === RESULTS.GRANTED;
+      if (bluetoothAllowed) {
+        setHasBluetoothPermissions(true);
+      } else {
         setBluetoothPermissionError(
-          BluetoothPermissionErrors.NearbyDevicesAccessBlocked,
+          BluetoothPermissionErrors.BluetoothAccessBlocked,
         );
-        hasError = true;
       }
-    } else {
+    }
+
+    if (Device.isAndroid()) {
+      let bluetoothAllowed: boolean;
       const bluetoothPermissionStatus = await request(
         PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
       );
 
-      if (bluetoothPermissionStatus !== RESULTS.GRANTED) {
+      if (deviceOSVersion >= 12) {
+        const connectPermissionStatus = await request(
+          PERMISSIONS.ANDROID.BLUETOOTH_CONNECT,
+        );
+        const scanPermissionStatus = await request(
+          PERMISSIONS.ANDROID.BLUETOOTH_SCAN,
+        );
+
+        bluetoothAllowed =
+          connectPermissionStatus === RESULTS.GRANTED &&
+          scanPermissionStatus === RESULTS.GRANTED;
+      } else {
+        bluetoothAllowed = bluetoothPermissionStatus === RESULTS.GRANTED;
+      }
+
+      if (bluetoothAllowed) {
+        setHasBluetoothPermissions(true);
+        // Edge case, when `View setting` click, checkPermissions will trigger, and setBluetoothPermissionError(undefined), but when screen move away to android setting page,
+        // bluetoothPermissionError somehow has been set back to `LocationAccessBlocked` error because screen not in metamask. therefore we need to setBluetoothPermissionError(undefined) again below
+        // to make sure User come back to Metamask, the bluetoothPermissionError is undefined, otherwise, `ledgerConfirmationModal.tsx` will have issue on retry.
+        setBluetoothPermissionError(undefined);
+      } else {
         setBluetoothPermissionError(
           BluetoothPermissionErrors.LocationAccessBlocked,
         );
-        hasError = true;
       }
-    }
-
-    if (!hasError) {
-      setHasBluetoothPermissions(true);
-      setBluetoothPermissionError(undefined);
-    }
-  };
-
-  // Checking if app has required permissions every time the app becomes active
-  const checkPermissions = async () => {
-    if (Device.isIos()) {
-      await checkIosPermission();
-    }
-
-    if (Device.isAndroid()) {
-      await checkAndroidPermission();
     }
   };
 

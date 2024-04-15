@@ -18,6 +18,7 @@ export interface RegexTypes {
   nameInitial: RegExp;
   nonNumber: RegExp;
   number: RegExp;
+  portfolioUrl: RegExp;
   prefixedFormattedHexString: RegExp;
   privateCredentials: RegExp;
   protocol: RegExp;

@@ -3,7 +3,6 @@ import { CUSTOM_TOKEN_CONTAINER_ID } from '../../wdio/screen-objects/testIDs/Scr
 import {
   ASSET_BACK_BUTTON,
   TOKEN_INPUT_BOX_ID,
-  TOKEN_IMPORT_NEXT_BUTTON,
 } from '../../wdio/screen-objects/testIDs/Screens/AssetSearch.testIds';
 import {
   ImportTokenViewSelectorsIDs,
@@ -26,7 +25,13 @@ export default class ImportTokensView {
     await TestHelpers.typeTextAndHideKeyboard(TOKEN_INPUT_BOX_ID, tokenName);
   }
   static async tapOnToken() {
-    await TestHelpers.tapItemAtIndex(ImportTokenViewSelectorsIDs.CONTAINER);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.tapItemAtIndexByLabel(
+        ImportTokenViewSelectorsIDs.CONTAINER,
+      );
+    } else {
+      await TestHelpers.tapItemAtIndex(ImportTokenViewSelectorsIDs.CONTAINER);
+    }
   }
 
   static async tapOnCancelButton() {
@@ -35,9 +40,5 @@ export default class ImportTokensView {
 
   static async isVisible() {
     await TestHelpers.checkIfVisible(CUSTOM_TOKEN_CONTAINER_ID);
-  }
-
-  static async tapOnNextButton() {
-    await TestHelpers.tap(TOKEN_IMPORT_NEXT_BUTTON);
   }
 }

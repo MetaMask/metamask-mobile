@@ -110,7 +110,7 @@ export default class TestHelpers {
   static async waitAndTapByLabel(text, timeout, index) {
     await waitFor(element(by.label(text)))
       .toBeVisible()
-      .withTimeout(timeout || 15000);
+      .withTimeout(timeout || 8000);
 
     return element(by.label(text))
       .atIndex(index || 0)

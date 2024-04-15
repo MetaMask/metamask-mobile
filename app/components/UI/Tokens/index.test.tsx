@@ -13,13 +13,10 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   PORTFOLIO_BUTTON,
-  STAKE_BUTTON,
   TOTAL_BALANCE_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { strings } from '../../../../locales/i18n';
-import AppConstants from '../../../../app/core/AppConstants';
-import Routes from '../../../../app/constants/navigation/Routes';
 
 const mockEngine = Engine;
 
@@ -228,22 +225,5 @@ describe('Tokens', () => {
     expect(
       await findByText(strings('wallet.unable_to_find_conversion_rate')),
     ).toBeDefined();
-  });
-  it('renders stake button correctly', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    expect(getByTestId(STAKE_BUTTON)).toBeDefined();
-  });
-  it('navigates to Portfolio Stake url when stake button is pressed', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    fireEvent.press(getByTestId(STAKE_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      params: {
-        newTabUrl: `${AppConstants.PORTFOLIO_URL}/stake?metamaskEntry=mobile`,
-        timestamp: 123,
-      },
-      screen: Routes.BROWSER.VIEW,
-    });
   });
 });

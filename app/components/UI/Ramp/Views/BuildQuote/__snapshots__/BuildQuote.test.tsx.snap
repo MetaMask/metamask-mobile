@@ -163,7 +163,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -171,8 +170,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -202,7 +199,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -210,8 +206,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -901,7 +895,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -909,8 +902,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -940,7 +931,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -948,8 +938,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1639,7 +1627,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -1647,8 +1634,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -1678,7 +1663,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -1686,8 +1670,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -2348,7 +2330,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -2356,8 +2337,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -2387,7 +2366,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -2395,8 +2373,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -3249,7 +3225,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -3257,8 +3232,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -3288,7 +3261,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -3296,8 +3268,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -3958,7 +3928,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -3966,8 +3935,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -3997,7 +3964,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -4005,8 +3971,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -4859,7 +4823,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -4867,8 +4830,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -4898,7 +4859,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -4906,8 +4866,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -5568,7 +5526,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -5576,8 +5533,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -5607,7 +5562,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -5615,8 +5569,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -6469,7 +6421,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -6477,8 +6428,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -6508,7 +6457,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -6516,8 +6464,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -7178,7 +7124,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -7186,8 +7131,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -7217,7 +7160,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -7225,8 +7167,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -8079,7 +8019,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -8087,8 +8026,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -8118,7 +8055,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -8126,8 +8062,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -11316,7 +11250,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -11324,8 +11257,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -11355,7 +11286,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -11363,8 +11293,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -14565,7 +14493,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -14573,8 +14500,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -14604,7 +14529,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -14612,8 +14536,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >
@@ -15274,7 +15196,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -15282,8 +15203,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -15313,7 +15232,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -15321,8 +15239,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >

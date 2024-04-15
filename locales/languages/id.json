@@ -351,17 +351,12 @@
     "no_collectibles": "Tidak melihat NFT Anda?",
     "no_available_tokens": "Tidak melihat token Anda?",
     "add_tokens": "Impor token",
-    "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
-    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} {{tokensLabel}} baru ditemukan di akun ini",
     "token_toast": {
       "tokens_imported_title": "Token Diimpor",
       "tokens_imported_desc": "Berhasil mengimpor {{tokenSymbols}}",
       "token_imported_title": "Token Diimpor",
       "token_imported_desc": "Berhasil mengimpor {{tokenSymbol}}",
-      "token_imported_desc_1": "You’ve imported a token.",
-      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Menyembunyikan Token",
       "tokens_hidden_desc": "Menyembunyikan token yang terdeteksi dari dompet Anda",
       "token_hidden_title": "Menyembunyikan Token",
@@ -381,8 +376,6 @@
     "nfts_autodetection_desc": "Izinkan MetaMask untuk mendeteksi NFT dari OpenSea secara otomatis dan ditampilkan di dompet MetaMask Anda.",
     "network_details_check": "Pemeriksaan detail jaringan",
     "network_with_chain_id": "Jaringan dengan ID chain",
-    "chain_list_returned_different_ticker_symbol": "Simbol token ini tidak cocok dengan nama jaringan atau ID chain yang dimasukkan. Banyak token populer menggunakan simbol serupa, yang dapat digunakan penipu untuk mengelabui Anda agar mengirimkan token yang lebih berharga sebagai gantinya. Pastikan untuk memverifikasi semuanya sebelum melanjutkan.",
-    "suggested_token_symbol": "Simbol ticker yang disarankan:",
     "potential_scam": "Ini merupakan potensi penipuan",
     "network_not_matching": "Jaringan ini tidak cocok dengan ID chain atau nama yang terkait. Banyak token populer yang menggunakan nama tersebut",
     "target_scam_network": "menjadikannya sebagai target penipuan. Penipu dapat mengelabui Anda agar mengirimkan mata uang yang lebih berharga sebagai gantinya. Pastikan untuk memverifikasi semuanya sebelum melanjutkan.",
@@ -446,8 +439,8 @@
   "add_asset": {
     "title": "Impor token",
     "title_nft": "Impor NFT",
-    "search_token": "Search",
-    "custom_token": "Custom token",
+    "search_token": "CARI",
+    "custom_token": "TOKEN KHUSUS",
     "tokens": {
       "cancel_add_token": "BATAL",
       "add_token": "IMPOR"
@@ -504,16 +497,14 @@
     "resultPageErrorDefaultMessage": "Operasi gagal."
   },
   "token": {
-    "token_symbol": "Token symbol",
+    "token_symbol": "Simbol Token",
     "token_address": "Alamat Token",
-    "token_decimal": "Token decimal",
+    "token_decimal": "Desimal Token",
     "search_tokens_placeholder": "Cari Token",
     "address_cant_be_empty": "Alamat token wajib diisi.",
     "address_must_be_valid": "Alamat token harus berupa alamat yang valid.",
     "symbol_cant_be_empty": "Simbol token wajib diisi.",
-    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Desimal token wajib diisi.",
-    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "Kami tidak dapat menemukan token dengan nama tersebut.",
     "select_token": "Pilih Token",
     "address_must_be_smart_contract": "Alamat pribadi terdeteksi. Masukkan alamat kontrak token."
@@ -550,10 +541,10 @@
   },
   "accounts": {
     "create_new_account": "Buat akun baru",
+    "qr_hardware": "Perangkat keras QR",
     "import_account": "Impor akun",
     "connect_hardware": "Hubungkan dompet perangkat keras",
     "imported": "Diimpor",
-    "qr_hardware": "Perangkat keras QR",
     "remove_account_title": "Penghapusan akun",
     "remove_account_message": "Yakin ingin menghapus akun ini?",
     "no": "Tidak",
@@ -900,7 +891,6 @@
     "security_check_subheading": "Pemeriksaan keamanan",
     "symbol_required": "Simbol wajib diisi.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Menjaga privasi - tidak ada data yang dibagikan kepada pihak ketiga. Tersedia di Arbitrum, Avalanche, BNB chain, Mainnet Ethereum, Optimism, Polygon, dan Sepolia.",
     "security_alerts": "Peringatan keamanan",
     "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia."
   },
@@ -1301,7 +1291,6 @@
     "contract": "Kontrak ({{address}})",
     "contract_name": "Nama kontrak:",
     "contract_address": "Alamat kontrak:",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Tunjangan:",
     "data": "Data",
     "function_approve": "Fungsi: Setujui",
@@ -1797,9 +1786,6 @@
     "pending_deposit_message": "Menunggu deposit selesai",
     "pending_withdrawal_message": "Menunggu penarikan selesai",
     "error_message": "Ketuk untuk melihat transaksi ini",
-    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
-    "error_fcm_not_found": "getFCMToken: No FCM token found",
-    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Ketuk untuk melihat transaksi ini",
     "speedup_message": "Mencoba untuk mempercepat transaksi",
     "success_deposit_message": "Dana Anda sudah siap digunakan",
@@ -2420,7 +2406,6 @@
       "title": "Tetap aman bersama peringatan keamanan",
       "description_1": "Hindari penipuan yang diketahui sambil tetap melindungi privasi Anda bersama peringatan keamanan yang didukung oleh Blockaid. Saat ini fitur ini diaktifkan secara default untuk semua pengguna MetaMask.",
       "description_2": "Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
-      "description_3": "Tersedia di Arbitrum, Avalanche, BNB chain, Mainnet Ethereum, Linea, Optimism, Polygon, dan Sepolia.",
       "got_it": "Mengerti"
     },
     "sell": {
@@ -2732,10 +2717,8 @@
     "bluetooth_off_message": "Aktifkan Bluetooth untuk perangkat",
     "bluetooth_access_blocked": "Ledger memerlukan akses Bluetooth untuk dipasangkan dengan perangkat seluler.",
     "bluetooth_access_blocked_message": "Jika ingin memasangkan perangkat Ledger menggunakan Bluetooth, aktifkan di Pengaturan dan coba lagi.",
-    "location_access_blocked": "MetaMask memerlukan izin akses lokasi untuk dipasangkan dengan Ledger.",
+    "location_access_blocked": "Ledger memerlukan akses lokasi untuk dipasangkan dengan perangkat seluler.",
     "location_access_blocked_message": "Jika ingin memasangkan perangkat Ledger menggunakan Bluetooth, aktifkan akses lokasi di Pengaturan & coba lagi.",
-    "nearbyDevices_access_blocked": "MetaMask memerlukan izin perangkat terdekat untuk dipasangkan dengan Ledger.",
-    "nearbyDevices_access_blocked_message": "Jika ingin memasangkan perangkat Ledger menggunakan Bluetooth, Anda harus mengaktifkan akses perangkat terdekat di Pengaturan & coba lagi.",
     "bluetooth_scanning_error": "Terjadi kesalahan saat memindai perangkat",
     "bluetooth_scanning_error_message": "Pastikan perangkat tidak terkunci dan aplikasi Ethereum berjalan",
     "bluetooth_connection_failed": "Koneksi Bluetooth gagal",
@@ -2755,12 +2738,10 @@
     "connect_ledger": "Hubungkan Ledger",
     "looking_for_device": "Mencari perangkat",
     "ledger_reminder_message": "Pastikan Ledger Nano X:",
-    "ledger_reminder_message_step_one": "1. Buka Ledger Nano X",
-    "ledger_reminder_message_step_two": "2. Instal dan buka aplikasi Ethereum",
-    "ledger_reminder_message_step_three": "3. Aktifkan Bluetooth",
-    "ledger_reminder_message_step_four": "4. Lokasi diaktifkan dengan menggunakan lokasi yang tepat",
-    "ledger_reminder_message_step_four_Androidv12plus": "4. Perangkat terdekat diaktifkan",
-    "ledger_reminder_message_step_five": "5. Jangan ganggu harus dinonaktifkan",
+    "ledger_reminder_message_step_one": "1. Tidak terkunci",
+    "ledger_reminder_message_step_two": "2. Aplikasi Ethereum sudah diinstal",
+    "ledger_reminder_message_step_three": "3. Bluetooth diaktifkan",
+    "ledger_reminder_message_step_four": "4. Lokasi diaktifkan",
     "available_devices": "Perangkat yang tersedia",
     "retry": "Coba lagi",
     "continue": "Lanjutkan",
@@ -2843,8 +2824,5 @@
     "okay_action": "Oke",
     "error_title": "Gagal diinstal",
     "error_description": "Instalasi {{snap}} gagal."
-  },
-  "stake": {
-    "stake": "Stake"
   }
 }

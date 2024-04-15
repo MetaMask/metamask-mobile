@@ -163,7 +163,6 @@ exports[`Accounts should render correctly 1`] = `
                 }
               >
                 <Text
-                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -171,8 +170,6 @@ exports[`Accounts should render correctly 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
                     }
                   }
                 >
@@ -202,7 +199,6 @@ exports[`Accounts should render correctly 1`] = `
                     }
                   />
                   <Text
-                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -210,8 +206,6 @@ exports[`Accounts should render correctly 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
                       }
                     }
                   >

@@ -22,7 +22,9 @@ import {
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 import Scan from './Scan';
-import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
+import useLedgerBluetooth, {
+  LedgerCommunicationErrors,
+} from '../../hooks/Ledger/useLedgerBluetooth';
 import { showSimpleNotification } from '../../../actions/notification';
 import LedgerConnectionError, {
   LedgerConnectionErrorProps,
@@ -37,8 +39,6 @@ import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { getSystemVersion } from 'react-native-device-info';
-import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
 const createStyles = (theme: any) =>
   StyleSheet.create({
@@ -123,8 +123,6 @@ const LedgerConnect = () => {
   const [retryTimes, setRetryTimes] = useState(0);
   const dispatch = useDispatch();
 
-  const deviceOSVersion = Number(getSystemVersion()) || 0;
-
   useEffect(() => {
     navigation.setOptions(
       getNavigationOptionsTitle('', navigation, true, theme.colors),
@@ -166,13 +164,6 @@ const LedgerConnect = () => {
       },
     });
   };
-
-  const permissionText = useMemo(() => {
-    if (deviceOSVersion >= 12) {
-      return strings('ledger.ledger_reminder_message_step_four_Androidv12plus');
-    }
-    return strings('ledger.ledger_reminder_message_step_four');
-  }, [deviceOSVersion]);
 
   const openHowToInstallEthApp = () => {
     navigation.navigate('Webview', {
@@ -297,12 +288,9 @@ const LedgerConnect = () => {
               </Text>
               {Device.isAndroid() && (
                 <Text style={styles.ledgerInstructionText}>
-                  {permissionText}
+                  {strings('ledger.ledger_reminder_message_step_four')}
                 </Text>
               )}
-              <Text style={styles.ledgerInstructionText}>
-                {strings('ledger.ledger_reminder_message_step_five')}
-              </Text>
               <Text
                 style={styles.howToInstallEthAppText}
                 bold

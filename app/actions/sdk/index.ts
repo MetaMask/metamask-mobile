@@ -14,9 +14,9 @@ export enum ActionType {
   SET_APPROVED_HOST = 'SET_APPROVED_HOST',
   RESET_APPROVED_HOSTS = 'RESET_APPROVED_HOSTS',
   SET_CONNECTED = 'SET_CONNECTED',
-  UPDATE_DAPP_CONNECTION = 'UPDATE_DAPP_CONNECTION',
-  REMOVE_DAPP_CONNECTION = 'REMOVE_DAPP_CONNECTION',
-  RESET_DAPP_CONNECTIONS = 'RESET_DAPP_CONNECTIONS',
+  UPDATE_ANDROID_CONNECTION = 'UPDATE_ANDROID_CONNECTION',
+  REMOVE_ANDROID_CONNECTION = 'REMOVE_ANDROID_CONNECTION',
+  RESET_ANDROID_CONNECTIONS = 'RESET_ANDROID_CONNECTIONS',
 }
 
 export type DisconnectAll = ReduxAction<ActionType.DISCONNECT_ALL>;
@@ -58,19 +58,19 @@ export interface ResetApprovedHosts
   approvedHosts: ApprovedHosts;
 }
 
-export interface UpdateDappConnection
-  extends ReduxAction<ActionType.UPDATE_DAPP_CONNECTION> {
+export interface UpdateAndroidConnection
+  extends ReduxAction<ActionType.UPDATE_ANDROID_CONNECTION> {
   channelId: string;
   connection: ConnectionProps;
 }
 
-export interface RemoveDappConnection
-  extends ReduxAction<ActionType.REMOVE_DAPP_CONNECTION> {
+export interface RemoveAndroidConnection
+  extends ReduxAction<ActionType.REMOVE_ANDROID_CONNECTION> {
   channelId: string;
 }
 
-export interface ResetDappConnections
-  extends ReduxAction<ActionType.RESET_DAPP_CONNECTIONS> {
+export interface ResetAndroidConnections
+  extends ReduxAction<ActionType.RESET_ANDROID_CONNECTIONS> {
   connections: SDKSessions;
 }
 
@@ -94,9 +94,9 @@ export type Action =
   | SetApprovedHost
   | ResetApprovedHosts
   | UpdateWC2Metadata
-  | UpdateDappConnection
-  | RemoveDappConnection
-  | ResetDappConnections
+  | UpdateAndroidConnection
+  | RemoveAndroidConnection
+  | ResetAndroidConnections
   | SetConnected;
 
 export const disconnectAll = (): DisconnectAll => ({
@@ -161,26 +161,26 @@ export const resetApprovedHosts = (
   approvedHosts,
 });
 
-export const updateDappConnection = (
+export const updateAndroidConnection = (
   channelId: string,
   connection: ConnectionProps,
-): UpdateDappConnection => ({
-  type: ActionType.UPDATE_DAPP_CONNECTION,
+): UpdateAndroidConnection => ({
+  type: ActionType.UPDATE_ANDROID_CONNECTION,
   channelId,
   connection,
 });
 
-export const removeDappConnection = (
+export const removeAndroidConnection = (
   channelId: string,
-): RemoveDappConnection => ({
-  type: ActionType.REMOVE_DAPP_CONNECTION,
+): RemoveAndroidConnection => ({
+  type: ActionType.REMOVE_ANDROID_CONNECTION,
   channelId,
 });
 
-export const resetDappConnections = (
+export const resetAndroidConnections = (
   connections: SDKSessions,
-): ResetDappConnections => ({
-  type: ActionType.RESET_DAPP_CONNECTIONS,
+): ResetAndroidConnections => ({
+  type: ActionType.RESET_ANDROID_CONNECTIONS,
   connections,
 });
 

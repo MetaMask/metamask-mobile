@@ -351,17 +351,12 @@
     "no_collectibles": "Hindi makita ang iyong NFT?",
     "no_available_tokens": "Hindi mo ba nakikita ang iyong token?",
     "add_tokens": "Mag-import ng mga token",
-    "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
-    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} (na) bagong {{tokensLabel}} ang natagpuan sa account na ito",
     "token_toast": {
       "tokens_imported_title": "Mga Na-import na Token",
       "tokens_imported_desc": "Matagumpay na na-import ang {{tokenSymbols}}",
       "token_imported_title": "Na-import na Token",
       "token_imported_desc": "Matagumpay na na-import ang {{tokenSymbol}}",
-      "token_imported_desc_1": "You’ve imported a token.",
-      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Itinatago ang mga Token",
       "tokens_hidden_desc": "Itinatago ang mga nakitang token mula sa iyong wallet",
       "token_hidden_title": "Itinatago ang mga Token",
@@ -381,8 +376,6 @@
     "nfts_autodetection_desc": "Payagan ang MetaMask na awtomatikong matuklasan ang mga NFT mula sa OpenSea at ipakita sa iyong wallet sa MetaMask.",
     "network_details_check": "Pagsusuri ng detalye ng network",
     "network_with_chain_id": "Ang network na may ID ng chain",
-    "chain_list_returned_different_ticker_symbol": "Ang simbolo ng token na ito ay hindi tugma sa pangalan ng network o chain ID na inilagay. Maraming popular na token ang gumagamit ng magkakatulad ng simbolo, na maaaring gamitin ng mga scammer para lokohin ka na magpadala ka ng mas mahalagang token bilang kapalit. Beripikahin ang lahat bago ka magpatuloy.",
-    "suggested_token_symbol": "Iminumungkahing simbolo ng ticket:",
     "potential_scam": "Isa itong potensyal na scam",
     "network_not_matching": "Ang network na ito ay hindi tugma sa kaugnay nitong ID ng chain o pangalan. Maraming popular na token ay ginagamit ang pangalan",
     "target_scam_network": "kaya ito ay isang target para sa mga scam. Maaari kang lokohin ng mga scammer na magpadala ka ng mas mahalagang salapi bilang kapalit. Beripikahin ang lahat bago magpatuloy.",
@@ -446,8 +439,8 @@
   "add_asset": {
     "title": "Mag-import ng mga token",
     "title_nft": "Mag-import ng NFT",
-    "search_token": "Search",
-    "custom_token": "Custom token",
+    "search_token": "MAGHANAP",
+    "custom_token": "CUSTOM NA TOKEN",
     "tokens": {
       "cancel_add_token": "KANSELAHIN",
       "add_token": "MAG-IMPORT"
@@ -504,16 +497,14 @@
     "resultPageErrorDefaultMessage": "Nabigo ang operasyon."
   },
   "token": {
-    "token_symbol": "Token symbol",
+    "token_symbol": "Simbolo ng Token",
     "token_address": "Address ng Token",
-    "token_decimal": "Token decimal",
+    "token_decimal": "Decimal ng Token",
     "search_tokens_placeholder": "Maghanap ng Mga Token",
     "address_cant_be_empty": "Hindi maaaring walang laman ang address ng token.",
     "address_must_be_valid": "Ang address ng token ay dapat na wastong address.",
     "symbol_cant_be_empty": "Hindi maaaring walang laman ang simbolo ng token.",
-    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Hindi maaaring walang laman ang smga decimal ng token.",
-    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "Wala kaming mahanap na anumang token na may ganyang pangalan.",
     "select_token": "Pumili ng Token",
     "address_must_be_smart_contract": "Natukoy ang personal na address. Ilagay ang address ng kontrata ng token."
@@ -550,10 +541,10 @@
   },
   "accounts": {
     "create_new_account": "Gumawa ng bagong account",
+    "qr_hardware": "QR hardware",
     "import_account": "Mag-import ng account",
     "connect_hardware": "Ikonekta ang wallet na hardware",
     "imported": "Na-import",
-    "qr_hardware": "QR hardware",
     "remove_account_title": "Pag-alis ng account",
     "remove_account_message": "Gusto mo ba talagang alisin ang account na ito?",
     "no": "Hindi",
@@ -900,7 +891,6 @@
     "security_check_subheading": "Pagsusuring panseguridad",
     "symbol_required": "Kailangan ang simbolo.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Pagpapanatili ng pagkapribado - walang data na ibinahagi sa mga third party. Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism Polygon, at Sepolia.",
     "security_alerts": "Mga alerto sa seguridad",
     "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider."
   },
@@ -1301,7 +1291,6 @@
     "contract": "Kontrata ({{address}})",
     "contract_name": "Pangalan ng kontrata:",
     "contract_address": "Address ng kontrata:",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Palugit:",
     "data": "Datos",
     "function_approve": "Function: Aprubahan",
@@ -1797,9 +1786,6 @@
     "pending_deposit_message": "Hinihintay na matapos magdeposito",
     "pending_withdrawal_message": "Hinihintay na matapos mag-withdraw",
     "error_message": "Mag-tap para tingnan ang transaksyong ito",
-    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
-    "error_fcm_not_found": "getFCMToken: No FCM token found",
-    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Mag-tap para tingnan ang transaksyong ito",
     "speedup_message": "Sinusubukang pabilisin ang transaksyon",
     "success_deposit_message": "Handa nang gamitin ang iyong mga pondo",
@@ -2420,7 +2406,6 @@
       "title": "Manatiling ligtas gamit ang mga alerto sa seguridad",
       "description_1": "Manatiling ligtas sa mga scam habang patuloy na pinoprotektahan ang iyong pagkapribado sa pamamagitan ng mga alerto sa seguridad na pinatatakbo ng Blockaid. Ang tampok na ito ay naka-on nang default para sa lahat ng user ng MetaMask.",
       "description_2": "Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang mga kahilingan.",
-      "description_3": "Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon at Sepolia.",
       "got_it": "Nakuha ko"
     },
     "sell": {
@@ -2732,10 +2717,8 @@
     "bluetooth_off_message": "Mangyaring i-on ang Bluetooth sa iyong device",
     "bluetooth_access_blocked": "Kailangan ng Ledger ng access sa Bluetooth para ipares ang iyong mobile device.",
     "bluetooth_access_blocked_message": "Kung nais mong ipares ang iyong Ledger device gamit ang Bluetooth, paganahin ito sa Mga Setting at subukang muli.",
-    "location_access_blocked": "Kailangan ng MetaMask ng permiso sa pag-access ng lokasyon para maipares sa iyong ledger.",
+    "location_access_blocked": "Kailangan ng Ledger ng access sa lokasyon upang ipares sa iyong mobile device.",
     "location_access_blocked_message": "Kung nais mong ipares ang iyong Ledger device gamit ang Bluetooth, kailangan mong paganahin ang access sa lokasyon sa Mga Setting at subukang muli.",
-    "nearbyDevices_access_blocked": "Kailangan ng MetaMask ng permiso sa mga malapit na device para maipares sa iyong ledger.",
-    "nearbyDevices_access_blocked_message": "Kung nais mong ipares ang iyong Ledger device gamit ang Bluetooth, kailangan mong paganahin ang access sa mga malapit na device sa Mga Setting at subukang muli.",
     "bluetooth_scanning_error": "Error habang ini-scan ang device",
     "bluetooth_scanning_error_message": "Siguraduhing naka-unlock ang iyong device at gumagana ang app ng Ethereum",
     "bluetooth_connection_failed": "Nabigo ang koneksyon sa Bluetooth",
@@ -2755,12 +2738,10 @@
     "connect_ledger": "Ikonekta ang Ledger",
     "looking_for_device": "Naghahanap ng device",
     "ledger_reminder_message": "Siguraduhin na ang iyong Ledger Nano X ay:",
-    "ledger_reminder_message_step_one": "1. I-unlock ang iyong Ledger Nano X",
-    "ledger_reminder_message_step_two": "2. I-install at buksan ang Ethereum app",
-    "ledger_reminder_message_step_three": "3. I-enable ang Bluetooth",
-    "ledger_reminder_message_step_four": "4. Ang Lokasyon ay pinapagana na naka-on ang eksaktong lokasyon",
-    "ledger_reminder_message_step_four_Androidv12plus": "4. Pinapagana ang mga malapit na device",
-    "ledger_reminder_message_step_five": "5. Dapat i-off ang do not disturb",
+    "ledger_reminder_message_step_one": "1. Naka-unlock",
+    "ledger_reminder_message_step_two": "2. Naka-install ang app ng Ethereum",
+    "ledger_reminder_message_step_three": "3. Gumagana ang Bluetooth",
+    "ledger_reminder_message_step_four": "4. Gumagana ang lokasyon",
     "available_devices": "Available na mga device",
     "retry": "Subukang muli",
     "continue": "Magpatuloy",
@@ -2843,8 +2824,5 @@
     "okay_action": "OK",
     "error_title": "Nabigo ang pag-install",
     "error_description": "Nabigo ang pag-install ng {{snap}}."
-  },
-  "stake": {
-    "stake": "Stake"
   }
 }

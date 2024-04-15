@@ -608,10 +608,7 @@ class Confirm extends PureComponent {
       const { TokensController } = Engine.context;
 
       if (!contractBalances[address]) {
-        await TokensController.addToken({
-          address,
-          symbol,
-          decimals,
+        await TokensController.addToken(address, symbol, decimals, {
           image,
           name,
         });
@@ -1098,10 +1095,9 @@ class Confirm extends PureComponent {
   };
 
   onContactUsClicked = () => {
-    const { transaction } = this.props;
     const analyticsParams = {
       ...this.getAnalyticsParams(),
-      ...this.withBlockaidMetricsParams(transaction),
+      ...this.withBlockaidMetricsParams(),
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(

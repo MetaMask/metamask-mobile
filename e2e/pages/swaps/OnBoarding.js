@@ -1,8 +1,8 @@
 import TestHelpers from '../../helpers';
-import enContent from '../../../locales/languages/en.json';
+import messages from '../../../locales/languages/en.json';
 
 export default class Onboarding {
   static async tapStartSwapping() {
-    await TestHelpers.waitAndTapText(enContent.swaps.onboarding.start_swapping);
+    await TestHelpers.waitAndTapText(messages.swaps.onboarding.start_swapping);
   }
 }

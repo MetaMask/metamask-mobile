@@ -15,6 +15,7 @@ exports[`AddAsset component renders correctly 1`] = `
       Object {
         "alignItems": "center",
         "marginTop": 10,
+        "paddingHorizontal": 16,
       }
     }
   >

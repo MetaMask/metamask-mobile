@@ -10,7 +10,7 @@ index 0000000..9322b99
 +If it make sense the controllers be able to be destroyed or 
 +refactor the vault corruption flow, without destroy all Engine instance
 diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.d.ts b/node_modules/@metamask/network-controller/dist/NetworkController.d.ts
-index 577683a..e928606 100644
+index 6efbfe0..f51221a 100644
 --- a/node_modules/@metamask/network-controller/dist/NetworkController.d.ts
 +++ b/node_modules/@metamask/network-controller/dist/NetworkController.d.ts
 @@ -69,7 +69,7 @@ export declare type NetworkConfiguration = {
@@ -23,19 +23,19 @@ index 577683a..e928606 100644
  }>;
  /**
 diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.js b/node_modules/@metamask/network-controller/dist/NetworkController.js
-index e740dc7..20caba0 100644
+index 596ed70..5bd7d6f 100644
 --- a/node_modules/@metamask/network-controller/dist/NetworkController.js
 +++ b/node_modules/@metamask/network-controller/dist/NetworkController.js
 @@ -22,7 +22,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
  var __importDefault = (this && this.__importDefault) || function (mod) {
      return (mod && mod.__esModule) ? mod : { "default": mod };
  };
--var _NetworkController_instances, _NetworkController_ethQuery, _NetworkController_infuraProjectId, _NetworkController_trackMetaMetricsEvent, _NetworkController_previousProviderConfig, _NetworkController_providerProxy, _NetworkController_provider, _NetworkController_blockTrackerProxy, _NetworkController_autoManagedNetworkClientRegistry, _NetworkController_refreshNetwork, _NetworkController_getLatestBlock, _NetworkController_determineEIP1559Compatibility, _NetworkController_ensureAutoManagedNetworkClientRegistryPopulated, _NetworkController_createAutoManagedNetworkClientRegistry, _NetworkController_buildIdentifiedInfuraNetworkClientConfigurations, _NetworkController_buildIdentifiedCustomNetworkClientConfigurations, _NetworkController_buildIdentifiedNetworkClientConfigurationsFromProviderConfig, _NetworkController_applyNetworkSelection;
-+var _NetworkController_instances, _NetworkController_ethQuery, _NetworkController_infuraProjectId, _NetworkController_trackMetaMetricsEvent, _NetworkController_previousProviderConfig, _NetworkController_providerProxy, _NetworkController_provider, _NetworkController_blockTrackerProxy, _NetworkController_autoManagedNetworkClientRegistry, _NetworkController_refreshNetwork, _NetworkController_getLatestBlock, _NetworkController_determineEIP1559Compatibility, _NetworkController_ensureAutoManagedNetworkClientRegistryPopulated, _NetworkController_createAutoManagedNetworkClientRegistry, _NetworkController_buildIdentifiedInfuraNetworkClientConfigurations, _NetworkController_buildIdentifiedCustomNetworkClientConfigurations, _NetworkController_buildIdentifiedNetworkClientConfigurationsFromProviderConfig, _NetworkController_applyNetworkSelection, _NetworkController_destroyed;
+-var _NetworkController_instances, _NetworkController_ethQuery, _NetworkController_infuraProjectId, _NetworkController_trackMetaMetricsEvent, _NetworkController_previousProviderConfig, _NetworkController_providerProxy, _NetworkController_provider, _NetworkController_blockTrackerProxy, _NetworkController_autoManagedNetworkClientRegistry, _NetworkController_refreshNetwork, _NetworkController_getNetworkId, _NetworkController_getLatestBlock, _NetworkController_determineEIP1559Compatibility, _NetworkController_ensureAutoManagedNetworkClientRegistryPopulated, _NetworkController_createAutoManagedNetworkClientRegistry, _NetworkController_buildIdentifiedInfuraNetworkClientConfigurations, _NetworkController_buildIdentifiedCustomNetworkClientConfigurations, _NetworkController_buildIdentifiedNetworkClientConfigurationsFromProviderConfig, _NetworkController_applyNetworkSelection;
++var _NetworkController_instances, _NetworkController_ethQuery, _NetworkController_infuraProjectId, _NetworkController_trackMetaMetricsEvent, _NetworkController_previousProviderConfig, _NetworkController_providerProxy, _NetworkController_provider, _NetworkController_blockTrackerProxy, _NetworkController_autoManagedNetworkClientRegistry, _NetworkController_refreshNetwork, _NetworkController_getNetworkId, _NetworkController_getLatestBlock, _NetworkController_determineEIP1559Compatibility, _NetworkController_ensureAutoManagedNetworkClientRegistryPopulated, _NetworkController_createAutoManagedNetworkClientRegistry, _NetworkController_buildIdentifiedInfuraNetworkClientConfigurations, _NetworkController_buildIdentifiedCustomNetworkClientConfigurations, _NetworkController_buildIdentifiedNetworkClientConfigurationsFromProviderConfig, _NetworkController_applyNetworkSelection, _NetworkController_destroyed;
  Object.defineProperty(exports, "__esModule", { value: true });
  exports.NetworkController = exports.defaultState = exports.knownKeysOf = void 0;
  const base_controller_1 = require("@metamask/base-controller");
-@@ -234,6 +234,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -259,6 +259,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
          _NetworkController_providerProxy.set(this, void 0);
          _NetworkController_provider.set(this, void 0);
          _NetworkController_blockTrackerProxy.set(this, void 0);
@@ -43,7 +43,7 @@ index e740dc7..20caba0 100644
          _NetworkController_autoManagedNetworkClientRegistry.set(this, void 0);
          if (!infuraProjectId || typeof infuraProjectId !== 'string') {
              throw new Error('Invalid Infura project ID');
-@@ -248,6 +249,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -273,6 +274,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
          });
          this.messagingSystem.registerActionHandler(`${this.name}:getNetworkClientById`, this.getNetworkClientById.bind(this));
          __classPrivateFieldSet(this, _NetworkController_previousProviderConfig, this.state.providerConfig, "f");
@@ -51,7 +51,7 @@ index e740dc7..20caba0 100644
      }
      /**
       * Accesses the provider and block tracker for the currently selected network.
-@@ -434,7 +436,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -464,7 +466,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
                      updatedNetworkStatus = constants_1.NetworkStatus.Unknown;
                  }
              }
@@ -60,7 +60,7 @@ index e740dc7..20caba0 100644
                  // If the network has changed, then `lookupNetwork` either has been or is
                  // in the process of being called, so we don't need to go further.
                  return;
-@@ -710,6 +712,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -741,6 +743,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
      destroy() {
          var _a;
          return __awaiter(this, void 0, void 0, function* () {
@@ -68,7 +68,7 @@ index e740dc7..20caba0 100644
              yield ((_a = __classPrivateFieldGet(this, _NetworkController_blockTrackerProxy, "f")) === null || _a === void 0 ? void 0 : _a.destroy());
          });
      }
-@@ -740,7 +743,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -771,7 +774,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
      }
  }
  exports.NetworkController = NetworkController;
@@ -76,4 +76,4 @@ index e740dc7..20caba0 100644
 +_NetworkController_ethQuery = new WeakMap(), _NetworkController_infuraProjectId = new WeakMap(), _NetworkController_trackMetaMetricsEvent = new WeakMap(), _NetworkController_previousProviderConfig = new WeakMap(), _NetworkController_providerProxy = new WeakMap(), _NetworkController_provider = new WeakMap(), _NetworkController_blockTrackerProxy = new WeakMap(), _NetworkController_destroyed = new WeakMap(), _NetworkController_autoManagedNetworkClientRegistry = new WeakMap(), _NetworkController_instances = new WeakSet(), _NetworkController_refreshNetwork = function _NetworkController_refreshNetwork() {
      return __awaiter(this, void 0, void 0, function* () {
          this.messagingSystem.publish('NetworkController:networkWillChange');
-         __classPrivateFieldGet(this, _NetworkController_instances, "m", _NetworkController_applyNetworkSelection).call(this);
+         this.update((state) => {

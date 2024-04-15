@@ -87,13 +87,6 @@ const createStyles = (colors: Colors) =>
     centered: {
       textAlign: 'center',
     },
-    assetName: {
-      flexDirection: 'row',
-    },
-    stakeButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
     networth: {
       flexDirection: 'row',
       alignItems: 'center',

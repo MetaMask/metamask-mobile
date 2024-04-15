@@ -45,10 +45,6 @@ describe('handleCustomRpcCalls', () => {
       selectedChainId,
     });
 
-    if (!result) {
-      throw new Error('result is undefined');
-    }
-
     expect(result.method).toBe(rpc.params[0].method);
     expect(result.params).toEqual(rpc.params[0].params);
   });
@@ -63,10 +59,6 @@ describe('handleCustomRpcCalls', () => {
       selectedAddress,
       selectedChainId,
     });
-
-    if (!result) {
-      throw new Error('result is undefined');
-    }
 
     expect(result.method).toBe(RPC_METHODS.PERSONAL_SIGN);
     expect(result.params).toEqual([...rpc.params, selectedAddress]);
@@ -90,10 +82,6 @@ describe('handleCustomRpcCalls', () => {
       id: rpc.id,
       rpcs: rpc.params,
     });
-
-    if (!result) {
-      throw new Error('result is undefined');
-    }
     expect(result.method).toBe(rpc.params[0].method);
     expect(result.params).toEqual(rpc.params[0].params);
   });

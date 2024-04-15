@@ -18,7 +18,7 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import CommonView from '../../pages/CommonView';
-import enContent from '../../../locales/languages/en.json';
+import messages from '../../../locales/languages/en.json';
 import DeleteContactModal from '../../pages/modals/DeleteContactModal';
 import Assertions from '../../utils/Assertions';
 
@@ -93,7 +93,7 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await Assertions.checkIfVisible(CommonView.errorMessage);
     await Assertions.checkIfElementToHaveText(
       CommonView.errorMessage,
-      enContent.transaction.invalid_address,
+      messages.transaction.invalid_address,
     );
     await AddContactView.clearAddressInputBox();
     await AddContactView.typeInAddress('ibrahim.team.mask.eth');

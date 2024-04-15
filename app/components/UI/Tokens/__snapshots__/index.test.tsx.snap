@@ -667,110 +667,21 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     Object {
-                                      "flexDirection": "row",
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Ethereum
-                                  </Text>
-                                  <View
-                                    accessibilityState={
-                                      Object {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": undefined,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      Object {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                    testID="stake-button"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "Euclid Circular B",
-                                          "fontSize": 16,
-                                          "fontWeight": "500",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                       • 
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          Object {
-                                            "color": "#0376C9",
-                                            "fontFamily": "Euclid Circular B",
-                                            "fontSize": 16,
-                                            "fontWeight": "500",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        Stake 
-                                      </Text>
-                                    </Text>
-                                    <SvgMock
-                                      color="#0376C9"
-                                      height={16}
-                                      name="Plant"
-                                      style={
-                                        Object {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      width={16}
-                                    />
-                                  </View>
-                                </View>
+                                  Ethereum
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -976,29 +887,21 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     Object {
-                                      "flexDirection": "row",
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Bat
-                                  </Text>
-                                </View>
+                                  Bat
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -1819,110 +1722,21 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     Object {
-                                      "flexDirection": "row",
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Ethereum
-                                  </Text>
-                                  <View
-                                    accessibilityState={
-                                      Object {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": undefined,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      Object {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                    testID="stake-button"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "Euclid Circular B",
-                                          "fontSize": 16,
-                                          "fontWeight": "500",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                       • 
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          Object {
-                                            "color": "#0376C9",
-                                            "fontFamily": "Euclid Circular B",
-                                            "fontSize": 16,
-                                            "fontWeight": "500",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        Stake 
-                                      </Text>
-                                    </Text>
-                                    <SvgMock
-                                      color="#0376C9"
-                                      height={16}
-                                      name="Plant"
-                                      style={
-                                        Object {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      width={16}
-                                    />
-                                  </View>
-                                </View>
+                                  Ethereum
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -2128,29 +1942,21 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     Object {
-                                      "flexDirection": "row",
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Bat
-                                  </Text>
-                                </View>
+                                  Bat
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -2979,110 +2785,21 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     Object {
-                                      "flexDirection": "row",
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Ethereum
-                                  </Text>
-                                  <View
-                                    accessibilityState={
-                                      Object {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": undefined,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      Object {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
-                                    style={
-                                      Object {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                    testID="stake-button"
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "Euclid Circular B",
-                                          "fontSize": 16,
-                                          "fontWeight": "500",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                       • 
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          Object {
-                                            "color": "#0376C9",
-                                            "fontFamily": "Euclid Circular B",
-                                            "fontSize": 16,
-                                            "fontWeight": "500",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
-                                        }
-                                      >
-                                        Stake 
-                                      </Text>
-                                    </Text>
-                                    <SvgMock
-                                      color="#0376C9"
-                                      height={16}
-                                      name="Plant"
-                                      style={
-                                        Object {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      width={16}
-                                    />
-                                  </View>
-                                </View>
+                                  Ethereum
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -3288,29 +3005,21 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     Object {
-                                      "flexDirection": "row",
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Bat
-                                  </Text>
-                                </View>
+                                  Bat
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={
@@ -3516,29 +3225,21 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
                                     Object {
-                                      "flexDirection": "row",
+                                      "color": "#24272A",
+                                      "fontFamily": "Euclid Circular B",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
-                                        "fontSize": 16,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Link
-                                  </Text>
-                                </View>
+                                  Link
+                                </Text>
                                 <Text
                                   accessibilityRole="text"
                                   style={

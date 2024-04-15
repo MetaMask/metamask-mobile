@@ -1,4 +1,3 @@
-import { useNavigation } from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
@@ -7,16 +6,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { getSystemVersion } from 'react-native-device-info';
-import { strings } from '../../../../../locales/i18n';
-import { LEDGER_SUPPORT_LINK } from '../../../../constants/urls';
-import Device from '../../../../util/device';
-import { useAssetFromTheme } from '../../../../util/theme';
 import Text from '../../../Base/Text';
+import { strings } from '../../../../../locales/i18n';
+import { useAssetFromTheme } from '../../../../util/theme';
+import { useNavigation } from '@react-navigation/native';
+import Device from '../../../../util/device';
+import { LEDGER_SUPPORT_LINK } from '../../../../constants/urls';
 
-import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
 import ledgerConnectLightImage from '../../../../images/ledger-connect-light.png';
-import { SEARCHING_FOR_DEVICE_STEP } from './Steps.constants';
+import ledgerConnectDarkImage from '../../../../images/ledger-connect-dark.png';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -62,8 +60,6 @@ const SearchingForDeviceStep = () => {
   const styles = useMemo(() => createStyles(), []);
   const navigation = useNavigation();
 
-  const deviceOSVersion = Number(getSystemVersion()) || 0;
-
   const ledgerImage = useAssetFromTheme(
     ledgerConnectLightImage,
     ledgerConnectDarkImage,
@@ -79,18 +75,8 @@ const SearchingForDeviceStep = () => {
     });
   };
 
-  const permissionText = useMemo(() => {
-    if (deviceOSVersion >= 12) {
-      return strings('ledger.ledger_reminder_message_step_four_Androidv12plus');
-    }
-    return strings('ledger.ledger_reminder_message_step_four');
-  }, [deviceOSVersion]);
-
   return (
-    <View
-      style={styles.lookingForDeviceContainer}
-      testID={SEARCHING_FOR_DEVICE_STEP}
-    >
+    <View style={styles.lookingForDeviceContainer}>
       <Image
         source={ledgerImage}
         style={styles.ledgerImageStyle}
@@ -116,11 +102,10 @@ const SearchingForDeviceStep = () => {
           {strings('ledger.ledger_reminder_message_step_three')}
         </Text>
         {Device.isAndroid() && (
-          <Text style={styles.ledgerInstructionText}>{permissionText}</Text>
+          <Text style={styles.ledgerInstructionText}>
+            {strings('ledger.ledger_reminder_message_step_four')}
+          </Text>
         )}
-        <Text style={styles.ledgerInstructionText}>
-          {strings('ledger.ledger_reminder_message_step_five')}
-        </Text>
       </View>
       <TouchableOpacity onPress={handleOpenInstallEthAppInstructions}>
         <Text style={styles.howToInstallEthAppText} bold link numerOfLines={2}>

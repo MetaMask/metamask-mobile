@@ -6,9 +6,9 @@ import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
 import Engine from '../../core/Engine';
 import AndroidService from './AndroidSDK/AndroidService';
-import addDappConnection from './AndroidSDK/addDappConnection';
+import addAndroidConnection from './AndroidSDK/addAndroidConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
-import loadDappConnections from './AndroidSDK/loadDappConnections';
+import loadAndroidConnections from './AndroidSDK/loadAndroidConnections';
 import { Connection, ConnectionProps } from './Connection';
 import {
   approveHost,
@@ -24,7 +24,6 @@ import {
 import { init, postInit } from './InitializationManagement';
 import RPCQueueManager from './RPCQueueManager';
 import { DEFAULT_SESSION_TIMEOUT_MS } from './SDKConnectConstants';
-import DeeplinkProtocolService from './SDKDeeplinkProtocol/DeeplinkProtocolService';
 import { pause, resume, unmount } from './SessionManagement';
 import {
   handleAppState,
@@ -71,9 +70,7 @@ export interface SDKConnectState {
   androidSDKStarted: boolean;
   androidSDKBound: boolean;
   androidService?: AndroidService;
-  deeplinkingServiceStarted: boolean;
-  deeplinkingService?: DeeplinkProtocolService;
-  dappConnections: SDKSessions;
+  androidConnections: SDKSessions;
   connecting: { [channelId: string]: boolean };
   approvedHosts: ApprovedHosts;
   sdkLoadingState: { [channelId: string]: boolean };
@@ -103,12 +100,10 @@ export class SDKConnect {
     appState: undefined,
     connected: {},
     connections: {},
-    dappConnections: {},
+    androidConnections: {},
     androidSDKStarted: false,
     androidSDKBound: false,
-    deeplinkingServiceStarted: false,
     androidService: undefined,
-    deeplinkingService: undefined,
     connecting: {},
     approvedHosts: {},
     sdkLoadingState: {},
@@ -219,18 +214,18 @@ export class SDKConnect {
     return this.state.androidSDKBound;
   }
 
-  async loadDappConnections(): Promise<{
+  async loadAndroidConnections(): Promise<{
     [id: string]: ConnectionProps;
   }> {
-    return loadDappConnections();
+    return loadAndroidConnections();
   }
 
   getAndroidConnections() {
     return this.state.androidService?.getConnections();
   }
 
-  async addDappConnection(connection: ConnectionProps) {
-    return addDappConnection(connection, this);
+  async addAndroidConnection(connection: ConnectionProps) {
+    return addAndroidConnection(connection, this);
   }
 
   public async refreshChannel({ channelId }: { channelId: string }) {
@@ -287,7 +282,8 @@ export class SDKConnect {
 
   public getConnection({ channelId }: { channelId: string }) {
     return (
-      this.state.connections[channelId] ?? this.state.dappConnections[channelId]
+      this.state.connections[channelId] ??
+      this.state.androidConnections[channelId]
     );
   }
 

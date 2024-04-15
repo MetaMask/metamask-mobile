@@ -19,7 +19,6 @@ function removeConnection({
   instance.disapprove(instance.channelId);
   instance.disconnect({ terminate, context: 'Connection::removeConnection' });
   instance.backgroundBridge?.onDisconnect();
-  instance.approvalPromise = undefined;
   instance.setLoading(false);
 }
 

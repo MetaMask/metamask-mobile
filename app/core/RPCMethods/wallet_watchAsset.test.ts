@@ -149,11 +149,7 @@ describe('wallet_watchAsset', () => {
       checkTabActive: () => null as any,
       hostname: '',
     });
-    expect(spyOnWatchAsset).toHaveBeenCalledWith({
-      asset: correctWBTC,
-      type: ERC20,
-      interactingAddress: '0x123',
-    });
+    expect(spyOnWatchAsset).toHaveBeenCalledWith(correctWBTC, ERC20, '0x123');
   });
   it('should call watchAsset with fake WBTC decimals and symbol', async () => {
     const fakeWBTC = {
@@ -188,10 +184,6 @@ describe('wallet_watchAsset', () => {
       checkTabActive: () => null as any,
       hostname: '',
     });
-    expect(spyOnWatchAsset).toHaveBeenCalledWith({
-      asset: correctWBTC,
-      type: ERC20,
-      interactingAddress: '0x123',
-    });
+    expect(spyOnWatchAsset).toHaveBeenCalledWith(correctWBTC, ERC20, '0x123');
   });
 });

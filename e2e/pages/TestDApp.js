@@ -2,7 +2,7 @@ import TestHelpers from '../helpers';
 import { testDappConnectButtonCooridinates } from '../viewHelper';
 import ConnectModal from './modals/ConnectModal';
 import Browser from './Browser';
-import enContent from '../../locales/languages/en.json';
+import root from '../../locales/languages/en.json';
 import { getLocalTestDappPort } from '../fixtures/utils';
 import { BrowserViewSelectorsIDs } from '../selectors/BrowserView.selectors';
 import Assertions from '../utils/Assertions';
@@ -10,7 +10,7 @@ import Assertions from '../utils/Assertions';
 export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 
 const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
-const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
+const CONFIRM_BUTTON_TEXT = root.confirmation_modal.confirm_cta;
 
 export class TestDApp {
   static async connect() {

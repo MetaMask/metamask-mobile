@@ -139,7 +139,7 @@ export function isNetworkRampNativeTokenSupported(
   chainId: string,
   networks: AggregatorNetwork[],
 ) {
-  const network = (networks || []).find(
+  const network = networks.find(
     (_network) => String(_network.chainId) === getDecimalChainId(chainId),
   );
   return (network?.active && network.nativeTokenSupported) ?? false;

@@ -12,7 +12,6 @@ import {
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import { loginToApp } from '../../viewHelper';
-import ConfirmAddAssetView from '../../pages/ConfirmAddAsset';
 
 const fixtureServer = new FixtureServer();
 
@@ -39,34 +38,10 @@ describe(SmokeCore('Import Tokens'), () => {
     await TestHelpers.delay(2000);
     await ImportTokensView.tapOnToken(); // taps the first token in the returned list
     await TestHelpers.delay(500);
-    await ImportTokensView.tapOnNextButton();
-
-    await TestHelpers.delay(500);
-    await ConfirmAddAssetView.isVisible();
-
-    await ConfirmAddAssetView.tapOnConfirmButton();
-
+    await ImportTokensView.tapImportButton();
     await WalletView.isVisible();
     await TestHelpers.delay(8000); // to prevent flakey behavior in bitrise
     await WalletView.isTokenVisibleInWallet('0 SNX');
-  });
-
-  it('should cancel add a token via token autocomplete', async () => {
-    await WalletView.tapImportTokensButton();
-    // Search for SNX
-    await ImportTokensView.typeInTokenName('SNX');
-    await TestHelpers.delay(2000);
-    await ImportTokensView.tapOnToken(); // taps the first token in the returned list
-    await TestHelpers.delay(500);
-    await ImportTokensView.tapOnNextButton();
-
-    await TestHelpers.delay(500);
-    await ConfirmAddAssetView.isVisible();
-
-    await ConfirmAddAssetView.tapOnCancelButton();
-    await ConfirmAddAssetView.cancelModalIsVisible();
-
-    await ConfirmAddAssetView.tapOnConfirmModalButton();
   });
 
   it('should hide token from Wallet view', async () => {

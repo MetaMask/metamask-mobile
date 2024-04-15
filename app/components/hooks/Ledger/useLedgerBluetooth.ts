@@ -7,8 +7,19 @@ import {
   closeRunningAppOnLedger,
 } from '../../../core/Ledger/Ledger';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
-import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
+export enum LedgerCommunicationErrors {
+  LedgerDisconnected = 'LedgerDisconnected',
+  LedgerHasPendingConfirmation = 'LedgerHasPendingConfirmation',
+  FailedToOpenApp = 'FailedToOpenApp',
+  FailedToCloseApp = 'FailedToCloseApp',
+  UserRefusedConfirmation = 'UserRefusedConfirmation',
+  AppIsNotInstalled = 'AppIsNotInstalled',
+  LedgerIsLocked = 'LedgerIsLocked',
+  NotSupported = 'NotSupported',
+  UnknownError = 'UnknownError',
+  NonceTooLow = 'NonceTooLow',
+}
 class LedgerError extends Error {
   public readonly code: LedgerCommunicationErrors;
 

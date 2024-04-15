@@ -3,9 +3,13 @@ import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { Colors } from '../../../util/theme/models';
-import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
+import useLedgerBluetooth, {
+  LedgerCommunicationErrors,
+} from '../../hooks/Ledger/useLedgerBluetooth';
 import useBluetooth from '../../hooks/Ledger/useBluetooth';
-import useBluetoothPermissions from '../../../components/hooks/useBluetoothPermissions';
+import useBluetoothPermissions, {
+  BluetoothPermissionErrors,
+} from '../../../components/hooks/useBluetoothPermissions';
 import ConfirmationStep from './Steps/ConfirmationStep';
 import ErrorStep from './Steps/ErrorStep';
 import OpenETHAppStep from './Steps/OpenETHAppStep';
@@ -13,10 +17,6 @@ import SearchingForDeviceStep from './Steps/SearchingForDeviceStep';
 import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import {
-  BluetoothPermissionErrors,
-  LedgerCommunicationErrors,
-} from '../../../core/Ledger/ledgerErrors';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -24,7 +24,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       borderTopLeftRadius: 10,
       borderTopRightRadius: 10,
-      height: 450,
+      height: 400,
     },
     contentWrapper: {
       flex: 1,
@@ -191,12 +191,6 @@ const LedgerConfirmationModal = ({
           setErrorDetails({
             title: strings('ledger.location_access_blocked'),
             subtitle: strings('ledger.location_access_blocked_error'),
-          });
-          break;
-        case BluetoothPermissionErrors.NearbyDevicesAccessBlocked:
-          setErrorDetails({
-            title: strings('ledger.nearbyDevices_access_blocked'),
-            subtitle: strings('ledger.nearbyDevices_access_blocked_message'),
           });
           break;
         case BluetoothPermissionErrors.BluetoothAccessBlocked:

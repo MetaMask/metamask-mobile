@@ -10,7 +10,8 @@ import type { BrowserTab } from '../../Tokens/types';
 import type { BrowserParams } from '../../../../components/Views/Browser/Browser.types';
 import { getDecimalChainId } from '../../../../util/networks';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { isBridgeUrl } from '../../../../util/url';
+
+const BRIDGE_URL = `${AppConstants.PORTFOLIO_URL}/bridge`;
 
 /**
  * Returns a function that is used to navigate to the MetaMask Bridges webpage.
@@ -24,7 +25,7 @@ export default function useGoToBridge(location: string) {
   const { trackEvent } = useMetrics();
   return (address?: string) => {
     const existingBridgeTab = browserTabs.find((tab: BrowserTab) =>
-      isBridgeUrl(tab.url),
+      tab.url.match(new RegExp(BRIDGE_URL)),
     );
 
     const params: BrowserParams & { existingTabId?: string } = {
@@ -35,11 +36,9 @@ export default function useGoToBridge(location: string) {
       params.newTabUrl = undefined;
       params.existingTabId = existingBridgeTab.id;
     } else {
-      params.newTabUrl = `${
-        AppConstants.BRIDGE.URL
-      }/?metamaskEntry=mobile&srcChain=${getDecimalChainId(chainId)}${
-        address ? `&token=${address}` : ''
-      }`;
+      params.newTabUrl = `${BRIDGE_URL}/?metamaskEntry=mobile&srcChain=${getDecimalChainId(
+        chainId,
+      )}${address ? `&token=${address}` : ''}`;
     }
 
     navigate(Routes.BROWSER.HOME, {
@@ -47,7 +46,7 @@ export default function useGoToBridge(location: string) {
       params,
     });
     trackEvent(MetaMetricsEvents.BRIDGE_LINK_CLICKED, {
-      bridgeUrl: AppConstants.BRIDGE.URL,
+      bridgeUrl: BRIDGE_URL,
       location,
       chain_id_source: getDecimalChainId(chainId),
       token_address_source: address,

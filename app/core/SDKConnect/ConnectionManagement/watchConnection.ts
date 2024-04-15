@@ -17,21 +17,13 @@ function watchConnection(connection: Connection, instance: SDKConnect) {
           channelId: connection.channelId,
           sendTerminate: false,
         });
-        if (instance.state.connections[connection.channelId]) {
-          instance.state.connections[connection.channelId].connected = false;
-        }
+        instance.state.connections[connection.channelId].connected = false;
       } else if (connectionStatus === ConnectionStatus.DISCONNECTED) {
         instance.updateSDKLoadingState({
           channelId: connection.channelId,
           loading: false,
         });
-        if (instance.state.connections[connection.channelId]) {
-          instance.state.connections[connection.channelId].connected = false;
-        }
-      } else if (connectionStatus === ConnectionStatus.WAITING) {
-        if (instance.state.connections[connection.channelId]) {
-          instance.state.connections[connection.channelId].connected = false;
-        }
+        instance.state.connections[connection.channelId].connected = false;
       }
       store.dispatch(resetConnections(instance.state.connections));
       DevLogger.log(

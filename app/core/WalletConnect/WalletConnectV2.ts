@@ -10,7 +10,6 @@ import Logger from '../../util/Logger';
 import { WalletDevice } from '@metamask/transaction-controller';
 
 import { PermissionController } from '@metamask/permission-controller';
-import { NavigationContainerRef } from '@react-navigation/native';
 import { Core } from '@walletconnect/core';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import Client, {
@@ -19,28 +18,23 @@ import Client, {
 } from '@walletconnect/se-sdk';
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
-import { Platform } from 'react-native';
-import { updateWC2Metadata } from '../../../app/actions/sdk';
-import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import { WALLET_CONNECT_ORIGIN } from '../../../app/util/walletconnect';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import AsyncStorage from '../../store/async-storage-wrapper';
-import Device from '../../util/device';
 import { addTransaction } from '../../util/transaction-controller';
 import Engine from '../Engine';
 import { getPermittedAccounts } from '../Permissions';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
-import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
+import { waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import WalletConnect from './WalletConnect';
-import extractApprovedAccounts from './extractApprovedAccounts';
 import METHODS_TO_REDIRECT from './wc-config';
 import parseWalletConnectUri, {
-  hideWCLoadingState,
-  showWCLoadingState,
+  waitForNetworkModalOnboarding,
 } from './wc-utils';
+import { updateWC2Metadata } from '../../../app/actions/sdk';
 
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -62,7 +56,6 @@ const RPC_WALLET_SWITCHETHEREUMCHAIN = 'wallet_switchEthereumChain';
 
 class WalletConnect2Session {
   private backgroundBridge: BackgroundBridge;
-  private navigation?: NavigationContainerRef;
   private web3Wallet: Client;
   private deeplink: boolean;
   private session: SessionTypes.Struct;
@@ -75,7 +68,6 @@ class WalletConnect2Session {
   constructor({
     web3Wallet,
     session,
-    navigation,
     channelId,
     deeplink,
   }: {
@@ -83,20 +75,14 @@ class WalletConnect2Session {
     channelId: string;
     session: SessionTypes.Struct;
     deeplink: boolean;
-    navigation?: NavigationContainerRef;
   }) {
     this.web3Wallet = web3Wallet;
     this.deeplink = deeplink;
     this.session = session;
-    DevLogger.log(
-      `WalletConnect2Session::constructor channelId=${channelId} deeplink=${deeplink}`,
-      navigation,
-    );
-    this.navigation = navigation;
 
-    const url = session.peer.metadata.url;
-    const name = session.peer.metadata.name;
-    const icons = session.peer.metadata.icons;
+    const url = session.self.metadata.url;
+    const name = session.self.metadata.name;
+    const icons = session.self.metadata.icons;
 
     DevLogger.log(
       `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic}`,
@@ -129,7 +115,7 @@ class WalletConnect2Session {
           fromHomepage: { current: false },
           approveHost: () => false,
           injectHomePageScripts: () => false,
-          navigation: this.navigation,
+          navigation: null, //props.navigation,
           // Website info
           url: {
             current: url,
@@ -152,27 +138,6 @@ class WalletConnect2Session {
       sendMessage: undefined,
       remoteConnHost: undefined,
     });
-
-    // Check for pending unresolved requests
-    const pendingSessionRequests = web3Wallet.getPendingSessionRequests();
-    if (pendingSessionRequests) {
-      pendingSessionRequests.forEach(async (request) => {
-        DevLogger.log(
-          `WC2::constructor pendingSessionRequests requestId=${request.id}`,
-        );
-        try {
-          if (request.topic === session.topic) {
-            await this.handleRequest(request);
-          } else {
-            console.warn(
-              `WC2::constructor invalid request topic=${request.topic}`,
-            );
-          }
-        } catch (error) {
-          Logger.error(`WC2::constructor error while handling request`, error);
-        }
-      });
-    }
   }
 
   setDeeplink = (deeplink: boolean) => {
@@ -180,24 +145,11 @@ class WalletConnect2Session {
   };
 
   redirect = () => {
-    DevLogger.log(
-      `WC2::redirect isDeeplink=${this.deeplink} navigation=${
-        this.navigation !== undefined
-      }`,
-    );
     if (!this.deeplink) return;
 
-    const navigation = this.navigation;
     setTimeout(() => {
-      if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-        // TODO: implement uri scheme redirection where available
-        navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-        });
-      } else {
-        Minimizer.goBack();
-      }
-    }, 100);
+      Minimizer.goBack();
+    }, 300);
   };
 
   needsRedirect = (id: string) => {
@@ -220,11 +172,9 @@ class WalletConnect2Session {
         const { chainId } = params[0] as { chainId: string };
 
         if (chainId) {
-          // TODO: check what happens after adding a new network -- waiting was initially made to handle that scenario
-          DevLogger.log(`SKIP: waitForNetworkModalOnboarding`);
-          // await waitForNetworkModalOnboarding({
-          //   chainId: parseInt(chainId) + '',
-          // });
+          await waitForNetworkModalOnboarding({
+            chainId: parseInt(chainId) + '',
+          });
         }
       } catch (err) {
         // Ignore error as it is not critical when timeout for modal is reached
@@ -293,50 +243,13 @@ class WalletConnect2Session {
     chainId,
     accounts,
   }: {
-    chainId: number;
+    chainId: string;
     accounts: string[];
   }) => {
     try {
-      if (accounts.length === 0) {
-        console.warn(
-          `WC2::updateSession invalid accounts --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
-        );
-        const permissionController = (
-          Engine.context as {
-            PermissionController: PermissionController<any, any>;
-          }
-        ).PermissionController;
-        const origin = this.session.peer.metadata.url;
-        // Try to find matching permitted accounts
-        const approvedAccounts = await getPermittedAccounts(origin);
-        if (approvedAccounts.length > 0) {
-          DevLogger.log(
-            `WC2::updateSession found approved accounts`,
-            approvedAccounts,
-          );
-          accounts = approvedAccounts;
-        } else {
-          console.warn(
-            `WC2::updateSession no permitted accounts found for topic=${this.session.topic} origin=${origin}`,
-            permissionController.state,
-          );
-          return;
-        }
-      }
-      if (chainId === 0) {
-        DevLogger.log(
-          `WC2::updateSession invalid chainId --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
-        );
-        // overwrite chainId with actual value.
-        const selectedChainId = parseInt(selectChainId(store.getState()));
-        DevLogger.log(
-          `WC2::updateSession overwrite invalid chain Id with selectedChainId=${selectedChainId}`,
-        );
-        chainId = selectedChainId;
-      }
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
-        chainId,
+        chainId: parseInt(chainId),
         accounts,
       });
     } catch (err) {
@@ -348,32 +261,19 @@ class WalletConnect2Session {
   };
 
   handleRequest = async (requestEvent: SingleEthereumTypes.SessionRequest) => {
-    DevLogger.log(
-      `WalletConnect2Session::handleRequest id=${requestEvent.id} topic=${requestEvent.topic} method=${requestEvent.params.request.method}`,
-      requestEvent,
-    );
     this.topicByRequestId[requestEvent.id] = requestEvent.topic;
     this.requestByRequestId[requestEvent.id] = requestEvent;
 
-    hideWCLoadingState({ navigation: this.navigation });
     const verified = requestEvent.verifyContext?.verified;
     const hostname = verified?.origin;
     const origin = WALLET_CONNECT_ORIGIN + hostname; // allow correct origin for analytics with eth_sendTtansaction
 
     let method = requestEvent.params.request.method;
     const chainId = parseInt(requestEvent.params.chainId);
-
-    const beforeMethodParams = requestEvent.params.request.params as any;
-    // Replace blockExplorerUrls with blockExplorerUrl
-    const methodParams = {
-      ...beforeMethodParams,
-      // blockExplorerUrl: beforeMethodParams.blockExplorerUrls,
-      // test: 'test',
-    };
-
-    DevLogger.log(
+    const methodParams = requestEvent.params.request.params as any;
+    Logger.log(
       `WalletConnect2Session::handleRequest chainId=${chainId} method=${method}`,
-      JSON.stringify(methodParams, null, 2),
+      methodParams,
     );
 
     // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
@@ -447,7 +347,6 @@ class WalletConnect2Session {
 export class WC2Manager {
   private static instance: WC2Manager;
   private static _initialized = false;
-  private navigation?: NavigationContainerRef;
   private web3Wallet: Client;
   private sessions: { [topic: string]: WalletConnect2Session } = {};
   private deeplinkSessions: {
@@ -459,15 +358,11 @@ export class WC2Manager {
     deeplinkSessions: {
       [topic: string]: { redirectUrl?: string; origin: string };
     },
-    navigation: NavigationContainerRef,
   ) {
     this.web3Wallet = web3Wallet;
     this.deeplinkSessions = deeplinkSessions;
-    this.navigation = navigation;
 
     const sessions = web3Wallet.getActiveSessions() || {};
-
-    DevLogger.log(`WC2Manager::constructor()`, navigation);
 
     web3Wallet.on('session_proposal', this.onSessionProposal.bind(this));
     web3Wallet.on('session_request', this.onSessionRequest.bind(this));
@@ -488,17 +383,10 @@ export class WC2Manager {
     const preferencesController = (
       Engine.context as { PreferencesController: PreferencesController }
     ).PreferencesController;
-    const selectedAddress = preferencesController.state.selectedAddress;
 
+    const selectedAddress = preferencesController.state.selectedAddress;
     // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
     const chainId = selectChainId(store.getState());
-    DevLogger.log(
-      `[WC2Manager::constructor chainId=${chainId} type=${typeof chainId}`,
-      this.navigation,
-    );
-    const permissionController = (
-      Engine.context as { PermissionController: PermissionController<any, any> }
-    ).PermissionController;
 
     Object.keys(sessions).forEach(async (sessionKey) => {
       try {
@@ -507,70 +395,14 @@ export class WC2Manager {
         this.sessions[sessionKey] = new WalletConnect2Session({
           web3Wallet,
           channelId: sessionKey,
-          navigation: this.navigation,
           deeplink:
             typeof deeplinkSessions[session.pairingTopic] !== 'undefined',
           session,
         });
 
-        // Find approvedAccounts for current sessions
-        DevLogger.log(
-          `WC2::init getPermittedAccounts for ${sessionKey} origin=${session.peer.metadata.url}`,
-          JSON.stringify(permissionController.state, null, 2),
-        );
-        const accountPermission = permissionController.getPermission(
-          session.peer.metadata.url,
-          'eth_accounts',
-        );
-
-        DevLogger.log(
-          `WC2::init accountPermission`,
-          JSON.stringify(accountPermission, null, 2),
-        );
-        let approvedAccounts = await getPermittedAccounts(
-          accountPermission?.id ?? '',
-        );
-        const fromOrigin = await getPermittedAccounts(
-          session.peer.metadata.url,
-        );
-
-        DevLogger.log(
-          `WC2::init approvedAccounts id ${accountPermission?.id}`,
-          approvedAccounts,
-        );
-        DevLogger.log(
-          `WC2::init fromOrigin ${session.peer.metadata.url}`,
-          fromOrigin,
-        );
-
-        // fallback to origin from metadata url
-        if (approvedAccounts.length === 0) {
-          DevLogger.log(
-            `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
-          );
-          approvedAccounts = await getPermittedAccounts(
-            session.peer.metadata.url,
-          );
-        }
-
-        if (approvedAccounts.length === 0) {
-          DevLogger.log(
-            `WC2::init fallback to parsing accountPermission`,
-            accountPermission,
-          );
-          // FIXME: Why getPermitted accounts doesn't work???
-          approvedAccounts = extractApprovedAccounts(accountPermission);
-          DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
-        }
-
-        const nChainId = parseInt(chainId, 16);
-        DevLogger.log(
-          `WC2::init updateSession session=${sessionKey} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedAddress}`,
-          approvedAccounts,
-        );
         await this.sessions[sessionKey].updateSession({
-          chainId: nChainId,
-          accounts: approvedAccounts,
+          chainId,
+          accounts: [selectedAddress],
         });
       } catch (err) {
         console.warn(`WC2::init can't update session ${sessionKey}`);
@@ -578,29 +410,18 @@ export class WC2Manager {
     });
   }
 
-  public static async init({
-    navigation,
-  }: {
-    navigation: NavigationContainerRef;
-  }) {
-    if (!navigation) {
-      console.warn(`WC2::init missing navigation --- SKIP INIT`);
-      return;
-    }
-
-    if (this.instance || this._initialized) {
-      DevLogger.log(`WC2::init already initialized`);
+  public static async init() {
+    if (this.instance) {
       // already initialized
       return this.instance;
     }
+
     // Keep at the beginning to prevent double instance from react strict double rendering
     this._initialized = true;
 
+    Logger.log(`WalletConnectV2::init()`);
+
     let core;
-    const chainId = parseInt(selectChainId(store.getState()), 16);
-
-    Logger.log(`WalletConnectV2::init() chainId=${chainId}`);
-
     try {
       if (typeof PROJECT_ID === 'string') {
         core = new Core({
@@ -616,17 +437,13 @@ export class WC2Manager {
     }
 
     let web3Wallet;
-    // Extract chainId from controller
     const options: SingleEthereumTypes.Options = {
       core: core as any,
-      chainId,
       metadata: AppConstants.WALLET_CONNECT.METADATA,
     };
-
     try {
       web3Wallet = await SingleEthereum.init(options);
     } catch (err) {
-      DevLogger.log(`WC2::init() failed to init -- Try again`, err);
       // TODO Sometime needs to init twice --- not sure why...
       web3Wallet = await SingleEthereum.init(options);
     }
@@ -643,14 +460,7 @@ export class WC2Manager {
     } catch (err) {
       console.warn(`WC2@init() Failed to parse storage values`);
     }
-
-    try {
-      // Add delay before returning instance
-      await wait(1000);
-      this.instance = new WC2Manager(web3Wallet, deeplinkSessions, navigation);
-    } catch (error) {
-      Logger.error(`WC2@init() failed to create instance`, error);
-    }
+    this.instance = new WC2Manager(web3Wallet, deeplinkSessions);
 
     return this.instance;
   }
@@ -689,19 +499,7 @@ export class WC2Manager {
         topic: session.topic,
         error: { code: 1, message: ERROR_MESSAGES.MANUAL_DISCONNECT },
       });
-      // Remove associated permissions
-      const permissionsController = (
-        Engine.context as {
-          PermissionController: PermissionController<any, any>;
-        }
-      ).PermissionController;
-      DevLogger.log(
-        `WC2::removeSession revokeAllPermissions for ${session.topic}`,
-        permissionsController.state,
-      );
-      permissionsController.revokeAllPermissions(session.topic);
     } catch (err) {
-      DevLogger.log(`WC2::removeSession error while disconnecting`, err);
       // Fallback method because of bug in wc2 sdk
       await this.web3Wallet.engine.web3wallet.engine.signClient.session.delete(
         session.topic,
@@ -767,8 +565,6 @@ export class WC2Manager {
       params,
     );
 
-    hideWCLoadingState({ navigation: this.navigation });
-
     const permissionsController = (
       Engine.context as { PermissionController: PermissionController<any, any> }
     ).PermissionController;
@@ -784,9 +580,9 @@ export class WC2Manager {
 
     try {
       await permissionsController.requestPermissions(
-        { origin: url },
+        { origin: `${id}` },
         { eth_accounts: {} },
-        // { id: undefined }, // Don't set id here, it will be set after session is created, identify via origin.
+        { id: `${id}` },
       );
       // Permissions approved.
     } catch (err) {
@@ -795,48 +591,20 @@ export class WC2Manager {
         id: proposal.id,
         error: getSdkError('USER_REJECTED_METHODS'),
       });
-      return;
     }
 
     try {
       // use Permission controller
-      const approvedAccounts = await getPermittedAccounts(url);
+      const approvedAccounts = await getPermittedAccounts(proposal.id + '');
+
       // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
       const chainId = selectChainId(store.getState());
-      DevLogger.log(
-        `WC2::session_proposal getPermittedAccounts for id=${id}, chainId=${chainId}`,
-        approvedAccounts,
-      );
 
       const activeSession = await this.web3Wallet.approveSession({
         id: proposal.id,
         chainId: parseInt(chainId),
         accounts: approvedAccounts,
       });
-
-      // // Create updated Permissions now that session is created
-      // permissionsController.requestPermissions(
-      //   { origin: activeSession.topic },
-      //   { eth_accounts: {} },
-      //   { id: activeSession.topic },
-      // );
-      // const request: PermissionsRequest = {
-      //   permissions: {
-      //     eth_accounts: {},
-      //   },
-      //   metadata: {
-      //     id: activeSession.topic,
-      //     origin: activeSession.topic,
-      //   },
-      //   approvedAccounts,
-      // };
-      // await permissionsController.acceptPermissionsRequest(request);
-      // Remove old permissions
-      // permissionsController.revokeAllPermissions(`${id}`);
-      DevLogger.log(
-        `WC2::session_proposal after permissions cleanup`,
-        permissionsController.state,
-      );
 
       const deeplink =
         typeof this.deeplinkSessions[activeSession.pairingTopic] !==
@@ -846,7 +614,6 @@ export class WC2Manager {
         channelId: '' + proposal.id,
         deeplink,
         web3Wallet: this.web3Wallet,
-        navigation: this.navigation,
       });
 
       this.sessions[activeSession.topic] = session;
@@ -903,9 +670,7 @@ export class WC2Manager {
   }) {
     try {
       Logger.log(
-        `WC2Manager::connect ${wcUri} origin=${origin} redirectUrl=${redirectUrl} navigation=${
-          this.navigation !== undefined
-        }`,
+        `WC2Manager::connect ${wcUri} origin=${origin} redirectUrl=${redirectUrl}`,
       );
       const params = parseWalletConnectUri(wcUri);
       const isDeepLink = origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
@@ -915,7 +680,6 @@ export class WC2Manager {
       if (rawParams.sessionTopic) {
         const { sessionTopic } = rawParams;
         this.sessions[sessionTopic]?.setDeeplink(true);
-        showWCLoadingState({ navigation: this.navigation });
         return;
       }
 
@@ -937,15 +701,10 @@ export class WC2Manager {
         const cleanUri = wcUri.startsWith('wc://')
           ? wcUri.replace('wc://', 'wc:')
           : wcUri;
-        showWCLoadingState({ navigation: this.navigation });
-
         const paired = await this.web3Wallet.core.pairing.pair({
           uri: cleanUri,
         });
         if (isDeepLink) {
-          DevLogger.log(
-            `WC2::connect deeplink paired=${paired.topic} show loading modal`,
-          );
           this.deeplinkSessions[paired.topic] = {
             redirectUrl,
             origin,

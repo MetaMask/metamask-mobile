@@ -1,9 +1,9 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
 import AppConstants from '../AppConstants';
-import addDappConnection from './AndroidSDK/addDappConnection';
+import addAndroidConnection from './AndroidSDK/addAndroidConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
-import loadDappConnections from './AndroidSDK/loadDappConnections';
+import loadAndroidConnections from './AndroidSDK/loadAndroidConnections';
 import { Connection, ConnectionProps } from './Connection';
 import {
   approveHost,
@@ -38,9 +38,9 @@ jest.mock('./Connection');
 jest.mock('@react-navigation/native');
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('./AndroidSDK/AndroidService');
-jest.mock('./AndroidSDK/addDappConnection');
+jest.mock('./AndroidSDK/addAndroidConnection');
 jest.mock('./AndroidSDK/bindAndroidSDK');
-jest.mock('./AndroidSDK/loadDappConnections');
+jest.mock('./AndroidSDK/loadAndroidConnections');
 jest.mock('./ConnectionManagement');
 jest.mock('./InitializationManagement');
 jest.mock('./RPCQueueManager');
@@ -113,12 +113,13 @@ describe('SDKConnect', () => {
     typeof bindAndroidSDK
   >;
 
-  const mockLoadDappConnections = loadDappConnections as jest.MockedFunction<
-    typeof loadDappConnections
-  >;
+  const mockLoadAndroidConnections =
+    loadAndroidConnections as jest.MockedFunction<
+      typeof loadAndroidConnections
+    >;
 
-  const mockAddDappConnection = addDappConnection as jest.MockedFunction<
-    typeof addDappConnection
+  const mockAddAndroidConnection = addAndroidConnection as jest.MockedFunction<
+    typeof addAndroidConnection
   >;
 
   beforeEach(() => {
@@ -315,23 +316,23 @@ describe('SDKConnect', () => {
       });
     });
 
-    describe('loadDappConnections', () => {
+    describe('loadAndroidConnections', () => {
       it('should load Android connections', async () => {
-        await sdkConnect.loadDappConnections();
+        await sdkConnect.loadAndroidConnections();
 
-        expect(mockLoadDappConnections).toHaveBeenCalledTimes(1);
-        expect(mockLoadDappConnections).toHaveBeenCalledWith();
+        expect(mockLoadAndroidConnections).toHaveBeenCalledTimes(1);
+        expect(mockLoadAndroidConnections).toHaveBeenCalledWith();
       });
     });
 
-    describe('addDappConnection', () => {
+    describe('addAndroidConnection', () => {
       it('should add an Android connection', async () => {
         const testConnection = {} as ConnectionProps;
 
-        await sdkConnect.addDappConnection(testConnection);
+        await sdkConnect.addAndroidConnection(testConnection);
 
-        expect(mockAddDappConnection).toHaveBeenCalledTimes(1);
-        expect(mockAddDappConnection).toHaveBeenCalledWith(
+        expect(mockAddAndroidConnection).toHaveBeenCalledTimes(1);
+        expect(mockAddAndroidConnection).toHaveBeenCalledWith(
           testConnection,
           sdkConnect,
         );

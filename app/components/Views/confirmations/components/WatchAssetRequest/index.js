@@ -160,7 +160,6 @@ const WatchAssetRequest = ({
             decimals,
             standard,
           }}
-          dontWatchAsset
         />
       </View>
       <View style={styles.titleWrapper}>

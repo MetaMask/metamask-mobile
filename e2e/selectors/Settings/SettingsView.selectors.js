@@ -1,8 +1,9 @@
-import enContent from '../../../locales/languages/en.json';
+import messages from '../../../locales/languages/en.json';
 
+// eslint-disable-next-line import/prefer-default-export
 export const SettingsViewSelectorsText = {
-  ADVANCE_TITLE_TEXT: enContent.app_settings.advanced_title,
-  CONTACT_SUPPORT_TITLE: enContent.app_settings.contact_support,
+  ADVANCE_TITLE_TEXT: messages.app_settings.advanced_title,
+  CONTACT_SUPPORT_TITLE: messages.app_settings.contact_support,
 };
 
 export const SettingsViewSelectorsIDs = {

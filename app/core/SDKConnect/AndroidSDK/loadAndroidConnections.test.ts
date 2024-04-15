@@ -1,5 +1,5 @@
 import DefaultPreference from 'react-native-default-preference';
-import loadDappConnections from './loadDappConnections';
+import loadAndroidConnections from './loadAndroidConnections';
 
 jest.mock('../../../core/AppConstants');
 jest.mock('react-native-default-preference', () => ({
@@ -18,13 +18,13 @@ jest.mock('../../../store', () => ({
   },
 }));
 
-describe('loadDappConnections', () => {
+describe('loadAndroidConnections', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('should return an empty object if no connections are found', async () => {
-    const result = await loadDappConnections();
+    const result = await loadAndroidConnections();
 
     expect(result).toStrictEqual({});
   });
@@ -36,7 +36,7 @@ describe('loadDappConnections', () => {
       JSON.stringify(mockConnections),
     );
 
-    const result = await loadDappConnections();
+    const result = await loadAndroidConnections();
 
     expect(result).toStrictEqual(mockConnections);
   });

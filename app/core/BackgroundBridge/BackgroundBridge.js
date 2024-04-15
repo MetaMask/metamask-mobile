@@ -19,7 +19,9 @@ import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
 import {
   selectChainId,
+  selectNetworkId,
   selectProviderConfig,
+  selectLegacyNetwork,
 } from '../../selectors/networkController';
 import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -36,20 +38,6 @@ const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { getPermittedAccounts } from '../Permissions';
-import { NetworkStatus } from '@metamask/network-controller';
-import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
-
-const legacyNetworkId = () => {
-  const { networksMetadata, selectedNetworkClientId } =
-    store.getState().engine.backgroundState.NetworkController;
-
-  const { networkId } = store.getState().inpageProvider;
-
-  return networksMetadata?.[selectedNetworkClientId].status !==
-    NetworkStatus.Available
-    ? NETWORK_ID_LOADING
-    : networkId;
-};
 
 export class BackgroundBridge extends EventEmitter {
   constructor({
@@ -91,7 +79,7 @@ export class BackgroundBridge extends EventEmitter {
     this.engine = null;
 
     this.chainIdSent = selectChainId(store.getState());
-    this.networkVersionSent = store.getState().inpageProvider.networkId;
+    this.networkVersionSent = selectNetworkId(store.getState());
 
     // This will only be used for WalletConnect for now
     this.addressSent =
@@ -220,14 +208,13 @@ export class BackgroundBridge extends EventEmitter {
     }
 
     const result = {
-      networkVersion: legacyNetworkId(),
+      networkVersion: selectLegacyNetwork(store.getState()),
       chainId,
     };
     return result;
   }
 
   notifyChainChanged(params) {
-    DevLogger.log(`notifyChainChanged: `, params);
     this.sendNotification({
       method: NOTIFICATION_NAMES.chainChanged,
       params,
@@ -236,17 +223,10 @@ export class BackgroundBridge extends EventEmitter {
 
   async notifySelectedAddressChanged(selectedAddress) {
     try {
-      let approvedAccounts = [];
-      DevLogger.log(
-        `notifySelectedAddressChanged: ${selectedAddress} wc=${this.isWalletConnect} url=${this.url}`,
+      let approvedAccounts = await getPermittedAccounts(
+        this.channelId ?? this.hostname,
       );
-      if (this.isWalletConnect) {
-        approvedAccounts = await getPermittedAccounts(this.url);
-      } else {
-        approvedAccounts = await getPermittedAccounts(
-          this.channelId ?? this.hostname,
-        );
-      }
+
       // Check if selectedAddress is approved
       const found = approvedAccounts
         .map((addr) => addr.toLowerCase())
@@ -262,7 +242,7 @@ export class BackgroundBridge extends EventEmitter {
         ];
       }
       DevLogger.log(
-        `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
+        `notifySelectedAddressChanged hostname: ${this.hostname}: ${selectedAddress}`,
         approvedAccounts,
       );
       this.sendNotification({
@@ -284,7 +264,7 @@ export class BackgroundBridge extends EventEmitter {
     if (
       this.chainIdSent !== publicState.chainId ||
       (this.networkVersionSent !== publicState.networkVersion &&
-        publicState.networkVersion !== NETWORK_ID_LOADING)
+        publicState.networkVersion !== 'loading')
     ) {
       this.chainIdSent = publicState.chainId;
       this.networkVersionSent = publicState.networkVersion;
@@ -387,8 +367,7 @@ export class BackgroundBridge extends EventEmitter {
         Engine.context,
         Engine.controllerMessenger,
         origin,
-        // We assume that origins connecting through the BackgroundBridge are websites
-        SubjectType.Website,
+        SubjectType.Snap,
       ),
     );
     ///: END:ONLY_INCLUDE_IF
@@ -425,7 +404,7 @@ export class BackgroundBridge extends EventEmitter {
     return {
       isInitialized: !!vault,
       isUnlocked: true,
-      network: legacyNetworkId(),
+      network: selectLegacyNetwork(store.getState()),
       selectedAddress,
     };
   }

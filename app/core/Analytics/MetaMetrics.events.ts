@@ -280,9 +280,6 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
 
-  // Stake
-  STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
-
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
   FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED = 'Force Upgrade Clicked Update to Latest Version',
@@ -399,7 +396,6 @@ enum ACTIONS {
   ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP = 'eth_sign_input_seen',
   ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
   ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
-  STAKE = 'Stake',
 }
 
 const events = {
@@ -921,7 +917,6 @@ enum DESCRIPTION {
   PAYMENTS_SELECTS_APPLE_PAY = 'Selects Apple Pay as payment method',
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
-  STAKE = 'Stake',
 }
 
 const legacyMetaMetricsEvents = {
@@ -1383,11 +1378,6 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.BRIDGE_LINK_CLICKED,
     ACTIONS.BRIDGE,
     DESCRIPTION.BRIDGE,
-  ),
-  STAKE_BUTTON_CLICKED: generateOpt(
-    EVENT_NAME.STAKE_BUTTON_CLICKED,
-    ACTIONS.STAKE,
-    DESCRIPTION.STAKE,
   ),
 };
 

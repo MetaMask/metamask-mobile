@@ -351,17 +351,12 @@
     "no_collectibles": "Sehen Sie Ihr NFT nicht?",
     "no_available_tokens": "Sehen Sie Ihr Token nicht?",
     "add_tokens": "Token importieren",
-    "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
-    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} neue {{tokensLabel}} in diesem Konto gefunden",
     "token_toast": {
       "tokens_imported_title": "Importierte Tokens",
       "tokens_imported_desc": "{{tokenSymbols}} erfolgreich importiert",
       "token_imported_title": "Importiertes Token",
       "token_imported_desc": "{{tokenSymbol}} erfolgreich importiert",
-      "token_imported_desc_1": "You’ve imported a token.",
-      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Tokens werden verborgen",
       "tokens_hidden_desc": "Gefundene Tokens in Ihrer Wallet verborgen",
       "token_hidden_title": "Token wird verborgen",
@@ -381,8 +376,6 @@
     "nfts_autodetection_desc": "Erlauben Sie MetaMask, NFTs automatisch in OpenSea zu erkennen und in Ihrer MetaMask-Wallet anzuzeigen.",
     "network_details_check": "Überprüfung der Netzwerkangaben",
     "network_with_chain_id": "Das Netzwerk mit Chain-ID",
-    "chain_list_returned_different_ticker_symbol": "Dieses Token-Symbol stimmt nicht mit dem eingegebenen Netzwerknamen oder der eingegebenen Chain-ID überein. Viele beliebte Tokens verwenden ähnliche Symbole, die Betrüger nutzen können, um Sie dazu zu bringen, ihnen im Gegenzug einen wertvolleren Token zu senden. Überprüfen Sie alles, bevor Sie fortfahren.",
-    "suggested_token_symbol": "Vorgeschlagenes Ticker-Symbol:",
     "potential_scam": "Dies ist ein möglicher Betrug",
     "network_not_matching": "Dieses Netzwerk passt nicht zu seiner zugehörigen Chain-ID oder seinem Namen. Viele beliebte Tokens verwenden diesen Namen,",
     "target_scam_network": "was sie zu einem Ziel für Betrüger macht. Betrüger könnten Sie dazu verleiten, ihnen im Gegenzug wertvollere Währung zu senden. Überprüfen Sie alles, bevor Sie fortfahren.",
@@ -446,8 +439,8 @@
   "add_asset": {
     "title": "Token importieren",
     "title_nft": "NFT importieren",
-    "search_token": "Search",
-    "custom_token": "Custom token",
+    "search_token": "SUCHEN",
+    "custom_token": "BENUTZERDEFINIERTES TOKEN",
     "tokens": {
       "cancel_add_token": "STORNIEREN",
       "add_token": "IMPORTIEREN"
@@ -504,16 +497,14 @@
     "resultPageErrorDefaultMessage": "Der Vorgang ist fehlgeschlagen."
   },
   "token": {
-    "token_symbol": "Token symbol",
+    "token_symbol": "Token-Symbol",
     "token_address": "Token-Adresse",
-    "token_decimal": "Token decimal",
+    "token_decimal": "Token-Dezimale",
     "search_tokens_placeholder": "Token suchen",
     "address_cant_be_empty": "Token-Adresse kann nicht leer sein.",
     "address_must_be_valid": "Die Token-Adresse muss eine gültige Adresse sein.",
     "symbol_cant_be_empty": "Token-Symbol kann nicht leer sein.",
-    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Token-Dezimalzahlen können nicht leer sein.",
-    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "Wir konnten keine Token mit diesem Namen finden.",
     "select_token": "Token auswählen",
     "address_must_be_smart_contract": "Privatadresse erkannt. Geben Sie die Token-Contract-Adresse ein."
@@ -550,10 +541,10 @@
   },
   "accounts": {
     "create_new_account": "Neues Konto erstellen",
+    "qr_hardware": "QR-Hardware",
     "import_account": "Ein Konto importieren",
     "connect_hardware": "Hardware-Wallet verknüpfen",
     "imported": "Importiert",
-    "qr_hardware": "QR-Hardware",
     "remove_account_title": "Kontoentfernung",
     "remove_account_message": "Möchten Sie dieses Konto wirklich entfernen?",
     "no": "Nein",
@@ -900,7 +891,6 @@
     "security_check_subheading": "Sicherheitsprüfungen",
     "symbol_required": "Symbol ist erforderlich.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Wahrung der Privatsphäre – es werden keine Daten an Dritte weitergegeben. Verfügbar auf Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon und Sepolia.",
     "security_alerts": "Sicherheitsbenachrichtigungen",
     "security_alerts_desc": "Diese Funktion warnt Sie vor bösartigen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie Anfragen genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden."
   },
@@ -1301,7 +1291,6 @@
     "contract": "Contract ({{address}})",
     "contract_name": "Contract-Name:",
     "contract_address": "Contract-Adresse",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Erlaubnis:",
     "data": "Daten",
     "function_approve": "Funktion: Genehmigen",
@@ -1797,9 +1786,6 @@
     "pending_deposit_message": "Warten auf Abschluss der Einzahlung",
     "pending_withdrawal_message": "Warten auf Abschluss der Abhebung",
     "error_message": "Zum Anzeigen dieser Transaktion tippen",
-    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
-    "error_fcm_not_found": "getFCMToken: No FCM token found",
-    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Zum Anzeigen dieser Transaktion tippen",
     "speedup_message": "Versuch, diese Transaktion zu beschleunigen",
     "success_deposit_message": "Ihre Gelder sind zur Nutzung bereit.",
@@ -2420,7 +2406,6 @@
       "title": "Gehen Sie mit Sicherheitsbenachrichtigungen auf Nummer sicher.",
       "description_1": "Mit den Sicherheitswarnungen von Blockaid sind Sie vor bekannten Betrügereien sicher und schützen gleichzeitig Ihre Privatsphäre. Diese Funktion ist jetzt standardmäßig für alle MetaMask-Benutzer aktiviert.",
       "description_2": "Gehen Sie immer mit Sorgfalt vor, bevor Sie Anfragen genehmigen.",
-      "description_3": "Verfügbar auf Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon und Sepolia.",
       "got_it": "Verstanden"
     },
     "sell": {
@@ -2732,10 +2717,8 @@
     "bluetooth_off_message": "Bitte aktivieren Sie Bluetooth für Ihr Gerät.",
     "bluetooth_access_blocked": "Ledger benötigt Bluetooth-Zugriff, um mit Ihrem Mobilgerät gekoppelt werden zu können.",
     "bluetooth_access_blocked_message": "Wenn Sie Ledger über Bluetooth koppeln möchten, aktivieren Sie es in den Einstellungen und versuchen Sie es erneut.",
-    "location_access_blocked": "MetaMask benötigt eine Zugriffsgenehmigung auf den Standort, um sich mit Ihrem Ledger zu verbinden.",
+    "location_access_blocked": "Ledger benötigt Standort-Zugriff, um mit Ihrem Mobilgerät gekoppelt werden zu können.",
     "location_access_blocked_message": "Wenn Sie Ihr Ledger-Gerät über Bluetooth koppeln möchten, müssen Sie den Standort-Zugriff in den Einstellungen aktivieren und es erneut versuchen.",
-    "nearbyDevices_access_blocked": "MetaMask benötigt die Genehmigung von Geräten in der Nähe, um sich mit Ihrem Ledger zu verbinden.",
-    "nearbyDevices_access_blocked_message": "Wenn Sie Ihr Ledger-Gerät über Bluetooth koppeln möchten, müssen Sie in den Einstellungen den Zugriff auf Geräte in der Nähe aktivieren und es erneut versuchen.",
     "bluetooth_scanning_error": "Fehler beim Scannen des Gerätes.",
     "bluetooth_scanning_error_message": "Bitte vergewissern Sie sich, dass Ihr Gerät entsperrt ist und die Ethereum-App ausgeführt wird.",
     "bluetooth_connection_failed": "Bluetooth-Verbindung fehlgeschlagen",
@@ -2755,12 +2738,10 @@
     "connect_ledger": "Ledger verbinden",
     "looking_for_device": "Suche nach Gerät",
     "ledger_reminder_message": "Bitte stellen Sie sicher, dass Ihr Ledger Nano X:",
-    "ledger_reminder_message_step_one": "1. Entsperren Sie Ihre Ledger Nano X",
-    "ledger_reminder_message_step_two": "2. Installieren und öffnen Sie die Ethereum-App",
-    "ledger_reminder_message_step_three": "3. Aktivieren Sie Bluetooth",
-    "ledger_reminder_message_step_four": "4. Standort ist aktiviert mit Verwendung des genauen Standorts auf",
-    "ledger_reminder_message_step_four_Androidv12plus": "4. Geräte in der Nähe ist aktiviert",
-    "ledger_reminder_message_step_five": "5. Nicht stören muss ausgeschaltet sein",
+    "ledger_reminder_message_step_one": "1. entsperrt ist.",
+    "ledger_reminder_message_step_two": "2. die Ethereum-App installierrt ist.",
+    "ledger_reminder_message_step_three": "3. Bluetooth aktiviert ist.",
+    "ledger_reminder_message_step_four": "4. Standortdaten aktiviert sind.",
     "available_devices": "Verfügbare Geräte",
     "retry": "Erneut versuchen",
     "continue": "Fortfahren",
@@ -2843,8 +2824,5 @@
     "okay_action": "OK",
     "error_title": "Installieren fehlgeschlagen",
     "error_description": "Installation von {{snap}} fehlgeschlagen."
-  },
-  "stake": {
-    "stake": "Stake"
   }
 }
