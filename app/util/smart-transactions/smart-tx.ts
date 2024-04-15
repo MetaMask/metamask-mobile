@@ -251,10 +251,10 @@ class SmartTransactionHook {
         `${uuid}:smartTransaction`,
         async (smartTransaction: SmartTransaction) => {
           const { status, statusMetadata } = smartTransaction;
+          Logger.log(LOG_PREFIX, 'Smart Transaction: ', smartTransaction);
           if (!status || status === SmartTransactionStatuses.PENDING) {
             return;
           }
-          Logger.log(LOG_PREFIX, 'Smart Transaction: ', smartTransaction);
           if (statusMetadata?.minedHash) {
             Logger.log(
               LOG_PREFIX,
@@ -278,10 +278,14 @@ class SmartTransactionHook {
 
     // This removes the loading spinner, does not close modal
     if (this.shouldEndFlow && this.approvalFlowId) {
-      this.approvalController.endFlow({
-        id: this.approvalFlowId,
-      });
-      Logger.log(LOG_PREFIX, 'Ended approval flow id', this.approvalFlowId);
+      try {
+        this.approvalController.endFlow({
+          id: this.approvalFlowId,
+        });
+        Logger.log(LOG_PREFIX, 'Ended approval flow id', this.approvalFlowId);
+      } catch (e) {
+        Logger.log(LOG_PREFIX, 'End approval flow error', e);
+      }
     }
   }
 
