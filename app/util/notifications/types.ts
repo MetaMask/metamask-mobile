@@ -1,7 +1,8 @@
 export const NotificationTypes = {
-  transaction: 'transaction',
-  marketing: 'marketing',
-} as const;
+  TRANSACTION: 'transaction',
+  SIMPLE: 'simple',
+  ANNOUCEMENTS: 'annoucements',
+};
 
 export type NotificationTypesType =
   (typeof NotificationTypes)[keyof typeof NotificationTypes];
@@ -18,7 +19,7 @@ export const NotificationTransactionTypes = {
   cancelled: 'cancelled',
   received: 'received',
   received_payment: 'received_payment',
-} as const;
+};
 
 export type NotificationTransactionTypesType =
   (typeof NotificationTransactionTypes)[keyof typeof NotificationTransactionTypes];
