@@ -3993,15 +3993,15 @@
     "@metamask/number-to-bn" "^1.7.1"
     bn.js "^5.2.1"
 
-"@metamask/gas-fee-controller@6.1.2":
-  version "6.1.2"
-  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-6.1.2.tgz#b7a9a611e15a8914636a05411d18686bd554ddf3"
-  integrity sha512-NN1Hlmq5u/q2jIJxuGpPwDQaCIZCnKv+v3SghXajmFSAMYC1REgfay/VITI1A0Drfv3dQ8gHlYll2hAK+lu5oQ==
+"@metamask/gas-fee-controller@^7.0.0":
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-7.0.1.tgz#34744c942b2c6764d079cb653f187150da385327"
+  integrity sha512-WewTccRTrdt0/W8TEeSrLnVbuB4FjOsLqcX6nzftol5hvAcK342ErvF3mpu71660xYTTAR2VM0BlZPyBzjPyNg==
   dependencies:
-    "@metamask/base-controller" "^3.2.1"
-    "@metamask/controller-utils" "^4.3.2"
+    "@metamask/base-controller" "^3.2.2"
+    "@metamask/controller-utils" "^5.0.1"
     "@metamask/eth-query" "^3.0.1"
-    "@metamask/network-controller" "^12.1.2"
+    "@metamask/network-controller" "^13.0.1"
     "@metamask/utils" "^6.2.0"
     "@types/uuid" "^8.3.0"
     ethereumjs-util "^7.0.10"
@@ -4102,7 +4102,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/network-controller@^12.0.0", "@metamask/network-controller@^12.1.2":
+"@metamask/network-controller@^12.0.0":
   version "12.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-12.2.0.tgz#679d81e009cfd2b9fdaf884267d7a11b535f1922"
   integrity sha512-MBsEOy8htQtN46s/pbmEPsfe+UyOe3aUGTeswG0Iy0qGKyqu+uEx/nhydaLpMHFlOLbboPWtUmnPRLFE9pQDEA==
