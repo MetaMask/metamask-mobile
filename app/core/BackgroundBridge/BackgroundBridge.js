@@ -387,7 +387,8 @@ export class BackgroundBridge extends EventEmitter {
         Engine.context,
         Engine.controllerMessenger,
         origin,
-        SubjectType.Snap,
+        // We assume that origins connecting through the BackgroundBridge are websites
+        SubjectType.Website,
       ),
     );
     ///: END:ONLY_INCLUDE_IF
