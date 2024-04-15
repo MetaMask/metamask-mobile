@@ -584,7 +584,6 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          //@ts-expect-error GasFeeController needs to be updated to v7 for this error disappears
           listener,
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
