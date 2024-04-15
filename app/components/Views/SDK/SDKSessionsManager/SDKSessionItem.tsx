@@ -2,8 +2,9 @@ import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/t
 import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typography';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, TextStyle, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { strings } from '../../../../../locales/i18n';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
@@ -22,9 +23,9 @@ import Text, {
 import Routes from '../../../../constants/navigation/Routes';
 import { getPermittedAccounts } from '../../../../core/Permissions';
 import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
-import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
+import getSharedStyles from './getSharedStyles';
 
 interface SDKSessionViewProps {
   connection: {
@@ -52,35 +53,7 @@ const createStyles = (
     selfCenter: {
       alignSelf: 'center',
     },
-    icon: {
-      height: 24,
-      width: 24,
-      borderRadius: 12,
-      borderWidth: 1,
-    },
-    iconText: {
-      ...typography.sHeadingSMRegular,
-      textAlign: 'center',
-    } as TextStyle,
-    dappName: {
-      flexShrink: 1,
-      flexGrow: 1,
-      marginLeft: 5,
-      marginRight: 5,
-      flexWrap: 'wrap',
-    },
-    disconnectContainer: {
-      borderColor: colors.error.default,
-      alignItems: 'center',
-      height: 24,
-      width: 120,
-      paddingLeft: 10,
-      paddingRight: 10,
-    },
-    disconnectFont: {
-      ...typography.sHeadingSMRegular,
-      color: colors.error.default,
-    } as TextStyle,
+    ...getSharedStyles(colors, typography, _safeAreaInsets),
   });
 
 export const SDKSessionItem = ({
