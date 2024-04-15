@@ -35,7 +35,6 @@ import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
-  SignTypedDataVersion,
   KeyringControllerState,
   KeyringControllerActions,
   KeyringControllerEvents,
@@ -127,6 +126,7 @@ import {
   isMainnetByChainId,
   getDecimalChainId,
   fetchEstimatedMultiLayerL1Fee,
+  deprecatedGetNetworkId,
 } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
@@ -175,9 +175,6 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
-import { isHardwareAccount } from '../util/address';
-import { ledgerSignTypedMessage } from './Ledger/Ledger';
-import ExtendedKeyringTypes from '../constants/keyringTypes';
 import {
   AccountsController,
   AccountsControllerActions,
@@ -186,6 +183,10 @@ import {
 } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
+import {
+  networkIdUpdated,
+  networkIdWillUpdate,
+} from '../core/redux/slices/inpageProvider';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -423,6 +424,7 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      //@ts-expect-error This will be fixed when assets-controller is on v16
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -513,7 +515,9 @@ class Engine {
           AppConstants.TOKEN_LIST_STATE_CHANGE_EVENT,
           listener,
         ),
-
+      //@ts-expect-error This will be fixed when assets-controller is on v16
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
       chainId: networkController.state.providerConfig.chainId,
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
@@ -1059,6 +1063,7 @@ class Engine {
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
         getNetworkState: () => networkController.state,
         getSelectedAddress: () =>
           accountsController.getSelectedAccount().address,
@@ -1087,6 +1092,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
             listener,
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -1126,11 +1132,19 @@ class Engine {
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted<
           'SignatureController',
-          'ApprovalController:addRequest',
+          | 'ApprovalController:addRequest'
+          | 'KeyringController:signPersonalMessage'
+          | 'KeyringController:signMessage'
+          | 'KeyringController:signTypedMessage',
           never
         >({
           name: 'SignatureController',
-          allowedActions: [`${approvalController.name}:addRequest`],
+          allowedActions: [
+            `${approvalController.name}:addRequest`,
+            `${keyringController.name}:signPersonalMessage`,
+            `${keyringController.name}:signMessage`,
+            `${keyringController.name}:signTypedMessage`,
+          ],
         }),
         isEthSignEnabled: () =>
           Boolean(
@@ -1138,25 +1152,6 @@ class Engine {
           ),
         getAllState: () => store.getState(),
         getCurrentChainId: () => networkController.state.providerConfig.chainId,
-        keyringController: {
-          signMessage: keyringController.signMessage.bind(keyringController),
-          signPersonalMessage:
-            keyringController.signPersonalMessage.bind(keyringController),
-          signTypedMessage: (msgParams, { version }) => {
-            if (
-              isHardwareAccount(msgParams.from, [ExtendedKeyringTypes.ledger])
-            ) {
-              return ledgerSignTypedMessage(
-                msgParams,
-                version as SignTypedDataVersion,
-              );
-            }
-            return keyringController.signTypedMessage(
-              msgParams,
-              version as SignTypedDataVersion,
-            );
-          },
-        },
       }),
       new LoggingController({
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -1275,6 +1270,28 @@ class Engine {
             currentChainId = state.providerConfig.chainId;
           }, 500);
         }
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      AppConstants.NETWORK_STATE_CHANGE_EVENT,
+      async () => {
+        try {
+          const networkId = await deprecatedGetNetworkId();
+          store.dispatch(networkIdUpdated(networkId));
+        } catch (error) {
+          console.error(
+            error,
+            `Network ID not changed, current chainId: ${networkController.state.providerConfig.chainId}`,
+          );
+        }
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      'NetworkController:networkWillChange',
+      () => {
+        store.dispatch(networkIdWillUpdate());
       },
     );
 

@@ -2,7 +2,6 @@
 
 ## Current Main Branch
 
-
 ## 7.20.0 - Apr 1, 2024
 ### Added
 - [#8982](https://github.com/MetaMask/metamask-mobile/pull/8982): feat: Update gas fee controller to version 6.1.2
@@ -58,6 +57,10 @@
 - [#8975](https://github.com/MetaMask/metamask-mobile/pull/8975): fix: remove call to private/internal methods from the `@metamask/keyring-controller`
 - [#9021](https://github.com/MetaMask/metamask-mobile/pull/9021): fix: Network not updating when changing account connected the first time on a DAPP
 - [#8932](https://github.com/MetaMask/metamask-mobile/pull/8932): fix: breaking change from `@metamask/transaction-controller` regarding Ledger transactions
+
+## 7.19.1 - Apr 10, 2024
+### Fixed
+- [#9193](https://github.com/MetaMask/metamask-mobile/pull/9193): fix(ramp): default networks state to array
 
 ## 7.19.0 - Mar 19, 2024
 ### Added

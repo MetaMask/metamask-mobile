@@ -1,6 +1,6 @@
 import { ConnectionProps } from '../Connection';
 import SDKConnect from '../SDKConnect';
-import addAndroidConnection from './addAndroidConnection';
+import addDappConnection from './addDappConnection';
 
 jest.mock('../Connection');
 jest.mock('../SDKConnect');
@@ -10,7 +10,7 @@ jest.mock('react-native-default-preference', () => ({
 }));
 jest.mock('../../../core/AppConstants');
 
-describe('addAndroidConnection', () => {
+describe('addDappConnection', () => {
   let mockInstance = {} as unknown as SDKConnect;
   const mockEmit = jest.fn();
 
@@ -20,7 +20,7 @@ describe('addAndroidConnection', () => {
     mockInstance = {
       state: {
         connections: {},
-        androidConnections: {},
+        dappConnections: {},
       },
       emit: mockEmit,
     } as unknown as SDKConnect;
@@ -31,9 +31,9 @@ describe('addAndroidConnection', () => {
       id: 'test-id',
     } as unknown as ConnectionProps;
 
-    await addAndroidConnection(mockConnection, mockInstance);
+    await addDappConnection(mockConnection, mockInstance);
 
-    expect(mockInstance.state.androidConnections[mockConnection.id]).toBe(
+    expect(mockInstance.state.dappConnections[mockConnection.id]).toBe(
       mockConnection,
     );
   });
