@@ -24,10 +24,8 @@ import Engine from '../../../core/Engine';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { selectChainId } from '../../../selectors/networkController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../selectors/accountsController';
 import {
   doENSReverseLookup,
   isDefaultAccountName,
@@ -38,6 +36,7 @@ import { useTheme } from '../../../util/theme';
 import styleSheet from './EditAccountName.styles';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const EditAccountName = () => {
   const { colors } = useTheme();
@@ -47,19 +46,25 @@ const EditAccountName = () => {
   const [accountName, setAccountName] = useState<string>();
   const [ens, setEns] = useState<string>();
 
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const checksummedSelectedAddress = toChecksumAddress(
+    selectedInternalAccount.address,
+  );
   const identities = useSelector(selectIdentities);
 
   const chainId = useSelector(selectChainId);
 
   const lookupEns = useCallback(async () => {
     try {
-      const accountEns = await doENSReverseLookup(selectedAddress, chainId);
+      const accountEns = await doENSReverseLookup(
+        checksummedSelectedAddress,
+        chainId,
+      );
 
       setEns(accountEns);
       // eslint-disable-next-line no-empty
     } catch {}
-  }, [selectedAddress, chainId]);
+  }, [checksummedSelectedAddress, chainId]);
 
   useEffect(() => {
     lookupEns();
@@ -74,9 +79,9 @@ const EditAccountName = () => {
   }, [updateNavBar]);
 
   useEffect(() => {
-    const name = identities[selectedAddress].name;
+    const name = identities[checksummedSelectedAddress].name;
     setAccountName(isDefaultAccountName(name) && ens ? ens : name);
-  }, [selectedAddress, identities, ens]);
+  }, [checksummedSelectedAddress, identities, ens]);
 
   const onChangeName = (name: string) => {
     setAccountName(name);
@@ -84,12 +89,12 @@ const EditAccountName = () => {
 
   const saveAccountName = async () => {
     if (accountName && accountName.length > 0) {
-      Engine.setAccountLabel(selectedAddress, accountName);
+      Engine.setAccountLabel(checksummedSelectedAddress, accountName);
       navigate('WalletView');
 
       try {
         const analyticsProperties = async () => {
-          const accountType = getAddressAccountType(selectedAddress);
+          const accountType = getAddressAccountType(checksummedSelectedAddress);
           const account_type = accountType === 'QR' ? 'hardware' : accountType;
           return { account_type, chain_id: getDecimalChainId(chainId) };
         };
@@ -120,7 +125,7 @@ const EditAccountName = () => {
           </Text>
           <TextField
             isDisabled
-            placeholder={formatAddress(selectedAddress, 'mid')}
+            placeholder={formatAddress(checksummedSelectedAddress, 'mid')}
           />
         </View>
       </View>

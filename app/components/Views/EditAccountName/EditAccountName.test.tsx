@@ -6,10 +6,39 @@ import { fireEvent } from '@testing-library/react-native';
 import EditAccountName from './EditAccountName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { AccountsControllerState } from '@metamask/accounts-controller';
 
 const mockPreferencesSetAccountLabel = jest.fn();
 const mockEngineSetAccountLabel = jest.fn();
 const mockAccountsControllerSetAccountName = jest.fn();
+
+const mockAccountsControllerState: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      '30313233-3435-4637-b839-383736353430': {
+        address: '0x0',
+        id: '30313233-3435-4637-b839-383736353430',
+        options: {},
+        metadata: {
+          name: 'Account 1',
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        type: 'eip155:eoa',
+      },
+    },
+    selectedAccount: '30313233-3435-4637-b839-383736353430',
+  },
+};
 
 jest.mock('../../../core/Engine', () => ({
   setAccountLabel: () => mockEngineSetAccountLabel,
@@ -19,6 +48,7 @@ jest.mock('../../../core/Engine', () => ({
     },
     AccountsController: {
       setAccountName: () => mockAccountsControllerSetAccountName,
+      ...mockAccountsControllerState,
     },
   },
 }));
@@ -35,31 +65,7 @@ const mockInitialState = {
     backgroundState: {
       ...initialBackgroundState,
       AccountsController: {
-        internalAccounts: {
-          accounts: {
-            '30313233-3435-4637-b839-383736353430': {
-              address: '0x0',
-              id: '30313233-3435-4637-b839-383736353430',
-              options: {},
-              metadata: {
-                name: 'Account 1',
-                keyring: {
-                  type: 'HD Key Tree',
-                },
-              },
-              methods: [
-                'personal_sign',
-                'eth_sign',
-                'eth_signTransaction',
-                'eth_signTypedData_v1',
-                'eth_signTypedData_v3',
-                'eth_signTypedData_v4',
-              ],
-              type: 'eip155:eoa',
-            },
-          },
-        },
-        selectedAccount: '30313233-3435-4637-b839-383736353430',
+        ...mockAccountsControllerState,
       },
       PreferencesController: {
         selectedAddress: '0x0',
