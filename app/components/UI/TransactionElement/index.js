@@ -607,7 +607,7 @@ const mapStateToProps = (state) => {
   const chainId = selectChainId(state);
   const smartTransactions =
     state.engine.backgroundState.SmartTransactionsController
-      .smartTransactionsState.smartTransactions[chainId];
+      .smartTransactionsState.smartTransactions[chainId] || [];
 
   const isSmartTransactionPending =
     smartTransactions?.filter((stx) => {
