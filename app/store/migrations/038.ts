@@ -5,8 +5,7 @@ import { NetworkState } from '@metamask/network-controller';
 import { NetworkType } from '@metamask/controller-utils';
 import { LINEA_SEPOLIA_BLOCK_EXPLORER } from '../../../app/constants/urls';
 
-export default async function migrate(stateAsync: unknown) {
-  const state = await stateAsync;
+export default function migrate(state: unknown) {
   if (!isObject(state)) {
     captureException(
       new Error(`Migration 38: Invalid state error: '${typeof state}'`),
