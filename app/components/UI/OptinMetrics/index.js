@@ -163,16 +163,13 @@ class OptinMetrics extends PureComponent {
     return createStyles({ colors, typography });
   };
 
-  actionsList = [1, 2, 3, 4, 5].map((value) => {
-    const actionVal = value <= 2 ? 0 : 1;
-    return {
-      action: actionVal,
-      prefix: actionVal
-        ? `${strings('privacy_policy.action_description_never')} `
-        : '',
-      description: strings(`privacy_policy.action_description_${value}`),
-    };
-  });
+  actionsList = [1, 2, 3].map((value) => ({
+    action: value,
+    prefix: strings(`privacy_policy.action_description_${value}_prefix`),
+    description: strings(
+      `privacy_policy.action_description_${value}_description`,
+    ),
+  }));
 
   updateNavBar = () => {
     const { navigation } = this.props;
@@ -228,26 +225,18 @@ class OptinMetrics extends PureComponent {
    * @param {object} - Object containing action and description to be rendered
    * @param {number} i - Index key
    */
-  renderAction = ({ action, description, prefix }, i) => {
+  renderAction = ({ description, prefix }, i) => {
     const styles = this.getStyles();
 
     return (
       <View style={styles.action} key={i}>
-        {action === 0 ? (
-          <Entypo
-            name="check"
-            size={20}
-            style={[styles.icon, styles.checkIcon]}
-          />
-        ) : (
-          <Entypo
-            name="cross"
-            size={24}
-            style={[styles.icon, styles.crossIcon]}
-          />
-        )}
+        <Entypo
+          name="check"
+          size={20}
+          style={[styles.icon, styles.checkIcon]}
+        />
         <Text style={styles.description}>
-          <Text style={styles.descriptionBold}>{prefix}</Text>
+          <Text style={styles.descriptionBold}>{prefix + ' '}</Text>
           {description}
         </Text>
       </View>
@@ -367,27 +356,13 @@ class OptinMetrics extends PureComponent {
     return (
       <View>
         <Text style={styles.privacyPolicy}>
-          <Text>{strings('privacy_policy.fine_print_1')}</Text>
-          {'\n\n'}
-          {strings('privacy_policy.fine_print_2a') + ' '}
+          <Text>{strings('privacy_policy.fine_print_1') + ' '}</Text>
           <Button
             variant={ButtonVariants.Link}
-            label={strings('privacy_policy.here')}
-            onPress={this.openRPCSettings}
-          />
-          {' ' + strings('privacy_policy.fine_print_2b') + ' '}
-          <Button
-            variant={ButtonVariants.Link}
-            onPress={this.openDataRetentionPost}
-            label={strings('privacy_policy.here')}
-          />
-          {strings('privacy_policy.fine_print_2c') + ' '}
-          <Button
-            variant={ButtonVariants.Link}
-            label={strings('privacy_policy.here')}
+            label={strings('privacy_policy.privacy_policy_button')}
             onPress={this.openPrivacyPolicy}
           />
-          {strings('unit.point')}
+          <Text>{' ' + strings('privacy_policy.fine_print_2')}</Text>
         </Text>
       </View>
     );
