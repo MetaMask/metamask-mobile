@@ -1,12 +1,12 @@
 diff --git a/node_modules/@metamask/eth-keyring-controller/dist/KeyringController.js b/node_modules/@metamask/eth-keyring-controller/dist/KeyringController.js
-index 3644209..027666c 100644
+index 3f70b51..f2d99d0 100644
 --- a/node_modules/@metamask/eth-keyring-controller/dist/KeyringController.js
 +++ b/node_modules/@metamask/eth-keyring-controller/dist/KeyringController.js
-@@ -637,6 +637,19 @@ class KeyringController extends events_1.EventEmitter {
+@@ -651,6 +651,19 @@ class KeyringController extends events_1.EventEmitter {
          serializedKeyrings.push(...this.unsupportedKeyrings);
          let vault;
          let newEncryptionKey;
-+ 
++
 +        /**
 +         * ============================== PATCH INFORMATION ==============================
 +         * The HD keyring is the default keyring for all wallets if this keyring is missing
@@ -19,6 +19,6 @@ index 3644209..027666c 100644
 +            throw new Error(`HD keyring missing while saving keyrings - the available types are [${types}]`);
 +        }
 +
-         if (this.cacheEncryptionKey) {
-             if (this.password) {
-                 const { vault: newVault, exportedKeyString } = await this.encryptor.encryptWithDetail(this.password, serializedKeyrings);
+         if (__classPrivateFieldGet(this, _KeyringController_cacheEncryptionKey, "f")) {
+             assertIsExportableKeyEncryptor(__classPrivateFieldGet(this, _KeyringController_encryptor, "f"));
+             if (encryptionKey) {
