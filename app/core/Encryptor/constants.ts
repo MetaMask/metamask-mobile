@@ -12,7 +12,7 @@ export enum KeyDerivationIteration {
   Default = 900_000,
 }
 
-export const DEFAULT_DERIVATION_PARAMS: KeyDerivationOptions = {
+export const DERIVATION_PARAMS: KeyDerivationOptions = {
   algorithm: 'PBKDF2',
   params: {
     iterations: KeyDerivationIteration.Minimum,
