@@ -47,6 +47,7 @@ import fiatOrderReducer, {
 import { FIAT_ORDER_PROVIDERS } from '../../constants/on-ramp';
 import { CustomIdData, Action, FiatOrder, Region } from './types';
 import initialRootState from '../../util/test/initial-root-state';
+import { AccountsControllerState } from '@metamask/accounts-controller';
 
 const mockOrder1 = {
   id: 'test-id-1',
@@ -214,6 +215,35 @@ const networks: AggregatorNetwork[] = [
     nativeTokenSupported: true,
   },
 ];
+
+const mockAccountsControllerState: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      '30313233-3435-4637-b839-383736353430': {
+        // lowercase version for extra testing
+        address: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+        id: '30313233-3435-4637-b839-383736353430',
+        options: {},
+        metadata: {
+          name: 'Account 1',
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        type: 'eip155:eoa',
+      },
+    },
+    selectedAccount: '30313233-3435-4637-b839-383736353430',
+  },
+};
 
 describe('fiatOrderReducer', () => {
   it('should return the initial state', () => {
@@ -672,18 +702,20 @@ describe('selectors', () => {
   });
 
   describe('selectedAddressSelector', () => {
-    it('should return the selected address', () => {
+    it('should return the selected address in checksum format', () => {
       const state = merge({}, initialRootState, {
         engine: {
           backgroundState: {
-            PreferencesController: {
-              selectedAddress: '0x12345678',
+            AccountsController: {
+              ...mockAccountsControllerState,
             },
           },
         },
       });
 
-      expect(selectedAddressSelector(state)).toBe('0x12345678');
+      expect(selectedAddressSelector(state)).toBe(
+        '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+      );
     });
   });
 
@@ -746,6 +778,13 @@ describe('selectors', () => {
   describe('getOrders', () => {
     it('should return empty array if order property is not defined', () => {
       const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              ...mockAccountsControllerState,
+            },
+          },
+        },
         fiatOrders: {
           orders: undefined,
         },
@@ -763,8 +802,32 @@ describe('selectors', () => {
                 chainId: '0x38',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x4567',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x4567',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -818,8 +881,32 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x1234',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -890,8 +977,32 @@ describe('selectors', () => {
                 chainId: toHex('11155111'),
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x4567',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x4567',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -945,8 +1056,32 @@ describe('selectors', () => {
                 chainId: '0xaa36a7',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x1234',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -1022,8 +1157,32 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x1234',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -1044,8 +1203,32 @@ describe('selectors', () => {
                 chainId: '0x38',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x4567',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x4567',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -1101,8 +1284,32 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x1234',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -1176,8 +1383,32 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x1234',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -1191,6 +1422,37 @@ describe('selectors', () => {
   describe('customOrdersSelector', () => {
     it('should return empty array if custom order property is not defined', () => {
       const state = merge({}, initialRootState, {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x4567',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
+            },
+          },
+        },
         fiatOrders: {
           customOrderIds: undefined,
         },
@@ -1208,8 +1470,32 @@ describe('selectors', () => {
                 chainId: '0x38',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x4567',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x4567',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -1255,8 +1541,32 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x1234',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -1277,8 +1587,32 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x1234',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -1346,8 +1680,32 @@ describe('selectors', () => {
                 chainId: '0x1',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x1234',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },
@@ -1408,8 +1766,32 @@ describe('selectors', () => {
                 chainId: '0x38',
               },
             },
-            PreferencesController: {
-              selectedAddress: '0x1234',
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '30313233-3435-4637-b839-383736353430': {
+                    address: '0x1234',
+                    id: '30313233-3435-4637-b839-383736353430',
+                    options: {},
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    methods: [
+                      'personal_sign',
+                      'eth_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '30313233-3435-4637-b839-383736353430',
+              },
             },
           },
         },

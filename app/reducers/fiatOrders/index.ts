@@ -2,7 +2,7 @@ import { Order } from '@consensys/on-ramp-sdk';
 import { createSelector } from 'reselect';
 import { Region } from '../../components/UI/Ramp/types';
 import { selectChainId } from '../../selectors/networkController';
-import { selectSelectedAddress } from '../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../selectors/accountsController';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -17,6 +17,7 @@ import {
 import type { RootState } from '../';
 import { getDecimalChainId, isTestNet } from '../../util/networks';
 import { toHex } from '@metamask/controller-utils';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 export type { FiatOrder } from './types';
 
@@ -148,7 +149,10 @@ export const chainIdSelector: (state: RootState) => string = (
 ) => getDecimalChainId(selectChainId(state));
 export const selectedAddressSelector: (state: RootState) => string = (
   state: RootState,
-) => selectSelectedAddress(state);
+) => {
+  const selectedInternalAccount = selectSelectedInternalAccount(state);
+  return toChecksumAddress(selectedInternalAccount.address);
+};
 export const fiatOrdersRegionSelectorAgg: (
   state: RootState,
 ) => FiatOrdersState['selectedRegionAgg'] = (state: RootState) =>
