@@ -31,5 +31,5 @@ export interface MarketingNotificationData {
 
 export enum NotificationsKindTypes {
   transaction = 'transaction',
-  annoucements = 'annoucements',
+  announcements = 'announcements',
 }
