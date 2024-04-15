@@ -82,6 +82,7 @@ export interface NotificationComponent<N extends Notification = Notification> {
 
 export const NotificationTypes = {
   TRANSACTION: 'transaction',
+  SIMPLE: 'simple',
   ANNOUCEMENTS: 'annoucements',
 };
 
