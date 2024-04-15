@@ -9,22 +9,63 @@ import Engine from '../../../core/Engine';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Routes from '../../../constants/navigation/Routes';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { AccountsControllerState } from '@metamask/accounts-controller';
 
 const mockEngine = Engine;
+
+const mockAccountsControllerState: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      '30313233-3435-4637-b839-383736353430': {
+        // lowercase version for extra testing
+        address: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+        id: '30313233-3435-4637-b839-383736353430',
+        options: {},
+        metadata: {
+          name: 'Account 1',
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+        methods: [
+          'personal_sign',
+          'eth_sign',
+          'eth_signTransaction',
+          'eth_signTypedData_v1',
+          'eth_signTypedData_v3',
+          'eth_signTypedData_v4',
+        ],
+        type: 'eip155:eoa',
+      },
+    },
+    selectedAccount: '30313233-3435-4637-b839-383736353430',
+  },
+};
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     PreferencesController: {
-      selectedAddress: '0x',
+      selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
       identities: {
-        '0x': { name: 'Account 1', address: '0x' },
+        '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+          name: 'Account 1',
+          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+        },
       },
     },
     NftController: {
-      allNfts: { '0x': { '0x1': [] } },
-      allNftContracts: { '0x': { '0x1': [] } },
+      allNfts: {
+        '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': [],
+        },
+      },
+      allNftContracts: {
+        '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': [],
+        },
+      },
     },
     TokenRatesController: {
       poll: jest.fn(),
@@ -47,11 +88,18 @@ jest.mock('../../../core/Engine', () => ({
         ],
       },
     },
+    AccountsController: {
+      ...mockAccountsControllerState,
+    },
   },
 }));
 
 const mockInitialState = {
-  swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+  swaps: {
+    '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': { isLive: true },
+    hasOnboarded: false,
+    isLive: true,
+  },
   wizard: {
     step: 0,
   },
@@ -62,10 +110,16 @@ const mockInitialState = {
     backgroundState: {
       ...initialBackgroundState,
       PreferencesController: {
-        selectedAddress: '0x',
+        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
         identities: {
-          '0x': { name: 'Account 1', address: '0x' },
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+            name: 'Account 1',
+            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+          },
         },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
       },
     },
   },
