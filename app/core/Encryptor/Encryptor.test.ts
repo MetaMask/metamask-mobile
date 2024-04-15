@@ -2,7 +2,7 @@ import { NativeModules } from 'react-native';
 import { Encryptor } from './Encryptor';
 import {
   ENCRYPTION_LIBRARY,
-  DEFAULT_DERIVATION_PARAMS,
+  DERIVATION_PARAMS,
   KeyDerivationIteration,
 } from './constants';
 
@@ -13,7 +13,7 @@ describe('Encryptor', () => {
   let encryptor: Encryptor;
 
   beforeEach(() => {
-    encryptor = new Encryptor({ derivationParams: DEFAULT_DERIVATION_PARAMS });
+    encryptor = new Encryptor({ derivationParams: DERIVATION_PARAMS });
   });
 
   describe('constructor', () => {
@@ -91,7 +91,7 @@ describe('Encryptor', () => {
         expectedPBKDF2Args: ['testPassword', 'mockedSalt', 600000, 256],
         description:
           'with original library and default iterations number for key generation',
-        keyMetadata: DEFAULT_DERIVATION_PARAMS,
+        keyMetadata: DERIVATION_PARAMS,
       },
       {
         lib: ENCRYPTION_LIBRARY.original,
@@ -106,7 +106,7 @@ describe('Encryptor', () => {
         expectedPBKDF2Args: ['testPassword', 'mockedSalt'],
         description:
           'with library different to "original" and default iterations number for key generation',
-        keyMetadata: DEFAULT_DERIVATION_PARAMS,
+        keyMetadata: DERIVATION_PARAMS,
       },
       {
         lib: 'random-lib', // Assuming not using "original" should lead to AesForked
@@ -159,7 +159,7 @@ describe('Encryptor', () => {
             iv: 'mockedIV',
             salt: 'mockedSalt',
             lib: 'original',
-            keyMetadata: DEFAULT_DERIVATION_PARAMS,
+            keyMetadata: DERIVATION_PARAMS,
           }),
         ),
       ).toBe(true);
@@ -181,7 +181,7 @@ describe('Encryptor', () => {
 
   describe('updateVault', () => {
     let encryptSpy: jest.SpyInstance, decryptSpy: jest.SpyInstance;
-    const expectedKeyMetadata = DEFAULT_DERIVATION_PARAMS;
+    const expectedKeyMetadata = DERIVATION_PARAMS;
 
     beforeEach(() => {
       encryptSpy = jest
@@ -224,7 +224,7 @@ describe('Encryptor', () => {
         iv: 'mockedIV',
         salt: 'mockedSalt',
         lib: 'original',
-        keyMetadata: DEFAULT_DERIVATION_PARAMS,
+        keyMetadata: DERIVATION_PARAMS,
       };
 
       const updatedVault = await encryptor.updateVault(

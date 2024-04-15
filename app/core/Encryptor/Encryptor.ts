@@ -136,8 +136,8 @@ class Encryptor implements GenericEncryptor {
     keyBase64: string;
   }): Promise<EncryptionResult> => {
     const iv = await Aes.randomKey(16);
-    return Aes.encrypt(text, keyBase64, iv).then((cipher: string) => ({
-      cipher,
+    return Aes.encrypt(text, keyBase64, iv).then((data: string) => ({
+      data,
       iv,
     }));
   };
