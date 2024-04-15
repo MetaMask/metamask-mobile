@@ -240,7 +240,7 @@ describe('Tokens', () => {
     fireEvent.press(getByTestId(STAKE_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
       params: {
-        newTabUrl: `${AppConstants.PORTFOLIO_URL}/stake?metamaskEntry=mobile`,
+        newTabUrl: `${AppConstants.PORTFOLIO.URL}/stake?metamaskEntry=mobile`,
         timestamp: 123,
       },
       screen: Routes.BROWSER.VIEW,

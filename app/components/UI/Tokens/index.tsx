@@ -102,6 +102,7 @@ import ButtonIcon, {
 } from '../../../../app/component-library/components/Buttons/ButtonIcon';
 import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
+import { isPortfolioUrl } from '../../../../app/util/url';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -220,7 +221,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const renderStakeButton = (asset: TokenI) => {
     const onStakeButtonPress = () => {
-      const STAKE_URL = `${AppConstants.PORTFOLIO_URL}/stake`;
+      const STAKE_URL = `${AppConstants.PORTFOLIO.URL}/stake`;
       const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
         tab.url.includes(STAKE_URL),
       );
