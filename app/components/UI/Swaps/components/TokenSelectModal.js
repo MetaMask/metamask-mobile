@@ -16,7 +16,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import FAIcon from 'react-native-vector-icons/FontAwesome5';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
-import { isValidAddress } from 'ethereumjs-util';
+import { isValidAddress, toChecksumAddress } from 'ethereumjs-util';
 
 import Device from '../../../../util/device';
 import {
@@ -53,7 +53,7 @@ import {
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../../selectors/accountsController';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -147,7 +147,7 @@ function TokenSelectModal({
   onItemPress,
   excludeAddresses = [],
   accounts,
-  selectedAddress,
+  selectedInternalAccount,
   currentCurrency,
   conversionRate,
   tokenExchangeRates,
@@ -167,6 +167,10 @@ function TokenSelectModal({
     useModalHandler(false);
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
+
+  const checksummedSelectedAddress = toChecksumAddress(
+    selectedInternalAccount.address,
+  );
 
   const excludedAddresses = useMemo(
     () =>
@@ -232,10 +236,11 @@ function TokenSelectModal({
       let balance, balanceFiat;
       if (isSwapsNativeAsset(item)) {
         balance = renderFromWei(
-          accounts[selectedAddress] && accounts[selectedAddress].balance,
+          accounts[checksummedSelectedAddress] &&
+            accounts[checksummedSelectedAddress].balance,
         );
         balanceFiat = weiToFiat(
-          hexToBN(accounts[selectedAddress].balance),
+          hexToBN(accounts[checksummedSelectedAddress].balance),
           conversionRate,
           currentCurrency,
         );
@@ -284,7 +289,7 @@ function TokenSelectModal({
     [
       balances,
       accounts,
-      selectedAddress,
+      checksummedSelectedAddress,
       conversionRate,
       currentCurrency,
       tokenExchangeRates,
@@ -540,9 +545,9 @@ TokenSelectModal.propTypes = {
    */
   currentCurrency: PropTypes.string,
   /**
-   * A string that represents the selected address
+   * An object representing the users currently selected account with address information
    */
-  selectedAddress: PropTypes.string,
+  selectedInternalAccount: PropTypes.object,
   /**
    * An object containing token balances for current account and network in the format address => balance
    */
@@ -569,7 +574,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedInternalAccount: selectSelectedInternalAccount(state),
   tokenExchangeRates: selectContractExchangeRates(state),
   balances: selectContractBalances(state),
   chainId: selectChainId(state),
