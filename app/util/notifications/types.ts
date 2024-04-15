@@ -30,6 +30,6 @@ export interface MarketingNotificationData {
 }
 
 export enum NotificationsKindTypes {
-  SENT_ETH = 'transaction',
-  marketing = 'marketing',
+  transaction = 'transaction',
+  annoucements = 'annoucements',
 }

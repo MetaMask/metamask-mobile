@@ -1,12 +1,9 @@
-/* eslint-disable react/prop-types */
 import React from 'react';
 
-// External dependencies.
 import BadgeNetwork from './variants/BadgeNetwork';
 import BadgeStatus from './variants/BadgeStatus';
 import BadgeNotifications from './variants/BadgeNotifications';
 
-// Internal dependencies.
 import { BadgeProps, BadgeVariant } from './Badge.types';
 import {
   BADGE_BADGENETWORK_TEST_ID,

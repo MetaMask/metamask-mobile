@@ -3,11 +3,8 @@
 // Third library dependencies.
 import React from 'react';
 
-// External dependencies.
 import { useComponentSize, useStyles } from '../../../../../hooks';
 import BadgeBase from '../../foundation/BadgeBase';
-
-// Internal dependencies
 import { BadgeNotificationsProps } from './BadgeNotifications.types';
 import styleSheet from './BadgeNotifications.styles';
 import { BADGE_NOTIFICATIONS_TEST_ID } from './BadgeNotifications.constants';
