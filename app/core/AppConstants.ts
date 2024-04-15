@@ -1,7 +1,10 @@
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
 import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
+
 const DEVELOPMENT = 'development';
+const PORTFOLIO_URL =
+  process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -14,8 +17,13 @@ export default {
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
-  PORTFOLIO_URL:
-    process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io',
+  PORTFOLIO: {
+    URL: PORTFOLIO_URL,
+  },
+  BRIDGE: {
+    ACTIVE: true,
+    URL: `${PORTFOLIO_URL}/bridge`,
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -74,9 +82,6 @@ export default {
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
-  },
-  BRIDGE: {
-    ACTIVE: true,
   },
   MAX_SAFE_CHAIN_ID: 4503599627370476,
   URLS: {
@@ -138,11 +143,13 @@ export default {
     WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',
     SDK_ANDROID: 'MetaMask-SDK-Android',
+    SDK_IOS: 'MetaMask-SDK-IOS',
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
     ANDROID_CONNECTIONS: 'androidConnections',
     ANDROID_SDK: 'AndroidSDK',
+    IOS_SDK: 'iOSSDK',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
     SERVER_URL: process.env.SDK_COMMLAYER_URL ?? DEFAULT_SERVER_URL,
     PLATFORM: 'metamask-mobile',

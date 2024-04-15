@@ -33,6 +33,7 @@ import { ASSET_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Scree
 import { REQUEST_SEARCH_RESULTS_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/RequestToken.testIds';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import { EDIT_BUTTON } from '../../../../wdio/screen-objects/testIDs/Common.testIds';
+import Routes from '../../../constants/navigation/Routes';
 
 import ButtonIcon, {
   ButtonIconSizes,
@@ -986,6 +987,89 @@ export function getWalletNavbarOptions(
     ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
+  };
+}
+
+/**
+ * Function that returns the navigation options containing title and network indicator
+ *
+ * @param {string} title - Title in string format
+ * @param {boolean} translate - Boolean that specifies if the title needs translation
+ * @param {Object} navigation - Navigation object required to push new views
+ * @param {Object} themeColors - Colors from theme
+ * @param {boolean} disableNetwork - Boolean that determines if network is accessible from navbar
+ * @param {Function} onClose - Onclose navbar function
+ * @returns {Object} - Corresponding navbar options containing headerTitle and headerTitle
+ */
+export function getImportTokenNavbarOptions(
+  title,
+  translate,
+  navigation,
+  themeColors,
+  disableNetwork = false,
+  contentOffset = 0,
+  onClose = undefined,
+) {
+  const innerStyles = StyleSheet.create({
+    headerStyle: {
+      backgroundColor: themeColors.background.default,
+      shadowColor: importedColors.transparent,
+      elevation: 0,
+    },
+    headerShadow: {
+      elevation: 2,
+      shadowColor: themeColors.background.primary,
+      shadowOpacity: contentOffset < 20 ? contentOffset / 100 : 0.2,
+      shadowOffset: { height: 4, width: 0 },
+      shadowRadius: 8,
+    },
+    headerIcon: {
+      color: themeColors.primary.default,
+    },
+    title: {
+      textAlign: 'center',
+      fontWeight: 'bold',
+    },
+  });
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        disableNetwork={disableNetwork}
+        showSelectedNetwork={false}
+        translate={translate}
+      >
+        {title}
+      </NavbarTitle>
+    ),
+    headerRight: () => (
+      // eslint-disable-next-line react/jsx-no-bind
+      <TouchableOpacity
+        style={styles.backButton}
+        {...generateTestId(Platform, ASSET_BACK_BUTTON)}
+      >
+        <ButtonIcon
+          iconName={IconName.Close}
+          variant={ButtonIconVariants.Secondary}
+          size={ButtonIconSizes.Lg}
+          onPress={
+            onClose
+              ? () => onClose()
+              : () =>
+                  navigation.navigate(Routes.WALLET.HOME, {
+                    screen: Routes.WALLET.TAB_STACK_FLOW,
+                    params: {
+                      screen: Routes.WALLET_VIEW,
+                    },
+                  })
+          }
+        />
+      </TouchableOpacity>
+    ),
+    headerLeft: null,
+    headerStyle: [
+      innerStyles.headerStyle,
+      contentOffset && innerStyles.headerShadow,
+    ],
   };
 }
 
