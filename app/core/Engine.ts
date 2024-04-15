@@ -424,6 +424,7 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      //@ts-expect-error This will be fixed when assets-controller is on v16
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -514,6 +515,7 @@ class Engine {
           AppConstants.TOKEN_LIST_STATE_CHANGE_EVENT,
           listener,
         ),
+      //@ts-expect-error This will be fixed when assets-controller is on v16
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
       chainId: networkController.state.providerConfig.chainId,
