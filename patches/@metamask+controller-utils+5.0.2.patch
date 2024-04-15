@@ -1,9 +1,9 @@
 diff --git a/node_modules/@metamask/controller-utils/dist/constants.d.ts b/node_modules/@metamask/controller-utils/dist/constants.d.ts
-index dd0be20..56cfc46 100644
+index dd71b0b..7e94401 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.d.ts
 +++ b/node_modules/@metamask/controller-utils/dist/constants.d.ts
 @@ -61,6 +61,13 @@ export declare const BUILT_IN_NETWORKS: {
-             readonly blockExplorerUrl: "https://explorer.goerli.linea.build";
+             readonly blockExplorerUrl: "https://goerli.lineascan.build";
          };
      };
 +    readonly "linea-sepolia": {
@@ -23,13 +23,13 @@ index dd0be20..56cfc46 100644
 -export declare const OPENSEA_PROXY_URL = "https://proxy.metafi.codefi.network/opensea/v1/api/v1";
 -export declare const OPENSEA_API_URL = "https://api.opensea.io/api/v1";
 -export declare const OPENSEA_TEST_API_URL = "https://testnets-api.opensea.io/api/v1";
-+export declare const OPENSEA_PROXY_URL = "https://proxy.metafi.codefi.network/opensea/v1/api/v2";
 +
++export declare const OPENSEA_PROXY_URL = "https://proxy.metafi.codefi.network/opensea/v1/api/v2";
  export declare const ORIGIN_METAMASK = "metamask";
  /**
   * Approval request types for various operations.
 diff --git a/node_modules/@metamask/controller-utils/dist/constants.js b/node_modules/@metamask/controller-utils/dist/constants.js
-index 90ede0b..d5f7202 100644
+index 706d989..2ea5be8 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.js
 +++ b/node_modules/@metamask/controller-utils/dist/constants.js
 @@ -38,6 +38,7 @@ exports.TESTNET_TICKER_SYMBOLS = {
@@ -41,7 +41,7 @@ index 90ede0b..d5f7202 100644
  /**
   * Map of all build-in Infura networks to their network, ticker and chain IDs.
 @@ -71,6 +72,13 @@ exports.BUILT_IN_NETWORKS = {
-             blockExplorerUrl: 'https://explorer.goerli.linea.build',
+             blockExplorerUrl: 'https://goerli.lineascan.build',
          },
      },
 +    [types_1.NetworkType['linea-sepolia']]: {
@@ -65,20 +65,27 @@ index 90ede0b..d5f7202 100644
  // Default origin for controllers
  exports.ORIGIN_METAMASK = 'metamask';
  /**
-@@ -121,6 +127,7 @@ exports.NETWORK_ID_TO_ETHERS_NETWORK_NAME_MAP = {
-     [types_1.NetworkId.sepolia]: types_1.NetworkType.sepolia,
-     [types_1.NetworkId.mainnet]: types_1.NetworkType.mainnet,
-     [types_1.NetworkId['linea-goerli']]: types_1.NetworkType['linea-goerli'],
-+    [types_1.NetworkId['linea-sepolia']]: types_1.NetworkType['linea-sepolia'],
-     [types_1.NetworkId['linea-mainnet']]: types_1.NetworkType['linea-mainnet'],
+@@ -121,6 +127,7 @@ exports.CHAIN_ID_TO_ETHERS_NETWORK_NAME_MAP = {
+     [types_1.ChainId.sepolia]: types_1.BuiltInNetworkName.Sepolia,
+     [types_1.ChainId.mainnet]: types_1.BuiltInNetworkName.Mainnet,
+     [types_1.ChainId['linea-goerli']]: types_1.BuiltInNetworkName.LineaGoerli,
++    [types_1.ChainId['linea-sepolia']]: types_1.BuiltInNetworkName.LineaSepolia,
+     [types_1.ChainId['linea-mainnet']]: types_1.BuiltInNetworkName.LineaMainnet,
+     [types_1.ChainId.aurora]: types_1.BuiltInNetworkName.Aurora,
  };
- //# sourceMappingURL=constants.js.map
-\ No newline at end of file
 diff --git a/node_modules/@metamask/controller-utils/dist/types.d.ts b/node_modules/@metamask/controller-utils/dist/types.d.ts
-index 0356343..0958ace 100644
+index 6718e5e..a092f29 100644
 --- a/node_modules/@metamask/controller-utils/dist/types.d.ts
 +++ b/node_modules/@metamask/controller-utils/dist/types.d.ts
-@@ -18,6 +18,7 @@ export declare const NetworkType: {
+@@ -6,6 +6,7 @@ export declare const InfuraNetworkType: {
+     readonly goerli: "goerli";
+     readonly sepolia: "sepolia";
+     readonly 'linea-goerli': "linea-goerli";
++    readonly 'linea-sepolia': "linea-sepolia";
+     readonly 'linea-mainnet': "linea-mainnet";
+ };
+ export declare type InfuraNetworkType = (typeof InfuraNetworkType)[keyof typeof InfuraNetworkType];
+@@ -18,6 +19,7 @@ export declare const NetworkType: {
      readonly goerli: "goerli";
      readonly sepolia: "sepolia";
      readonly 'linea-goerli': "linea-goerli";
@@ -86,7 +93,7 @@ index 0356343..0958ace 100644
      readonly 'linea-mainnet': "linea-mainnet";
  };
  export declare type NetworkType = (typeof NetworkType)[keyof typeof NetworkType];
-@@ -38,6 +39,7 @@ export declare enum BuiltInNetworkName {
+@@ -38,6 +40,7 @@ export declare enum BuiltInNetworkName {
      Goerli = "goerli",
      Sepolia = "sepolia",
      LineaGoerli = "linea-goerli",
@@ -94,7 +101,7 @@ index 0356343..0958ace 100644
      LineaMainnet = "linea-mainnet",
      Aurora = "aurora"
  }
-@@ -52,6 +54,7 @@ export declare const ChainId: {
+@@ -52,6 +55,7 @@ export declare const ChainId: {
      readonly sepolia: "0xaa36a7";
      readonly aurora: "0x4e454152";
      readonly "linea-goerli": "0xe704";
@@ -102,24 +109,8 @@ index 0356343..0958ace 100644
      readonly "linea-mainnet": "0xe708";
  };
  export declare type ChainId = (typeof ChainId)[keyof typeof ChainId];
-@@ -63,6 +66,7 @@ export declare const NetworkId: {
-     readonly goerli: "5";
-     readonly sepolia: "11155111";
-     readonly "linea-goerli": "59140";
-+    readonly "linea-sepolia": "59141";
-     readonly "linea-mainnet": "59144";
- };
- export declare type NetworkId = (typeof NetworkId)[keyof typeof NetworkId];
-@@ -71,6 +75,7 @@ export declare enum NetworksTicker {
-     goerli = "GoerliETH",
-     sepolia = "SepoliaETH",
-     'linea-goerli' = "LineaETH",
-+    'linea-sepolia' = "LineaETH",
-     'linea-mainnet' = "ETH",
-     rpc = ""
- }
 diff --git a/node_modules/@metamask/controller-utils/dist/types.js b/node_modules/@metamask/controller-utils/dist/types.js
-index 90d517e..1cd28db 100644
+index 9a41d8a..077ddeb 100644
 --- a/node_modules/@metamask/controller-utils/dist/types.js
 +++ b/node_modules/@metamask/controller-utils/dist/types.js
 @@ -9,6 +9,7 @@ exports.InfuraNetworkType = {
@@ -145,16 +136,8 @@ index 90d517e..1cd28db 100644
 +    [BuiltInNetworkName.LineaSepolia]: '0xe705',
      [BuiltInNetworkName.LineaMainnet]: '0xe708', // toHex(59144)
  };
- /**
-@@ -60,6 +63,7 @@ exports.NetworkId = {
-     [exports.InfuraNetworkType.goerli]: '5',
-     [exports.InfuraNetworkType.sepolia]: '11155111',
-     [exports.InfuraNetworkType['linea-goerli']]: '59140',
-+    [exports.InfuraNetworkType['linea-sepolia']]: '59141',
-     [exports.InfuraNetworkType['linea-mainnet']]: '59144',
- };
  var NetworksTicker;
-@@ -68,6 +72,7 @@ var NetworksTicker;
+@@ -58,6 +61,7 @@ var NetworksTicker;
      NetworksTicker["goerli"] = "GoerliETH";
      NetworksTicker["sepolia"] = "SepoliaETH";
      NetworksTicker["linea-goerli"] = "LineaETH";
