@@ -111,7 +111,6 @@ stages:
   build_smoke_e2e_ios_android_stage:
     workflows:
       - ios_e2e_build: {}
-      - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_tag_smoke_confirmations_ios: {}
