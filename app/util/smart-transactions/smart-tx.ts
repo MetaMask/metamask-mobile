@@ -127,10 +127,10 @@ class SmartTransactionHook {
   applyFeeToTransaction(fee: Fee, isCancel: boolean): Transaction {
     const unsignedTransactionWithFees = {
       ...this.transaction,
-      maxFeePerGas: decimalToHex(fee.maxFeePerGas).toString(),
-      maxPriorityFeePerGas: decimalToHex(fee.maxPriorityFeePerGas).toString(),
+      maxFeePerGas: `0x${decimalToHex(fee.maxFeePerGas)}`,
+      maxPriorityFeePerGas: `0x${decimalToHex(fee.maxPriorityFeePerGas)}`,
       gas: isCancel
-        ? decimalToHex(CANCEL_GAS).toString()
+        ? `0x${decimalToHex(CANCEL_GAS)}`
         : this.transaction.gas?.toString(),
       value: this.transaction.value,
     };
@@ -306,12 +306,10 @@ class SmartTransactionHook {
     }
 
     if (this.shouldStartFlow) {
-      InteractionManager.runAfterInteractions(() => {
-        const { id } = this.approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
-        this.approvalFlowId = id;
+      const { id } = this.approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
+      this.approvalFlowId = id;
 
-        Logger.log(LOG_PREFIX, 'Started approval flow id', this.approvalFlowId);
-      });
+      Logger.log(LOG_PREFIX, 'Started approval flow id', this.approvalFlowId);
     }
 
     try {
@@ -337,6 +335,7 @@ class SmartTransactionHook {
           uuid,
         });
       }
+
       if (this.shouldUpdateFlow) {
         this.addListenerToUpdateStatusPage({
           uuid,
@@ -377,7 +376,7 @@ class SmartTransactionHook {
   }
 }
 
-interface SubmitSmartTransactionRequest {
+export interface SubmitSmartTransactionRequest {
   transactionMeta: TransactionMeta;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
