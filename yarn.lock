@@ -3860,16 +3860,7 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^5.0.1"
 
-"@metamask/eth-json-rpc-provider@^2.1.0", "@metamask/eth-json-rpc-provider@^2.3.0":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-2.3.0.tgz#09bc28077292e7e6d56e7c9095e70eb314d778aa"
-  integrity sha512-PZpeOBksEuyFb30ObH9JTqdjVuaskFvRamDwpKNcgL+UexPNdB0jdjgVRWwquuBHn6thKNxsBIO1z8belpBVUQ==
-  dependencies:
-    "@metamask/json-rpc-engine" "^7.3.0"
-    "@metamask/safe-event-emitter" "^3.0.0"
-    "@metamask/utils" "^8.2.0"
-
-"@metamask/eth-json-rpc-provider@^2.2.0":
+"@metamask/eth-json-rpc-provider@^2.1.0", "@metamask/eth-json-rpc-provider@^2.2.0", "@metamask/eth-json-rpc-provider@^2.3.0":
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-2.3.2.tgz#39a3ec6cdf82b6f2ce764ebfd9ff78997a2aa608"
   integrity sha512-VaZx++3gfi85+j9zB5TvqSWLeZ6QpsNjIk56Nq6OMDp2U8iUEPgjdA8CybOtkyDb88EbpuOSzHZcdHEeIX3zPw==
@@ -4018,16 +4009,7 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/json-rpc-engine@^7.0.0", "@metamask/json-rpc-engine@^7.1.1", "@metamask/json-rpc-engine@^7.3.0", "@metamask/json-rpc-engine@^7.3.1", "@metamask/json-rpc-engine@^7.3.2":
-  version "7.3.2"
-  resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-7.3.2.tgz#e8f0695811619eef7b7c894ba5cf782db9f1c2cb"
-  integrity sha512-dVjBPlni4CoiBpESVqrxh6k4OR14w6GRXKSSXHFuITjuhALE42gNCkXTpL4cjNeOBUgTba3eGe5EI8cyc2QLRg==
-  dependencies:
-    "@metamask/rpc-errors" "^6.1.0"
-    "@metamask/safe-event-emitter" "^3.0.0"
-    "@metamask/utils" "^8.3.0"
-
-"@metamask/json-rpc-engine@^7.2.0":
+"@metamask/json-rpc-engine@^7.0.0", "@metamask/json-rpc-engine@^7.1.1", "@metamask/json-rpc-engine@^7.2.0", "@metamask/json-rpc-engine@^7.3.0", "@metamask/json-rpc-engine@^7.3.1", "@metamask/json-rpc-engine@^7.3.2":
   version "7.3.3"
   resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-7.3.3.tgz#f2b30a2164558014bfcca45db10f5af291d989af"
   integrity sha512-dwZPq8wx9yV3IX2caLi9q9xZBw2XeIoYqdyihDDDpuHVCEiqadJLwqM3zy+uwf6F1QYQ65A8aOMQg1Uw7LMLNg==
