@@ -4,27 +4,27 @@ import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, TextStyle, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AvatarSize } from '../../../../app/component-library/components/Avatars/Avatar';
-import AvatarFavicon from '../../../../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon';
-import AvatarToken from '../../../../app/component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
   BadgeStatusState,
   BadgeVariant,
-} from '../../../../app/component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../app/component-library/components/Badges/BadgeWrapper';
+} from '../../../../component-library/components/Badges/Badge';
+import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import Button, {
   ButtonSize,
   ButtonVariants,
-} from '../../../../app/component-library/components/Buttons/Button';
+} from '../../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
-} from '../../../../app/component-library/components/Texts/Text';
-import Routes from '../../../../app/constants/navigation/Routes';
-import { getPermittedAccounts } from '../../../../app/core/Permissions';
-import { ConnectionProps } from '../../../../app/core/SDKConnect/Connection';
-import { strings } from '../../../../locales/i18n';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
-import { useTheme } from '../../../util/theme';
+} from '../../../../component-library/components/Texts/Text';
+import Routes from '../../../../constants/navigation/Routes';
+import { getPermittedAccounts } from '../../../../core/Permissions';
+import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
+import { strings } from '../../../../../locales/i18n';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { useTheme } from '../../../../util/theme';
 
 interface SDKSessionViewProps {
   connection: {

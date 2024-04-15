@@ -3,21 +3,21 @@ import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typo
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, TextStyle, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AvatarSize } from '../../../../app/component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../app/component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
   BadgeStatusState,
   BadgeVariant,
-} from '../../../../app/component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../app/component-library/components/Badges/BadgeWrapper';
-import { ConnectionProps } from '../../../../app/core/SDKConnect/Connection';
-import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
-import Text from '../../../../app/component-library/components/Texts/Text';
-import AvatarFavicon from '../../../../app/component-library/components/Avatars/Avatar/variants/AvatarFavicon';
+} from '../../../../component-library/components/Badges/Badge';
+import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
+import { strings } from '../../../../../locales/i18n';
+import { useTheme } from '../../../../util/theme';
+import Text from '../../../../component-library/components/Texts/Text';
+import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import Button, {
   ButtonVariants,
-} from '../../../../app/component-library/components/Buttons/Button';
+} from '../../../../component-library/components/Buttons/Button';
 
 interface SDKSessionViewProps {
   connection: {
