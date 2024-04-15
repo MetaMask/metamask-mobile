@@ -23,14 +23,14 @@ export interface KeyDerivationOptions {
 /**
  * The result of an encryption operation.
  * @interface EncryptionResult
- * @property data - The encrypted data.
+ * @property cipher - The encrypted data.
  * @property iv - The initialization vector used in the encryption process.
  * @property [salt] - The salt used in the encryption process, if applicable.
  * @property [lib] - The library or algorithm used for encryption, if applicable.
  * @property [keyMetadata] - Metadata about the key derivation, if key derivation was used.
  */
 export interface EncryptionResult {
-  data: string;
+  cipher: string;
   iv: string;
   salt?: string;
   lib?: string;
