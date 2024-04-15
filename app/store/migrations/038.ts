@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 import { captureException } from '@sentry/react-native';
-import { isObject, hasProperty } from '@metamask/utils';
+import { isObject } from '@metamask/utils';
 import { NetworkState } from '@metamask/network-controller';
 import { NetworkType } from '@metamask/controller-utils';
 import { LINEA_SEPOLIA_BLOCK_EXPLORER } from '../../../app/constants/urls';
@@ -54,21 +54,17 @@ export default function migrate(state: unknown) {
   }
   const chainId = networkControllerState.providerConfig.chainId;
   // If user on linea goerli, fallback to linea Sepolia
-  // FIXME: Linea sepolia may not exist on NetworkType
-  if (
-    chainId === CHAIN_IDS.LINEA_GOERLI &&
-    hasProperty(NetworkType, 'linea-sepolia')
-  ) {
-    const lineaSepolia = NetworkType['linea-sepolia'] as NetworkType;
+  if (chainId === CHAIN_IDS.LINEA_GOERLI) {
     networkControllerState.providerConfig = {
       chainId: CHAIN_IDS.LINEA_SEPOLIA,
       ticker: 'LineaETH',
       rpcPrefs: {
         blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
       },
-      type: lineaSepolia,
+      type: NetworkType['linea-sepolia'],
     };
-    networkControllerState.selectedNetworkClientId = lineaSepolia;
+    networkControllerState.selectedNetworkClientId =
+      NetworkType['linea-sepolia'];
   }
   return state;
 }
