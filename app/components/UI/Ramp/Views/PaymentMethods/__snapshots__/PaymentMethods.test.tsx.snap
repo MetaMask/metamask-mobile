@@ -163,6 +163,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -170,6 +171,8 @@ exports[`PaymentMethods View renders correctly 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -199,6 +202,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -206,6 +210,8 @@ exports[`PaymentMethods View renders correctly 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -2221,6 +2227,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -2228,6 +2235,8 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -2257,6 +2266,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -2264,6 +2274,8 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -4279,6 +4291,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -4286,6 +4299,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -4315,6 +4330,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -4322,6 +4338,8 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -5708,6 +5726,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -5715,6 +5734,8 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -5744,6 +5765,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -5751,6 +5773,8 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -6413,6 +6437,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -6420,6 +6445,8 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -6449,6 +6476,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -6456,6 +6484,8 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -7118,6 +7148,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -7125,6 +7156,8 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -7154,6 +7187,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -7161,6 +7195,8 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -7821,6 +7857,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -7828,6 +7865,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -7857,6 +7896,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -7864,6 +7904,8 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -9250,6 +9292,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -9257,6 +9300,8 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -9286,6 +9331,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -9293,6 +9339,8 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -11366,6 +11414,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -11373,6 +11422,8 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -11402,6 +11453,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -11409,6 +11461,8 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -12046,6 +12100,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -12053,6 +12108,8 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -12082,6 +12139,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -12089,6 +12147,8 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >

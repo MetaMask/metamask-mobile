@@ -146,7 +146,7 @@ exports[`EditAccountName should render correctly 1`] = `
             editable={false}
             onBlur={[Function]}
             onFocus={[Function]}
-            placeholder="0x"
+            placeholder="0x0"
             style={
               Object {
                 "backgroundColor": "#FFFFFF",

@@ -703,7 +703,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -772,7 +772,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
           title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
@@ -1308,16 +1308,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.18.0
+      VERSION_NAME: 7.19.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1281
+      VERSION_NUMBER: 1306
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.18.0
+      FLASK_VERSION_NAME: 7.19.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1281
+      FLASK_VERSION_NUMBER: 1306
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

@@ -741,7 +741,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.
+        Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon and Sepolia.
       </Text>
       <View
         style={

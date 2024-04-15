@@ -351,12 +351,17 @@
     "no_collectibles": "회원님의 NFT가 보이지 않나요?",
     "no_available_tokens": "토큰이 보이지 않나요?",
     "add_tokens": "토큰 가져오기",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "계정에서 {{tokenCount}}개의 신규 {{tokensLabel}} 발견됨",
     "token_toast": {
       "tokens_imported_title": "가져온 토큰",
       "tokens_imported_desc": "{{tokenSymbols}} 가져오기 성공",
       "token_imported_title": "가져온 토큰",
       "token_imported_desc": "{{tokenSymbol}} 가져오기 성공",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "토큰 숨기기",
       "tokens_hidden_desc": "지갑에서 감지된 토큰 숨기기",
       "token_hidden_title": "토큰 숨기기",
@@ -376,6 +381,8 @@
     "nfts_autodetection_desc": "MetaMask가 OpenSea에서 NFT를 자동으로 탐지하여 MetaMask 지갑에 표시할 수 있도록 하세요.",
     "network_details_check": "네트워크 세부 정보 확인",
     "network_with_chain_id": "체인 ID 포함 네트워크",
+    "chain_list_returned_different_ticker_symbol": "이 토큰 심볼이 입력한 네트워크 이름 또는 체인 ID와 일치하지 않습니다. 여러 인기 토큰이 비슷한 심볼을 사용합니다. 사기꾼은 이를 이용해 더 가격이 높은 토큰을 보내도록 속일 수 있습니다. 계속하기 전에 모든 사항을 확인하세요.",
+    "suggested_token_symbol": "추천 티커 심볼:",
     "potential_scam": "이는 사기일 수 있습니다",
     "network_not_matching": "이 네트워크는 관련 체인 ID나 이름이 일치하지 않습니다. 많은 인기 토큰이 이 이름을 사용하기 때문에",
     "target_scam_network": "사기의 표적이 되고 있습니다. 사기꾼은 더 가격이 높은 암호화폐를 주겠다고 속일 수 있습니다. 계속하기 전에 모든 사항을 확인하세요.",
@@ -439,8 +446,8 @@
   "add_asset": {
     "title": "토큰 가져오기",
     "title_nft": "NFT 가져오기",
-    "search_token": "검색",
-    "custom_token": "맞춤 토큰",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "취소",
       "add_token": "가져오기"
@@ -497,14 +504,16 @@
     "resultPageErrorDefaultMessage": "작업에 실패했습니다."
   },
   "token": {
-    "token_symbol": "토큰 기호",
+    "token_symbol": "Token symbol",
     "token_address": "토큰 주소",
-    "token_decimal": "토큰 십진수",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "토큰 검색",
     "address_cant_be_empty": "토큰 주소는 비워둘 수 없습니다.",
     "address_must_be_valid": "토큰 주소는 유효한 주소여야 합니다.",
     "symbol_cant_be_empty": "토큰 기호는 비워둘 수 없습니다.",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "토큰 십진수는 비워둘 수 없습니다.",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "해당 이름의 토큰을 찾을 수 없습니다.",
     "select_token": "토큰을 선택하세요",
     "address_must_be_smart_contract": "개인 주소가 탐지되었습니다. 토큰 트랜잭션 주소를 입력하세요."
@@ -541,10 +550,10 @@
   },
   "accounts": {
     "create_new_account": "신규 계정 생성",
-    "qr_hardware": "QR 하드웨어",
     "import_account": "계정 가져오기",
     "connect_hardware": "하드웨어 지갑 연결",
     "imported": "가져옴",
+    "qr_hardware": "QR 하드웨어",
     "remove_account_title": "계정 제거",
     "remove_account_message": "해당 계정을 정말로 제거하시겠습니까?",
     "no": "아니오",
@@ -891,7 +900,7 @@
     "security_check_subheading": "보안 점검",
     "symbol_required": "심볼은 필수입니다.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "개인정보 보호 - 제3자와 데이터를 공유하지 않습니다. Arbitrum, Avalanche, BNB Chain, 이더리움 메인넷, Optimism, Polygon에서 사용할 수 있습니다.",
+    "blockaid_desc": "개인정보 보호 - 제3자와 데이터를 공유하지 않습니다. Arbitrum, Avalanche, BNB chain, 이더리움 메인넷, Optimism, Polygon, Sepolia에서 사용할 수 있습니다.",
     "security_alerts": "보안 경고",
     "security_alerts_desc": "이 기능은 트랜잭션 및 서명 요청을 로컬에서 검토하여 악의적인 활동이 있는 경우 경고합니다. 요청을 승인하기 전에 항상 직접 검토하세요. 이 기능이 모든 악성 활동을 탐지하는 것은 아닙니다. 이 기능을 활성화하면 제공 업체의 이용 약관에 동의하는 것이 됩니다."
   },
@@ -1292,6 +1301,7 @@
     "contract": "({{address}}) 계약",
     "contract_name": "계약 이름:",
     "contract_address": "계약 주소:",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "한도:",
     "data": "데이터",
     "function_approve": "기능: 승인",
@@ -1787,6 +1797,9 @@
     "pending_deposit_message": "입금 완료 대기 중",
     "pending_withdrawal_message": "인출 완료 대기 중",
     "error_message": "눌러서 이 트랜잭션을 확인하세요",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "눌러서 이 트랜잭션을 확인하세요",
     "speedup_message": "트랜잭션 속도 향상을 시도하는 중",
     "success_deposit_message": "자금 사용 준비가 되었습니다",
@@ -2407,7 +2420,7 @@
       "title": "보안 경고로 안전성을 유지하세요",
       "description_1": "Blockaid가 제공하는 보안 경고를 통해 개인정보를 보호하고 사기도 방지하세요. 이 기능은 이제 모든 MetaMask 사용자에게 기본적으로 적용됩니다.",
       "description_2": "요청을 승인하기 전에 항상 직접 확인하세요.",
-      "description_3": "Arbitrum, Avalanche, BNB Chain, 이더리움 메인넷, Linea, Optimism, Polygon에서 사용할 수 있습니다.",
+      "description_3": "Arbitrum, Avalanche, BNB chain, 이더리움 메인넷, Linea, Optimism, Polygon, Sepolia에서 사용할 수 있습니다.",
       "got_it": "확인"
     },
     "sell": {
@@ -2719,8 +2732,10 @@
     "bluetooth_off_message": "기기의 블루투스를 켜세요",
     "bluetooth_access_blocked": "Ledger가 모바일 기기와 페어링하려면 블루투스가 필요합니다.",
     "bluetooth_access_blocked_message": "블루투스를 이용하여 Ledger 기기를 페어링하기 원하시면 설정에서 블루투스를 활성화하고 다시 시도하세요.",
-    "location_access_blocked": "Ledger를 모바일 기기에 페어링하려면 위치 정보에 액세스해야 합니다.",
+    "location_access_blocked": "MetaMask를 Ledger와 페어링하려면 위치 액세스 권한이 필요합니다.",
     "location_access_blocked_message": "블루투스를 이용하여 Ledger 기기를 페어링하기 원하시면 설정에서 위치 정보 액세스를 활성화하고 다시 시도하세요.",
+    "nearbyDevices_access_blocked": "MetaMask를 Ledger와 페어링하려면 주변 장치 권한이 필요합니다.",
+    "nearbyDevices_access_blocked_message": "블루투스를 이용하여 Ledger 기기를 페어링하려면, 설정에서 주변 장치 액세스를 활성화하고 다시 시도하세요.",
     "bluetooth_scanning_error": "기기 스캐닝 중 오류 발생",
     "bluetooth_scanning_error_message": "기기가 잠금해제되어 있고 이더리움 앱이 실행되고 있는지 확인하세요",
     "bluetooth_connection_failed": "블루투스 연결 실패",
@@ -2740,10 +2755,12 @@
     "connect_ledger": "Ledger 연결",
     "looking_for_device": "기기 찾는 중",
     "ledger_reminder_message": "Ledger Nano X가 다음과 같은 상태인지 확인하세요.",
-    "ledger_reminder_message_step_one": "1. 잠금 해제 상태",
-    "ledger_reminder_message_step_two": "2. 이더리움 앱이 설치된 상태",
-    "ledger_reminder_message_step_three": "3. 블루투스가 활성화된 상태",
-    "ledger_reminder_message_step_four": "4. 위치 정보 활성화 상태",
+    "ledger_reminder_message_step_one": "1. Ledger Nano X를 잠금 해제하세요",
+    "ledger_reminder_message_step_two": "2. 이더리움 앱을 설치하고 실행하세요",
+    "ledger_reminder_message_step_three": "3. 블루투스를 켜세요",
+    "ledger_reminder_message_step_four": "4. 정확한 위치 사용으로 위치 권한이 활성화되었습니다",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. 주변 장치가 활성화되었습니다",
+    "ledger_reminder_message_step_five": "5. 방해 금지 모드는 꺼져 있어야 합니다",
     "available_devices": "이용 가능한 기기",
     "retry": "재시도",
     "continue": "계속",
@@ -2826,5 +2843,8 @@
     "okay_action": "확인",
     "error_title": "설치 실패",
     "error_description": "{{snap}} 설치에 실패했습니다."
+  },
+  "stake": {
+    "stake": "Stake"
   }
 }

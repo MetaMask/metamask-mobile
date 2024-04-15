@@ -35,7 +35,6 @@ import { BaseState, ControllerMessenger } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
-  SignTypedDataVersion,
   KeyringControllerState,
   KeyringControllerActions,
   KeyringControllerEvents,
@@ -85,14 +84,12 @@ import {
   SubjectMetadataControllerActions,
   SubjectMetadataControllerEvents,
   SubjectMetadataControllerState,
-  SubjectType,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
   PPOMControllerEvents,
-  PPOMInitialisationStatusType,
   PPOMState,
 } from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -107,7 +104,6 @@ import {
   PersistedSnapControllerState,
   WebViewExecutionService,
 } from '@metamask/snaps-controllers';
-import { Snap } from '@metamask/snaps-utils';
 import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/types/restricted/notify';
 import { getSnapsWebViewPromise } from '../lib/snaps';
 import {
@@ -130,6 +126,7 @@ import {
   isMainnetByChainId,
   getDecimalChainId,
   fetchEstimatedMultiLayerL1Fee,
+  deprecatedGetNetworkId,
 } from '../util/networks';
 import AppConstants from './AppConstants';
 import { store } from '../store';
@@ -178,10 +175,18 @@ import { ethErrors } from 'eth-rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
-import { isHardwareAccount } from '../util/address';
-import { ledgerSignTypedMessage } from './Ledger/Ledger';
-import ExtendedKeyringTypes from '../constants/keyringTypes';
-import { UpdatePPOMInitializationStatus } from '../actions/experimental';
+import {
+  AccountsController,
+  AccountsControllerActions,
+  AccountsControllerEvents,
+  AccountsControllerState,
+} from '@metamask/accounts-controller';
+import { captureException } from '@sentry/react-native';
+import { lowerCase } from 'lodash';
+import {
+  networkIdUpdated,
+  networkIdWillUpdate,
+} from '../core/redux/slices/inpageProvider';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -225,7 +230,8 @@ type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalActions
   ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions;
+  | KeyringControllerActions
+  | AccountsControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -233,13 +239,13 @@ type GlobalEvents =
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
-  | KeyringControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | KeyringControllerEvents
-  | PPOMControllerEvents;
+  | PPOMControllerEvents
+  | AccountsControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -272,6 +278,7 @@ export interface EngineState {
   ApprovalController: ApprovalControllerState;
   LoggingController: LoggingControllerState;
   PPOMController: PPOMState;
+  AccountsController: AccountsControllerState;
 }
 
 /**
@@ -312,6 +319,7 @@ class Engine {
         TransactionController: TransactionController;
         SignatureController: SignatureController;
         SwapsController: SwapsController;
+        AccountsController: AccountsController;
       }
     | any;
   /**
@@ -465,7 +473,35 @@ class Engine {
         chainId: networkController.state.providerConfig.chainId,
       },
     );
+
+    const accountsControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'AccountsController',
+      allowedEvents: [
+        'SnapController:stateChange',
+        'KeyringController:accountRemoved',
+        'KeyringController:stateChange',
+      ],
+      allowedActions: [
+        'KeyringController:getAccounts',
+        'KeyringController:getKeyringsByType',
+        'KeyringController:getKeyringForAccount',
+      ],
+    });
+
+    const defaultAccountsControllerState: AccountsControllerState = {
+      internalAccounts: {
+        accounts: {},
+        selectedAccount: '',
+      },
+    };
+
+    const accountsController = new AccountsController({
+      messenger: accountsControllerMessenger,
+      state: initialState.AccountsController ?? defaultAccountsControllerState,
+    });
+
     const tokensController = new TokensController({
+      // TODO: The tokens controller currently does not support internalAccounts. This is done to match the behavior of the previous tokens controller subscription.
       onPreferencesStateChange: (listener) =>
         preferencesController.subscribe(listener),
       onNetworkStateChange: (listener) =>
@@ -478,11 +514,13 @@ class Engine {
           AppConstants.TOKEN_LIST_STATE_CHANGE_EVENT,
           listener,
         ),
-
+      getNetworkClientById:
+        networkController.getNetworkClientById.bind(networkController),
       chainId: networkController.state.providerConfig.chainId,
       config: {
         provider: networkController.getProviderAndBlockTracker().provider,
         chainId: networkController.state.providerConfig.chainId,
+        selectedAddress: preferencesController.state.selectedAddress,
       },
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
@@ -544,7 +582,7 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          //@ts-expect-error It's expected, it needs the gas fee controller to be updated a minor version
+          //@ts-expect-error GasFeeController needs to be updated to v7 for this error disappears
           listener,
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
@@ -568,15 +606,6 @@ class Engine {
     const phishingController = new PhishingController();
     phishingController.maybeUpdateState();
 
-    const getIdentities = () => {
-      const identities = preferencesController.state.identities;
-      const lowerCasedIdentities: PreferencesState['identities'] = {};
-      Object.keys(identities).forEach((key) => {
-        lowerCasedIdentities[key.toLowerCase()] = identities[key];
-      });
-      return lowerCasedIdentities;
-    };
-
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
@@ -587,18 +616,28 @@ class Engine {
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
       ),
-      syncIdentities: preferencesController.syncIdentities.bind(
-        preferencesController,
-      ),
+      syncIdentities: (identities) =>
+        preferencesController.syncIdentities(identities),
       updateIdentities: preferencesController.updateIdentities.bind(
         preferencesController,
       ),
-      setSelectedAddress: preferencesController.setSelectedAddress.bind(
-        preferencesController,
-      ),
-      setAccountLabel: preferencesController.setAccountLabel.bind(
-        preferencesController,
-      ),
+      setSelectedAddress: (address) => {
+        const accountToBeSet = accountsController.getAccountByAddress(address);
+        if (accountToBeSet === undefined) {
+          throw new Error(`No account found for address: ${address}`);
+        }
+        accountsController.setSelectedAccount(accountToBeSet.id);
+        preferencesController.setSelectedAddress(address);
+      },
+      setAccountLabel: (address, label) => {
+        const accountToBeNamed =
+          accountsController.getAccountByAddress(address);
+        if (accountToBeNamed === undefined) {
+          throw new Error(`No account found for address: ${address}`);
+        }
+        accountsController.setAccountName(accountToBeNamed.id, label);
+        preferencesController.setAccountLabel(address, label);
+      },
       encryptor,
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
@@ -648,11 +687,6 @@ class Engine {
           ),
           getMnemonic: getPrimaryKeyringMnemonic.bind(this),
           getUnlockPromise: getAppState.bind(this),
-          addSubjectMetadata: (params: any) =>
-            this.controllerMessenger.call<'SubjectMetadataController:addSubjectMetadata'>(
-              'SubjectMetadataController:addSubjectMetadata',
-              params,
-            ),
           getSnap: this.controllerMessenger.call.bind(
             this.controllerMessenger,
             'SnapController:get',
@@ -714,6 +748,17 @@ class Engine {
     });
     ///: END:ONLY_INCLUDE_IF
 
+    const accountTrackerController = new AccountTrackerController({
+      onPreferencesStateChange: (listener) =>
+        preferencesController.subscribe(listener),
+      getIdentities: () => preferencesController.state.identities,
+      getSelectedAddress: () => accountsController.getSelectedAccount().address,
+      getMultiAccountBalancesEnabled: () =>
+        preferencesController.state.isMultiAccountBalancesEnabled,
+      getCurrentChainId: () =>
+        toHexadecimal(networkController.state.providerConfig.chainId),
+    });
+
     const permissionController = new PermissionController({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -732,12 +777,44 @@ class Engine {
         ],
       }),
       state: initialState.PermissionController,
-      caveatSpecifications: getCaveatSpecifications({ getIdentities }),
+      caveatSpecifications: getCaveatSpecifications({
+        getInternalAccounts:
+          accountsController.listAccounts.bind(accountsController),
+      }),
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       permissionSpecifications: {
         ...getPermissionSpecifications({
           getAllAccounts: () => keyringController.getAccounts(),
+          getInternalAccounts:
+            accountsController.listAccounts.bind(accountsController),
+          captureKeyringTypesWithMissingIdentities: (
+            internalAccounts = [],
+            accounts = [],
+          ) => {
+            const accountsMissingIdentities = accounts.filter((address) => {
+              const lowerCaseAddress = lowerCase(address);
+              return !internalAccounts.some(
+                (account) => account.address.toLowerCase() === lowerCaseAddress,
+              );
+            });
+            const keyringTypesWithMissingIdentities =
+              accountsMissingIdentities.map((address) =>
+                keyringController.getAccountKeyringType(address),
+              );
+
+            const internalAccountCount = internalAccounts.length;
+
+            const accountTrackerCount = Object.keys(
+              accountTrackerController.state.accounts || {},
+            ).length;
+
+            captureException(
+              new Error(
+                `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
+              ),
+            );
+          },
         }),
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         ...getSnapPermissionSpecifications(),
@@ -887,38 +964,13 @@ class Engine {
           fetch: fetchFunction,
         }),
     });
-
-    this.controllerMessenger.subscribe(
-      'SnapController:snapInstalled',
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      (snap: Snap, svgIcon: any = null) => {
-        const parts = snap.id.split(/[:/]/);
-        subjectMetadataController.addSubjectMetadata({
-          subjectType: SubjectType.Snap,
-          name: parts[parts.length - 1] || snap.id,
-          origin: snap.id,
-          version: snap.version,
-          svgIcon,
-        });
-      },
-    );
     ///: END:ONLY_INCLUDE_IF
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
 
     const controllers = [
       keyringController,
-      new AccountTrackerController({
-        onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
-        getIdentities: () => preferencesController.state.identities,
-        getSelectedAddress: () => preferencesController.state.selectedAddress,
-        getMultiAccountBalancesEnabled: () =>
-          preferencesController.state.isMultiAccountBalancesEnabled,
-        getCurrentChainId: () =>
-          toHexadecimal(networkController.state.providerConfig.chainId),
-      }),
+      accountTrackerController,
       new AddressBookController(),
       assetsContractController,
       nftController,
@@ -1010,8 +1062,10 @@ class Engine {
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
         getNetworkState: () => networkController.state,
-        getSelectedAddress: () => preferencesController.state.selectedAddress,
+        getSelectedAddress: () =>
+          accountsController.getSelectedAccount().address,
         incomingTransactions: {
           apiKey: process.env.MM_ETHERSCAN_KEY,
           isEnabled: () => {
@@ -1037,6 +1091,7 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
+            //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
             listener,
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -1076,11 +1131,19 @@ class Engine {
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted<
           'SignatureController',
-          'ApprovalController:addRequest',
+          | 'ApprovalController:addRequest'
+          | 'KeyringController:signPersonalMessage'
+          | 'KeyringController:signMessage'
+          | 'KeyringController:signTypedMessage',
           never
         >({
           name: 'SignatureController',
-          allowedActions: [`${approvalController.name}:addRequest`],
+          allowedActions: [
+            `${approvalController.name}:addRequest`,
+            `${keyringController.name}:signPersonalMessage`,
+            `${keyringController.name}:signMessage`,
+            `${keyringController.name}:signTypedMessage`,
+          ],
         }),
         isEthSignEnabled: () =>
           Boolean(
@@ -1088,25 +1151,6 @@ class Engine {
           ),
         getAllState: () => store.getState(),
         getCurrentChainId: () => networkController.state.providerConfig.chainId,
-        keyringController: {
-          signMessage: keyringController.signMessage.bind(keyringController),
-          signPersonalMessage:
-            keyringController.signPersonalMessage.bind(keyringController),
-          signTypedMessage: (msgParams, { version }) => {
-            if (
-              isHardwareAccount(msgParams.from, [ExtendedKeyringTypes.ledger])
-            ) {
-              return ledgerSignTypedMessage(
-                msgParams,
-                version as SignTypedDataVersion,
-              );
-            }
-            return keyringController.signTypedMessage(
-              msgParams,
-              version as SignTypedDataVersion,
-            );
-          },
-        },
       }),
       new LoggingController({
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -1123,6 +1167,7 @@ class Engine {
       snapController,
       subjectMetadataController,
       ///: END:ONLY_INCLUDE_IF
+      accountsController,
     ];
 
     if (isBlockaidFeatureEnabled()) {
@@ -1141,10 +1186,11 @@ class Engine {
             allowedEvents: ['NetworkController:stateChange'],
           }),
           onPreferencesChange: (listener) =>
-            preferencesController.subscribe(listener),
-          provider: networkController.getProviderAndBlockTracker().provider,
+            preferencesController.subscribe(listener as any),
+          provider: networkController.getProviderAndBlockTracker()
+            .provider as any,
           ppomProvider: {
-            PPOM,
+            PPOM: PPOM as any,
             ppomInit,
           },
           storageBackend: new RNFSStorageBackend('PPOMDB'),
@@ -1154,14 +1200,6 @@ class Engine {
           nativeCrypto: Crypto as any,
         });
         controllers.push(ppomController as any);
-        this.controllerMessenger.subscribe(
-          AppConstants.PPOM_INITIALISATION_STATE_CHANGE_EVENT,
-          (ppomInitializationStatus: PPOMInitialisationStatusType) => {
-            store.dispatch(
-              UpdatePPOMInitializationStatus(ppomInitializationStatus),
-            );
-          },
-        );
       } catch (e) {
         Logger.log(`Error initializing PPOMController: ${e}`);
         return;
@@ -1231,6 +1269,28 @@ class Engine {
             currentChainId = state.providerConfig.chainId;
           }, 500);
         }
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      AppConstants.NETWORK_STATE_CHANGE_EVENT,
+      async () => {
+        try {
+          const networkId = await deprecatedGetNetworkId();
+          store.dispatch(networkIdUpdated(networkId));
+        } catch (error) {
+          console.error(
+            error,
+            `Network ID not changed, current chainId: ${networkController.state.providerConfig.chainId}`,
+          );
+        }
+      },
+    );
+
+    this.controllerMessenger.subscribe(
+      'NetworkController:networkWillChange',
+      () => {
+        store.dispatch(networkIdWillUpdate());
       },
     );
 
@@ -1521,6 +1581,33 @@ class Engine {
       }
     }
   }
+
+  // This should be used instead of directly calling PreferencesController.setSelectedAddress or AccountsController.setSelectedAccount
+  setSelectedAccount(address: string) {
+    const { AccountsController, PreferencesController } = this.context;
+    const account = AccountsController.getAccountByAddress(address);
+    if (account) {
+      AccountsController.setSelectedAccount(account.id);
+      PreferencesController.setSelectedAddress(address);
+    } else {
+      throw new Error(`No account found for address: ${address}`);
+    }
+  }
+
+  /**
+   * This should be used instead of directly calling PreferencesController.setAccountLabel or AccountsController.setAccountName in order to keep the names in sync
+   * We are currently incrementally migrating the accounts data to the AccountsController so we must keep these values
+   * in sync until the migration is complete.
+   */
+  setAccountLabel(address: string, label: string) {
+    const { AccountsController, PreferencesController } = this.context;
+    const accountToBeNamed = AccountsController.getAccountByAddress(address);
+    if (accountToBeNamed === undefined) {
+      throw new Error(`No account found for address: ${address}`);
+    }
+    AccountsController.setAccountName(accountToBeNamed.id, label);
+    PreferencesController.setAccountLabel(address, label);
+  }
 }
 
 /**
@@ -1576,6 +1663,7 @@ export default {
       PermissionController,
       ApprovalController,
       LoggingController,
+      AccountsController,
     } = instance.datamodel.state;
 
     // normalize `null` currencyRate to `0`
@@ -1615,6 +1703,7 @@ export default {
       PermissionController,
       ApprovalController,
       LoggingController,
+      AccountsController,
     };
   },
   get datamodel() {
@@ -1655,4 +1744,12 @@ export default {
       logErrors?: boolean;
     } = {},
   ) => instance?.rejectPendingApproval(id, reason, opts),
+  setSelectedAddress: (address: string) => {
+    assertEngineExists(instance);
+    instance.setSelectedAccount(address);
+  },
+  setAccountLabel: (address: string, label: string) => {
+    assertEngineExists(instance);
+    instance.setAccountLabel(address, label);
+  },
 };

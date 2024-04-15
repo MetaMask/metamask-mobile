@@ -1,11 +1,16 @@
 import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  disconnectAll,
+  resetApprovedHosts,
+  resetConnections,
+} from '../../../../app/actions/sdk';
 import { RootState } from '../../../../app/reducers';
-import { disconnectAll } from '../../../../app/actions/sdk';
-import { store } from '../../../../app/store';
+import { store } from '../../../store';
 import Logger from '../../../util/Logger';
 import SDKConnect, { ApprovedHosts, SDKSessions } from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
+import AppConstants from '../../../../app/core/AppConstants';
 
 const asyncInit = async ({
   navigation,
@@ -26,38 +31,57 @@ const asyncInit = async ({
   await wait(1000);
   DevLogger.log(`SDKConnect::init() - waited 1000ms - keep initializing`);
 
-  // All connectectiions are disconnected on start
-  store.dispatch(disconnectAll());
-
   const { sdk } = store.getState() as RootState;
   const validConnections: SDKSessions = {};
   const validHosts: ApprovedHosts = {};
   try {
     // Remove connections that have expired.
     const now = Date.now();
+    const connectionsLength = Object.keys(sdk.connections).length;
+    const approvedHostsLength = Object.keys(sdk.approvedHosts).length;
+    DevLogger.log(
+      `SDKConnect::init() - connections length=${connectionsLength} approvedHosts length=${approvedHostsLength}`,
+    );
     for (const id in sdk.connections) {
       const connInfo = sdk.connections[id];
-      if (sdk.approvedHosts[id] <= now) {
+      const sdkHostId = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + id;
+      const ttl = (connInfo.validUntil ?? 0) - now;
+      DevLogger.log(
+        `Checking connection ${id} sdkHostId=${sdkHostId} TTL=${ttl} validUntil=${
+          connInfo.validUntil ?? 0
+        } hostValue:${sdk.approvedHosts[sdkHostId]} now: ${now}`,
+        sdk.approvedHosts,
+      );
+      if (ttl > 0) {
+        DevLogger.log(
+          `Connection ${id} / ${sdkHostId} is still valid, TTL: ${ttl}`,
+        );
         // Only keep connections that are not expired.
         validConnections[id] = sdk.connections[id];
-        validHosts[id] = sdk.approvedHosts[id];
+        validHosts[sdkHostId] = sdk.approvedHosts[sdkHostId];
       } else {
         // Remove expired connections
         DevLogger.log(
-          `SDKConnect::init() - removing expired connection ${id}`,
+          `SDKConnect::init() - removing expired connection ${id} ${sdkHostId}`,
           connInfo,
         );
       }
     }
-    instance.state.connections = sdk.connections;
-    instance.state.approvedHosts = sdk.approvedHosts;
-    instance.state.androidConnections = sdk.androidConnections;
+    DevLogger.log(
+      `SDKConnect::init() - valid connections length=${
+        Object.keys(validConnections).length
+      }`,
+      validConnections,
+    );
+    instance.state.connections = validConnections;
+    instance.state.approvedHosts = validHosts;
+    instance.state.dappConnections = sdk.dappConnections;
 
     // Update store with valid connection
-    store.dispatch({
-      type: 'SDK_SET_CONNECTIONS',
-      payload: validConnections,
-    });
+    store.dispatch(resetConnections(validConnections));
+    store.dispatch(resetApprovedHosts(validHosts));
+    // All connectectiions are disconnected on start
+    store.dispatch(disconnectAll());
     DevLogger.log(`SDKConnect::init() - done`);
     instance.state._initialized = true;
   } catch (err) {

@@ -28,7 +28,6 @@ class EngineService {
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     const Engine = UntypedEngine as any;
-
     Engine.init(state);
     this.updateControllers(store, Engine);
   };
@@ -90,6 +89,10 @@ class EngineService {
       {
         name: 'LoggingController',
         key: `${engine.context.LoggingController.name}:stateChange`,
+      },
+      {
+        name: 'AccountsController',
+        key: `${engine.context.AccountsController.name}:stateChange`,
       },
     ];
 

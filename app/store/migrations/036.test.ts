@@ -1,410 +1,449 @@
-import migrate from './036';
-import { merge } from 'lodash';
+import { v4 as uuid } from 'uuid';
+import { EthMethod, InternalAccount } from '@metamask/keyring-api';
+import migrate, { sha256FromAddress, Identity } from './036';
 import { captureException } from '@sentry/react-native';
-import initialRootState from '../../util/test/initial-root-state';
-import { NetworkStatus } from '@metamask/network-controller';
-
-const expectedState = {
-  engine: {
-    backgroundState: {
-      NetworkController: {
-        networkConfigurations: {},
-        networksMetadata: {
-          goerli: {
-            EIPS: {},
-            status: 'unknown',
-          },
-          'linea-goerli': {
-            EIPS: {},
-            status: 'unknown',
-          },
-          'linea-mainnet': {
-            EIPS: {},
-            status: 'unknown',
-          },
-          'linea-sepolia': {
-            EIPS: {},
-            status: 'unknown',
-          },
-          mainnet: {
-            EIPS: {},
-            status: 'unknown',
-          },
-          sepolia: {
-            EIPS: {},
-            status: 'unknown',
-          },
-        },
-        selectedNetworkClientId: 'mainnet',
-        providerConfig: {
-          type: 'mainnet',
-          chainId: '0x1',
-          rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-          ticker: 'ETH',
-        },
-      },
-    },
-  },
-};
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #36', () => {
-  beforeEach(() => {
-    jest.restoreAllMocks();
-    jest.resetAllMocks();
+const MOCK_ADDRESS = '0x0';
+const MOCK_ADDRESS_2 = '0x1';
+
+async function addressToUUID(address: string): Promise<string> {
+  return uuid({
+    random: await sha256FromAddress(address),
+  });
+}
+
+interface Identities {
+  [key: string]: Identity;
+}
+
+function createMockPreferenceControllerState(
+  identities: Identity[] = [{ name: 'Account 1', address: MOCK_ADDRESS }],
+  selectedAddress?: string,
+): {
+  identities: Identities;
+  selectedAddress?: string;
+} {
+  const state: {
+    identities: Identities;
+    selectedAddress?: string;
+  } = {
+    identities: {},
+    selectedAddress,
+  };
+
+  identities.forEach(({ address, name, lastSelected }) => {
+    state.identities[address] = {
+      address,
+      name,
+      lastSelected,
+    };
   });
 
-  const invalidStates = [
-    {
-      state: null,
-      errorMessage: "Migration 36: Invalid root state: 'object'",
-      scenario: 'state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: null,
-      }),
-      errorMessage: "Migration 36: Invalid root engine state: 'object'",
-      scenario: 'engine state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: null,
-        },
-      }),
-      errorMessage:
-        "Migration 36: Invalid root engine backgroundState: 'object'",
-      scenario: 'backgroundState is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: { NetworkController: null },
-        },
-      }),
-      errorMessage: "Migration 36: Invalid NetworkController state: 'object'",
-      scenario: 'NetworkController is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: { NetworkController: { networkDetails: null } },
-        },
-      }),
-      errorMessage:
-        "Migration 36: Invalid NetworkController networkDetails state: 'object'",
-      scenario: 'networkDetails is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: { networkDetails: {}, providerConfig: null },
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 36: Invalid NetworkController providerConfig state: 'object'",
-      scenario: 'providerConfig is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              networkDetails: {},
-              networkConfigurations: null,
-            },
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 36: Invalid NetworkController networkConfigurations state: 'object'",
-      scenario: 'networkConfigurations is invalid',
-    },
-  ];
+  return state;
+}
 
-  for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, async () => {
-      const newState = await migrate(state);
+async function expectedInternalAccount(
+  address: string,
+  nickname: string,
+  lastSelected?: number,
+): Promise<InternalAccount> {
+  return {
+    address,
+    id: await addressToUUID(address),
+    metadata: {
+      name: nickname,
+      keyring: {
+        type: 'HD Key Tree',
+      },
+      lastSelected: lastSelected ? expect.any(Number) : undefined,
+    },
+    options: {},
+    methods: [
+      EthMethod.PersonalSign,
+      EthMethod.Sign,
+      EthMethod.SignTransaction,
+      EthMethod.SignTypedDataV1,
+      EthMethod.SignTypedDataV3,
+      EthMethod.SignTypedDataV4,
+    ],
+    type: 'eip155:eoa',
+  };
+}
 
-      expect(newState).toStrictEqual(state);
+function createMockState(
+  preferenceState: {
+    identities: Identities;
+    selectedAddress?: string;
+  } = createMockPreferenceControllerState(),
+) {
+  return {
+    engine: {
+      backgroundState: {
+        PreferencesController: {
+          ...preferenceState,
+        },
+      },
+    },
+  };
+}
+
+describe('Migration #036', () => {
+  describe('createDefaultAccountsController', () => {
+    beforeEach(() => {
+      mockedCaptureException.mockReset();
+    });
+    it('should throw if state.engine is not defined', async () => {
+      const newState = await migrate({});
+      expect(newState).toStrictEqual({});
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-        errorMessage,
+        `Migration 36: Invalid root engine state: 'undefined'`,
       );
     });
-  }
+    it('should throw if state.engine.backgroundState is not defined', async () => {
+      const oldState = {
+        engine: {
+          backgroundState: undefined,
+        },
+      };
+      const newState = await migrate(oldState);
+      expect(newState).toStrictEqual(oldState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        `Migration 36: Invalid root engine backgroundState: 'undefined'`,
+      );
+    });
+    it('should throw if state.engine.backgroundState.PreferencesController is not defined', async () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            PreferencesController: undefined,
+          },
+        },
+      };
+      const newState = await migrate(oldState);
+      expect(newState).toStrictEqual(oldState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        `Migration 36: Invalid PreferencesController state: 'undefined'`,
+      );
+    });
+    it('should throw if state.engine.backgroundState.PreferencesController.identities is not defined', async () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            PreferencesController: {},
+          },
+        },
+      };
+      const newState = await migrate(oldState);
+      expect(newState).toStrictEqual(oldState);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        `Migration 36: Missing identities property from PreferencesController: 'object'`,
+      );
+    });
+    it('creates default state for accounts controller', async () => {
+      const oldState = createMockState({
+        identities: {
+          [MOCK_ADDRESS]: {
+            name: 'Account 1',
+            address: MOCK_ADDRESS,
+            lastSelected: undefined,
+          },
+        },
+        selectedAddress: MOCK_ADDRESS,
+      });
+      const newState = await migrate(oldState);
 
-  it('should remove networkDetails and networkStatus of network controller state', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurations: {},
-            networkDetails: {},
-            networkStatus: 'test',
-            providerConfig: {
-              type: 'mainnet',
-              chainId: '0x1',
-              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-              ticker: 'ETH',
+      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
+      const resultInternalAccount = await expectedInternalAccount(
+        MOCK_ADDRESS,
+        'Account 1',
+      );
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [expectedUUID]: resultInternalAccount,
+                },
+                selectedAccount: expectedUUID,
+              },
+            },
+            PreferencesController: {
+              identities: {
+                '0x0': {
+                  address: '0x0',
+                  lastSelected: undefined,
+                  name: 'Account 1',
+                },
+              },
+              selectedAddress: '0x0',
             },
           },
         },
-      },
-    };
-
-    const migratedState = await migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
+      });
+    });
   });
-  it('should update selectedNetworkClientId with provider config id is defined', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurations: {},
-            networkDetails: {},
-            networkStatus: 'test',
-            providerConfig: {
-              type: 'rpc',
-              chainId: '0x1',
-              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-              ticker: 'AVAX',
-              id: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
-            },
-          },
-        },
-      },
-    };
 
-    const expectedStateWithIdDefined = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurations: {},
-            networksMetadata: {
-              goerli: {
-                EIPS: {},
-                status: 'unknown',
-              },
-              'linea-goerli': {
-                EIPS: {},
-                status: 'unknown',
-              },
-              'linea-mainnet': {
-                EIPS: {},
-                status: 'unknown',
-              },
-              'linea-sepolia': {
-                EIPS: {},
-                status: 'unknown',
-              },
-              mainnet: {
-                EIPS: {},
-                status: 'unknown',
-              },
-              sepolia: {
-                EIPS: {},
-                status: 'unknown',
-              },
-            },
-            providerConfig: {
-              type: 'rpc',
-              chainId: '0x1',
-              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-              ticker: 'AVAX',
-              id: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
-            },
-            selectedNetworkClientId: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
+  describe('createInternalAccountsForAccountsController', () => {
+    it('should create the identities into AccountsController as internal accounts', async () => {
+      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
+      const oldState = createMockState({
+        identities: {
+          [MOCK_ADDRESS]: {
+            name: 'Account 1',
+            address: MOCK_ADDRESS,
+            lastSelected: undefined,
           },
         },
-      },
-    };
-    const migratedState = await migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedStateWithIdDefined);
+        selectedAddress: MOCK_ADDRESS,
+      });
+
+      const newState = await migrate(oldState);
+
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [expectedUUID]: await expectedInternalAccount(
+                    MOCK_ADDRESS,
+                    `Account 1`,
+                  ),
+                },
+                selectedAccount: expectedUUID,
+              },
+            },
+            PreferencesController: expect.any(Object),
+          },
+        },
+      });
+    });
+
+    it('should keep the same name from the identities', async () => {
+      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
+      const oldState = createMockState(
+        createMockPreferenceControllerState(
+          [{ name: 'a random name', address: MOCK_ADDRESS }],
+          MOCK_ADDRESS,
+        ),
+      );
+      const newState = await migrate(oldState);
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            PreferencesController: expect.any(Object),
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [expectedUUID]: await expectedInternalAccount(
+                    MOCK_ADDRESS,
+                    `a random name`,
+                  ),
+                },
+                selectedAccount: expectedUUID,
+              },
+            },
+          },
+        },
+      });
+    });
+
+    it('should be able to handle multiple identities', async () => {
+      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
+      const expectedUUID2 = await addressToUUID(MOCK_ADDRESS_2);
+      const oldState = createMockState({
+        identities: {
+          [MOCK_ADDRESS]: { name: 'Account 1', address: MOCK_ADDRESS },
+          [MOCK_ADDRESS_2]: { name: 'Account 2', address: MOCK_ADDRESS_2 },
+        },
+        selectedAddress: MOCK_ADDRESS_2,
+      });
+      const newState = await migrate(oldState);
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [expectedUUID]: await expectedInternalAccount(
+                    MOCK_ADDRESS,
+                    `Account 1`,
+                  ),
+                  [expectedUUID2]: await expectedInternalAccount(
+                    MOCK_ADDRESS_2,
+                    `Account 2`,
+                  ),
+                },
+                selectedAccount: expectedUUID2,
+              },
+            },
+            PreferencesController: expect.any(Object),
+          },
+        },
+      });
+    });
+
+    it('should handle empty identities and create default AccountsController with no internal accounts', async () => {
+      const oldState = createMockState({
+        // Simulate `identities` being an empty object
+        identities: {},
+      });
+      const newState = await migrate(oldState);
+
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            PreferencesController: expect.any(Object),
+            AccountsController: {
+              internalAccounts: {
+                accounts: {}, // Expect no accounts to be created
+                selectedAccount: '', // Expect no account to be selected
+              },
+            },
+          },
+        },
+      });
+    });
   });
-  it('should update selectedNetworkClientId with provider config id is null and type is a infura network', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkDetails: {},
-            networkStatus: 'test',
-            networkConfigurations: {},
-            providerConfig: {
-              type: 'mainnet',
-              chainId: '0x1',
-              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-              ticker: 'ETH',
-            },
-          },
-        },
-      },
-    };
-    const migrateState = await migrate(oldState);
 
-    expect(migrateState).toStrictEqual(expectedState);
-  });
-  it('should create networksMetadata with networksConfigurationId and InfuraNetworks', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurations: {
-              'cd9eb07d-5b42-40ff-8104-95126382e52c': {
-                chainId: '0xa86a',
-                id: '52b62bd0-296c-41d0-9772-2f418c9e81ef',
-                nickname: 'Avalanche Mainnet C-Chain',
-                rpcPrefs: [''],
-                rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-                ticker: 'AVAX',
-              },
-            },
-            networkDetails: {},
-            networkStatus: 'test',
-            providerConfig: {
-              type: 'rpc',
-              chainId: '0x1',
-              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-              ticker: 'AVAX',
-              id: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
-            },
-          },
-        },
-      },
-    };
-
-    const expectedStateWithNetworksMetadata = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurations: {
-              'cd9eb07d-5b42-40ff-8104-95126382e52c': {
-                chainId: '0xa86a',
-                id: '52b62bd0-296c-41d0-9772-2f418c9e81ef',
-                nickname: 'Avalanche Mainnet C-Chain',
-                rpcPrefs: [''],
-                rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-                ticker: 'AVAX',
-              },
-            },
-            providerConfig: {
-              type: 'rpc',
-              chainId: '0x1',
-              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-              ticker: 'AVAX',
-              id: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
-            },
-            selectedNetworkClientId: 'cd9eb07d-5b42-40ff-8104-95126382e52c',
-            networksMetadata: {
-              'cd9eb07d-5b42-40ff-8104-95126382e52c': {
-                status: NetworkStatus.Unknown,
-                EIPS: {},
-              },
-              goerli: {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
-              },
-              'linea-goerli': {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
-              },
-              'linea-sepolia': {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
-              },
-              'linea-mainnet': {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
-              },
-              mainnet: {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
-              },
-              sepolia: {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
+  describe('createSelectedAccountForAccountsController', () => {
+    it('should select the same account as the selected address', async () => {
+      const oldState = createMockState(
+        createMockPreferenceControllerState(
+          [{ name: 'a random name', address: MOCK_ADDRESS }],
+          MOCK_ADDRESS,
+        ),
+      );
+      const newState = await migrate(oldState);
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            PreferencesController: expect.any(Object),
+            AccountsController: {
+              internalAccounts: {
+                accounts: expect.any(Object),
+                selectedAccount: await addressToUUID(MOCK_ADDRESS),
               },
             },
           },
         },
-      },
-    };
+      });
+    });
 
-    const migrateState = await migrate(oldState);
-
-    expect(migrateState).toStrictEqual(expectedStateWithNetworksMetadata);
-  });
-  it('should create networksMetadata with InfuraNetworks if networksConfigurations is empty', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurations: {},
-            networkDetails: {},
-            networkStatus: 'test',
-            providerConfig: {
-              type: 'mainnet',
-              chainId: '0x1',
-              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-              ticker: 'ETH',
+    it("should leave selectedAccount as empty if there aren't any selectedAddress", async () => {
+      const oldState = {
+        engine: {
+          backgroundState: {
+            PreferencesController: {
+              identities: {},
+              selectedAddress: '',
             },
           },
         },
-      },
-    };
-
-    const expectedStateWithNetworksMetadata = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurations: {},
-            providerConfig: {
-              type: 'mainnet',
-              chainId: '0x1',
-              rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-              ticker: 'ETH',
-            },
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {
-              goerli: {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
-              },
-              'linea-goerli': {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
-              },
-              'linea-sepolia': {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
-              },
-              'linea-mainnet': {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
-              },
-              mainnet: {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
-              },
-              sepolia: {
-                EIPS: {},
-                status: NetworkStatus.Unknown,
+      };
+      const newState = await migrate(oldState);
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            PreferencesController: expect.any(Object),
+            AccountsController: {
+              internalAccounts: {
+                accounts: expect.any(Object),
+                selectedAccount: '',
               },
             },
           },
         },
-      },
-    };
+      });
+    });
+    it('should select the first account as the selected account if selectedAddress is undefined, and update PreferencesController accordingly', async () => {
+      const identities = [
+        { name: 'Account 1', address: MOCK_ADDRESS },
+        { name: 'Account 2', address: MOCK_ADDRESS_2 },
+      ];
+      // explicitly set selectedAddress to undefined
+      const oldState = createMockState(
+        createMockPreferenceControllerState(identities, undefined),
+      );
+      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
+      const expectedUUID2 = await addressToUUID(MOCK_ADDRESS_2);
 
-    const migrateState = await migrate(oldState);
+      expect(oldState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            PreferencesController: {
+              selectedAddress: undefined,
+              identities: {
+                [MOCK_ADDRESS]: {
+                  address: MOCK_ADDRESS,
+                  name: 'Account 1',
+                  lastSelected: undefined,
+                },
+                [MOCK_ADDRESS_2]: {
+                  address: MOCK_ADDRESS_2,
+                  name: 'Account 2',
+                  lastSelected: undefined,
+                },
+              },
+            },
+          },
+        },
+      });
 
-    expect(migrateState).toStrictEqual(expectedStateWithNetworksMetadata);
+      const newState = await migrate(oldState);
+
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+
+      expect(newState).toStrictEqual({
+        engine: {
+          backgroundState: {
+            PreferencesController: {
+              // Verifying that PreferencesController's selectedAddress is updated to the first account's address
+              selectedAddress: MOCK_ADDRESS,
+              identities: {
+                [MOCK_ADDRESS]: {
+                  address: MOCK_ADDRESS,
+                  name: 'Account 1',
+                  lastSelected: undefined,
+                },
+                [MOCK_ADDRESS_2]: {
+                  address: MOCK_ADDRESS_2,
+                  name: 'Account 2',
+                  lastSelected: undefined,
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [expectedUUID]: await expectedInternalAccount(
+                    MOCK_ADDRESS,
+                    `Account 1`,
+                  ),
+                  [expectedUUID2]: await expectedInternalAccount(
+                    MOCK_ADDRESS_2,
+                    `Account 2`,
+                  ),
+                },
+                // Verifying the accounts controller's selectedAccount is updated to the first account's UUID
+                selectedAccount: expectedUUID,
+              },
+            },
+          },
+        },
+      });
+    });
   });
 });

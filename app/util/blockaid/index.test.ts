@@ -26,7 +26,7 @@ describe('Blockaid util', () => {
       expect(result).toStrictEqual({});
     });
 
-    it('returns enpty object when chain id is not in supported chain ids list', () => {
+    it('returns empty object when chain id is not in supported chain ids list', () => {
       jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('10');
       const result = getBlockaidMetricsParams(undefined);
       expect(result).toStrictEqual({});
@@ -102,7 +102,7 @@ describe('Blockaid util', () => {
     it('return false if blockaid is not on current network', () => {
       jest
         .spyOn(NetworkControllerMock, 'selectChainId')
-        .mockReturnValue(NETWORKS_CHAIN_ID.SEPOLIA);
+        .mockReturnValue(NETWORKS_CHAIN_ID.GOERLI);
       const result = isBlockaidSupportedOnCurrentChain();
       expect(result).toEqual(false);
     });

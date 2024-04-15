@@ -1,26 +1,26 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 import { SvgUri } from 'react-native-svg';
 
 // External dependencies.
-import AvatarBase from '../../foundation/AvatarBase';
 import { useStyles } from '../../../../../hooks';
 import Icon from '../../../../Icons/Icon';
 import { ICONSIZE_BY_AVATARSIZE } from '../../Avatar.constants';
+import AvatarBase from '../../foundation/AvatarBase';
 
 // Internal dependencies.
-import { AvatarFaviconProps } from './AvatarFavicon.types';
-import {
-  DEFAULT_AVATARFAVICON_SIZE,
-  DEFAULT_AVATARFAVICON_ERROR_ICON,
-  AVATARFAVICON_IMAGE_TESTID,
-} from './AvatarFavicon.constants';
-import stylesheet from './AvatarFavicon.styles';
 import { isNumber } from 'lodash';
 import { isFaviconSVG } from '../../../../../../util/favicon';
+import {
+  AVATARFAVICON_IMAGE_TESTID,
+  DEFAULT_AVATARFAVICON_ERROR_ICON,
+  DEFAULT_AVATARFAVICON_SIZE,
+} from './AvatarFavicon.constants';
+import stylesheet from './AvatarFavicon.styles';
+import { AvatarFaviconProps } from './AvatarFavicon.types';
 
 const AvatarFavicon = ({
   imageSource,
@@ -29,11 +29,12 @@ const AvatarFavicon = ({
   ...props
 }: AvatarFaviconProps) => {
   const [error, setError] = useState<any>(undefined);
+  const [svgSource, setSvgSource] = useState<string>('');
   const { styles } = useStyles(stylesheet, { style });
 
   const onError = useCallback(
     (e: NativeSyntheticEvent<ImageErrorEventData>) =>
-      setError(e.nativeEvent.error),
+      setError(e.nativeEvent?.error),
     [setError],
   );
 
@@ -48,9 +49,26 @@ const AvatarFavicon = ({
     />
   );
 
-  const svgSource = useMemo(() => {
+  useEffect(() => {
+    const checkSvgContentType = async (uri: string) => {
+      try {
+        const response = await fetch(uri, { method: 'HEAD' });
+        const contentType = response.headers.get('Content-Type');
+        return contentType?.includes('image/svg+xml');
+      } catch (err: any) {
+        return false;
+      }
+    };
+
     if (imageSource && !isNumber(imageSource) && 'uri' in imageSource) {
-      return isFaviconSVG(imageSource);
+      const svg = isFaviconSVG(imageSource);
+      if (svg) {
+        checkSvgContentType(svg).then((isSvg) => {
+          if (isSvg) {
+            setSvgSource(svg);
+          }
+        });
+      }
     }
   }, [imageSource]);
 
@@ -62,7 +80,7 @@ const AvatarFavicon = ({
         height="100%"
         uri={svgSource}
         style={styles.image}
-        onError={onSvgError}
+        onError={(e: any) => onSvgError(e)}
       />
     ) : null;
 
