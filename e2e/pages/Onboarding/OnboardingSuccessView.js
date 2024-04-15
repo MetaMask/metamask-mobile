@@ -5,7 +5,9 @@ import TestHelpers from '../../helpers';
 
 class OnboardingSuccessView {
   get container() {
-    return Matchers.getElementByID(OnboardingSuccessSelectorIDs.CONTAINER_ID);
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(OnboardingSuccessSelectorIDs.CONTAINER_ID)
+      : Matchers.getElementByID(OnboardingSuccessSelectorIDs.CONTAINER_ID);
   }
 
   static async isVisible() {
