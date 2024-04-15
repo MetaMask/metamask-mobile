@@ -1,6 +1,6 @@
-import type { TypeFeatureAnnouncement } from './TypeFeatureAnnouncement.ts';
+import type { TypeFeatureAnnouncement } from './TypeFeatureAnnouncement';
 
-export type { TypeFeatureAnnouncementFields } from './TypeFeatureAnnouncement.ts';
+export type { TypeFeatureAnnouncementFields } from './TypeFeatureAnnouncement';
 
 import type { TRIGGER_TYPES } from '../../constants/triggers';
 

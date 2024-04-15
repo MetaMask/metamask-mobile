@@ -84,7 +84,7 @@ export const NotificationTypes = {
   TRANSACTION: 'transaction',
   SIMPLE: 'simple',
   ANNOUCEMENTS: 'annoucements',
-};
+} as const;
 
 export type NotificationTypesType =
   (typeof NotificationTypes)[keyof typeof NotificationTypes];
