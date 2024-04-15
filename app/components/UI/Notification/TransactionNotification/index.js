@@ -439,7 +439,7 @@ const mapStateToProps = (state) => {
   const chainId = selectChainId(state);
   const smartTransactions =
     state.engine.backgroundState.SmartTransactionsController
-      .smartTransactionsState.smartTransactions[chainId];
+      .smartTransactionsState.smartTransactions[chainId] || [];
 
   return {
     accounts: selectAccounts(state),
