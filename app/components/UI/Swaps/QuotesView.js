@@ -89,7 +89,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -100,6 +100,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { addTransaction } from '../../../util/transaction-controller';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const POLLING_INTERVAL = 30000;
 const SLIPPAGE_BUCKETS = {
@@ -366,7 +367,7 @@ function SwapsQuotesView({
   swapsTokens,
   accounts,
   balances,
-  selectedAddress,
+  selectedInternalAccount,
   currentCurrency,
   conversionRate,
   chainId,
@@ -448,6 +449,10 @@ function SwapsQuotesView({
   // TODO: use this variable in the future when calculating savings
   const [isSaving] = useState(false);
   const [isInFetch, setIsInFetch] = useState(false);
+
+  const checksummedSelectedAddress = toChecksumAddress(
+    selectedInternalAccount.address,
+  );
 
   useEffect(() => {
     navigation.setOptions(getSwapsQuotesNavbar(navigation, route, colors));
@@ -557,16 +562,24 @@ function SwapsQuotesView({
       const ethAmountBN = isSwapsNativeAsset(sourceToken)
         ? new BigNumber(sourceAmount)
         : new BigNumber(0);
-      const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
+      const ethBalanceBN = new BigNumber(
+        accounts[checksummedSelectedAddress].balance,
+      );
       const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
       return hasEnoughEthBalance;
     },
-    [accounts, selectedAddress, sourceAmount, sourceToken],
+    [accounts, checksummedSelectedAddress, sourceAmount, sourceToken],
   );
 
-  const balance = useBalance(accounts, balances, selectedAddress, sourceToken, {
-    asUnits: true,
-  });
+  const balance = useBalance(
+    accounts,
+    balances,
+    checksummedSelectedAddress,
+    sourceToken,
+    {
+      asUnits: true,
+    },
+  );
   const [
     hasEnoughTokenBalance,
     missingTokenBalance,
@@ -584,7 +597,9 @@ function SwapsQuotesView({
     const ethAmountBN = isSwapsNativeAsset(sourceToken)
       ? sourceBN
       : new BigNumber(0);
-    const ethBalanceBN = new BigNumber(accounts[selectedAddress].balance);
+    const ethBalanceBN = new BigNumber(
+      accounts[checksummedSelectedAddress].balance,
+    );
     const gasBN = toWei(selectedQuoteValue?.maxEthFee || '0');
     const hasEnoughEthBalance = ethBalanceBN.gte(ethAmountBN.plus(gasBN));
     const missingEthBalance = hasEnoughEthBalance
@@ -601,7 +616,7 @@ function SwapsQuotesView({
     accounts,
     balance,
     selectedQuoteValue,
-    selectedAddress,
+    checksummedSelectedAddress,
     sourceAmount,
     sourceToken,
   ]);
@@ -760,7 +775,7 @@ function SwapsQuotesView({
         sourceToken,
         destinationToken,
         sourceAmount,
-        walletAddress: selectedAddress,
+        walletAddress: checksummedSelectedAddress,
       });
     } else {
       navigation.pop();
@@ -771,7 +786,7 @@ function SwapsQuotesView({
     sourceToken,
     destinationToken,
     sourceAmount,
-    selectedAddress,
+    checksummedSelectedAddress,
     navigation,
   ]);
 
@@ -836,7 +851,7 @@ function SwapsQuotesView({
         paramsForAnalytics: {
           sentAt: currentBlock.timestamp,
           gasEstimate: selectedQuote?.gasEstimate || selectedQuote?.maxGas,
-          ethAccountBalance: accounts[selectedAddress].balance,
+          ethAccountBalance: accounts[checksummedSelectedAddress].balance,
           approvalTransactionMetaId,
         },
       };
@@ -845,7 +860,7 @@ function SwapsQuotesView({
     [
       chainId,
       accounts,
-      selectedAddress,
+      checksummedSelectedAddress,
       currentCurrency,
       selectedQuote,
       sourceToken,
@@ -931,7 +946,7 @@ function SwapsQuotesView({
           approvalTransactionMetaId,
           newSwapsTransactions,
         );
-        setRecipient(selectedAddress);
+        setRecipient(checksummedSelectedAddress);
         await addTokenToAssetsController(destinationToken);
         await addTokenToAssetsController(sourceToken);
       } catch (e) {
@@ -946,7 +961,7 @@ function SwapsQuotesView({
       selectedQuote,
       sourceToken,
       updateSwapsTransactions,
-      selectedAddress,
+      checksummedSelectedAddress,
       setRecipient,
       resetTransaction,
     ],
@@ -975,7 +990,7 @@ function SwapsQuotesView({
           },
         );
 
-        setRecipient(selectedAddress);
+        setRecipient(checksummedSelectedAddress);
 
         approvalTransactionMetaId = transactionMeta.id;
         newSwapsTransactions[transactionMeta.id] = {
@@ -1016,7 +1031,7 @@ function SwapsQuotesView({
       handleSwapTransaction,
       sourceToken.address,
       sourceToken.decimals,
-      selectedAddress,
+      checksummedSelectedAddress,
       setRecipient,
       resetTransaction,
     ],
@@ -1027,9 +1042,9 @@ function SwapsQuotesView({
       return;
     }
 
-    const isHardwareAddress = isHardwareAccount(selectedAddress);
+    const isHardwareAddress = isHardwareAccount(checksummedSelectedAddress);
 
-    startSwapAnalytics(selectedQuote, selectedAddress);
+    startSwapAnalytics(selectedQuote, checksummedSelectedAddress);
 
     const { TransactionController } = Engine.context;
     const newSwapsTransactions =
@@ -1060,7 +1075,7 @@ function SwapsQuotesView({
     navigation.dangerouslyGetParent()?.pop();
   }, [
     selectedQuote,
-    selectedAddress,
+    checksummedSelectedAddress,
     approvalTransaction,
     startSwapAnalytics,
     handleApprovaltransaction,
@@ -1308,7 +1323,7 @@ function SwapsQuotesView({
       sourceToken,
       destinationToken,
       sourceAmount,
-      walletAddress: selectedAddress,
+      walletAddress: checksummedSelectedAddress,
     });
 
     return () => {
@@ -1318,7 +1333,7 @@ function SwapsQuotesView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     destinationToken.address,
-    selectedAddress,
+    checksummedSelectedAddress,
     slippage,
     sourceAmount,
     sourceToken.address,
@@ -2265,9 +2280,9 @@ SwapsQuotesView.propTypes = {
    */
   currentCurrency: PropTypes.string,
   /**
-   * A string that represents the selected address
+   * An object representing the users currently selected account with address information
    */
-  selectedAddress: PropTypes.string,
+  selectedInternalAccount: PropTypes.object,
   /**
    * Chain Id
    */
@@ -2306,7 +2321,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   ticker: selectTicker(state),
   balances: selectContractBalances(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedInternalAccount: selectSelectedInternalAccount(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   isInPolling: state.engine.backgroundState.SwapsController.isInPolling,
