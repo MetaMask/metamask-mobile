@@ -95,6 +95,11 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.3,
   },
+  leftButtonContainer: {
+    marginRight: Device.isAndroid() ? 22 : 12,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
   optinHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -888,6 +893,7 @@ export function getWalletNavbarOptions(
   onPressTitle,
   navigation,
   themeColors,
+  isNotificationEnabled,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -956,6 +962,15 @@ export function getWalletNavbarOptions(
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   }
 
+  function handleNotificationOnPress() {
+    if (isNotificationEnabled) {
+      navigation.navigate('NotificationsView');
+      trackEvent(MetaMetricsEvents.WALLET_NOTIFICATIONS);
+    } else {
+      navigation.navigate('NotificationsOptInStack');
+    }
+  }
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -976,14 +991,24 @@ export function getWalletNavbarOptions(
       />
     ),
     headerRight: () => (
-      <ButtonIcon
-        variant={ButtonIconVariants.Primary}
-        onPress={openQRScanner}
-        iconName={IconName.Scan}
-        style={styles.infoButton}
-        size={IconSize.Xl}
-        testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-      />
+      <View style={styles.leftButtonContainer}>
+        <ButtonIcon
+          variant={ButtonIconVariants.Primary}
+          onPress={handleNotificationOnPress}
+          iconName={IconName.Notification}
+          style={styles.infoButton}
+          size={IconSize.Xl}
+          testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+        />
+        <ButtonIcon
+          variant={ButtonIconVariants.Primary}
+          onPress={openQRScanner}
+          iconName={IconName.Scan}
+          style={styles.infoButton}
+          size={IconSize.Xl}
+          testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+        />
+      </View>
     ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
