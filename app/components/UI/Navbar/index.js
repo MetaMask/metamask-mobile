@@ -96,6 +96,11 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.3,
   },
+  leftButtonContainer: {
+    marginRight: Device.isAndroid() ? 22 : 12,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
   optinHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -981,14 +986,22 @@ export function getWalletNavbarOptions(
       />
     ),
     headerRight: () => (
-      <ButtonIcon
-        variant={ButtonIconVariants.Primary}
-        onPress={openQRScanner}
-        iconName={IconName.Scan}
-        style={styles.infoButton}
-        size={IconSize.Xl}
-        testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-      />
+      <View style={styles.leftButtonContainer}>
+        <ButtonIcon
+          variant={ButtonIconVariants.Primary}
+          iconName={IconName.Notification}
+          style={styles.infoButton}
+          size={IconSize.Xl}
+        />
+        <ButtonIcon
+          variant={ButtonIconVariants.Primary}
+          onPress={openQRScanner}
+          iconName={IconName.Scan}
+          style={styles.infoButton}
+          size={IconSize.Xl}
+          testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+        />
+      </View>
     ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
