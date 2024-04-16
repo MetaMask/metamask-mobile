@@ -284,11 +284,28 @@ class Confirm extends PureComponent {
     setProposedNonce(proposedNonce);
   };
 
-  getAnalyticsParams = () => {
+  getAnalyticsParams = (transactionMeta) => {
     try {
       const { selectedAsset, gasEstimateType, chainId, isSmartTransaction } =
         this.props;
       const { gasSelected, fromSelectedAddress } = this.state;
+      const { SmartTransactionsController } = Engine.context;
+
+      let smartTransactionMetadata = {};
+      if (transactionMeta) {
+        const smartTransaction =
+          SmartTransactionsController.getSmartTransactionByMinedTxHash(
+            transactionMeta.transactionHash,
+          );
+
+        if (smartTransaction) {
+          smartTransactionMetadata = {
+            duplicated: smartTransaction.statusMetadata.duplicated,
+            timedOut: smartTransaction.statusMetadata.timedOut,
+            proxied: smartTransaction.statusMetadata.proxied,
+          };
+        }
+      }
 
       return {
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
@@ -302,7 +319,9 @@ class Confirm extends PureComponent {
           : this.originIsWalletConnect
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+
         is_smart_transaction: isSmartTransaction,
+        ...smartTransactionMetadata,
       };
     } catch (error) {
       return {};
@@ -907,7 +926,7 @@ class Confirm extends PureComponent {
         this.props.metrics.trackEvent(
           MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           {
-            ...this.getAnalyticsParams(),
+            ...this.getAnalyticsParams(transactionMeta),
             ...getBlockaidTransactionMetricsParams(transaction),
           },
         );
