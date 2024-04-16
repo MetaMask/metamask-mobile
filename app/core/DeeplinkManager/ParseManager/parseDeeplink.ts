@@ -8,6 +8,8 @@ import handleDappUrl from './handleDappUrl';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import handleUniversalLink from './handleUniversalLink';
 import connectWithWC from './connectWithWC';
+import { Alert } from 'react-native';
+import { strings } from '../../../../locales/i18n';
 
 function parseDeeplink({
   deeplinkManager: instance,
@@ -22,69 +24,82 @@ function parseDeeplink({
   browserCallBack?: (url: string) => void;
   onHandled?: () => void;
 }) {
-  const { urlObj, params } = extractURLParams(url);
+  try {
+    const validatedUrl = new URL(url);
+    DevLogger.log('DeepLinkManager:parse validatedUrl', validatedUrl);
 
-  const sdkConnect = SDKConnect.getInstance();
+    const { urlObj, params } = extractURLParams(url);
 
-  const protocol = urlObj.protocol.replace(':', '');
-  DevLogger.log(
-    `DeepLinkManager:parse sdkInit=${sdkConnect.hasInitialized()} origin=${origin} protocol=${protocol}`,
-    url,
-  );
+    const sdkConnect = SDKConnect.getInstance();
 
-  const handled = () => (onHandled ? onHandled() : false);
+    const protocol = urlObj.protocol.replace(':', '');
+    DevLogger.log(
+      `DeepLinkManager:parse sdkInit=${sdkConnect.hasInitialized()} origin=${origin} protocol=${protocol}`,
+      url,
+    );
 
-  const wcURL = params?.uri || urlObj.href;
+    const handled = () => (onHandled ? onHandled() : false);
 
-  switch (urlObj.protocol.replace(':', '')) {
-    case PROTOCOLS.HTTP:
-    case PROTOCOLS.HTTPS:
-      handleUniversalLink({
-        instance,
-        handled,
-        urlObj,
-        params,
-        browserCallBack,
-        origin,
-        wcURL,
-        url,
-      });
+    const wcURL = params?.uri || urlObj.href;
 
-      break;
-    case PROTOCOLS.WC:
-      connectWithWC({ handled, wcURL, origin, params });
-      break;
+    switch (urlObj.protocol.replace(':', '')) {
+      case PROTOCOLS.HTTP:
+      case PROTOCOLS.HTTPS:
+        handleUniversalLink({
+          instance,
+          handled,
+          urlObj,
+          params,
+          browserCallBack,
+          origin,
+          wcURL,
+          url,
+        });
 
-    case PROTOCOLS.ETHEREUM:
-      handled();
-      instance._handleEthereumUrl(url, origin).catch((err) => {
-        Logger.error(err, 'Error handling ethereum url');
-      });
-      break;
+        break;
+      case PROTOCOLS.WC:
+        connectWithWC({ handled, wcURL, origin, params });
+        break;
 
-    // Specific to the browser screen
-    // For ex. navigate to a specific dapp
-    case PROTOCOLS.DAPP:
-      handleDappUrl({ instance, handled, urlObj, browserCallBack });
-      break;
+      case PROTOCOLS.ETHEREUM:
+        handled();
+        instance._handleEthereumUrl(url, origin).catch((err) => {
+          Logger.error(err, 'Error handling ethereum url');
+        });
+        break;
 
-    // Specific to the MetaMask app
-    // For ex. go to settings
-    case PROTOCOLS.METAMASK:
-      handleMetaMaskDeeplink({
-        instance,
-        handled,
-        wcURL,
-        origin,
-        params,
-        url,
-      });
-      break;
-    default:
-      return false;
+      // Specific to the browser screen
+      // For ex. navigate to a specific dapp
+      case PROTOCOLS.DAPP:
+        handleDappUrl({ instance, handled, urlObj, browserCallBack });
+        break;
+
+      // Specific to the MetaMask app
+      // For ex. go to settings
+      case PROTOCOLS.METAMASK:
+        handleMetaMaskDeeplink({
+          instance,
+          handled,
+          wcURL,
+          origin,
+          params,
+          url,
+        });
+        break;
+      default:
+        return false;
+    }
+
+    return true;
+  } catch (error) {
+    Logger.error(error, 'DeepLinkManager:parse error parsing deeplink');
+
+    if (error) {
+      Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);
+    }
+
+    return false;
   }
-
-  return true;
 }
 
 export default parseDeeplink;
