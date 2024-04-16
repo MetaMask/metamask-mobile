@@ -26,7 +26,7 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../selectors/accountsController';
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
@@ -42,6 +42,7 @@ import {
   VIEW_ETHERSCAN,
 } from './AccountActions.constants';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const AccountActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -52,7 +53,11 @@ const AccountActions = () => {
 
   const providerConfig = useSelector(selectProviderConfig);
 
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const checksummedSelectedAddress = toChecksumAddress(
+    selectedInternalAccount.address,
+  );
+
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer = useMemo(() => {
@@ -80,13 +85,13 @@ const AccountActions = () => {
   const viewInEtherscan = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
-        const url = `${blockExplorer}/address/${selectedAddress}`;
+        const url = `${blockExplorer}/address/${checksummedSelectedAddress}`;
         const title = new URL(blockExplorer).hostname;
         goToBrowserUrl(url, title);
       } else {
         const url = getEtherscanAddressUrl(
           providerConfig.type,
-          selectedAddress,
+          checksummedSelectedAddress,
         );
         const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
           'https://',
@@ -102,7 +107,7 @@ const AccountActions = () => {
   const onShare = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       Share.open({
-        message: selectedAddress,
+        message: checksummedSelectedAddress,
       })
         .then(() => {
           dispatch(protectWalletModalVisible());

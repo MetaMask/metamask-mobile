@@ -23,10 +23,32 @@ const initialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
-        identities: {
-          '0xe7E125654064EEa56229f273dA586F10DF96B0a1': { name: 'Account 1' },
+      AccountsController: {
+        internalAccounts: {
+          accounts: {
+            '30313233-3435-4637-b839-383736353430': {
+              // Lowercase address to test edge case
+              address: '0xe7e125654064eea56229f273da586f10df96b0a1',
+              id: '30313233-3435-4637-b839-383736353430',
+              options: {},
+              metadata: {
+                name: 'Account 1',
+                keyring: {
+                  type: 'HD Key Tree',
+                },
+              },
+              methods: [
+                'personal_sign',
+                'eth_sign',
+                'eth_signTransaction',
+                'eth_signTypedData_v1',
+                'eth_signTypedData_v3',
+                'eth_signTypedData_v4',
+              ],
+              type: 'eip155:eoa',
+            },
+          },
+          selectedAccount: '30313233-3435-4637-b839-383736353430',
         },
       },
     },
