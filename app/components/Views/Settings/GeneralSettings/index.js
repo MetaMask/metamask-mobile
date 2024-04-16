@@ -30,11 +30,12 @@ import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const diameter = 40;
 const spacing = 8;
@@ -163,9 +164,9 @@ class Settings extends PureComponent {
      */
     setUseBlockieIcon: PropTypes.func,
     /**
-     * A string that represents the selected address
+     * An object representing the users currently selected account with address information
      */
-    selectedAddress: PropTypes.string,
+    selectedInternalAccount: PropTypes.object,
     /**
      * A bool that represents if the user wants to hide zero balance token
      */
@@ -287,12 +288,16 @@ class Settings extends PureComponent {
       primaryCurrency,
       useBlockieIcon,
       setUseBlockieIcon,
-      selectedAddress,
+      selectedInternalAccount,
       hideZeroBalanceTokens,
     } = this.props;
     const themeTokens = this.context || mockTheme;
     const { colors } = themeTokens;
     const styles = createStyles(colors);
+
+    const checksummedSelectedAddress = toChecksumAddress(
+      selectedInternalAccount.address,
+    );
 
     return (
       <ScrollView style={styles.wrapper}>
@@ -442,7 +447,10 @@ class Settings extends PureComponent {
                   <View
                     style={[styles.border, !useBlockieIcon && styles.selected]}
                   >
-                    <Jazzicon size={diameter} address={selectedAddress} />
+                    <Jazzicon
+                      size={diameter}
+                      address={checksummedSelectedAddress}
+                    />
                   </View>
                   <Text style={styles.identiconText}>
                     {strings('app_settings.jazzicons')}
@@ -456,7 +464,7 @@ class Settings extends PureComponent {
                     style={[styles.border, useBlockieIcon && styles.selected]}
                   >
                     <Image
-                      source={{ uri: toDataUrl(selectedAddress) }}
+                      source={{ uri: toDataUrl(checksummedSelectedAddress) }}
                       style={styles.blockie}
                     />
                   </View>
@@ -481,7 +489,7 @@ const mapStateToProps = (state) => ({
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
   useBlockieIcon: state.settings.useBlockieIcon,
-  selectedAddress: selectSelectedAddress(state),
+  selectedInternalAccount: selectSelectedInternalAccount(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
   // appTheme: state.user.appTheme,
 });
