@@ -25,7 +25,7 @@ import {
   getTokenValueParamAsHex,
   isSwapTransaction,
 } from '../../../util/transactions';
-import { BN } from 'ethereumjs-util';
+import { BN, toChecksumAddress } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -58,7 +58,7 @@ import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../selectors/accountsController';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
@@ -76,6 +76,9 @@ const RootRPCMethodsUI = (props) => {
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
+  const checksummedSelectedAddress = toChecksumAddress(
+    props.selectedInternalAccount.address,
+  );
 
   const initializeWalletConnect = () => {
     WalletConnect.init();
@@ -101,7 +104,7 @@ const RootRPCMethodsUI = (props) => {
         const ethBalance = await query(
           TransactionController.ethQuery,
           'getBalance',
-          [props.selectedAddress],
+          [checksummedSelectedAddress],
         );
         const receipt = await query(
           TransactionController.ethQuery,
@@ -183,7 +186,7 @@ const RootRPCMethodsUI = (props) => {
       }
     },
     [
-      props.selectedAddress,
+      checksummedSelectedAddress,
       props.swapsTransactions,
       trackEvent,
       trackAnonymousEvent,
@@ -434,9 +437,9 @@ RootRPCMethodsUI.propTypes = {
    */
   tokens: PropTypes.array,
   /**
-   * Selected address
+   * Selected address	   * An object representing the users currently selected account with address information
    */
-  selectedAddress: PropTypes.string,
+  selectedInternalAccount: PropTypes.object,
   /**
    * Chain id
    */
@@ -444,7 +447,7 @@ RootRPCMethodsUI.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedInternalAccount: selectSelectedInternalAccount(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   swapsTransactions:
