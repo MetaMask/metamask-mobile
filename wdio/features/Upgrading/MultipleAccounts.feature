@@ -33,7 +33,6 @@ Feature: Upgrade previous app build with current release while being connected t
     And the splash animation completes
     And I fill my password in the Login screen
     And I log into my wallet
-    And I close the Whats New modal
     Then I am on the "<AccountName>" account
     And I tap on the Settings tab option
     And I scroll up
