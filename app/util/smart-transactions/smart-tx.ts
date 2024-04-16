@@ -263,6 +263,7 @@ class SmartTransactionHook {
             );
             resolve(statusMetadata.minedHash);
           } else {
+            // cancelled status will have statusMetadata?.minedHash === ''
             resolve(null);
           }
         },
