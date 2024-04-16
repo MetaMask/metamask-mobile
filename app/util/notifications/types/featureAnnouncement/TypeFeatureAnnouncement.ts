@@ -1,4 +1,4 @@
-import type { Entry, EntryFieldTypes } from 'contentful';
+import type { Entry, EntryFieldTypes } from 'contentful/dist/types';
 import type { TypeActionFields } from './TypeAction';
 import type { TypeLinkFields } from './TypeLink';
 

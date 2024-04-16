@@ -1,4 +1,4 @@
-import type { Entry, EntryFieldTypes } from 'contentful';
+import type { Entry, EntryFieldTypes } from 'contentful/dist/types';
 
 export interface TypeLinkFields {
   fields: {
