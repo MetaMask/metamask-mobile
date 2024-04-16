@@ -311,6 +311,32 @@ class Approval extends PureComponent {
       const { chainId, transaction, selectedAddress, isSmartTransaction } =
         this.props;
       const { selectedAsset } = transaction;
+      const { TransactionController, SmartTransactionsController } =
+        Engine.context;
+
+      const transactionMeta = TransactionController.getTransaction(
+        transaction.id,
+      );
+
+      let smartTransactionMetadata = {};
+      if (transactionMeta) {
+        const smartTransaction =
+          SmartTransactionsController.getSmartTransactionByMinedTxHash(
+            transactionMeta.transactionHash,
+          );
+
+        if (smartTransaction) {
+          smartTransactionMetadata = {
+            duplicated: smartTransaction.statusMetadata.duplicated,
+            timedOut: smartTransaction.statusMetadata.timedOut,
+            proxied: smartTransaction.statusMetadata.proxied,
+          };
+        }
+      }
+      console.log(
+        'STX Approval::getAnalyticsParams::smartTransactionMetadata',
+        smartTransactionMetadata,
+      );
 
       return {
         account_type: getAddressAccountType(selectedAddress),
@@ -327,6 +353,7 @@ class Approval extends PureComponent {
           ? AppConstants.REQUEST_SOURCES.WC
           : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
         is_smart_transaction: isSmartTransaction,
+        ...smartTransactionMetadata,
       };
     } catch (error) {
       return {};
@@ -463,7 +490,11 @@ class Approval extends PureComponent {
         (transactionMeta) => {
           Logger.log(
             'STX Approval::onConfirm::transactionMeta',
-            transactionMeta,
+            `${transaction.id}:finished`,
+            {
+              id: transactionMeta.id,
+              transactionHash: transactionMeta.transactionHash,
+            },
           );
           if (transactionMeta.status === 'submitted') {
             if (!isLedgerAccount) {
@@ -547,6 +578,7 @@ class Approval extends PureComponent {
       }
       this.setState({ transactionHandled: false });
     }
+
     this.props.metrics.trackEvent(
       MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
       {
