@@ -63,7 +63,9 @@ describe('CollectibleContracts', () => {
   });
 
   it('should only get owned collectibles', () => {
-    const CURRENT_ACCOUNT = '0x1a';
+    const CURRENT_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+    const CURRENT_ACCOUNT_LOWERCASE =
+      '0xd018538c87232ff95acbce4870629b75640a78e7';
     const mockState = {
       collectibles: {
         favorites: {},
@@ -82,13 +84,31 @@ describe('CollectibleContracts', () => {
           AccountTrackerController: {
             accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
           },
-          PreferencesController: {
-            selectedAddress: CURRENT_ACCOUNT,
-            identities: {
-              [CURRENT_ACCOUNT]: {
-                address: CURRENT_ACCOUNT,
-                name: 'Account 1',
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                '30313233-3435-4637-b839-383736353430': {
+                  address: CURRENT_ACCOUNT_LOWERCASE,
+                  id: '30313233-3435-4637-b839-383736353430',
+                  options: {},
+                  metadata: {
+                    name: 'Account 1',
+                    keyring: {
+                      type: 'HD Key Tree',
+                    },
+                  },
+                  methods: [
+                    'personal_sign',
+                    'eth_sign',
+                    'eth_signTransaction',
+                    'eth_signTypedData_v1',
+                    'eth_signTypedData_v3',
+                    'eth_signTypedData_v4',
+                  ],
+                  type: 'eip155:eoa',
+                },
               },
+              selectedAccount: '30313233-3435-4637-b839-383736353430',
             },
           },
           NftController: {
@@ -151,7 +171,9 @@ describe('CollectibleContracts', () => {
   });
 
   it('UI refresh changes NFT image when metadata image changes', async () => {
-    const CURRENT_ACCOUNT = '0x1a';
+    const CURRENT_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+    const CURRENT_ACCOUNT_LOWERCASE =
+      '0xd018538c87232ff95acbce4870629b75640a78e7';
     const collectibleData = [
       {
         address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -211,11 +233,32 @@ describe('CollectibleContracts', () => {
           PreferencesController: {
             displayNftMedia: true,
             selectedAddress: CURRENT_ACCOUNT,
-            identities: {
-              [CURRENT_ACCOUNT]: {
-                address: CURRENT_ACCOUNT,
-                name: 'Account 1',
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                '30313233-3435-4637-b839-383736353430': {
+                  address: CURRENT_ACCOUNT_LOWERCASE,
+                  id: '30313233-3435-4637-b839-383736353430',
+                  options: {},
+                  metadata: {
+                    name: 'Account 1',
+                    keyring: {
+                      type: 'HD Key Tree',
+                    },
+                  },
+                  methods: [
+                    'personal_sign',
+                    'eth_sign',
+                    'eth_signTransaction',
+                    'eth_signTypedData_v1',
+                    'eth_signTypedData_v3',
+                    'eth_signTypedData_v4',
+                  ],
+                  type: 'eip155:eoa',
+                },
               },
+              selectedAccount: '30313233-3435-4637-b839-383736353430',
             },
           },
           NftController: {
