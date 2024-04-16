@@ -15,7 +15,7 @@ export interface BadgeNotificationsProps
    * Optional prop to control the image source of the notifications
    * from either a local or remote source.
    */
-  iconName?: IconName;
+  iconName: IconName;
 }
 
 /**
