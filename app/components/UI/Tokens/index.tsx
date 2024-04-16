@@ -221,16 +221,15 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const renderStakeButton = (asset: TokenI) => {
     const onStakeButtonPress = () => {
-      const STAKE_URL = `${AppConstants.PORTFOLIO.URL}/stake`;
       const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.includes(STAKE_URL),
+        tab.url.includes(AppConstants.STAKE.URL),
       );
       let existingTabId;
       let newTabUrl;
       if (existingStakeTab) {
         existingTabId = existingStakeTab.id;
       } else {
-        newTabUrl = `${STAKE_URL}?metamaskEntry=mobile`;
+        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
       }
       const params = {
         ...(newTabUrl && { newTabUrl }),
@@ -246,7 +245,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         location: 'Home Screen',
         text: 'Stake',
         token_symbol: asset.symbol,
-        url: STAKE_URL,
+        url: AppConstants.STAKE.URL,
       });
     };
 
