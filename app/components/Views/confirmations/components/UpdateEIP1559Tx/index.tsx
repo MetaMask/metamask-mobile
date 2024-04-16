@@ -20,15 +20,16 @@ import {
   selectTicker,
 } from '../../../../../selectors/networkController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const UpdateEIP1559Tx = ({
   gas,
   accounts,
-  selectedAddress,
+  selectedInternalAccount,
   ticker,
   existingGas,
   gasFeeEstimates,
@@ -54,6 +55,10 @@ const UpdateEIP1559Tx = ({
   const updateTx1559Options = useRef<UpdateTx1559Options | undefined>();
   const pollToken = useRef(undefined);
   const firstTime = useRef(true);
+
+  const checksummedSelectedAddress = toChecksumAddress(
+    selectedInternalAccount.address,
+  );
 
   const suggestedGasLimit = fromWei(gas, 'wei');
 
@@ -103,7 +108,9 @@ const UpdateEIP1559Tx = ({
       let error;
 
       const updateTxCost: any = hexToBN(`0x${updateTx.totalMaxHex}`);
-      const accountBalance: any = hexToBN(accounts[selectedAddress].balance);
+      const accountBalance: any = hexToBN(
+        accounts[checksummedSelectedAddress].balance,
+      );
       const isMaxFeePerGasMoreThanLegacyResult = isMaxFeePerGasMoreThanLegacy(
         new BigNumber(updateTx.suggestedMaxFeePerGas),
       );
@@ -141,7 +148,7 @@ const UpdateEIP1559Tx = ({
     },
     [
       accounts,
-      selectedAddress,
+      checksummedSelectedAddress,
       isMaxFeePerGasMoreThanLegacy,
       isMaxPriorityFeePerGasMoreThanLegacy,
       ticker,
@@ -255,7 +262,7 @@ const UpdateEIP1559Tx = ({
 
 const mapStateToProps = (state: any) => ({
   accounts: selectAccounts(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedInternalAccount: selectSelectedInternalAccount(state),
   ticker: selectTicker(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
