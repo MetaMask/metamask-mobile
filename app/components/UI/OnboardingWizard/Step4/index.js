@@ -1,25 +1,28 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
-import Coachmark from '../Coachmark';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
-import onboardingStyles from './../styles';
+import Coachmark from '../Coachmark';
+
+import Device from '../../../../util/device';
+
+import onboardingStyles from '../styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../../selectors/preferencesController';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useMetrics } from '../../../hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {
@@ -27,57 +30,38 @@ const styles = StyleSheet.create({
   },
   coachmarkContainer: {
     position: 'absolute',
+    alignSelf: 'center',
   },
 });
 
-const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
+const Step4 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
 
   const [coachmarkTop, setCoachmarkTop] = useState(0);
-  const [coachmarkLeft, setCoachmarkLeft] = useState(0);
-  const [coachmarkRight, setCoachmarkRight] = useState(0);
 
   const handleLayout = useCallback(() => {
-    const accActionsRef = coachmarkRef.accountActionsRef?.current;
-    if (!accActionsRef) return;
-
-    accActionsRef.measure(
-      (
-        accActionsFx,
-        accActionsFy,
-        accActionsWidth,
-        accActionsHeight,
-        accActionsPageX,
-        accActionsPageY,
-      ) => {
-        const top = accActionsHeight + accActionsPageY;
-        const right =
-          Dimensions.get('window').width - (accActionsPageX + accActionsWidth);
-        setCoachmarkTop(top);
-        setCoachmarkLeft(accActionsPageX);
-        setCoachmarkRight(right);
-      },
-    );
-  }, [coachmarkRef.accountActionsRef]);
+    const top = Device.isIphoneX() ? 80 : Device.isIos() ? 64 : 60;
+    setCoachmarkTop(top);
+  }, []);
 
   useEffect(() => {
     handleLayout();
   }, [handleLayout]);
 
   const onNext = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(4);
+    setOnboardingWizardStep && setOnboardingWizardStep(5);
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
-      tutorial_step_count: 3,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
+      tutorial_step_count: 4,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
     });
   };
 
   const onBack = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(2);
+    setOnboardingWizardStep && setOnboardingWizardStep(3);
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
-      tutorial_step_count: 3,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
+      tutorial_step_count: 4,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
     });
   };
 
@@ -94,9 +78,12 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
       <View style={dynamicOnboardingStyles.contentContainer}>
         <Text
           style={dynamicOnboardingStyles.content}
-          {...generateTestId(Platform, ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID)}
+          {...generateTestId(
+            Platform,
+            ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID,
+          )}
         >
-          {strings('onboarding_wizard_new.step3.content1')}
+          {strings('onboarding_wizard_new.step4.content1')}
         </Text>
       </View>
     );
@@ -109,18 +96,16 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
           styles.coachmarkContainer,
           {
             top: coachmarkTop,
-            left: coachmarkLeft,
-            right: coachmarkRight,
           },
         ]}
       >
         <Coachmark
-          title={strings('onboarding_wizard_new.step3.title')}
+          title={strings('onboarding_wizard_new.step4.title')}
           content={content()}
           onNext={onNext}
           onBack={onBack}
-          topIndicatorPosition={'topRightCorner'}
-          currentStep={2}
+          topIndicatorPosition={'topRight'}
+          currentStep={3}
           onClose={onCloseStep}
         />
       </View>
@@ -128,7 +113,7 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
   );
 };
 
-Step3.propTypes = {
+Step4.propTypes = {
   setOnboardingWizardStep: PropTypes.func,
   coachmarkRef: PropTypes.object,
   onClose: PropTypes.func,
@@ -145,4 +130,4 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Step3);
+export default connect(mapStateToProps, mapDispatchToProps)(Step4);
