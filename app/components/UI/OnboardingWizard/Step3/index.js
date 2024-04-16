@@ -13,12 +13,6 @@ import {
 import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../../selectors/preferencesController';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
@@ -134,15 +128,8 @@ Step3.propTypes = {
   onClose: PropTypes.func,
 };
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedAddress(state),
-  identities: selectIdentities(state),
-});
-
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Step3);
+export default connect(mapDispatchToProps)(Step3);
