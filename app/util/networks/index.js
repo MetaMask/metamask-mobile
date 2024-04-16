@@ -24,7 +24,7 @@ import { isStrictHexString } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
-import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
+import buildUnserializedTransaction from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 import { regex } from '../../../app/util/regex';
 
