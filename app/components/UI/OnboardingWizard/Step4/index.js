@@ -12,7 +12,13 @@ import {
 } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { selectAccounts } from '../../../../selectors/accountTrackerController';
+import {
+  selectIdentities,
+  selectSelectedAddress,
+} from '../../../../selectors/preferencesController';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
@@ -21,73 +27,80 @@ const styles = StyleSheet.create({
   },
   coachmarkContainer: {
     position: 'absolute',
-    left: 0,
-    right: 0,
   },
-  coachmark: { marginHorizontal: 16 },
 });
 
-const Step4 = (props) => {
-  const { setOnboardingWizardStep, onClose } = props;
-  const { trackEvent } = useMetrics();
+const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
   const { colors } = useTheme();
-  const dynamicOnboardingStyles = onboardingStyles(colors);
-  const [coachmarkBottom, setCoachmarkBottom] = useState();
+  const { trackEvent } = useMetrics();
 
-  const getCoachmarkPosition = useCallback(() => {
-    props?.coachmarkRef?.current?.measure(
-      (x, y, width, heigh, pageX, pageY) => {
-        setCoachmarkBottom(Dimensions.get('window').height - pageY);
+  const [coachmarkTop, setCoachmarkTop] = useState(0);
+  const [coachmarkLeft, setCoachmarkLeft] = useState(0);
+  const [coachmarkRight, setCoachmarkRight] = useState(0);
+
+  const handleLayout = useCallback(() => {
+    const accActionsRef = coachmarkRef.accountActionsRef?.current;
+    if (!accActionsRef) return;
+
+    accActionsRef.measure(
+      (
+        accActionsFx,
+        accActionsFy,
+        accActionsWidth,
+        accActionsHeight,
+        accActionsPageX,
+        accActionsPageY,
+      ) => {
+        const top = accActionsHeight + accActionsPageY;
+        const right =
+          Dimensions.get('window').width - (accActionsPageX + accActionsWidth);
+        setCoachmarkTop(top);
+        setCoachmarkLeft(accActionsPageX);
+        setCoachmarkRight(right);
       },
     );
-  }, [props?.coachmarkRef]);
+  }, [coachmarkRef.accountActionsRef]);
 
   useEffect(() => {
-    getCoachmarkPosition();
-  }, [getCoachmarkPosition]);
+    handleLayout();
+  }, [handleLayout]);
 
-  /**
-   * Dispatches 'setOnboardingWizardStep' with next step
-   */
   const onNext = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(5);
+    setOnboardingWizardStep && setOnboardingWizardStep(4);
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
-      tutorial_step_count: 4,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
+      tutorial_step_count: 3,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
     });
   };
 
-  /**
-   * Dispatches 'setOnboardingWizardStep' with back step
-   */
   const onBack = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(3);
+    setOnboardingWizardStep && setOnboardingWizardStep(2);
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
-      tutorial_step_count: 4,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
+      tutorial_step_count: 3,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
     });
   };
 
-  /**
-   * Calls props 'onClose'
-   */
-  const handleOnClose = () => {
+  const getOnboardingStyles = () => onboardingStyles(colors);
+
+  const onCloseStep = () => {
     onClose && onClose(false);
   };
 
-  /**
-   * Returns content for this step
-   */
-  const content = () => (
-    <View style={dynamicOnboardingStyles.contentContainer}>
-      <Text
-        style={dynamicOnboardingStyles.content}
-        {...generateTestId(Platform, ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID)}
-      >
-        {strings('onboarding_wizard_new.step4.content1')}
-      </Text>
-    </View>
-  );
+  const content = () => {
+    const dynamicOnboardingStyles = getOnboardingStyles();
+
+    return (
+      <View style={dynamicOnboardingStyles.contentContainer}>
+        <Text
+          style={dynamicOnboardingStyles.content}
+          {...generateTestId(Platform, ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID)}
+        >
+          {strings('onboarding_wizard_new.step3.content1')}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.main}>
@@ -95,42 +108,41 @@ const Step4 = (props) => {
         style={[
           styles.coachmarkContainer,
           {
-            bottom: coachmarkBottom,
+            top: coachmarkTop,
+            left: coachmarkLeft,
+            right: coachmarkRight,
           },
         ]}
       >
         <Coachmark
-          title={strings('onboarding_wizard_new.step4.title')}
+          title={strings('onboarding_wizard_new.step3.title')}
           content={content()}
           onNext={onNext}
           onBack={onBack}
-          style={styles.coachmark}
-          bottomIndicatorPosition={'bottomCenter'}
-          currentStep={3}
-          onClose={handleOnClose}
+          topIndicatorPosition={'topRightCorner'}
+          currentStep={2}
+          onClose={onCloseStep}
         />
       </View>
     </View>
   );
 };
 
+Step3.propTypes = {
+  setOnboardingWizardStep: PropTypes.func,
+  coachmarkRef: PropTypes.object,
+  onClose: PropTypes.func,
+};
+
+const mapStateToProps = (state) => ({
+  accounts: selectAccounts(state),
+  currentCurrency: selectCurrentCurrency(state),
+  selectedAddress: selectSelectedAddress(state),
+  identities: selectIdentities(state),
+});
+
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-Step4.propTypes = {
-  /**
-   * Dispatch set onboarding wizard step
-   */
-  setOnboardingWizardStep: PropTypes.func,
-  /**
-   * Callback called when closing step
-   */
-  onClose: PropTypes.func,
-  /**
-   *  coachmark ref to get position
-   */
-  coachmarkRef: PropTypes.object,
-};
-
-export default connect(null, mapDispatchToProps)(Step4);
+export default connect(mapStateToProps, mapDispatchToProps)(Step3);
