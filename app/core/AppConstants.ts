@@ -24,6 +24,9 @@ export default {
     ACTIVE: true,
     URL: `${PORTFOLIO_URL}/bridge`,
   },
+  STAKE: {
+    URL: `${PORTFOLIO_URL}/stake`,
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
