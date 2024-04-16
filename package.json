@@ -128,7 +128,6 @@
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
     "@consensys/on-ramp-sdk": "1.26.8",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
-    "@ethereumjs/common": "^2.3.1",
     "@ethereumjs/tx": "^3.2.1",
     "@ethersproject/abi": "^5.7.0",
     "@exodus/react-native-payments": "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5",
