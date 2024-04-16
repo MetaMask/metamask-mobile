@@ -28,13 +28,12 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../selectors/preferencesController';
+import { selectIdentities } from '../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../selectors/accountsController';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/WalletView.selectors';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -45,7 +44,7 @@ const styles = StyleSheet.create({
 const TransactionsView = ({
   navigation,
   conversionRate,
-  selectedAddress,
+  selectedInternalAccount,
   identities,
   networkType,
   currentCurrency,
@@ -63,7 +62,11 @@ const TransactionsView = ({
       if (networkId === NETWORK_ID_LOADING) return;
 
       let accountAddedTimeInsertPointFound = false;
-      const addedAccountTime = identities[selectedAddress]?.importTime;
+      const checksummedSelectedAddress = toChecksumAddress(
+        selectedInternalAccount.address,
+      );
+      const addedAccountTime =
+        identities[checksummedSelectedAddress]?.importTime;
 
       const submittedTxs = [];
       const newPendingTxs = [];
@@ -79,7 +82,7 @@ const TransactionsView = ({
         const filter = filterByAddressAndNetwork(
           tx,
           tokens,
-          selectedAddress,
+          selectedInternalAccount.address,
           networkId,
           chainId,
         );
@@ -112,7 +115,7 @@ const TransactionsView = ({
 
       const submittedTxsFiltered = submittedTxs.filter(({ transaction }) => {
         const { from, nonce } = transaction;
-        if (!toLowerCaseEquals(from, selectedAddress)) {
+        if (!toLowerCaseEquals(from, selectedInternalAccount.address)) {
           return false;
         }
         const alreadySubmitted = submittedNonces.includes(nonce);
@@ -120,7 +123,7 @@ const TransactionsView = ({
           (tx) =>
             toLowerCaseEquals(
               safeToChecksumAddress(tx.transaction.from),
-              selectedAddress,
+              selectedInternalAccount.address,
             ) && tx.transaction.nonce === nonce,
         );
         if (alreadyConfirmed) {
@@ -144,7 +147,13 @@ const TransactionsView = ({
       setConfirmedTxs(confirmedTxs);
       setLoading(false);
     },
-    [transactions, identities, selectedAddress, tokens, chainId],
+    [
+      selectedInternalAccount.address,
+      identities,
+      transactions,
+      tokens,
+      chainId,
+    ],
   );
 
   useEffect(() => {
@@ -199,9 +208,9 @@ TransactionsView.propTypes = {
   */
   navigation: PropTypes.object,
   /**
-   * A string that represents the selected address
+   * An object representing the users currently selected account with address information
    */
-  selectedAddress: PropTypes.string,
+  selectedInternalAccount: PropTypes.object,
   /**
    * An array that represents the user transactions
    */
@@ -224,7 +233,7 @@ const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   tokens: selectTokens(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedInternalAccount: selectSelectedInternalAccount(state),
   identities: selectIdentities(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   networkType: selectProviderType(state),
