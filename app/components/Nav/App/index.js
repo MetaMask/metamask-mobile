@@ -31,7 +31,7 @@ import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { routingInstrumentation } from '../../../util/sentry/utils';
-import { connect, useDispatch } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
@@ -107,6 +107,8 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
+import selectSelectedInternalAccount from '../../../selectors/accountsController';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -309,15 +311,18 @@ const App = ({ userLoggedIn }) => {
     }
   };
 
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const checksummedSelectedAddress = toChecksumAddress(
+    selectedInternalAccount.address,
+  );
+
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
-      const { PreferencesController } = Engine.context;
-      const selectedAddress = PreferencesController.state.selectedAddress;
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
-        if (existingUser && selectedAddress) {
-          await Authentication.appTriggeredAuth({ selectedAddress });
+        if (existingUser && checksummedSelectedAddress) {
+          await Authentication.appTriggeredAuth({ checksummedSelectedAddress });
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         }
@@ -352,6 +357,7 @@ const App = ({ userLoggedIn }) => {
       .catch((error) => {
         Logger.error(error, 'App: Error in appTriggeredAuth');
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
