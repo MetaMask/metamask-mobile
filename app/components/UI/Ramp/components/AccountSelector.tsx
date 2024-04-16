@@ -9,8 +9,7 @@ import Text from '../../../Base/Text';
 import JSSelectorButton from '../../../Base/SelectorButton';
 import { useNavigation } from '@react-navigation/native';
 import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
-import { selectIdentities } from '../../../../selectors/preferencesController';
-import selectSelectedInternalAccount from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { toChecksumAddress } from 'ethereumjs-util';
 
 // TODO: Convert into typescript and correctly type
@@ -35,8 +34,6 @@ const AccountSelector = () => {
     selectedInternalAccount.address,
   );
 
-  const identities = useSelector(selectIdentities);
-
   const openAccountSelector = () =>
     navigation.navigate(...createAccountSelectorNavDetails());
 
@@ -44,9 +41,9 @@ const AccountSelector = () => {
     <SelectorButton onPress={openAccountSelector} style={styles.selector}>
       <Identicon diameter={15} address={checksummedSelectedAddress} />
       <Text style={styles.accountText} primary centered numberOfLines={1}>
-        {identities[checksummedSelectedAddress]?.name.length > 13
-          ? `${identities[checksummedSelectedAddress]?.name.substr(0, 13)}...`
-          : identities[checksummedSelectedAddress]?.name}{' '}
+        {selectedInternalAccount.metadata.name.length > 13
+          ? `${selectedInternalAccount.metadata.name.substr(0, 13)}...`
+          : selectedInternalAccount.metadata.name}{' '}
         (
         <EthereumAddress address={checksummedSelectedAddress} type={'short'} />)
       </Text>

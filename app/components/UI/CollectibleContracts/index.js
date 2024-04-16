@@ -35,9 +35,9 @@ import {
 } from '../../../selectors/networkController';
 import {
   selectIsIpfsGatewayEnabled,
-  selectSelectedAddress,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import {
   IMPORT_NFT_BUTTON_ID,
   NFT_TAB_CONTAINER_ID,
@@ -432,7 +432,7 @@ CollectibleContracts.propTypes = {
 const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountAddressAsChecksum(state),
   useNftDetection: selectUseNftDetection(state),
   collectibleContracts: collectibleContractsSelector(state),
   collectibles: collectiblesSelector(state),

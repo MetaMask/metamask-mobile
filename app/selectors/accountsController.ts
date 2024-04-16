@@ -1,11 +1,12 @@
 import { createSelector } from 'reselect';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { RootState } from '../reducers';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const selectAccountsControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountsController;
 
-const selectSelectedInternalAccount = createSelector(
+export const selectSelectedInternalAccount = createSelector(
   selectAccountsControllerState,
   (accountsControllerState: AccountsControllerState) => {
     const accountId = accountsControllerState.internalAccounts.selectedAccount;
@@ -13,4 +14,12 @@ const selectSelectedInternalAccount = createSelector(
   },
 );
 
-export default selectSelectedInternalAccount;
+export const selectSelectedInternalAccountAddressAsChecksum = createSelector(
+  selectAccountsControllerState,
+  (accountsControllerState: AccountsControllerState) => {
+    const accountId = accountsControllerState.internalAccounts.selectedAccount;
+    const selectedAddress =
+      accountsControllerState.internalAccounts.accounts[accountId].address;
+    return toChecksumAddress(selectedAddress);
+  },
+);

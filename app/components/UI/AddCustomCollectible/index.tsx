@@ -27,7 +27,7 @@ import {
   NFT_IDENTIFIER_INPUT_BOX_ID,
 } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
 import { selectChainId } from '../../../selectors/networkController';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
@@ -85,7 +85,9 @@ const AddCustomCollectible = ({
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountAddressAsChecksum,
+  );
   const chainId = useSelector(selectChainId);
 
   useEffect(() => {
@@ -155,7 +157,7 @@ const AddCustomCollectible = ({
     try {
       const { NftController } = Engine.context as any;
       const isOwner = await NftController.isNftOwner(
-        selectedInternalAccount.address,
+        selectedAddress,
         address,
         tokenId,
       );

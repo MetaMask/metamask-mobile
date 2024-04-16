@@ -52,9 +52,8 @@ import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { toChecksumAddress } from 'ethereumjs-util';
 
 const PRIVATE_KEY = 'private_key';
 
@@ -84,9 +83,8 @@ const RevealPrivateCredential = ({
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  const checksummedSelectedAddress = toChecksumAddress(
-    selectedInternalAccount.address,
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountAddressAsChecksum,
   );
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
@@ -130,7 +128,7 @@ const RevealPrivateCredential = ({
       } else {
         privateCredential = await KeyringController.exportAccount(
           pswd,
-          checksummedSelectedAddress,
+          selectedAddress,
         );
       }
 
@@ -140,7 +138,7 @@ const RevealPrivateCredential = ({
       }
     } catch (e: any) {
       let msg = strings('reveal_credential.warning_incorrect_password');
-      if (isHardwareAccount(checksummedSelectedAddress)) {
+      if (isHardwareAccount(selectedAddress)) {
         msg = strings('reveal_credential.hardware_error');
       } else if (
         e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()

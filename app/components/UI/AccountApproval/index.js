@@ -25,7 +25,7 @@ import {
 } from '../../../selectors/networkController';
 import { selectTokensLength } from '../../../selectors/tokensController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import AppConstants from '../../../../app/core/AppConstants';
 import { shuffle } from 'lodash';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
@@ -61,7 +61,7 @@ class AccountApproval extends PureComponent {
     /**
      * A string that represents the selected address
      */
-    selectedInternalAccount: PropTypes.object,
+    selectedAddress: PropTypes.string,
     /**
      * Number of tokens
      */
@@ -112,12 +112,12 @@ class AccountApproval extends PureComponent {
       const {
         currentPageInformation,
         chainId,
-        selectedInternalAccount,
+        selectedAddress,
         accountsLength,
       } = this.props;
       const url = new URL(currentPageInformation?.url);
       return {
-        account_type: getAddressAccountType(selectedInternalAccount.address),
+        account_type: getAddressAccountType(selectedAddress),
         dapp_host_name: url?.host,
         chain_id: getDecimalChainId(chainId),
         number_of_accounts: accountsLength,
@@ -261,7 +261,7 @@ class AccountApproval extends PureComponent {
   };
 
   render = () => {
-    const { currentPageInformation, selectedInternalAccount } = this.props;
+    const { currentPageInformation, selectedAddress } = this.props;
     const { isUrlFlaggedAsPhishing } = this.state;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
@@ -290,7 +290,7 @@ class AccountApproval extends PureComponent {
           </>
         )}
         <View style={styles.accountCardWrapper}>
-          <AccountInfoCard fromAddress={selectedInternalAccount.address} />
+          <AccountInfoCard fromAddress={selectedAddress} />
         </View>
         {currentPageInformation.reconnect && (
           <Text style={styles.intro_reconnect}>
@@ -376,7 +376,7 @@ class AccountApproval extends PureComponent {
 const mapStateToProps = (state) => ({
   accountsLength: selectAccountsLength(state),
   tokensLength: selectTokensLength(state),
-  selectedInternalAccount: selectSelectedInternalAccount(state),
+  selectedAddress: selectSelectedInternalAccountAddressAsChecksum(state),
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
 });

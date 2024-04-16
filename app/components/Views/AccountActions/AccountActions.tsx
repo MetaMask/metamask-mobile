@@ -26,7 +26,7 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
@@ -42,7 +42,6 @@ import {
   VIEW_ETHERSCAN,
 } from './AccountActions.constants';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { toChecksumAddress } from 'ethereumjs-util';
 
 const AccountActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -53,11 +52,9 @@ const AccountActions = () => {
 
   const providerConfig = useSelector(selectProviderConfig);
 
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  const checksummedSelectedAddress = toChecksumAddress(
-    selectedInternalAccount.address,
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountAddressAsChecksum,
   );
-
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer = useMemo(() => {
@@ -85,13 +82,13 @@ const AccountActions = () => {
   const viewInEtherscan = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
-        const url = `${blockExplorer}/address/${checksummedSelectedAddress}`;
+        const url = `${blockExplorer}/address/${selectedAddress}`;
         const title = new URL(blockExplorer).hostname;
         goToBrowserUrl(url, title);
       } else {
         const url = getEtherscanAddressUrl(
           providerConfig.type,
-          checksummedSelectedAddress,
+          selectedAddress,
         );
         const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
           'https://',
@@ -107,7 +104,7 @@ const AccountActions = () => {
   const onShare = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       Share.open({
-        message: checksummedSelectedAddress,
+        message: selectedAddress,
       })
         .then(() => {
           dispatch(protectWalletModalVisible());

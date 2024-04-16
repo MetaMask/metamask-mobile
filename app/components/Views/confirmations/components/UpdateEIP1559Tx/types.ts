@@ -1,4 +1,3 @@
-import { InternalAccount } from '@metamask/keyring-api';
 import BigNumber from 'bignumber.js';
 
 export interface UpdateEIP1559Props {
@@ -23,9 +22,9 @@ export interface UpdateEIP1559Props {
    */
   gasEstimateType: string;
   /**
-   * An object representing the users currently selected account with address information
+   * A string that represents the selected address
    */
-  selectedInternalAccount: InternalAccount;
+  selectedAddress: string;
   /**
    * A bool indicates whether tx is speed up/cancel
    */

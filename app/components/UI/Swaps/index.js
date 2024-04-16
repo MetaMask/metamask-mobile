@@ -79,8 +79,8 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import AccountSelector from '../Ramp/components/AccountSelector';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
 import {
   SWAP_SOURCE_TOKEN,
   SWAP_DEST_TOKEN,
@@ -88,6 +88,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     container: { backgroundColor: colors.background.default },
@@ -185,7 +186,7 @@ function SwapsAmountView({
   swapsTokens,
   swapsControllerTokens,
   accounts,
-  selectedInternalAccount,
+  selectedAddress,
   chainId,
   providerConfig,
   networkConfigurations,
@@ -251,10 +252,6 @@ function SwapsAmountView({
     ,
     hideTokenVerificationModal,
   ] = useModalHandler(false);
-
-  const checksummedSelectedAddress = safeToChecksumAddress(
-    selectedInternalAccount.address,
-  );
 
   useEffect(() => {
     navigation.setOptions(getSwapsAmountNavbar(navigation, route, colors));
@@ -407,7 +404,7 @@ function SwapsAmountView({
         try {
           const balance = await AssetsContractController.getERC20BalanceOf(
             sourceToken.address,
-            checksummedSelectedAddress,
+            selectedAddress,
           );
           setContractBalanceAsUnits(balance);
           setContractBalance(
@@ -418,13 +415,13 @@ function SwapsAmountView({
         }
       }
     })();
-  }, [isTokenInBalances, checksummedSelectedAddress, sourceToken]);
+  }, [isTokenInBalances, selectedAddress, sourceToken]);
 
   /**
    * Reset the state when account changes
    */
   useEffect(() => {
-    if (checksummedSelectedAddress !== previousSelectedAddress.current) {
+    if (selectedAddress !== previousSelectedAddress.current) {
       setAmount('0');
       setSourceToken(
         swapsTokens?.find((token) =>
@@ -433,9 +430,9 @@ function SwapsAmountView({
       );
       setDestinationToken(null);
       setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
-      previousSelectedAddress.current = checksummedSelectedAddress;
+      previousSelectedAddress.current = selectedAddress;
     }
-  }, [checksummedSelectedAddress, swapsTokens, initialSource]);
+  }, [selectedAddress, swapsTokens, initialSource]);
 
   const hasInvalidDecimals = useMemo(() => {
     if (sourceToken) {
@@ -455,13 +452,13 @@ function SwapsAmountView({
   const controllerBalance = useBalance(
     accounts,
     balances,
-    checksummedSelectedAddress,
+    selectedAddress,
     sourceToken,
   );
   const controllerBalanceAsUnits = useBalance(
     accounts,
     balances,
-    checksummedSelectedAddress,
+    selectedAddress,
     sourceToken,
     { asUnits: true },
   );
@@ -966,9 +963,9 @@ SwapsAmountView.propTypes = {
    */
   accounts: PropTypes.object,
   /**
-   * An object representing the users currently selected account with address information
+   * A string that represents the selected address
    */
-  selectedInternalAccount: PropTypes.object,
+  selectedAddress: PropTypes.string,
   /**
    * An object containing token balances for current account and network in the format address => balance
    */
@@ -1016,7 +1013,7 @@ const mapStateToProps = (state) => ({
   swapsControllerTokens: swapsControllerTokens(state),
   accounts: selectAccounts(state),
   balances: selectContractBalances(state),
-  selectedInternalAccount: selectSelectedInternalAccount(state),
+  selectedAddress: selectSelectedInternalAccountAddressAsChecksum(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   tokenExchangeRates: selectContractExchangeRates(state),

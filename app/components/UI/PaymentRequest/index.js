@@ -58,8 +58,7 @@ import {
 import { selectTokenListArray } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/RequestPaymentView.selectors';
 
@@ -280,9 +279,9 @@ class PaymentRequest extends PureComponent {
      */
     primaryCurrency: PropTypes.string,
     /**
-     * An object representing the users currently selected account with address information
+     * A string that represents the selected address
      */
-    selectedInternalAccount: PropTypes.object,
+    selectedAddress: PropTypes.string,
     /**
      * Array of ERC20 assets
      */
@@ -686,29 +685,22 @@ class PaymentRequest extends PureComponent {
    * If there is an error, an error message will be set to display on the view
    */
   onNext = () => {
-    const { selectedInternalAccount, navigation, chainId } = this.props;
+    const { selectedAddress, navigation, chainId } = this.props;
     const { cryptoAmount, selectedAsset } = this.state;
-    const checksummedSelectedAddress = toChecksumAddress(
-      selectedInternalAccount.address,
-    );
 
     try {
       if (cryptoAmount && cryptoAmount > '0') {
         let eth_link;
         if (selectedAsset.isETH) {
           const amount = toWei(cryptoAmount).toString();
-          eth_link = generateETHLink(
-            checksummedSelectedAddress,
-            amount,
-            chainId,
-          );
+          eth_link = generateETHLink(selectedAddress, amount, chainId);
         } else {
           const amount = toTokenMinimalUnit(
             cryptoAmount,
             selectedAsset.decimals,
           ).toString();
           eth_link = generateERC20Link(
-            checksummedSelectedAddress,
+            selectedAddress,
             selectedAsset.address,
             amount,
             chainId,
@@ -901,7 +893,7 @@ const mapStateToProps = (state) => ({
   contractExchangeRates: selectContractExchangeRates(state),
   searchEngine: state.settings.searchEngine,
   tokens: selectTokens(state),
-  selectedInternalAccount: selectSelectedInternalAccount(state),
+  selectedAddress: selectSelectedInternalAccountAddressAsChecksum(state),
   primaryCurrency: state.settings.primaryCurrency,
   ticker: selectTicker(state),
   chainId: selectChainId(state),

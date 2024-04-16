@@ -694,7 +694,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                           },
                                         ]
                                       }
-                                      value=""
+                                      value="loan sorry legend spot loyal system loud right income pair immune notable"
                                     />
                                   </View>
                                 </View>
@@ -1052,7 +1052,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                             },
                                           ]
                                         }
-                                        value=""
+                                        value="12345678"
                                       />
                                     </View>
                                   </View>
@@ -1084,7 +1084,20 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     "height": 20,
                                   }
                                 }
-                              />
+                                testID="import-from-seed-screen-seed-password-strength-id"
+                              >
+                                Password strength:
+                                <Text
+                                  style={
+                                    Object {
+                                      "color": "#1C8234",
+                                    }
+                                  }
+                                >
+                                   
+                                  Strong
+                                </Text>
+                              </Text>
                             </View>
                             <View
                               style={
@@ -1337,7 +1350,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                             },
                                           ]
                                         }
-                                        value=""
+                                        value="12345678"
                                       />
                                     </View>
                                   </View>
@@ -1368,7 +1381,29 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     "top": 52,
                                   }
                                 }
-                              />
+                              >
+                                <Text
+                                  allowFontScaling={false}
+                                  style={
+                                    Array [
+                                      Object {
+                                        "color": "#1C8234",
+                                        "fontSize": 12,
+                                      },
+                                      undefined,
+                                      Object {
+                                        "fontFamily": "FontAwesome",
+                                        "fontStyle": "normal",
+                                        "fontWeight": "normal",
+                                      },
+                                      Object {},
+                                    ]
+                                  }
+                                  testID="import-from-seed-screen-seed-password-match-icon-id"
+                                >
+                                  
+                                </Text>
+                              </View>
                               <Text
                                 style={
                                   Object {
@@ -1393,8 +1428,9 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                               <TouchableOpacity
                                 accessibilityRole="button"
                                 accessible={true}
-                                activeOpacity={1}
-                                disabled={true}
+                                activeOpacity={0.2}
+                                disabled={false}
+                                onPress={[Function]}
                                 style={
                                   Array [
                                     Array [
@@ -1408,9 +1444,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       },
                                       undefined,
                                     ],
-                                    Object {
-                                      "opacity": 0.6,
-                                    },
+                                    null,
                                   ]
                                 }
                                 testID="import-from-seed-screen-submit-button-id"
@@ -1424,9 +1458,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         "fontWeight": "500",
                                         "textAlign": "center",
                                       },
-                                      Object {
-                                        "color": "#dcdcdc",
-                                      },
+                                      null,
                                       Array [
                                         Object {
                                           "fontFamily": "EuclidCircularB-Bold",
@@ -1439,9 +1471,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         },
                                         undefined,
                                       ],
-                                      Object {
-                                        "opacity": 0.6,
-                                      },
+                                      null,
                                     ]
                                   }
                                 >

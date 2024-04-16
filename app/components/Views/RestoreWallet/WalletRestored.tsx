@@ -25,9 +25,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import { StackNavigationProp } from '@react-navigation/stack';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { toChecksumAddress } from 'ethereumjs-util';
 
 export const createWalletRestoredNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESTORED,
@@ -39,10 +38,8 @@ const WalletRestored = () => {
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation<StackNavigationProp<any>>();
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-
-  const checksummedSelectedAddress = toChecksumAddress(
-    selectedInternalAccount.address,
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountAddressAsChecksum,
   );
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
@@ -58,19 +55,17 @@ const WalletRestored = () => {
     try {
       // Log to provide insights into bug research.
       // Check https://github.com/MetaMask/mobile-planning/issues/1507
-      if (typeof checksummedSelectedAddress !== 'string') {
+      if (typeof selectedAddress !== 'string') {
         const walletRestoreError = new Error('Wallet restore error');
         Logger.error(walletRestoreError, 'selectedAddress is not a string');
       }
-      await Authentication.appTriggeredAuth({
-        selectedAddress: checksummedSelectedAddress,
-      });
+      await Authentication.appTriggeredAuth({ selectedAddress });
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
     } catch (e) {
       // we were not able to log in automatically so we will go back to login
       navigation.replace(Routes.ONBOARDING.LOGIN);
     }
-  }, [navigation, checksummedSelectedAddress]);
+  }, [navigation, selectedAddress]);
 
   const onPressBackupSRP = useCallback(async (): Promise<void> => {
     Linking.openURL(SRP_GUIDE_URL);

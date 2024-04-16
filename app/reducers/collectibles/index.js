@@ -4,35 +4,31 @@ import {
   selectAllNftContracts,
   selectAllNfts,
 } from '../../selectors/nftController';
-import selectSelectedInternalAccount from '../../selectors/accountsController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../selectors/accountsController';
 import { compareTokenIds } from '../../util/tokens';
-import { toChecksumAddress } from 'ethereumjs-util';
 
 const favoritesSelector = (state) => state.collectibles.favorites;
 
 export const collectibleContractsSelector = createSelector(
-  selectSelectedInternalAccount,
+  selectSelectedInternalAccountAddressAsChecksum,
   selectChainId,
   selectAllNftContracts,
-  (internalAccount, chainId, allNftContracts) =>
-    allNftContracts[toChecksumAddress(internalAccount.address)]?.[chainId] ||
-    [],
+  (address, chainId, allNftContracts) =>
+    allNftContracts[address]?.[chainId] || [],
 );
 
 export const collectiblesSelector = createSelector(
-  selectSelectedInternalAccount,
+  selectSelectedInternalAccountAddressAsChecksum,
   selectChainId,
   selectAllNfts,
-  (internalAccount, chainId, allNfts) =>
-    allNfts[toChecksumAddress(internalAccount.address)]?.[chainId] || [],
+  (address, chainId, allNfts) => allNfts[address]?.[chainId] || [],
 );
 
 export const favoritesCollectiblesSelector = createSelector(
-  selectSelectedInternalAccount,
+  selectSelectedInternalAccountAddressAsChecksum,
   selectChainId,
   favoritesSelector,
-  (internalAccount, chainId, favorites) =>
-    favorites[toChecksumAddress(internalAccount.address)]?.[chainId] || [],
+  (address, chainId, favorites) => favorites[address]?.[chainId] || [],
 );
 
 export const isCollectibleInFavoritesSelector = createSelector(

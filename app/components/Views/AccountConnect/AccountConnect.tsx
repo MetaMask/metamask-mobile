@@ -29,7 +29,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import UntypedEngine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { selectIdentities } from '../../../selectors/preferencesController';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
@@ -66,7 +66,7 @@ import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
-import { toChecksumAddress } from 'ethereumjs-util';
+
 const createStyles = () =>
   StyleSheet.create({
     fullScreenModal: {
@@ -86,12 +86,11 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  const checksummedSelectedAddress = toChecksumAddress(
-    selectedInternalAccount.address,
+  const selectedWalletAddress = useSelector(
+    selectSelectedInternalAccountAddressAsChecksum,
   );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([
-    checksummedSelectedAddress,
+    selectedWalletAddress,
   ]);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(

@@ -58,7 +58,7 @@ import FlowLoaderModal from '../../Approvals/FlowLoaderModal';
 import TemplateConfirmationModal from '../../Approvals/TemplateConfirmationModal';
 import { selectTokenList } from '../../../selectors/tokenListController';
 import { selectTokens } from '../../../selectors/tokensController';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import { getLedgerKeyring } from '../../../core/Ledger/Ledger';
 import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/LedgerTransactionModal';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
@@ -76,9 +76,6 @@ const RootRPCMethodsUI = (props) => {
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
   const setEtherTransaction = props.setEtherTransaction;
-  const checksummedSelectedAddress = toChecksumAddress(
-    props.selectedInternalAccount.address,
-  );
 
   const initializeWalletConnect = () => {
     WalletConnect.init();
@@ -104,7 +101,7 @@ const RootRPCMethodsUI = (props) => {
         const ethBalance = await query(
           TransactionController.ethQuery,
           'getBalance',
-          [checksummedSelectedAddress],
+          [props.selectedAddress],
         );
         const receipt = await query(
           TransactionController.ethQuery,
@@ -437,9 +434,9 @@ RootRPCMethodsUI.propTypes = {
    */
   tokens: PropTypes.array,
   /**
-   * Selected address	   * An object representing the users currently selected account with address information
+   * Selected address
    */
-  selectedInternalAccount: PropTypes.object,
+  selectedAddress: PropTypes.string,
   /**
    * Chain id
    */
@@ -447,7 +444,7 @@ RootRPCMethodsUI.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-  selectedInternalAccount: selectSelectedInternalAccount(state),
+  selectedAddress: selectSelectedInternalAccountAddressAsChecksum(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
   swapsTransactions:

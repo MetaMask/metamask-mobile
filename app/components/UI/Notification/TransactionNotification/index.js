@@ -34,9 +34,8 @@ import {
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import selectSelectedInternalAccount from '../../../../selectors/accountsController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../../selectors/accountsController';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -221,7 +220,7 @@ function TransactionNotification(props) {
       );
       if (!tx) return;
       const {
-        selectedInternalAccount,
+        selectedAddress,
         ticker,
         chainId,
         conversionRate,
@@ -234,14 +233,10 @@ function TransactionNotification(props) {
         swapsTransactions,
         swapsTokens,
       } = props;
-
-      const checksummedSelectedAddress = toChecksumAddress(
-        selectedInternalAccount.address,
-      );
       const [transactionElement, transactionDetails] = await decodeTransaction({
         ...props,
         tx,
-        selectedAddress: checksummedSelectedAddress,
+        selectedAddress,
         ticker,
         chainId,
         conversionRate,
@@ -381,9 +376,9 @@ TransactionNotification.propTypes = {
   transactions: PropTypes.array,
 
   /**
-   * An object representing the users currently selected account with address information
+   * String of selected address
    */
-  selectedInternalAccount: PropTypes.object,
+  selectedAddress: PropTypes.string,
   /**
    * Current provider ticker
    */
@@ -425,7 +420,7 @@ TransactionNotification.propTypes = {
 
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
-  selectedInternalAccount: selectSelectedInternalAccount(state),
+  selectedAddress: selectSelectedInternalAccountAddressAsChecksum(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   ticker: selectTicker(state),
   chainId: selectChainId(state),

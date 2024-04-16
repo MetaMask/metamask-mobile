@@ -6,7 +6,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import selectSelectedInternalAccount from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../../selectors/accountsController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -28,30 +28,26 @@ export default function useBalance(asset?: Asset) {
   const assetAddress = safeToChecksumAddress(asset?.address);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const chainId = useSelector(selectChainId);
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountAddressAsChecksum,
+  );
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const balances = useSelector(selectContractBalances);
-
-  const checksummedSelectedAddress = safeToChecksumAddress(
-    selectedInternalAccount.address,
-  );
 
   if (!asset || !assetAddress) {
     return { balance: null, balanceFiat: null, balanceBN: null };
   }
 
   let balance, balanceFiat, balanceBN;
-  if (assetAddress === NATIVE_ADDRESS && checksummedSelectedAddress) {
+  if (assetAddress === NATIVE_ADDRESS) {
     balance = renderFromWei(
-      accountsByChainId[toHexadecimal(chainId)][checksummedSelectedAddress]
-        ?.balance,
+      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
 
     balanceBN = hexToBN(
-      accountsByChainId[toHexadecimal(chainId)][checksummedSelectedAddress]
-        ?.balance,
+      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
     balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
   } else {

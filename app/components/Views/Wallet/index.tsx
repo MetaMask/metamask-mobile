@@ -42,7 +42,7 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import Text, {
@@ -51,7 +51,6 @@ import Text, {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useAccounts } from '../../hooks/useAccounts';
 import { RootState } from 'app/reducers';
-import { toChecksumAddress } from 'ethereumjs-util';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -119,7 +118,9 @@ const Wallet = ({ navigation }: any) => {
   /**
    * A string that represents the selected address
    */
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountAddressAsChecksum,
+  );
   /**
    * An array that represents the user tokens
    */
@@ -161,9 +162,6 @@ const Wallet = ({ navigation }: any) => {
 
   const isNotificationEnabled = useSelector(
     (state: any) => state.notification?.notificationsSettings?.isEnabled,
-  );
-  const checksummedSelectedAddress = toChecksumAddress(
-    selectedInternalAccount.address,
   );
 
   /**
@@ -307,12 +305,12 @@ const Wallet = ({ navigation }: any) => {
 
     if (
       accountsByChainId?.[toHexadecimal(providerConfig.chainId)]?.[
-        checksummedSelectedAddress
+        selectedAddress
       ]
     ) {
       balance = renderFromWei(
         accountsByChainId[toHexadecimal(providerConfig.chainId)][
-          checksummedSelectedAddress
+          selectedAddress
         ].balance,
       );
 
@@ -326,7 +324,7 @@ const Wallet = ({ navigation }: any) => {
           balanceFiat: weiToFiat(
             hexToBN(
               accountsByChainId[toHexadecimal(providerConfig.chainId)][
-                checksummedSelectedAddress
+                selectedAddress
               ].balance,
             ) as any,
             conversionRate,
@@ -393,7 +391,7 @@ const Wallet = ({ navigation }: any) => {
     tokens,
     accountsByChainId,
     providerConfig.chainId,
-    checksummedSelectedAddress,
+    selectedAddress,
     styles.wrapper,
     styles.banner,
     styles.walletAccount,
@@ -434,7 +432,7 @@ const Wallet = ({ navigation }: any) => {
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow} {...generateTestId('wallet-screen')}>
-        {checksummedSelectedAddress ? renderContent() : renderLoader()}
+        {selectedAddress ? renderContent() : renderLoader()}
 
         {renderOnboardingWizard()}
       </View>

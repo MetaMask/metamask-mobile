@@ -13,13 +13,12 @@ import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import Icon, {
   IconName,
   IconColor,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { toChecksumAddress } from 'ethereumjs-util';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 30 - 16) / 3;
@@ -91,7 +90,7 @@ function CollectibleContractElement({
   onPress,
   collectibleContracts,
   chainId,
-  selectedInternalAccount,
+  selectedAddress,
   removeFavoriteCollectible,
 }) {
   const [collectiblesGrid, setCollectiblesGrid] = useState([]);
@@ -102,9 +101,6 @@ function CollectibleContractElement({
   const longPressedCollectible = useRef(null);
   const { colors, themeAppearance, brandColors } = useTheme();
   const styles = createStyles(colors, brandColors);
-  const checksummedSelectedAddress = toChecksumAddress(
-    selectedInternalAccount.address,
-  );
 
   const toggleCollectibles = useCallback(() => {
     setCollectiblesVisible(!collectiblesVisible);
@@ -128,7 +124,7 @@ function CollectibleContractElement({
   const removeNft = () => {
     const { NftController } = Engine.context;
     removeFavoriteCollectible(
-      checksummedSelectedAddress,
+      selectedAddress,
       chainId,
       longPressedCollectible.current,
     );
@@ -294,9 +290,9 @@ CollectibleContractElement.propTypes = {
   onPress: PropTypes.func,
   collectibleContracts: PropTypes.array,
   /**
-   * Selected internal account
+   * Selected address
    */
-  selectedInternalAccount: PropTypes.object,
+  selectedAddress: PropTypes.string,
   /**
    * Chain id
    */
@@ -310,7 +306,7 @@ CollectibleContractElement.propTypes = {
 const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
   chainId: selectChainId(state),
-  selectedInternalAccount: selectSelectedInternalAccount(state),
+  selectedAddress: selectSelectedInternalAccountAddressAsChecksum(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
