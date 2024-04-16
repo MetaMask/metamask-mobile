@@ -34,8 +34,9 @@ import {
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import selectSelectedInternalAccount from '../../../../selectors/accountsController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -220,7 +221,7 @@ function TransactionNotification(props) {
       );
       if (!tx) return;
       const {
-        selectedAddress,
+        selectedInternalAccount,
         ticker,
         chainId,
         conversionRate,
@@ -233,10 +234,14 @@ function TransactionNotification(props) {
         swapsTransactions,
         swapsTokens,
       } = props;
+
+      const checksummedSelectedAddress = toChecksumAddress(
+        selectedInternalAccount.address,
+      );
       const [transactionElement, transactionDetails] = await decodeTransaction({
         ...props,
         tx,
-        selectedAddress,
+        selectedAddress: checksummedSelectedAddress,
         ticker,
         chainId,
         conversionRate,
@@ -376,9 +381,9 @@ TransactionNotification.propTypes = {
   transactions: PropTypes.array,
 
   /**
-   * String of selected address
+   * An object representing the users currently selected account with address information
    */
-  selectedAddress: PropTypes.string,
+  selectedInternalAccount: PropTypes.object,
   /**
    * Current provider ticker
    */
@@ -420,7 +425,7 @@ TransactionNotification.propTypes = {
 
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedInternalAccount: selectSelectedInternalAccount(state),
   transactions: state.engine.backgroundState.TransactionController.transactions,
   ticker: selectTicker(state),
   chainId: selectChainId(state),
