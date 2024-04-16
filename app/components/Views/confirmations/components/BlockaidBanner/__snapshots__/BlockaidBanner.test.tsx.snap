@@ -536,7 +536,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
           }
         }
       >
-        Request may not be safe
+        Be careful
       </Text>
       <Text
         accessibilityRole="text"
@@ -551,7 +551,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
           }
         }
       >
-        Because of an error, this request was not verified by the security provider. Proceed with caution.
+        Because of an error, we couldn't check for security alerts. Only continue if you trust every address involved.
       </Text>
     </View>
   </View>
