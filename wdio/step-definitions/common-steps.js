@@ -14,6 +14,7 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
+import Gestures from "../helpers/Gestures";
 
 Then(/^the Welcome screen is displayed$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
@@ -139,6 +140,13 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
   await CommonScreen.isTextDisplayed(text);
 });
 
+Then(/^version "([^"]*)?" is displayed for app upgrade step/, async (text) => {
+  const appUpgradeText = process.env[text];
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(appUpgradeText);
+});
+
 Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
@@ -168,7 +176,8 @@ Then(
 
 When(/^I log into my wallet$/, async () => {
   await LoginScreen.tapUnlockButton();
-  await WalletMainScreen.isVisible();
+  await driver.pause(10000);
+  await WalletMainScreen.isMainWalletViewVisible();
 });
 
 When(/^I kill the app$/, async () => {3
@@ -263,4 +272,28 @@ When(/^I tap on the Settings tab option$/, async () => {
 
 When(/^I tap on the Activity tab option$/, async () => {
   await TabBarModal.tapActivityButton();
+});
+
+When(/^I install upgrade the app$/, async () => {
+  await driver.installApp(process.env.BROWSERSTACK_APP_URL)
+});
+
+When(/^I scroll up$/, async () => {
+  await Gestures.swipeUp(0.5);
+});
+
+Then(/^removed test app$/, async () => {
+  const platform = await driver.getPlatform();
+  // TODO: Use environment variables for bundle IDs
+  if (platform === 'iOS') {
+    await driver.removeApp('io.metamask.MetaMask-QA');
+  }
+
+  if (platform === 'Android') {
+    await driver.removeApp('io.metamask.qa');
+  }
+});
+
+Given(/^the splash animation completes$/, async () => {
+  await WelcomeScreen.waitForSplashAnimationToComplete();
 });
