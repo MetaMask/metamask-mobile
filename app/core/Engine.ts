@@ -171,7 +171,7 @@ import {
 import { hasProperty, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
@@ -1539,7 +1539,7 @@ class Engine {
 
   rejectPendingApproval(
     id: string,
-    reason: Error = ethErrors.provider.userRejectedRequest(),
+    reason: Error = providerErrors.userRejectedRequest(),
     opts: { ignoreMissing?: boolean; logErrors?: boolean } = {},
   ) {
     const { ApprovalController } = this.context;
