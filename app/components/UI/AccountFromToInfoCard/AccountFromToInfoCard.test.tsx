@@ -9,6 +9,36 @@ import { Transaction } from './AccountFromToInfoCard.types';
 import AccountFromToInfoCard from '.';
 import Engine from '../../../core/Engine';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import {
+  createMockInternalAccount,
+  createMockUUIDFromAddress,
+} from '../../../selectors/accountsController.test';
+import { AccountsControllerState } from '@metamask/accounts-controller';
+
+const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
+const MOCK_ADDRESS_2 = '0x519d2CE57898513F676a5C3b66496c3C394c9CC7';
+
+const expectedUUID = createMockUUIDFromAddress(MOCK_ADDRESS);
+const expectedUUID2 = createMockUUIDFromAddress(MOCK_ADDRESS_2);
+
+const internalAccount1 = createMockInternalAccount(
+  MOCK_ADDRESS.toLowerCase(),
+  'Account 1',
+);
+const internalAccount2 = createMockInternalAccount(
+  MOCK_ADDRESS_2.toLowerCase(),
+  'Account 2',
+);
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      [expectedUUID]: internalAccount1,
+      [expectedUUID2]: internalAccount2,
+    },
+    selectedAccount: expectedUUID,
+  },
+};
 
 const mockInitialState = {
   settings: {},
@@ -17,10 +47,10 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
+          [MOCK_ADDRESS]: {
             balance: 200,
           },
-          '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
+          [MOCK_ADDRESS_2]: {
             balance: 200,
           },
         },
@@ -31,18 +61,19 @@ const mockInitialState = {
         },
       },
       PreferencesController: {
-        selectedAddress: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+        selectedAddress: MOCK_ADDRESS,
         identities: {
-          '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A': {
-            address: '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A',
+          [MOCK_ADDRESS]: {
+            address: MOCK_ADDRESS,
             name: 'Account 1',
           },
-          '0x519d2CE57898513F676a5C3b66496c3C394c9CC7': {
-            address: '0x519d2CE57898513F676a5C3b66496c3C394c9CC7',
+          [MOCK_ADDRESS_2]: {
+            address: MOCK_ADDRESS_2,
             name: 'Account 2',
           },
         },
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
@@ -70,6 +101,7 @@ jest.mock('../../../core/Engine', () => ({
         ],
       },
     },
+    AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
   },
 }));
 

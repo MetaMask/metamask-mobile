@@ -4,6 +4,36 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ApproveTransactionHeader from '.';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { APPROVE_TRANSACTION_ORIGIN_PILL } from './ApproveTransactionHeader.constants';
+import {
+  createMockInternalAccount,
+  createMockUUIDFromAddress,
+} from '../../../../../selectors/accountsController.test';
+import { AccountsControllerState } from '@metamask/accounts-controller';
+
+const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+const MOCK_ADDRESS_2 = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+
+const expectedUUID = createMockUUIDFromAddress(MOCK_ADDRESS);
+const expectedUUID2 = createMockUUIDFromAddress(MOCK_ADDRESS_2);
+
+const internalAccount1 = createMockInternalAccount(
+  MOCK_ADDRESS.toLowerCase(),
+  'Account 1',
+);
+const internalAccount2 = createMockInternalAccount(
+  MOCK_ADDRESS_2.toLowerCase(),
+  'Account 2',
+);
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      [expectedUUID]: internalAccount1,
+      [expectedUUID2]: internalAccount2,
+    },
+    selectedAccount: expectedUUID,
+  },
+};
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -25,27 +55,28 @@ const mockInitialState = {
       ...initialBackgroundState,
       AccountTrackerController: {
         accounts: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+          [MOCK_ADDRESS]: {
             balance: '200',
           },
-          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
+          [MOCK_ADDRESS_2]: {
             balance: '200',
           },
         },
       },
       PreferencesController: {
-        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+        selectedAddress: MOCK_ADDRESS,
         identities: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
-            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+          [MOCK_ADDRESS]: {
+            address: MOCK_ADDRESS,
             name: 'Account 1',
           },
-          '0xd018538C87232FF95acbCe4870629b75640a78E7': {
-            address: '0xd018538C87232FF95acbCe4870629b75640a78E7',
+          [MOCK_ADDRESS_2]: {
+            address: MOCK_ADDRESS_2,
             name: 'Account 2',
           },
         },
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
         providerConfig: {
           chainId: '0xaa36a7',

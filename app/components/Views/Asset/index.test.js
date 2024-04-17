@@ -3,6 +3,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import Asset from './';
 import Engine from '../../../core/Engine';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../selectors/accountsController.test';
 
 const mockedEngine = Engine;
 
@@ -10,6 +11,7 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };

@@ -6,7 +6,7 @@ import {
 import { v4 as uuid } from 'uuid';
 import { EthMethod, InternalAccount } from '@metamask/keyring-api';
 
-function addressToUUID(address: string): string {
+export function createMockUUIDFromAddress(address: string): string {
   const fakeShaFromAddress = Array.from(
     { length: 16 },
     (_, i) => address.charCodeAt(i) || 0,
@@ -16,13 +16,13 @@ function addressToUUID(address: string): string {
   });
 }
 
-function createMockInternalAccount(
+export function createMockInternalAccount(
   address: string,
   nickname: string,
 ): InternalAccount {
   return {
     address,
-    id: addressToUUID(address),
+    id: createMockUUIDFromAddress(address),
     metadata: {
       name: nickname,
       keyring: {
@@ -45,31 +45,31 @@ function createMockInternalAccount(
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 const MOCK_ADDRESS_2 = '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756';
 
-describe('Accounts Controller Selectors', () => {
-  const expectedUUID = addressToUUID(MOCK_ADDRESS);
-  const expectedUUID2 = addressToUUID(MOCK_ADDRESS_2);
+const expectedUUID = createMockUUIDFromAddress(MOCK_ADDRESS);
+const expectedUUID2 = createMockUUIDFromAddress(MOCK_ADDRESS_2);
 
-  const internalAccount1 = createMockInternalAccount(MOCK_ADDRESS, 'Account 1');
-  const internalAccount2 = createMockInternalAccount(
-    MOCK_ADDRESS_2,
-    'Account 2',
-  );
-  const ACCOUNTS_CONTROLLER_STATE_MOCK: AccountsControllerState = {
-    internalAccounts: {
-      accounts: {
-        [expectedUUID]: internalAccount1,
-        [expectedUUID2]: internalAccount2,
-      },
-      selectedAccount: expectedUUID2,
+const internalAccount1 = createMockInternalAccount(MOCK_ADDRESS, 'Account 1');
+const internalAccount2 = createMockInternalAccount(MOCK_ADDRESS_2, 'Account 2');
+
+// used as a default mock for other tests
+export const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      [expectedUUID]: internalAccount1,
+      [expectedUUID2]: internalAccount2,
     },
-  };
+    selectedAccount: expectedUUID2,
+  },
+};
+
+describe('Accounts Controller Selectors', () => {
   describe('selectSelectedInternalAccount', () => {
     it('returns selected internal account', () => {
       expect(
         selectSelectedInternalAccount({
           engine: {
             backgroundState: {
-              AccountsController: ACCOUNTS_CONTROLLER_STATE_MOCK,
+              AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
             },
           },
         } as any),
@@ -96,12 +96,12 @@ describe('Accounts Controller Selectors', () => {
     });
   });
   describe('selectSelectedInternalAccountAddressAsChecksum', () => {
-    it('returns selected internal account', () => {
+    it('returns selected internal account address in checksum format', () => {
       expect(
         selectSelectedInternalAccountAddressAsChecksum({
           engine: {
             backgroundState: {
-              AccountsController: ACCOUNTS_CONTROLLER_STATE_MOCK,
+              AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
             },
           },
         } as any),
