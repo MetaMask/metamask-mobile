@@ -25,7 +25,7 @@ import {
   getTokenValueParamAsHex,
   isSwapTransaction,
 } from '../../../util/transactions';
-import { BN, toChecksumAddress } from 'ethereumjs-util';
+import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -183,10 +183,10 @@ const RootRPCMethodsUI = (props) => {
       }
     },
     [
-      checksummedSelectedAddress,
       props.swapsTransactions,
-      trackEvent,
+      props.selectedAddress,
       trackAnonymousEvent,
+      trackEvent,
     ],
   );
 
