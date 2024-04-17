@@ -232,8 +232,10 @@ const mapStateToProps = (state) => {
       .smartTransactionsState.smartTransactions[chainId] || [];
 
   // Remove duplicate confirmed STX
+
+  // for replaced txs, only hide the ones that are confirmed
   const filteredNonSmartTransactions = nonSmartTransactions.filter(
-    (tx) => !(tx.replacedBy && tx.replacedById),
+    (tx) => !(tx.replacedBy && tx.replacedById && tx.transactionHash),
   );
 
   const filteredPendingSmartTransactions =
