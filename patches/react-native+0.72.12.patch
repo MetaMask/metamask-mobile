@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/Libraries/Core/InitializeCore.js b/node_modules/react-native/Libraries/Core/InitializeCore.js
-index 1379ffd..f2825f5 100644
+index 25377f6..c9e6b18 100644
 --- a/node_modules/react-native/Libraries/Core/InitializeCore.js
 +++ b/node_modules/react-native/Libraries/Core/InitializeCore.js
-@@ -24,26 +24,37 @@
+@@ -24,27 +24,37 @@
  
  'use strict';
  
@@ -15,7 +15,8 @@ index 1379ffd..f2825f5 100644
  const start = Date.now();
  
  require('./setUpGlobals');
-+// require('./setUpDOM'); Introduced in RN v0.72, ensure included when upgrading patch
+-require('./setUpDOM');
++// require('./setUpDOM');
  require('./setUpPerformance');
  require('./setUpErrorHandling');
 +
@@ -34,7 +35,7 @@ index 1379ffd..f2825f5 100644
    require('./checkNativeVersion');
 -  require('./setUpDeveloperTools');
 +  require('./setUpDeveloperTools'); // console.log calls visible in Metro from here
-   require('../LogBox/LogBox').install();
+   require('../LogBox/LogBox').default.install();
  }
  
 -require('../ReactNative/AppRegistry');
@@ -44,7 +45,7 @@ index 1379ffd..f2825f5 100644
  // We could just call GlobalPerformanceLogger.markPoint at the top of the file,
 diff --git a/node_modules/react-native/Libraries/Core/setUpSes.js b/node_modules/react-native/Libraries/Core/setUpSes.js
 new file mode 100644
-index 0000000..6013411
+index 0000000..5dc1859
 --- /dev/null
 +++ b/node_modules/react-native/Libraries/Core/setUpSes.js
 @@ -0,0 +1,60 @@
@@ -109,10 +110,10 @@ index 0000000..6013411
 +  hardenIntrinsics();
 +}
 diff --git a/node_modules/react-native/ReactAndroid/build.gradle b/node_modules/react-native/ReactAndroid/build.gradle
-index d03f3dd..816f559 100644
+index c2b76ed..2a19785 100644
 --- a/node_modules/react-native/ReactAndroid/build.gradle
 +++ b/node_modules/react-native/ReactAndroid/build.gradle
-@@ -420,12 +420,9 @@ android {
+@@ -437,12 +437,8 @@ android {
  
      // Used to override the NDK path/version on internal CI or by allowing
      // users to customize the NDK path/version from their root project (e.g. for M1 support)
@@ -122,14 +123,13 @@ index d03f3dd..816f559 100644
 -    if (rootProject.hasProperty("ndkVersion")) {
 -        ndkVersion rootProject.ext.ndkVersion
 -    }
-+
 +    // Added patch to apply ndk Path from MetaMask app gradle.build this is required for M1 Bitrise builds to work
 +    ndkPath = project.getProperties().get("ndkPath")
  
      defaultConfig {
          minSdkVersion(21)
 diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
-index c714f87..65f9ba3 100644
+index 5ebaf48..17b8228 100644
 --- a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
 +++ b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
 @@ -43,11 +43,11 @@ def overrideHermesDir = System.getenv("REACT_NATIVE_OVERRIDE_HERMES_DIR") != nul
@@ -155,10 +155,10 @@ index c714f87..65f9ba3 100644
  task downloadHermes(type: Download) {
 -    src("https://github.com/facebook/hermes/tarball/${hermesVersion}")
 +    src("https://github.com/MetaMask/hermes/tarball/${hermesVersion}")
-     onlyIfNewer(true)
-     overwrite(false)
-     dest(new File(downloadsDir, "hermes.tar.gz"))
-@@ -120,12 +120,9 @@ android {
+     onlyIfModified(true)
+     overwrite(true)
+     useETag("all")
+@@ -131,12 +131,9 @@ android {
  
      // Used to override the NDK path/version on internal CI or by allowing
      // users to customize the NDK path/version from their root project (e.g. for M1 support)
@@ -175,10 +175,10 @@ index c714f87..65f9ba3 100644
      defaultConfig {
          minSdkVersion 21
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-index 290bd23..20d85e0 100644
+index ced37be..a158541 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
-@@ -33,6 +33,7 @@ import android.view.KeyEvent;
+@@ -38,6 +38,7 @@ import android.view.MenuItem;
  import android.view.MotionEvent;
  import android.view.View;
  import android.view.accessibility.AccessibilityNodeInfo;
@@ -186,7 +186,7 @@ index 290bd23..20d85e0 100644
  import android.view.inputmethod.EditorInfo;
  import android.view.inputmethod.InputConnection;
  import android.view.inputmethod.InputMethodManager;
-@@ -94,6 +95,16 @@ public class ReactEditText extends AppCompatEditText
+@@ -99,6 +100,16 @@ public class ReactEditText extends AppCompatEditText
    /** A count of events sent to JS or C++. */
    protected int mNativeEventCount;
  
@@ -203,7 +203,7 @@ index 290bd23..20d85e0 100644
    private static final int UNSET = -1;
  
    private @Nullable ArrayList<TextWatcher> mListeners;
-@@ -253,16 +264,24 @@ public class ReactEditText extends AppCompatEditText
+@@ -288,16 +299,24 @@ public class ReactEditText extends AppCompatEditText
    @Override
    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
      ReactContext reactContext = getReactContext(this);
