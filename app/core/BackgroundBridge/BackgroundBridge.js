@@ -1,6 +1,6 @@
 /* eslint-disable import/no-commonjs */
 import URL from 'url-parse';
-import { JsonRpcEngine } from 'json-rpc-engine';
+import { JsonRpcEngine } from '@metamask/json-rpc-engine';
 import {
   createSelectedNetworkMiddleware,
   METAMASK_DOMAIN,

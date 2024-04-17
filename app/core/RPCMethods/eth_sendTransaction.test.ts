@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-nodejs-modules
 import { inspect } from 'util';
-import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
+import type { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/json-rpc-engine';
 import type {
   TransactionParams,
   TransactionController,
