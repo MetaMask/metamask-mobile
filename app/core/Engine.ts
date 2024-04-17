@@ -1255,6 +1255,7 @@ class Engine {
             swapsUtils.OPTIMISM_CHAIN_ID,
             swapsUtils.ZKSYNC_ERA_CHAIN_ID,
             swapsUtils.LINEA_CHAIN_ID,
+            swapsUtils.BASE_CHAIN_ID,
           ],
         },
       ),
