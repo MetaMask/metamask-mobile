@@ -50,6 +50,7 @@ import { getDecimalChainId } from '../../../../util/networks';
 
 import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-tx';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -559,7 +560,10 @@ class Approval extends PureComponent {
       Logger.log('STX Approval::onConfirm 3');
     } catch (error) {
       Logger.error('STX Approval::onConfirm::error', error);
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      if (
+        !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !error?.message.startsWith(STX_NO_HASH_ERROR)
+      ) {
         Alert.alert(
           strings('transactions.transaction_error'),
           error && error.message,
