@@ -219,10 +219,11 @@ const generateRawSignature = async ({
   icon: { current: string | undefined };
   analytics: { [key: string]: string | boolean };
   chainId: number;
-  channelId: string;
+  isMMSDK: boolean;
+  channelId?: string;
   getSource: () => string;
   isWalletConnect: boolean;
-  checkTabActive: () => boolean;
+  checkTabActive: any;
 }) => {
   const { SignatureController } = Engine.context;
 
