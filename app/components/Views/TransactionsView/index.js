@@ -243,7 +243,8 @@ const mapStateToProps = (state) => {
         return (
           transaction?.from.toLowerCase() === selectedAddress.toLowerCase() &&
           stx.status &&
-          stx.status !== SmartTransactionStatuses.SUCCESS
+          stx.status !== SmartTransactionStatuses.SUCCESS &&
+          stx.status !== SmartTransactionStatuses.CANCELLED
         );
       })
       .map((stx) => ({
