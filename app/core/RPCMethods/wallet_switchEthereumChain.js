@@ -1,5 +1,5 @@
 import Engine from '../Engine';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { ethErrors } from 'eth-rpc-errors';
 import {
   getDecimalChainId,
   getDefaultNetworkByChainId,

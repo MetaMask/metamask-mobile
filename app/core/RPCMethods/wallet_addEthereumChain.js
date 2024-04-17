@@ -3,7 +3,7 @@ import validUrl from 'valid-url';
 import { ChainId, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { ethErrors } from 'eth-rpc-errors';
 import {
   getDecimalChainId,
   isPrefixedFormattedHexString,

@@ -24,6 +24,9 @@ export default {
     ACTIVE: true,
     URL: `${PORTFOLIO_URL}/bridge`,
   },
+  STAKE: {
+    URL: `${PORTFOLIO_URL}/stake`,
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -86,7 +89,7 @@ export default {
   MAX_SAFE_CHAIN_ID: 4503599627370476,
   URLS: {
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
-    PRIVACY_POLICY: 'https://legal.consensys.io/metamask/privacy-policy/',
+    PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:

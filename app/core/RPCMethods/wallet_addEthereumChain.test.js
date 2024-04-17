@@ -1,5 +1,5 @@
 import { InteractionManager } from 'react-native';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { ethErrors } from 'eth-rpc-errors';
 import wallet_addEthereumChain from './wallet_addEthereumChain';
 import Engine from '../Engine';
 
