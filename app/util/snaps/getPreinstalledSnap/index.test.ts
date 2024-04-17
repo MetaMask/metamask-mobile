@@ -2,8 +2,8 @@ import getPreinstalledSnap from './index';
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 //@ts-ignore
-import bundleJs from '@metamask/bip32-example-snap/dist/bundle.js';
-import manifestJson from '@metamask/bip32-example-snap/snap.manifest.json';
+import bundleJs from '../../../../node_modules/@metamask/bip32-example-snap/dist/bundle.js';
+import manifestJson from '../../../../node_modules/@metamask/bip32-example-snap/snap.manifest.json';
 
 describe('getPreinstalledSnap function', () => {
   it('should return the correct preinstalled @metamask/bip32-example-snap', () => {
