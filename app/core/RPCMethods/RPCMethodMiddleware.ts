@@ -208,8 +208,23 @@ const generateRawSignature = async ({
   chainId,
   channelId,
   getSource,
+  isWalletConnect,
   checkTabActive,
-}: any) => {
+}: {
+  version: string;
+  req: any;
+  hostname: string;
+  url: { current: string };
+  title: { current: string };
+  icon: { current: string | undefined };
+  analytics: { [key: string]: string | boolean };
+  chainId: number;
+  isMMSDK: boolean;
+  channelId?: string;
+  getSource: () => string;
+  isWalletConnect: boolean;
+  checkTabActive: any;
+}) => {
   const { SignatureController } = Engine.context;
 
   const pageMeta = {
@@ -230,7 +245,7 @@ const generateRawSignature = async ({
     channelId,
     address: req.params[0],
     chainId,
-    isWalletConnect: false,
+    isWalletConnect,
   });
 
   const rawSig = await SignatureController.newUnsignedTypedMessage(
