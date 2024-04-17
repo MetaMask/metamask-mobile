@@ -3,7 +3,7 @@ import { getVersion } from 'react-native-device-info';
 import {
   createAsyncMiddleware,
   JsonRpcEngineCallbackError,
-} from 'json-rpc-engine';
+} from '@metamask/json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   EndFlowOptions,

@@ -1,4 +1,4 @@
-import { JsonRpcMiddleware, JsonRpcRequest } from 'json-rpc-engine';
+import { JsonRpcMiddleware, JsonRpcRequest } from '@metamask/json-rpc-engine';
 import { addHexPrefix } from 'ethereumjs-util';
 
 // We use this to clean any custom params from the txParams
