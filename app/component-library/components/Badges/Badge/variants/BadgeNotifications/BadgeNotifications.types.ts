@@ -8,12 +8,7 @@ import { IconName } from '../../../../../../component-library/components/Icons/I
 export interface BadgeNotificationsProps
   extends Omit<BadgeBaseProps, 'children'> {
   /**
-   * Optional prop for name of the notifications.
-   */
-  name?: string;
-  /**
-   * Optional prop to control the image source of the notifications
-   * from either a local or remote source.
+   * Required prop to provide the icon to be used by the notification badge.
    */
   iconName: IconName;
 }
