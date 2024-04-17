@@ -97,7 +97,7 @@ class SmartTransactionHook {
     this.isSwapTransaction = isSwapTransaction;
     this.isNativeTokenTransferred = isNativeTokenTransferred;
 
-    const pendingApprovalsForSwapApproveTx = Object.values(
+    const pendingApprovalsForSwapApproveTxs = Object.values(
       this.approvalController.state.pendingApprovals,
     ).filter(
       ({ origin: pendingApprovalOrigin, type, requestState }) =>
@@ -107,12 +107,17 @@ class SmartTransactionHook {
         requestState?.isInSwapFlow &&
         requestState?.isSwapApproveTx,
     );
+    const pendingApprovalsForSwapApproveTx =
+      pendingApprovalsForSwapApproveTxs[0];
+    if (pendingApprovalsForSwapApproveTx && this.isSwapTransaction) {
+      this.approvalFlowId = pendingApprovalsForSwapApproveTx.id;
+    }
 
     this.shouldStartFlow = getShouldStartFlow(
       this.isDapp,
       this.isSend,
       this.isSwapApproveTx,
-      Boolean(pendingApprovalsForSwapApproveTx[0]),
+      Boolean(pendingApprovalsForSwapApproveTx),
     );
     this.shouldUpdateFlow = getShouldUpdateFlow(
       this.isDapp,

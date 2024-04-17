@@ -1,4 +1,8 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable import/no-commonjs */
 /* eslint-disable import/no-nodejs-modules */
+require('dotenv').config({ path: '../../../.js.env' });
 import EventEmitter from 'events';
 import {
   TransactionType,
@@ -18,8 +22,6 @@ const transactionHash =
   '0x0302b75dfb9fd9eb34056af031efcaee2a8cbd799ea054a85966165cd82a7356';
 const uuid = 'uuid';
 
-let addRequestCallback: () => void;
-
 type SubmitSmartTransactionRequestMocked = SubmitSmartTransactionRequest & {
   smartTransactionsController: jest.Mocked<SmartTransactionsController>;
   transactionController: jest.Mocked<TransactionController>;
@@ -34,17 +36,21 @@ const createTransactionControllerMock = () =>
       transactions.length === 0 ? [] : [createSignedTransaction()],
     ),
     state: { transactions: [] },
+    update: jest.fn(),
   } as unknown as jest.Mocked<TransactionController>);
 
-const defaultAddAndShowApprovalRequest = jest.fn(() => ({ then: jest.fn() }));
+const getDefaultAddAndShowApprovalRequest = () =>
+  jest.fn(() => ({ then: jest.fn() }));
 const createApprovalControllerMock = ({
   addAndShowApprovalRequest,
+  pendingApprovals,
 }: {
   addAndShowApprovalRequest: () => void;
+  pendingApprovals?: any[];
 }) =>
   ({
     state: {
-      pendingApprovals: [],
+      pendingApprovals,
     },
     startFlow: jest.fn().mockReturnValue({ id: 'approvalId' }),
     addAndShowApprovalRequest,
@@ -70,41 +76,48 @@ const createSmartTransactionsControllerMock = () =>
     eventEmitter: new EventEmitter(),
   } as unknown as jest.Mocked<SmartTransactionsController>);
 
+const defaultTransactionMeta = {
+  origin: 'http://localhost',
+  transactionHash,
+  status: TransactionStatus.signed,
+  id: '1',
+  transaction: {
+    from: addressFrom,
+    to: '0x1678a085c290ebd122dc42cba69373b5953b831d',
+    gasPrice: '0x77359400',
+    gas: '0x7b0d',
+    nonce: '0x4b',
+  },
+  type: TransactionType.simpleSend,
+  chainId: ChainId.mainnet,
+  time: 1624408066355,
+  defaultGasEstimates: {
+    gas: '0x7b0d',
+    gasPrice: '0x77359400',
+  },
+  error: {
+    name: 'Error',
+    message: 'Details of the error',
+  },
+  securityProviderResponse: {
+    flagAsDangerous: 0,
+  },
+};
+
 const createRequest = ({
-  addAndShowApprovalRequest = defaultAddAndShowApprovalRequest,
+  addAndShowApprovalRequest = getDefaultAddAndShowApprovalRequest(),
+  pendingApprovals = [] as any[],
+  transactionMeta = defaultTransactionMeta,
 } = {}) => ({
   transactionMeta: {
-    origin: 'http://localhost',
-    transactionHash,
-    status: TransactionStatus.signed,
-    id: '1',
-    transaction: {
-      from: addressFrom,
-      to: '0x1678a085c290ebd122dc42cba69373b5953b831d',
-      gasPrice: '0x77359400',
-      gas: '0x7b0d',
-      nonce: '0x4b',
-    },
-    type: TransactionType.simpleSend,
-    chainId: ChainId.mainnet,
-    time: 1624408066355,
-    defaultGasEstimates: {
-      gas: '0x7b0d',
-      gasPrice: '0x77359400',
-    },
-    error: {
-      name: 'Error',
-      message: 'Details of the error',
-    },
-    securityProviderResponse: {
-      flagAsDangerous: 0,
-    },
+    ...transactionMeta,
   },
   smartTransactionsController: createSmartTransactionsControllerMock(),
   transactionController: createTransactionControllerMock(),
   isSmartTransaction: true,
   approvalController: createApprovalControllerMock({
     addAndShowApprovalRequest,
+    pendingApprovals,
   }),
   featureFlags: {
     extensionActive: true,
@@ -122,10 +135,6 @@ const createRequest = ({
 jest.setTimeout(10 * 1000);
 
 describe('submitSmartTransactionHook', () => {
-  beforeEach(() => {
-    addRequestCallback = () => undefined;
-  });
-
   it('does not submit a transaction that is not a smart transaction', async () => {
     const request: SubmitSmartTransactionRequestMocked = createRequest();
     request.isSmartTransaction = false;
@@ -171,7 +180,13 @@ describe('submitSmartTransactionHook', () => {
     );
   });
 
-  it.todo('throws an error if there is no origin');
+  it('throws an error if there is no origin', async () => {
+    const request: SubmitSmartTransactionRequestMocked = createRequest();
+    request.transactionMeta.origin = undefined;
+    await expect(submitSmartTransactionHook(request)).rejects.toThrow(
+      'Origin is required',
+    );
+  });
 
   it('submits a smart transaction', async () => {
     const request: SubmitSmartTransactionRequestMocked = createRequest();
@@ -222,7 +237,7 @@ describe('submitSmartTransactionHook', () => {
       transaction,
       transactionMeta: request.transactionMeta,
     });
-    addRequestCallback();
+
     expect(request.approvalController.startFlow).toHaveBeenCalled();
     expect(
       request.approvalController.addAndShowApprovalRequest,
@@ -315,7 +330,7 @@ describe('submitSmartTransactionHook', () => {
       transaction,
       transactionMeta: request.transactionMeta,
     });
-    addRequestCallback();
+
     expect(request.approvalController.startFlow).toHaveBeenCalled();
     expect(
       request.approvalController.addAndShowApprovalRequest,
@@ -345,13 +360,228 @@ describe('submitSmartTransactionHook', () => {
   });
 
   describe('MM Swaps', () => {
-    it.todo(
-      'starts an approval flow if there is an swap tx requires allowance',
-    );
-    it.todo('starts an approval flow if a swap tx does not require allowance');
-    it.todo(
-      'does not start an approval flow if a swap tx is after a swap allowance tx',
-    );
-    it.todo('updates TransactionController.swapsTransactions');
+    it('starts an approval flow if there is an swap tx that requires allowance and does not end it', async () => {
+      const request: SubmitSmartTransactionRequestMocked = createRequest({
+        transactionMeta: {
+          ...defaultTransactionMeta,
+          // An ERC20 approve transaction
+          ...{
+            id: 'ec514870-fcee-11ee-8b89-2f9930c68b06',
+            networkID: undefined,
+            chainId: '0x1',
+            origin: 'EXAMPLE_FOX_CODE',
+            status: 'signed',
+            time: 1713381359223,
+            transaction: {
+              from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+              data: '0x095ea7b3000000000000000000000000881d40237659c251811cec9c364ef91dc08d300c0000000000000000000000000000000000000000000000000000000000989680',
+              gas: '0xdd87',
+              nonce: '0x217',
+              to: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+              value: '0x0',
+              maxFeePerGas: '0x62f500a7a',
+              maxPriorityFeePerGas: '0x2d54010',
+              estimatedBaseFee: '0x3a1b1a43e',
+            },
+            deviceConfirmedOn: 'metamask_mobile',
+            verifiedOnBlockchain: false,
+            securityAlertResponse: undefined,
+            gasFeeEstimatesLoaded: true,
+          },
+        },
+      });
+      setImmediate(() => {
+        request.smartTransactionsController.eventEmitter.emit(
+          `uuid:smartTransaction`,
+          {
+            status: 'pending',
+            statusMetadata: {
+              minedHash: '',
+            },
+          },
+        );
+
+        request.smartTransactionsController.eventEmitter.emit(
+          `uuid:smartTransaction`,
+          {
+            status: 'success',
+            statusMetadata: {
+              minedHash: transactionHash,
+            },
+          },
+        );
+      });
+      const result = await submitSmartTransactionHook(request);
+
+      expect(result).toEqual({ transactionHash });
+      const { transaction, chainId } = request.transactionMeta;
+      expect(
+        request.transactionController.approveTransactionsWithSameNonce,
+      ).toHaveBeenCalledWith(
+        [
+          {
+            ...transaction,
+            maxFeePerGas: '0x2fd8a58d7',
+            maxPriorityFeePerGas: '0xaa0f8a94',
+            chainId,
+            value: '0x0',
+          },
+        ],
+        { hasNonce: true },
+      );
+      expect(
+        request.smartTransactionsController.submitSignedTransactions,
+      ).toHaveBeenCalledWith({
+        signedTransactions: [createSignedTransaction()],
+        signedCanceledTransactions: [],
+        transaction,
+        transactionMeta: request.transactionMeta,
+      });
+
+      expect(request.approvalController.startFlow).toHaveBeenCalled();
+      expect(
+        request.approvalController.addAndShowApprovalRequest,
+      ).toHaveBeenCalledWith({
+        id: 'approvalId',
+        origin: 'EXAMPLE_FOX_CODE',
+        type: 'smart_transaction_status',
+        requestState: {
+          smartTransaction: {
+            status: 'pending',
+            uuid,
+            creationTime: expect.any(Number),
+          },
+          isDapp: false,
+          isInSwapFlow: true,
+          isSwapApproveTx: true,
+          isSwapTransaction: false,
+        },
+      });
+      expect(
+        request.approvalController.updateRequestState,
+      ).not.toHaveBeenCalled();
+
+      expect(request.approvalController.endFlow).not.toHaveBeenCalled();
+    });
+    it('does not start an approval flow if a swap tx is after a swap allowance tx and ends the allowance flow', async () => {
+      const request: SubmitSmartTransactionRequestMocked = createRequest({
+        transactionMeta: {
+          ...defaultTransactionMeta,
+          // An ERC20 swap from transaction
+          ...{
+            chainId: '0x1',
+            deviceConfirmedOn: 'metamask_mobile',
+            gasFeeEstimatesLoaded: true,
+            id: '01c48130-fcf0-11ee-8f32-2f9930c68b06',
+            networkID: undefined,
+            origin: 'EXAMPLE_FOX_CODE',
+            rawTransaction:
+              '0x02f903560182021a840339802785063b5f780783038e2494881d40237659c251811cec9c364ef91dc08d300c80b902e65f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000c8e72d12c36ac000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000001cf42ad63350000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000caad2bdb673320000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b6d0340b4e16d0168e52d35cacd2c6185b44281ec28c9dc7dcbea7c000000000000000000000000000000000000000000000000001bc001a0c05c821f53b6750d9482d166d4860926fb215f63b5111e91abdb00c1ed8ad25da0455d063383fa7781e20457da191b2f0dd31b28eca0fe3604304ce4331fd737c7',
+            securityAlertResponse: undefined,
+            status: 'signed',
+            time: 1713381824707,
+            transaction: {
+              data: '0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563546656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000c8e72d12c36ac000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000001cf42ad63350000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f1915000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000c80502b1c5000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb480000000000000000000000000000000000000000000000000000000000a7d8c0000000000000000000000000000000000000000000000000000caad2bdb673320000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000140000000000000003b6d0340b4e16d0168e52d35cacd2c6185b44281ec28c9dc7dcbea7c000000000000000000000000000000000000000000000000001b',
+              estimatedBaseFee: '0x3a88ece0b',
+              from: '0xc5fe6ef47965741f6f7a4734bf784bf3ae3f2452',
+              gas: '0x38e24',
+              maxFeePerGas: '0x63b5f7807',
+              maxPriorityFeePerGas: '0x3398027',
+              nonce: '0x21a',
+              to: '0x881d40237659c251811cec9c364ef91dc08d300c',
+              value: '0x0',
+            },
+            verifiedOnBlockchain: false,
+          },
+        },
+        pendingApprovals: [
+          {
+            id: 'approvalId',
+            origin: 'EXAMPLE_FOX_CODE',
+            type: 'smart_transaction_status',
+            requestState: {
+              isInSwapFlow: true,
+              isSwapApproveTx: true,
+            },
+          },
+        ],
+      });
+      setImmediate(() => {
+        request.smartTransactionsController.eventEmitter.emit(
+          `uuid:smartTransaction`,
+          {
+            status: 'pending',
+            statusMetadata: {
+              minedHash: '',
+            },
+          },
+        );
+
+        request.smartTransactionsController.eventEmitter.emit(
+          `uuid:smartTransaction`,
+          {
+            status: 'success',
+            statusMetadata: {
+              minedHash: transactionHash,
+            },
+          },
+        );
+      });
+      const result = await submitSmartTransactionHook(request);
+
+      expect(result).toEqual({ transactionHash });
+      const { transaction, chainId } = request.transactionMeta;
+      expect(
+        request.transactionController.approveTransactionsWithSameNonce,
+      ).toHaveBeenCalledWith(
+        [
+          {
+            ...transaction,
+            maxFeePerGas: '0x2fd8a58d7',
+            maxPriorityFeePerGas: '0xaa0f8a94',
+            chainId,
+            value: '0x0',
+          },
+        ],
+        { hasNonce: true },
+      );
+      expect(
+        request.smartTransactionsController.submitSignedTransactions,
+      ).toHaveBeenCalledWith({
+        signedTransactions: [createSignedTransaction()],
+        signedCanceledTransactions: [],
+        transaction,
+        transactionMeta: request.transactionMeta,
+      });
+
+      expect(request.approvalController.startFlow).not.toHaveBeenCalled();
+      expect(
+        request.approvalController.addAndShowApprovalRequest,
+      ).not.toHaveBeenCalled();
+      expect(
+        request.approvalController.updateRequestState,
+      ).toHaveBeenCalledWith({
+        id: 'approvalId',
+        requestState: {
+          smartTransaction: {
+            status: 'success',
+            statusMetadata: {
+              minedHash:
+                '0x0302b75dfb9fd9eb34056af031efcaee2a8cbd799ea054a85966165cd82a7356',
+            },
+          },
+          isDapp: false,
+          isInSwapFlow: true,
+          isSwapApproveTx: false,
+          isSwapTransaction: true,
+        },
+      });
+
+      expect(request.transactionController.update).toHaveBeenCalledTimes(2);
+
+      expect(request.approvalController.endFlow).toHaveBeenCalledWith({
+        id: 'approvalId',
+      });
+    });
   });
 });
