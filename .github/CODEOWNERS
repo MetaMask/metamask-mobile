@@ -17,3 +17,6 @@ app/components/Views/SDK   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/core/RPCMethods/RPCMethodMiddleware.ts   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/core/WalletConnect   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/components/Views/WalletConnectSessions   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/components/Approvals/WalletConnectApproval   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/util/walletconnect.js   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/core/BackgroundBridge/WalletConnectPort.ts   @MetaMask/sdk-devs @MetaMask/mobile-platform
