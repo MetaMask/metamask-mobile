@@ -120,6 +120,7 @@ import { selectTransactionGasFeeEstimates } from '../../../../../selectors/confi
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { getIsSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-tx';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -940,7 +941,10 @@ class Confirm extends PureComponent {
         Logger.log('STX Send Confirm 3');
       });
     } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      if (
+        !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !error?.message.startsWith(STX_NO_HASH_ERROR)
+      ) {
         Alert.alert(
           strings('transactions.transaction_error'),
           error && error.message,

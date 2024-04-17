@@ -77,6 +77,7 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { getIsSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-tx';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -589,7 +590,10 @@ class Approve extends PureComponent {
         this.getAnalyticsParams(),
       );
     } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      if (
+        !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !error?.message.startsWith(STX_NO_HASH_ERROR)
+      ) {
         Alert.alert(
           strings('transactions.transaction_error'),
           error && error.message,

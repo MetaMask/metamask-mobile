@@ -63,6 +63,7 @@ import {
 import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { getIsSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-tx';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -618,7 +619,10 @@ class Send extends PureComponent {
         this.removeNft();
       });
     } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      if (
+        !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !error?.message.startsWith(STX_NO_HASH_ERROR)
+      ) {
         Alert.alert(
           strings('transactions.transaction_error'),
           error && error.message,
