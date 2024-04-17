@@ -1,4 +1,7 @@
-import type { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/json-rpc-engine';
+import type {
+  JsonRpcRequest,
+  PendingJsonRpcResponse,
+} from '@metamask/json-rpc-engine';
 import {
   TransactionController,
   WalletDevice,

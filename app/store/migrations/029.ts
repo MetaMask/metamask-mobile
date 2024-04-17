@@ -5,7 +5,7 @@ import { regex } from '../../../app/util/regex';
 //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
 import { isHexString } from 'ethereumjs-util';
 import { NetworkState } from '@metamask/network-controller';
-import { Transaction } from '@metamask/transaction-controller';
+import { TransactionParams } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import {
   AddressBookEntry,
@@ -32,7 +32,7 @@ import {
  * NftController allNfts, allNftsContracts chain Id now is on hexadecimal format
  * Transaction Controller transactions object chain id property to hexadecimal
  * decided here https://github.com/MetaMask/core/pull/1367
- * @param {any} state - Redux state.
+ * @param {Promise<any>} stateAsync - Redux state.
  * @returns Migrated Redux state.
  */
 export default async function migrate(stateAsync: unknown) {
@@ -449,7 +449,7 @@ export default async function migrate(stateAsync: unknown) {
   // Transaction Controller transactions object chain id property to hexadecimal
   if (Array.isArray(transactionControllerState.transactions)) {
     transactionControllerState.transactions.forEach(
-      (transaction: Transaction, index: number) => {
+      (transaction: TransactionParams, index: number) => {
         if (transaction && !isHexString(transaction.chainId)) {
           if (
             Array.isArray(transactionControllerState.transactions) &&
