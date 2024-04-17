@@ -7,7 +7,8 @@ assert(bundleJs, new TypeError(`BundleJs not found`));
 assert(manifestJson, new TypeError(`manifestJson not found`));
 
 let icon, bundlePath;
-const iconPath = 'images/icon.svg';
+const iconPath = 'images/icon.svg',
+  name = '@metamask/bip32-example-snap';
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   icon = require('../../../../../node_modules/@metamask/bip32-example-snap/images/icon.svg');
@@ -16,6 +17,7 @@ try {
 }
 
 const bip32 = {
+  name,
   manifestJson,
   icon,
   iconPath,
