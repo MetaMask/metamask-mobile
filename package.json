@@ -553,5 +553,6 @@
       "@metamask/sdk-communication-layer>bufferutil": false,
       "@metamask/sdk-communication-layer>utf-8-validate": false
     }
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }
