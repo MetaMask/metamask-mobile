@@ -30,7 +30,6 @@ import Networks, {
   isTestNet,
 } from '../../../util/networks';
 import {
-  CHAINLIST_CURRENCY_SYMBOLS_MAP,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
   MAINNET,
