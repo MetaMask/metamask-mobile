@@ -1,5 +1,11 @@
 import React, { useRef } from 'react';
-import { StyleSheet, View, ScrollView, Linking } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  Linking,
+  ImageBackground,
+} from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import AsyncStorage from '../../../store/async-storage-wrapper';
@@ -14,6 +20,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
+  IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { Colors } from '../../../util/theme/models';
@@ -26,6 +33,7 @@ import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import AppConstants from '../../../core/AppConstants';
+import backgroundImage from '../../../images/smart-transactions-opt-in-bg.png';
 
 const modalMargin = 24;
 const modalPadding = 24;
@@ -41,6 +49,7 @@ const createStyles = (colors: Colors) =>
     },
     content: {
       gap: 16,
+      padding: modalPadding,
     },
     buttons: {
       gap: 10,
@@ -64,10 +73,8 @@ const createStyles = (colors: Colors) =>
     },
     bodyContainer: {
       width: itemWidth,
-      paddingHorizontal: modalPadding,
-      paddingVertical: 32,
+      paddingVertical: 16,
       paddingBottom: 16,
-      gap: 16,
     },
     benefits: {
       flexDirection: 'row',
@@ -90,11 +97,14 @@ const createStyles = (colors: Colors) =>
     benefitText: {
       textAlign: 'center',
     },
+    backgroundImage: {
+      gap: 16,
+    },
   });
 
 interface Props {
   iconName: IconName;
-  text: string;
+  text: string[];
 }
 const Benefit = ({ iconName, text }: Props) => {
   const { colors } = useTheme();
@@ -102,16 +112,20 @@ const Benefit = ({ iconName, text }: Props) => {
 
   return (
     <View style={styles.benefit}>
-      <View style={styles.benefitIcon}>
-        <Icon name={iconName} color={colors.primary.default} />
+      <Icon name={iconName} color={colors.primary.default} size={IconSize.Xl} />
+
+      <View>
+        {text.map((t) => (
+          <Text
+            key={t}
+            color={TextColor.Alternative}
+            variant={TextVariant.BodyXS}
+            style={styles.benefitText}
+          >
+            {t}
+          </Text>
+        ))}
       </View>
-      <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyXS}
-        style={styles.benefitText}
-      >
-        {text}
-      </Text>
     </View>
   );
 };
@@ -169,31 +183,47 @@ const SmartTransactionsOptInModal = () => {
         testID={SmartTransactionsOptInModalSelectorsIDs.CONTAINER}
       >
         <View style={styles.bodyContainer}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text color={TextColor.Default} variant={TextVariant.HeadingSM}>
-              {strings('whats_new.stx.header')}
-            </Text>
-          </View>
+          <ImageBackground
+            source={backgroundImage}
+            resizeMode="repeat"
+            style={styles.backgroundImage}
+          >
+            {/* Header */}
+            <View style={styles.header}>
+              <Text color={TextColor.Default} variant={TextVariant.HeadingSM}>
+                {strings('whats_new.stx.header')}
+              </Text>
+            </View>
+
+            {/* Benefits */}
+            <View style={styles.benefits}>
+              <Benefit
+                iconName={IconName.Confirmation}
+                text={[
+                  strings('whats_new.stx.benefit_1_1'),
+                  strings('whats_new.stx.benefit_1_2'),
+                ]}
+              />
+              <Benefit
+                iconName={IconName.SecurityDouble}
+                text={[
+                  strings('whats_new.stx.benefit_2_1'),
+                  strings('whats_new.stx.benefit_2_2'),
+                ]}
+              />
+              <Benefit
+                iconName={IconName.Clock}
+                text={[
+                  strings('whats_new.stx.benefit_3_1'),
+                  strings('whats_new.stx.benefit_3_2'),
+                ]}
+              />
+            </View>
+          </ImageBackground>
 
           {/* Content */}
           <ScrollView>
             <View style={styles.content}>
-              <View style={styles.benefits}>
-                <Benefit
-                  iconName={IconName.Confirmation}
-                  text={strings('whats_new.stx.benefit_1')}
-                />
-                <Benefit
-                  iconName={IconName.SecurityTick}
-                  text={strings('whats_new.stx.benefit_2')}
-                />
-                <Benefit
-                  iconName={IconName.Clock}
-                  text={strings('whats_new.stx.benefit_3')}
-                />
-              </View>
-
               <View style={styles.descriptions}>
                 <Text>{strings('whats_new.stx.description_1')}</Text>
                 <Text>{strings('whats_new.stx.description_2')}</Text>
