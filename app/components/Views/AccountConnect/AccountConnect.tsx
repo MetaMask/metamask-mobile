@@ -172,6 +172,15 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const loadHostname = useCallback(async () => {
+    // walletconnect channelId format: 1713357238460272
+    // sdk channelId format: uuid
+    // inappbrowser channelId format: app.uniswap.io
+
+    // check if channelId contains dot, it comes from in-app browser and we can use it.
+    if (channelId.indexOf('.') !== -1) {
+      return origin;
+    }
+
     if (sdkConnection) {
       const _hostname = (
         sdkConnection?.originatorInfo?.url ?? metadataOrigin
@@ -180,7 +189,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
 
     return wc2Metadata?.url ?? channelId;
-  }, [channelId, metadataOrigin, sdkConnection, wc2Metadata]);
+  }, [channelId, metadataOrigin, sdkConnection, origin, wc2Metadata]);
 
   // Retrieve hostname info based on channelId
   useEffect(() => {
