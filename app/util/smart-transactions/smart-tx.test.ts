@@ -36,15 +36,18 @@ const createTransactionControllerMock = () =>
     state: { transactions: [] },
   } as unknown as jest.Mocked<TransactionController>);
 
-const createApprovalControllerMock = () =>
+const defaultAddAndShowApprovalRequest = jest.fn(() => ({ then: jest.fn() }));
+const createApprovalControllerMock = ({
+  addAndShowApprovalRequest,
+}: {
+  addAndShowApprovalRequest: () => void;
+}) =>
   ({
     state: {
       pendingApprovals: [],
     },
     startFlow: jest.fn().mockReturnValue({ id: 'approvalId' }),
-    addAndShowApprovalRequest: jest
-      .fn()
-      .mockResolvedValue('addAndShowApprovalRequest resolved value'),
+    addAndShowApprovalRequest,
     updateRequestState: jest.fn(),
     endFlow: jest.fn(),
   } as unknown as jest.Mocked<ApprovalController>);
@@ -67,7 +70,9 @@ const createSmartTransactionsControllerMock = () =>
     eventEmitter: new EventEmitter(),
   } as unknown as jest.Mocked<SmartTransactionsController>);
 
-const createRequest = () => ({
+const createRequest = ({
+  addAndShowApprovalRequest = defaultAddAndShowApprovalRequest,
+} = {}) => ({
   transactionMeta: {
     origin: 'http://localhost',
     transactionHash,
@@ -98,7 +103,9 @@ const createRequest = () => ({
   smartTransactionsController: createSmartTransactionsControllerMock(),
   transactionController: createTransactionControllerMock(),
   isSmartTransaction: true,
-  approvalController: createApprovalControllerMock(),
+  approvalController: createApprovalControllerMock({
+    addAndShowApprovalRequest,
+  }),
   featureFlags: {
     extensionActive: true,
     mobileActive: true,
@@ -166,7 +173,7 @@ describe('submitSmartTransactionHook', () => {
 
   it.todo('throws an error if there is no origin');
 
-  it.only('submits a smart transaction', async () => {
+  it('submits a smart transaction', async () => {
     const request: SubmitSmartTransactionRequestMocked = createRequest();
     setImmediate(() => {
       request.smartTransactionsController.eventEmitter.emit(
@@ -178,6 +185,7 @@ describe('submitSmartTransactionHook', () => {
           },
         },
       );
+
       request.smartTransactionsController.eventEmitter.emit(
         `uuid:smartTransaction`,
         {
@@ -189,6 +197,7 @@ describe('submitSmartTransactionHook', () => {
       );
     });
     const result = await submitSmartTransactionHook(request);
+
     expect(result).toEqual({ transactionHash });
     const { transaction, chainId } = request.transactionMeta;
     expect(
@@ -244,6 +253,9 @@ describe('submitSmartTransactionHook', () => {
           },
         },
         isDapp: true,
+        isInSwapFlow: false,
+        isSwapApproveTx: false,
+        isSwapTransaction: false,
       },
     });
 
@@ -253,24 +265,24 @@ describe('submitSmartTransactionHook', () => {
   });
 
   it('submits a smart transaction and does not update approval request if approval was already approved or rejected', async () => {
-    const request: SubmitSmartTransactionRequestMocked = createRequest();
+    const request: SubmitSmartTransactionRequestMocked = createRequest({
+      addAndShowApprovalRequest: jest.fn().mockResolvedValue(123),
+    });
     setImmediate(() => {
       request.smartTransactionsController.eventEmitter.emit(
         `uuid:smartTransaction`,
         {
           status: 'pending',
-          uuid,
           statusMetadata: {
             minedHash: '',
           },
         },
       );
-      addRequestCallback();
+
       request.smartTransactionsController.eventEmitter.emit(
         `uuid:smartTransaction`,
         {
           status: 'success',
-          uuid,
           statusMetadata: {
             minedHash: transactionHash,
           },
@@ -278,6 +290,7 @@ describe('submitSmartTransactionHook', () => {
       );
     });
     const result = await submitSmartTransactionHook(request);
+
     expect(result).toEqual({ transactionHash });
     const { transaction, chainId } = request.transactionMeta;
     expect(
@@ -289,6 +302,7 @@ describe('submitSmartTransactionHook', () => {
           maxFeePerGas: '0x2fd8a58d7',
           maxPriorityFeePerGas: '0xaa0f8a94',
           chainId,
+          value: undefined,
         },
       ],
       { hasNonce: true },
@@ -301,25 +315,30 @@ describe('submitSmartTransactionHook', () => {
       transaction,
       transactionMeta: request.transactionMeta,
     });
+    addRequestCallback();
     expect(request.approvalController.startFlow).toHaveBeenCalled();
     expect(
       request.approvalController.addAndShowApprovalRequest,
-    ).toHaveBeenCalledWith(
-      {
-        id: 'approvalId',
-        origin: 'http://localhost',
-        type: 'smartTransaction:showSmartTransactionStatusPage',
-        requestState: {
-          smartTransaction: {
-            status: 'pending',
-            uuid,
-            creationTime: expect.any(Number),
-          },
-          isDapp: true,
+    ).toHaveBeenCalledWith({
+      id: 'approvalId',
+      origin: 'http://localhost',
+      type: 'smart_transaction_status',
+      requestState: {
+        smartTransaction: {
+          status: 'pending',
+          uuid,
+          creationTime: expect.any(Number),
         },
+        isDapp: true,
+        isInSwapFlow: false,
+        isSwapApproveTx: false,
+        isSwapTransaction: false,
       },
-      true,
-    );
+    });
+    expect(
+      request.approvalController.updateRequestState,
+    ).not.toHaveBeenCalled();
+
     expect(request.approvalController.endFlow).toHaveBeenCalledWith({
       id: 'approvalId',
     });
