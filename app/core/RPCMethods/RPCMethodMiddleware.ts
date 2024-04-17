@@ -4,7 +4,7 @@ import {
   createAsyncMiddleware,
   JsonRpcEngineCallbackError,
 } from 'json-rpc-engine';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { ethErrors } from 'eth-rpc-errors';
 import {
   EndFlowOptions,
   StartFlowOptions,
@@ -14,7 +14,10 @@ import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
 import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
-import { permissionRpcMethods } from '@metamask/permission-controller';
+import {
+  PermissionController,
+  permissionRpcMethods,
+} from '@metamask/permission-controller';
 import Networks, {
   blockTagParamIndex,
   getAllNetworks,
@@ -99,11 +102,13 @@ export const checkActiveAccountAndChainId = async ({
   chainId,
   channelId,
   hostname,
+  isWalletConnect,
 }: {
   address?: string;
   chainId?: number;
   channelId?: string;
   hostname: string;
+  isWalletConnect: boolean;
 }) => {
   let isInvalidAccount = false;
   if (address) {
@@ -120,8 +125,21 @@ export const checkActiveAccountAndChainId = async ({
       '',
     );
 
-    const accounts =
-      (await getPermittedAccounts(channelId ?? validHostname)) ?? [];
+    const permissionsController = (
+      Engine.context as { PermissionController: PermissionController<any, any> }
+    ).PermissionController;
+    DevLogger.log(
+      `checkActiveAccountAndChainId channelId=${channelId} isWalletConnect=${isWalletConnect} validHostname=${validHostname}`,
+      permissionsController.state,
+    );
+
+    let accounts: string[] = [];
+    if (isWalletConnect) {
+      accounts = await getPermittedAccounts(validHostname);
+    } else {
+      accounts = (await getPermittedAccounts(channelId ?? validHostname)) ?? [];
+    }
+
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
     if (!normalizedAccounts.includes(formattedAddress)) {
@@ -141,6 +159,9 @@ export const checkActiveAccountAndChainId = async ({
     }
   }
 
+  DevLogger.log(
+    `checkActiveAccountAndChainId isInvalidAccount=${isInvalidAccount}`,
+  );
   if (chainId) {
     const providerConfig = selectProviderConfig(store.getState());
     const networkType = providerConfig.type as NetworkType;
@@ -187,8 +208,23 @@ const generateRawSignature = async ({
   chainId,
   channelId,
   getSource,
+  isWalletConnect,
   checkTabActive,
-}: any) => {
+}: {
+  version: string;
+  req: any;
+  hostname: string;
+  url: { current: string };
+  title: { current: string };
+  icon: { current: string | undefined };
+  analytics: { [key: string]: string | boolean };
+  chainId: number;
+  isMMSDK: boolean;
+  channelId?: string;
+  getSource: () => string;
+  isWalletConnect: boolean;
+  checkTabActive: any;
+}) => {
   const { SignatureController } = Engine.context;
 
   const pageMeta = {
@@ -209,6 +245,7 @@ const generateRawSignature = async ({
     channelId,
     address: req.params[0],
     chainId,
+    isWalletConnect,
   });
 
   const rawSig = await SignatureController.newUnsignedTypedMessage(
@@ -262,7 +299,18 @@ export const getRpcMethodMiddleware = ({
   createAsyncMiddleware(async (req: any, res: any, next: any) => {
     // Used by eth_accounts and eth_coinbase RPCs.
     const getEthAccounts = async () => {
-      res.result = await getPermittedAccounts(hostname);
+      let accounts: string[] = [];
+      const validHostname = hostname.replace(
+        AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+        '',
+      );
+      if (isMMSDK) {
+        accounts =
+          (await getPermittedAccounts(channelId ?? validHostname)) ?? [];
+      } else {
+        accounts = await getPermittedAccounts(validHostname);
+      }
+      res.result = accounts;
     };
 
     const checkTabActive = () => {
@@ -451,14 +499,34 @@ export const getRpcMethodMiddleware = ({
         } else {
           try {
             checkTabActive();
+            const currentPerm =
+              Engine.context.PermissionController.getPermissions(
+                channelId ?? validHostname,
+              );
+            const accountPerm =
+              Engine.context.PermissionController.getPermission(
+                channelId ?? validHostname,
+                'eth_accounts',
+              );
+            DevLogger.log(
+              `eth_requestAccounts currentPerm ${channelId ?? validHostname}`,
+              currentPerm,
+              accountPerm,
+            );
             await Engine.context.PermissionController.requestPermissions(
               { origin: channelId ?? validHostname },
               { eth_accounts: {} },
-              { id: channelId ?? validHostname },
+              {
+                id: channelId ?? validHostname,
+                preserveExistingPermissions: true,
+              },
             );
+            DevLogger.log(`eth_requestAccounts requestPermissions`);
             const acc = await getPermittedAccounts(hostname);
+            DevLogger.log(`eth_requestAccounts getPermittedAccounts`, acc);
             res.result = acc;
           } catch (error) {
+            DevLogger.log(`eth_requestAccounts error`, error);
             if (error) {
               throw ethErrors.provider.userRejectedRequest(
                 'User denied account authorization.',
@@ -500,6 +568,7 @@ export const getRpcMethodMiddleware = ({
               address: from,
               channelId,
               chainId,
+              isWalletConnect,
             });
           },
         });
@@ -538,6 +607,7 @@ export const getRpcMethodMiddleware = ({
             hostname,
             channelId,
             address: req.params[0].from,
+            isWalletConnect,
           });
           PPOMUtil.validateRequest(req);
           const rawSig = await SignatureController.newUnsignedMessage({
@@ -585,6 +655,7 @@ export const getRpcMethodMiddleware = ({
           hostname,
           channelId,
           address: params.from,
+          isWalletConnect,
         });
 
         PPOMUtil.validateRequest(req);
@@ -632,6 +703,7 @@ export const getRpcMethodMiddleware = ({
           hostname,
           channelId,
           address: req.params[1],
+          isWalletConnect,
         });
 
         PPOMUtil.validateRequest(req);
@@ -817,9 +889,20 @@ export const getRpcMethodMiddleware = ({
        * initialization.
        */
       metamask_getProviderState: async () => {
+        let accounts: string[] = [];
+        const validHostname = hostname.replace(
+          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
+          '',
+        );
+        if (isMMSDK) {
+          accounts =
+            (await getPermittedAccounts(channelId ?? validHostname)) ?? [];
+        } else {
+          accounts = await getPermittedAccounts(validHostname);
+        }
         res.result = {
           ...getProviderState(),
-          accounts: await getPermittedAccounts(hostname),
+          accounts,
         };
       },
 

@@ -1,7 +1,7 @@
-import messages from '../../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 export const NetworkListModalSelectorsText = {
-  SELECT_NETWORK: messages.networks.select_network,
+  SELECT_NETWORK: enContent.networks.select_network,
 };
 
 export const NetworkListModalSelectorsIDs = {

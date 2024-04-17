@@ -44,6 +44,8 @@ import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
+import AppConstants from '../../../../../core/AppConstants';
 
 const getReportUrl = (encodedData: string) =>
   `${FALSE_POSITIVE_REPORT_BASE_URL}?data=${encodeURIComponent(
@@ -91,8 +93,12 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
       return;
     }
 
+    const domain = req.origin as string;
+
     const reportData = {
-      domain: req.origin,
+      domain: domain
+        ?.replace(WALLET_CONNECT_ORIGIN, '')
+        ?.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, ''),
       jsonRpcMethod: req.method,
       jsonRpcParams: JSON.stringify(req.params),
       blockNumber: block,

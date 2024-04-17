@@ -1,4 +1,4 @@
-import messages from '../../../../locales/languages/en.json';
+import enContent from '../../../../locales/languages/en.json';
 
 export const AddContactViewSelectorsIDs = {
   ADD_BUTTON: 'add-contact-add-contact-button',
@@ -11,7 +11,6 @@ export const AddContactViewSelectorsIDs = {
 };
 
 export const AddContactViewSelectorsText = {
-  EDIT_BUTTON: messages.address_book.edit,
-  EDIT_CONTACT: messages.address_book.edit_contact,
-  MEMO: messages.address_book.memo,
+  EDIT_BUTTON: enContent.address_book.edit,
+  EDIT_CONTACT: enContent.address_book.edit_contact,
 };

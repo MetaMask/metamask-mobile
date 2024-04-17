@@ -351,12 +351,17 @@
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
     "add_tokens": "Import tokens",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved":"Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} new {{tokensLabel}} found in this account",
     "token_toast": {
       "tokens_imported_title": "Imported Tokens",
       "tokens_imported_desc": "Successfully imported {{tokenSymbols}}",
       "token_imported_title": "Imported Token",
       "token_imported_desc": "Successfully imported {{tokenSymbol}}",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Hiding Tokens",
       "tokens_hidden_desc": "Hiding detected tokens from your wallet",
       "token_hidden_title": "Hiding Token",
@@ -376,6 +381,9 @@
     "nfts_autodetection_desc": "Allow MetaMask to automatically detect NFTs from OpenSea and display in your MetaMask wallet.",
     "network_details_check": "Network details check",
     "network_with_chain_id": "The network with chain ID",
+    "chain_list_returned_different_ticker_symbol":
+   "This token symbol doesn't match the network name or chain ID entered. Many popular tokens use similar symbols, which scammers can use to trick you into sending them a more valuable token in return. Verify everything before you continue.",
+   "suggested_token_symbol":"Suggested ticker symbol:",
     "potential_scam": "This is a potential scam",
     "network_not_matching": "This network doesn't match its associated chain ID or name. Many popular tokens use the name",
     "target_scam_network": "making it a target for scams. Scammers may trick you into sending them more valuable currency in return. Verify everything before you continue.",
@@ -439,8 +447,8 @@
   "add_asset": {
     "title": "Import tokens",
     "title_nft": "Import NFT",
-    "search_token": "SEARCH",
-    "custom_token": "CUSTOM TOKEN",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "CANCEL",
       "add_token": "IMPORT"
@@ -497,14 +505,16 @@
     "resultPageErrorDefaultMessage": "The operation failed."
   },
   "token": {
-    "token_symbol": "Token Symbol",
+    "token_symbol": "Token symbol",
     "token_address": "Token Address",
-    "token_decimal": "Token Decimal",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Search Tokens",
     "address_cant_be_empty": "Token address can't be empty.",
     "address_must_be_valid": "Token address must be a valid address.",
     "symbol_cant_be_empty": "Token symbol can't be empty.",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Token decimals can't be empty.",
+    "decimals_is_required":"Decimal is required. Find it on:",
     "no_tokens_found": "We couldn't find any tokens with that name.",
     "select_token": "Select Token",
     "address_must_be_smart_contract": "Personal address detected. Enter the token contract address."
@@ -541,7 +551,6 @@
   },
   "accounts": {
     "create_new_account": "Create a new account",
-    "qr_hardware": "QR hardware",
     "import_account": "Import an account",
     "connect_hardware": "Connect hardware wallet",
     "imported": "Imported",
@@ -892,7 +901,7 @@
     "security_check_subheading": "Security checks",
     "symbol_required": "Symbol is required.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism and Polygon.",
+    "blockaid_desc": "Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia and Base.",
     "security_alerts": "Security alerts",
     "security_alerts_desc": "This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use."
   },
@@ -1293,6 +1302,7 @@
     "contract": "Contract ({{address}})",
     "contract_name": "Contract name:",
     "contract_address": "Contract address:",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Allowance:",
     "data": "Data",
     "function_approve": "Function: Approve",
@@ -1486,7 +1496,7 @@
     "add": "Add",
     "cancel": "Cancel",
     "approve": "Approve",
-    "edit_network_details":"Edit network details",
+    "edit_network_details": "Edit network details",
     "malicious_network_warning": "A malicious network provider can lie about the state of the blockchain and record your network activity. Only add custom networks you trust.",
     "security_link": "https://metamask.zendesk.com/hc/en-us/articles/4404424659995",
     "network_warning_title": "Network Information",
@@ -1509,7 +1519,6 @@
     "deprecated_goerli": "Due to the protocol changes of Ethereum: Goerli test network may not work as reliably and will be deprecated soon.",
     "network_deprecated_title": "This network is deprecated",
     "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
-
   },
   "select": {
     "cancel": "Cancel",
@@ -1789,6 +1798,9 @@
     "pending_deposit_message": "Waiting for deposit to complete",
     "pending_withdrawal_message": "Waiting for withdrawal to complete",
     "error_message": "Tap to view this transaction",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Tap to view this transaction",
     "speedup_message": "Trying to speed up the transaction",
     "success_deposit_message": "Your funds are ready to use",
@@ -2409,7 +2421,7 @@
       "title": "Stay safe with security alerts",
       "description_1": "Steer safe from known scams while still protecting your privacy with security alerts powered by Blockaid. This feature is now on by default for all MetaMask users.",
       "description_2": "Always do your own due diligence before approving requests.",
-      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism and Polygon.",
+      "description_3": "Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon, Sepolia and Base.",
       "got_it": "Got it"
     },
     "sell": {
@@ -2721,8 +2733,10 @@
     "bluetooth_off_message": "Please turn on Bluetooth for your device",
     "bluetooth_access_blocked": "Ledger needs Bluetooth access to pair with your mobile device.",
     "bluetooth_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, enable it in Settings & try again.",
-    "location_access_blocked": "Ledger needs location access to pair with your mobile device.",
+    "location_access_blocked": "MetaMask needs location access permission to pair with your ledger.",
     "location_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable location access in Settings & try again.",
+    "nearbyDevices_access_blocked": "MetaMask needs nearby devices permission to pair with your Ledger.",
+    "nearbyDevices_access_blocked_message": "If you want to pair your Ledger device using Bluetooth, you’ll need to enable nearby devices access in Settings & try again.",
     "bluetooth_scanning_error": "Error while scanning the device",
     "bluetooth_scanning_error_message": "Please make sure your device is unlocked and the Ethereum app is running",
     "bluetooth_connection_failed": "Bluetooth connection failed",
@@ -2742,10 +2756,12 @@
     "connect_ledger": "Connect Ledger",
     "looking_for_device": "Looking for device",
     "ledger_reminder_message": "Please make sure your Ledger Nano X is:",
-    "ledger_reminder_message_step_one": "1. Unlocked",
-    "ledger_reminder_message_step_two": "2. The Ethereum app is installed",
-    "ledger_reminder_message_step_three": "3. Bluetooth is enabled",
-    "ledger_reminder_message_step_four": "4. Location is enabled",
+    "ledger_reminder_message_step_one": "1. Unlock your Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. Install and open the Ethereum app",
+    "ledger_reminder_message_step_three": "3. Enable Bluetooth",
+    "ledger_reminder_message_step_four": "4. Location is enabled with use precise location on",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. Nearby devices is enabled",
+    "ledger_reminder_message_step_five": "5. Do not disturb must be turned off",
     "available_devices": "Available devices",
     "retry": "Retry",
     "continue": "Continue",
@@ -2828,5 +2844,8 @@
     "okay_action": "OK",
     "error_title": "Install failed",
     "error_description": "Installation of {{snap}} failed."
+  },
+  "stake": {
+    "stake": "Stake"
   }
 }

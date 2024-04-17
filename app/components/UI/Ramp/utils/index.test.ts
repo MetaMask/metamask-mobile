@@ -344,7 +344,7 @@ describe('getOrderAmount', () => {
     expect(getOrderAmount(mockOrder)).toBe('...');
   });
 
-  it('should render correctly when data is provided. ', () => {
+  it('render matches latest snapshot when data is provided. ', () => {
     expect(
       getOrderAmount({
         ...mockOrder,
@@ -353,7 +353,7 @@ describe('getOrderAmount', () => {
     ).toBe('0.01236');
   });
 
-  it('should render correctly when decimals is not provided. ', () => {
+  it('render matches latest snapshot when decimals is not provided. ', () => {
     expect(
       getOrderAmount({
         ...mockOrder,

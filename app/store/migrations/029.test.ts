@@ -282,23 +282,6 @@ describe('Migration #29', () => {
             NetworkController: {
               ...initialBackgroundState.NetworkController,
               networkDetails: {
-                isEIP1559Compatible: undefined,
-              },
-            },
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 29: Invalid NetworkController networkDetails isEIP1559Compatible: 'undefined'",
-      scenario: 'networkDetails isEIP1559Compatible is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              ...initialBackgroundState.NetworkController,
-              networkDetails: {
                 isEIP1559Compatible: true,
               },
               networkConfigurations: null,

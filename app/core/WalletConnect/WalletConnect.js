@@ -193,6 +193,7 @@ class WalletConnect {
                 id: payload.id,
                 jsonrpc: '2.0',
                 method: payload.method,
+                origin: this.url.current,
                 params: [
                   {
                     from: payload.params[0].from,

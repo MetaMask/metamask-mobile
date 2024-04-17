@@ -351,12 +351,17 @@
     "no_collectibles": "NFT'nizi görmüyor musunuz?",
     "no_available_tokens": "Tokeninizi görmüyor musunuz?",
     "add_tokens": "Tokenleri içe aktar",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "Bu hesapta {{tokenCount}} yeni {{tokensLabel}} bulundu",
     "token_toast": {
       "tokens_imported_title": "İçe Aktarılan Tokenler",
       "tokens_imported_desc": "Başarılı bir şekilde içe aktarıldı: {{tokenSymbols}}",
       "token_imported_title": "İçe Aktarılan Token",
       "token_imported_desc": "Başarılı bir şekilde içe aktarıldı: {{tokenSymbol}}",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Tokenler Gizleniyor",
       "tokens_hidden_desc": "Algılanan tokenler cüzdanınızdan gizleniyor",
       "token_hidden_title": "Token Gizleniyor",
@@ -376,6 +381,8 @@
     "nfts_autodetection_desc": "MetaMask'ın OpenSea'den NFT'leri otomatik olarak algılayıp MetaMask cüzdanınızda göstermesine izin verin.",
     "network_details_check": "Ağ bilgileri kontrolü",
     "network_with_chain_id": "Zincir kimliği olan ağ",
+    "chain_list_returned_different_ticker_symbol": "Bu token sembolü, girilen ağ adı veya zincir kimliği ile eşleşmiyor. Pek çok popüler token benzer sembolleri kullanır ve dolandırıcılar, karşılığında daha değerli bir token gönderecekleri yönünde sizi kandırmak için bunları kullanabilirler. Devam etmeden önce her şeyi doğrulayın.",
+    "suggested_token_symbol": "Önerilen ticker sembolü:",
     "potential_scam": "Bu potansiyel bir dolandırıcılıktır",
     "network_not_matching": "Bu ağ, ilişkili zincir kimliği veya isim ile uyumlu değil. Bu ismin pek çok popüler token tarafından kullanılması",
     "target_scam_network": "dolandırıcılıkların hedefi haline gelmesine neden olmaktadır. Dolandırıcılar, karşılığında daha değerli bir para birimi göndereceğini belirterek sizi aldatabilir. Devam etmeden önce her şeyi doğrulayın.",
@@ -439,8 +446,8 @@
   "add_asset": {
     "title": "Tokenleri içe aktar",
     "title_nft": "NFT'yi içe aktar",
-    "search_token": "ARA",
-    "custom_token": "KİŞİSEL TOKEN",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "İPTAL",
       "add_token": "İÇE AKTAR"
@@ -497,14 +504,16 @@
     "resultPageErrorDefaultMessage": "İşlem başarısız oldu."
   },
   "token": {
-    "token_symbol": "Token Sembolü",
+    "token_symbol": "Token symbol",
     "token_address": "Token Adresi",
-    "token_decimal": "Token Ondalığı",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Token Ara",
     "address_cant_be_empty": "Token adresi boş olamaz.",
     "address_must_be_valid": "Token adresi geçerli bir adres olmalıdır.",
     "symbol_cant_be_empty": "Token sembolü boş olamaz.",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Token ondalıkları boş olamaz.",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "Bu isimde token bulamadık.",
     "select_token": "Token Seç",
     "address_must_be_smart_contract": "Kişisel adres algılandı. Token sözleşme adresini girin."
@@ -541,10 +550,10 @@
   },
   "accounts": {
     "create_new_account": "Yeni hesap oluştur",
-    "qr_hardware": "QR donanımı",
     "import_account": "Bir hesabı içe aktar",
     "connect_hardware": "Donanım cüzdanı bağla",
     "imported": "İçe aktarıldı",
+    "qr_hardware": "QR donanımı",
     "remove_account_title": "Hesap kaldırma",
     "remove_account_message": "Bu hesabı gerçekten kaldırmak istiyor musunuz?",
     "no": "Hayır",
@@ -891,7 +900,6 @@
     "security_check_subheading": "Güvenlik kontrolleri",
     "symbol_required": "Sembol gerekli.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Gizlilik koruması - hiçbir veri üçüncü taraflarla paylaşılmaz. Arbitrum, Avalanche, BNB chain, Ethereum Ana Ağı, Optimism ve Polygon üzerinde kullanılabilir.",
     "security_alerts": "Güvenlik uyarıları",
     "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel olarak incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı aktivitelere karşı sizi uyarır. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır. Bu özelliği etkinleştirerek sağlayıcının kullanım koşullarını kabul etmiş olursunuz."
   },
@@ -1292,6 +1300,7 @@
     "contract": "Sözleşme ({{address}})",
     "contract_name": "Sözleşme adı:",
     "contract_address": "Sözleşme adresi:",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Ödenek:",
     "data": "Veriler",
     "function_approve": "Fonksiyon: Onayla",
@@ -1787,6 +1796,9 @@
     "pending_deposit_message": "Yatırma işleminin tamamlanması bekleniyor",
     "pending_withdrawal_message": "Çekme işleminin tamamlanması bekleniyor",
     "error_message": "Bu işlemi görüntülemek için dokunun",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Bu işlemi görüntülemek için dokunun",
     "speedup_message": "İşlem hızlandırılmaya çalışılıyor",
     "success_deposit_message": "Paranız kullanıma hazır",
@@ -2407,7 +2419,6 @@
       "title": "Güvenlik uyarıları ile güvende kalın",
       "description_1": "Blockaid tarafından desteklenen güvenlik uyarıları ile gizliliğinizi korumaya devam ederken bilinen dolandırıcılıklardan güvenli bir şekilde uzakta kalın. Bu özellik şu anda tüm MetaMask kullanıcıları için varsayılan olarak açıktır.",
       "description_2": "Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin.",
-      "description_3": "Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism ve Polygon üzerinde mevcuttur.",
       "got_it": "Anladım"
     },
     "sell": {
@@ -2719,8 +2730,10 @@
     "bluetooth_off_message": "Lütfen cihazınızda Bluetooth özelliğini açın",
     "bluetooth_access_blocked": "Ledger, mobil cihazınızla eşleşmek için Bluetooth erişimine ihtiyaç duyuyor.",
     "bluetooth_access_blocked_message": "Bluetooth kullanarak Ledger cihazını eşleştirmek istiyorsanız Ayarlar kısmında Bluetooth'u etkinleştirip tekrar deneyin.",
-    "location_access_blocked": "Ledger, mobil cihazınızla eşleşmek için konum erişimine ihtiyaç duyuyor.",
+    "location_access_blocked": "MetaMask, ledger'ınızla eşleştirmek için konum erişimi iznine ihtiyaç duyuyor.",
     "location_access_blocked_message": "Bluetooth kullanarak Ledger cihazınızı eşleştirmek istiyorsanız Ayarlar kısmında konum erişimini etkinleştirip tekrar denemeniz gerekecek.",
+    "nearbyDevices_access_blocked": "MetaMask, Ledger'ınızla eşleştirmek için yakındaki cihazlar iznine ihtiyaç duyuyor.",
+    "nearbyDevices_access_blocked_message": "Bluetooth kullanarak Ledger cihazınızı eşleştirmek istiyorsanız Ayarlar kısmında yakındaki cihazlar erişimini etkinleştirip tekrar denemeniz gerekli.",
     "bluetooth_scanning_error": "Cihaz taranırken hata",
     "bluetooth_scanning_error_message": "Lütfen cihazınızın kilidinin açık olduğundan ve Ethereum uygulamasının çalıştığından emin olun",
     "bluetooth_connection_failed": "Bluetooth bağlantısı başarısız oldu",
@@ -2740,10 +2753,12 @@
     "connect_ledger": "Ledger'ı bağla",
     "looking_for_device": "Cihaz aranıyor",
     "ledger_reminder_message": "Ledger Nano X cihazınızın şöyle olduğundan emin olun:",
-    "ledger_reminder_message_step_one": "1. Kilidi açılmış",
-    "ledger_reminder_message_step_two": "2. Ethereum uygulaması yüklü",
-    "ledger_reminder_message_step_three": "3. Bluetooth etkinleştirilmiş",
-    "ledger_reminder_message_step_four": "4. Konum etkinleştirilmiş",
+    "ledger_reminder_message_step_one": "1. Ledger Nano X cihazının kilidini açın",
+    "ledger_reminder_message_step_two": "2. Ethereum uygulamasını yükleyin ve açın",
+    "ledger_reminder_message_step_three": "Bluetooth'u etkinleştirin",
+    "ledger_reminder_message_step_four": "4. Konum, hassas konum kullan özelliği açık olarak etkinleştirildi",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. Yakındaki cihazlar etkinleştirildi",
+    "ledger_reminder_message_step_five": "5. Rahatsız etme modu kapatılmalı",
     "available_devices": "Kullanılabilir cihazlar",
     "retry": "Tekrar Dene",
     "continue": "Devam",
@@ -2826,5 +2841,8 @@
     "okay_action": "Tamam",
     "error_title": "Yükleme başarısız oldu",
     "error_description": "{{snap}} yüklemesi başarısız oldu."
+  },
+  "stake": {
+    "stake": "Stake"
   }
 }
