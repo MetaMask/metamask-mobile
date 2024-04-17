@@ -2449,9 +2449,12 @@
       "secondary_button": "Not right now",
       "primary_button": "Enable Smart Transactions",
       "learn_more": "Learn more.",
-      "benefit_1": "57% fewer failed transactions",
-      "benefit_2": "Transaction protection",
-      "benefit_3": "Real-time updates"
+      "benefit_1_1": "82% fewer failed",
+      "benefit_1_2": "transactions",
+      "benefit_2_1": "Transaction",
+      "benefit_2_2": "protection",
+      "benefit_3_1": "Real-time",
+      "benefit_3_2": "updates"
     }
   },
   "invalid_network": {
