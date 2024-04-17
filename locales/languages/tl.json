@@ -900,7 +900,6 @@
     "security_check_subheading": "Pagsusuring panseguridad",
     "symbol_required": "Kailangan ang simbolo.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Pagpapanatili ng pagkapribado - walang data na ibinahagi sa mga third party. Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism Polygon, at Sepolia.",
     "security_alerts": "Mga alerto sa seguridad",
     "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider."
   },
@@ -2420,7 +2419,6 @@
       "title": "Manatiling ligtas gamit ang mga alerto sa seguridad",
       "description_1": "Manatiling ligtas sa mga scam habang patuloy na pinoprotektahan ang iyong pagkapribado sa pamamagitan ng mga alerto sa seguridad na pinatatakbo ng Blockaid. Ang tampok na ito ay naka-on nang default para sa lahat ng user ng MetaMask.",
       "description_2": "Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang mga kahilingan.",
-      "description_3": "Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon at Sepolia.",
       "got_it": "Nakuha ko"
     },
     "sell": {
