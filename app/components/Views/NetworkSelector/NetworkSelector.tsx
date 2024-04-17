@@ -29,7 +29,13 @@ import Networks, {
   getNetworkImageSource,
   isTestNet,
 } from '../../../util/networks';
-import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
+import {
+  CHAINLIST_CURRENCY_SYMBOLS_MAP,
+  LINEA_MAINNET,
+  LINEA_SEPOLIA,
+  MAINNET,
+  SEPOLIA,
+} from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
@@ -68,6 +74,7 @@ const NetworkSelector = () => {
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
+  // The only values that type can be are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
     const {
       NetworkController,
@@ -75,7 +82,15 @@ const NetworkSelector = () => {
       AccountTrackerController,
     } = Engine.context;
 
-    CurrencyRateController.updateExchangeRate('ETH');
+    let ticker = type;
+    if (type === LINEA_SEPOLIA) {
+      ticker = 'LineaETH';
+    }
+    if (type === SEPOLIA) {
+      ticker = 'SepoliaETH';
+    }
+
+    CurrencyRateController.updateExchangeRate(ticker);
     NetworkController.setProviderType(type);
     AccountTrackerController.refresh();
 
