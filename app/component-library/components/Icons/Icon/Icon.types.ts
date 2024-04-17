@@ -187,6 +187,7 @@ export enum IconName {
   Search = 'Search',
   SecurityCard = 'SecurityCard',
   SecurityCross = 'SecurityCross',
+  SecurityDouble = 'SecurityDouble',
   SecurityKey = 'SecurityKey',
   SecuritySearch = 'SecuritySearch',
   SecuritySlash = 'SecuritySlash',
