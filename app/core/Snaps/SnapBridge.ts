@@ -10,7 +10,7 @@ import {
   createSwappableProxy,
   createEventEmitterProxy,
 } from '@metamask/swappable-obj-proxy';
-import { JsonRpcEngine } from 'json-rpc-engine';
+import { JsonRpcEngine } from '@metamask/json-rpc-engine';
 import { createEngineStream } from 'json-rpc-middleware-stream';
 import { NetworksChainId } from '@metamask/controller-utils';
 
