@@ -312,6 +312,8 @@ class SmartTransactionHook {
       return useRegularTransactionSubmit;
     }
 
+    Logger.log(LOG_PREFIX, 'Started submit hook', this.transactionMeta.id);
+
     if (this.shouldStartFlow) {
       const { id } = this.approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
       this.approvalFlowId = id;
