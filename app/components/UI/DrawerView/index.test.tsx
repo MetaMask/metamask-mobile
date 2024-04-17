@@ -4,6 +4,29 @@ import DrawerView from './';
 
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import Engine from '../../../core/Engine';
+import {
+  createMockInternalAccount,
+  createMockUUIDFromAddress,
+} from '../../../selectors/accountsController.test';
+import { AccountsControllerState } from '@metamask/accounts-controller';
+
+const MOCK_ADDRESS = '0xe7E125654064EEa56229f273dA586F10DF96B0a1';
+
+const expectedUUID = createMockUUIDFromAddress(MOCK_ADDRESS);
+
+const internalAccount1 = createMockInternalAccount(
+  MOCK_ADDRESS.toLowerCase(),
+  'Account 1',
+);
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      [expectedUUID]: internalAccount1,
+    },
+    selectedAccount: expectedUUID,
+  },
+};
 
 const mockedEngine = Engine;
 
@@ -12,41 +35,15 @@ const mockInitialState = {
     backgroundState: {
       ...initialBackgroundState,
       PreferencesController: {
-        selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
+        selectedAddress: MOCK_ADDRESS,
         identities: {
-          '0xe7E125654064EEa56229f273dA586F10DF96B0a1': {
+          [MOCK_ADDRESS]: {
             name: 'Account 1',
-            address: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
+            address: MOCK_ADDRESS,
           },
         },
       },
-      AccountsController: {
-        internalAccounts: {
-          accounts: {
-            '30313233-3435-4637-b839-383736353430': {
-              address: '0xe7e125654064eea56229f273da586f10df96b0a1',
-              id: '30313233-3435-4637-b839-383736353430',
-              options: {},
-              metadata: {
-                name: 'Account 1',
-                keyring: {
-                  type: 'HD Key Tree',
-                },
-              },
-              methods: [
-                'personal_sign',
-                'eth_sign',
-                'eth_signTransaction',
-                'eth_signTypedData_v1',
-                'eth_signTypedData_v3',
-                'eth_signTypedData_v4',
-              ],
-              type: 'eip155:eoa',
-            },
-          },
-          selectedAccount: '30313233-3435-4637-b839-383736353430',
-        },
-      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };

@@ -15,6 +15,7 @@ import {
   VIEW_ETHERSCAN,
 } from './AccountActions.constants';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../selectors/accountsController.test';
 
 const mockEngine = Engine;
 
@@ -23,34 +24,7 @@ const initialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
-      AccountsController: {
-        internalAccounts: {
-          accounts: {
-            '30313233-3435-4637-b839-383736353430': {
-              // Lowercase address to test edge case
-              address: '0xe7e125654064eea56229f273da586f10df96b0a1',
-              id: '30313233-3435-4637-b839-383736353430',
-              options: {},
-              metadata: {
-                name: 'Account 1',
-                keyring: {
-                  type: 'HD Key Tree',
-                },
-              },
-              methods: [
-                'personal_sign',
-                'eth_sign',
-                'eth_signTransaction',
-                'eth_signTypedData_v1',
-                'eth_signTypedData_v3',
-                'eth_signTypedData_v4',
-              ],
-              type: 'eip155:eoa',
-            },
-          },
-          selectedAccount: '30313233-3435-4637-b839-383736353430',
-        },
-      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
@@ -115,7 +89,7 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://etherscan.io/address/0xe7E125654064EEa56229f273dA586F10DF96B0a1',
+        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
         title: 'etherscan.io',
       },
     });
@@ -129,7 +103,7 @@ describe('AccountActions', () => {
     fireEvent.press(getByTestId(SHARE_ADDRESS));
 
     expect(Share.open).toHaveBeenCalledWith({
-      message: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
+      message: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
     });
   });
 

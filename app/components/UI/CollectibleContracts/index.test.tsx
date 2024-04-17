@@ -10,6 +10,11 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
 import { cleanup, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
+import {
+  createMockInternalAccount,
+  createMockUUIDFromAddress,
+} from '../../../selectors/accountsController.test';
+import { AccountsControllerState } from '@metamask/accounts-controller';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -63,9 +68,23 @@ describe('CollectibleContracts', () => {
   });
 
   it('should only get owned collectibles', () => {
-    const CURRENT_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
-    const CURRENT_ACCOUNT_LOWERCASE =
-      '0xd018538c87232ff95acbce4870629b75640a78e7';
+    const MOCK_ADDRESS = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+    const expectedUUID = createMockUUIDFromAddress(MOCK_ADDRESS);
+
+    const internalAccount1 = createMockInternalAccount(
+      MOCK_ADDRESS.toLowerCase(),
+      'Account 1',
+    );
+
+    const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+      internalAccounts: {
+        accounts: {
+          [expectedUUID]: internalAccount1,
+        },
+        selectedAccount: expectedUUID,
+      },
+    };
+
     const mockState = {
       collectibles: {
         favorites: {},
@@ -82,38 +101,12 @@ describe('CollectibleContracts', () => {
             },
           },
           AccountTrackerController: {
-            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
           },
-          AccountsController: {
-            internalAccounts: {
-              accounts: {
-                '30313233-3435-4637-b839-383736353430': {
-                  address: CURRENT_ACCOUNT_LOWERCASE,
-                  id: '30313233-3435-4637-b839-383736353430',
-                  options: {},
-                  metadata: {
-                    name: 'Account 1',
-                    keyring: {
-                      type: 'HD Key Tree',
-                    },
-                  },
-                  methods: [
-                    'personal_sign',
-                    'eth_sign',
-                    'eth_signTransaction',
-                    'eth_signTypedData_v1',
-                    'eth_signTypedData_v3',
-                    'eth_signTypedData_v4',
-                  ],
-                  type: 'eip155:eoa',
-                },
-              },
-              selectedAccount: '30313233-3435-4637-b839-383736353430',
-            },
-          },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             allNfts: {
-              [CURRENT_ACCOUNT]: {
+              [MOCK_ADDRESS]: {
                 '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -145,7 +138,7 @@ describe('CollectibleContracts', () => {
               },
             },
             allNftContracts: {
-              [CURRENT_ACCOUNT]: {
+              [MOCK_ADDRESS]: {
                 '0x1': [
                   {
                     address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -171,9 +164,22 @@ describe('CollectibleContracts', () => {
   });
 
   it('UI refresh changes NFT image when metadata image changes', async () => {
-    const CURRENT_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
-    const CURRENT_ACCOUNT_LOWERCASE =
-      '0xd018538c87232ff95acbce4870629b75640a78e7';
+    const MOCK_ADDRESS = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+    const expectedUUID = createMockUUIDFromAddress(MOCK_ADDRESS);
+
+    const internalAccount1 = createMockInternalAccount(
+      MOCK_ADDRESS.toLowerCase(),
+      'Account 1',
+    );
+
+    const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+      internalAccounts: {
+        accounts: {
+          [expectedUUID]: internalAccount1,
+        },
+        selectedAccount: expectedUUID,
+      },
+    };
     const collectibleData = [
       {
         address: '0x72b1FDb6443338A158DeC2FbF411B71aeB157A42',
@@ -228,49 +234,23 @@ describe('CollectibleContracts', () => {
             },
           },
           AccountTrackerController: {
-            accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
+            accounts: { [MOCK_ADDRESS]: { balance: '0' } },
           },
           PreferencesController: {
             displayNftMedia: true,
-            selectedAddress: CURRENT_ACCOUNT,
+            selectedAddress: MOCK_ADDRESS,
           },
-          AccountsController: {
-            internalAccounts: {
-              accounts: {
-                '30313233-3435-4637-b839-383736353430': {
-                  address: CURRENT_ACCOUNT_LOWERCASE,
-                  id: '30313233-3435-4637-b839-383736353430',
-                  options: {},
-                  metadata: {
-                    name: 'Account 1',
-                    keyring: {
-                      type: 'HD Key Tree',
-                    },
-                  },
-                  methods: [
-                    'personal_sign',
-                    'eth_sign',
-                    'eth_signTransaction',
-                    'eth_signTypedData_v1',
-                    'eth_signTypedData_v3',
-                    'eth_signTypedData_v4',
-                  ],
-                  type: 'eip155:eoa',
-                },
-              },
-              selectedAccount: '30313233-3435-4637-b839-383736353430',
-            },
-          },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           NftController: {
             addNft: jest.fn(),
             updateNftMetadata: jest.fn(),
             allNfts: {
-              [CURRENT_ACCOUNT]: {
+              [MOCK_ADDRESS]: {
                 '1': [],
               },
             },
             allNftContracts: {
-              [CURRENT_ACCOUNT]: {
+              [MOCK_ADDRESS]: {
                 '1': [],
               },
             },

@@ -48,8 +48,7 @@ import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
-import { toChecksumAddress } from 'ethereumjs-util';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 
 const ANIMATION_VELOCITY = 250;
 const HAS_NOTCH = Device.hasNotch();
@@ -152,7 +151,7 @@ const FieldType = {
 const CollectibleOverview = ({
   chainId,
   collectible,
-  selectedInternalAccount,
+  selectedAddress,
   tradable,
   onSend,
   addFavoriteCollectible,
@@ -172,10 +171,6 @@ const CollectibleOverview = ({
 
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-
-  const checksummedSelectedAddress = toChecksumAddress(
-    selectedInternalAccount.address,
-  );
 
   const translationHeight = useMemo(
     () => wrapperHeight - headerHeight - ANIMATION_OFFSET,
@@ -275,14 +270,14 @@ const CollectibleOverview = ({
     const action = isInFavorites
       ? removeFavoriteCollectible
       : addFavoriteCollectible;
-    action(checksummedSelectedAddress, chainId, collectible);
+    action(selectedAddress, chainId, collectible);
   }, [
-    isInFavorites,
-    removeFavoriteCollectible,
-    addFavoriteCollectible,
-    checksummedSelectedAddress,
+    selectedAddress,
     chainId,
     collectible,
+    isInFavorites,
+    addFavoriteCollectible,
+    removeFavoriteCollectible,
   ]);
 
   const shareCollectible = useCallback(() => {
@@ -524,9 +519,9 @@ CollectibleOverview.propTypes = {
    */
   onSend: PropTypes.func,
   /**
-   * An object representing the users currently selected account with address information
+   * Selected address
    */
-  selectedInternalAccount: PropTypes.object,
+  selectedAddress: PropTypes.string,
   /**
    * Dispatch add collectible to favorites action
    */
@@ -551,7 +546,7 @@ CollectibleOverview.propTypes = {
 
 const mapStateToProps = (state, props) => ({
   chainId: selectChainId(state),
-  selectedInternalAccount: selectSelectedInternalAccount(state),
+  selectedAddress: selectSelectedInternalAccountAddressAsChecksum(state),
   isInFavorites: isCollectibleInFavoritesSelector(state, props.collectible),
 });
 
