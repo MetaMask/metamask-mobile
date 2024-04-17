@@ -590,7 +590,7 @@ class NetworkSettings extends PureComponent {
       const url = new URL(rpcUrl);
 
       !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
-      CurrencyRateController.setNativeCurrency(ticker);
+      CurrencyRateController.updateExchangeRate(ticker);
       // Remove trailing slashes
       NetworkController.upsertNetworkConfiguration(
         {
@@ -928,7 +928,7 @@ class NetworkSettings extends PureComponent {
   switchToMainnet = () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
 
-    CurrencyRateController.setNativeCurrency('ETH');
+    CurrencyRateController.updateExchangeRate('ETH');
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {

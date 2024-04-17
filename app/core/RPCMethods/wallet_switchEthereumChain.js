@@ -109,10 +109,10 @@ const wallet_switchEthereumChain = async ({
     });
 
     if (networkConfiguration) {
-      CurrencyRateController.setNativeCurrency(networkConfiguration.ticker);
+      CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
       NetworkController.setActiveNetwork(networkConfigurationId);
     } else {
-      CurrencyRateController.setNativeCurrency('ETH');
+      CurrencyRateController.updateExchangeRate('ETH');
       NetworkController.setProviderType(existingNetworkDefault.networkType);
     }
 

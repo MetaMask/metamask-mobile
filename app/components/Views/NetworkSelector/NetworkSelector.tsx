@@ -75,7 +75,7 @@ const NetworkSelector = () => {
       AccountTrackerController,
     } = Engine.context;
 
-    CurrencyRateController.setNativeCurrency('ETH');
+    CurrencyRateController.updateExchangeRate('ETH');
     NetworkController.setProviderType(type);
     AccountTrackerController.refresh();
 
@@ -106,7 +106,7 @@ const NetworkSelector = () => {
       const [networkConfigurationId, networkConfiguration] = entry;
       const { ticker, nickname } = networkConfiguration;
 
-      CurrencyRateController.setNativeCurrency(ticker);
+      CurrencyRateController.updateExchangeRate(ticker);
 
       NetworkController.setActiveNetwork(networkConfigurationId);
 

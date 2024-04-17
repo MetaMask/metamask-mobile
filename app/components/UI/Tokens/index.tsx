@@ -562,7 +562,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const actions = [
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
-        CurrencyRateController.start(),
+        CurrencyRateController.startPollingByNetworkClientId(),
         TokenRatesController.updateExchangeRates(),
       ];
       await Promise.all(actions).catch((error) => {
@@ -582,6 +582,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     } else {
       total = balance?.tokenFiat ?? 0;
     }
+
     const fiatBalance = `${renderFiat(total, currentCurrency)}`;
 
     const onOpenPortfolio = () => {

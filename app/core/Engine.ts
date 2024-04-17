@@ -424,7 +424,6 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
-      //@ts-expect-error This will be fixed when assets-controller is on v16
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -438,14 +437,20 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        getNetworkClientById:
+          networkController.getNetworkClientById.bind(networkController),
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted<
           'NftController',
-          'ApprovalController:addRequest',
+          | 'ApprovalController:addRequest'
+          | 'NetworkController:getNetworkClientById',
           never
         >({
           name: 'NftController',
-          allowedActions: [`${approvalController.name}:addRequest`],
+          allowedActions: [
+            `${approvalController.name}:addRequest`,
+            'NetworkController:getNetworkClientById',
+          ],
         }),
         chainId: networkController.state.providerConfig.chainId,
 
@@ -515,7 +520,6 @@ class Engine {
           AppConstants.TOKEN_LIST_STATE_CHANGE_EVENT,
           listener,
         ),
-      //@ts-expect-error This will be fixed when assets-controller is on v16
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
       chainId: networkController.state.providerConfig.chainId,
@@ -559,14 +563,17 @@ class Engine {
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'CurrencyRateController',
-        never,
+        'NetworkController:getNetworkClientById',
         never
       >({
         name: 'CurrencyRateController',
+        allowedActions: ['NetworkController:getNetworkClientById'],
       }),
       state: initialState.CurrencyRateController,
     });
-    currencyRateController.start();
+    currencyRateController.startPollingByNetworkClientId(
+      networkController.state.selectedNetworkClientId,
+    );
 
     const gasFeeController = new GasFeeController({
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -1381,9 +1388,13 @@ class Engine {
     const { currentCurrency } = CurrencyRateController.state;
     const networkProvider = NetworkController.state.providerConfig;
     const conversionRate =
-      CurrencyRateController.state.conversionRate === null
+      CurrencyRateController.state?.currencyRates?.[
+        networkProvider?.ticker ?? 'ETH'
+      ]?.conversionRate === null
         ? 0
-        : CurrencyRateController.state.conversionRate;
+        : CurrencyRateController.state?.currencyRates?.[
+            networkProvider?.ticker ?? 'ETH'
+          ]?.conversionRate;
     const { accountsByChainId } = AccountTrackerController.state;
 
     const { tokens } = TokensController.state;

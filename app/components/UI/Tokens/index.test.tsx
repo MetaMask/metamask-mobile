@@ -76,7 +76,11 @@ const initialState = {
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
-        conversionRate: 1,
+        currencyRates: {
+          ETH: {
+            conversionRate: 1,
+          },
+        },
       },
       TokenBalancesController: {
         contractBalances: {
@@ -213,7 +217,11 @@ describe('Tokens', () => {
           },
           CurrencyRateController: {
             currentCurrency: 'USD',
-            conversionRate: 1,
+            currencyRates: {
+              ETH: {
+                conversionRate: 1,
+              },
+            },
           },
           TokenBalancesController: {
             contractBalances: {

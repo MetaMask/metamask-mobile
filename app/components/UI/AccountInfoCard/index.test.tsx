@@ -39,8 +39,12 @@ const mockInitialState = {
         },
       },
       CurrencyRateController: {
-        conversionRate: 10,
         currentCurrency: 'inr',
+        currencyRates: {
+          ETH: {
+            conversionRate: 10,
+          },
+        },
       },
       NetworkController: {
         providerConfig: {
