@@ -5,7 +5,7 @@ import {
   JsonRpcRequest,
   JsonRpcResponse,
   JsonRpcSuccess,
-} from 'json-rpc-engine';
+} from '@metamask/json-rpc-engine';
 import type { TransactionParams } from '@metamask/transaction-controller';
 import type { ProviderConfig } from '@metamask/network-controller';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
