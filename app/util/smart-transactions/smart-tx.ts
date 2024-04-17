@@ -28,6 +28,8 @@ export declare type Hex = `0x${string}`;
 const LOG_PREFIX = 'STX publishHook';
 // It has to be 21000 for cancel transactions, otherwise the API would reject it.
 const CANCEL_GAS = 21000;
+export const STX_NO_HASH_ERROR =
+  'Smart Transaction does not have a transaction hash, there was a problem';
 
 class SmartTransactionHook {
   approvalFlowEnded: boolean;
@@ -359,9 +361,7 @@ class SmartTransactionHook {
         });
       }
       if (transactionHash === null) {
-        throw new Error(
-          'Transaction does not have a transaction hash, there was a problem',
-        );
+        throw new Error(STX_NO_HASH_ERROR);
       }
 
       if (transactionHash && this.isSwapTransaction) {
