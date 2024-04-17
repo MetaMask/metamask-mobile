@@ -121,6 +121,7 @@ import Scroll from './assets/scroll.svg';
 import Search from './assets/search.svg';
 import SecurityCard from './assets/security-card.svg';
 import SecurityCross from './assets/security-cross.svg';
+import SecurityDouble from './assets/security-double.svg';
 import SecurityKey from './assets/security-key.svg';
 import SecuritySearch from './assets/security-search.svg';
 import SecuritySlash from './assets/security-slash.svg';
@@ -290,6 +291,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Search]: Search,
   [IconName.SecurityCard]: SecurityCard,
   [IconName.SecurityCross]: SecurityCross,
+  [IconName.SecurityDouble]: SecurityDouble,
   [IconName.SecurityKey]: SecurityKey,
   [IconName.SecuritySearch]: SecuritySearch,
   [IconName.SecuritySlash]: SecuritySlash,
