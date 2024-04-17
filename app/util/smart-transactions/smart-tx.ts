@@ -371,6 +371,8 @@ class SmartTransactionHook {
         this.updateSwapsTransactions(transactionHash);
       }
 
+      this.onApproveOrReject();
+
       return { transactionHash };
     } catch (error) {
       Logger.error(
