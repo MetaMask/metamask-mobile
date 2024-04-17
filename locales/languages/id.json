@@ -900,7 +900,6 @@
     "security_check_subheading": "Pemeriksaan keamanan",
     "symbol_required": "Simbol wajib diisi.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Menjaga privasi - tidak ada data yang dibagikan kepada pihak ketiga. Tersedia di Arbitrum, Avalanche, BNB chain, Mainnet Ethereum, Optimism, Polygon, dan Sepolia.",
     "security_alerts": "Peringatan keamanan",
     "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia."
   },
@@ -2420,7 +2419,6 @@
       "title": "Tetap aman bersama peringatan keamanan",
       "description_1": "Hindari penipuan yang diketahui sambil tetap melindungi privasi Anda bersama peringatan keamanan yang didukung oleh Blockaid. Saat ini fitur ini diaktifkan secara default untuk semua pengguna MetaMask.",
       "description_2": "Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
-      "description_3": "Tersedia di Arbitrum, Avalanche, BNB chain, Mainnet Ethereum, Linea, Optimism, Polygon, dan Sepolia.",
       "got_it": "Mengerti"
     },
     "sell": {
