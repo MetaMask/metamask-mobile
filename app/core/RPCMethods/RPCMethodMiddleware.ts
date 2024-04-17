@@ -517,7 +517,7 @@ export const getRpcMethodMiddleware = ({
               { eth_accounts: {} },
               {
                 id: channelId ?? validHostname,
-                preserveExistingPermissions: false,
+                preserveExistingPermissions: true,
               },
             );
             DevLogger.log(`eth_requestAccounts requestPermissions`);
@@ -526,9 +526,7 @@ export const getRpcMethodMiddleware = ({
             res.result = acc;
           } catch (error) {
             DevLogger.log(`eth_requestAccounts error`, error);
-            if (error && error.toString().indexOf('already exists') !== -1) {
-              DevLogger.log(`ignored error`, error);
-            } else if (error) {
+            if (error) {
               throw ethErrors.provider.userRejectedRequest(
                 'User denied account authorization.',
               );
