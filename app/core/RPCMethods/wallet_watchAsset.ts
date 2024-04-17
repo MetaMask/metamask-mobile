@@ -11,7 +11,7 @@ import {
 } from '../../constants/error';
 import { selectChainId } from '../../selectors/networkController';
 import { isValidAddress } from 'ethereumjs-util';
-import { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/json-rpc-engine';
+import { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const wallet_watchAsset = async ({
