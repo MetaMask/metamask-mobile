@@ -49,7 +49,7 @@ const createStyles = (colors: Colors) =>
     },
     content: {
       gap: 16,
-      padding: modalPadding,
+      paddingHorizontal: modalPadding,
     },
     buttons: {
       gap: 10,
@@ -99,6 +99,8 @@ const createStyles = (colors: Colors) =>
     },
     backgroundImage: {
       gap: 16,
+      height: 140,
+      justifyContent: 'center',
     },
   });
 
@@ -185,7 +187,7 @@ const SmartTransactionsOptInModal = () => {
         <View style={styles.bodyContainer}>
           <ImageBackground
             source={backgroundImage}
-            resizeMode="repeat"
+            resizeMode="cover"
             style={styles.backgroundImage}
           >
             {/* Header */}
