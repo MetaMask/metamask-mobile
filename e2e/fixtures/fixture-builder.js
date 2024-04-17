@@ -136,7 +136,6 @@ class FixtureBuilder {
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
-              networkId: '1',
               providerConfig: {
                 type: 'mainnet',
                 chainId: '0x1',
@@ -577,6 +576,9 @@ class FixtureBuilder {
         },
         experimentalSettings: {
           securityAlertsEnabled: true,
+        },
+        inpageProvider: {
+          networkId: '1',
         },
       },
       asyncState: {
