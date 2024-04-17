@@ -1,4 +1,5 @@
-import { JsonRpcMiddleware, JsonRpcRequest } from '@metamask/json-rpc-engine';
+import { JsonRpcMiddleware } from '@metamask/json-rpc-engine';
+import type { Json, JsonRpcParams, JsonRpcRequest } from '@metamask/utils';
 import { addHexPrefix } from 'ethereumjs-util';
 
 // We use this to clean any custom params from the txParams
@@ -39,18 +40,20 @@ export const permittedKeys = [
  * @param parameter - The parameter to sanitize.
  * @returns The given parameter containing just permitted keys.
  */
-function sanitizeRpcParameter(parameter: Record<PropertyKey, unknown>) {
-  return permittedKeys.reduce<Record<string, unknown>>((copy, permitted) => {
+function sanitizeRpcParameter(
+  parameter: Record<PropertyKey, unknown>,
+): Record<string, Json> {
+  return permittedKeys.reduce<Record<string, Json>>((copy, permitted) => {
     if (permitted in parameter) {
       const value = parameter[permitted];
       if (Array.isArray(value)) {
-        copy[permitted] = value.map(sanitize);
+        copy[permitted] = value.map(sanitize) as Json;
       } else {
-        copy[permitted] = sanitize(value);
+        copy[permitted] = sanitize(value) as Json;
       }
     }
     return copy;
-  }, {});
+  }, {} as Record<string, Json>);
 }
 
 /**
@@ -80,12 +83,12 @@ function sanitize(value: unknown) {
  * request along.
  */
 export function createSanitizationMiddleware(): JsonRpcMiddleware<
-  unknown,
-  unknown
+  JsonRpcParams,
+  Json
 > {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (req: JsonRpcRequest<unknown>, _: any, next: () => any) => {
+  return (req: JsonRpcRequest<JsonRpcParams>, _: any, next: () => any) => {
     if (!Array.isArray(req.params)) {
       next();
       return;
