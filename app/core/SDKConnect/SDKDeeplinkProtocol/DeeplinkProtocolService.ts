@@ -290,10 +290,10 @@ export default class DeeplinkProtocolService {
     request?: string;
   }) {
     if (!params.originatorInfo) {
-      Logger.error(
+      const deepLinkError = new Error(
         'DeeplinkProtocolService::handleConnection no originatorInfo',
-        params,
       );
+      Logger.error(deepLinkError, params);
 
       return;
     }

@@ -45,7 +45,7 @@ function handleUniversalLink({
       SDKConnect.getInstance()
         .bindAndroidSDK()
         .catch((err) => {
-          Logger.error(`DeepLinkManager failed to connect`, err);
+          Logger.error(err, `DeepLinkManager failed to connect`);
         });
       return;
     }
@@ -62,7 +62,7 @@ function handleUniversalLink({
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err: unknown) => {
-          Logger.error(`DeepLinkManager failed to connect`, err);
+          Logger.error(err, `DeepLinkManager failed to connect`);
         });
       }
       return true;
