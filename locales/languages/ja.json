@@ -900,7 +900,6 @@
     "security_check_subheading": "セキュリティチェック",
     "symbol_required": "シンボルが必要です",
     "blockaid": "Blockaid",
-    "blockaid_desc": "プライバシーを保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygon、Sepoliaで利用可能。",
     "security_alerts": "セキュリティアラート",
     "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。"
   },
@@ -2420,7 +2419,6 @@
       "title": "セキュリティアラートで安全を確保",
       "description_1": "Blockaidのセキュリティアラートで、プライバシーを確保しつつ既知の詐欺から身を守ります。この機能は、MetaMaskユーザー全員を対象にデフォルトでオンになります。",
       "description_2": "要求を承認する前に、必ず独自のデューデリジェンスを行ってください。",
-      "description_3": "Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Linea、Optimism、Polygon、Sepoliaで利用できます。",
       "got_it": "了解"
     },
     "sell": {
