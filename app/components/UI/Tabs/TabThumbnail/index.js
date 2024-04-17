@@ -1,25 +1,33 @@
-import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
+import React, { useContext, useMemo } from 'react';
 import {
-  View,
+  Dimensions,
   Image,
-  TouchableOpacity,
   StyleSheet,
   Text,
-  Dimensions,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import PropTypes from 'prop-types';
 import ElevatedView from 'react-native-elevated-view';
-import WebsiteIcon from '../../WebsiteIcon';
-import { strings } from '../../../../../locales/i18n';
 import IonIcon from 'react-native-vector-icons/Ionicons';
+import { strings } from '../../../../../locales/i18n';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant
+} from '../../../../component-library/components/Avatars/Avatar';
+import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import AppConstants from '../../../../core/AppConstants';
 import {
   fontStyles,
   colors as importedColors,
 } from '../../../../styles/common';
-import Device from '../../../../util/device';
-import AppConstants from '../../../../core/AppConstants';
 import { getHost } from '../../../../util/browser';
+import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { useAccounts } from '../../../hooks/useAccounts';
+
+import WebsiteIcon from '../../WebsiteIcon';
 
 const margin = 15;
 const width = Dimensions.get('window').width - margin * 2;
@@ -56,8 +64,8 @@ const createStyles = (colors) =>
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
       backgroundColor: colors.background.default,
-      paddingVertical: 10,
-      paddingHorizontal: 10,
+      paddingVertical: 8,
+      paddingHorizontal: 8,
     },
     tabWrapper: {
       marginBottom: 15,
@@ -112,85 +120,107 @@ const createStyles = (colors) =>
       height: 24,
       marginRight: -5,
     },
+    footerContainer: {
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      height: 36,
+      backgroundColor: colors.background.default,
+      borderTopColor: colors.border.default,
+      borderTopWidth: 1,
+      padding: 8,
+    },
+    footerText: { width: '90%' },
+    footerNetworkAvatar: { padding: 0 }
   });
 
 const { HOMEPAGE_URL } = AppConstants;
 const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
-/**
- * PureComponent that renders an a thumbnail
- * that represents an existing tab
- */
-export default class TabThumbnail extends PureComponent {
-  static propTypes = {
-    /**
-     * The tab info
-     */
-    tab: PropTypes.object,
-    /**
-     * Flag that determines if this is the active tab
-     */
-    isActiveTab: PropTypes.bool,
-    /**
-     * Closes a tab
-     */
-    onClose: PropTypes.func,
-    /**
-     * Switches to a specific tab
-     */
-    onSwitch: PropTypes.func,
-  };
+const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
+  const { colors } = useContext(ThemeContext) || mockTheme;
+  const styles = createStyles(colors);
+  const Container = Device.isAndroid() ? View : ElevatedView;
+  const hostname = getHost(tab.url);
+  const isHomepage = hostname === getHost(HOMEPAGE_URL);
 
-  getContainer = () => (Device.isAndroid() ? View : ElevatedView);
+  const { accounts } = useAccounts();
 
-  render() {
-    const { isActiveTab, tab, onClose, onSwitch } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-    const Container = this.getContainer();
-    const hostname = getHost(tab.url);
-    const isHomepage = hostname === getHost(HOMEPAGE_URL);
+  const selectedAccount = useMemo(() => {
+    if (accounts.length > 0) {
+      return accounts.find((account) => account.isSelected);
+    }
+    return undefined;
+  }, [accounts]);
 
-    return (
-      <Container style={styles.checkWrapper} elevation={8}>
-        <TouchableOpacity
-          onPress={() => onSwitch(tab)} // eslint-disable-line react/jsx-no-bind
-          style={[styles.tabWrapper, isActiveTab && styles.activeTab]}
-        >
-          <View style={styles.tabHeader}>
-            <View style={styles.titleButton}>
-              {!isHomepage ? (
-                <WebsiteIcon
-                  transparent
-                  style={styles.tabFavicon}
-                  title={hostname}
-                  url={tab.url}
+  return (
+    <Container style={styles.checkWrapper} elevation={8}>
+      <TouchableOpacity
+        onPress={() => onSwitch(tab)}
+        style={[styles.tabWrapper, isActiveTab && styles.activeTab]}
+      >
+        <View style={styles.tabHeader}>
+          <View style={styles.titleButton}>
+            {!isHomepage ? (
+              <WebsiteIcon
+                transparent
+                style={styles.tabFavicon}
+                title={hostname}
+                url={tab.url}
+              />
+            ) : (
+              <Image
+                style={styles.tabFavicon}
+                title={tab.url}
+                source={METAMASK_FOX}
+              />
+            )}
+            <Text style={styles.tabSiteName} numberOfLines={1}>
+              {isHomepage ? strings('browser.new_tab') : hostname}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => onClose(tab)}
+            style={styles.closeTabButton}
+          >
+            <IonIcon name="ios-close" style={styles.closeTabIcon} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.tab}>
+          <Image source={{ uri: tab.image }} style={styles.tabImage} />
+        </View>
+        <View style={styles.footerContainer}>
+          <View style={{ paddingRight: 8 }}>
+            <BadgeWrapper
+              badgeElement={
+                <AvatarNetwork
+                  style={styles.footerNetworkAvatar}
+                  size={AvatarSize.Xs}
+                  name={'Ethereum'}
+                  imageSource={require('../../../../images/ethereum.png')}
+                  backgroundColor={colors.background.default}
                 />
-              ) : (
-                <Image
-                  style={styles.tabFavicon}
-                  title={tab.url}
-                  source={METAMASK_FOX}
-                />
-              )}
-              <Text style={styles.tabSiteName} numberOfLines={1}>
-                {isHomepage ? strings('browser.new_tab') : hostname}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => onClose(tab)} // eslint-disable-line react/jsx-no-bind
-              style={styles.closeTabButton}
+              }
             >
-              <IonIcon name="ios-close" style={styles.closeTabIcon} />
-            </TouchableOpacity>
+              <Avatar
+                size={AvatarSize.Sm}
+                variant={AvatarVariant.Account}
+                accountAddress={selectedAccount?.address}
+              />
+            </BadgeWrapper>
           </View>
-          <View style={styles.tab}>
-            <Image source={{ uri: tab.image }} style={styles.tabImage} />
-          </View>
-        </TouchableOpacity>
-      </Container>
-    );
-  }
-}
+          <Text style={styles.footerText} numberOfLines={1} ellipsizeMode='tail'>{selectedAccount?.name} - Ethereum network 1234567890123456</Text>
+        </View>
+      </TouchableOpacity>
+    </Container>
+  );
+};
 
-TabThumbnail.contextType = ThemeContext;
+TabThumbnail.propTypes = {
+  tab: PropTypes.object,
+  isActiveTab: PropTypes.bool,
+  onClose: PropTypes.func,
+  onSwitch: PropTypes.func,
+};
+
+export default TabThumbnail;
