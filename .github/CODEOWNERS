@@ -13,7 +13,7 @@ app/actions/sdk   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/components/Approvals/WalletConnectApproval   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/components/Views/SDK   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/components/Views/WalletConnectSessions   @MetaMask/sdk-devs @MetaMask/mobile-platform
-app/core/BackgroundBridge/WalletConnectPort.ts   @MetaMask/sd
+app/core/BackgroundBridge/WalletConnectPort.ts   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/core/DeeplinkManager   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/core/RPCMethods/RPCMethodMiddleware.ts   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/core/SDKConnect   @MetaMask/sdk-devs @MetaMask/mobile-platform
