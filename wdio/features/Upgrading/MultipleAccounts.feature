@@ -3,7 +3,7 @@
 @fixturesSkipOnboarding
 Feature: Upgrade previous app build with current release while being connected to testnet
 
-  Scenario Outline: User multiple accounts in imported wallet upgrades from current production build to new version
+  Scenario Outline: User with multiple accounts in imported wallet upgrades from current production build to new version
   After upgrading app, accounts should not disappear
 
     Given the app displayed the splash animation
