@@ -120,6 +120,7 @@ const SmartTransactionStatus = ({
       position: 'absolute',
       top: 20,
       right: 20,
+      zIndex: 100,
     },
     buttonWrapper: {
       display: 'flex',
