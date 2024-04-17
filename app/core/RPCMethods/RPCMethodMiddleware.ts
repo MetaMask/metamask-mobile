@@ -208,8 +208,22 @@ const generateRawSignature = async ({
   chainId,
   channelId,
   getSource,
+  isWalletConnect,
   checkTabActive,
-}: any) => {
+}: {
+  version: string;
+  req: any;
+  hostname: string;
+  url: { current: string };
+  title: { current: string };
+  icon: { current: string | undefined };
+  analytics: { [key: string]: string | boolean };
+  chainId: number;
+  channelId: string;
+  getSource: () => string;
+  isWalletConnect: boolean;
+  checkTabActive: () => boolean;
+}) => {
   const { SignatureController } = Engine.context;
 
   const pageMeta = {
@@ -230,7 +244,7 @@ const generateRawSignature = async ({
     channelId,
     address: req.params[0],
     chainId,
-    isWalletConnect: false,
+    isWalletConnect,
   });
 
   const rawSig = await SignatureController.newUnsignedTypedMessage(
@@ -503,7 +517,7 @@ export const getRpcMethodMiddleware = ({
               { eth_accounts: {} },
               {
                 id: channelId ?? validHostname,
-                preserveExistingPermissions: true,
+                preserveExistingPermissions: false,
               },
             );
             DevLogger.log(`eth_requestAccounts requestPermissions`);
@@ -512,7 +526,9 @@ export const getRpcMethodMiddleware = ({
             res.result = acc;
           } catch (error) {
             DevLogger.log(`eth_requestAccounts error`, error);
-            if (error) {
+            if (error && error.toString().indexOf('already exists') !== -1) {
+              DevLogger.log(`ignored error`, error);
+            } else if (error) {
               throw ethErrors.provider.userRejectedRequest(
                 'User denied account authorization.',
               );
