@@ -64,6 +64,7 @@ import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/Le
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getIsSmartTransaction } from '../../../selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-tx';
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
@@ -275,7 +276,10 @@ const RootRPCMethodsUI = (props) => {
           Engine.acceptPendingApproval(transactionMeta.id);
         }
       } catch (error) {
-        if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+        if (
+          !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+          !error?.message.startsWith(STX_NO_HASH_ERROR)
+        ) {
           Alert.alert(
             strings('transactions.transaction_error'),
             error && error.message,
