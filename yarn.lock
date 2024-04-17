@@ -4086,6 +4086,11 @@
   resolved "https://registry.yarnpkg.com/@metamask/metamask-eth-abis/-/metamask-eth-abis-3.0.0.tgz#eccc0746b3ab1ab63000444403819c16e88b5272"
   integrity sha512-YtIl4e1VzqwwHGafuLIVPqbcWWWqQ0Ezo8/Ci5m5OGllqE2oTTx9iVHdUmXNkgCVD37SBfwn/fm/S1IGkM8BQA==
 
+"@metamask/metamask-eth-abis@^3.0.0":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/metamask-eth-abis/-/metamask-eth-abis-3.1.1.tgz#3de904511115c488809ddee25c470332c03db531"
+  integrity sha512-lRUyWN/GrIFQlT0wq/9gB+4wIV2i0N6yAQlJhfLCT6bVfK5GI5IUDxvCyLTDvxQxaLpNgtBFFzbuY1iVj3UWLA==
+
 "@metamask/mobile-provider@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
@@ -4111,7 +4116,7 @@
     json-rpc-engine "^6.1.0"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^12.1.2", "@metamask/network-controller@^12.2.0":
+"@metamask/network-controller@^12.1.2":
   version "12.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-12.2.0.tgz#679d81e009cfd2b9fdaf884267d7a11b535f1922"
   integrity sha512-MBsEOy8htQtN46s/pbmEPsfe+UyOe3aUGTeswG0Iy0qGKyqu+uEx/nhydaLpMHFlOLbboPWtUmnPRLFE9pQDEA==
@@ -4540,22 +4545,24 @@
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-8.0.0.tgz#72f64b18a6157400ef3a3901c35819883524a048"
   integrity sha512-yy1eZ9fZfJSEJIUjqcigBehFv6vdPGmDkVnzpBpEJqxiMPZGnbR5dypMfo0XsPdp5Lvmawx47Kamuy4Ocsy+iw==
 
-"@metamask/transaction-controller@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-11.0.0.tgz#4bdc0135cc3ce6df4bac9949c3f13265149417e4"
-  integrity sha512-CcXHA5mibaNjDoi/Kd8gLA80iXdqUVspR+jYnBT7YlFkYbkaM2WRsAQxWe49B4Ot///t7r1L7g32HgLJZ0UvKg==
+"@metamask/transaction-controller@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-13.0.0.tgz#7ad704900199f4bac4c299c6e1c2c26c5e1d0818"
+  integrity sha512-/ptn2605x42ysDfQcuZKhZ6pwouUOALQDlhLp4o2th8pt28ppMjPleXbbGxyu1qP8Truz49RTPFWTy2THrqiZQ==
   dependencies:
     "@ethereumjs/common" "^3.2.0"
     "@ethereumjs/tx" "^4.2.0"
-    "@metamask/approval-controller" "^3.5.1"
-    "@metamask/base-controller" "^3.2.1"
-    "@metamask/controller-utils" "^4.3.2"
+    "@ethersproject/abi" "^5.7.0"
+    "@metamask/approval-controller" "^3.5.2"
+    "@metamask/base-controller" "^3.2.2"
+    "@metamask/controller-utils" "^5.0.1"
     "@metamask/eth-query" "^3.0.1"
-    "@metamask/network-controller" "^12.2.0"
+    "@metamask/metamask-eth-abis" "^3.0.0"
+    "@metamask/network-controller" "^13.0.1"
+    "@metamask/rpc-errors" "^6.0.0"
     "@metamask/utils" "^6.2.0"
     async-mutex "^0.2.6"
     eth-method-registry "1.1.0"
-    eth-rpc-errors "^4.0.2"
     ethereumjs-util "^7.0.10"
     fast-json-patch "^3.1.1"
     lodash "^4.17.21"

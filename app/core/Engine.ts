@@ -1062,7 +1062,8 @@ class Engine {
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-        //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
+        getCurrentNetworkEIP1559Compatibility:
+          networkController.getEIP1559Compatibility.bind(networkController),
         getNetworkState: () => networkController.state,
         getSelectedAddress: () =>
           accountsController.getSelectedAccount().address,
@@ -1090,7 +1091,6 @@ class Engine {
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
-            //@ts-expect-error TransactionController needs to be updated to v13 for this error disappears
             listener,
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
