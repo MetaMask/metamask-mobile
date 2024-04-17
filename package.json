@@ -216,7 +216,6 @@
     "eciesjs": "^0.3.15",
     "eth-block-tracker": "^7.0.1",
     "eth-ens-namehash": "2.0.8",
-    "eth-json-rpc-infura": "5.1.0",
     "eth-json-rpc-middleware": "4.3.0",
     "eth-url-parser": "1.0.4",
     "ethereumjs-abi": "0.6.6",

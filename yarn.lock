@@ -3801,7 +3801,7 @@
 
 "@metamask/eth-json-rpc-filters@^7.0.0":
   version "7.0.0"
-  resolved "http://verdaccio:4873/@metamask/eth-json-rpc-filters/-/eth-json-rpc-filters-7.0.0.tgz#af0394838859ee9c673eb0cc01db785ec7161cd8"
+  resolved "https://registry.npmjs.org/@metamask/eth-json-rpc-filters/-/eth-json-rpc-filters-7.0.0.tgz#af0394838859ee9c673eb0cc01db785ec7161cd8"
   integrity sha512-b4iJ44BFi6qeH/UPT8lUXpeYX6ydhx1j58vNQBNbpjMkK+r157Fp1lkXxWqx6xTz51Dz2sxc+I+jziuP+Wn8Wg==
   dependencies:
     "@metamask/eth-query" "^3.0.1"
@@ -3822,15 +3822,15 @@
     node-fetch "^2.6.7"
 
 "@metamask/eth-json-rpc-infura@^9.0.0":
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-infura/-/eth-json-rpc-infura-9.0.0.tgz#0d2001d3fce38adb528ae572e50bc28217022b94"
-  integrity sha512-9VSqEE/TrdctipzUOdGOcxtZcY1laVdVV/7f1NPK41o5tLVqTcjmxvYhWSrRR+VoeXVkUCzer/U033prF4TWWA==
+  version "9.1.0"
+  resolved "https://registry.npmjs.org/@metamask/eth-json-rpc-infura/-/eth-json-rpc-infura-9.1.0.tgz#8e09588ed58f49058615cab7040dcbce4682a292"
+  integrity sha512-47x7evivl5XUsTsRoF9t27guCXgmfsbQq+pjHHFf87WoISGsgua6wVr91b1iVCv8MzQqupJBewtnG8AzWpwEEQ==
   dependencies:
     "@metamask/eth-json-rpc-provider" "^2.1.0"
     "@metamask/json-rpc-engine" "^7.1.1"
     "@metamask/rpc-errors" "^6.0.0"
     "@metamask/utils" "^8.1.0"
-    node-fetch "^2.6.7"
+    node-fetch "^2.7.0"
 
 "@metamask/eth-json-rpc-middleware@^11.0.2":
   version "11.0.2"
@@ -15581,7 +15581,7 @@ eth-json-rpc-filters@^4.2.1:
     json-rpc-engine "^6.1.0"
     pify "^5.0.0"
 
-eth-json-rpc-infura@5.1.0, eth-json-rpc-infura@^5.1.0:
+eth-json-rpc-infura@^5.1.0:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/eth-json-rpc-infura/-/eth-json-rpc-infura-5.1.0.tgz#e6da7dc47402ce64c54e7018170d89433c4e8fb6"
   integrity sha512-THzLye3PHUSGn1EXMhg6WTLW9uim7LQZKeKaeYsS9+wOBcamRiCQVGHa6D2/4P0oS0vSaxsBnU/J6qvn0MPdow==
@@ -21671,7 +21671,7 @@ node-fetch-native@^1.4.0, node-fetch-native@^1.4.1:
   resolved "https://registry.yarnpkg.com/node-fetch-native/-/node-fetch-native-1.6.1.tgz#f95c74917d3cebc794cdae0cd2a9c7594aad0cb4"
   integrity sha512-bW9T/uJDPAJB2YNYEpWzE54U5O3MQidXsOyTfnbKYtTtFexRvGzb1waphBN4ZwP6EcIvYYEOwW0b72BpAqydTw==
 
-node-fetch@2.6.7, node-fetch@^2.0.0, node-fetch@^2.2.0, node-fetch@^2.6.0, node-fetch@^2.6.1, node-fetch@^2.6.12, node-fetch@^2.6.7, node-fetch@~1.7.1:
+node-fetch@2.6.7, node-fetch@^2.0.0, node-fetch@^2.2.0, node-fetch@^2.6.0, node-fetch@^2.6.1, node-fetch@^2.6.12, node-fetch@^2.6.7, node-fetch@^2.7.0, node-fetch@~1.7.1:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
   integrity sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==
