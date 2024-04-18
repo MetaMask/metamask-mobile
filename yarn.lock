@@ -3993,16 +3993,17 @@
     "@metamask/number-to-bn" "^1.7.1"
     bn.js "^5.2.1"
 
-"@metamask/gas-fee-controller@^7.0.0":
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-7.0.1.tgz#34744c942b2c6764d079cb653f187150da385327"
-  integrity sha512-WewTccRTrdt0/W8TEeSrLnVbuB4FjOsLqcX6nzftol5hvAcK342ErvF3mpu71660xYTTAR2VM0BlZPyBzjPyNg==
+"@metamask/gas-fee-controller@^10.0.0":
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-10.0.1.tgz#2804513add865810e1467e6578d7cf287a94d8f3"
+  integrity sha512-5GtQtq1g//uMjrSf/aAdGVL0agCiry5kKxjh/dxhKpBKrnCQIKg3Ruw2rc+vXW1JtYZKMXTeiIfb00syrNLpSw==
   dependencies:
-    "@metamask/base-controller" "^3.2.2"
-    "@metamask/controller-utils" "^5.0.1"
-    "@metamask/eth-query" "^3.0.1"
-    "@metamask/network-controller" "^13.0.1"
-    "@metamask/utils" "^6.2.0"
+    "@metamask/base-controller" "^3.2.3"
+    "@metamask/controller-utils" "^5.0.2"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/network-controller" "^16.0.0"
+    "@metamask/polling-controller" "^1.0.2"
+    "@metamask/utils" "^8.2.0"
     "@types/uuid" "^8.3.0"
     ethereumjs-util "^7.0.10"
     ethjs-unit "^0.1.6"
@@ -4162,6 +4163,26 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
+"@metamask/network-controller@^16.0.0":
+  version "16.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-16.0.0.tgz#06ca8c92910660149ce49b54cffc89e918bb13b3"
+  integrity sha512-TSI3DlkHgdo9Kpad+8bPR8SQGgo4V/PVjqPajxwngZXsiRU1Tyfu3yfvbGHmGqKXD8YjCxFqUKtLr2jsQQWo6g==
+  dependencies:
+    "@metamask/base-controller" "^3.2.3"
+    "@metamask/controller-utils" "^5.0.2"
+    "@metamask/eth-json-rpc-infura" "^9.0.0"
+    "@metamask/eth-json-rpc-middleware" "^12.0.1"
+    "@metamask/eth-json-rpc-provider" "^2.3.0"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/json-rpc-engine" "^7.3.0"
+    "@metamask/rpc-errors" "^6.1.0"
+    "@metamask/swappable-obj-proxy" "^2.1.0"
+    "@metamask/utils" "^8.2.0"
+    async-mutex "^0.2.6"
+    eth-block-tracker "^8.0.0"
+    immer "^9.0.6"
+    uuid "^8.3.2"
+
 "@metamask/network-controller@^17.0.0":
   version "17.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-17.0.0.tgz#ba43edbc9e98bde59c43a467ec3dbaf8f8cab6cd"
@@ -4284,6 +4305,19 @@
     "@types/punycode" "^2.1.0"
     eth-phishing-detect "^1.2.0"
     punycode "^2.1.1"
+
+"@metamask/polling-controller@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-1.0.2.tgz#4e3e0c8ecaba5eb80b06c3c07d2930a0cbc7855f"
+  integrity sha512-9LrM7Qo/wM2cBOfZYI+ghsk0yGPzNxYRa75RwCCi9SlKlSQG4SScI4HIxa/qANTN9XFs+HnXPDCEthGyhYSvMw==
+  dependencies:
+    "@metamask/base-controller" "^3.2.3"
+    "@metamask/controller-utils" "^5.0.2"
+    "@metamask/network-controller" "^16.0.0"
+    "@metamask/utils" "^8.2.0"
+    "@types/uuid" "^8.3.0"
+    fast-json-stable-stringify "^2.1.0"
+    uuid "^8.3.2"
 
 "@metamask/post-message-stream@8.0.0", "@metamask/post-message-stream@^8.0.0":
   version "8.0.0"
