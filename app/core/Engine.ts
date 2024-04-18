@@ -51,7 +51,7 @@ import {
 } from '@metamask/network-controller';
 import {
   PhishingController,
-  PhishingState,
+  PhishingControllerState,
 } from '@metamask/phishing-controller';
 import {
   PreferencesController,
@@ -260,7 +260,7 @@ export interface EngineState {
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
-  PhishingController: PhishingState;
+  PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesState;
   TokenRatesController: TokenRatesState;
   TransactionController: TransactionState;
@@ -605,7 +605,6 @@ class Engine {
     });
 
     const phishingController = new PhishingController({
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
         allowedActions: [],
