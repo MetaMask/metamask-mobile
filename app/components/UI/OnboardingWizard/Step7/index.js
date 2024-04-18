@@ -12,7 +12,7 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import Routes from '../../../../constants/navigation/Routes';
+
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 import { useMetrics } from '../../../hooks/useMetrics';
@@ -22,22 +22,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   coachmarkContainer: {
-    flex: 1,
     position: 'absolute',
-    left: 0,
-    right: 0,
-    marginHorizontal: 16,
+    alignSelf: 'center',
   },
+  coachmark: { marginHorizontal: 16 },
 });
 
 const Step7 = (props) => {
-  const { setOnboardingWizardStep, onClose, navigation } = props;
+  const { setOnboardingWizardStep, onClose } = props;
   const { trackEvent } = useMetrics();
 
   const [ready, setReady] = useState(false);
   const [coachmarkTop, setCoachmarkTop] = useState(0);
   const { colors } = useTheme();
   const dynamicOnboardingStyles = onboardingStyles(colors);
+
+  // eslint-disable-next-line no-console
+  console.log('OnboardingWizard Step7 called', props);
 
   /**
    * If component ref defined, calculate its position and position coachmark accordingly
@@ -49,17 +50,13 @@ const Step7 = (props) => {
   };
 
   useEffect(() => {
-    // As we're changing the view on this step, we have to make sure Browser is rendered
-    setTimeout(() => {
-      getPosition();
-    }, 1200);
+    getPosition();
   }, []);
 
   /**
    * Dispatches 'setOnboardingWizardStep' with back step
    */
   const onBack = () => {
-    navigation?.navigate?.(Routes.WALLET.HOME);
     setOnboardingWizardStep && setOnboardingWizardStep(6);
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 7,
@@ -98,6 +95,7 @@ const Step7 = (props) => {
           content={content()}
           onNext={triggerOnClose}
           onBack={onBack}
+          style={styles.coachmark}
           topIndicatorPosition={'topCenter'}
           onClose={onClose}
           currentStep={6}
@@ -112,10 +110,6 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 Step7.propTypes = {
-  /**
-   * Object that represents the navigator
-   */
-  navigation: PropTypes.object,
   /**
    * Dispatch set onboarding wizard step
    */
