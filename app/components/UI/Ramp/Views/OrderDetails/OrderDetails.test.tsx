@@ -15,6 +15,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RampSDK } from '../../sdk';
 import { PROVIDER_LINKS } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
+import {
+  createMockInternalAccount,
+  createMockUUIDFromAddress,
+} from '../../../../../selectors/accountsController.test';
+import { AccountsControllerState } from '@metamask/accounts-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -46,9 +51,26 @@ type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
 };
 
+const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
+const expectedUUID = createMockUUIDFromAddress(MOCK_ADDRESS);
+
+const internalAccount1 = createMockInternalAccount(
+  MOCK_ADDRESS.toLowerCase(),
+  'Account 1',
+);
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      [expectedUUID]: internalAccount1,
+    },
+    selectedAccount: expectedUUID,
+  },
+};
+
 const mockOrder: DeepPartial<FiatOrder> = {
   id: 'test-order-1',
-  account: '0x0',
+  account: MOCK_ADDRESS,
   network: '1',
   cryptoAmount: '0.01231324',
   orderType: OrderOrderTypeEnum.Buy,
@@ -136,7 +158,10 @@ function render(Component: React.ComponentType, orders = [mockOrder]) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState: {
+            ...initialBackgroundState,
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          },
         },
         fiatOrders: {
           orders: orders as FiatOrder[],
