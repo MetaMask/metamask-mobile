@@ -151,7 +151,7 @@
     "@metamask/key-tree": "^9.0.0",
     "@metamask/keyring-api": "^4.0.0",
     "@metamask/keyring-controller": "^8.1.0",
-    "@metamask/logging-controller": "^1.0.1",
+    "@metamask/logging-controller": "^2.0.0",
     "@metamask/network-controller": "^15.0.0",
     "@metamask/permission-controller": "7.1.0",
     "@metamask/phishing-controller": "^8.0.0",
