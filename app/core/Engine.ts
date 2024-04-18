@@ -475,6 +475,18 @@ class Engine {
       },
     );
 
+    const loggingController = new LoggingController({
+      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
+      messenger: this.controllerMessenger.getRestricted<
+        'LoggingController',
+        never,
+        never
+      >({
+        name: 'LoggingController',
+      }),
+      state: initialState.LoggingController,
+    });
+
     const accountsControllerMessenger = this.controllerMessenger.getRestricted({
       name: 'AccountsController',
       allowedEvents: [
@@ -1135,7 +1147,8 @@ class Engine {
           | 'ApprovalController:addRequest'
           | 'KeyringController:signPersonalMessage'
           | 'KeyringController:signMessage'
-          | 'KeyringController:signTypedMessage',
+          | 'KeyringController:signTypedMessage'
+          | 'LoggingController:add',
           never
         >({
           name: 'SignatureController',
@@ -1144,6 +1157,7 @@ class Engine {
             `${keyringController.name}:signPersonalMessage`,
             `${keyringController.name}:signMessage`,
             `${keyringController.name}:signTypedMessage`,
+            `${loggingController.name}:add`,
           ],
         }),
         isEthSignEnabled: () =>
@@ -1153,17 +1167,7 @@ class Engine {
         getAllState: () => store.getState(),
         getCurrentChainId: () => networkController.state.providerConfig.chainId,
       }),
-      new LoggingController({
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
-        messenger: this.controllerMessenger.getRestricted<
-          'LoggingController',
-          never,
-          never
-        >({
-          name: 'LoggingController',
-        }),
-        state: initialState.LoggingController,
-      }),
+      loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       snapController,
       subjectMetadataController,
