@@ -278,7 +278,9 @@ exports[`WalletAccount renders correctly 1`] = `
               }
             }
             testID="wallet-account-address"
-          />
+          >
+            0xC495...D272
+          </Text>
           <SvgMock
             color="#0376C9"
             height={16}

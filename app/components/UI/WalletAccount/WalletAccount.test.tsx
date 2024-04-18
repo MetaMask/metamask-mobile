@@ -12,6 +12,29 @@ import WalletAccount from './WalletAccount';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { Account } from '../../hooks/useAccounts';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import {
+  createMockInternalAccount,
+  createMockUUIDFromAddress,
+} from '../../../selectors/accountsController.test';
+import { AccountsControllerState } from '@metamask/accounts-controller';
+
+const MOCK_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+
+const expectedUUID = createMockUUIDFromAddress(MOCK_ADDRESS);
+
+const internalAccount1 = createMockInternalAccount(
+  MOCK_ADDRESS.toLowerCase(),
+  'Account 1',
+);
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      [expectedUUID]: internalAccount1,
+    },
+    selectedAccount: expectedUUID,
+  },
+};
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -29,7 +52,7 @@ jest.mock('../../../core/Engine', () => ({
 
 const mockAccount: Account = {
   name: 'Test account 1',
-  address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
+  address: MOCK_ADDRESS,
   type: KeyringTypes.hd,
   yOffset: 0,
   isSelected: true,
@@ -42,6 +65,7 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...initialBackgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
