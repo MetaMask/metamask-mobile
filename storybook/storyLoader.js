@@ -16,6 +16,7 @@ function loadStories() {
   require('../app/component-library/components/Badges/Badge/Badge.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories');
   require('../app/component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.stories');
+  require('../app/component-library/components/Badges/Badge/variants/BadgeNotifications/BadgeNotifications.stories');
   require('../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories');
   require('../app/component-library/components/Banners/Banner/Banner.stories');
   require('../app/component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.stories');
