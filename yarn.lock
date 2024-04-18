@@ -4097,26 +4097,6 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/network-controller@^12.0.0":
-  version "12.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-12.2.0.tgz#679d81e009cfd2b9fdaf884267d7a11b535f1922"
-  integrity sha512-MBsEOy8htQtN46s/pbmEPsfe+UyOe3aUGTeswG0Iy0qGKyqu+uEx/nhydaLpMHFlOLbboPWtUmnPRLFE9pQDEA==
-  dependencies:
-    "@metamask/base-controller" "^3.2.1"
-    "@metamask/controller-utils" "^4.3.2"
-    "@metamask/eth-json-rpc-infura" "^8.1.1"
-    "@metamask/eth-json-rpc-middleware" "^11.0.2"
-    "@metamask/eth-json-rpc-provider" "^1.0.0"
-    "@metamask/eth-query" "^3.0.1"
-    "@metamask/swappable-obj-proxy" "^2.1.0"
-    "@metamask/utils" "^6.2.0"
-    async-mutex "^0.2.6"
-    eth-block-tracker "^7.0.1"
-    eth-rpc-errors "^4.0.2"
-    immer "^9.0.6"
-    json-rpc-engine "^6.1.0"
-    uuid "^8.3.2"
-
 "@metamask/network-controller@^13.0.1":
   version "13.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-13.0.1.tgz#b8d3cd4abe8e03a8d030409588da6f05461955c5"
