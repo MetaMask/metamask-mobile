@@ -228,7 +228,7 @@ const NetworkSelector = () => {
         }}
         thumbColor={theme.brandColors.white['000']}
         ios_backgroundColor={colors.border.muted}
-        testID={NetworkListModalSelectorsIDs.TEST_SWITCH}
+        testID={NetworkListModalSelectorsIDs.TEST_NET_TOGGLE}
         disabled={isTestNet(providerConfig.chainId)}
       />
     </View>
