@@ -2,7 +2,26 @@ import React from 'react';
 import AccountApproval from '.';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../selectors/accountsController.test';
+import {
+  createMockInternalAccount,
+  createMockUUIDFromAddress,
+} from '../../../selectors/accountsController.test';
+import { AccountsControllerState } from '@metamask/accounts-controller';
+
+const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
+
+const expectedUUID = createMockUUIDFromAddress(MOCK_ADDRESS);
+
+const internalAccount1 = createMockInternalAccount(MOCK_ADDRESS, 'Account 1');
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      [expectedUUID]: internalAccount1,
+    },
+    selectedAccount: expectedUUID,
+  },
+};
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -15,6 +34,13 @@ jest.mock('../../../core/Engine', () => ({
     },
     KeyringController: {
       getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
+      state: {
+        keyrings: [
+          {
+            accounts: ['0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A'],
+          },
+        ],
+      },
     },
   },
 }));
