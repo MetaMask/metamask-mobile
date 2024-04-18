@@ -3,6 +3,7 @@ import { toHex } from '@metamask/controller-utils';
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
+const TENDERLY_KEY = process.env.TENDERLY_NETWORK_ID;
 
 const PopularNetworksList = {
   Avalanche: {
@@ -14,15 +15,6 @@ const PopularNetworksList = {
       ticker: 'AVAX',
     },
   },
-  // Arbitrum: {
-  //   providerConfig: {
-  //     type: 'rpc',
-  //     chainId: toHex('42161'),
-  // rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
-  //     nickname: 'Arbitrum One',
-  //     ticker: 'ETH',
-  //   },
-  // },
   BNB: {
     providerConfig: {
       type: 'rpc',
@@ -104,7 +96,7 @@ const CustomNetworks = {
     providerConfig: {
       type: 'rpc',
       chainId: '0x1',
-      rpcUrl: `https://rpc.tenderly.co/fork/${process.env.TENDERLY_NETWORK_ID}`,
+      rpcUrl: `https://rpc.tenderly.co/fork/${TENDERLY_KEY}`,
       nickname: 'Tenderly',
       ticker: 'ETH',
     },

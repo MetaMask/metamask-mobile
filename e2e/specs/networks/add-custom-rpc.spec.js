@@ -22,7 +22,6 @@ import Assertions from '../../utils/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
 const fixtureServer = new FixtureServer();
-const SEPOLIA = 'Sepolia Test Network';
 const MAINNET = 'Ethereum Main Network';
 
 describe(Regression('Custom RPC Tests'), () => {
@@ -109,7 +108,9 @@ describe(Regression('Custom RPC Tests'), () => {
 
   it('should switch to Sepolia then dismiss the network education modal', async () => {
     await NetworkListModal.isTestNetworkToggleOn();
-    await NetworkListModal.changeNetwork(SEPOLIA);
+    await NetworkListModal.changeNetwork(
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
     await NetworkEducationModal.isVisible();
     await NetworkEducationModal.isNetworkNameCorrect('Goreli Test Network');
     await NetworkEducationModal.tapGotItButton();
@@ -118,7 +119,9 @@ describe(Regression('Custom RPC Tests'), () => {
   });
 
   it('should switch back to xDAI', async () => {
-    await WalletView.isNetworkNameVisible(SEPOLIA);
+    await WalletView.isNetworkNameVisible(
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.isVisible();
     await NetworkListModal.scrollToBottomOfNetworkList();
@@ -138,9 +141,13 @@ describe(Regression('Custom RPC Tests'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
     await Assertions.checkIfVisible(NetworkView.networkContainer);
+    if (device.getPlatform() === 'android') {
+      await device.disableSynchronization();
+    }
     await NetworkView.longPressToRemoveNetwork(
       CustomNetworks.Gnosis.providerConfig.nickname,
     ); // Tap on xDai to remove network
+    await TestHelpers.delay(3000);
     await NetworkEducationModal.tapGotItButton();
     await TabBarComponent.tapWallet();
     await WalletView.isVisible();

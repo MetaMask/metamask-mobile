@@ -5,7 +5,6 @@ import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
-import { sha256 } from 'ethereumjs-util';
 
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -78,6 +77,13 @@ jest.mock('../../core/NotificationManager', () => ({
   gotIncomingTransaction: jest.fn(),
   requestPushNotificationsPermission: jest.fn(),
   showSimpleNotification: jest.fn(),
+}));
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(),
+    dispatch: jest.fn(),
+  },
 }));
 
 jest.mock('../../core/NotificationManager');
@@ -172,6 +178,12 @@ NativeModules.RNCNetInfo = {
   getCurrentState: jest.fn(() => Promise.resolve()),
 };
 
+NativeModules.NotifeeApiModule = {
+  addListener: jest.fn(),
+  eventsAddListener: jest.fn(),
+  eventsNotifyReady: jest.fn(),
+};
+
 NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
 };
@@ -234,27 +246,9 @@ jest.mock('@segment/analytics-react-native', () => ({
   createClient: jest.fn(() => initializeMockClient()),
 }));
 
-jest.mock('react-native-push-notification', () => ({
-  configure: jest.fn(),
-  localNotification: jest.fn(),
-  localNotificationSchedule: jest.fn(),
-  cancelLocalNotifications: jest.fn(),
-  cancelAllLocalNotifications: jest.fn(),
-  removeAllDeliveredNotifications: jest.fn(),
-  getDeliveredNotifications: jest.fn(),
-  getScheduledLocalNotifications: jest.fn(),
-  requestPermissions: jest.fn(),
-  abandonPermissions: jest.fn(),
-  checkPermissions: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  invokeApp: jest.fn(),
-  getChannels: jest.fn(),
-  createChannel: jest.fn(),
-  channelExists: jest.fn(),
-  deleteChannel: jest.fn(),
-  popInitialNotification: jest.fn(),
-}));
+jest.mock('@notifee/react-native', () =>
+  require('@notifee/react-native/jest-mock'),
+);
 
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,
@@ -280,6 +274,7 @@ jest.mock('react-native-default-preference', () => ({
 // eslint-disable-next-line import/no-commonjs
 require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
+global.__DEV__ = false;
 
 jest.mock(
   '../../core/Engine',

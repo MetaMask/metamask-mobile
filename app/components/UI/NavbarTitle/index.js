@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { scale } from 'react-native-size-matters';
-import { TouchableOpacity, View, StyleSheet, Text } from 'react-native';
+import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks, { getDecimalChainId } from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
@@ -14,6 +14,9 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { withNavigation } from '@react-navigation/compat';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -41,6 +44,11 @@ const createStyles = (colors) =>
       fontSize: scale(14),
       ...fontStyles.normal,
       color: colors.text.default,
+    },
+    children: {
+      ...fontStyles.normal,
+      color: colors.text.default,
+      fontWeight: 'bold',
     },
     otherNetworkIcon: {
       backgroundColor: importedColors.transparent,
@@ -79,10 +87,19 @@ class NavbarTitle extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that specifies if the network selected is displayed
+     */
+    showSelectedNetwork: PropTypes.bool,
+    /**
+     * Content to display inside text element
+     */
+    children: PropTypes.node,
   };
 
   static defaultProps = {
     translate: true,
+    showSelectedNetwork: true,
   };
 
   animating = false;
@@ -109,7 +126,8 @@ class NavbarTitle extends PureComponent {
   };
 
   render = () => {
-    const { providerConfig, title, translate } = this.props;
+    const { providerConfig, title, translate, showSelectedNetwork, children } =
+      this.props;
     let name = null;
     const color =
       (Networks[providerConfig.type] && Networks[providerConfig.type].color) ||
@@ -138,21 +156,30 @@ class NavbarTitle extends PureComponent {
             {realTitle}
           </Text>
         ) : null}
-        <View style={styles.network}>
-          <View
-            style={[
-              styles.networkIcon,
-              color ? { backgroundColor: color } : styles.otherNetworkIcon,
-            ]}
-          />
-          <Text
-            numberOfLines={1}
-            style={styles.networkName}
-            testID={NAVBAR_TITLE_NETWORKS_TEXT}
-          >
-            {name}
+        {typeof children === 'string' ? (
+          <Text variant={TextVariant.HeadingMD} style={styles.children}>
+            {strings(children)}
           </Text>
-        </View>
+        ) : (
+          children
+        )}
+        {showSelectedNetwork ? (
+          <View style={styles.network}>
+            <View
+              style={[
+                styles.networkIcon,
+                color ? { backgroundColor: color } : styles.otherNetworkIcon,
+              ]}
+            />
+            <Text
+              numberOfLines={1}
+              style={styles.networkName}
+              testID={NAVBAR_TITLE_NETWORKS_TEXT}
+            >
+              {name}
+            </Text>
+          </View>
+        ) : null}
       </TouchableOpacity>
     );
   };

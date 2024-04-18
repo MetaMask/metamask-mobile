@@ -12,7 +12,6 @@ import {
   StyleSheet,
   View,
   Linking,
-  PushNotificationIOS, // eslint-disable-line react-native/split-platform-components
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import PropTypes from 'prop-types';
@@ -22,10 +21,9 @@ import BackgroundTimer from 'react-native-background-timer';
 import NotificationManager from '../../../core/NotificationManager';
 import Engine from '../../../core/Engine';
 import AppConstants from '../../../core/AppConstants';
-import PushNotification from 'react-native-push-notification';
+import notifee from '@notifee/react-native';
 import I18n, { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
-import Device from '../../../util/device';
 import BackupAlert from '../../UI/BackupAlert';
 import Notification from '../../UI/Notification';
 import RampOrders from '../../UI/Ramp';
@@ -41,6 +39,7 @@ import MainNavigator from './MainNavigator';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { query } from '@metamask/controller-utils';
 import SwapsLiveness from '../../UI/Swaps/SwapsLiveness';
+import useNotificationHandler from '../../../util/notifications/hooks';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -69,7 +68,10 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
-import { DEPRECATED_NETWORKS } from '../../../constants/network';
+import {
+  DEPRECATED_NETWORKS,
+  NETWORKS_CHAIN_ID,
+} from '../../../constants/network';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
 import {
@@ -273,6 +275,24 @@ const Main = (props) => {
     }
   });
 
+  const bootstrapInitialNotification = useCallback(async () => {
+    const initialNotification = await notifee.getInitialNotification();
+
+    if (initialNotification) {
+      if (
+        initialNotification.data &&
+        initialNotification.data.action === 'tx'
+      ) {
+        if (initialNotification.data.id) {
+          NotificationManager.setTransactionToView(initialNotification.data.id);
+        }
+        props.navigation.navigate('TransactionsView');
+      }
+    }
+  }, [props.navigation]);
+
+  useNotificationHandler(bootstrapInitialNotification, props.navigation);
+
   // Remove all notifications that aren't visible
   useEffect(() => {
     removeNotVisibleNotifications();
@@ -283,29 +303,6 @@ const Main = (props) => {
       'change',
       handleAppStateChange,
     );
-    PushNotification.configure({
-      requestPermissions: false,
-      onNotification: (notification) => {
-        let data = null;
-        if (Device.isAndroid()) {
-          if (notification.tag) {
-            data = JSON.parse(notification.tag);
-          }
-        } else if (notification.data) {
-          data = notification.data;
-        }
-        if (data && data.action === 'tx') {
-          if (data.id) {
-            NotificationManager.setTransactionToView(data.id);
-          }
-          props.navigation.navigate('TransactionsHome');
-        }
-
-        if (Device.isIos()) {
-          notification.finish(PushNotificationIOS.FetchResult.NoData);
-        }
-      },
-    });
 
     setTimeout(() => {
       NotificationManager.init({
@@ -345,6 +342,15 @@ const Main = (props) => {
 
   const renderDeprecatedNetworkAlert = (chainId, backUpSeedphraseVisible) => {
     if (DEPRECATED_NETWORKS.includes(chainId) && showDeprecatedAlert) {
+      if (NETWORKS_CHAIN_ID.MUMBAI === chainId) {
+        return (
+          <WarningAlert
+            text={strings('networks.network_deprecated_title')}
+            dismissAlert={() => setShowDeprecatedAlert(false)}
+            precedentAlert={backUpSeedphraseVisible}
+          />
+        );
+      }
       return (
         <WarningAlert
           text={strings('networks.deprecated_goerli')}
