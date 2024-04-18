@@ -4258,18 +4258,7 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/phishing-controller@6.0.1":
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-6.0.1.tgz#40f71bac980c84d31033ddc8e61e99f02dd1899c"
-  integrity sha512-wDJ0tbaRbvoCgwBgdxJPvF2XZLynq/wrgrfsKMG3+nZ6pNPLXwLq43vyaglaXWvlXgbMTgw7alftUfSRQGR/SA==
-  dependencies:
-    "@metamask/base-controller" "^3.2.1"
-    "@metamask/controller-utils" "^4.3.2"
-    "@types/punycode" "^2.1.0"
-    eth-phishing-detect "^1.2.0"
-    punycode "^2.1.1"
-
-"@metamask/phishing-controller@^8.0.2":
+"@metamask/phishing-controller@^8.0.0", "@metamask/phishing-controller@^8.0.2":
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-8.0.2.tgz#612d2d2d0d5e8746289fda036b0382a63ea82ffb"
   integrity sha512-aRnpv+AtjqffT7hnwF1XZahWs8K99dOd8DcAAaVJyWsdt0cT3o6ryZXHMcFTUGP8Fl88LmkLm1970zfUO8AxFg==
