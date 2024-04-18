@@ -351,7 +351,8 @@ const App = ({ userLoggedIn }) => {
 
           if (error) {
             // Log error for analytics and continue handling deeplink
-            Logger.error('Error from Branch: ' + error);
+            const branchError = new Error(error);
+            Logger.error(branchError, 'Error subscribing to branch.');
           }
 
           if (sdkInit.current) {
