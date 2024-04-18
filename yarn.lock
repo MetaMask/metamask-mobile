@@ -4081,16 +4081,7 @@
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
-"@metamask/logging-controller@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/logging-controller/-/logging-controller-1.0.1.tgz#63aa402e6213d3056ab43e272e0029c24958885d"
-  integrity sha512-nRe7Ci0E2IP3plL2Xh172nvtDR9hJlMZZ2TcAJADQtUFeUB5AVy0Wad3sgp5MWHGnWYIgEhbgMvRNXoFdvSXhA==
-  dependencies:
-    "@metamask/base-controller" "^3.2.1"
-    "@metamask/controller-utils" "^4.3.2"
-    uuid "^8.3.2"
-
-"@metamask/logging-controller@^1.0.4":
+"@metamask/logging-controller@^1.0.1", "@metamask/logging-controller@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@metamask/logging-controller/-/logging-controller-1.0.4.tgz#78046f9ec70840fc6d8b96ab18a66b69a42f635f"
   integrity sha512-L5Ruq3fD5PnDEQmg2+3B2zrzpZr0zrdNvTqA95i4/cQi8KP+zL9Xf2bFd0fBam8tda5lrkpVK7l/tEV2tF3GkA==
