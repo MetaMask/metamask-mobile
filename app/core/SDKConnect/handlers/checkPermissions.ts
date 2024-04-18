@@ -43,16 +43,11 @@ export const checkPermissions = async ({
     channelId: connection.channelId,
     context: 'checkPermission',
   });
-  const accountPermission = permissionsController.getPermission(
-    connection.channelId,
-    'eth_accounts',
-  );
 
   DevLogger.log(
     `checkPermissions approved=${approved} approvalPromise=${
       connection.approvalPromise !== undefined ? 'exists' : 'undefined'
     }`,
-    accountPermission,
   );
 
   if (approved) {
@@ -70,7 +65,7 @@ export const checkPermissions = async ({
     DevLogger.log(`checkPermissions match`, match);
     // Wait for result and clean the promise afterwards.
 
-    // Only wait for approval is modal currently displayed
+    // Only wait for approval if modal currently displayed
     if (currentRouteName === Routes.SHEET.ACCOUNT_CONNECT) {
       // Make sure the root is displayed
       connection.navigation?.navigate(Routes.SHEET.ACCOUNT_CONNECT);
@@ -85,9 +80,7 @@ export const checkPermissions = async ({
       await wait(300);
       return allowed;
     }
-    DevLogger.log(`checkPermissions approvalPromise exists -- SKIP`);
-    // Otherwise cleanup existing permissions and revalidate
-    // permissionsController.revokeAllPermissions(connection.channelId);
+    console.warn(`checkPermissions approvalPromise exists -- SKIP`);
   }
 
   if (!connection.initialConnection && AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
@@ -96,30 +89,18 @@ export const checkPermissions = async ({
 
   DevLogger.log(
     `checkPermissions channelWasActiveRecently=${channelWasActiveRecently} OTPExpirationDuration=${OTPExpirationDuration}`,
-    accountPermission,
   );
   if (channelWasActiveRecently) {
     return true;
   }
 
   try {
-    const origin = connection.channelId;
-    if (accountPermission) {
-      DevLogger.log(
-        `checkPermissions accountPermission exists but not active recently -- REVOKE + ASK AGAIN`,
-      );
-      // Revoke and ask again
-      permissionsController.revokePermission(
-        connection.channelId,
-        'eth_accounts',
-      );
-    }
-
-    DevLogger.log(`checkPermissions Opening requestPermissions for ${origin}`);
     connection.approvalPromise = permissionsController.requestPermissions(
-      { origin },
+      { origin: connection.channelId },
       { eth_accounts: {} },
-      { id: connection.channelId, preserveExistingPermissions: true },
+      {
+        preserveExistingPermissions: true,
+      },
     );
 
     await connection.approvalPromise;

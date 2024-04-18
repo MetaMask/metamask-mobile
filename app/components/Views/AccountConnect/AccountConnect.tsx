@@ -67,6 +67,7 @@ import {
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
+import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 const createStyles = () =>
   StyleSheet.create({
     fullScreenModal: {
@@ -175,7 +176,9 @@ const AccountConnect = (props: AccountConnectProps) => {
     // walletconnect channelId format: 1713357238460272
     // sdk channelId format: uuid
     // inappbrowser channelId format: app.uniswap.io
-
+    DevLogger.log(
+      `AccountConnect::loadHostname channelId=${channelId} hostname=${hostname} origin=${origin}`,
+    );
     // check if channelId contains dot, it comes from in-app browser and we can use it.
     if (channelId.indexOf('.') !== -1) {
       return origin;
@@ -189,7 +192,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
 
     return wc2Metadata?.url ?? channelId;
-  }, [channelId, metadataOrigin, sdkConnection, origin, wc2Metadata]);
+  }, [channelId, hostname, metadataOrigin, sdkConnection, origin, wc2Metadata]);
 
   // Retrieve hostname info based on channelId
   useEffect(() => {
