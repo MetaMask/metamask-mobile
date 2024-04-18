@@ -485,6 +485,7 @@ class Asset extends PureComponent {
     };
 
     const goToSwaps = () => {
+      navigation.pop();
       navigation.navigate(Routes.SWAPS, {
         screen: 'SwapsAmountView',
         params: {
