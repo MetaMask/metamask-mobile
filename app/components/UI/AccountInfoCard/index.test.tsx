@@ -51,13 +51,6 @@ const mockInitialState = {
           },
         },
       },
-      PreferencesController: {
-        selectedAddress: MOCK_ADDRESS,
-        identities: {
-          address: MOCK_ADDRESS,
-          name: 'Account 1',
-        },
-      },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       CurrencyRateController: {
         conversionRate: 10,
