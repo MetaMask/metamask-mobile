@@ -9,11 +9,38 @@ import { View } from 'react-native';
 import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { regex } from '../../../../app/util/regex';
+import {
+  createMockInternalAccount,
+  createMockUUIDFromAddress,
+} from '../../../selectors/accountsController.test';
+import { AccountsControllerState } from '@metamask/accounts-controller';
 
 const mockEngine = Engine;
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
+
+const expectedUUID = createMockUUIDFromAddress(BUSINESS_ACCOUNT);
+const expectedUUID2 = createMockUUIDFromAddress(PERSONAL_ACCOUNT);
+
+const internalAccount1 = createMockInternalAccount(
+  BUSINESS_ACCOUNT.toLowerCase(),
+  'Account 1',
+);
+const internalAccount2 = createMockInternalAccount(
+  PERSONAL_ACCOUNT.toLowerCase(),
+  'Account 2',
+);
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      [expectedUUID]: internalAccount1,
+      [expectedUUID2]: internalAccount2,
+    },
+    selectedAccount: expectedUUID,
+  },
+};
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockEngine.init({}),
@@ -64,6 +91,7 @@ const initialState = {
           },
         },
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       CurrencyRateController: {
         conversionRate: 3200,
         currentCurrency: 'usd',
