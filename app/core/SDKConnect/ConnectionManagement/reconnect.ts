@@ -117,7 +117,6 @@ async function reconnect({
         `SDKConnect::reconnect - already connected [connected] -- trigger updated to '${trigger}'`,
       );
       instance.updateSDKLoadingState({ channelId, loading: false });
-      existingConnection.remote.resume();
       return;
     }
 
