@@ -6,12 +6,13 @@ import Device from '../../../../util/device';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
+import { createBrowserNavDetails } from '../../../Views/Browser';
+
 import onboardingStyles from '../styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import Routes from '../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
@@ -42,8 +43,9 @@ const Step6 = (props) => {
    */
   const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(7);
+    navigation && navigation.navigate(...createBrowserNavDetails());
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
-      tutorial_step_count: 5,
+      tutorial_step_count: 6,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
     });
   };
@@ -52,10 +54,7 @@ const Step6 = (props) => {
    * Dispatches 'setOnboardingWizardStep' with next step
    */
   const onBack = () => {
-    navigation?.navigate?.(Routes.WALLET.HOME);
-    setTimeout(() => {
-      setOnboardingWizardStep && setOnboardingWizardStep(5);
-    }, 1);
+    setOnboardingWizardStep && setOnboardingWizardStep(5);
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 6,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],

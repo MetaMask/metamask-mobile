@@ -27,7 +27,9 @@ const styles = StyleSheet.create({
   },
   coachmarkContainer: {
     position: 'absolute',
-    alignSelf: 'center',
+    left: 0,
+    right: 0,
+    marginHorizontal: 16,
   },
 });
 
