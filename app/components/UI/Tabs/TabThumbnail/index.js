@@ -10,14 +10,17 @@ import {
 } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
 import IonIcon from 'react-native-vector-icons/Ionicons';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
   AvatarVariant
 } from '../../../../component-library/components/Avatars/Avatar';
+import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import AppConstants from '../../../../core/AppConstants';
+import { selectProviderConfig } from '../../../../selectors/networkController';
 import {
   fontStyles,
   colors as importedColors,
@@ -25,8 +28,8 @@ import {
 import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import { useAccounts } from '../../../hooks/useAccounts';
-
 import WebsiteIcon from '../../WebsiteIcon';
 
 const margin = 15;
@@ -153,6 +156,8 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
     return undefined;
   }, [accounts]);
 
+  const providerConfig = useSelector(selectProviderConfig);
+
   return (
     <Container style={styles.checkWrapper} elevation={8}>
       <TouchableOpacity
@@ -192,24 +197,24 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
         <View style={styles.footerContainer}>
           <View style={{ paddingRight: 8 }}>
             <BadgeWrapper
+              style={{ borderWidth: 2, borderColor: colors.background.default }}
               badgeElement={
-                <AvatarNetwork
-                  style={styles.footerNetworkAvatar}
-                  size={AvatarSize.Xs}
+                <Badge
+                  variant={BadgeVariant.Network}
+                  imageSource={11}
                   name={'Ethereum'}
-                  imageSource={require('../../../../images/ethereum.png')}
-                  backgroundColor={colors.background.default}
+                  style={{ borderRadius: 7, borderWidth: 1, borderColor: colors.background.default }}
                 />
               }
             >
               <Avatar
                 size={AvatarSize.Sm}
                 variant={AvatarVariant.Account}
-                accountAddress={selectedAccount?.address}
+                accountAddress={selectedAccount?.address || '0x20A1BFeeBf35E6CdBC0D281e68A3a9F832c2Fa88'}
               />
             </BadgeWrapper>
           </View>
-          <Text style={styles.footerText} numberOfLines={1} ellipsizeMode='tail'>{selectedAccount?.name} - Ethereum network 1234567890123456</Text>
+          <Text style={styles.footerText} numberOfLines={1} ellipsizeMode='tail'>{selectedAccount?.name} - {providerConfig.ticker || 'Ethereum network 1234567890123456'}</Text>
         </View>
       </TouchableOpacity>
     </Container>
