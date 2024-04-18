@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -16,8 +16,8 @@ import Avatar, {
   AvatarSize,
   AvatarVariant
 } from '../../../../component-library/components/Avatars/Avatar';
+import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
-import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import AppConstants from '../../../../core/AppConstants';
 import { selectProviderConfig } from '../../../../selectors/networkController';
@@ -27,8 +27,8 @@ import {
 } from '../../../../styles/common';
 import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
+import Networks from '../../../../util/networks';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import { useAccounts } from '../../../hooks/useAccounts';
 import WebsiteIcon from '../../WebsiteIcon';
 
@@ -157,6 +157,16 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
   }, [accounts]);
 
   const providerConfig = useSelector(selectProviderConfig);
+  const [networkName, setNetworkName] = useState(null);
+
+  useEffect(() => {
+    if (providerConfig.nickname) {
+      setNetworkName(providerConfig.nickname);
+    } else {
+      setNetworkName((Networks[providerConfig.type] && Networks[providerConfig.type].name) ||
+        { ...Networks.rpc, color: null }.name);
+    }
+  }, [providerConfig]);
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>
@@ -214,7 +224,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
               />
             </BadgeWrapper>
           </View>
-          <Text style={styles.footerText} numberOfLines={1} ellipsizeMode='tail'>{selectedAccount?.name} - {providerConfig.ticker || 'Ethereum network 1234567890123456'}</Text>
+          <Text style={styles.footerText} numberOfLines={1} ellipsizeMode='tail'>{selectedAccount?.name} - {networkName}</Text>
         </View>
       </TouchableOpacity>
     </Container>
