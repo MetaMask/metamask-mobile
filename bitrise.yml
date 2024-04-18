@@ -1311,13 +1311,13 @@ app:
       VERSION_NAME: v7.20.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1312
+      VERSION_NUMBER: 1313
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: v7.20.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1312
+      FLASK_VERSION_NUMBER: 1313
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
