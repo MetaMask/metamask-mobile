@@ -166,7 +166,6 @@ const createStyles = (colors) =>
     },
     inlineWarningMessage: {
       paddingVertical: 2,
-      fontSize: 14,
       color: colors.warning.default,
       ...typography.sBodyMD,
     },
@@ -234,6 +233,10 @@ const createStyles = (colors) =>
     blueText: {
       color: colors.primary.default,
       marginTop: 1,
+    },
+    bottomSection: {
+      paddingHorizontal: 16,
+      paddingVertical: 20,
     },
   });
 
@@ -1119,7 +1122,7 @@ class NetworkSettings extends PureComponent {
         style={styles.wrapper}
         testID={NetworksViewSelectorsIDs.CONTAINER}
       >
-        <View style={styles.informationCustomWrapper}>
+        <KeyboardAwareScrollView style={styles.informationCustomWrapper}>
           {!networkTypeOrRpcUrl ? (
             <WarningMessage
               style={styles.warningContainer}
@@ -1260,6 +1263,8 @@ class NetworkSettings extends PureComponent {
               keyboardAppearance={themeAppearance}
             />
           </View>
+        </KeyboardAwareScrollView>
+        <View style={styles.bottomSection}>
           {isCustomMainnet ? (
             <Button
               variant={ButtonVariants.Primary}
