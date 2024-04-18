@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
-import { colors as importedColors } from '../../../../styles/common';
+import { Platform, StyleSheet, Text, View } from 'react-native';
+import Device from '../../../../util/device';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -11,44 +11,39 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
+import Routes from '../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../util/theme';
-import { createBrowserNavDetails } from '../../../Views/Browser';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 import { useMetrics } from '../../../hooks/useMetrics';
 
-const WIDTH = Dimensions.get('window').width;
 const styles = StyleSheet.create({
   main: {
     flex: 1,
-    backgroundColor: importedColors.transparent,
-    marginLeft: 16,
-  },
-  some: {
-    width: WIDTH - 32,
   },
   coachmarkContainer: {
     position: 'absolute',
+    alignSelf: 'center',
     left: 0,
     right: 0,
+    marginHorizontal: 16,
+    bottom: Device.isIphoneX() ? 80 : Device.isIos() ? 40 : 64,
   },
 });
 
 const Step6 = (props) => {
-  const { navigation, setOnboardingWizardStep, onClose } = props;
+  const { setOnboardingWizardStep, onClose, navigation } = props;
   const { trackEvent } = useMetrics();
   const { colors } = useTheme();
   const dynamicOnboardingStyles = onboardingStyles(colors);
-  const [coachmarkBottom, setCoachmarkBottom] = useState();
 
   /**
    * Dispatches 'setOnboardingWizardStep' with next step
    */
   const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(7);
-    navigation && navigation.navigate(...createBrowserNavDetails());
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
-      tutorial_step_count: 6,
+      tutorial_step_count: 5,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
     });
   };
@@ -57,7 +52,7 @@ const Step6 = (props) => {
    * Dispatches 'setOnboardingWizardStep' with next step
    */
   const onBack = () => {
-    navigation && navigation.navigate('WalletView');
+    navigation?.navigate?.(Routes.WALLET.HOME);
     setTimeout(() => {
       setOnboardingWizardStep && setOnboardingWizardStep(5);
     }, 1);
@@ -88,27 +83,14 @@ const Step6 = (props) => {
     </View>
   );
 
-  const getCoachmarkPosition = useCallback(() => {
-    props?.coachmarkRef?.current?.measure(
-      (x, y, width, heigh, pageX, pageY) => {
-        setCoachmarkBottom(Dimensions.get('window').height - pageY);
-      },
-    );
-  }, [props?.coachmarkRef]);
-
-  useEffect(() => {
-    getCoachmarkPosition();
-  }, [getCoachmarkPosition]);
-
   return (
     <View style={styles.main}>
-      <View style={[styles.coachmarkContainer, { bottom: coachmarkBottom }]}>
+      <View style={styles.coachmarkContainer}>
         <Coachmark
           title={strings('onboarding_wizard_new.step6.title')}
           content={content()}
           onNext={onNext}
           onBack={onBack}
-          style={styles.some}
           currentStep={5}
           topIndicatorPosition={false}
           bottomIndicatorPosition={'bottomRight'}
@@ -136,10 +118,6 @@ Step6.propTypes = {
    * Callback called when closing step
    */
   onClose: PropTypes.func,
-  /**
-   *  ref
-   */
-  coachmarkRef: PropTypes.object,
 };
 
 export default connect(null, mapDispatchToProps)(Step6);

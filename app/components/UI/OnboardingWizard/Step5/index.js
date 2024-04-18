@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
+import { createBrowserNavDetails } from '../../../Views/Browser';
 import onboardingStyles from '../styles';
 import {
   MetaMetricsEvents,
@@ -21,8 +23,7 @@ const styles = StyleSheet.create({
   },
   coachmarkContainer: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    alignSelf: 'center',
   },
   coachmark: { marginHorizontal: 16 },
 });
@@ -32,7 +33,8 @@ const Step5 = (props) => {
   const { trackEvent } = useMetrics();
   const { colors } = useTheme();
   const dynamicOnboardingStyles = onboardingStyles(colors);
-  const [coachmarkBottom, setCoachmarkBottom] = useState();
+  const [coachmarkBottom, setCoachmarkBottom] = useState(30);
+  const navigation = useNavigation();
 
   const getCoachmarkPosition = useCallback(() => {
     props?.coachmarkRef?.current?.measure(
@@ -51,6 +53,7 @@ const Step5 = (props) => {
    */
   const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(6);
+    navigation && navigation.navigate(...createBrowserNavDetails());
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
       tutorial_step_count: 5,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
