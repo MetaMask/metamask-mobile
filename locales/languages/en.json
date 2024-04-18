@@ -542,7 +542,8 @@
     "collectible_asset_contract": "Asset contract",
     "share_check_out_nft": "Check out my NFT!",
     "share_via": "Shared via",
-    "untitled_collection": "Untitled Collection"
+    "untitled_collection": "Untitled Collection",
+    "collection": "Collection"
   },
   "transfer": {
     "title": "Transfer",
@@ -713,6 +714,26 @@
     "general_desc": "Currency conversion, primary currency, language and search engine",
     "advanced_title": "Advanced",
     "advanced_desc": "Access developer features, reset account, setup testnets, state logs, IPFS gateway and custom RPC",
+    "notifications_title": "Notifications",
+    "notifications_desc": "Manage your notifications",
+    "allow_notifications": "Allow notifications",
+    "allow_notifications_desc": "Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices. Learn how we protect your privacy while using this feature.",
+    "notifications_opts" :{
+      "customize_session_title": "Customize your notifications",
+      "customize_session_desc": "Turn on the types of notifications you want to receive:",
+      "account_session_title": "Account activity",
+      "account_session_desc": "Select the accounts you want to be notified about:",
+      "assets_sent_title": "Assets Sent",
+      "assets_sent_desc": "Funds and NFT",
+      "assets_received_title": "Assets Received",
+      "assets_received_desc": "Funds and NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "Staking, swapping, and bridging",
+      "snaps_title": "Snaps",
+      "snaps_desc": "New features and updates",
+      "products_announcements_title": "Product announcements",
+      "products_announcements_desc": "New products and features"
+    },
     "contacts_title": "Contacts",
     "contacts_desc": "Add, edit, remove, and manage your accounts",
     "security_title": "Security & Privacy",
@@ -1130,6 +1151,7 @@
     "confirm": "Confirm"
   },
   "transaction": {
+    "transaction_id": "Transaction ID",
     "alert": "ALERT",
     "amount": "Amount",
     "next": "Next",
@@ -1411,8 +1433,12 @@
     "to": "To",
     "details": "Details",
     "amount": "Amount",
+    "gas_used": "Gas Used (Units)",
     "gas_limit": "Gas Limit (Units)",
     "gas_price": "Gas Price (GWEI)",
+    "base_fee": "Base Fee (GWEI)",
+    "priority_fee": "Priority Fee (GWEI)",
+    "max_fee": "Max Fee Per Gas",
     "total": "Total",
     "view_on": "VIEW ON",
     "view_on_etherscan": "View on Etherscan",
@@ -1434,7 +1460,8 @@
     "sign_title_device": "with your Keystone",
     "sign_description_1": "After you have signed with Keystone,",
     "sign_description_2": "tap on Get Signature",
-    "sign_get_signature": "Get Signature"
+    "sign_get_signature": "Get Signature",
+    "network_fee": "Network Fee"
   },
   "address_book": {
     "recents": "Recents",
@@ -1783,6 +1810,16 @@
     "back_to_safety": "Back to safety"
   },
   "notifications": {
+    "stake_completed": "Stake completed",
+    "withdrawal_completed": "Withdrawal completed",
+    "unstake_completed": "Unstake completed",
+    "withdrawal_requested": "Withdrawal requested",
+    "stake_ready_to_be_withdrawn": "Stake ready to be withdrawn",
+    "swap_completed": "Swapped {{from}} for {{to}}",
+    "sent": "Sent to {{address}}",
+    "received": "Received from {{address}}",
+    "sent_nft": "Sent NFT to {{address}}",
+    "received_nft": "Received NFT from {{address}}",
     "pending_title": "Transaction submitted",
     "pending_deposit_title": "Deposit in progress!",
     "pending_withdrawal_title": "Withdrawal in progress!",
@@ -1820,7 +1857,30 @@
     "wc_signed_failed_title": "This sign request failed",
     "wc_sent_tx_rejected_title": "You've rejected the transaction request",
     "approved_tx_rejected_title": "You've rejected granting permission",
-    "wc_description": "Please check the application"
+    "wc_description": "Please check the application",
+    "wallet": "Wallet",
+    "web3": "Web3",
+    "empty": {
+      "title": "Nothing to see here",
+      "message": "This is where you can find notifications once there’s activity in your wallet. "
+    },
+    "list": {
+      "0": "All",
+      "1": "Wallet",
+      "2": "Annoucements"
+    },
+    "address_copied_to_clipboard": "Address copied to clipboard",
+    "transaction_id_copied_to_clipboard": "Transaction ID copied to clipboard",
+    "activation_card": {
+      "title": "Turn on notifications",
+      "description_1": "Stay in the loop on what's happening in your wallet with notifications. ",
+      "description_2": "To use this feature, we’ll generate an anonymous ID for your account. It’s used only for syncing your data in MetaMask and doesn't link to your activities or other identifiers, ensuring your privacy.",
+      "learn_more": "Learn how we protect your privacy while using this feature. ",
+      "manage_preferences_1": "You can turn off notifications at any time in ",
+      "manage_preferences_2": "Settings > Notifications.",
+      "cancel": "Cancel",
+      "cta": "Turn on"
+  }
   },
   "protect_your_wallet_modal": {
     "title": "Protect your wallet",
