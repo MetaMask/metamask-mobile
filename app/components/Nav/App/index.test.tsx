@@ -10,8 +10,8 @@ const initialState = {
     loggedIn: true,
   },
   engine: {
-    ...initialBackgroundState,
     backgroundState: {
+      ...initialBackgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
