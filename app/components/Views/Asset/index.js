@@ -65,6 +65,7 @@ import {
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
+import { createBuyNavigationDetails } from '../../UI/Ramp/routes/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -475,7 +476,7 @@ class Asset extends PureComponent {
       asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
 
     const onBuy = () => {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
 
       this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',

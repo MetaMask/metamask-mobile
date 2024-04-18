@@ -32,7 +32,7 @@ describe('handleRampUrl', () => {
     );
   });
 
-  it('should navigate to Buy route when rampType is BUY and redirectPaths length is 0', () => {
+  it('should navigate to Buy route when rampType is BUY, redirectPaths length is 0 and query params do not have allowed fields', () => {
     handleRampUrl({
       rampPath: '?as=example',
       rampType: RampType.BUY,
@@ -41,7 +41,8 @@ describe('handleRampUrl', () => {
     expect(handleRedirection).not.toHaveBeenCalled();
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.BUY);
   });
-  it('should navigate to Sell route when rampType is SELL and redirectPaths length is 0', () => {
+
+  it('should navigate to Sell route when rampType is SELL, redirectPaths length is 0 and query param do not have allowed fields', () => {
     handleRampUrl({
       rampPath: '?as=example',
       rampType: RampType.SELL,
@@ -49,5 +50,37 @@ describe('handleRampUrl', () => {
     });
     expect(handleRedirection).not.toHaveBeenCalled();
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.SELL);
+  });
+
+  it('should navigate to Buy route when rampType is BUY, redirectPaths length is 0 and query param is intent', () => {
+    handleRampUrl({
+      rampPath: '?chainId=1&address=0x123456',
+      rampType: RampType.BUY,
+      navigation,
+    });
+    expect(handleRedirection).not.toHaveBeenCalled();
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.BUY, {
+      screen: Routes.RAMP.GET_STARTED,
+      params: {
+        chainId: '1',
+        address: '0x123456',
+      }
+    });
+  });
+
+  it('should navigate to Sell route when rampType is SELL, redirectPaths length is 0 and query param is intent', () => {
+    handleRampUrl({
+      rampPath: '?chainId=1&address=0x123456',
+      rampType: RampType.SELL,
+      navigation,
+    });
+    expect(handleRedirection).not.toHaveBeenCalled();
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.RAMP.SELL, {
+      screen: Routes.RAMP.GET_STARTED,
+      params: {
+        chainId: '1',
+        address: '0x123456',
+      }
+    });
   });
 });

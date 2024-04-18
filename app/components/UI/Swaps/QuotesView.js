@@ -92,6 +92,7 @@ import { selectContractBalances } from '../../../selectors/tokenBalancesControll
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
 import Routes from '../../../constants/navigation/Routes';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import {
   SWAP_QUOTE_SUMMARY,
   SWAP_GAS_FEE,
@@ -1280,7 +1281,7 @@ function SwapsQuotesView({
 
   const buyEth = useCallback(() => {
     try {
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails());
     } catch (error) {
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }

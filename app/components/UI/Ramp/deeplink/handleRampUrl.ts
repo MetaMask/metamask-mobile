@@ -3,6 +3,8 @@ import handleRedirection from './handleRedirection';
 import getRedirectPathsAndParams from './utils/getRedirectPathAndParams';
 import { RampType } from '../types';
 import Routes from '../../../../constants/navigation/Routes';
+import parseRampIntent from './parseRampIntent';
+import { createBuyNavigationDetails, createSellNavigationDetails } from '../routes/utils';
 
 interface RampUrlOptions {
   rampPath: string;
@@ -21,16 +23,17 @@ export default function handleRampUrl({
     return handleRedirection(redirectPaths, pathParams, rampType, navigation);
   }
 
+  let rampIntent;
   if (pathParams) {
-    // TODO(ramp): add buy intent parser
+    rampIntent = parseRampIntent(pathParams);
   }
 
   switch (rampType) {
     case RampType.BUY:
-      navigation.navigate(Routes.RAMP.BUY);
+      navigation.navigate(...createBuyNavigationDetails(rampIntent));
       break;
     case RampType.SELL:
-      navigation.navigate(Routes.RAMP.SELL);
+      navigation.navigate(...createSellNavigationDetails(rampIntent));
       break;
   }
 }

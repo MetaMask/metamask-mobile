@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Image, View, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Text from '../../../../Base/Text';
 import StyledButton from '../../../StyledButton';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -14,6 +14,7 @@ import useAnalytics from '../../hooks/useAnalytics';
 import useRampNetwork from '../../hooks/useRampNetwork';
 import styles from './GetStarted.styles';
 import useRegions from '../../hooks/useRegions';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const getStartedIcon = require('../../components/images/WalletInfo.png');

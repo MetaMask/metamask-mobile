@@ -43,6 +43,10 @@ import {
   WALLET_SWAP,
 } from './WalletActions.constants';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import {
+  createBuyNavigationDetails,
+  createSellNavigationDetails,
+} from '../../UI/Ramp/routes/utils';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -70,7 +74,7 @@ const WalletActions = () => {
 
   const onBuy = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.RAMP.BUY);
+      navigate(...createBuyNavigationDetails());
       trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
         text: 'Buy',
         location: 'TabBar',
@@ -81,7 +85,7 @@ const WalletActions = () => {
 
   const onSell = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigate(Routes.RAMP.SELL);
+      navigate(...createSellNavigationDetails());
       trackEvent(MetaMetricsEvents.SELL_BUTTON_CLICKED, {
         text: 'Sell',
         location: 'TabBar',
