@@ -11,6 +11,7 @@ For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
 
 ## Documentation
+
 - [Architecture](./docs/readme/architecture.md)
 - [Development Environment Setup](./docs/readme/environment.md)
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
@@ -23,13 +24,14 @@ To learn how to develop MetaMask-compatible applications, visit our [Developer D
 
 ### Environment setup
 
-Before running the app, make sure your development environment has all the required tools.
+Before running the app, make sure your development environment has all the required tools. Several of these tools (ie Node and Ruby) may require specific versions in order to successfully build the app.
 
 [Setup your development environment](./docs/readme/environment.md)
 
 ### Building the app
 
 **Clone the project**
+
 ```bash
 git clone git@github.com:MetaMask/metamask-mobile.git && \
 cd metamask-mobile
@@ -40,29 +42,27 @@ cd metamask-mobile
 ```bash
 yarn setup
 ```
-_Not the usual install command, this will run scripts and a lengthy postinstall flow_
 
-**Setup environment variables**
-```bash
-cp .ios.env.example .ios.env && \
-cp .android.env.example .android.env && \
-cp .js.env.example .js.env
-```
+_Not the usual install command, this will run scripts and a lengthy postinstall flow_
 
 ### Running the app
 
 **Run Metro bundler**
+
 ```bash
 yarn watch
 ```
+
 _Like a local server for the app_
 
 **Run on a iOS device**
+
 ```bash
-yarn start:ios 
+yarn start:ios
 ```
 
 **Run on an Android device**
+
 ```bash
 yarn start:android
 ```

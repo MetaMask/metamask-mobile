@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import AnimatedSpinner from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('AnimatedSpinner', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<AnimatedSpinner />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<AnimatedSpinner />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

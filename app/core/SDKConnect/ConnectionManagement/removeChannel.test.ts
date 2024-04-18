@@ -1,4 +1,3 @@
-import DefaultPreference from 'react-native-default-preference';
 import AppConstants from '../../../core/AppConstants';
 import SDKConnect from '../SDKConnect';
 import removeChannel from './removeChannel';
@@ -25,7 +24,6 @@ describe('removeChannel', () => {
         disabledHosts: {},
         connecting: {},
       },
-      emit: jest.fn(),
     } as unknown as SDKConnect;
   });
 
@@ -115,50 +113,6 @@ describe('removeChannel', () => {
 
       expect(mockInstance.state.disabledHosts[mockHost]).toBeUndefined();
     });
-
-    it('should update connections in DefaultPreference', () => {
-      const mockChannelId = 'mockChannelId';
-      const mockOtherPublicKey = 'mockOtherPublicKey';
-      const mockHost = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + mockChannelId;
-
-      mockInstance.state.connected[mockChannelId] = {
-        otherPublicKey: mockOtherPublicKey,
-      } as unknown as SDKConnect['state']['connected'][string];
-
-      mockInstance.state.disabledHosts[mockHost] = 1234567890;
-
-      removeChannel({
-        channelId: mockChannelId,
-        instance: mockInstance,
-      });
-
-      expect(DefaultPreference.set).toHaveBeenCalledWith(
-        AppConstants.MM_SDK.SDK_CONNECTIONS,
-        JSON.stringify(mockInstance.state.connections),
-      );
-    });
-
-    it('should update approved hosts in DefaultPreference', () => {
-      const mockChannelId = 'mockChannelId';
-      const mockOtherPublicKey = 'mockOtherPublicKey';
-      const mockHost = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + mockChannelId;
-
-      mockInstance.state.connected[mockChannelId] = {
-        otherPublicKey: mockOtherPublicKey,
-      } as unknown as SDKConnect['state']['connected'][string];
-
-      mockInstance.state.disabledHosts[mockHost] = 1234567890;
-
-      removeChannel({
-        channelId: mockChannelId,
-        instance: mockInstance,
-      });
-
-      expect(DefaultPreference.set).toHaveBeenCalledWith(
-        AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-        JSON.stringify(mockInstance.state.approvedHosts),
-      );
-    });
   });
 
   it('should delete the channel from the connecting state', () => {
@@ -172,16 +126,5 @@ describe('removeChannel', () => {
     });
 
     expect(mockInstance.state.connecting[mockChannelId]).toBeUndefined();
-  });
-
-  it('should emit a refresh event', () => {
-    const mockChannelId = 'mockChannelId';
-
-    removeChannel({
-      channelId: mockChannelId,
-      instance: mockInstance,
-    });
-
-    expect(mockInstance.emit).toHaveBeenCalledWith('refresh');
   });
 });

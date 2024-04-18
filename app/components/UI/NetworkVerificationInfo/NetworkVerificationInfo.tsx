@@ -34,6 +34,7 @@ import {
 } from '../../../util/networks';
 import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
+import { convertHexToDecimal } from '@metamask/controller-utils';
 
 interface Alert {
   alertError: string;
@@ -106,7 +107,9 @@ const NetworkVerificationInfo = ({
       <Text variant={TextVariant.BodyMDBold}>
         {strings('add_custom_network.chain_id')}
       </Text>
-      <Text style={styles.textSection}>{customNetworkInformation.chainId}</Text>
+      <Text style={styles.textSection}>
+        {convertHexToDecimal(customNetworkInformation.chainId)}
+      </Text>
 
       <Text variant={TextVariant.BodyMDBold}>
         {strings('add_custom_network.network_url')}

@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ένας τρίτος που είναι γνωστός για απάτες μπορεί να πάρει όλα τα περιουσιακά σας στοιχεία.",
-    "attribution": "Με την υποστήριξη του",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, κάποιος μπορεί να κλέψει τα περιουσιακά σας στοιχεία που είναι καταχωρημένα στο Blur.",
     "deceptive_request_title": "Πρόκειται για παραπλανητικό αίτημα",
     "failed_title": "Το αίτημα μπορεί να μην είναι ασφαλές",
     "failed_description": "Λόγω σφάλματος, αυτό το αίτημα δεν επαληθεύτηκε από τον πάροχο ασφαλείας. Προχωρήστε με προσοχή.",
     "loading_title": "Έλεγχος για ειδοποιήσεις ασφαλείας...",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "Δεν λαβαμε ειδοποιήσεις. Κάνετε πάντα τη δική σας ενδελεχή έρευνα προτού εγκρίνετε τα αιτήματα.",
     "malicious_domain_description": "Αλληλεπιδράτε με έναν κακόβουλο τομέα. Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
     "other_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
     "raw_signature_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
@@ -353,12 +351,17 @@
     "no_collectibles": "Δεν βλέπετε τα NFT σας;",
     "no_available_tokens": "Δεν βλέπετε το token σας;",
     "add_tokens": "Εισαγωγή tokens",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} νέο {{tokensLabel}} βρέθηκε σε αυτόν τον λογαριασμό",
     "token_toast": {
       "tokens_imported_title": "Tokens που έχουν εισαχθεί",
       "tokens_imported_desc": "Εισάχθηκαν επιτυχώς {{tokenSymbols}}",
       "token_imported_title": "Token που έχει εισαχθεί",
       "token_imported_desc": "Εισάχθηκαν επιτυχώς {{tokenSymbol}}",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Απόκρυψη των Tokens",
       "tokens_hidden_desc": "Απόκρυψη εντοπισμένων tokens από το πορτοφόλι σας",
       "token_hidden_title": "Απόκρυψη Token",
@@ -378,6 +381,8 @@
     "nfts_autodetection_desc": "Επιτρέψτε στο MetaMask να εντοπίζει αυτόματα NFT από το OpenSea και να τα εμφανίζει στο πορτοφόλι σας στο MetaMask.",
     "network_details_check": "Ο έλεγχος λεπτομερειών δικτύου",
     "network_with_chain_id": "Το δίκτυο με αναγνωριστικό αλυσίδας",
+    "chain_list_returned_different_ticker_symbol": "Αυτό το σύμβολο token δεν ταιριάζει με το όνομα δικτύου ή το αναγνωριστικό αλυσίδας που καταχωρίσατε. Πολλά δημοφιλή tokens χρησιμοποιούν παρόμοια σύμβολα, τα οποία οι απατεώνες μπορούν να χρησιμοποιήσουν για να σας εξαπατήσουν ώστε να τους στείλετε ένα πιο πολύτιμο token ως αντάλλαγμα. Επαληθεύετέ τα πάντοτε προτού συνεχίσετε.",
+    "suggested_token_symbol": "Προτεινόμενο σύμβολο μετοχής:",
     "potential_scam": "Πρόκειται για πιθανή απάτη",
     "network_not_matching": "Αυτό το δίκτυο δεν ταιριάζει με το αναγνωριστικό ή το όνομα της σχετικής αλυσίδας. Πολλά δημοφιλή tokens χρησιμοποιούν το όνομα",
     "target_scam_network": "καθιστώντας το στόχο για απάτες. Οι απατεώνες μπορεί να σας ξεγελάσουν για να τους στείλετε πιο πολύτιμα νομίσματα σε αντάλλαγμα. Επαληθεύστε τα πάντα προτού συνεχίσετε.",
@@ -441,8 +446,8 @@
   "add_asset": {
     "title": "Εισαγωγή tokens",
     "title_nft": "Εισαγωγή NFT",
-    "search_token": "ΑΝΑΖΗΤΗΣΗ",
-    "custom_token": "ΠΡΟΣΑΡΜΟΣΜΕΝΟ TOKEN",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "AΚΥΡΟ",
       "add_token": "ΕΙΣΑΓΩΓΉ"
@@ -499,14 +504,16 @@
     "resultPageErrorDefaultMessage": "Η λειτουργία απέτυχε."
   },
   "token": {
-    "token_symbol": "Σύμβολο Token",
+    "token_symbol": "Token symbol",
     "token_address": "Διεύθυνση Token",
-    "token_decimal": "Δεκαδικά Ψηφία του Token",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Αναζήτηση Token",
     "address_cant_be_empty": "Η διεύθυνση του token δεν μπορεί να είναι κενή.",
     "address_must_be_valid": "Η διεύθυνση του token πρέπει να είναι μια έγκυρη διεύθυνση.",
     "symbol_cant_be_empty": "Το σύμβολο του token δεν μπορεί να είναι κενό.",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Τα δεκαδικά ψηφία του token δεν μπορεί να είναι κενά.",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "Δεν μπορέσαμε να βρούμε κανένα token με αυτό το όνομα.",
     "select_token": "Επιλέξτε Token",
     "address_must_be_smart_contract": "Εντοπίστηκε προσωπική διεύθυνση. Εισαγάγετε τη διεύθυνση συμβολαίου του token."
@@ -543,10 +550,10 @@
   },
   "accounts": {
     "create_new_account": "Δημιουργία νέου λογαριασμού",
-    "qr_hardware": "Υλικό QR",
     "import_account": "Εισαγωγή λογαριασμού",
     "connect_hardware": "Σύνδεση πορτοφολιού υλικού",
     "imported": "Έγινε εισαγωγή",
+    "qr_hardware": "Υλικό QR",
     "remove_account_title": "Αφαίρεση λογαριασμού",
     "remove_account_message": "Θέλετε σίγουρα να αφαιρέσετε αυτόν τον λογαριασμό;",
     "no": "Όχι",
@@ -893,7 +900,6 @@
     "security_check_subheading": "Έλεγχοι ασφαλείας",
     "symbol_required": "Απαιτείται το σύμβολο.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Διαφύλαξη της ιδιωτικής ζωής - δεν κοινοποιούνται δεδομενα σε τρίτους. Διατίθεται στα Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism και Polygon.",
     "security_alerts": "Ειδοποιήσεις ασφαλείας",
     "security_alerts_desc": "Αυτή η λειτουργία σας προειδοποιεί για κακόβουλη δραστηριότητα, καθώς ελέγχει τοπικά τα αιτήματα συναλλαγών και υπογραφών σας. Πάντα να κάνετε τη δική σας επιμελή έρευνα προτού εγκρίνετε οποιαδήποτε αιτήματα. Δεν υπάρχει καμία εγγύηση ότι αυτή η λειτουργία θα εντοπίσει όλες τις κακόβουλες δραστηριότητες. Ενεργοποιώντας αυτή τη λειτουργία, συμφωνείτε με τους όρους χρήσης του παρόχου."
   },
@@ -902,27 +908,27 @@
     "disconnect_all_info": "Εάν αφαιρέσετε τις συνδέσεις σας σε όλους τους ιστότοπους, θα πρέπει να δώσετε άδεια για να συνδεθείτε ξανά.",
     "disconnect": "Αποσύνδεση",
     "disconnect_all": "Αποσύνδεση όλων",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "Αποσύνδεση όλων των λογαριασμών",
+    "manage_connections": "Διαχείριση συνδέσεων",
+    "manage": "Διαχείριση",
     "cancel": "Άκυρο",
     "loading": "Σύνδεση στο MetaMask...",
     "unkown_dapp": "Το όνομα DAPP δεν είναι διαθέσιμο",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "Χωρίς συνδέσεις",
+    "no_connections_desc": "Εάν συνδέσετε έναν λογαριασμό σε έναν ιστότοπο ή μια εφαρμογή, θα τον δείτε εδώ."
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "{{accountsLength}} συνδεδεμένοι λογαριασμοί."
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "Αποσύνδεση από όλους τους ιστότοπους;",
+    "disconnect_all_desc": "Εάν αποσυνδέσετε τους λογαριασμούς σας από όλους τους ιστότοπους, θα πρέπει να δώσετε άδεια για να συνδεθείτε ξανά.",
+    "disconnect_account": "Αποσύνδεση λογαριασμού; ",
+    "disconnect_all_accounts": "Αποσύνδεση όλων των λογαριασμών",
+    "disconnect_all_accounts_desc": "Εάν αποσυνδέσετε όλους τους λογαριασμούς από το {{dapp}}, θα πρέπει να δώσετε άδεια για να συνδεθείτε ξανά.",
+    "disconnect_account_desc": "Εάν αποσυνδέσετε {{account}} από το {{dapp}}, θα πρέπει να δώσετε άδεια για να συνδεθείτε ξανά.",
+    "disconnect_confirm": "Αποσύνδεση",
+    "cancel": "Άκυρο"
   },
   "sdk_return_to_app_modal": {
     "title": "Επιστροφή στην εφαρμογή",
@@ -1294,6 +1300,7 @@
     "contract": "Συμβόλαιο ({{address}})",
     "contract_name": "Όνομα συμβολαίου:",
     "contract_address": "Διεύθυνση συμβολαίου:",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Περιθώριο:",
     "data": "Δεδομένα",
     "function_approve": "Λειτουργία: Έγκριση",
@@ -1508,8 +1515,8 @@
     "select_network": "Επιλέξτε ένα δίκτυο",
     "show_test_networks": "Εμφάνιση δοκιμαστικών δικτύων",
     "deprecated_goerli": "Λόγω των αλλαγών στο πρωτόκολλο του δοκιμαστικού δίκτυου Ethereum: Goerli μπορεί να μην λειτουργεί τόσο αξιόπιστα και θα καταργηθεί σύντομα.",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "Αυτό το δίκτυο έχει καταργηθεί",
+    "network_deprecated_description": "Το δίκτυο στο οποίο προσπαθείτε να συνδεθείτε δεν υποστηρίζεται πλέον από το Metamask."
   },
   "select": {
     "cancel": "Άκυρο",
@@ -1789,6 +1796,9 @@
     "pending_deposit_message": "Αναμονή για την ολοκλήρωση της κατάθεσης",
     "pending_withdrawal_message": "Αναμονή για την ολοκλήρωση της ανάληψης",
     "error_message": "Πατήστε για να δείτε τη συναλλαγή",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Πατήστε για να δείτε τη συναλλαγή",
     "speedup_message": "Προσπάθεια για επιτάχυνση της συναλλαγής",
     "success_deposit_message": "Τα χρήματά σας είναι έτοιμα για χρήση",
@@ -2058,6 +2068,10 @@
     "fetching_new_quotes": "Λήψη νέων προσφορών...",
     "quotes_expire_in": "Οι προσφορές λήγουν σε",
     "get_new_quotes": "Λάβετε νέες προσφορές",
+    "explore_more_options": "Εξερευνήστε περισσότερες επιλογές",
+    "one_more_option": "1 ακόμα επιλογή",
+    "more_options": "{{count}} ακόμα επιλογές",
+    "previously_used": "Χρησιμοποιήθηκε στο παρελθόν",
     "quotes_timeout": "Λήξη προσφοράς",
     "request_new_quotes": "Ζητήστε νέες προσφορές για να πάρετε την πιο πρόσφατη καλύτερη τιμή.",
     "terms_of_service": "Όροι Χρήσης",
@@ -2405,7 +2419,6 @@
       "title": "Μείνετε ασφαλείς με ειδοποιήσεις ασφαλείας",
       "description_1": "Αποφύγετε τις γνωστές απάτες, προστατεύοντας παράλληλα το απόρρητό σας με τις ειδοποιήσεις ασφαλείας που παρέχονται από το Blockaid. Αυτή η λειτουργία είναι πλέον ενεργοποιημένη από προεπιλογή για όλους τους χρήστες του MetaMask.",
       "description_2": "Πάντα να προβαίνετε σε δικό σας επιμελή έλεγχο προτού εγκρίνετε τα αιτήματα.",
-      "description_3": "Διατίθεται στα Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism και Polygon.",
       "got_it": "Κατανοητό"
     },
     "sell": {
@@ -2717,8 +2730,10 @@
     "bluetooth_off_message": "Ενεργοποιήστε το Bluetooth στη συσκευή σας",
     "bluetooth_access_blocked": "Το Ledger χρειάζεται πρόσβαση μέσω Bluetooth για να συνδεθεί με την κινητή συσκευή σας.",
     "bluetooth_access_blocked_message": "Αν θέλετε να συνδέσετε τη συσκευή Ledger μέσω Bluetooth, ενεργοποιήστε το στις Ρυθμίσεις και προσπαθήστε ξανά.",
-    "location_access_blocked": "Το Ledger χρειάζεται πρόσβαση στην τοποθεσία για να συνδεθεί με την κινητή συσκευή σας.",
+    "location_access_blocked": "Το MetaMask χρειάζεται άδεια πρόσβασης στην τοποθεσία σας για να συνδεθεί με το Lodger.",
     "location_access_blocked_message": "Αν θέλετε να συνδέσετε τη συσκευή Ledger μέσω Bluetooth, θα πρέπει να ενεργοποιήσετε την πρόσβαση στην τοποθεσία στις Ρυθμίσεις και να προσπαθήσετε ξανά.",
+    "nearbyDevices_access_blocked": "Το MetaMask χρειάζεται την άδεια των κοντινών συσκευών σας για να συνδεθεί με το Ledger.",
+    "nearbyDevices_access_blocked_message": "Αν θέλετε να συνδέσετε τη συσκευή Ledger μέσω Bluetooth, θα πρέπει να ενεργοποιήσετε την πρόσβαση σε κοντινές συσκευές στις Ρυθμίσεις και να προσπαθήσετε ξανά.",
     "bluetooth_scanning_error": "Σφάλμα κατά τη σάρωση της συσκευής",
     "bluetooth_scanning_error_message": "Βεβαιωθείτε ότι η συσκευή σας είναι ξεκλείδωτη και ότι εκτελείται η εφαρμογή Ethereum",
     "bluetooth_connection_failed": "Η σύνδεση Bluetooth απέτυχε",
@@ -2738,10 +2753,12 @@
     "connect_ledger": "Συνδέστε το Ledger",
     "looking_for_device": "Αναζήτηση συσκευής",
     "ledger_reminder_message": "Βεβαιωθείτε ότι το Ledger Nano X είναι:",
-    "ledger_reminder_message_step_one": "1. Ξεκλείδωτο",
-    "ledger_reminder_message_step_two": "2. Η εφαρμογή Ethereum είναι εγκαταστημένη",
-    "ledger_reminder_message_step_three": "3. Το Bluetooth είναι ενεργοποιημένο",
-    "ledger_reminder_message_step_four": "4. Η τοποθεσία είναι ενεργοποιημένη",
+    "ledger_reminder_message_step_one": "1. Ξεκλειδώστε το Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. Εγκαταστήστε και ανοίξτε την εφαρμογή Ethereum",
+    "ledger_reminder_message_step_three": "3. Ενεργοποιήστε το Bluetooth",
+    "ledger_reminder_message_step_four": "4. Η τοποθεσία είναι ενεργοποιημένη με τη χρήση ακριβούς τοποθεσίας στο",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. Οι κοντινές συσκευές είναι ενεργοποιημένες",
+    "ledger_reminder_message_step_five": "5. Η λειτουργία \"Μην ενοχλείτε\" πρέπει να είναι απενεργοποιημένη",
     "available_devices": "Διαθέσιμες συσκευές",
     "retry": "Επανάληψη",
     "continue": "Συνέχεια",
@@ -2824,5 +2841,8 @@
     "okay_action": "Εντάξει",
     "error_title": "Η εγκατάσταση απέτυχε",
     "error_description": "Η εγκατάσταση του {{snap}} απέτυχε."
+  },
+  "stake": {
+    "stake": "Stake"
   }
 }

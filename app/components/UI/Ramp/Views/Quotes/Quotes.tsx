@@ -6,6 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Animated, {
   Extrapolate,
@@ -68,7 +69,8 @@ import useInAppBrowser from '../../hooks/useInAppBrowser';
 import { createCheckoutNavDetails } from '../Checkout';
 import { PROVIDER_LINKS, ScreenLocation } from '../../types';
 import Logger from '../../../../../util/Logger';
-import { isBuyQuote, isBuyQuotes, isSellQuotes } from '../../utils';
+import { isBuyQuote } from '../../utils';
+import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
 
 const HIGHLIGHTED_QUOTES_COUNT = 2;
 export interface QuotesParams {
@@ -96,6 +98,7 @@ function Quotes() {
   } = useRampSDK();
   const renderInAppBrowser = useInAppBrowser();
 
+  const ordersProviders = useSelector(getOrdersProviders);
   const [isExpanded, setIsExpanded] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -140,26 +143,28 @@ function Quotes() {
 
   const [filteredQuotes, highlightedQuotes] = useMemo(() => {
     if (quotes) {
-      if (isBuyQuotes(quotes, rampType)) {
-        const allQuotes = quotes.filter(
-          (quote): quote is QuoteResponse => !quote.error,
-        );
-        return [
-          allQuotes,
-          allQuotes.slice(0, HIGHLIGHTED_QUOTES_COUNT),
-        ] as const;
-      } else if (isSellQuotes(quotes, rampType)) {
-        const allQuotes = quotes.filter(
-          (quote): quote is SellQuoteResponse => !quote.error,
-        );
-        return [
-          allQuotes,
-          allQuotes.slice(0, HIGHLIGHTED_QUOTES_COUNT),
-        ] as const;
+      const allQuotes = quotes.filter(
+        (quote): quote is QuoteResponse | SellQuoteResponse => !quote.error,
+      );
+      const highlightedPreviouslyUsed = allQuotes.findIndex(({ provider }) =>
+        ordersProviders.includes(provider.id),
+      );
+
+      let reorderedQuotes = allQuotes;
+      if (highlightedPreviouslyUsed > -1) {
+        reorderedQuotes = [
+          allQuotes[highlightedPreviouslyUsed],
+          ...allQuotes.slice(0, highlightedPreviouslyUsed),
+          ...allQuotes.slice(highlightedPreviouslyUsed + 1),
+        ];
       }
+      return [
+        reorderedQuotes,
+        reorderedQuotes.slice(0, HIGHLIGHTED_QUOTES_COUNT),
+      ] as const;
     }
     return [[], []] as const;
-  }, [quotes, rampType]);
+  }, [ordersProviders, quotes]);
 
   const expandedCount = filteredQuotes.length - highlightedQuotes.length;
 
@@ -225,6 +230,48 @@ function Quotes() {
     fetchQuotes,
     isBuy,
     params,
+    selectedChainId,
+    selectedPaymentMethodId,
+    trackEvent,
+  ]);
+
+  const handleExpandQuotes = useCallback(() => {
+    setIsExpanded(true);
+    const payload = {
+      payment_method_id: selectedPaymentMethodId as string,
+      amount: params.amount,
+      refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
+      results_count: filteredQuotes.length,
+      provider_onramp_first: filteredQuotes[0]?.provider?.name,
+      provider_onramp_list: filteredQuotes.map(({ provider }) => provider.name),
+      previously_used_count: filteredQuotes.filter(({ provider }) =>
+        ordersProviders.includes(provider.id),
+      ).length,
+    };
+    if (isBuy) {
+      trackEvent('ONRAMP_QUOTES_EXPANDED', {
+        ...payload,
+        chain_id_destination: selectedChainId,
+        currency_source: params.fiatCurrency?.symbol,
+        currency_destination: params.asset?.symbol,
+      });
+    } else {
+      trackEvent('OFFRAMP_QUOTES_EXPANDED', {
+        ...payload,
+        chain_id_source: selectedChainId,
+        currency_source: params.asset?.symbol,
+        currency_destination: params.fiatCurrency?.symbol,
+      });
+    }
+  }, [
+    appConfig.POLLING_CYCLES,
+    filteredQuotes,
+    isBuy,
+    ordersProviders,
+    params.amount,
+    params.asset?.symbol,
+    params.fiatCurrency?.symbol,
+    pollingCyclesLeft,
     selectedChainId,
     selectedPaymentMethodId,
     trackEvent,
@@ -714,6 +761,9 @@ function Quotes() {
                 <Row key={quote.provider.id}>
                   <Quote
                     isLoading={isQuoteLoading}
+                    previouslyUsedProvider={ordersProviders.includes(
+                      quote.provider.id,
+                    )}
                     quote={quote}
                     onPress={() => handleOnQuotePress(quote)}
                     onPressCTA={() => handleOnPressCTA(quote, index)}
@@ -739,7 +789,7 @@ function Quotes() {
                     label: strings(
                       'fiat_on_ramp_aggregator.explore_more_options',
                     ),
-                    onPress: () => setIsExpanded(true),
+                    onPress: handleExpandQuotes,
                   },
                 ]
               : []
@@ -854,6 +904,9 @@ function Quotes() {
                     <Row>
                       <Quote
                         isLoading={isQuoteLoading}
+                        previouslyUsedProvider={ordersProviders.includes(
+                          quote.provider.id,
+                        )}
                         quote={quote}
                         onPress={() => handleOnQuotePress(quote)}
                         onPressCTA={() => handleOnPressCTA(quote, index)}

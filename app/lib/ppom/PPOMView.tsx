@@ -84,9 +84,10 @@ export class PPOMView extends Component {
     this.invoke.define('console.log', (...args: any[]) =>
       Logger.log('[PPOMView]', ...args),
     );
-    this.invoke.define('console.error', (...args: any[]) =>
-      Logger.error('[PPOMView]', args),
-    );
+    this.invoke.define('console.error', (...args: any[]) => {
+      const PPOMError = new Error('[PPOMView]');
+      return Logger.error(PPOMError, args);
+    });
     this.invoke.define('console.warn', (...args: any[]) =>
       Logger.log('[PPOMView]', ...args),
     );

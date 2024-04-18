@@ -19,10 +19,9 @@ import {
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
-import Networks from '../../resources/networks.json';
+import { CustomNetworks } from '../../resources/networks.e2e';
 
 const fixtureServer = new FixtureServer();
-const SEPOLIA = 'Sepolia Test Network';
 const MAINNET = 'Ethereum Main Network';
 
 describe(Regression('Custom RPC Tests'), () => {
@@ -57,15 +56,17 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkView.tapAddNetworkButton();
     await NetworkView.switchToCustomNetworks();
     await NetworkView.typeInNetworkName(
-      Networks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig.nickname,
     );
     await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
     await Assertions.checkIfVisible(NetworkView.rpcWarningBanner);
     await NetworkView.clearRpcInputBox();
-    await NetworkView.typeInRpcUrl(Networks.Gnosis.providerConfig.rpcUrl);
-    await NetworkView.typeInChainId(Networks.Gnosis.providerConfig.chainId);
+    await NetworkView.typeInRpcUrl(CustomNetworks.Gnosis.providerConfig.rpcUrl);
+    await NetworkView.typeInChainId(
+      CustomNetworks.Gnosis.providerConfig.chainId,
+    );
     await NetworkView.typeInNetworkSymbol(
-      `${Networks.Gnosis.providerConfig.ticker}\n`,
+      `${CustomNetworks.Gnosis.providerConfig.ticker}\n`,
     );
     if (device.getPlatform() === 'ios') {
       await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
@@ -83,14 +84,14 @@ describe(Regression('Custom RPC Tests'), () => {
     await TestHelpers.delay(3000);
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible(
-      Networks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig.nickname,
     );
   });
 
   it('should dismiss network education modal', async () => {
     await NetworkEducationModal.isVisible();
     await NetworkEducationModal.isNetworkNameCorrect(
-      Networks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig.nickname,
     );
     await NetworkEducationModal.tapGotItButton();
     await NetworkEducationModal.isNotVisible();
@@ -101,13 +102,15 @@ describe(Regression('Custom RPC Tests'), () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.isVisible();
     await NetworkListModal.isNetworkNameVisibleInListOfNetworks(
-      Networks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig.nickname,
     );
   });
 
   it('should switch to Sepolia then dismiss the network education modal', async () => {
     await NetworkListModal.isTestNetworkToggleOn();
-    await NetworkListModal.changeNetwork(SEPOLIA);
+    await NetworkListModal.changeNetwork(
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
     await NetworkEducationModal.isVisible();
     await NetworkEducationModal.isNetworkNameCorrect('Goreli Test Network');
     await NetworkEducationModal.tapGotItButton();
@@ -116,17 +119,19 @@ describe(Regression('Custom RPC Tests'), () => {
   });
 
   it('should switch back to xDAI', async () => {
-    await WalletView.isNetworkNameVisible(SEPOLIA);
+    await WalletView.isNetworkNameVisible(
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.isVisible();
     await NetworkListModal.scrollToBottomOfNetworkList();
     // Change to back to xDai Network
     await NetworkListModal.changeNetwork(
-      Networks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig.nickname,
     );
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible(
-      Networks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig.nickname,
     );
     await NetworkEducationModal.isNotVisible();
   });
@@ -136,7 +141,13 @@ describe(Regression('Custom RPC Tests'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapNetworks();
     await Assertions.checkIfVisible(NetworkView.networkContainer);
-    await NetworkView.tapRemoveNetwork(Networks.Gnosis.providerConfig.nickname); // Tap on xDai to remove network
+    if (device.getPlatform() === 'android') {
+      await device.disableSynchronization();
+    }
+    await NetworkView.longPressToRemoveNetwork(
+      CustomNetworks.Gnosis.providerConfig.nickname,
+    ); // Tap on xDai to remove network
+    await TestHelpers.delay(3000);
     await NetworkEducationModal.tapGotItButton();
     await TabBarComponent.tapWallet();
     await WalletView.isVisible();

@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan dapat mengambil semua aset Anda.",
-    "attribution": "Didukung oleh",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Jika Anda menyetujui permintaan ini, seseorang dapat mencuri aset Anda yang terdaftar di Blur.",
     "deceptive_request_title": "Ini adalah permintaan tipuan",
     "failed_title": "Permintaan mungkin tidak aman",
     "failed_description": "Karena terjadi kesalahan, permintaan ini tidak diverifikasi oleh penyedia keamanan. Lanjutkan dengan hati-hati.",
     "loading_title": "Memeriksa peringatan keamanan...",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "Tidak menerima peringatan. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
     "malicious_domain_description": "Anda berinteraksi dengan domain berbahaya. Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "other_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
     "raw_signature_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
@@ -353,12 +351,17 @@
     "no_collectibles": "Tidak melihat NFT Anda?",
     "no_available_tokens": "Tidak melihat token Anda?",
     "add_tokens": "Impor token",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} {{tokensLabel}} baru ditemukan di akun ini",
     "token_toast": {
       "tokens_imported_title": "Token Diimpor",
       "tokens_imported_desc": "Berhasil mengimpor {{tokenSymbols}}",
       "token_imported_title": "Token Diimpor",
       "token_imported_desc": "Berhasil mengimpor {{tokenSymbol}}",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Menyembunyikan Token",
       "tokens_hidden_desc": "Menyembunyikan token yang terdeteksi dari dompet Anda",
       "token_hidden_title": "Menyembunyikan Token",
@@ -378,6 +381,8 @@
     "nfts_autodetection_desc": "Izinkan MetaMask untuk mendeteksi NFT dari OpenSea secara otomatis dan ditampilkan di dompet MetaMask Anda.",
     "network_details_check": "Pemeriksaan detail jaringan",
     "network_with_chain_id": "Jaringan dengan ID chain",
+    "chain_list_returned_different_ticker_symbol": "Simbol token ini tidak cocok dengan nama jaringan atau ID chain yang dimasukkan. Banyak token populer menggunakan simbol serupa, yang dapat digunakan penipu untuk mengelabui Anda agar mengirimkan token yang lebih berharga sebagai gantinya. Pastikan untuk memverifikasi semuanya sebelum melanjutkan.",
+    "suggested_token_symbol": "Simbol ticker yang disarankan:",
     "potential_scam": "Ini merupakan potensi penipuan",
     "network_not_matching": "Jaringan ini tidak cocok dengan ID chain atau nama yang terkait. Banyak token populer yang menggunakan nama tersebut",
     "target_scam_network": "menjadikannya sebagai target penipuan. Penipu dapat mengelabui Anda agar mengirimkan mata uang yang lebih berharga sebagai gantinya. Pastikan untuk memverifikasi semuanya sebelum melanjutkan.",
@@ -441,8 +446,8 @@
   "add_asset": {
     "title": "Impor token",
     "title_nft": "Impor NFT",
-    "search_token": "CARI",
-    "custom_token": "TOKEN KHUSUS",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "BATAL",
       "add_token": "IMPOR"
@@ -499,14 +504,16 @@
     "resultPageErrorDefaultMessage": "Operasi gagal."
   },
   "token": {
-    "token_symbol": "Simbol Token",
+    "token_symbol": "Token symbol",
     "token_address": "Alamat Token",
-    "token_decimal": "Desimal Token",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Cari Token",
     "address_cant_be_empty": "Alamat token wajib diisi.",
     "address_must_be_valid": "Alamat token harus berupa alamat yang valid.",
     "symbol_cant_be_empty": "Simbol token wajib diisi.",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Desimal token wajib diisi.",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "Kami tidak dapat menemukan token dengan nama tersebut.",
     "select_token": "Pilih Token",
     "address_must_be_smart_contract": "Alamat pribadi terdeteksi. Masukkan alamat kontrak token."
@@ -543,10 +550,10 @@
   },
   "accounts": {
     "create_new_account": "Buat akun baru",
-    "qr_hardware": "Perangkat keras QR",
     "import_account": "Impor akun",
     "connect_hardware": "Hubungkan dompet perangkat keras",
     "imported": "Diimpor",
+    "qr_hardware": "Perangkat keras QR",
     "remove_account_title": "Penghapusan akun",
     "remove_account_message": "Yakin ingin menghapus akun ini?",
     "no": "Tidak",
@@ -893,7 +900,6 @@
     "security_check_subheading": "Pemeriksaan keamanan",
     "symbol_required": "Simbol wajib diisi.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Menjaga privasi - tidak ada data yang dibagikan kepada pihak ketiga. Tersedia di Arbitrum, Avalanche, BNB Chain, Mainnet Ethereum, Optimism, dan Polygon.",
     "security_alerts": "Peringatan keamanan",
     "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia."
   },
@@ -902,27 +908,27 @@
     "disconnect_all_info": "Jika koneksi ke semua situs dihapus, Anda harus memberikan izin untuk menghubungkannya kembali.",
     "disconnect": "Putuskan koneksi",
     "disconnect_all": "Putuskan semua koneksi",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "Putuskan koneksi semua Akun",
+    "manage_connections": "Kelola Koneksi",
+    "manage": "Kelola",
     "cancel": "Batal",
     "loading": "Menghubungkan ke MetaMask...",
     "unkown_dapp": "Nama Aplikasi Terdesentralisasi (DAPP) tidak tersedia",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "Tidak ada koneksi",
+    "no_connections_desc": "Jika Anda menghubungkan akun ke situs atau aplikasi, Anda akan melihatnya di sini."
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "{{accountsLength}} akun terhubung."
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "Putuskan koneksi dari semua situs?",
+    "disconnect_all_desc": "Jika Anda memutuskan koneksi akun dari semua situs, Anda harus memberikan izin untuk menghubungkannya kembali.",
+    "disconnect_account": "Putuskan koneksi akun?",
+    "disconnect_all_accounts": "Putuskan koneksi semua Akun",
+    "disconnect_all_accounts_desc": "Jika Anda memutuskan koneksi semua akun dari {{dapp}}, Anda harus memberikan izin untuk menghubungkannya kembali.",
+    "disconnect_account_desc": "Jika Anda memutuskan koneksi {{account}} dari {{dapp}}, Anda harus memberikan izin untuk menghubungkannya kembali.",
+    "disconnect_confirm": "Putuskan koneksi",
+    "cancel": "Batal"
   },
   "sdk_return_to_app_modal": {
     "title": "Kembali ke aplikasi",
@@ -1294,6 +1300,7 @@
     "contract": "Kontrak ({{address}})",
     "contract_name": "Nama kontrak:",
     "contract_address": "Alamat kontrak:",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Tunjangan:",
     "data": "Data",
     "function_approve": "Fungsi: Setujui",
@@ -1508,8 +1515,8 @@
     "select_network": "Pilih jaringan",
     "show_test_networks": "Tampilkan jaringan pengujian",
     "deprecated_goerli": "Sehubungan dengan perubahan protokol Ethereum: Jaringan uji Goerli mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan.",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "Jaringan ini tidak digunakan lagi",
+    "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di Metamask."
   },
   "select": {
     "cancel": "Batal",
@@ -1789,6 +1796,9 @@
     "pending_deposit_message": "Menunggu deposit selesai",
     "pending_withdrawal_message": "Menunggu penarikan selesai",
     "error_message": "Ketuk untuk melihat transaksi ini",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Ketuk untuk melihat transaksi ini",
     "speedup_message": "Mencoba untuk mempercepat transaksi",
     "success_deposit_message": "Dana Anda sudah siap digunakan",
@@ -2058,6 +2068,10 @@
     "fetching_new_quotes": "Mengambil kuotasi baru...",
     "quotes_expire_in": "Kuotasi berakhir dalam",
     "get_new_quotes": "Dapatkan kuotasi baru",
+    "explore_more_options": "Jelajahi opsi lain",
+    "one_more_option": "1 opsi lain",
+    "more_options": "{{count}} opsi lain",
+    "previously_used": "Digunakan sebelumnya",
     "quotes_timeout": "Waktu kuotasi habis",
     "request_new_quotes": "Minta kuotasi baru untuk mendapatkan tarif terbaik saat ini.",
     "terms_of_service": "Ketentuan Layanan",
@@ -2405,7 +2419,6 @@
       "title": "Tetap aman bersama peringatan keamanan",
       "description_1": "Hindari penipuan yang diketahui sambil tetap melindungi privasi Anda bersama peringatan keamanan yang didukung oleh Blockaid. Saat ini fitur ini diaktifkan secara default untuk semua pengguna MetaMask.",
       "description_2": "Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
-      "description_3": "Tersedia di Arbitrum, Avalanche, BNB Chain, Mainnet Ethereum, Linea, Optimism, dan Polygon.",
       "got_it": "Mengerti"
     },
     "sell": {
@@ -2717,8 +2730,10 @@
     "bluetooth_off_message": "Aktifkan Bluetooth untuk perangkat",
     "bluetooth_access_blocked": "Ledger memerlukan akses Bluetooth untuk dipasangkan dengan perangkat seluler.",
     "bluetooth_access_blocked_message": "Jika ingin memasangkan perangkat Ledger menggunakan Bluetooth, aktifkan di Pengaturan dan coba lagi.",
-    "location_access_blocked": "Ledger memerlukan akses lokasi untuk dipasangkan dengan perangkat seluler.",
+    "location_access_blocked": "MetaMask memerlukan izin akses lokasi untuk dipasangkan dengan Ledger.",
     "location_access_blocked_message": "Jika ingin memasangkan perangkat Ledger menggunakan Bluetooth, aktifkan akses lokasi di Pengaturan & coba lagi.",
+    "nearbyDevices_access_blocked": "MetaMask memerlukan izin perangkat terdekat untuk dipasangkan dengan Ledger.",
+    "nearbyDevices_access_blocked_message": "Jika ingin memasangkan perangkat Ledger menggunakan Bluetooth, Anda harus mengaktifkan akses perangkat terdekat di Pengaturan & coba lagi.",
     "bluetooth_scanning_error": "Terjadi kesalahan saat memindai perangkat",
     "bluetooth_scanning_error_message": "Pastikan perangkat tidak terkunci dan aplikasi Ethereum berjalan",
     "bluetooth_connection_failed": "Koneksi Bluetooth gagal",
@@ -2738,10 +2753,12 @@
     "connect_ledger": "Hubungkan Ledger",
     "looking_for_device": "Mencari perangkat",
     "ledger_reminder_message": "Pastikan Ledger Nano X:",
-    "ledger_reminder_message_step_one": "1. Tidak terkunci",
-    "ledger_reminder_message_step_two": "2. Aplikasi Ethereum sudah diinstal",
-    "ledger_reminder_message_step_three": "3. Bluetooth diaktifkan",
-    "ledger_reminder_message_step_four": "4. Lokasi diaktifkan",
+    "ledger_reminder_message_step_one": "1. Buka Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. Instal dan buka aplikasi Ethereum",
+    "ledger_reminder_message_step_three": "3. Aktifkan Bluetooth",
+    "ledger_reminder_message_step_four": "4. Lokasi diaktifkan dengan menggunakan lokasi yang tepat",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. Perangkat terdekat diaktifkan",
+    "ledger_reminder_message_step_five": "5. Jangan ganggu harus dinonaktifkan",
     "available_devices": "Perangkat yang tersedia",
     "retry": "Coba lagi",
     "continue": "Lanjutkan",
@@ -2824,5 +2841,8 @@
     "okay_action": "Oke",
     "error_title": "Gagal diinstal",
     "error_description": "Instalasi {{snap}} gagal."
+  },
+  "stake": {
+    "stake": "Stake"
   }
 }

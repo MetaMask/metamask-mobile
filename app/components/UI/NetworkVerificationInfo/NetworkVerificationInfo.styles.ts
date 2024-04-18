@@ -52,6 +52,7 @@ const styleSheet = (params: { theme: Theme }) => {
     boldText: {
       ...typography.sBodyMDBold,
     } as TextStyle,
+
     networkSection: { marginBottom: 16 },
     nestedScrollContent: { paddingBottom: 24 },
   });

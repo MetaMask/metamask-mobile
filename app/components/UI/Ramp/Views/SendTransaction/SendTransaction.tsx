@@ -92,13 +92,14 @@ function SendTransaction() {
 
   const transactionAnalyticsPayload = useMemo(
     () => ({
-      crypto_amount: orderData?.cryptoAmount,
+      crypto_amount: orderData?.cryptoAmount as string,
       chain_id_source: orderData?.cryptoCurrency.network.chainId,
       fiat_out: orderData?.fiatAmount,
       payment_method_id: orderData?.paymentMethod.id,
       currency_source: orderData?.cryptoCurrency.symbol,
       currency_destination: orderData?.fiatCurrency.symbol,
       order_id: order?.id,
+      provider_offramp: orderData?.provider.name,
     }),
     [order?.id, orderData],
   );

@@ -1025,10 +1025,11 @@ class DrawerView extends PureComponent {
         renderFromWei(accounts[selectedAddress].balance)) ||
       0;
     const fiatBalance = Engine.getTotalFiatAccountBalance();
-    if (fiatBalance !== this.previousBalance) {
+    const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.tokenFiat;
+    if (totalFiatBalance !== Number(this.previousBalance)) {
       this.previousBalance = this.currentBalance;
     }
-    this.currentBalance = fiatBalance;
+    this.currentBalance = totalFiatBalance;
     const fiatBalanceStr = renderFiat(this.currentBalance, currentCurrency);
     const accountName = isDefaultAccountName(name) && ens ? ens : name;
 

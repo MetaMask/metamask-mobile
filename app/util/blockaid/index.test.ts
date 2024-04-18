@@ -7,9 +7,72 @@ import {
 import * as NetworkControllerMock from '../../selectors/networkController';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
-import { getBlockaidMetricsParams, isBlockaidSupportedOnCurrentChain } from '.';
+import {
+  getBlockaidMetricsParams,
+  isBlockaidSupportedOnCurrentChain,
+  getBlockaidTransactionMetricsParams,
+} from '.';
 
 describe('Blockaid util', () => {
+  describe('getBlockaidTransactionMetricsParams', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(NetworkControllerMock, 'selectChainId')
+        .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns empty object when transaction id does not match security response id', () => {
+      const transaction = {
+        id: 1,
+        currentTransactionSecurityAlertResponse: {
+          id: 2,
+          response: {
+            result_type: ResultType.Malicious,
+            reason: Reason.notApplicable,
+            providerRequestsCount: {
+              eth_call: 5,
+              eth_getCode: 3,
+            },
+            features: [],
+          },
+        },
+      };
+      const result = getBlockaidTransactionMetricsParams(transaction);
+      expect(result).toStrictEqual({});
+    });
+
+    it('returns metrics params object when transaction id matches security response id', () => {
+      const transaction = {
+        id: 1,
+        currentTransactionSecurityAlertResponse: {
+          id: 1,
+          response: {
+            result_type: ResultType.Malicious,
+            reason: Reason.notApplicable,
+            providerRequestsCount: {
+              eth_call: 5,
+              eth_getCode: 3,
+            },
+            features: [],
+          },
+        },
+      };
+
+      const result = getBlockaidTransactionMetricsParams(transaction);
+      expect(result).toEqual({
+        ui_customizations: ['flagged_as_malicious'],
+        security_alert_response: ResultType.Malicious,
+        security_alert_reason: Reason.notApplicable,
+        ppom_eth_call_count: 5,
+        ppom_eth_getCode_count: 3,
+      });
+    });
+  });
+
   describe('getBlockaidMetricsParams', () => {
     beforeEach(() => {
       jest
@@ -26,7 +89,7 @@ describe('Blockaid util', () => {
       expect(result).toStrictEqual({});
     });
 
-    it('returns enpty object when chain id is not in supported chain ids list', () => {
+    it('returns empty object when chain id is not in supported chain ids list', () => {
       jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('10');
       const result = getBlockaidMetricsParams(undefined);
       expect(result).toStrictEqual({});
@@ -102,7 +165,7 @@ describe('Blockaid util', () => {
     it('return false if blockaid is not on current network', () => {
       jest
         .spyOn(NetworkControllerMock, 'selectChainId')
-        .mockReturnValue(NETWORKS_CHAIN_ID.SEPOLIA);
+        .mockReturnValue(NETWORKS_CHAIN_ID.GOERLI);
       const result = isBlockaidSupportedOnCurrentChain();
       expect(result).toEqual(false);
     });

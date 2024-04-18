@@ -27,6 +27,7 @@ describe('checkPermissions', () => {
   let permissionController = {
     executeProviderRequest: jest.fn(),
     executeRestrictedMethod: jest.fn().mockResolvedValue({}),
+    hasPermissions: jest.fn(),
     requestPermissions,
   } as unknown as PermissionController<any, any>;
   const HOUR_IN_MS = 3600000;
@@ -49,6 +50,7 @@ describe('checkPermissions', () => {
       isApproved: mockIsApproved,
       revalidate: mockRevalidate,
       initialConnection: true,
+      setLoading: jest.fn(),
     } as unknown as Connection;
 
     engine = {
@@ -65,6 +67,9 @@ describe('checkPermissions', () => {
     permissionController = {
       executeProviderRequest: jest.fn(),
       executeRestrictedMethod: jest.fn().mockResolvedValue({}),
+      hasPermissions: jest.fn(),
+      getPermissions: jest.fn(),
+      getPermission: jest.fn(),
       requestPermissions,
     } as unknown as PermissionController<any, any>;
 

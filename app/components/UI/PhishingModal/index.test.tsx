@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import PhishingModal from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('PhishingModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<PhishingModal />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<PhishingModal />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

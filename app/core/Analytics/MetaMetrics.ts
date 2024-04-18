@@ -33,6 +33,8 @@ import {
 import { METAMETRICS_ANONYMOUS_ID } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
+import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
+import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -476,7 +478,22 @@ class MetaMetrics implements IMetaMetrics {
         proxy: process.env.SEGMENT_PROXY_URL as string,
         debug: __DEV__,
         anonymousId: METAMETRICS_ANONYMOUS_ID,
+        // allow custom flush interval and event limit for dev and testing
+        // each is optional and can be set in the .js.env file
+        // if not set, the default values from the Segment SDK will be used
+        flushInterval: process.env.SEGMENT_FLUSH_INTERVAL as unknown as number,
+        flushAt: process.env.SEGMENT_FLUSH_EVENT_LIMIT as unknown as number,
       };
+
+      if (__DEV__)
+        Logger.log(
+          `MetaMetrics client configured with: ${JSON.stringify(
+            config,
+            null,
+            2,
+          )}`,
+        );
+
       this.instance = new MetaMetrics(createClient(config));
     }
     return this.instance;
@@ -505,6 +522,15 @@ class MetaMetrics implements IMetaMetrics {
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
       this.#isConfigured = true;
+
+      // identify user with the latest traits
+      // run only after the MetaMetrics is configured
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      await this.addTraitsToUser(consolidatedTraits);
+
       if (__DEV__)
         Logger.log(`MetaMetrics configured with ID: ${this.metametricsId}`);
     } catch (error: any) {

@@ -107,7 +107,7 @@ import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlo
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { getLedgerKeyring } from '../../../../../core/Ledger/Ledger';
 import {
-  getBlockaidMetricsParams,
+  getBlockaidTransactionMetricsParams,
   isBlockaidFeatureEnabled,
 } from '../../../../../util/blockaid';
 import ppomUtil from '../../../../../lib/ppom/ppom-util';
@@ -302,23 +302,8 @@ class Confirm extends PureComponent {
     }
   };
 
-  withBlockaidMetricsParams = () => {
-    let blockaidParams = {};
-
-    const { transaction } = this.props;
-    if (
-      transaction.id === transaction.currentTransactionSecurityAlertResponse?.id
-    ) {
-      blockaidParams = getBlockaidMetricsParams(
-        transaction.currentTransactionSecurityAlertResponse?.response,
-      );
-    }
-
-    return blockaidParams;
-  };
-
   updateNavBar = () => {
-    const { navigation, route, resetTransaction } = this.props;
+    const { navigation, route, resetTransaction, transaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     navigation.setOptions(
       getSendFlowTitle(
@@ -327,6 +312,7 @@ class Confirm extends PureComponent {
         route,
         colors,
         resetTransaction,
+        transaction,
       ),
     );
   };
@@ -608,7 +594,10 @@ class Confirm extends PureComponent {
       const { TokensController } = Engine.context;
 
       if (!contractBalances[address]) {
-        await TokensController.addToken(address, symbol, decimals, {
+        await TokensController.addToken({
+          address,
+          symbol,
+          decimals,
           image,
           name,
         });
@@ -831,9 +820,13 @@ class Confirm extends PureComponent {
 
       const { result, transactionMeta } = this.state;
 
+      await this.persistTransactionParameters(transaction);
+
       const isLedgerAccount = isHardwareAccount(transaction.from, [
         ExtendedKeyringTypes.ledger,
       ]);
+
+      await this.persistTransactionParameters(transaction);
 
       if (isLedgerAccount) {
         const ledgerKeyring = await getLedgerKeyring();
@@ -851,7 +844,7 @@ class Confirm extends PureComponent {
                 assetType,
                 {
                   ...this.getAnalyticsParams(),
-                  ...this.withBlockaidMetricsParams(),
+                  ...getBlockaidTransactionMetricsParams(transaction),
                 },
               ),
             type: 'signTransaction',
@@ -860,7 +853,6 @@ class Confirm extends PureComponent {
         return;
       }
 
-      await this.persistTransactionParameters(transaction);
       await KeyringController.resetQRKeyringState();
       await ApprovalController.accept(transactionMeta.id, undefined, {
         waitForResult: true,
@@ -881,7 +873,7 @@ class Confirm extends PureComponent {
           MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
           {
             ...this.getAnalyticsParams(),
-            ...this.withBlockaidMetricsParams(),
+            ...getBlockaidTransactionMetricsParams(transaction),
           },
         );
         stopGasPolling();
@@ -1092,9 +1084,10 @@ class Confirm extends PureComponent {
   };
 
   onContactUsClicked = () => {
+    const { transaction } = this.props;
     const analyticsParams = {
       ...this.getAnalyticsParams(),
-      ...this.withBlockaidMetricsParams(),
+      ...getBlockaidTransactionMetricsParams(transaction),
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(

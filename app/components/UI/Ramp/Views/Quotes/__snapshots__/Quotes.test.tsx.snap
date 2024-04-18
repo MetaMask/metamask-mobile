@@ -764,6 +764,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -771,6 +772,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -800,6 +803,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -807,6 +811,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1247,6 +1253,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                 pointerEvents="none"
                                 style={
                                   Object {
+                                    "alignSelf": "center",
                                     "height": 260,
                                     "width": 260,
                                   }
@@ -1501,6 +1508,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -1508,6 +1516,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -1537,6 +1547,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -1544,6 +1555,8 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -2843,7 +2856,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
 </View>
 `;
 
-exports[`Quotes renders correctly after animation with quotes and expanded 1`] = `
+exports[`Quotes renders correctly after animation with quotes and expanded 2`] = `
 <View
   style={
     Object {
@@ -3006,6 +3019,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 1`] =
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -3013,6 +3027,8 @@ exports[`Quotes renders correctly after animation with quotes and expanded 1`] =
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -3042,6 +3058,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 1`] =
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -3049,6 +3066,8 @@ exports[`Quotes renders correctly after animation with quotes and expanded 1`] =
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -4964,6 +4983,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -4971,6 +4991,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -5000,6 +5022,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -5007,6 +5030,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -5753,6 +5778,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -5760,6 +5786,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -5789,6 +5817,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -5796,6 +5825,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -6542,6 +6573,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -6549,6 +6581,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -6578,6 +6612,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -6585,6 +6620,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -7331,6 +7368,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
                     Object {
@@ -7338,6 +7376,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -7367,6 +7407,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
                       Object {
@@ -7374,6 +7415,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >

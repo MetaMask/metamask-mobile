@@ -278,6 +278,25 @@ interface RampTransaction {
   currency_source: string;
   currency_destination: string;
   order_id?: string;
+  provider_offramp: string;
+}
+
+interface RampQuotesExpanded {
+  payment_method_id: string;
+  currency_source: string;
+  currency_destination: string;
+  amount: number | string;
+  refresh_count: number;
+  results_count: number;
+  previously_used_count: number;
+}
+
+interface OnRampQuotesExpanded extends RampQuotesExpanded {
+  chain_id_destination: string;
+}
+
+interface OffRampQuotesExpanded extends RampQuotesExpanded {
+  chain_id_source: string;
 }
 
 export interface AnalyticsEvents {
@@ -304,6 +323,9 @@ export interface AnalyticsEvents {
 
   ONRAMP_QUOTES_RECEIVED: OnRampQuotesReceived;
   OFFRAMP_QUOTES_RECEIVED: OffRampQuotesReceived;
+
+  ONRAMP_QUOTES_EXPANDED: OnRampQuotesExpanded;
+  OFFRAMP_QUOTES_EXPANDED: OffRampQuotesExpanded;
 
   ONRAMP_PROVIDER_SELECTED: OnRampProviderSelected;
   OFFRAMP_PROVIDER_SELECTED: OffRampProviderSelected;
@@ -341,6 +363,4 @@ export interface AnalyticsEvents {
   OFFRAMP_SEND_TRANSACTION_INVOKED: RampTransaction;
   OFFRAMP_SEND_TRANSACTION_CONFIRMED: RampTransaction;
   OFFRAMP_SEND_TRANSACTION_REJECTED: RampTransaction;
-
-  // after redirection events will go here
 }

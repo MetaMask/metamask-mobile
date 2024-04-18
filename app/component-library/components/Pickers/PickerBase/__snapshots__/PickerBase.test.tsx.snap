@@ -16,15 +16,18 @@ exports[`PickerBase should render correctly 1`] = `
   }
 >
   <View />
-  <Icon
+  <SvgMock
     color="#6A737D"
+    height={20}
     name="ArrowDown"
-    size="20"
     style={
       Object {
+        "height": 20,
         "marginLeft": 16,
+        "width": 20,
       }
     }
+    width={20}
   />
 </TouchableOpacity>
 `;

@@ -7,11 +7,9 @@ import { getLedgerKeyring } from './Ledger/Ledger';
 /**
  * Restores the QR keyring if it exists.
  */
-export const restoreQRKeyring = async () => {
+export const restoreQRKeyring = async (qrKeyring) => {
   const { KeyringController } = Engine.context;
-  const qrKeyring = (
-    await KeyringController.getKeyringsByType(KeyringTypes.qr)
-  )[0];
+
   if (qrKeyring) {
     try {
       const serializedQRKeyring = await qrKeyring.serialize();
@@ -28,13 +26,18 @@ export const restoreQRKeyring = async () => {
 /**
  * Restores the Ledger keyring if it exists.
  */
-export const restoreLedgerKeyring = async () => {
-  const { KeyringController } = Engine.context;
-  const keyring = await getLedgerKeyring();
+export const restoreLedgerKeyring = async (keyring) => {
+  const { KeyringController, PreferencesController } = Engine.context;
+
   if (keyring) {
     try {
+      const serializedLedgerKeyring = await keyring.serialize();
+      (await getLedgerKeyring()).deserialize(serializedLedgerKeyring);
+
       await KeyringController.persistAllKeyrings();
-      KeyringController.updateIdentities(await KeyringController.getAccounts());
+      PreferencesController.updateIdentities(
+        await KeyringController.getAccounts(),
+      );
     } catch (e) {
       Logger.error(
         e,
@@ -98,11 +101,16 @@ export const recreateVaultWithNewPassword = async (
   const hdKeyring = KeyringController.state.keyrings[0];
   const existingAccountCount = hdKeyring.accounts.length;
 
+  const ledgerKeyring = await getLedgerKeyring();
+  const qrKeyring = (
+    await KeyringController.getKeyringsByType(KeyringTypes.qr)
+  )[0];
+
   // Recreate keyring with password given to this method
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
-  await restoreQRKeyring();
-  await restoreLedgerKeyring();
+  await restoreQRKeyring(qrKeyring);
+  await restoreLedgerKeyring(ledgerKeyring);
 
   // Create previous accounts again
   for (let i = 0; i < existingAccountCount - 1; i++) {
@@ -136,13 +144,13 @@ export const recreateVaultWithNewPassword = async (
   // Reselect previous selected account if still available
   for (const keyring of recreatedKeyrings) {
     if (keyring.accounts.includes(selectedAddress.toLowerCase())) {
-      PreferencesController.setSelectedAddress(selectedAddress);
+      Engine.setSelectedAddress(selectedAddress);
       return;
     }
   }
 
   // Default to first account as fallback
-  PreferencesController.setSelectedAddress(hdKeyring.accounts[0]);
+  Engine.setSelectedAddress(hdKeyring.accounts[0]);
 };
 
 /**

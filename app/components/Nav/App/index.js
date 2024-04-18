@@ -86,11 +86,11 @@ import EthSignFriction from '../../../components/Views/Settings/AdvancedSettings
 import WalletActions from '../../Views/WalletActions';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
-import BlockaidIndicator from '../../Views/Settings/SecuritySettings/BlockaidIndicator';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
+import { DevLogger } from '../../../../app/core/SDKConnect/utils/DevLogger';
 import { PPOMView } from '../../../lib/ppom/PPOMView';
 import NavigationService from '../../../core/NavigationService';
 import LockScreen from '../../Views/LockScreen';
@@ -102,6 +102,8 @@ import SDKDisconnectModal from '../../../../app/components/Views/SDKDisconnectMo
 import SDKSessionModal from '../../../../app/components/Views/SDKSessionModal/SDKSessionModal';
 import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
+import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -242,9 +244,7 @@ const App = ({ userLoggedIn }) => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
-  const sdkInit = useRef(false);
-  const sdkPostInit = useRef(false);
-  const [postInitReady, setPostInitReady] = useState(false);
+  const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
@@ -351,10 +351,11 @@ const App = ({ userLoggedIn }) => {
 
           if (error) {
             // Log error for analytics and continue handling deeplink
-            Logger.error('Error from Branch: ' + error);
+            const branchError = new Error(error);
+            Logger.error(branchError, 'Error subscribing to branch.');
           }
 
-          if (sdkPostInit.current === true) {
+          if (sdkInit.current) {
             handleDeeplink(opts);
           } else {
             queueOfHandleDeeplinkFunctions.current =
@@ -370,7 +371,15 @@ const App = ({ userLoggedIn }) => {
 
   useEffect(() => {
     const initMetrics = async () => {
-      await MetaMetrics.getInstance().configure();
+      const metrics = MetaMetrics.getInstance();
+      await metrics.configure();
+      // identify user with the latest traits
+      // run only after the MetaMetrics is configured
+      const consolidatedTraits = {
+        ...generateDeviceAnalyticsMetaData(),
+        ...generateUserSettingsAnalyticsMetaData(),
+      };
+      await metrics.addTraitsToUser(consolidatedTraits);
     };
 
     initMetrics().catch((err) => {
@@ -381,13 +390,20 @@ const App = ({ userLoggedIn }) => {
   useEffect(() => {
     // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
     async function initSDKConnect() {
-      if (navigator?.getCurrentRoute && onboarded && !sdkInit.current) {
+      if (
+        navigator?.getCurrentRoute &&
+        onboarded &&
+        sdkInit.current === undefined &&
+        userLoggedIn
+      ) {
+        sdkInit.current = false;
         try {
           const sdkConnect = SDKConnect.getInstance();
           await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
-          setPostInitReady(true);
+          await SDKConnect.getInstance().postInit();
           sdkInit.current = true;
         } catch (err) {
+          sdkInit.current = undefined;
           console.error(`Cannot initialize SDKConnect`, err);
         }
       }
@@ -395,37 +411,19 @@ const App = ({ userLoggedIn }) => {
     initSDKConnect().catch((err) => {
       Logger.error(err, 'Error initializing SDKConnect');
     });
-  }, [navigator, onboarded]);
+  }, [navigator, onboarded, userLoggedIn]);
 
   useEffect(() => {
-    // Handle post-init process separately.
-    async function handlePostInit() {
-      if (
-        sdkInit.current &&
-        !sdkPostInit.current &&
-        postInitReady &&
-        userLoggedIn
-      ) {
-        try {
-          await SDKConnect.getInstance().postInit();
-          sdkPostInit.current = true;
-        } catch (err) {
-          console.error(`Cannot postInit SDKConnect`, err);
-        }
-      }
-    }
-    handlePostInit().catch((err) => {
-      Logger.error(err, 'Error postInit SDKConnect');
-    });
-  }, [userLoggedIn, postInitReady, queueOfHandleDeeplinkFunctions]);
-
-  useEffect(() => {
-    if (isWC2Enabled) {
-      WC2Manager.init().catch((err) => {
+    const currentRoute = navigator?.getCurrentRoute();
+    if (isWC2Enabled && currentRoute !== undefined) {
+      DevLogger.log(
+        `WalletConnect: Initializing WalletConnect Manager route=${currentRoute.name}`,
+      );
+      WC2Manager.init({ navigation: navigator }).catch((err) => {
         console.error('Cannot initialize WalletConnect Manager.', err);
       });
     }
-  }, []);
+  }, [navigator]);
 
   useEffect(() => {
     async function checkExisting() {
@@ -575,10 +573,6 @@ const App = ({ userLoggedIn }) => {
       <Stack.Screen
         name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
         component={ReturnToAppModal}
-      />
-      <Stack.Screen
-        name={Routes.SHEET.BLOCKAID_INDICATOR}
-        component={BlockaidIndicator}
       />
       <Stack.Screen
         name={Routes.SHEET.AMBIGUOUS_ADDRESS}

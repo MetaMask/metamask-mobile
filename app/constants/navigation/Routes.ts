@@ -86,7 +86,6 @@ const Routes = {
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
-    BLOCKAID_INDICATOR: 'BlockaidIndicator',
     ACCOUNT_ACTIONS: 'AccountActions',
     ETH_SIGN_FRICTION: 'SettingsAdvancedEthSignFriction',
     SHOW_IPFS: 'ShowIpfs',
@@ -104,6 +103,7 @@ const Routes = {
   WALLET: {
     HOME: 'WalletTabHome',
     TAB_STACK_FLOW: 'WalletTabStackFlow',
+    WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',

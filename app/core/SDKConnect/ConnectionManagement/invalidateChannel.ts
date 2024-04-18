@@ -1,6 +1,10 @@
+import {
+  resetApprovedHosts,
+  resetConnections,
+} from '../../../../app/actions/sdk';
+import { store } from '../../../../app/store';
 import AppConstants from '../../../core/AppConstants';
 import SDKConnect from '../SDKConnect';
-import DefaultPreference from 'react-native-default-preference';
 
 function invalidateChannel({
   channelId,
@@ -17,19 +21,8 @@ function invalidateChannel({
   delete instance.state.connecting[channelId];
   delete instance.state.connections[channelId];
 
-  DefaultPreference.set(
-    AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-    JSON.stringify(instance.state.approvedHosts),
-  ).catch((err) => {
-    throw err;
-  });
-
-  DefaultPreference.set(
-    AppConstants.MM_SDK.SDK_CONNECTIONS,
-    JSON.stringify(instance.state.connections),
-  ).catch((err) => {
-    throw err;
-  });
+  store.dispatch(resetApprovedHosts(instance.state.approvedHosts));
+  store.dispatch(resetConnections(instance.state.connections));
 }
 
 export default invalidateChannel;

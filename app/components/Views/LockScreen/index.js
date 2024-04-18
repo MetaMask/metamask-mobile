@@ -140,7 +140,8 @@ class LockScreen extends PureComponent {
       // Check https://github.com/MetaMask/mobile-planning/issues/1507
       const { selectedAddress } = this.props;
       if (typeof selectedAddress !== 'string') {
-        Logger.error('unlockKeychain error', 'selectedAddress is not a string');
+        const unlockKeychainError = new Error('unlockKeychain error');
+        Logger.error(unlockKeychainError, 'selectedAddress is not a string');
       }
       await Authentication.appTriggeredAuth({
         selectedAddress: this.props.selectedAddress,

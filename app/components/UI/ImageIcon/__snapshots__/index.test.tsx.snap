@@ -1,3 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ImageIcon should render correctly 1`] = `""`;
+exports[`ImageIcon should render correctly 1`] = `
+<Image
+  source={
+    Object {
+      "uri": "MockImage",
+    }
+  }
+  style={Object {}}
+/>
+`;

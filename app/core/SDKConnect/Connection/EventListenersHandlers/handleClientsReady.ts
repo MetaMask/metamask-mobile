@@ -8,6 +8,7 @@ import SDKConnect, { approveHostProps } from '../../SDKConnect';
 import handleConnectionReady from '../../handlers/handleConnectionReady';
 import DevLogger from '../../utils/DevLogger';
 import { Connection } from '../Connection';
+import AppConstants from '../../../../core/AppConstants';
 
 function handleClientsReady({
   instance,
@@ -31,19 +32,21 @@ function handleClientsReady({
         updateOriginatorInfos,
         approveHost,
         onError: (error) => {
-          Logger.error(error, '');
+          Logger.error(error as Error, '');
 
           instance.setLoading(false);
 
           // Remove connection from SDK completely
           SDKConnect.getInstance().removeChannel({
             channelId: instance.channelId,
-            emitRefresh: true,
             sendTerminate: true,
           });
 
           // Redirect on deeplinks
-          if (instance.trigger === 'deeplink') {
+          if (
+            instance.trigger === 'deeplink' &&
+            instance.origin !== AppConstants.DEEPLINKS.ORIGIN_QR_CODE
+          ) {
             // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
             if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
               instance.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

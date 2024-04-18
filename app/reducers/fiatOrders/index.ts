@@ -166,6 +166,18 @@ export const fiatOrdersGetStartedSell: (
 ) => FiatOrdersState['getStartedSell'] = (state: RootState) =>
   state.fiatOrders.getStartedSell;
 
+export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
+  const providers = orders
+    .filter(
+      (order) =>
+        order.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR &&
+        order.state === FIAT_ORDER_STATES.COMPLETED &&
+        (order.data as Order)?.provider?.id,
+    )
+    .map((order) => (order.data as Order).provider.id);
+  return Array.from(new Set(providers));
+});
+
 export const getOrders = createSelector(
   ordersSelector,
   selectedAddressSelector,
@@ -236,7 +248,7 @@ export const getHasOrders = createSelector(
 export const getRampNetworks: (
   state: RootState,
 ) => FiatOrdersState['networks'] = (state: RootState) =>
-  state.fiatOrders.networks;
+  state.fiatOrders.networks || [];
 
 export const networkShortNameSelector = createSelector(
   chainIdSelector,

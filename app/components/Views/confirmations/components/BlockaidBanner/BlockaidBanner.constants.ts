@@ -1,4 +1,3 @@
-export const ATTRIBUTION_LINE_TEST_ID = 'blockaid-banner-attribution-line';
 export const FALSE_POSITIVE_REPOST_LINE_TEST_ID =
   'blockaid-banner-false-positive-report-line';
 

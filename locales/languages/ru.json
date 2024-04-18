@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, может похитить все ваши активы.",
-    "attribution": "На основе",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Если вы одобрите этот запрос, кто-то может украсть ваши активы, зарегистрированные в Blur.",
     "deceptive_request_title": "Это запрос с целью обмана",
     "failed_title": "Запрос может быть небезопасным",
     "failed_description": "Из-за ошибки этот запрос не был подтвержден поставщиком услуг безопасности. Действуйте осторожно.",
     "loading_title": "Проверка оповещений безопасности...",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "Оповещения не получены. Всегда проводите собственную комплексную проверку перед утверждением запросов.",
     "malicious_domain_description": "Вы взаимодействуете с вредоносным доменом. Если вы одобрите этот запрос, вы можете потерять свои активы.",
     "other_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
     "raw_signature_farming_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
@@ -353,12 +351,17 @@
     "no_collectibles": "Не видите свои NFT?",
     "no_available_tokens": "Не видите свой токен?",
     "add_tokens": "Импорт токенов",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} новый {{tokensLabel}} найден в этом счете",
     "token_toast": {
       "tokens_imported_title": "Импортированные токены",
       "tokens_imported_desc": "Успешно импортированы {{tokenSymbols}}",
       "token_imported_title": "Импортированный токен",
       "token_imported_desc": "Успешно импортирован {{tokenSymbol}}",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Сокрытие токенов",
       "tokens_hidden_desc": "Скрытие обнаруженных токенов в вашем кошельке",
       "token_hidden_title": "Сокрытие токена",
@@ -378,6 +381,8 @@
     "nfts_autodetection_desc": "Разрешите MetaMask автоопределять NFT из OpenSea и отображать их в кошельке MetaMask.",
     "network_details_check": "Проверка сведений о сети",
     "network_with_chain_id": "Сеть с ID блокчейна",
+    "chain_list_returned_different_ticker_symbol": "Этот символ токена не соответствует введенному имени сети или идентификатору блокчейна. Многие популярные токены обозначаются похожими символами, которые мошенники могут использовать, чтобы обманом заставить вас отправить им взамен более ценный токен. Проверьте все, прежде чем продолжить.",
+    "suggested_token_symbol": "Рекомендуемый символ-тикер:",
     "potential_scam": "Это потенциальное мошенничество",
     "network_not_matching": "Эта сеть не соответствует идентификатору или имени связанного с ним блокчейна. Многие популярные токены используют это название,",
     "target_scam_network": "что делает его мишенью для мошенников. Мошенники могут обманом заставить вас отправить им взамен более ценную валюту. Проверьте все, прежде чем продолжить.",
@@ -441,8 +446,8 @@
   "add_asset": {
     "title": "Импорт токенов",
     "title_nft": "Импорт NFT",
-    "search_token": "ПОИСК",
-    "custom_token": "ПОЛЬЗОВАТЕЛЬСКИЙ ТОКЕН",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "ОТМЕНА",
       "add_token": "ИМПОРТ"
@@ -499,14 +504,16 @@
     "resultPageErrorDefaultMessage": "Ошибка операции."
   },
   "token": {
-    "token_symbol": "Символ токена",
+    "token_symbol": "Token symbol",
     "token_address": "Адрес токена",
-    "token_decimal": "Число десятичных знаков токена",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Поиск токенов",
     "address_cant_be_empty": "Адрес токена не может быть пустым.",
     "address_must_be_valid": "Адрес токена должен быть действительным адресом.",
     "symbol_cant_be_empty": "Символ токена не может быть пустым.",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Десятичные знаки токена не могут быть пустыми.",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "нам не удалось найти токены с таким именем.",
     "select_token": "Выбрать токен",
     "address_must_be_smart_contract": "Обнаружен личный адрес. Введите адрес контракта токена."
@@ -543,10 +550,10 @@
   },
   "accounts": {
     "create_new_account": "Создать новый счет",
-    "qr_hardware": "QR-оборудование",
     "import_account": "Импортировать счет",
     "connect_hardware": "Подключить аппаратный кошелек",
     "imported": "Импортирован",
+    "qr_hardware": "QR-оборудование",
     "remove_account_title": "Удаление счета",
     "remove_account_message": "Вы действительно хотите удалить этот счет?",
     "no": "Нет",
@@ -893,7 +900,6 @@
     "security_check_subheading": "Проверки безопасности",
     "symbol_required": "Требуется символ.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Сохранение конфиденциальности – никакие данные не передаются третьим сторонам. Доступно в Arbitrum, Avalanche, BNB Chain, Мейн-нете Ethereum, Optimism и Polygon.",
     "security_alerts": "Оповещения безопасности",
     "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика."
   },
@@ -902,27 +908,27 @@
     "disconnect_all_info": "Если вы удалите свои подключения ко всем сайтам, вам потребуется снова предоставить разрешение на подключение.",
     "disconnect": "Отключить",
     "disconnect_all": "Отключить все",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "Отключить все счета",
+    "manage_connections": "Управление подключениями",
+    "manage": "Управление",
     "cancel": "Отмена",
     "loading": "Подключение к MetaMask...",
     "unkown_dapp": "Имя DAPP недоступно",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "Нет подключений",
+    "no_connections_desc": "Если вы подключите счет к сайту или приложению, вы увидите его здесь."
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "Подключен(-ы) {{accountsLength}} счет(-а/ов)."
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "Отключиться от всех сайтов?",
+    "disconnect_all_desc": "Если вы отключите свои счета от всех сайтов, вам потребуется предоставить разрешения на их повторное подключение.",
+    "disconnect_account": "Отключить счет?",
+    "disconnect_all_accounts": "Отключить все счета",
+    "disconnect_all_accounts_desc": "Если вы отключите все счета от {{dapp}}, вам потребуется предоставить разрешения на их повторное подключение.",
+    "disconnect_account_desc": "Если вы отключите {{account}} от {{dapp}}, вам потребуется предоставить разрешения на его повторное подключение.",
+    "disconnect_confirm": "Отключить",
+    "cancel": "Отмена"
   },
   "sdk_return_to_app_modal": {
     "title": "Назад в приложение",
@@ -1294,6 +1300,7 @@
     "contract": "Контракт ({{address}})",
     "contract_name": "Название контракта:",
     "contract_address": "Адрес контракта:",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Допустимое отклонение:",
     "data": "Данные",
     "function_approve": "Функция: одобрить",
@@ -1508,8 +1515,8 @@
     "select_network": "Выбрать сеть",
     "show_test_networks": "Показать тестнеты",
     "deprecated_goerli": "Из-за изменений протокола Ethereum: тестовая сеть Goerli может работать ненадежно и скоро будет выведена из эксплуатации.",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "Эта сеть устарела",
+    "network_deprecated_description": "Сеть, к которой вы пытаетесь подключиться, больше не поддерживается в Metamask."
   },
   "select": {
     "cancel": "Отмена",
@@ -1789,6 +1796,9 @@
     "pending_deposit_message": "Ожидание завершения внесения депозита",
     "pending_withdrawal_message": "Ожидание завершения вывода денег",
     "error_message": "Нажмите для просмотра этой транзакции",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Нажмите для просмотра этой транзакции",
     "speedup_message": "Предпринимается попытка ускорения транзакции",
     "success_deposit_message": "Ваши средства готовы к использованию",
@@ -2058,6 +2068,10 @@
     "fetching_new_quotes": "Получение новых котировок...",
     "quotes_expire_in": "Срок котировок истекает через",
     "get_new_quotes": "Получить новые котировки",
+    "explore_more_options": "Изучить другие варианты",
+    "one_more_option": "Еще 1 вариант",
+    "more_options": "Еще {{count}} варианта(-ов)",
+    "previously_used": "Ранее использовались",
     "quotes_timeout": "Таймаут котировок",
     "request_new_quotes": "Запросите новые котировки, чтобы получить последний лучший курс.",
     "terms_of_service": "Условия обслуживания",
@@ -2405,7 +2419,6 @@
       "title": "Избегайте угроз с помощью оповещений безопасности",
       "description_1": "Защитите себя от известных способов мошенничества, сохраняя при этом свою конфиденциальность с помощью предупреждений безопасности от Blockaid. Эта функция теперь включена по умолчанию для всех пользователей MetaMask.",
       "description_2": "Всегда проводите собственную комплексную проверку перед утверждением запросов.",
-      "description_3": "Доступно в Arbitrum, Avalanche, BNB Chain, Мейн-нете Ethereum, Linea, Optimism и Polygon.",
       "got_it": "Понятно"
     },
     "sell": {
@@ -2717,8 +2730,10 @@
     "bluetooth_off_message": "Включите Bluetooth на своем устройстве",
     "bluetooth_access_blocked": "Леджеру требуется доступ к Bluetooth для сопряжения с вашим мобильным устройством.",
     "bluetooth_access_blocked_message": "Если вы хотите подключить устройство Ledger с помощью Bluetooth, включите Bluetooth в Настройках и повторите попытку.",
-    "location_access_blocked": "Леджеру требуется доступ к местоположению для сопряжения с вашим мобильным устройством.",
+    "location_access_blocked": "MetaMask требуется разрешение на доступ к местоположению для сопряжения с вашим ledger.",
     "location_access_blocked_message": "Если вы хотите подключить свое устройство Ledger с помощью Bluetooth, вам нужно предоставить доступ к местоположению в Настройках и повторить попытку.",
+    "nearbyDevices_access_blocked": "MetaMask требуется разрешение на доступ к устройствам поблизости для сопряжения с вашим ledger.",
+    "nearbyDevices_access_blocked_message": "Если вы хотите подключить свое устройство Ledger с помощью Bluetooth, вам нужно предоставить доступ к устройствам поблизости в Настройках и повторить попытку.",
     "bluetooth_scanning_error": "Ошибка при сканировании устройства",
     "bluetooth_scanning_error_message": "Убедитесь, что ваше устройство разблокировано и запущено приложение Ethereum",
     "bluetooth_connection_failed": "Не удалось подключиться через Bluetooth",
@@ -2738,10 +2753,12 @@
     "connect_ledger": "Подключить Ledger",
     "looking_for_device": "Поиск устройства...",
     "ledger_reminder_message": "Убедитесь с следующем: ",
-    "ledger_reminder_message_step_one": "1. Ваш Ledger Nano X разблокирован.",
-    "ledger_reminder_message_step_two": "2. Приложение Ethereum установлено.",
-    "ledger_reminder_message_step_three": "3. Bluetooth включен.",
-    "ledger_reminder_message_step_four": "4. Доступ к местоположению предоставлен.",
+    "ledger_reminder_message_step_one": "1. Разблокируйте свой Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. Установите и откройте приложение Ethereum",
+    "ledger_reminder_message_step_three": "3. Включите Bluetooth",
+    "ledger_reminder_message_step_four": "4. Включена опция «Местоположение» с использованием точных данных",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. Включена опция «устройства поблизости»",
+    "ledger_reminder_message_step_five": "5. Режим «Не беспокоить» должен быть выключен",
     "available_devices": "Доступные устройства",
     "retry": "Повтор",
     "continue": "Продолжить",
@@ -2824,5 +2841,8 @@
     "okay_action": "ОК",
     "error_title": "Ошибка установки",
     "error_description": "Не удалось установить {{snap}}."
+  },
+  "stake": {
+    "stake": "Stake"
   }
 }

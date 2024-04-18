@@ -151,7 +151,7 @@ enum EVENT_NAME {
   BROWSER_RELOAD = 'Reload Browser',
   BROWSER_ADD_FAVORITES = 'Added Site To Favorites',
   BROWSER_SWITCH_TAB = 'Switched tab within Browser',
-  DAPP_VISITED = 'Dapp Visited',
+  DAPP_VIEWED = 'Dapp Viewed',
 
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
@@ -206,6 +206,7 @@ enum EVENT_NAME {
   ONRAMP_QUOTES_REQUESTED = 'On-ramp Quotes Requested',
   ONRAMP_CANCELED = 'On-ramp Canceled',
   ONRAMP_QUOTES_RECEIVED = 'On-ramp Quotes Received',
+  ONRAMP_QUOTES_EXPANDED = 'On-ramp Quotes Expanded',
   ONRAMP_PROVIDER_SELECTED = 'On-ramp Provider Selected',
   ONRAMP_PROVIDER_DETAILS_VIEWED = 'On-ramp Provider Details Viewed',
   ONRAMP_DIRECT_PROVIDER_CLICKED = 'On-ramp Provider Custom Action Clicked',
@@ -228,6 +229,7 @@ enum EVENT_NAME {
   OFFRAMP_QUOTES_REQUESTED = 'Off-ramp Quotes Requested',
   OFFRAMP_CANCELED = 'Off-ramp Canceled',
   OFFRAMP_QUOTES_RECEIVED = 'Off-ramp Quotes Received',
+  OFFRAMP_QUOTES_EXPANDED = 'Off-ramp Quotes Expanded',
   OFFRAMP_PROVIDER_SELECTED = 'Off-ramp Provider Selected',
   OFFRAMP_PROVIDER_DETAILS_VIEWED = 'Off-ramp Provider Details Viewed',
   OFFRAMP_DIRECT_PROVIDER_CLICKED = 'Off-ramp Provider Custom Action Clicked',
@@ -277,6 +279,9 @@ enum EVENT_NAME {
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
+
+  // Stake
+  STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
 
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
@@ -394,6 +399,7 @@ enum ACTIONS {
   ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP = 'eth_sign_input_seen',
   ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
   ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
+  STAKE = 'Stake',
 }
 
 const events = {
@@ -532,7 +538,7 @@ const events = {
   BROWSER_SHARE_SITE: generateOpt(EVENT_NAME.BROWSER_SHARE_SITE),
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
-  DAPP_VISITED: generateOpt(EVENT_NAME.DAPP_VISITED),
+  DAPP_VIEWED: generateOpt(EVENT_NAME.DAPP_VIEWED),
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
   // Reveal SRP
@@ -592,6 +598,7 @@ const events = {
   ONRAMP_QUOTES_REQUESTED: generateOpt(EVENT_NAME.ONRAMP_QUOTES_REQUESTED),
   ONRAMP_CANCELED: generateOpt(EVENT_NAME.ONRAMP_CANCELED),
   ONRAMP_QUOTES_RECEIVED: generateOpt(EVENT_NAME.ONRAMP_QUOTES_RECEIVED),
+  ONRAMP_QUOTES_EXPANDED: generateOpt(EVENT_NAME.ONRAMP_QUOTES_EXPANDED),
   ONRAMP_PROVIDER_SELECTED: generateOpt(EVENT_NAME.ONRAMP_PROVIDER_SELECTED),
   ONRAMP_PROVIDER_DETAILS_VIEWED: generateOpt(
     EVENT_NAME.ONRAMP_PROVIDER_DETAILS_VIEWED,
@@ -628,6 +635,7 @@ const events = {
   OFFRAMP_QUOTES_REQUESTED: generateOpt(EVENT_NAME.OFFRAMP_QUOTES_REQUESTED),
   OFFRAMP_CANCELED: generateOpt(EVENT_NAME.OFFRAMP_CANCELED),
   OFFRAMP_QUOTES_RECEIVED: generateOpt(EVENT_NAME.OFFRAMP_QUOTES_RECEIVED),
+  OFFRAMP_QUOTES_EXPANDED: generateOpt(EVENT_NAME.OFFRAMP_QUOTES_EXPANDED),
   OFFRAMP_PROVIDER_SELECTED: generateOpt(EVENT_NAME.OFFRAMP_PROVIDER_SELECTED),
   OFFRAMP_PROVIDER_DETAILS_VIEWED: generateOpt(
     EVENT_NAME.OFFRAMP_PROVIDER_DETAILS_VIEWED,
@@ -913,6 +921,7 @@ enum DESCRIPTION {
   PAYMENTS_SELECTS_APPLE_PAY = 'Selects Apple Pay as payment method',
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
+  STAKE = 'Stake',
 }
 
 const legacyMetaMetricsEvents = {
@@ -1374,6 +1383,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.BRIDGE_LINK_CLICKED,
     ACTIONS.BRIDGE,
     DESCRIPTION.BRIDGE,
+  ),
+  STAKE_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.STAKE_BUTTON_CLICKED,
+    ACTIONS.STAKE,
+    DESCRIPTION.STAKE,
   ),
 };
 

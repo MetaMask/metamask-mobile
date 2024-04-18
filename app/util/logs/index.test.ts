@@ -24,6 +24,7 @@ describe('logs :: generateStateLogs', () => {
       },
     };
     const logs = generateStateLogs(mockStateInput);
+
     expect(logs.includes('NftController')).toBe(false);
     expect(logs.includes('TokensController')).toBe(false);
     expect(logs.includes('AssetsContractController')).toBe(false);
@@ -31,5 +32,31 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes('NftDetectionController')).toBe(false);
     expect(logs.includes('PhishingController')).toBe(false);
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
+  });
+
+  it('generates extra logs if values added to the state object parameter', () => {
+    const mockStateInput = {
+      appVersion: '1',
+      buildNumber: '123',
+      engine: {
+        backgroundState: {
+          ...initialBackgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+    const logs = generateStateLogs(mockStateInput);
+
+    expect(logs.includes('NftController')).toBe(false);
+    expect(logs.includes('TokensController')).toBe(false);
+    expect(logs.includes('AssetsContractController')).toBe(false);
+    expect(logs.includes('TokenDetectionController')).toBe(false);
+    expect(logs.includes('NftDetectionController')).toBe(false);
+    expect(logs.includes('PhishingController')).toBe(false);
+    expect(logs.includes("vault: 'vault mock'")).toBe(false);
+    expect(logs.includes('appVersion')).toBe(true);
+    expect(logs.includes('buildNumber')).toBe(true);
   });
 });
