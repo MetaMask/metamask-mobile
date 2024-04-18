@@ -30,8 +30,6 @@ declare module '*.png' {
   export default content;
 }
 
-// TODO: eth-json-rpc-errors does not contain types. May want to create our own types.
-declare module 'eth-json-rpc-errors';
 declare module '@react-native-community/checkbox' {
   import CheckBoxOriginal from '@react-native-community/checkbox';
 

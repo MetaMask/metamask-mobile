@@ -41,6 +41,7 @@ export interface ConnectionProps {
   originatorInfo?: OriginatorInfo;
   connected?: boolean;
   validUntil?: number;
+  scheme?: string;
   lastAuthorized?: number; // timestamp of last received activity
 }
 

@@ -3,7 +3,7 @@ import {
   TransactionController,
   WalletDevice,
 } from '@metamask/transaction-controller';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { ethErrors } from 'eth-rpc-errors';
 import ppomUtil from '../../lib/ppom/ppom-util';
 
 /**
