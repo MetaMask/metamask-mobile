@@ -51,7 +51,7 @@ import {
 } from '@metamask/network-controller';
 import {
   PhishingController,
-  PhishingState,
+  PhishingControllerState,
 } from '@metamask/phishing-controller';
 import {
   PreferencesController,
@@ -260,7 +260,7 @@ export interface EngineState {
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
-  PhishingController: PhishingState;
+  PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesState;
   TokenRatesController: TokenRatesState;
   TransactionController: TransactionState;
@@ -609,7 +609,12 @@ class Engine {
         'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
     });
 
-    const phishingController = new PhishingController();
+    const phishingController = new PhishingController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'PhishingController',
+        allowedActions: [],
+      }),
+    });
     phishingController.maybeUpdateState();
 
     const qrKeyringBuilder = () => new QRHardwareKeyring();
