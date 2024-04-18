@@ -13,6 +13,8 @@ import {
   TRANSACTION_AMOUNT_INPUT,
 } from '../../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { createMockInternalAccount, createMockUUIDFromAddress } from '../../../../../selectors/accountsController.test';
+import { AccountsControllerState } from '@metamask/accounts-controller';
 
 const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
@@ -75,8 +77,24 @@ jest.mock('../../../../../util/transaction-controller', () => ({
 
 const mockNavigate = jest.fn();
 
-const CURRENT_ACCOUNT = '0x1a';
+const CURRENT_ACCOUNT = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 const RECEIVER_ACCOUNT = '0x2a';
+
+const expectedUUID = createMockUUIDFromAddress(CURRENT_ACCOUNT);
+
+const internalAccount1 = createMockInternalAccount(
+  CURRENT_ACCOUNT.toLowerCase(),
+  'Account 1',
+);
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {
+      [expectedUUID]: internalAccount1,
+    },
+    selectedAccount: expectedUUID,
+  },
+};
 
 const initialState = {
   engine: {
@@ -93,15 +111,7 @@ const initialState = {
       AccountTrackerController: {
         accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
       },
-      PreferencesController: {
-        selectedAddress: CURRENT_ACCOUNT,
-        identities: {
-          [CURRENT_ACCOUNT]: {
-            address: CURRENT_ACCOUNT,
-            name: 'Account 1',
-          },
-        },
-      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NftController: {
         allNfts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
         allNftContracts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
