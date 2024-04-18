@@ -3,7 +3,7 @@ import { Encryptor } from './Encryptor';
 import {
   ENCRYPTION_LIBRARY,
   DERIVATION_PARAMS,
-  // KeyDerivationIteration,
+  KeyDerivationIteration,
 } from './constants';
 
 const Aes = NativeModules.Aes;
@@ -16,23 +16,23 @@ describe('Encryptor', () => {
     encryptor = new Encryptor({ derivationParams: DERIVATION_PARAMS });
   });
 
-  // describe('constructor', () => {
-  //   it('throws an error if the provided iterations do not meet the minimum required', () => {
-  //     expect(
-  //       () =>
-  //         new Encryptor({
-  //           derivationParams: {
-  //             algorithm: 'PBKDF2',
-  //             params: {
-  //               iterations: 100,
-  //             },
-  //           },
-  //         }),
-  //     ).toThrowError(
-  //       `Invalid key derivation iterations: 100. Recommended number of iterations is ${KeyDerivationIteration.Default}. Minimum required is ${KeyDerivationIteration.Minimum}.`,
-  //     );
-  //   });
-  // });
+  describe('constructor', () => {
+    it('throws an error if the provided iterations do not meet the minimum required', () => {
+      expect(
+        () =>
+          new Encryptor({
+            derivationParams: {
+              algorithm: 'PBKDF2',
+              params: {
+                iterations: 100,
+              },
+            },
+          }),
+      ).toThrowError(
+        `Invalid key derivation iterations: 100. Recommended number of iterations is ${KeyDerivationIteration.Default}. Minimum required is ${KeyDerivationIteration.Minimum}.`,
+      );
+    });
+  });
 
   describe('encrypt', () => {
     afterEach(() => {
@@ -85,14 +85,14 @@ describe('Encryptor', () => {
     });
 
     it.each([
-      // {
-      //   lib: ENCRYPTION_LIBRARY.original,
-      //   expectedKey: 'mockedAesKey',
-      //   expectedPBKDF2Args: ['testPassword', 'mockedSalt', 600000, 256],
-      //   description:
-      //     'with original library and default iterations number for key generation',
-      //   keyMetadata: DERIVATION_PARAMS,
-      // },
+      {
+        lib: ENCRYPTION_LIBRARY.original,
+        expectedKey: 'mockedAesKey',
+        expectedPBKDF2Args: ['testPassword', 'mockedSalt', 600000, 256],
+        description:
+          'with original library and default iterations number for key generation',
+        keyMetadata: DERIVATION_PARAMS,
+      },
       {
         lib: ENCRYPTION_LIBRARY.original,
         expectedKey: 'mockedAesKey',
