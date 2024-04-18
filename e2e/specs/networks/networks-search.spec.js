@@ -45,6 +45,12 @@ describe(Regression('Networks Search'), () => {
             PopularNetworksList.Avalanche.providerConfig.nickname,
           ),
         );
+        await NetworkView.tapAddNetworkButton();
+        await Assertions.checkIfVisible(
+          NetworkView.getnetworkName(
+            PopularNetworksList.Avalanche.providerConfig.nickname,
+          ),
+        );
       },
     );
   });
