@@ -17,25 +17,20 @@ class NetworkListModal {
     );
   }
 
-  get testSwitch() {
+  get testNetworkSwitch() {
     return Matchers.getElementByID(NetworkListModalSelectorsIDs.TEST_SWITCH);
   }
 
-  async getCustomNetwork(network) {
-    if (device.getPlatform() === 'android') {
+  async getCustomNetwork(network, custom = false) {
+    if (device.getPlatform() === 'android' || !custom) {
       return Matchers.getElementByText(network);
     }
-    const regex = new RegExp('[A-Za-z0-9]\\s' + network, 'is');
+    const regex = new RegExp('[A-Z0-9]\\s' + network, 'is');
     return Matchers.getElementByIDAndLabel(CellModalSelectorsIDs.SELECT, regex);
   }
 
-  async changeToNetwork(networkName) {
-    const elem = Matchers.getElementByText(networkName);
-    await Gestures.waitAndTap(elem);
-  }
-
-  async changeToCustomNetwork(networkName) {
-    const elem = this.getCustomNetwork(networkName);
+  async changeNetworkTo(networkName, custom) {
+    const elem = this.getCustomNetwork(networkName, custom);
     await Gestures.waitAndTap(elem);
   }
 
@@ -48,7 +43,7 @@ class NetworkListModal {
   }
 
   async tapTestNetworkSwitch() {
-    await Gestures.waitAndTap(this.testSwitch);
+    await Gestures.waitAndTap(this.testNetworkSwitch);
   }
 }
 

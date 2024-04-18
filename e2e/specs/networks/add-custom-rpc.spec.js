@@ -98,13 +98,14 @@ describe(Regression('Custom RPC Tests'), () => {
     await Assertions.checkIfVisible(
       NetworkListModal.getCustomNetwork(
         CustomNetworks.Gnosis.providerConfig.nickname,
+        true,
       ),
     );
   });
 
   it('should switch to Sepolia then dismiss the network education modal', async () => {
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
-    await NetworkListModal.changeToNetwork(
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetworkSwitch);
+    await NetworkListModal.changeNetworkTo(
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
     await Assertions.checkIfVisible(NetworkEducationModal.container);
@@ -125,8 +126,9 @@ describe(Regression('Custom RPC Tests'), () => {
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await NetworkListModal.scrollToBottomOfNetworkList();
     // Change to back to Gnosis Network
-    await NetworkListModal.changeToCustomNetwork(
+    await NetworkListModal.changeNetworkTo(
       CustomNetworks.Gnosis.providerConfig.nickname,
+      true,
     );
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible(

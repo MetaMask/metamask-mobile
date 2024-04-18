@@ -26,7 +26,7 @@ class Matchers {
   }
 
   /**
-   * Get element by text.
+   * Get element that match by id and label.
    *
    * @param {string} id - Match elements with the specified text
    * @param {string | RegExp} label - Match elements with the specified text

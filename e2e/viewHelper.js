@@ -25,8 +25,7 @@ import TabBarComponent from './pages/TabBarComponent';
 import LoginView from './pages/LoginView';
 import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
-
-const SEPOLIA = 'Sepolia Test Network';
+import { CustomNetworks } from './resources/networks.e2e';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 
@@ -178,9 +177,13 @@ export const addLocalhostNetwork = async () => {
 export const switchToSepoliaNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
   await NetworkListModal.tapTestNetworkSwitch();
-  await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
-  await NetworkListModal.changeToNetwork(SEPOLIA);
-  await WalletView.isNetworkNameVisible(SEPOLIA);
+  await Assertions.checkIfToggleIsOn(NetworkListModal.testNetworkSwitch);
+  await NetworkListModal.changeNetworkTo(
+    CustomNetworks.Sepolia.providerConfig.nickname,
+  );
+  await WalletView.isNetworkNameVisible(
+    CustomNetworks.Sepolia.providerConfig.nickname,
+  );
   await NetworkEducationModal.tapGotItButton();
 };
 

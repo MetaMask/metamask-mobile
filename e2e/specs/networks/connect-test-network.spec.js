@@ -13,9 +13,9 @@ import {
 } from '../../fixtures/fixture-helper';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
+import { CustomNetworks } from '../../resources/networks.e2e';
 
 const fixtureServer = new FixtureServer();
-const SEPOLIA = 'Sepolia Test Network';
 const ETHEREUM = 'Ethereum Main Network';
 
 describe(Regression('Connect to a Test Network'), () => {
@@ -42,28 +42,32 @@ describe(Regression('Connect to a Test Network'), () => {
     // Tap to prompt network list
     await WalletView.tapNetworksButtonOnNavBar();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
-    await NetworkListModal.changeToNetwork(SEPOLIA);
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetworkSwitch);
+    await NetworkListModal.changeNetworkTo(
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
-      SEPOLIA,
+      CustomNetworks.Sepolia.providerConfig.nickname,
     );
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await WalletView.isVisible();
-    await WalletView.isConnectedNetwork(SEPOLIA);
+    await WalletView.isConnectedNetwork(
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
   });
 
   it('should not toggle off the Test Network switch while connected to test network', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await NetworkListModal.tapTestNetworkSwitch();
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetworkSwitch);
   });
 
   it('should disconnect to Test Network', async () => {
-    await NetworkListModal.changeToNetwork(ETHEREUM);
+    await NetworkListModal.changeNetworkTo(ETHEREUM);
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
@@ -78,9 +82,11 @@ describe(Regression('Connect to a Test Network'), () => {
   it('should toggle off the Test Network switch', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testSwitch);
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetworkSwitch);
     await NetworkListModal.tapTestNetworkSwitch();
-    await Assertions.checkIfToggleIsOff(NetworkListModal.testSwitch);
-    await Assertions.checkIfTextIsNotDisplayed(SEPOLIA);
+    await Assertions.checkIfToggleIsOff(NetworkListModal.testNetworkSwitch);
+    await Assertions.checkIfTextIsNotDisplayed(
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
   });
 });
