@@ -63,7 +63,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -790,7 +790,7 @@ class ChoosePassword extends PureComponent {
 ChoosePassword.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountAddressAsChecksum(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
