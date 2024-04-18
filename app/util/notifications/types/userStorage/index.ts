@@ -14,7 +14,7 @@ export interface UserStorage {
     [chain in (typeof SUPPORTED_CHAINS)[number]]: {
       [uuid: string]: {
         /** Trigger Kind 'k' */
-        k: TRIGGER_TYPES;
+        triggerTypes: TRIGGER_TYPES;
         /**
          * Trigger Enabled 'e'
          * This is mostly an 'acknowledgement' to determine if a trigger has been made
@@ -22,7 +22,7 @@ export interface UserStorage {
          *
          * Most of the time this is 'true', as triggers when deleted are also removed from User Storage
          */
-        e: boolean;
+        triggerEnabled: boolean;
       };
     };
   };
