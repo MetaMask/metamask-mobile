@@ -4,7 +4,7 @@ import { captureException } from '@sentry/react-native';
 export default function migrate(state: unknown) {
   if (!isObject(state)) {
     captureException(
-      new Error(`Migration 38: Invalid root state: '${typeof state}'`),
+      new Error(`Migration 39: Invalid root state: '${typeof state}'`),
     );
     return state;
   }
@@ -12,7 +12,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine)) {
     captureException(
       new Error(
-        `Migration 38: Invalid root engine state: '${typeof state.engine}'`,
+        `Migration 39: Invalid root engine state: '${typeof state.engine}'`,
       ),
     );
     return state;
@@ -21,7 +21,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
-        `Migration 38: Invalid root engine backgroundState: '${typeof state
+        `Migration 39: Invalid root engine backgroundState: '${typeof state
           .engine.backgroundState}'`,
       ),
     );
@@ -31,7 +31,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine.backgroundState.TransactionController)) {
     captureException(
       new Error(
-        `Migration 38: Invalid TransactionController state: '${state.engine.backgroundState.TransactionController}'`,
+        `Migration 39: Invalid TransactionController state: '${state.engine.backgroundState.TransactionController}'`,
       ),
     );
     return state;
@@ -43,7 +43,7 @@ export default function migrate(state: unknown) {
   if (!hasProperty(transactionControllerState, 'transactions')) {
     captureException(
       new Error(
-        `Migration 38: Missing transactions property from TransactionController: '${typeof state
+        `Migration 39: Missing transactions property from TransactionController: '${typeof state
           .engine.backgroundState.TransactionController}'`,
       ),
     );

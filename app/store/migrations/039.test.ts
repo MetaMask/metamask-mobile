@@ -1,4 +1,4 @@
-import migrate from './038';
+import migrate from './039';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
@@ -54,7 +54,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #38', () => {
+describe('Migration #39', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -63,14 +63,14 @@ describe('Migration #38', () => {
   const invalidStates = [
     {
       state: null,
-      errorMessage: "Migration 38: Invalid root state: 'object'",
+      errorMessage: "Migration 39: Invalid root state: 'object'",
       scenario: 'state is invalid',
     },
     {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 38: Invalid root engine state: 'object'",
+      errorMessage: "Migration 39: Invalid root engine state: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -80,7 +80,7 @@ describe('Migration #38', () => {
         },
       }),
       errorMessage:
-        "Migration 38: Invalid root engine backgroundState: 'object'",
+        "Migration 39: Invalid root engine backgroundState: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -89,7 +89,7 @@ describe('Migration #38', () => {
           backgroundState: { TransactionController: null },
         },
       }),
-      errorMessage: "Migration 38: Invalid TransactionController state: 'null'",
+      errorMessage: "Migration 39: Invalid TransactionController state: 'null'",
       scenario: 'transactionController is invalid',
     },
   ];
