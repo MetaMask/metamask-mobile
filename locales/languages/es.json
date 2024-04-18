@@ -900,7 +900,6 @@
     "security_check_subheading": "Verificaciones de seguridad",
     "symbol_required": "Se requiere símbolo.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Protección de la privacidad: no se comparten datos con terceros. Disponible en Arbitrum, Avalanche, BNB Chain, la red principal de Ethereum, Optimism, Polygon y Sepolia.",
     "security_alerts": "Alertas de seguridad",
     "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al habilitar esta función, acepta los términos de uso del proveedor."
   },
@@ -2420,7 +2419,6 @@
       "title": "Manténgase seguro con alertas de seguridad",
       "description_1": "Manténgase a salvo de estafas conocidas y al mismo tiempo proteja su privacidad con alertas de seguridad impulsadas por Blockaid. Esta función ahora está activada de forma predeterminada para todos los usuarios de MetaMask.",
       "description_2": "Siempre asegúrese de hacer su propia diligencia debida antes de aprobar cualquier solicitud.",
-      "description_3": "Disponible en Arbitrum, Avalanche, BNB Chain, la red principal de Ethereum, Linea, Optimism, Polygon y Sepolia.",
       "got_it": "Entendido"
     },
     "sell": {

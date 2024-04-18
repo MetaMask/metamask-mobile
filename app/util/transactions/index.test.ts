@@ -21,7 +21,7 @@ import {
   calculateEIP1559Times,
   parseTransactionLegacy,
 } from '.';
-import { buildUnserializedTransaction } from './optimismTransaction';
+import buildUnserializedTransaction from './optimismTransaction';
 import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 

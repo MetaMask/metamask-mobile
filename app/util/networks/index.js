@@ -24,7 +24,7 @@ import { isStrictHexString } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
-import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
+import buildUnserializedTransaction from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 import { regex } from '../../../app/util/regex';
 
@@ -82,15 +82,6 @@ const NetworkList = {
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
   },
-  [LINEA_GOERLI]: {
-    name: 'Linea Goerli Test Network',
-    shortName: 'Linea Goerli',
-    networkId: 59140,
-    chainId: toHex('59140'),
-    color: '#61dfff',
-    networkType: 'linea-goerli',
-    imageSource: lineaTestnetLogo,
-  },
   [LINEA_SEPOLIA]: {
     name: 'Linea Sepolia Test Network',
     shortName: 'Linea Sepolia',
@@ -113,6 +104,7 @@ const NetworkListKeys = Object.keys(NetworkList);
 export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.MAINNET,
   NETWORKS_CHAIN_ID.BSC,
+  NETWORKS_CHAIN_ID.BASE,
   NETWORKS_CHAIN_ID.POLYGON,
   NETWORKS_CHAIN_ID.ARBITRUM,
   NETWORKS_CHAIN_ID.OPTIMISM,
@@ -124,6 +116,7 @@ export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
   [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
+  [NETWORKS_CHAIN_ID.BASE]: 'Base Mainnet',
   [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
   [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
   [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',

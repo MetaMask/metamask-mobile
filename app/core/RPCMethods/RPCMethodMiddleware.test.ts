@@ -8,7 +8,7 @@ import {
 } from 'json-rpc-engine';
 import type { TransactionParams } from '@metamask/transaction-controller';
 import type { ProviderConfig } from '@metamask/network-controller';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { ethErrors } from 'eth-rpc-errors';
 import Engine from '../Engine';
 import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
@@ -576,10 +576,12 @@ describe('getRpcMethodMiddleware', () => {
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
 
       it('returns a JSON-RPC error if the site does not have permission to use the referenced account', async () => {
@@ -615,10 +617,12 @@ describe('getRpcMethodMiddleware', () => {
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
     });
 
@@ -686,10 +690,12 @@ describe('getRpcMethodMiddleware', () => {
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
     });
 
@@ -759,10 +765,12 @@ describe('getRpcMethodMiddleware', () => {
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
     });
 
