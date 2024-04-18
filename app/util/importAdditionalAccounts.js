@@ -33,7 +33,6 @@ const getBalance = async (address, ethQuery) =>
 const updateIdentities = async (accounts) => {
   const { KeyringController, PreferencesController } = Engine.context;
   const newAccounts = await KeyringController.getAccounts();
-  PreferencesController.updateIdentities(newAccounts);
   newAccounts.forEach((selectedAddress) => {
     if (!accounts.includes(selectedAddress)) {
       PreferencesController.update({ selectedAddress });

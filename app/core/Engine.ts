@@ -378,9 +378,16 @@ class Engine {
       ],
     });
 
-    const preferencesController = new PreferencesController(
-      {},
-      {
+    const preferencesController = new PreferencesController({
+      messenger: this.controllerMessenger.getRestricted<
+        'PreferencesController',
+        never,
+        'KeyringController:stateChange'
+      >({
+        name: 'PreferencesController',
+        allowedEvents: ['KeyringController:stateChange'],
+      }),
+      state: {
         ipfsGateway: AppConstants.IPFS_DEFAULT_GATEWAY_URL,
         useTokenDetection:
           initialState?.PreferencesController?.useTokenDetection ?? true,
@@ -388,8 +395,9 @@ class Engine {
         useNftDetection: false,
         displayNftMedia: true,
         securityAlertsEnabled: true,
+        ...initialState.PreferencesController,
       },
-    );
+    });
 
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
@@ -619,30 +627,7 @@ class Engine {
       removeIdentity: preferencesController.removeIdentity.bind(
         preferencesController,
       ),
-      syncIdentities: (identities) =>
-        preferencesController.syncIdentities(identities),
-      updateIdentities: preferencesController.updateIdentities.bind(
-        preferencesController,
-      ),
-      setSelectedAddress: (address) => {
-        const accountToBeSet = accountsController.getAccountByAddress(address);
-        if (accountToBeSet === undefined) {
-          throw new Error(`No account found for address: ${address}`);
-        }
-        accountsController.setSelectedAccount(accountToBeSet.id);
-        preferencesController.setSelectedAddress(address);
-      },
-      setAccountLabel: (address, label) => {
-        const accountToBeNamed =
-          accountsController.getAccountByAddress(address);
-        if (accountToBeNamed === undefined) {
-          throw new Error(`No account found for address: ${address}`);
-        }
-        accountsController.setAccountName(accountToBeNamed.id, label);
-        preferencesController.setAccountLabel(address, label);
-      },
       encryptor,
-      // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'KeyringController',
         never,
