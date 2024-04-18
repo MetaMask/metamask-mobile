@@ -1298,13 +1298,13 @@
     buffer "^6.0.3"
     ethereumjs-util "^7.1.5"
 
-"@consensys/on-ramp-sdk@1.26.8":
-  version "1.26.8"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.26.8.tgz#87344f42e6bced535dee9c0f7440954a6bd6955e"
-  integrity sha512-MfTJpYjXEnUc4FIN920vGHe4BzwBTuzKMaavuRYu5E2MyVEa30YUQDhAkgUQtHj/qcH3FAXiISqkGN3/PVzB8A==
+"@consensys/on-ramp-sdk@1.27.1":
+  version "1.27.1"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.27.1.tgz#a422dbfb16a23cdc53b32d9cd307d75b3a438827"
+  integrity sha512-C/ekiaPwFmWDCk0JhXopdvWJ5WuFvZmLPg4DrMEuqIi984+AwDkThU6fCiQ8FjmBIwdMiiYACQlXKjOAKy2/Ww==
   dependencies:
     async "^3.2.3"
-    axios "^0.27.0"
+    axios "^0.28.0"
     axios-retry "^3.1.2"
     crypto-js "^4.2.0"
     jsonpath-plus "^7.2.0"
@@ -11617,7 +11617,7 @@ axios-retry@^3.1.2:
     "@babel/runtime" "^7.15.4"
     is-retry-allowed "^2.2.0"
 
-axios@1.4.0, axios@1.6.0, axios@^0.26.0, axios@^0.27.0, axios@^0.x, axios@^1.6.7:
+axios@1.4.0, axios@1.6.0, axios@^0.26.0, axios@^0.28.0, axios@^0.x, axios@^1.6.7:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.6.0.tgz#f1e5292f26b2fd5c2e66876adc5b06cdbd7d2102"
   integrity sha512-EZ1DYihju9pwVB+jg67ogm+Tmqc6JmhamRN6I4Zt8DfZu5lbcQGw3ozH9lFejSJgs/ibaef3A9PMXPLeefFGJg==

@@ -122,11 +122,10 @@
     "react-native-ble-plx": "3.1.2",
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "@metamask/transaction-controller/@metamask/controller-utils": "^5.0.0"
-
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
-    "@consensys/on-ramp-sdk": "1.26.8",
+    "@consensys/on-ramp-sdk": "1.27.1",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/tx": "^3.2.1",
     "@ethersproject/abi": "^5.7.0",
