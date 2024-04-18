@@ -215,7 +215,7 @@ describe('WalletConnect2Session', () => {
       .spyOn(session as any, 'getApprovedAccountsFromPermissions')
       .mockResolvedValue(approvedAccounts);
 
-    await session.updateSession({ chainId: 1, accounts: approvedAccounts });
+    await session.updateSession({ chainId: '0x1', accounts: approvedAccounts });
 
     expect(mockUpdateSession).toHaveBeenCalledWith({
       topic: mockSession.topic,
