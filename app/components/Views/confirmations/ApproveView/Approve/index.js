@@ -540,11 +540,12 @@ class Approve extends PureComponent {
       );
 
       const fullTx = transactions.find(({ id }) => id === transaction.id);
+
       const updatedTx = {
         ...fullTx,
-        chainId,
         txParams: {
-          ...transaction.transaction,
+          ...fullTx.txParams,
+          ...transaction,
           chainId,
         },
       };

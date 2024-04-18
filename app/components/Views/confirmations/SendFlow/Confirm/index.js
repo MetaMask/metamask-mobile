@@ -1132,13 +1132,10 @@ class Confirm extends PureComponent {
         (tx) => tx.id === transactionId,
       );
 
-    controllerTransactionMeta.transaction = transactionParams;
-
     const updatedTx = {
       ...controllerTransactionMeta,
-      chainId: controllerTransactionMeta.chainId,
       txParams: {
-        ...controllerTransactionMeta.transaction,
+        ...transactionParams,
         chainId: controllerTransactionMeta.chainId,
       },
     };

@@ -457,12 +457,13 @@ class Approval extends PureComponent {
 
       const updatedTx = {
         ...fullTx,
-        chainId,
         txParams: {
-          ...transaction.transaction,
+          ...fullTx.txParams,
+          ...transaction,
           chainId,
         },
       };
+
       await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
 
