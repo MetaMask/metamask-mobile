@@ -1,9 +1,9 @@
+/* eslint-disable no-undef */
+
 import { getGanachePort } from './utils';
 import { merge } from 'lodash';
 import { PopularNetworksList } from '../resources/networks.e2e';
 const DAPP_URL = 'localhost';
-
-/* eslint-enable */
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
