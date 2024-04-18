@@ -42,7 +42,7 @@ describe(Regression('Connect to a Test Network'), () => {
     // Tap to prompt network list
     await WalletView.tapNetworksButtonOnNavBar();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetworkSwitch);
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
     await NetworkListModal.changeNetworkTo(
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
@@ -63,7 +63,7 @@ describe(Regression('Connect to a Test Network'), () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await NetworkListModal.tapTestNetworkSwitch();
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetworkSwitch);
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
   });
 
   it('should disconnect to Test Network', async () => {
@@ -82,9 +82,9 @@ describe(Regression('Connect to a Test Network'), () => {
   it('should toggle off the Test Network switch', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetworkSwitch);
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
     await NetworkListModal.tapTestNetworkSwitch();
-    await Assertions.checkIfToggleIsOff(NetworkListModal.testNetworkSwitch);
+    await Assertions.checkIfToggleIsOff(NetworkListModal.testNetToggle);
     await Assertions.checkIfTextIsNotDisplayed(
       CustomNetworks.Sepolia.providerConfig.nickname,
     );

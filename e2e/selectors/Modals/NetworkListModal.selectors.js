@@ -6,7 +6,7 @@ export const NetworkListModalSelectorsText = {
 
 export const NetworkListModalSelectorsIDs = {
   SCROLL: 'other-networks-scroll',
-  TEST_SWITCH: 'test-network-switch-id',
+  TEST_NET_TOGGLE: 'test-network-switch-id',
   OTHER_LIST: 'other-network-name',
   ADD_BUTTON: 'add-network-button',
 };

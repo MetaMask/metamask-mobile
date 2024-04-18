@@ -31,7 +31,7 @@ describe(SmokeCore('Send ERC Token'), () => {
     await WalletView.tapNetworksButtonOnNavBar();
     await TestHelpers.delay(2000);
     await NetworkListModal.tapTestNetworkSwitch();
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetworkSwitch);
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
     await NetworkListModal.changeNetworkTo(
       CustomNetworks.Sepolia.providerConfig.nickname,
     );

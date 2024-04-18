@@ -104,7 +104,7 @@ describe(Regression('Custom RPC Tests'), () => {
   });
 
   it('should switch to Sepolia then dismiss the network education modal', async () => {
-    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetworkSwitch);
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
     await NetworkListModal.changeNetworkTo(
       CustomNetworks.Sepolia.providerConfig.nickname,
     );

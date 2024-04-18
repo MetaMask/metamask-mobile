@@ -177,7 +177,7 @@ export const addLocalhostNetwork = async () => {
 export const switchToSepoliaNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
   await NetworkListModal.tapTestNetworkSwitch();
-  await Assertions.checkIfToggleIsOn(NetworkListModal.testNetworkSwitch);
+  await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
   await NetworkListModal.changeNetworkTo(
     CustomNetworks.Sepolia.providerConfig.nickname,
   );

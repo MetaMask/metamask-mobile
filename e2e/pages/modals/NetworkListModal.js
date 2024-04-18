@@ -17,14 +17,19 @@ class NetworkListModal {
     );
   }
 
-  get testNetworkSwitch() {
-    return Matchers.getElementByID(NetworkListModalSelectorsIDs.TEST_SWITCH);
+  get testNetToggle() {
+    return Matchers.getElementByID(
+      NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
+    );
   }
 
   async getCustomNetwork(network, custom = false) {
     if (device.getPlatform() === 'android' || !custom) {
       return Matchers.getElementByText(network);
     }
+
+    // Covers the scenario when selecting a custom network on iOS.
+    // Network icon would also be part of the network name
     const regex = new RegExp('[A-Z0-9]\\s' + network, 'is');
     return Matchers.getElementByIDAndLabel(CellModalSelectorsIDs.SELECT, regex);
   }
@@ -43,7 +48,7 @@ class NetworkListModal {
   }
 
   async tapTestNetworkSwitch() {
-    await Gestures.waitAndTap(this.testNetworkSwitch);
+    await Gestures.waitAndTap(this.testNetToggle);
   }
 }
 
