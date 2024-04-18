@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -27,6 +27,7 @@ const styles = StyleSheet.create({
   },
   coachmarkContainer: {
     position: 'absolute',
+    alignSelf: 'center',
   },
 });
 
@@ -35,8 +36,6 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
   const { trackEvent } = useMetrics();
 
   const [coachmarkTop, setCoachmarkTop] = useState(0);
-  const [coachmarkLeft, setCoachmarkLeft] = useState(0);
-  const [coachmarkRight, setCoachmarkRight] = useState(0);
 
   const handleLayout = useCallback(() => {
     const accActionsRef = coachmarkRef.accountActionsRef?.current;
@@ -52,11 +51,7 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
         accActionsPageY,
       ) => {
         const top = accActionsHeight + accActionsPageY;
-        const right =
-          Dimensions.get('window').width - (accActionsPageX + accActionsWidth);
         setCoachmarkTop(top);
-        setCoachmarkLeft(accActionsPageX);
-        setCoachmarkRight(right);
       },
     );
   }, [coachmarkRef.accountActionsRef]);
@@ -109,8 +104,6 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
           styles.coachmarkContainer,
           {
             top: coachmarkTop,
-            left: coachmarkLeft,
-            right: coachmarkRight,
           },
         ]}
       >
