@@ -91,8 +91,8 @@ async function reconnect({
     //   instance.removeChannel(channelId, true);
     // }
 
-    // FIXME: issue can happen during dev because bundle takes too long to load via metro.
-    // instance condition should not happen keeping it for debug purpose.
+    // issue can happen during dev because bundle takes too long to load via metro.
+    // should not happen but keeping it for reference / debug purpose.
     console.warn(`Already connecting --- Priotity to deeplink`);
   }
   if (!instance.state.connections[channelId]) {
