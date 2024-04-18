@@ -31,7 +31,7 @@ import {
   selectIdentities,
   selectIsMultiAccountBalancesEnabled,
 } from '../../../selectors/preferencesController';
-import selectSelectedInternalAccount from '../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 /**
  * Hook that returns both wallet accounts and ens name information.

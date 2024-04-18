@@ -15,7 +15,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { strings } from '../../../../../../../locales/i18n';
 import { createStyles } from './styles';
 import Routes from '../../../../../../constants/navigation/Routes';
-import selectSelectedInternalAccount from '../../../../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 import { REVEAL_PRIVATE_KEY_SECTION } from '../../SecuritySettings.constants';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 

@@ -13,7 +13,7 @@ import {
   selectTicker,
 } from '../../../../../selectors/networkController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
-import selectSelectedInternalAccount from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { doENSReverseLookup } from '../../../../../util/ENSUtils';
 import { renderFromWei, hexToBN } from '../../../../../util/number';
 import { getEther, getTicker } from '../../../../../util/transactions';
