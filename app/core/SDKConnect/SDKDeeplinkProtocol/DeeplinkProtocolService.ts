@@ -258,7 +258,7 @@ export default class DeeplinkProtocolService {
       await Linking.openURL(deeplink);
     } catch (error) {
       Logger.error(
-        error,
+        error as Error,
         `DeeplinkProtocolService::openDeeplink error opening deeplink`,
       );
     }

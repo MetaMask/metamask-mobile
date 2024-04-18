@@ -169,7 +169,10 @@ class WalletConnect2Session {
             );
           }
         } catch (error) {
-          Logger.error(error, `WC2::constructor error while handling request`);
+          Logger.error(
+            error as Error,
+            `WC2::constructor error while handling request`,
+          );
         }
       });
     }
@@ -649,7 +652,7 @@ export class WC2Manager {
       await wait(1000);
       this.instance = new WC2Manager(web3Wallet, deeplinkSessions, navigation);
     } catch (error) {
-      Logger.error(error, `WC2@init() failed to create instance`);
+      Logger.error(error as Error, `WC2@init() failed to create instance`);
     }
 
     return this.instance;

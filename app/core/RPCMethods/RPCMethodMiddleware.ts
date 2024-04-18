@@ -378,7 +378,7 @@ export const getRpcMethodMiddleware = ({
             },
           );
           handle?.catch((error) => {
-            Logger.error('Failed to get permissions', error);
+            Logger.error(error as Error, 'Failed to get permissions');
           });
         }),
       wallet_requestPermissions: async () =>

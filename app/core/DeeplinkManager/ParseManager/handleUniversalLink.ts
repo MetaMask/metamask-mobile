@@ -62,7 +62,7 @@ function handleUniversalLink({
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err: unknown) => {
-          Logger.error(err, `DeepLinkManager failed to connect`);
+          Logger.error(err as Error, `DeepLinkManager failed to connect`);
         });
       }
       return true;
