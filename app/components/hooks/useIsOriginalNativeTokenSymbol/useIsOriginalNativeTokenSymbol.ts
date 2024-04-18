@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../app/constants/network';
-import { selectUseSafeChainsListValidation } from '../../../../../app/selectors/preferencesController';
+import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../constants/network';
+import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import axios from 'axios';
 
 const CHAIN_ID_NETWORK_URL = 'https://chainid.network/chains.json';
