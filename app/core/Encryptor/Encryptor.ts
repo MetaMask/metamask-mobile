@@ -54,7 +54,7 @@ class Encryptor implements GenericEncryptor {
   }: {
     derivationParams: KeyDerivationOptions;
   }) {
-    this.checkMinimalRequiredIterations(derivationParams.params.iterations);
+    // this.checkMinimalRequiredIterations(derivationParams.params.iterations);
     this.derivationParams = derivationParams;
   }
 
