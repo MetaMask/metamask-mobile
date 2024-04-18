@@ -10,12 +10,14 @@ import { whatsNewList } from '../../components/UI/WhatsNewModal';
 import AsyncStorage from '../../store/async-storage-wrapper';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 
-/**
- *
- * @returns Boolean indicating whether or not to show smart transactions opt in modal
- */
 const STX_OPT_IN_MIN_APP_VERSION = '7.16.0';
 
+/**
+ *
+ * @param chainId The chainId of the current network
+ * @param providerConfigRpcUrl The RPC URL of the current network
+ * @returns Boolean indicating whether or not to show smart transactions opt in modal
+ */
 export const shouldShowSmartTransactionsOptInModal = async (
   chainId: string,
   providerConfigRpcUrl: string | undefined,
