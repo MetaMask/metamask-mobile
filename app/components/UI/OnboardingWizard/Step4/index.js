@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const Step4 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
+const Step4 = ({ setOnboardingWizardStep, onClose }) => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
 
@@ -110,7 +110,6 @@ const Step4 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
 
 Step4.propTypes = {
   setOnboardingWizardStep: PropTypes.func,
-  coachmarkRef: PropTypes.object,
   onClose: PropTypes.func,
 };
 
