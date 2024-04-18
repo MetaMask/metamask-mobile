@@ -344,6 +344,7 @@ class FixtureBuilder {
               gasFeeEstimates: {},
               estimatedGasFeeTimeBounds: {},
               gasEstimateType: 'none',
+              gasFeeEstimatesByChainId: {},
             },
             TokenDetectionController: {},
             NftDetectionController: {},

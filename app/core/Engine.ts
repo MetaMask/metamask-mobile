@@ -579,10 +579,15 @@ class Engine {
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'GasFeeController',
-        never,
+        | 'NetworkController:getNetworkClientById'
+        | 'NetworkController:getEIP1559Compatibility',
         'NetworkController:stateChange'
       >({
         name: 'GasFeeController',
+        allowedActions: [
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getEIP1559Compatibility',
+        ],
         allowedEvents: ['NetworkController:stateChange'],
       }),
       getProvider: () =>
