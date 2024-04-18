@@ -417,18 +417,9 @@ class NetworkSettings extends PureComponent {
   };
 
   componentDidUpdate = (prevProps) => {
-    const { chainId } = this.state;
-
     this.updateNavBar();
     if (this.props.matchedChainNetwork !== prevProps.matchedChainNetwork) {
-      const chainToMatch = this.props.matchedChainNetwork?.safeChainsList?.find(
-        (network) => network.chainId === parseInt(chainId),
-      );
-
-      this.updateNetworkList(chainToMatch);
-
-      this.validateName(chainToMatch);
-      this.validateSymbol(chainToMatch);
+      this.validateRpcAndChainId();
     }
   };
 
