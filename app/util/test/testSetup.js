@@ -274,6 +274,7 @@ jest.mock('react-native-default-preference', () => ({
 // eslint-disable-next-line import/no-commonjs
 require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
+global.__DEV__ = false;
 
 jest.mock(
   '../../core/Engine',
