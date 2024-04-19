@@ -41,6 +41,7 @@ import AvatarNetwork from '../../../../component-library/components/Avatars/Avat
 import Routes from '../../../../constants/navigation/Routes';
 import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
+import { NetworksTicker } from '@metamask/controller-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -186,7 +187,7 @@ class NetworksSettings extends PureComponent {
   switchToMainnet = () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
 
-    CurrencyRateController.updateExchangeRate('ETH');
+    CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {

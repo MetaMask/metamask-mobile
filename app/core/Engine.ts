@@ -449,7 +449,7 @@ class Engine {
           name: 'NftController',
           allowedActions: [
             `${approvalController.name}:addRequest`,
-            'NetworkController:getNetworkClientById',
+            `${networkController.name}:getNetworkClientById`,
           ],
         }),
         chainId: networkController.state.providerConfig.chainId,
@@ -556,7 +556,7 @@ class Engine {
         'NetworkController:stateChange'
       >({
         name: 'TokenListController',
-        allowedEvents: ['NetworkController:stateChange'],
+        allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
     const currencyRateController = new CurrencyRateController({
@@ -567,7 +567,7 @@ class Engine {
         never
       >({
         name: 'CurrencyRateController',
-        allowedActions: ['NetworkController:getNetworkClientById'],
+        allowedActions: [`${networkController.name}:getNetworkClientById`],
       }),
       state: initialState.CurrencyRateController,
     });
@@ -585,10 +585,10 @@ class Engine {
       >({
         name: 'GasFeeController',
         allowedActions: [
-          'NetworkController:getNetworkClientById',
-          'NetworkController:getEIP1559Compatibility',
+          `${networkController.name}:getNetworkClientById`,
+          `${networkController.name}:getEIP1559Compatibility`,
         ],
-        allowedEvents: ['NetworkController:stateChange'],
+        allowedEvents: [`${networkController.name}:stateChange`],
       }),
       getProvider: () =>
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
@@ -1201,7 +1201,7 @@ class Engine {
             'NetworkController:stateChange'
           >({
             name: 'PPOMController',
-            allowedEvents: ['NetworkController:stateChange'],
+            allowedEvents: [`${networkController.name}:stateChange`],
           }),
           onPreferencesChange: (listener) =>
             preferencesController.subscribe(listener as any),
@@ -1306,7 +1306,7 @@ class Engine {
     );
 
     this.controllerMessenger.subscribe(
-      'NetworkController:networkWillChange',
+      `${networkController.name}:networkWillChange`,
       () => {
         store.dispatch(networkIdWillUpdate());
       },

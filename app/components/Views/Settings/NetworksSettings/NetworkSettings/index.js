@@ -64,7 +64,11 @@ import {
 } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
-import { isSafeChainId, toHex } from '@metamask/controller-utils';
+import {
+  NetworksTicker,
+  isSafeChainId,
+  toHex,
+} from '@metamask/controller-utils';
 import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
@@ -928,7 +932,7 @@ class NetworkSettings extends PureComponent {
   switchToMainnet = () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
 
-    CurrencyRateController.updateExchangeRate('ETH');
+    CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
