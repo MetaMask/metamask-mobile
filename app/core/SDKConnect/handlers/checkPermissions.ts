@@ -43,20 +43,22 @@ export const checkPermissions = async ({
     channelId: connection.channelId,
     context: 'checkPermission',
   });
-  const accountPermission = permissionsController.getPermission(
-    connection.channelId,
-    'eth_accounts',
-  );
 
   DevLogger.log(
     `checkPermissions approved=${approved} approvalPromise=${
       connection.approvalPromise !== undefined ? 'exists' : 'undefined'
     }`,
-    accountPermission,
   );
 
   if (approved) {
-    connection.approvalPromise = undefined;
+    return true;
+  }
+
+  DevLogger.log(
+    `checkPermissions channelWasActiveRecently=${channelWasActiveRecently} OTPExpirationDuration=${OTPExpirationDuration}`,
+  );
+
+  if (channelWasActiveRecently) {
     return true;
   }
 
@@ -70,7 +72,7 @@ export const checkPermissions = async ({
     DevLogger.log(`checkPermissions match`, match);
     // Wait for result and clean the promise afterwards.
 
-    // Only wait for approval is modal currently displayed
+    // Only wait for approval if modal currently displayed
     if (currentRouteName === Routes.SHEET.ACCOUNT_CONNECT) {
       // Make sure the root is displayed
       connection.navigation?.navigate(Routes.SHEET.ACCOUNT_CONNECT);
@@ -80,55 +82,38 @@ export const checkPermissions = async ({
         `checkPermissions approvalPromise exists completed -- allowed`,
         allowed,
       );
-      connection.approvalPromise = undefined;
       // Add delay for backgroundBridge to complete setup
       await wait(300);
       return allowed;
     }
-    DevLogger.log(`checkPermissions approvalPromise exists -- SKIP`);
-    // Otherwise cleanup existing permissions and revalidate
-    // permissionsController.revokeAllPermissions(connection.channelId);
+    console.warn(`checkPermissions approvalPromise exists -- SKIP`);
   }
 
   if (!connection.initialConnection && AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
     connection.revalidate({ channelId: connection.channelId });
   }
 
-  DevLogger.log(
-    `checkPermissions channelWasActiveRecently=${channelWasActiveRecently} OTPExpirationDuration=${OTPExpirationDuration}`,
-    accountPermission,
-  );
-  if (channelWasActiveRecently) {
-    return true;
-  }
-
   try {
-    const origin = connection.channelId;
-    if (accountPermission) {
-      DevLogger.log(
-        `checkPermissions accountPermission exists but not active recently -- REVOKE + ASK AGAIN`,
-      );
-      // Revoke and ask again
-      permissionsController.revokePermission(
-        connection.channelId,
-        'eth_accounts',
+    const accountPermission = permissionsController.getPermission(
+      connection.channelId,
+      'eth_accounts',
+    );
+    if (!accountPermission) {
+      connection.approvalPromise = permissionsController.requestPermissions(
+        { origin: connection.channelId },
+        { eth_accounts: {} },
+        {
+          preserveExistingPermissions: false,
+        },
       );
     }
-
-    DevLogger.log(`checkPermissions Opening requestPermissions for ${origin}`);
-    connection.approvalPromise = permissionsController.requestPermissions(
-      { origin },
-      { eth_accounts: {} },
-      { id: connection.channelId, preserveExistingPermissions: true },
-    );
 
     await connection.approvalPromise;
     // Clear previous permissions if already approved.
     connection.revalidate({ channelId: connection.channelId });
-    connection.approvalPromise = undefined;
     return true;
   } catch (err) {
-    DevLogger.log(`checkPermissions error`, err);
+    console.warn(`checkPermissions error`, err);
     connection.approvalPromise = undefined;
     throw err;
   }
