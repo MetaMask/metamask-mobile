@@ -51,6 +51,7 @@ const mockInitialState = {
           chainId: '0xaa36a7',
           type: 'sepolia',
           nickname: 'Sepolia',
+          ticker: 'ETH',
         },
       },
       TokenBalancesController: {
