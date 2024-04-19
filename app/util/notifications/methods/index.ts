@@ -374,7 +374,6 @@ export const networkFeeDetails = {
 
 export const requestPushNotificationsPermission = async () => {
   let permissionStatus;
-  mmStorage.saveLocal(STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT, 0);
 
   const promptCount = mmStorage.getLocal(
     STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
