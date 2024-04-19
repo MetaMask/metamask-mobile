@@ -969,10 +969,9 @@ export function getWalletNavbarOptions(
 
   function handleNotificationOnPress() {
     if (isNotificationEnabled) {
-      navigation.navigate('NotificationsView');
-      trackEvent(MetaMetricsEvents.WALLET_NOTIFICATIONS);
+      // [ATTENTION]: will navigate to Notifications screen. Notifications screen will be implemented on a diff PR.
     } else {
-      navigation.navigate('NotificationsOptInStack');
+      navigation.navigate(Routes.NOTIFICATIONS.OPT_IN);
     }
   }
 

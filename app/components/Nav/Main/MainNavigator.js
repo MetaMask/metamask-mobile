@@ -13,6 +13,8 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
+import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
@@ -225,6 +227,22 @@ const SnapsSettingsStack = () => (
   </Stack.Navigator>
 );
 ///: END:ONLY_INCLUDE_IF
+
+const NotificationsOptInStack = () => (
+  <Stack.Navigator initialRouteName={'NotificationsOptIn'}>
+    <Stack.Screen
+      mode={'modal'}
+      name={Routes.NOTIFICATIONS.OPT_IN}
+      component={OptIn}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.NOTIFICATIONS}
+      component={Routes.SETTINGS.NOTIFICATIONS}
+      options={NotificationsSettings.navigationOptions}
+    />
+  </Stack.Navigator>
+);
 
 const SettingsFlow = () => (
   <Stack.Navigator initialRouteName={'Settings'}>
@@ -677,6 +695,11 @@ const MainNavigator = () => (
       )}
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
+    />
+    <Stack.Screen
+      name="NotificationsOptInStack"
+      component={NotificationsOptInStack}
+      options={NotificationsOptInStack.navigationOptions}
     />
   </Stack.Navigator>
 );
