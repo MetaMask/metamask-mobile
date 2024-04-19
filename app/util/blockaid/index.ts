@@ -5,6 +5,17 @@ import {
 import { BLOCKAID_SUPPORTED_CHAIN_IDS, getDecimalChainId } from '../networks';
 import { store } from '../../store';
 import { selectChainId } from '../../selectors/networkController';
+import type { TransactionMeta } from '@metamask/transaction-controller';
+
+interface TransactionSecurityAlertResponseType {
+  currentTransactionSecurityAlertResponse: {
+    id: string;
+    response: SecurityAlertResponse;
+  };
+}
+
+export type TransactionType = TransactionMeta &
+  TransactionSecurityAlertResponseType;
 
 export const isSupportedChainId = (chainId: string) => {
   /**
@@ -66,4 +77,24 @@ export const getBlockaidMetricsParams = (
   }
 
   return additionalParams;
+};
+
+export const getBlockaidTransactionMetricsParams = (
+  transaction: TransactionType,
+) => {
+  let blockaidParams = {};
+
+  if (!transaction) {
+    return blockaidParams;
+  }
+
+  if (
+    transaction.id === transaction?.currentTransactionSecurityAlertResponse?.id
+  ) {
+    blockaidParams = getBlockaidMetricsParams(
+      transaction.currentTransactionSecurityAlertResponse?.response,
+    );
+  }
+
+  return blockaidParams;
 };

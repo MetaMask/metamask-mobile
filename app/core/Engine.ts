@@ -51,7 +51,7 @@ import {
 } from '@metamask/network-controller';
 import {
   PhishingController,
-  PhishingState,
+  PhishingControllerState,
 } from '@metamask/phishing-controller';
 import {
   PreferencesController,
@@ -121,7 +121,7 @@ import {
   LoggingControllerActions,
 } from '@metamask/logging-controller';
 import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
-import Encryptor from './Encryptor';
+import { Encryptor, DERIVATION_PARAMS } from './Encryptor';
 import {
   isMainnetByChainId,
   getDecimalChainId,
@@ -171,7 +171,7 @@ import {
 import { hasProperty, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
@@ -190,7 +190,9 @@ import {
 
 const NON_EMPTY = 'NON_EMPTY';
 
-const encryptor = new Encryptor();
+const encryptor = new Encryptor({
+  derivationParams: DERIVATION_PARAMS,
+});
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -260,7 +262,7 @@ export interface EngineState {
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
-  PhishingController: PhishingState;
+  PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesState;
   TokenRatesController: TokenRatesState;
   TransactionController: TransactionState;
@@ -424,6 +426,7 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
+      //@ts-expect-error This will be fixed when assets-controller is on v16
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -514,6 +517,7 @@ class Engine {
           AppConstants.TOKEN_LIST_STATE_CHANGE_EVENT,
           listener,
         ),
+      //@ts-expect-error This will be fixed when assets-controller is on v16
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
       chainId: networkController.state.providerConfig.chainId,
@@ -570,10 +574,15 @@ class Engine {
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'GasFeeController',
-        never,
+        | 'NetworkController:getNetworkClientById'
+        | 'NetworkController:getEIP1559Compatibility',
         'NetworkController:stateChange'
       >({
         name: 'GasFeeController',
+        allowedActions: [
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getEIP1559Compatibility',
+        ],
         allowedEvents: ['NetworkController:stateChange'],
       }),
       getProvider: () =>
@@ -582,7 +591,6 @@ class Engine {
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          //@ts-expect-error GasFeeController needs to be updated to v7 for this error disappears
           listener,
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>
@@ -603,7 +611,12 @@ class Engine {
         'https://gas-api.metaswap.codefi.network/networks/<chain_id>/suggestedGasFees',
     });
 
-    const phishingController = new PhishingController();
+    const phishingController = new PhishingController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'PhishingController',
+        allowedActions: [],
+      }),
+    });
     phishingController.maybeUpdateState();
 
     const qrKeyringBuilder = () => new QRHardwareKeyring();
@@ -1538,7 +1551,7 @@ class Engine {
 
   rejectPendingApproval(
     id: string,
-    reason: Error = ethErrors.provider.userRejectedRequest(),
+    reason: Error = providerErrors.userRejectedRequest(),
     opts: { ignoreMissing?: boolean; logErrors?: boolean } = {},
   ) {
     const { ApprovalController } = this.context;
