@@ -36,7 +36,8 @@ class ReviewManager {
       const eventCount = await DefaultPreference.get(REVIEW_EVENT_COUNT);
       const lastShownTime =
         (await DefaultPreference.get(REVIEW_SHOWN_TIME)) || '0';
-      const satisfiedEventCount = parseInt(eventCount) >= EVENT_THRESHOLD;
+      const satisfiedEventCount =
+        parseInt(eventCount || '0') >= EVENT_THRESHOLD;
       const satisfiedTime =
         Date.now() - parseInt(lastShownTime) > TIME_THRESHOLD;
       return satisfiedEventCount && satisfiedTime;
