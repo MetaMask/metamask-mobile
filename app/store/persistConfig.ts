@@ -17,8 +17,8 @@ const MigratedStorage = {
         // Using new storage system
         return res;
       }
-    } catch {
-      //Fail silently
+    } catch (error) {
+      Logger.error(error as Error, { message: 'Failed to get item' });
     }
 
     // Using old storage system, should only happen once
