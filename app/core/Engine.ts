@@ -1398,13 +1398,11 @@ class Engine {
     const { currentCurrency } = CurrencyRateController.state;
     const networkProvider = NetworkController.state.providerConfig;
     const conversionRate =
-      CurrencyRateController.state?.currencyRates?.[
-        networkProvider?.ticker ?? 'ETH'
-      ]?.conversionRate === null
+      CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
+        ?.conversionRate === null
         ? 0
-        : CurrencyRateController.state?.currencyRates?.[
-            networkProvider?.ticker ?? 'ETH'
-          ]?.conversionRate;
+        : CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
+            ?.conversionRate;
     const { accountsByChainId } = AccountTrackerController.state;
 
     const { tokens } = TokensController.state;

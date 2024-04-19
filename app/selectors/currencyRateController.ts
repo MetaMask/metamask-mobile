@@ -10,8 +10,7 @@ export const selectConversionRate = createSelector(
   selectCurrencyRateControllerState,
   selectTicker,
   (currencyRateControllerState: CurrencyRateState, ticker: string) =>
-    currencyRateControllerState?.currencyRates?.[ticker ?? 'ETH']
-      ?.conversionRate,
+    currencyRateControllerState?.currencyRates?.[ticker]?.conversionRate,
 );
 
 export const selectCurrentCurrency = createSelector(
