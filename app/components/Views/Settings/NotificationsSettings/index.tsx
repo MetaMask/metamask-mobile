@@ -5,7 +5,6 @@ import { camelCase } from 'lodash';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
 import Text, {
   TextVariant,
   TextColor,
@@ -24,11 +23,12 @@ import {
 } from './NotificationsSettings.constants';
 
 import {
-  mmStorage,
   notificationSettings as defaultDisabledNotificationSettings,
+  mmStorage,
   requestPushNotificationsPermission,
 } from '../../../../util/notifications';
 import { updateNotificationStatus } from '../../../../actions/notification';
+import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
 
 /**
  * TODO: Discuss the granularity of the notifications settings.
@@ -79,9 +79,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
       : AvatarAccountType.JazzIcon,
   );
 
-  const [notificationsSettings, setNotificationsSettings] =
-    useState<NotificationsSettingsStoreKey>(notificationsSettingsState);
-
   const toggleNotificationsEnabled = () => {
     !notificationsSettingsState?.isEnabled
       ? requestPushNotificationsPermission()
@@ -89,7 +86,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           updateNotificationStatus({
             isEnabled: false,
             notificationsOpts: defaultDisabledNotificationSettings,
-            accounts: {},
+            accounts: [],
           }),
         );
   };
@@ -101,12 +98,11 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const styles = createStyles(colors);
 
   useEffect(() => {
-    dispatch(updateNotificationStatus(notificationsSettings));
     mmStorage.saveLocal(
       STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-      JSON.stringify(notificationsSettings),
+      JSON.stringify(notificationsSettingsState),
     );
-  }, [dispatch, notificationsSettings]);
+  }, [notificationsSettingsState]);
 
   useEffect(
     () => {
@@ -119,15 +115,17 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           null,
         ),
       );
-      setNotificationsSettings({
-        ...notificationsSettingsState,
-        accounts:
-          notificationsSettingsState?.accounts ??
-          accounts.reduce((acc: { [key: string]: boolean }, account) => {
-            acc[account.address] = true;
-            return acc;
-          }, {}),
-      });
+      dispatch(
+        updateNotificationStatus({
+          ...notificationsSettingsState,
+          accounts:
+            notificationsSettingsState?.accounts ??
+            accounts.reduce((acc: { [key: string]: boolean }, account) => {
+              acc[account.address] = true;
+              return acc;
+            }, {}),
+        }),
+      );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [colors],
@@ -186,13 +184,15 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
                 ]
               }
               onOptionUpdated={(value) => {
-                setNotificationsSettings({
-                  ...notificationsSettings,
-                  notificationsOpts: {
-                    ...notificationsSettings.notificationsOpts,
-                    [camelCase(opt.title)]: value,
-                  },
-                });
+                dispatch(
+                  updateNotificationStatus({
+                    ...notificationsSettingsState,
+                    notificationsOpts: {
+                      ...notificationsSettingsState.notificationsOpts,
+                      [camelCase(opt.title)]: value,
+                    },
+                  }),
+                );
               }}
               testId={NotificationsViewSelectorsIDs[opt.title]}
               disabled={opt.disabled}
@@ -214,15 +214,19 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               key={account.address}
               title={account.name}
               description={account.address}
-              value={notificationsSettingsState.accounts[account.address]}
+              value={
+                notificationsSettingsState?.accounts[account.address] ?? true
+              }
               onOptionUpdated={(value) => {
-                setNotificationsSettings({
-                  ...notificationsSettings,
-                  accounts: {
-                    ...notificationsSettings.accounts,
-                    [account.address]: value,
-                  },
-                });
+                dispatch(
+                  updateNotificationStatus({
+                    ...notificationsSettingsState,
+                    accounts: {
+                      ...notificationsSettingsState.accounts,
+                      [account.address]: value,
+                    },
+                  }),
+                );
               }}
             />
           ))}
