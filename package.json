@@ -178,7 +178,7 @@
     "@react-native-clipboard/clipboard": "1.8.4",
     "@react-native-community/blur": "^4.4.0",
     "@react-native-community/checkbox": "^0.5.17",
-    "@react-native-community/netinfo": "^6.2.1",
+    "@react-native-community/netinfo": "^9.5.0",
     "@react-native-cookies/cookies": "^6.2.1",
     "@react-native-masked-view/masked-view": "^0.2.6",
     "@react-native-picker/picker": "^2.2.1",
