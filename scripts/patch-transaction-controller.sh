@@ -20,7 +20,7 @@ DIST_DIR_MOBILE="$PACKAGE_DIR_MOBILE/dist"
 PATCH_FILE="patches/@metamask+transaction-controller+*.patch"
 COMMENT_LINE_COUNT=7
 
-COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-transaction-controller-11-0-0\
+COMMENT='+PATCH GENERATED FROM MetaMask/core branch: patch/mobile-transaction-controller-13-0-0\
 +This patch backports various transaction controller features from the main branch of MetaMask/core\
 +Steps to update patch:\
 +* Create a new core branch from: patch/mobile-transaction-controller-11-0-0\
