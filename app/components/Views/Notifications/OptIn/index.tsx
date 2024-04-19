@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, View, Linking } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
@@ -16,6 +16,8 @@ import { createStyles } from './styles';
 import Routes from '../../../../constants/navigation/Routes';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
 import { useSelector } from 'react-redux';
+import { mmStorage } from '../../../../util/notifications';
+import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
 
 const OptIn = () => {
   const theme = useTheme();
@@ -24,11 +26,18 @@ const OptIn = () => {
   const isNotificationEnabled = useSelector(
     (state: any) => state.notification.notificationsSettings?.isEnabled,
   );
+  const [promptCount, setPromptCount] = useState(0);
+
   const navigateToNotificationsSettings = () => {
     navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
   };
 
   const navigateToMainWallet = () => {
+    !isNotificationEnabled &&
+      mmStorage.saveLocal(
+        STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
+        promptCount,
+      );
     navigation.navigate(Routes.WALLET_VIEW);
   };
 
@@ -39,6 +48,13 @@ const OptIn = () => {
   useFocusEffect(() => {
     if (isNotificationEnabled) {
       navigateToMainWallet();
+    } else {
+      const count = mmStorage.getLocal(
+        STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
+      );
+      const times = count + 1 || 1;
+
+      setPromptCount(times);
     }
   });
 
