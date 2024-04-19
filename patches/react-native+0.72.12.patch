@@ -132,32 +132,6 @@ diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle b
 index 5ebaf48..17b8228 100644
 --- a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
 +++ b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle
-@@ -43,11 +43,11 @@ def overrideHermesDir = System.getenv("REACT_NATIVE_OVERRIDE_HERMES_DIR") != nul
- def hermesDir = System.getenv("REACT_NATIVE_OVERRIDE_HERMES_DIR") ?: new File(reactNativeRootDir, "sdks/hermes")
- def hermesBuildDir = new File("$buildDir/hermes")
- 
--def hermesVersion = "main"
--def hermesVersionFile = new File(reactNativeRootDir, "sdks/.hermesversion")
--if (hermesVersionFile.exists()) {
--    hermesVersion = hermesVersionFile.text
--}
-+def hermesVersion = "52725e889185e53277e629f1f7043aa2913c97a9"
-+// def hermesVersionFile = new File(reactNativeRootDir, "sdks/.hermesversion")
-+// if (hermesVersionFile.exists()) {
-+//     hermesVersion = hermesVersionFile.text
-+// }
- def ndkBuildJobs = Runtime.runtime.availableProcessors().toString()
- def prefabHeadersDir = new File("$buildDir/prefab-headers")
- 
-@@ -59,7 +59,7 @@ def skipPrefabPublishing = System.getenv("REACT_NATIVE_HERMES_SKIP_PREFAB") != n
- def jsiDir = new File(reactNativeRootDir, "ReactCommon/jsi")
- 
- task downloadHermes(type: Download) {
--    src("https://github.com/facebook/hermes/tarball/${hermesVersion}")
-+    src("https://github.com/MetaMask/hermes/tarball/${hermesVersion}")
-     onlyIfModified(true)
-     overwrite(true)
-     useETag("all")
 @@ -131,12 +131,9 @@ android {
  
      // Used to override the NDK path/version on internal CI or by allowing
