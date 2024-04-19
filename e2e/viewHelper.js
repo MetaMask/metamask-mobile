@@ -62,14 +62,14 @@ export const importWalletWithRecoveryPhrase = async () => {
   await ImportWalletView.reEnterPassword(validAccount.password);
 
   // Should dismiss Automatic Security checks screen
-  await TestHelpers.delay(3500);
-  await EnableAutomaticSecurityChecksView.isVisible();
-  await EnableAutomaticSecurityChecksView.tapNoThanks();
 
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await TestHelpers.delay(1000);
+  await device.disableSynchronization();
   try {
+    await EnableAutomaticSecurityChecksView.isVisible();
+    await EnableAutomaticSecurityChecksView.tapNoThanks();
     await OnboardingWizardModal.isVisible();
     await OnboardingWizardModal.tapNoThanksButton();
     await OnboardingWizardModal.isNotVisible();
@@ -85,6 +85,7 @@ export const importWalletWithRecoveryPhrase = async () => {
   } catch {
     //
   }
+  await device.enableSynchronization();
 };
 
 export const CreateNewWallet = async () => {
