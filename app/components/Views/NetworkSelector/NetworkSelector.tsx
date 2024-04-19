@@ -61,6 +61,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
+import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
@@ -73,7 +74,7 @@ const NetworkSelector = () => {
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  // The only values that type can be are mainnet, linea-mainnet, sepolia and linea-sepolia
+  // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
     const {
       NetworkController,
@@ -83,10 +84,10 @@ const NetworkSelector = () => {
 
     let ticker = type;
     if (type === LINEA_SEPOLIA) {
-      ticker = 'LineaETH';
+      ticker = TESTNET_TICKER_SYMBOLS.LINEA_SEPOLIA;
     }
     if (type === SEPOLIA) {
-      ticker = 'SepoliaETH';
+      ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA;
     }
 
     CurrencyRateController.updateExchangeRate(ticker);
