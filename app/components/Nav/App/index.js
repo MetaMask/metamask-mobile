@@ -31,6 +31,7 @@ import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { routingInstrumentation } from '../../../util/sentry/utils';
 import { connect, useDispatch, useSelector } from 'react-redux';
+import Engine from '../../../core/Engine';
 import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
@@ -309,14 +310,17 @@ const App = ({ userLoggedIn }) => {
     }
   };
 
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountAddressAsChecksum,
-  );
+  // const selectedAddress = useSelector(
+  //   selectSelectedInternalAccountAddressAsChecksum,
+  // );
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
       const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+      const { PreferencesController } = Engine.context;
+      const selectedAddress = PreferencesController.state.selectedAddress;
+
       try {
         if (existingUser && selectedAddress) {
           await Authentication.appTriggeredAuth({ selectedAddress });
