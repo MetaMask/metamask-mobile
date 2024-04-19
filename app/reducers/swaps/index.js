@@ -84,7 +84,7 @@ export const swapsSmartTxFlagEnabled = createSelector(
 
     const isEnabled = Boolean(
       globalFlags?.smart_transactions?.mobile_active &&
-        globalFlags.smartTransactions[deviceKey],
+        globalFlags?.smartTransactions?.[deviceKey],
     );
 
     return isEnabled;
