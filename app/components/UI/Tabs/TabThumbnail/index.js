@@ -19,6 +19,7 @@ import Avatar, {
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import AppConstants from '../../../../core/AppConstants';
 import { selectProviderConfig } from '../../../../selectors/networkController';
 import {
@@ -135,6 +136,11 @@ const createStyles = (colors) =>
     },
     footerText: { width: '90%' },
     badgeWrapperContainer: { paddingRight: 8, paddingLeft: 2 },
+    networkBadge: {
+      borderRadius: 7,
+      borderWidth: 1,
+      borderColor: colors.background.default,
+    },
   });
 
 const { HOMEPAGE_URL } = AppConstants;
@@ -168,8 +174,9 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
     if (providerConfig.nickname) {
       setNetworkName(providerConfig.nickname);
     } else {
-      setNetworkName((Networks[providerConfig.type] && Networks[providerConfig.type].name) ||
-        { ...Networks.rpc, color: null }.name
+      setNetworkName(
+        (Networks[providerConfig.type] && Networks[providerConfig.type].name) ||
+        { ...Networks.rpc, color: null }.name,
       );
     }
   }, [providerConfig]);
@@ -214,25 +221,35 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
           <View style={styles.badgeWrapperContainer}>
             <BadgeWrapper
               badgeElement={
+                // TODO: figure out the badge size, according to figma should be smaller
                 <Badge
                   variant={BadgeVariant.Network}
+                  // TODO: get the correct image source for the active network
                   imageSource={11}
                   name={'Ethereum'}
-                  style={{ borderRadius: 7, borderWidth: 1, borderColor: colors.background.default }}
+                  style={styles.networkBadge}
                 />
               }
             >
               <Avatar
+                // TODO: figure out the avatar size, according to figma should be smaller than Sm, but bigger than Xs
                 size={AvatarSize.Sm}
                 variant={AvatarVariant.Account}
-                accountAddress={selectedAccount?.address || '0x20A1BFeeBf35E6CdBC0D281e68A3a9F832c2Fa88'}
+                accountAddress={
+                  selectedAccount?.address ||
+                  '0x20A1BFeeBf35E6CdBC0D281e68A3a9F832c2Fa88'
+                }
               />
             </BadgeWrapper>
           </View>
           <Text
+            // TODO: figure out why the variant is not taking effect when changed
+            variant={TextVariant.BodySMBold}
             style={styles.footerText}
             numberOfLines={1}
-            ellipsizeMode="tail">{selectedAccount?.name} - {networkName}
+            ellipsizeMode="tail"
+          >
+            {selectedAccount?.name} - {networkName}
           </Text>
         </View>
       </TouchableOpacity>
