@@ -1,6 +1,6 @@
 import React from 'react';
-import { Image, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { Image, View, Linking } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import Button, {
   ButtonVariants,
@@ -14,12 +14,16 @@ import { useTheme } from '../../../../util/theme';
 import EnableNotificationsCardPlaceholder from '../../../../images/enableNotificationsCard.png';
 import { createStyles } from './styles';
 import Routes from '../../../../constants/navigation/Routes';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../../constants/urls';
+import { useSelector } from 'react-redux';
 
 const OptIn = () => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
-
+  const isNotificationEnabled = useSelector(
+    (state: any) => state.notification.notificationsSettings?.isEnabled,
+  );
   const navigateToNotificationsSettings = () => {
     navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
   };
@@ -29,13 +33,14 @@ const OptIn = () => {
   };
 
   const goToLearnMore = () => {
-    navigation.navigate('Webview', {
-      screen: 'Webview',
-      params: {
-        url: 'https://consensys.io/privacy-policy',
-      },
-    });
+    Linking.openURL(CONSENSYS_PRIVACY_POLICY);
   };
+
+  useFocusEffect(() => {
+    if (isNotificationEnabled) {
+      navigateToMainWallet();
+    }
+  });
 
   return (
     <View style={styles.wrapper}>
