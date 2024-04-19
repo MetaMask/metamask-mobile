@@ -3,7 +3,7 @@ import validUrl from 'valid-url';
 import { ChainId, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../util/jsonRpcRequest';
 import Engine from '../Engine';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
@@ -37,7 +37,7 @@ const wallet_addEthereumChain = async ({
     Engine.context;
 
   if (!req.params?.[0] || typeof req.params[0] !== 'object') {
-    throw ethErrors.rpc.invalidParams({
+    throw rpcErrors.invalidParams({
       message: `Expected single, object parameter. Received:\n${JSON.stringify(
         req.params,
       )}`,
@@ -65,7 +65,7 @@ const wallet_addEthereumChain = async ({
 
   const extraKeys = Object.keys(params).filter((key) => !allowedKeys[key]);
   if (extraKeys.length) {
-    throw ethErrors.rpc.invalidParams(
+    throw rpcErrors.invalidParams(
       `Received unexpected keys on object parameter. Unsupported keys:\n${extraKeys}`,
     );
   }
@@ -87,13 +87,13 @@ const wallet_addEthereumChain = async ({
       : null;
 
   if (!firstValidRPCUrl) {
-    throw ethErrors.rpc.invalidParams(
+    throw rpcErrors.invalidParams(
       `Expected an array with at least one valid string HTTPS url 'rpcUrls', Received:\n${rpcUrls}`,
     );
   }
 
   if (blockExplorerUrls !== null && !firstValidBlockExplorerUrl) {
-    throw ethErrors.rpc.invalidParams(
+    throw rpcErrors.invalidParams(
       `Expected null or array with at least one valid string HTTPS URL 'blockExplorerUrl'. Received: ${blockExplorerUrls}`,
     );
   }
@@ -101,21 +101,19 @@ const wallet_addEthereumChain = async ({
   const _chainId = typeof chainId === 'string' && chainId.toLowerCase();
 
   if (!isPrefixedFormattedHexString(_chainId)) {
-    throw ethErrors.rpc.invalidParams(
+    throw rpcErrors.invalidParams(
       `Expected 0x-prefixed, unpadded, non-zero hexadecimal string 'chainId'. Received:\n${chainId}`,
     );
   }
 
   if (!isSafeChainId(_chainId)) {
-    throw ethErrors.rpc.invalidParams(
+    throw rpcErrors.invalidParams(
       `Invalid chain ID "${_chainId}": numerical value greater than max safe value. Received:\n${chainId}`,
     );
   }
 
   if (Object.values(ChainId).find((value) => value === _chainId)) {
-    throw ethErrors.rpc.invalidParams(
-      `May not specify default MetaMask chain.`,
-    );
+    throw rpcErrors.invalidParams(`May not specify default MetaMask chain.`);
   }
 
   const networkConfigurations = selectNetworkConfigurations(store.getState());
@@ -154,7 +152,7 @@ const wallet_addEthereumChain = async ({
         MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
         analyticsParams,
       );
-      throw ethErrors.provider.userRejectedRequest();
+      throw providerErrors.userRejectedRequest();
     }
 
     CurrencyRateController.setNativeCurrency(networkConfiguration.ticker);
@@ -174,21 +172,21 @@ const wallet_addEthereumChain = async ({
   try {
     endpointChainId = await jsonRpcRequest(firstValidRPCUrl, 'eth_chainId');
   } catch (err) {
-    throw ethErrors.rpc.internal({
+    throw rpcErrors.internal({
       message: `Request for method 'eth_chainId on ${firstValidRPCUrl} failed`,
       data: { networkErr: err },
     });
   }
 
   if (_chainId !== endpointChainId) {
-    throw ethErrors.rpc.invalidParams({
+    throw rpcErrors.invalidParams({
       message: `Chain ID returned by RPC URL ${firstValidRPCUrl} does not match ${_chainId}`,
       data: { chainId: endpointChainId },
     });
   }
 
   if (typeof rawChainName !== 'string' || !rawChainName) {
-    throw ethErrors.rpc.invalidParams({
+    throw rpcErrors.invalidParams({
       message: `Expected non-empty string 'chainName'. Received:\n${rawChainName}`,
     });
   }
@@ -197,18 +195,18 @@ const wallet_addEthereumChain = async ({
 
   if (nativeCurrency !== null) {
     if (typeof nativeCurrency !== 'object' || Array.isArray(nativeCurrency)) {
-      throw ethErrors.rpc.invalidParams({
+      throw rpcErrors.invalidParams({
         message: `Expected null or object 'nativeCurrency'. Received:\n${nativeCurrency}`,
       });
     }
     if (nativeCurrency.decimals !== EVM_NATIVE_TOKEN_DECIMALS) {
-      throw ethErrors.rpc.invalidParams({
+      throw rpcErrors.invalidParams({
         message: `Expected the number 18 for 'nativeCurrency.decimals' when 'nativeCurrency' is provided. Received: ${nativeCurrency.decimals}`,
       });
     }
 
     if (!nativeCurrency.symbol || typeof nativeCurrency.symbol !== 'string') {
-      throw ethErrors.rpc.invalidParams({
+      throw rpcErrors.invalidParams({
         message: `Expected a string 'nativeCurrency.symbol'. Received: ${nativeCurrency.symbol}`,
       });
     }
@@ -216,7 +214,7 @@ const wallet_addEthereumChain = async ({
   const ticker = nativeCurrency?.symbol || 'ETH';
 
   if (typeof ticker !== 'string' || ticker.length < 2 || ticker.length > 6) {
-    throw ethErrors.rpc.invalidParams({
+    throw rpcErrors.invalidParams({
       message: `Expected 2-6 character string 'nativeCurrency.symbol'. Received:\n${ticker}`,
     });
   }
@@ -251,7 +249,7 @@ const wallet_addEthereumChain = async ({
   );
 
   // Remove all existing approvals, including other add network requests.
-  ApprovalController.clear(ethErrors.provider.userRejectedRequest());
+  ApprovalController.clear(providerErrors.userRejectedRequest());
 
   // If existing approval request was an add network request, wait for
   // it to be rejected and for the corresponding approval flow to be ended.
@@ -270,7 +268,7 @@ const wallet_addEthereumChain = async ({
         MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
         analyticsParamsAdd,
       );
-      throw ethErrors.provider.userRejectedRequest();
+      throw providerErrors.userRejectedRequest();
     }
     const networkConfigurationId =
       await NetworkController.upsertNetworkConfiguration(
