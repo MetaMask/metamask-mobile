@@ -14,7 +14,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
-  AvatarVariant
+  AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
@@ -134,7 +134,7 @@ const createStyles = (colors) =>
       padding: 8,
     },
     footerText: { width: '90%' },
-    footerNetworkAvatar: { padding: 0 }
+    badgeWrapperContainer: { paddingRight: 8, paddingLeft: 2 },
   });
 
 const { HOMEPAGE_URL } = AppConstants;
@@ -163,8 +163,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
     if (providerConfig.nickname) {
       setNetworkName(providerConfig.nickname);
     } else {
-      setNetworkName((Networks[providerConfig.type] && Networks[providerConfig.type].name) ||
-        { ...Networks.rpc, color: null }.name);
+      setNetworkName((Networks[providerConfig.type] && Networks[providerConfig.type].name) || { ...Networks.rpc, color: null }.name);
     }
   }, [providerConfig]);
 
@@ -205,7 +204,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
         </View>
         <View style={styles.footerContainer}>
-          <View style={{ paddingRight: 8, paddingLeft: 2 }}>
+          <View style={styles.badgeWrapperContainer}>
             <BadgeWrapper
               badgeElement={
                 <Badge
