@@ -31,6 +31,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import {
+  getFeatureFlagChainId,
   setSwapsHasOnboarded,
   setSwapsLiveness,
   swapsControllerTokens,
@@ -88,7 +89,6 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { getFeatureFlagChainId } from './SwapsLiveness';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 
 const createStyles = (colors) =>
