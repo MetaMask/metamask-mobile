@@ -1,6 +1,6 @@
 import Engine from '../../../../core/Engine';
 import { useCallback } from 'react';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 import { useSelector } from 'react-redux';
 import { selectPendingApprovals } from '../../../../selectors/approvalController';
 import { cloneDeep, isEqual } from 'lodash';
@@ -36,7 +36,7 @@ const useApprovalRequest = () => {
 
     Engine.rejectPendingApproval(
       approvalRequest.id,
-      ethErrors.provider.userRejectedRequest(),
+      providerErrors.userRejectedRequest(),
     );
   }, [approvalRequest]);
 
