@@ -204,9 +204,11 @@ workflows:
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
                 asdf global nodejs "$NODE_VERSION"
-                echo "Corepack being enabled"
+                echo "Corepack being updated and enabled"
+                corepack -v
+                npm i -g corepack
                 corepack enable
-          title: Install node and enable corepack
+          title: Install node and update/enable corepack
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
