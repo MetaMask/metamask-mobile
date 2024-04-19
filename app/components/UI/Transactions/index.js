@@ -52,7 +52,7 @@ import RetryModal from './RetryModal';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../AssetOverview/PriceChart/PriceChart.context';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -577,7 +577,7 @@ class Transactions extends PureComponent {
   cancelUnsignedQRTransaction = async (tx) => {
     await Engine.context.ApprovalController.reject(
       tx.id,
-      ethErrors.provider.userRejectedRequest(),
+      providerErrors.userRejectedRequest(),
     );
   };
 

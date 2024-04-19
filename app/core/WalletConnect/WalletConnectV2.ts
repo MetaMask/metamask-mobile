@@ -169,7 +169,10 @@ class WalletConnect2Session {
             );
           }
         } catch (error) {
-          Logger.error(`WC2::constructor error while handling request`, error);
+          Logger.error(
+            error as Error,
+            `WC2::constructor error while handling request`,
+          );
         }
       });
     }
@@ -649,7 +652,7 @@ export class WC2Manager {
       await wait(1000);
       this.instance = new WC2Manager(web3Wallet, deeplinkSessions, navigation);
     } catch (error) {
-      Logger.error(`WC2@init() failed to create instance`, error);
+      Logger.error(error as Error, `WC2@init() failed to create instance`);
     }
 
     return this.instance;
@@ -784,7 +787,7 @@ export class WC2Manager {
 
     try {
       await permissionsController.requestPermissions(
-        { origin: url },
+        { origin: id + '' },
         { eth_accounts: {} },
         // { id: undefined }, // Don't set id here, it will be set after session is created, identify via origin.
       );
@@ -800,7 +803,7 @@ export class WC2Manager {
 
     try {
       // use Permission controller
-      const approvedAccounts = await getPermittedAccounts(url);
+      const approvedAccounts = await getPermittedAccounts(id + '');
       // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
       const chainId = selectChainId(store.getState());
       DevLogger.log(
@@ -813,31 +816,6 @@ export class WC2Manager {
         chainId: parseInt(chainId),
         accounts: approvedAccounts,
       });
-
-      // // Create updated Permissions now that session is created
-      // permissionsController.requestPermissions(
-      //   { origin: activeSession.topic },
-      //   { eth_accounts: {} },
-      //   { id: activeSession.topic },
-      // );
-      // const request: PermissionsRequest = {
-      //   permissions: {
-      //     eth_accounts: {},
-      //   },
-      //   metadata: {
-      //     id: activeSession.topic,
-      //     origin: activeSession.topic,
-      //   },
-      //   approvedAccounts,
-      // };
-      // await permissionsController.acceptPermissionsRequest(request);
-      // Remove old permissions
-      // permissionsController.revokeAllPermissions(`${id}`);
-      DevLogger.log(
-        `WC2::session_proposal after permissions cleanup`,
-        permissionsController.state,
-      );
-
       const deeplink =
         typeof this.deeplinkSessions[activeSession.pairingTopic] !==
         'undefined';
