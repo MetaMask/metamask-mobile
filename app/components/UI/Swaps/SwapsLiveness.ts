@@ -10,24 +10,10 @@ import {
 } from '../../../reducers/swaps';
 import Logger from '../../../util/Logger';
 import useInterval from '../../hooks/useInterval';
-import { allowedTestnetChainIds, isSwapsAllowed } from './utils';
+import { isSwapsAllowed } from './utils';
 import { EngineState } from '../../../selectors/types';
-import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 
 const POLLING_FREQUENCY = AppConstants.SWAPS.LIVENESS_POLLING_FREQUENCY;
-
-// If we are in dev and on a testnet, just use mainnet feature flags,
-// since we don't have feature flags for testnets in the API
-// export const getFeatureFlagChainId = (chainId: `0x${string}`) =>
-//   __DEV__ && allowedTestnetChainIds.includes(chainId)
-//     ? NETWORKS_CHAIN_ID.MAINNET
-//     : chainId;
-
-// TODO remove this and restore the above when we are done QA. This is to let ppl test on sepolia
-export const getFeatureFlagChainId = (chainId: `0x${string}`) =>
-  allowedTestnetChainIds.includes(chainId)
-    ? NETWORKS_CHAIN_ID.MAINNET
-    : chainId;
 
 function SwapLiveness() {
   const isLive = useSelector(swapsLivenessSelector);
@@ -42,7 +28,7 @@ function SwapLiveness() {
   const checkLiveness = useCallback(async () => {
     try {
       const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
-        getFeatureFlagChainId(chainId),
+        chainId,
         AppConstants.SWAPS.CLIENT_ID,
       );
 
