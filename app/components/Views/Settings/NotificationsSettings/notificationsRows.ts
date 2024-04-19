@@ -1,5 +1,5 @@
 import { strings } from '../../../../../locales/i18n';
-import { getNotificationBadge } from '../../Notifications/utils';
+import { getNotificationBadge } from '../../../../util/notifications';
 import { NotificationsKinds } from './NotificationsSettings.constants';
 
 const notificationsRows = [

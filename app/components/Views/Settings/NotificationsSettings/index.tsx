@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { camelCase } from 'lodash';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
+import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
 
 import Text, {
   TextVariant,
@@ -27,6 +28,11 @@ import { updateNotificationStatus } from '../../../../actions/notification';
 
 const storage = new MMKV();
 
+/**
+ * TODO: Discuss the granularity of the notifications settings.
+ * i.e. Users can turn off all notifications for a particular account, for all accounts, or some notifications to account A, but not for account B.
+ *
+ */
 interface NotificationsSettingsStoreKey {
   isEnabled: boolean;
   notificationsOpts: {
@@ -99,7 +105,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   useEffect(() => {
     dispatch(updateNotificationStatus(notificationsSettings));
     storage.set(
-      'notifications-settings',
+      STORAGE_IDS.NOTIFICATIONS_SETTINGS,
       JSON.stringify(notificationsSettings),
     );
   }, [dispatch, notificationsSettings]);
@@ -179,7 +185,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
                   },
                 });
                 storage.set(
-                  'notifications-settings',
+                  STORAGE_IDS.NOTIFICATIONS_SETTINGS,
                   JSON.stringify(notificationsSettings),
                 );
               }}
@@ -213,7 +219,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
                   },
                 });
                 storage.set(
-                  'notifications-settings',
+                  STORAGE_IDS.NOTIFICATIONS_SETTINGS,
                   JSON.stringify(notificationsSettings),
                 );
               }}
