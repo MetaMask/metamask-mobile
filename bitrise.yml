@@ -204,11 +204,13 @@ workflows:
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
                 asdf global nodejs "$NODE_VERSION"
+                echo "Yarn being installed with npm"
+                npm i -g "yarn@$YARN_VERSION"
                 echo "Corepack being updated and enabled"
                 corepack -v
                 npm i -g corepack
                 corepack enable
-          title: Install node and update/enable corepack
+          title: Install node / yarn / corepack
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -1343,7 +1345,7 @@ app:
       NODE_VERSION: 18.18.2
     - opts:
         is_expand: false
-      YARN_VERSION: 1.22.19
+      YARN_VERSION: 1.22.22
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
