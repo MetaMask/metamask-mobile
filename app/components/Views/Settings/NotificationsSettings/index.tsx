@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { camelCase } from 'lodash';
@@ -35,15 +35,6 @@ import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/con
  * i.e. Users can turn off all notifications for a particular account, for all accounts, or some notifications to account A, but not for account B.
  *
  */
-interface NotificationsSettingsStoreKey {
-  isEnabled: boolean;
-  notificationsOpts: {
-    [key: string]: boolean;
-  };
-  accounts: {
-    [key: string]: boolean;
-  };
-}
 interface SessionHeaderProps {
   title: string;
   description: string;
