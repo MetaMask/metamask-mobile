@@ -334,22 +334,16 @@ export async function isCollectibleAddress(address, tokenId) {
  *
  * @param {object} transaction - Transaction object
  * @param {string} chainId - Current chainId
- * @param {boolean} isSmartTransactionPending - if there is a smart transaction pending
  * @returns {string} - Corresponding transaction action key
  */
-export async function getTransactionActionKey(
-  transaction,
-  chainId,
-  isSmartTransactionPending,
-) {
+export async function getTransactionActionKey(transaction, chainId) {
   const { transaction: { data, to } = {} } = transaction;
   if (!to) return CONTRACT_METHOD_DEPLOY;
   if (to === getSwapsContractAddress(chainId))
     return SWAPS_TRANSACTION_ACTION_KEY;
   let ret;
   // if data in transaction try to get method data
-  // if there is pending smartTransactions do not try to getMethodData as there is a nonce lock and this will prevent it from showing up on TransactionsView
-  if (data && data !== '0x' && !isSmartTransactionPending) {
+  if (data && data !== '0x') {
     const methodData = await getMethodData(data);
     const { name } = methodData;
     if (name) return name;
@@ -373,21 +367,10 @@ export async function getTransactionActionKey(
  *
  * @param {object} tx - Transaction object
  * @param {string} selectedAddress - Current account public address
- * @param {boolean} isSmartTransactionPending - if there is a smart transaction pending
  * @returns {string} - Transaction type message
  */
-export async function getActionKey(
-  tx,
-  selectedAddress,
-  ticker,
-  chainId,
-  isSmartTransactionPending,
-) {
-  const actionKey = await getTransactionActionKey(
-    tx,
-    chainId,
-    isSmartTransactionPending,
-  );
+export async function getActionKey(tx, selectedAddress, ticker, chainId) {
+  const actionKey = await getTransactionActionKey(tx, chainId);
   if (actionKey === SEND_ETHER_ACTION_KEY) {
     let currencySymbol = ticker;
 

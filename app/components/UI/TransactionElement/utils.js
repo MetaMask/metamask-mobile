@@ -858,26 +858,13 @@ function decodeSwapsTx(args) {
  * Parse transaction with wallet information to render
  *
  * @param {*} args - Should contain tx, selectedAddress, ticker, conversionRate,
- * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens, isSmartTransactionPending
+ * currentCurrency, exchangeRate, contractExchangeRates, collectibleContracts, tokens
  */
 export default async function decodeTransaction(args) {
-  const {
-    tx,
-    selectedAddress,
-    ticker,
-    chainId,
-    swapsTransactions = {},
-    isSmartTransactionPending,
-  } = args;
+  const { tx, selectedAddress, ticker, chainId, swapsTransactions = {} } = args;
   const { isTransfer } = tx || {};
 
-  const actionKey = await getActionKey(
-    tx,
-    selectedAddress,
-    ticker,
-    chainId,
-    isSmartTransactionPending,
-  );
+  const actionKey = await getActionKey(tx, selectedAddress, ticker, chainId);
   let transactionElement, transactionDetails;
 
   if (
