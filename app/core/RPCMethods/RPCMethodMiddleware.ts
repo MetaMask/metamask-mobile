@@ -4,7 +4,7 @@ import {
   createAsyncMiddleware,
   JsonRpcEngineCallbackError,
 } from 'json-rpc-engine';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   EndFlowOptions,
   StartFlowOptions,
@@ -146,14 +146,14 @@ export const checkActiveAccountAndChainId = async ({
       isInvalidAccount = true;
       if (accounts.length > 0) {
         // Permissions issue --- requesting incorrect address
-        throw ethErrors.rpc.invalidParams({
+        throw rpcErrors.invalidParams({
           message: `Invalid parameters: must provide a permitted Ethereum address.`,
         });
       }
     }
 
     if (isInvalidAccount) {
-      throw ethErrors.rpc.invalidParams({
+      throw rpcErrors.invalidParams({
         message: `Invalid parameters: must provide an Ethereum address.`,
       });
     }
@@ -190,7 +190,7 @@ export const checkActiveAccountAndChainId = async ({
       Alert.alert(
         `Active chainId is ${activeChainId} but received ${chainIdRequest}`,
       );
-      throw ethErrors.rpc.invalidParams({
+      throw rpcErrors.invalidParams({
         message: `Invalid parameters: active chainId is different than the one provided.`,
       });
     }
@@ -208,8 +208,23 @@ const generateRawSignature = async ({
   chainId,
   channelId,
   getSource,
+  isWalletConnect,
   checkTabActive,
-}: any) => {
+}: {
+  version: string;
+  req: any;
+  hostname: string;
+  url: { current: string };
+  title: { current: string };
+  icon: { current: string | undefined };
+  analytics: { [key: string]: string | boolean };
+  chainId: number;
+  isMMSDK: boolean;
+  channelId?: string;
+  getSource: () => string;
+  isWalletConnect: boolean;
+  checkTabActive: any;
+}) => {
   const { SignatureController } = Engine.context;
 
   const pageMeta = {
@@ -230,7 +245,7 @@ const generateRawSignature = async ({
     channelId,
     address: req.params[0],
     chainId,
-    isWalletConnect: false,
+    isWalletConnect,
   });
 
   const rawSig = await SignatureController.newUnsignedTypedMessage(
@@ -302,7 +317,7 @@ export const getRpcMethodMiddleware = ({
       if (!tabId) return true;
       const { browser } = store.getState();
       if (tabId !== browser.activeTab)
-        throw ethErrors.provider.userRejectedRequest();
+        throw providerErrors.userRejectedRequest();
     };
 
     const getSource = () => {
@@ -315,7 +330,7 @@ export const getRpcMethodMiddleware = ({
     const startApprovalFlow = (opts: StartFlowOptions) => {
       checkTabActive();
       Engine.context.ApprovalController.clear(
-        ethErrors.provider.userRejectedRequest(),
+        providerErrors.userRejectedRequest(),
       );
 
       return Engine.context.ApprovalController.startFlow(opts);
@@ -333,7 +348,7 @@ export const getRpcMethodMiddleware = ({
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
       checkTabActive();
       await Engine.context.ApprovalController.clear(
-        ethErrors.provider.userRejectedRequest(),
+        providerErrors.userRejectedRequest(),
       );
 
       const responseData = await Engine.context.ApprovalController.add({
@@ -378,7 +393,7 @@ export const getRpcMethodMiddleware = ({
             },
           );
           handle?.catch((error) => {
-            Logger.error('Failed to get permissions', error);
+            Logger.error(error as Error, 'Failed to get permissions');
           });
         }),
       wallet_requestPermissions: async () =>
@@ -513,7 +528,7 @@ export const getRpcMethodMiddleware = ({
           } catch (error) {
             DevLogger.log(`eth_requestAccounts error`, error);
             if (error) {
-              throw ethErrors.provider.userRejectedRequest(
+              throw providerErrors.userRejectedRequest(
                 'User denied account authorization.',
               );
             }
@@ -561,7 +576,7 @@ export const getRpcMethodMiddleware = ({
       eth_signTransaction: async () => {
         // This is implemented later in our middleware stack – specifically, in
         // eth-json-rpc-middleware – but our UI does not support it.
-        throw ethErrors.rpc.methodNotSupported();
+        throw rpcErrors.methodNotSupported();
       },
       eth_sign: async () => {
         const { SignatureController, PreferencesController } = Engine.context;
@@ -569,7 +584,7 @@ export const getRpcMethodMiddleware = ({
         const { eth_sign } = disabledRpcMethodPreferences;
 
         if (!eth_sign) {
-          throw ethErrors.rpc.methodNotFound(
+          throw rpcErrors.methodNotFound(
             'eth_sign has been disabled. You must enable it in the advanced settings',
           );
         }
@@ -605,7 +620,7 @@ export const getRpcMethodMiddleware = ({
           res.result = rawSig;
         } else {
           res.result = AppConstants.ETH_SIGN_ERROR;
-          throw ethErrors.rpc.invalidParams(AppConstants.ETH_SIGN_ERROR);
+          throw rpcErrors.invalidParams(AppConstants.ETH_SIGN_ERROR);
         }
       },
 
@@ -782,7 +797,7 @@ export const getRpcMethodMiddleware = ({
               resolve();
             },
             onScanError: (e: { toString: () => any }) => {
-              throw ethErrors.rpc.internal(e.toString());
+              throw rpcErrors.internal(e.toString());
             },
           });
         }),
@@ -793,7 +808,7 @@ export const getRpcMethodMiddleware = ({
       metamask_removeFavorite: async () => {
         checkTabActive();
         if (!isHomepage()) {
-          throw ethErrors.provider.unauthorized('Forbidden.');
+          throw providerErrors.unauthorized('Forbidden.');
         }
 
         const { bookmarks } = store.getState();
@@ -836,7 +851,7 @@ export const getRpcMethodMiddleware = ({
       metamask_showTutorial: async () => {
         checkTabActive();
         if (!isHomepage()) {
-          throw ethErrors.provider.unauthorized('Forbidden.');
+          throw providerErrors.unauthorized('Forbidden.');
         }
         wizardScrollAdjusted.current = false;
 
@@ -850,7 +865,7 @@ export const getRpcMethodMiddleware = ({
       metamask_showAutocomplete: async () => {
         checkTabActive();
         if (!isHomepage()) {
-          throw ethErrors.provider.unauthorized('Forbidden.');
+          throw providerErrors.unauthorized('Forbidden.');
         }
         fromHomepage.current = true;
         toggleUrlModal(true);

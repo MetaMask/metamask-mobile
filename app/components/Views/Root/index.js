@@ -42,7 +42,8 @@ export default class Root extends PureComponent {
   constructor(props) {
     super(props);
     if (props.foxCode === '') {
-      Logger.error('WARN - foxCode is an empty string');
+      const foxCodeError = new Error('WARN - foxCode is an empty string');
+      Logger.error(foxCodeError);
     }
     SecureKeychain.init(props.foxCode);
     // Init EntryScriptWeb3 asynchronously on the background
