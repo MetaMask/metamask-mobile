@@ -11,12 +11,24 @@ export default function parseRampIntent(pathParams: Record<string, string | unde
   };
 
   // return with undefined if the pathParams do not contain necessary fields
-  if (!rampIntent.address && !rampIntent.chainId && !rampIntent.amount && !rampIntent.currency) {
+  if (
+    !rampIntent.address &&
+    !rampIntent.chainId &&
+    !rampIntent.amount &&
+    !rampIntent.currency
+  ) {
     return undefined;
   }
 
-  Object.keys(rampIntent).forEach((key) =>
-    rampIntent[key as keyof RampIntent] === undefined && delete rampIntent[key as keyof RampIntent]);
+  if (rampIntent.address && !rampIntent.chainId) {
+    rampIntent.chainId = '1';
+  }
+
+  Object.keys(rampIntent).forEach(
+    (key) =>
+      rampIntent[key as keyof RampIntent] === undefined &&
+      delete rampIntent[key as keyof RampIntent],
+  );
 
   return rampIntent;
 }
