@@ -237,13 +237,7 @@ export function getRowDetails(
             }),
             value: `${notification.data.amount.eth} ETH`,
           },
-          details: {
-            // from: notification.data.from,
-            // to: notification.data.to,
-            // status: notification.tx_hash,
-            // asset:,
-            // network: getNetwork(notification.chain_id),
-          },
+          details: {},
         };
       case 'erc20_sent':
       case 'erc20_received':
