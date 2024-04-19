@@ -93,7 +93,8 @@ async function reconnect({
 
     // issue can happen during dev because bundle takes too long to load via metro.
     // should not happen but keeping it for reference / debug purpose.
-    console.warn(`Already connecting --- Priotity to deeplink`);
+    console.warn(`BUNDLE WARNING: Already connecting --- Priotity to deeplink`);
+    // instance.removeChannel({ channelId, sendTerminate: true });
   }
   if (!instance.state.connections[channelId]) {
     interruptReason = 'no connection';

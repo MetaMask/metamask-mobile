@@ -120,25 +120,16 @@ export const checkActiveAccountAndChainId = async ({
       hostname,
       formattedAddress,
     });
-    const validHostname = hostname?.replace(
-      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-      '',
-    );
 
     const permissionsController = (
       Engine.context as { PermissionController: PermissionController<any, any> }
     ).PermissionController;
     DevLogger.log(
-      `checkActiveAccountAndChainId channelId=${channelId} isWalletConnect=${isWalletConnect} validHostname=${validHostname}`,
+      `checkActiveAccountAndChainId channelId=${channelId} isWalletConnect=${isWalletConnect} hostname=${hostname}`,
       permissionsController.state,
     );
 
-    let accounts: string[] = [];
-    if (isWalletConnect) {
-      accounts = await getPermittedAccounts(validHostname);
-    } else {
-      accounts = (await getPermittedAccounts(channelId ?? validHostname)) ?? [];
-    }
+    const accounts = (await getPermittedAccounts(channelId ?? hostname)) ?? [];
 
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
@@ -294,22 +285,18 @@ export const getRpcMethodMiddleware = ({
   injectHomePageScripts,
   // For analytics
   analytics,
-}: RPCMethodsMiddleParameters) =>
+}: RPCMethodsMiddleParameters) => {
+  // Make sure to always have the correct origin
+  hostname = hostname.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+  DevLogger.log(
+    `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId}`,
+  );
   // all user facing RPC calls not implemented by the provider
-  createAsyncMiddleware(async (req: any, res: any, next: any) => {
+  return createAsyncMiddleware(async (req: any, res: any, next: any) => {
     // Used by eth_accounts and eth_coinbase RPCs.
     const getEthAccounts = async () => {
-      let accounts: string[] = [];
-      const validHostname = hostname.replace(
-        AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-        '',
-      );
-      if (isMMSDK) {
-        accounts =
-          (await getPermittedAccounts(channelId ?? validHostname)) ?? [];
-      } else {
-        accounts = await getPermittedAccounts(validHostname);
-      }
+      const accounts: string[] =
+        (await getPermittedAccounts(channelId ?? hostname)) ?? [];
       res.result = accounts;
     };
 
@@ -388,7 +375,7 @@ export const getRpcMethodMiddleware = ({
               getPermissionsForOrigin:
                 Engine.context.PermissionController.getPermissions.bind(
                   Engine.context.PermissionController,
-                  hostname,
+                  channelId ?? hostname,
                 ),
             },
           );
@@ -398,14 +385,6 @@ export const getRpcMethodMiddleware = ({
         }),
       wallet_requestPermissions: async () =>
         new Promise<any>((resolve, reject) => {
-          let requestId: string | undefined;
-          if (isMMSDK) {
-            // Extract id from hostname
-            requestId = hostname.replace(
-              AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-              '',
-            );
-          }
           requestPermissionsHandler
             .implementation(
               req,
@@ -421,9 +400,8 @@ export const getRpcMethodMiddleware = ({
                 requestPermissionsForOrigin:
                   Engine.context.PermissionController.requestPermissions.bind(
                     Engine.context.PermissionController,
-                    { origin: requestId ?? hostname },
+                    { origin: channelId ?? hostname },
                     req.params[0],
-                    { id: requestId },
                   ),
               },
             )
@@ -486,12 +464,8 @@ export const getRpcMethodMiddleware = ({
       },
       eth_requestAccounts: async () => {
         const { params } = req;
-        const validHostname = hostname.replace(
-          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-          '',
-        );
         const permittedAccounts = await getPermittedAccounts(
-          channelId ?? validHostname,
+          channelId ?? hostname,
         );
 
         if (!params?.force && permittedAccounts.length) {
@@ -500,7 +474,7 @@ export const getRpcMethodMiddleware = ({
           try {
             checkTabActive();
             await Engine.context.PermissionController.requestPermissions(
-              { origin: channelId ?? validHostname },
+              { origin: channelId ?? hostname },
               { eth_accounts: {} },
               {
                 preserveExistingPermissions: true,
@@ -525,16 +499,6 @@ export const getRpcMethodMiddleware = ({
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
-
-        if (isMMSDK) {
-          // Append origin to the request so it can be parsed in UI TransactionHeader
-          DevLogger.log(
-            `SDK Transaction detected --- custom hostname -- ${hostname} --> ${
-              AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + url.current
-            }`,
-          );
-          hostname = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + url.current;
-        }
 
         return RPCMethods.eth_sendTransaction({
           hostname,
@@ -643,6 +607,7 @@ export const getRpcMethodMiddleware = ({
           isWalletConnect,
         });
 
+        DevLogger.log(`personal_sign`, params, pageMeta, hostname);
         PPOMUtil.validateRequest(req);
 
         const rawSig = await SignatureController.newUnsignedPersonalMessage({
@@ -875,16 +840,7 @@ export const getRpcMethodMiddleware = ({
        */
       metamask_getProviderState: async () => {
         let accounts: string[] = [];
-        const validHostname = hostname.replace(
-          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-          '',
-        );
-        if (isMMSDK) {
-          accounts =
-            (await getPermittedAccounts(channelId ?? validHostname)) ?? [];
-        } else {
-          accounts = await getPermittedAccounts(validHostname);
-        }
+        accounts = (await getPermittedAccounts(channelId ?? hostname)) ?? [];
         res.result = {
           ...getProviderState(),
           accounts,
@@ -956,4 +912,5 @@ export const getRpcMethodMiddleware = ({
       throw e;
     }
   });
+};
 export default getRpcMethodMiddleware;

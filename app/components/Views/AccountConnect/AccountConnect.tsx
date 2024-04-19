@@ -110,7 +110,9 @@ const AccountConnect = (props: AccountConnectProps) => {
       : AvatarAccountType.JazzIcon,
   );
 
-  const { id: channelId, origin: metadataOrigin } = hostInfo.metadata as {
+  // on inappBrowser: hostname
+  // on sdk or walletconnect: channelId
+  const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
   };
@@ -121,7 +123,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [hostname, setHostname] = useState<string>(origin);
 
   const urlWithProtocol = prefixUrlWithProtocol(hostname);
-  const sdkConnection = SDKConnect.getInstance().getConnection({ channelId });
+  const sdkConnection = SDKConnect.getInstance().getConnection({
+    channelId: channelIdOrHostname,
+  });
   // Last wallet connect session metadata
   const wc2Metadata = useSelector((state: RootState) => state.sdk.wc2Metadata);
 
@@ -177,22 +181,23 @@ const AccountConnect = (props: AccountConnectProps) => {
     // sdk channelId format: uuid
     // inappbrowser channelId format: app.uniswap.io
     DevLogger.log(
-      `AccountConnect::loadHostname channelId=${channelId} hostname=${hostname} origin=${origin}`,
+      `AccountConnect::loadHostname hostname=${hostname} origin=${origin} metadataOrigin=${channelIdOrHostname}`,
+      sdkConnection,
     );
     // check if channelId contains dot, it comes from in-app browser and we can use it.
-    if (channelId.indexOf('.') !== -1) {
+    if (channelIdOrHostname.indexOf('.') !== -1) {
       return origin;
     }
 
     if (sdkConnection) {
       const _hostname = (
-        sdkConnection?.originatorInfo?.url ?? metadataOrigin
+        sdkConnection?.originatorInfo?.url ?? channelIdOrHostname
       ).replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
       return _hostname;
     }
 
-    return wc2Metadata?.url ?? channelId;
-  }, [channelId, hostname, metadataOrigin, sdkConnection, origin, wc2Metadata]);
+    return wc2Metadata?.url ?? channelIdOrHostname;
+  }, [hostname, channelIdOrHostname, sdkConnection, origin, wc2Metadata]);
 
   // Retrieve hostname info based on channelId
   useEffect(() => {
@@ -215,10 +220,10 @@ const AccountConnect = (props: AccountConnectProps) => {
   const cancelPermissionRequest = useCallback(
     (requestId) => {
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
-      if (channelId && accountsLength === 0) {
+      if (channelIdOrHostname && accountsLength === 0) {
         // Remove Potential SDK connection
         SDKConnect.getInstance().removeChannel({
-          channelId,
+          channelId: channelIdOrHostname,
           sendTerminate: true,
         });
       }
@@ -231,7 +236,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     [
       Engine.context.PermissionController,
       accountsLength,
-      channelId,
+      channelIdOrHostname,
       trackEvent,
     ],
   );
@@ -291,7 +296,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       ...hostInfo,
       metadata: {
         ...hostInfo.metadata,
-        origin: metadataOrigin,
+        origin: channelIdOrHostname,
       },
       approvedAccounts: selectedAccounts,
     };
@@ -354,7 +359,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     Engine.context.PermissionController,
     toastRef,
     accountsLength,
-    metadataOrigin,
+    channelIdOrHostname,
     triggerDappViewedEvent,
     trackEvent,
   ]);

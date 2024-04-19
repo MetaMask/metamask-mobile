@@ -51,7 +51,14 @@ export const checkPermissions = async ({
   );
 
   if (approved) {
-    connection.approvalPromise = undefined;
+    return true;
+  }
+
+  DevLogger.log(
+    `checkPermissions channelWasActiveRecently=${channelWasActiveRecently} OTPExpirationDuration=${OTPExpirationDuration}`,
+  );
+
+  if (channelWasActiveRecently) {
     return true;
   }
 
@@ -75,7 +82,6 @@ export const checkPermissions = async ({
         `checkPermissions approvalPromise exists completed -- allowed`,
         allowed,
       );
-      connection.approvalPromise = undefined;
       // Add delay for backgroundBridge to complete setup
       await wait(300);
       return allowed;
@@ -87,14 +93,27 @@ export const checkPermissions = async ({
     connection.revalidate({ channelId: connection.channelId });
   }
 
-  DevLogger.log(
-    `checkPermissions channelWasActiveRecently=${channelWasActiveRecently} OTPExpirationDuration=${OTPExpirationDuration}`,
-  );
-  if (channelWasActiveRecently) {
-    return true;
-  }
-
   try {
+    const accountPermission = permissionsController.getPermission(
+      connection.channelId,
+      'eth_accounts',
+    );
+    if (accountPermission) {
+      DevLogger.log(
+        `checkPermissions accountPermission exists but not active recently -- REVOKE + ASK AGAIN`,
+      );
+      try {
+        // Revoke and ask again
+        permissionsController.revokePermission(
+          connection.channelId,
+          'eth_accounts',
+        );
+      } catch (err) {
+        // Ignore error if permission is not found
+        console.warn(`checkPermissions revokePermission error`, err);
+      }
+    }
+
     connection.approvalPromise = permissionsController.requestPermissions(
       { origin: connection.channelId },
       { eth_accounts: {} },
@@ -106,10 +125,9 @@ export const checkPermissions = async ({
     await connection.approvalPromise;
     // Clear previous permissions if already approved.
     connection.revalidate({ channelId: connection.channelId });
-    connection.approvalPromise = undefined;
     return true;
   } catch (err) {
-    DevLogger.log(`checkPermissions error`, err);
+    console.warn(`checkPermissions error`, err);
     connection.approvalPromise = undefined;
     throw err;
   }

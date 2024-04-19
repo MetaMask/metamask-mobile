@@ -256,7 +256,6 @@ export default class AndroidService extends EventEmitter2 {
     return permissionsController.requestPermissions(
       { origin: channelId },
       { eth_accounts: {} },
-      { id: channelId },
     );
   }
 
