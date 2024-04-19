@@ -476,12 +476,9 @@ export const getRpcMethodMiddleware = ({
             await Engine.context.PermissionController.requestPermissions(
               { origin: channelId ?? hostname },
               { eth_accounts: {} },
-              {
-                preserveExistingPermissions: true,
-              },
             );
             DevLogger.log(`eth_requestAccounts requestPermissions`);
-            const acc = await getPermittedAccounts(hostname);
+            const acc = await getPermittedAccounts(channelId ?? hostname);
             DevLogger.log(`eth_requestAccounts getPermittedAccounts`, acc);
             res.result = acc;
           } catch (error) {

@@ -98,29 +98,15 @@ export const checkPermissions = async ({
       connection.channelId,
       'eth_accounts',
     );
-    if (accountPermission) {
-      DevLogger.log(
-        `checkPermissions accountPermission exists but not active recently -- REVOKE + ASK AGAIN`,
+    if (!accountPermission) {
+      connection.approvalPromise = permissionsController.requestPermissions(
+        { origin: connection.channelId },
+        { eth_accounts: {} },
+        {
+          preserveExistingPermissions: false,
+        },
       );
-      try {
-        // Revoke and ask again
-        permissionsController.revokePermission(
-          connection.channelId,
-          'eth_accounts',
-        );
-      } catch (err) {
-        // Ignore error if permission is not found
-        console.warn(`checkPermissions revokePermission error`, err);
-      }
     }
-
-    connection.approvalPromise = permissionsController.requestPermissions(
-      { origin: connection.channelId },
-      { eth_accounts: {} },
-      {
-        preserveExistingPermissions: true,
-      },
-    );
 
     await connection.approvalPromise;
     // Clear previous permissions if already approved.
