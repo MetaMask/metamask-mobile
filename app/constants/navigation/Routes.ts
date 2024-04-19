@@ -116,6 +116,7 @@ const Routes = {
   LOCK_SCREEN: 'LockScreen',
   NOTIFICATIONS: {
     OPT_IN: 'OptIn',
+    OPT_IN_STACK: 'OptInStack',
   },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {

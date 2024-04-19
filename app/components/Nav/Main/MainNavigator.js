@@ -229,7 +229,7 @@ const SnapsSettingsStack = () => (
 ///: END:ONLY_INCLUDE_IF
 
 const NotificationsOptInStack = () => (
-  <Stack.Navigator initialRouteName={'NotificationsOptIn'}>
+  <Stack.Navigator initialRouteName={Routes.NOTIFICATIONS.OPT_IN}>
     <Stack.Screen
       mode={'modal'}
       name={Routes.NOTIFICATIONS.OPT_IN}
@@ -238,7 +238,7 @@ const NotificationsOptInStack = () => (
     />
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
-      component={Routes.SETTINGS.NOTIFICATIONS}
+      component={NotificationsSettings}
       options={NotificationsSettings.navigationOptions}
     />
   </Stack.Navigator>
@@ -335,6 +335,11 @@ const SettingsFlow = () => (
       name="EnterPasswordSimple"
       component={EnterPasswordSimple}
       options={EnterPasswordSimple.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.SETTINGS.NOTIFICATIONS}
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
     />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -573,6 +578,27 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
+const NotificationsModeView = (props) => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name={Routes.SETTINGS.NOTIFICATIONS}
+      component={NotificationsSettings}
+      options={NotificationsSettings.navigationOptions}
+    />
+    <Stack.Screen
+      mode={'modal'}
+      name="NotificationsOptIn"
+      component={OptIn}
+      options={OptIn.navigationOptions}
+    />
+    <Stack.Screen
+      name="ContactForm"
+      component={ContactForm}
+      options={ContactForm.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const Swaps = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -676,6 +702,7 @@ const MainNavigator = () => (
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
+    <Stack.Screen name="NotificationsView" component={NotificationsModeView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
       {() => <RampRoutes rampType={RampType.BUY} />}
     </Stack.Screen>
@@ -697,7 +724,7 @@ const MainNavigator = () => (
       headerStyle={{ borderBottomWidth: 0 }}
     />
     <Stack.Screen
-      name="NotificationsOptInStack"
+      name={Routes.NOTIFICATIONS.OPT_IN_STACK}
       component={NotificationsOptInStack}
       options={NotificationsOptInStack.navigationOptions}
     />

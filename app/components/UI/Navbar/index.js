@@ -971,7 +971,7 @@ export function getWalletNavbarOptions(
     if (isNotificationEnabled) {
       // [ATTENTION]: will navigate to Notifications screen. Notifications screen will be implemented on a diff PR.
     } else {
-      navigation.navigate(Routes.NOTIFICATIONS.OPT_IN);
+      navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
     }
   }
 
