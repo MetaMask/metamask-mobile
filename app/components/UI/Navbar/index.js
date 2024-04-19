@@ -90,7 +90,6 @@ const styles = StyleSheet.create({
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
   infoButton: {
-    paddingRight: Device.isAndroid() ? 22 : 18,
     marginTop: 5,
   },
   disabled: {
