@@ -1,17 +1,16 @@
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
-import { getNotificationBadge } from '../../../../util/notifications';
-import { NotificationsKinds } from './NotificationsSettings.constants';
 
 const notificationsRows = [
   {
-    icon: getNotificationBadge(NotificationsKinds.SENT),
+    icon: IconName.Arrow2Upright,
     title: strings(`app_settings.notifications_opts.assets_sent_title`),
     description: strings(`app_settings.notifications_opts.assets_sent_desc`),
     disabled: false,
     value: true,
   },
   {
-    icon: getNotificationBadge(NotificationsKinds.RECEIVED),
+    icon: IconName.Received,
     title: strings(`app_settings.notifications_opts.assets_received_title`),
     description: strings(
       `app_settings.notifications_opts.assets_received_desc`,
@@ -20,21 +19,21 @@ const notificationsRows = [
     value: true,
   },
   {
-    icon: getNotificationBadge(NotificationsKinds.DEFI),
+    icon: IconName.Plant,
     title: strings(`app_settings.notifications_opts.defi_title`),
     description: strings(`app_settings.notifications_opts.defi_desc`),
     disabled: false,
     value: true,
   },
   {
-    icon: getNotificationBadge(NotificationsKinds.SNAPS),
+    icon: IconName.SwapHorizontal,
     title: strings(`app_settings.notifications_opts.snaps_title`),
     description: strings(`app_settings.notifications_opts.snaps_desc`),
     disabled: false,
     value: true,
   },
   {
-    icon: getNotificationBadge(NotificationsKinds.PRODUCTS_ANNOUNCEMENTS),
+    icon: IconName.Sparkle,
     title: strings(
       `app_settings.notifications_opts.products_announcements_title`,
     ),
