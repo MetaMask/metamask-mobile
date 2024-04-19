@@ -8,7 +8,6 @@ import {
   createMockUUIDFromAddress,
 } from '../../../selectors/accountsController.test';
 
-
 const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 
 const expectedUUID = createMockUUIDFromAddress(MOCK_ADDRESS);

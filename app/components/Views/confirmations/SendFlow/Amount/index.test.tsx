@@ -13,7 +13,10 @@ import {
   TRANSACTION_AMOUNT_INPUT,
 } from '../../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
-import { createMockInternalAccount, createMockUUIDFromAddress } from '../../../../../selectors/accountsController.test';
+import {
+  createMockInternalAccount,
+  createMockUUIDFromAddress,
+} from '../../../../../selectors/accountsController.test';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 
 const mockEngine = Engine;

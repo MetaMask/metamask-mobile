@@ -2,7 +2,10 @@ import React from 'react';
 import AccountInfoCard from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import { createMockInternalAccount, createMockUUIDFromAddress } from '../../../selectors/accountsController.test';
+import {
+  createMockInternalAccount,
+  createMockUUIDFromAddress,
+} from '../../../selectors/accountsController.test';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 
 jest.mock('../../../core/Engine', () => ({
