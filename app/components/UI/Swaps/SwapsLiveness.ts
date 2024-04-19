@@ -55,6 +55,11 @@ function SwapLiveness() {
     }
   }, [setLiveness, chainId]);
 
+  // Need to check swap feature flags once on load, so we can use it for STX
+  useEffect(() => {
+    checkLiveness();
+  }, [checkLiveness]);
+
   useEffect(() => {
     if (isSwapsAllowed(chainId) && !isLive) {
       checkLiveness();
