@@ -56,10 +56,8 @@ import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../../selectors/preferencesController';
+import { selectIdentities } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../../selectors/accountsController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 
@@ -770,7 +768,7 @@ const mapStateToProps = (state) => ({
   tokens: selectTokens(state),
   chainId: selectChainId(state),
   identities: selectIdentities(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountAddressAsChecksum(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
   tokenList: selectTokenList(state),
 });
