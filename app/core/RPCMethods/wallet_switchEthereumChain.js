@@ -11,7 +11,7 @@ import {
   selectNetworkConfigurations,
 } from '../../selectors/networkController';
 import { store } from '../../store';
-import { isSafeChainId } from '@metamask/controller-utils';
+import { NetworksTicker, isSafeChainId } from '@metamask/controller-utils';
 
 const wallet_switchEthereumChain = async ({
   req,
@@ -112,7 +112,7 @@ const wallet_switchEthereumChain = async ({
       CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
       NetworkController.setActiveNetwork(networkConfigurationId);
     } else {
-      CurrencyRateController.updateExchangeRate('ETH');
+      CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
       NetworkController.setProviderType(existingNetworkDefault.networkType);
     }
 
