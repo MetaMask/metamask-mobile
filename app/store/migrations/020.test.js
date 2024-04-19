@@ -248,4 +248,45 @@ describe('Migration #20', () => {
       },
     });
   });
+
+  it('should convert networkConfigurations to an empty object if frequentRpcList is an empty array', () => {
+    v4.mockImplementationOnce(() => 'networkId1');
+    const oldState = {
+      foo: 'bar',
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            network: 'loading',
+          },
+          OtherController: {
+            foo: 'bar',
+          },
+          PreferencesController: {
+            foo: 'bar',
+            frequentRpcList: [],
+          },
+        },
+      },
+    };
+
+    const newState = migrate(oldState);
+
+    expect(newState).toStrictEqual({
+      foo: 'bar',
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            network: 'loading',
+            networkConfigurations: {},
+          },
+          OtherController: {
+            foo: 'bar',
+          },
+          PreferencesController: {
+            foo: 'bar',
+          },
+        },
+      },
+    });
+  });
 });

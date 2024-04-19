@@ -136,7 +136,6 @@ class FixtureBuilder {
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
-              networkId: '1',
               providerConfig: {
                 type: 'mainnet',
                 chainId: '0x1',
@@ -344,6 +343,7 @@ class FixtureBuilder {
               gasFeeEstimates: {},
               estimatedGasFeeTimeBounds: {},
               gasEstimateType: 'none',
+              gasFeeEstimatesByChainId: {},
             },
             TokenDetectionController: {},
             NftDetectionController: {},
@@ -577,6 +577,9 @@ class FixtureBuilder {
         },
         experimentalSettings: {
           securityAlertsEnabled: true,
+        },
+        inpageProvider: {
+          networkId: '1',
         },
       },
       asyncState: {
