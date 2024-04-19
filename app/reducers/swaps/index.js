@@ -8,6 +8,21 @@ import { selectChainId } from '../../selectors/networkController';
 import { selectTokens } from '../../selectors/tokensController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
 import { getChainFeatureFlags, getSwapsLiveness } from './utils';
+import { allowedTestnetChainIds } from '../../components/UI/Swaps/utils';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
+
+// If we are in dev and on a testnet, just use mainnet feature flags,
+// since we don't have feature flags for testnets in the API
+// export const getFeatureFlagChainId = (chainId: `0x${string}`) =>
+//   __DEV__ && allowedTestnetChainIds.includes(chainId)
+//     ? NETWORKS_CHAIN_ID.MAINNET
+//     : chainId;
+
+// TODO remove this and restore the above when we are done QA. This is to let ppl test on sepolia
+export const getFeatureFlagChainId = (chainId) =>
+  allowedTestnetChainIds.includes(chainId)
+    ? NETWORKS_CHAIN_ID.MAINNET
+    : chainId;
 
 // * Constants
 export const SWAPS_SET_LIVENESS = 'SWAPS_SET_LIVENESS';
@@ -235,18 +250,22 @@ export const initialState = {
 function swapsReducer(state = initialState, action) {
   switch (action.type) {
     case SWAPS_SET_LIVENESS: {
-      const { chainId, featureFlags } = action.payload;
+      const { chainId: rawChainId, featureFlags } = action.payload;
+      const chainId = getFeatureFlagChainId(rawChainId);
 
       const data = state[chainId];
+
+      const chainNoFlags = {
+        ...data,
+        featureFlags: undefined,
+        isLive: false,
+      };
 
       if (!featureFlags) {
         return {
           ...state,
-          [chainId]: {
-            ...data,
-            featureFlags: undefined,
-            isLive: false,
-          },
+          [chainId]: chainNoFlags,
+          [rawChainId]: chainNoFlags,
           featureFlags: undefined,
         };
       }
@@ -254,13 +273,16 @@ function swapsReducer(state = initialState, action) {
       const chainFeatureFlags = getChainFeatureFlags(featureFlags, chainId);
       const liveness = getSwapsLiveness(featureFlags, chainId);
 
+      const chain = {
+        ...data,
+        featureFlags: chainFeatureFlags,
+        isLive: liveness,
+      };
+
       return {
         ...state,
-        [chainId]: {
-          ...data,
-          featureFlags: chainFeatureFlags,
-          isLive: liveness,
-        },
+        [chainId]: chain,
+        [rawChainId]: chain,
         featureFlags: {
           smart_transactions: featureFlags.smart_transactions,
           smartTransactions: featureFlags.smartTransactions,
