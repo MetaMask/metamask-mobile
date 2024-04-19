@@ -205,9 +205,8 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
         </View>
         <View style={styles.footerContainer}>
-          <View style={{ paddingRight: 8 }}>
+          <View style={{ paddingRight: 8, paddingLeft: 2 }}>
             <BadgeWrapper
-              style={{ borderWidth: 2, borderColor: colors.background.default }}
               badgeElement={
                 <Badge
                   variant={BadgeVariant.Network}
