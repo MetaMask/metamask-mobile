@@ -1557,6 +1557,7 @@
     "network_block_explorer_url": "Block Explorer URL",
     "search": "Search for previously added network",
     "add": "Add",
+    "continue": "Continue",
     "cancel": "Cancel",
     "approve": "Approve",
     "edit_network_details": "Edit network details",

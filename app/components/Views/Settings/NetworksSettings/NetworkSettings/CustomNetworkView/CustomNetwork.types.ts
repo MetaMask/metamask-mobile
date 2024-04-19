@@ -59,4 +59,8 @@ export interface CustomNetworkProps {
    * List of custom networks
    */
   customNetworksList?: Network[];
+  /**
+   * Display "Continue" for selected networks
+   */
+  displayContinue?: boolean;
 }

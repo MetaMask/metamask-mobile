@@ -36,6 +36,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
 import PopularList from '../../../../../util/networks/customNetworks';
+import { getDecimalChainId } from '../../../../../util/networks';
 
 function NetworkSwitcher() {
   const navigation = useNavigation();
@@ -53,7 +54,7 @@ function NetworkSwitcher() {
   } = useRampNetworksDetail();
   const supportedNetworks = useSelector(getRampNetworks);
   const [isCurrentNetworkRampSupported] = useRampNetwork();
-  const { selectedChainId, isBuy } = useRampSDK();
+  const { selectedChainId, isBuy, intent } = useRampSDK();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const [networkToBeAdded, setNetworkToBeAdded] = useState<Network>();
@@ -126,16 +127,18 @@ function NetworkSwitcher() {
     );
   }, [isBuy, navigation, colors, handleCancelPress]);
 
-  useEffect(() => {
-    if (isCurrentNetworkRampSupported) {
-      navigation.navigate(Routes.RAMP.GET_STARTED);
-    }
-  }, [isCurrentNetworkRampSupported, navigation]);
+  const navigateToGetStarted = useCallback(() => {
+    navigation.navigate(Routes.RAMP.GET_STARTED, { chainId: undefined });
+  }, [navigation]);
 
-  const switchToMainnet = useCallback((type: 'mainnet' | 'linea-mainnet') => {
-    const { NetworkController } = Engine.context;
-    NetworkController.setProviderType(type as NetworkType);
-  }, []);
+  const switchToMainnet = useCallback(
+    (type: 'mainnet' | 'linea-mainnet') => {
+      const { NetworkController } = Engine.context;
+      NetworkController.setProviderType(type as NetworkType);
+      navigateToGetStarted();
+    },
+    [navigateToGetStarted],
+  );
 
   const switchNetwork = useCallback(
     (networkConfiguration) => {
@@ -150,9 +153,10 @@ function NetworkSwitcher() {
 
         CurrencyRateController.setNativeCurrency(ticker);
         NetworkController.setActiveNetwork(networkConfigurationId);
+        navigateToGetStarted();
       }
     },
-    [networkConfigurations],
+    [navigateToGetStarted, networkConfigurations],
   );
 
   const handleNetworkPress = useCallback(
@@ -165,6 +169,65 @@ function NetworkSwitcher() {
     },
     [switchNetwork],
   );
+
+  const handleIntentChainId = useCallback(
+    (chainId: string) => {
+      if (!isNetworkRampSupported(chainId, supportedNetworks)) {
+        return;
+      }
+      if (getDecimalChainId(ChainId.mainnet) === chainId) {
+        switchToMainnet('mainnet');
+      } else if (getDecimalChainId(ChainId['linea-mainnet']) === chainId) {
+        switchToMainnet('linea-mainnet');
+      } else {
+        const supportedNetworkList = rampNetworks.map(
+          (networkConfiguration: Network) => {
+            const isAdded = Object.values(networkConfigurations).some(
+              (savedNetwork: any) =>
+                savedNetwork.chainId === networkConfiguration.chainId,
+            );
+            return {
+              ...networkConfiguration,
+              isAdded,
+            };
+          },
+        );
+
+        const networkConfiguration = supportedNetworkList.find(
+          ({ chainId: configurationChainId }) =>
+            configurationChainId === toHex(chainId),
+        );
+        if (networkConfiguration) {
+          handleNetworkPress(networkConfiguration);
+        }
+      }
+    },
+    [
+      supportedNetworks,
+      switchToMainnet,
+      rampNetworks,
+      networkConfigurations,
+      handleNetworkPress,
+    ],
+  );
+
+  useEffect(() => {
+    if (
+      isCurrentNetworkRampSupported &&
+      (!intent?.chainId || selectedChainId === intent.chainId)
+    ) {
+      navigateToGetStarted();
+    } else if (intent?.chainId) {
+      handleIntentChainId(intent.chainId);
+    }
+  }, [
+    handleIntentChainId,
+    intent?.chainId,
+    isCurrentNetworkRampSupported,
+    navigateToGetStarted,
+    navigation,
+    selectedChainId,
+  ]);
 
   const handleNetworkModalClose = useCallback(() => {
     if (networkToBeAdded) {
@@ -245,7 +308,12 @@ function NetworkSwitcher() {
                       <Text bold>Ethereum Main Network</Text>
                     </View>
                     <View style={customNetworkStyle.popularWrapper}>
-                      <Text link>{strings('networks.switch')}</Text>
+                      {selectedChainId ===
+                      getDecimalChainId(ChainId.mainnet) ? (
+                        <Text link>{strings('networks.continue')}</Text>
+                      ) : (
+                        <Text link>{strings('networks.switch')}</Text>
+                      )}
                     </View>
                   </TouchableOpacity>
                 ) : null}
@@ -269,7 +337,12 @@ function NetworkSwitcher() {
                       <Text bold>Linea Main Network</Text>
                     </View>
                     <View style={customNetworkStyle.popularWrapper}>
-                      <Text link>{strings('networks.switch')}</Text>
+                      {selectedChainId ===
+                      getDecimalChainId(ChainId['linea-mainnet']) ? (
+                        <Text link>{strings('networks.continue')}</Text>
+                      ) : (
+                        <Text link>{strings('networks.switch')}</Text>
+                      )}
                     </View>
                   </TouchableOpacity>
                 ) : null}
@@ -283,6 +356,7 @@ function NetworkSwitcher() {
                   onNetworkSwitch={() => undefined}
                   shouldNetworkSwitchPopToWallet={false}
                   customNetworksList={rampNetworks}
+                  displayContinue
                 />
               </>
             )}

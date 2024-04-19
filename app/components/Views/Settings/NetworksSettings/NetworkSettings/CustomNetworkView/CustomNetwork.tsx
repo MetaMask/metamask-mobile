@@ -11,9 +11,14 @@ import { useTheme } from '../../../../../../util/theme';
 import PopularList from '../../../../../../util/networks/customNetworks';
 import createStyles from '../styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../../../selectors/networkController';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import { toHex } from '@metamask/controller-utils';
+import { getDecimalChainId } from '../../../../../../util/networks';
 
 const CustomNetwork = ({
   isNetworkModalVisible,
@@ -26,8 +31,12 @@ const CustomNetwork = ({
   onNetworkSwitch,
   showAddedNetworks,
   customNetworksList,
+  displayContinue,
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const selectedChainId = useSelector(selectChainId);
+
+  console.log('selectedChainId: ', selectedChainId);
 
   const supportedNetworkList = (customNetworksList ?? PopularList).map(
     (networkConfiguration: Network) => {
@@ -100,11 +109,16 @@ const CustomNetwork = ({
                 onPress={toggleWarningModal}
               />
             ) : null}
-            <CustomText link>
-              {networkConfiguration.isAdded
-                ? strings('networks.switch')
-                : strings('networks.add')}
-            </CustomText>
+            {displayContinue &&
+            networkConfiguration.chainId === selectedChainId ? (
+              <CustomText link>{strings('networks.continue')}</CustomText>
+            ) : (
+              <CustomText link>
+                {networkConfiguration.isAdded
+                  ? strings('networks.switch')
+                  : strings('networks.add')}
+              </CustomText>
+            )}
           </View>
         </TouchableOpacity>
       ))}
