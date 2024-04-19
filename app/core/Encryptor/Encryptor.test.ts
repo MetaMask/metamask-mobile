@@ -18,18 +18,19 @@ describe('Encryptor', () => {
 
   describe('constructor', () => {
     it('throws an error if the provided iterations do not meet the minimum required', () => {
+      const iterations = 100;
       expect(
         () =>
           new Encryptor({
             derivationParams: {
               algorithm: 'PBKDF2',
               params: {
-                iterations: 100,
+                iterations,
               },
             },
           }),
       ).toThrowError(
-        `Invalid key derivation iterations: 100. Recommended number of iterations is ${KeyDerivationIteration.Default}. Minimum required is ${KeyDerivationIteration.Minimum}.`,
+        `Invalid key derivation iterations: ${iterations}. Recommended number of iterations is ${KeyDerivationIteration.Default}. Minimum required is ${KeyDerivationIteration.Minimum}.`,
       );
     });
   });
@@ -218,7 +219,7 @@ describe('Encryptor', () => {
       expect(vault.keyMetadata).toStrictEqual(expectedKeyMetadata);
     });
 
-    it('does not update a vault if algorithm is PBKDF2 and the number of iterations is 900000', async () => {
+    it('does not update a vault if algorithm is PBKDF2 and the number of iterations is 600000', async () => {
       const mockVault = {
         cipher: 'mockedCipher',
         iv: 'mockedIV',
