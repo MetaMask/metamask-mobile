@@ -24,7 +24,7 @@ const OptIn = () => {
   const styles = createStyles(theme);
   const navigation = useNavigation();
   const isNotificationEnabled = useSelector(
-    (state: any) => state.notification.notificationsSettings?.isEnabled,
+    (state: any) => state.notification?.notificationsSettings?.isEnabled,
   );
   const [promptCount, setPromptCount] = useState(0);
 

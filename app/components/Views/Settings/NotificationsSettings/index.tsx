@@ -58,7 +58,7 @@ const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const notificationsSettingsState = useSelector(
-    (state: any) => state.notification.notificationsSettings,
+    (state: any) => state.notification?.notificationsSettings,
   );
 
   const dispatch = useDispatch();

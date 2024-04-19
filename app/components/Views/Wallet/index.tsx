@@ -141,7 +141,7 @@ const Wallet = ({ navigation }: any) => {
   }, [accounts]);
 
   const isNotificationEnabled = useSelector(
-    (state: any) => state.notification.notificationsSettings?.isEnabled,
+    (state: any) => state.notification?.notificationsSettings?.isEnabled,
   );
 
   /**
