@@ -92,7 +92,10 @@ function parseDeeplink({
 
     return true;
   } catch (error) {
-    Logger.error(error, 'DeepLinkManager:parse error parsing deeplink');
+    Logger.error(
+      error as Error,
+      'DeepLinkManager:parse error parsing deeplink',
+    );
 
     if (error) {
       Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);

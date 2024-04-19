@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.js b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-index 08a8714..a096388 100644
+index da9523a..2cb136d 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.js
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.js
-@@ -773,15 +773,25 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
+@@ -785,15 +785,25 @@ class KeyringController extends base_controller_1.BaseControllerV2 {
              return (yield __classPrivateFieldGet(this, _KeyringController_keyring, "f").getKeyringForAccount(account)).type;
          });
      }

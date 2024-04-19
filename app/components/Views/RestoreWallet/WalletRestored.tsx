@@ -54,7 +54,8 @@ const WalletRestored = () => {
       // Log to provide insights into bug research.
       // Check https://github.com/MetaMask/mobile-planning/issues/1507
       if (typeof selectedAddress !== 'string') {
-        Logger.error('Wallet restore error', 'selectedAddress is not a string');
+        const walletRestoreError = new Error('Wallet restore error');
+        Logger.error(walletRestoreError, 'selectedAddress is not a string');
       }
       await Authentication.appTriggeredAuth({ selectedAddress });
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
