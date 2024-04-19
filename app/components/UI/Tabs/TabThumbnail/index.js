@@ -140,6 +140,11 @@ const createStyles = (colors) =>
 const { HOMEPAGE_URL } = AppConstants;
 const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
+/**
+ * View that renders a tab thumbnail to be displayed in the in-app browser.
+ * The thumbnail displays the favicon and title of the website, as well as
+ * a close button to close the tab.
+ */
 const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
   const { colors } = useContext(ThemeContext) || mockTheme;
   const styles = createStyles(colors);
@@ -163,7 +168,9 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
     if (providerConfig.nickname) {
       setNetworkName(providerConfig.nickname);
     } else {
-      setNetworkName((Networks[providerConfig.type] && Networks[providerConfig.type].name) || { ...Networks.rpc, color: null }.name);
+      setNetworkName((Networks[providerConfig.type] && Networks[providerConfig.type].name) ||
+        { ...Networks.rpc, color: null }.name
+      );
     }
   }, [providerConfig]);
 
@@ -222,7 +229,11 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
               />
             </BadgeWrapper>
           </View>
-          <Text style={styles.footerText} numberOfLines={1} ellipsizeMode='tail'>{selectedAccount?.name} - {networkName}</Text>
+          <Text
+            style={styles.footerText}
+            numberOfLines={1}
+            ellipsizeMode="tail">{selectedAccount?.name} - {networkName}
+          </Text>
         </View>
       </TouchableOpacity>
     </Container>
@@ -230,10 +241,22 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
 };
 
 TabThumbnail.propTypes = {
-  tab: PropTypes.object,
-  isActiveTab: PropTypes.bool,
-  onClose: PropTypes.func,
-  onSwitch: PropTypes.func,
+  /**
+   * The tab object containing information about the tab.
+   */
+  tab: PropTypes.object.isRequired,
+  /**
+   * Indicates whether the tab is currently active.
+   */
+  isActiveTab: PropTypes.bool.isRequired,
+  /**
+   * The function to be called when the tab is closed.
+   */
+  onClose: PropTypes.func.isRequired,
+  /**
+   * The function to be called when the tab is switched.
+   */
+  onSwitch: PropTypes.func.isRequired,
 };
 
 export default TabThumbnail;
