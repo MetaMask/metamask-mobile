@@ -1,11 +1,11 @@
 import React, { FC, useEffect, useState } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { camelCase } from 'lodash';
+
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { STORAGE_IDS } from '../../../../util/notifications/settings/storage/constants';
-
 import Text, {
   TextVariant,
   TextColor,
@@ -23,8 +23,12 @@ import {
   NotificationsViewSelectorsIDs,
 } from './NotificationsSettings.constants';
 
+import {
+  mmStorage,
+  notificationSettings as defaultDisabledNotificationSettings,
+  requestPushNotificationsPermission,
+} from '../../../../util/notifications';
 import { updateNotificationStatus } from '../../../../actions/notification';
-import { mmStorage } from '../../../../util/notifications';
 
 /**
  * TODO: Discuss the granularity of the notifications settings.
@@ -62,10 +66,11 @@ const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
 );
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
-  const dispatch = useDispatch();
-  const notificationsSettingsCurrentState = useSelector(
+  const notificationsSettingsState = useSelector(
     (state: any) => state.notification.notificationsSettings,
   );
+
+  const dispatch = useDispatch();
   const { accounts } = useAccounts();
 
   const accountAvatarType = useSelector((state: any) =>
@@ -75,23 +80,18 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   );
 
   const [notificationsSettings, setNotificationsSettings] =
-    useState<NotificationsSettingsStoreKey>(notificationsSettingsCurrentState);
+    useState<NotificationsSettingsStoreKey>(notificationsSettingsState);
 
   const toggleNotificationsEnabled = () => {
-    setNotificationsSettings({
-      isEnabled: !notificationsSettings?.isEnabled,
-      notificationsOpts: {
-        assetsReceived: true,
-        assetsSent: true,
-        deFi: true,
-        productAnnouncements: true,
-        snaps: true,
-      },
-      accounts: accounts.reduce((acc: { [key: string]: boolean }, account) => {
-        acc[account.address] = true;
-        return acc;
-      }, {}),
-    });
+    !notificationsSettingsState?.isEnabled
+      ? requestPushNotificationsPermission()
+      : dispatch(
+          updateNotificationStatus({
+            isEnabled: false,
+            notificationsOpts: defaultDisabledNotificationSettings,
+            accounts: {},
+          }),
+        );
   };
 
   const isFullScreenModal = route?.params?.isFullScreenModal;
@@ -119,6 +119,15 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           null,
         ),
       );
+      setNotificationsSettings({
+        ...notificationsSettingsState,
+        accounts:
+          notificationsSettingsState?.accounts ??
+          accounts.reduce((acc: { [key: string]: boolean }, account) => {
+            acc[account.address] = true;
+            return acc;
+          }, {}),
+      });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [colors],
@@ -131,7 +140,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
-          value={notificationsSettings?.isEnabled}
+          value={notificationsSettingsState?.isEnabled}
           onValueChange={toggleNotificationsEnabled}
           trackColor={{
             true: colors.primary.default,
@@ -153,7 +162,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   return (
     <ScrollView style={styles.wrapper}>
       <MainNotificationSettings />
-      {notificationsSettings?.isEnabled && (
+      {notificationsSettingsState?.isEnabled && (
         <>
           <SessionHeader
             title={strings(
@@ -172,7 +181,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               title={opt.title}
               description={opt.description}
               value={
-                notificationsSettings.notificationsOpts[camelCase(opt.title)]
+                notificationsSettingsState.notificationsOpts[
+                  camelCase(opt.title)
+                ]
               }
               onOptionUpdated={(value) => {
                 setNotificationsSettings({
@@ -182,10 +193,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
                     [camelCase(opt.title)]: value,
                   },
                 });
-                mmStorage.saveLocal(
-                  STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-                  JSON.stringify(notificationsSettings),
-                );
               }}
               testId={NotificationsViewSelectorsIDs[opt.title]}
               disabled={opt.disabled}
@@ -207,7 +214,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
               key={account.address}
               title={account.name}
               description={account.address}
-              value={notificationsSettings.accounts[account.address]}
+              value={notificationsSettingsState.accounts[account.address]}
               onOptionUpdated={(value) => {
                 setNotificationsSettings({
                   ...notificationsSettings,
@@ -216,10 +223,6 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
                     [account.address]: value,
                   },
                 });
-                mmStorage.saveLocal(
-                  STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-                  JSON.stringify(notificationsSettings),
-                );
               }}
             />
           ))}

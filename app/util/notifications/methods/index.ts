@@ -17,7 +17,6 @@ import {
 } from '../../../util/notifications';
 import { formatAddress } from '../../../util/address';
 import { STORAGE_IDS } from '../settings/storage/constants';
-import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
 import { store } from '../../../store';
 import { updateNotificationStatus } from '../../../actions/notification';
@@ -372,24 +371,61 @@ export const networkFeeDetails = {
   'transactions.max_fee': 'maxPriorityFeePerGas',
 };
 
+export const notificationSettings = {
+  assetsReceived: false,
+  assetsSent: false,
+  deFi: false,
+  productAnnouncements: false,
+  snaps: false,
+};
+
 export const requestPushNotificationsPermission = async () => {
   let permissionStatus;
 
+  interface NotificationEnabledState {
+    isEnabled: true;
+    notificationsOpts: {
+      [K in keyof typeof notificationSettings]: true;
+    };
+    accounts: object;
+  }
+
+  interface NotificationDisabledState {
+    isEnabled: false;
+    notificationsOpts: {
+      [K in keyof typeof notificationSettings]: false;
+    };
+    accounts: object;
+  }
+
+  const notificationDisabledState: NotificationDisabledState = {
+    isEnabled: false,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    notificationsOpts: Object.fromEntries(
+      Object.keys(notificationSettings).map((key) => [key, false] as const),
+    ),
+  };
+
+  const notificationEnabledState: NotificationEnabledState = {
+    isEnabled: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    notificationsOpts: Object.fromEntries(
+      Object.keys(notificationSettings).map((key) => [key, true] as const),
+    ),
+  };
+
+  mmStorage.saveLocal(STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT, 0);
+
   const promptCount = mmStorage.getLocal(
     STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
-  );
-  const notificationsSettings = mmStorage.getLocal(
-    STORAGE_IDS.NOTIFICATIONS_SETTINGS,
   );
 
   try {
     permissionStatus = await notifee.requestPermission();
 
-    if (
-      !promptCount ||
-      !permissionStatus ||
-      promptCount < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES
-    ) {
+    if (!promptCount || !permissionStatus) {
       if (
         permissionStatus.authorizationStatus < AuthorizationStatus.AUTHORIZED
       ) {
@@ -403,16 +439,7 @@ export const requestPushNotificationsPermission = async () => {
               text: strings('notifications.prompt_cancel'),
               onPress: () => {
                 store.dispatch(
-                  updateNotificationStatus({
-                    isEnabled: false,
-                    notificationsOpts: {
-                      assetsReceived: false,
-                      assetsSent: false,
-                      deFi: false,
-                      productAnnouncements: false,
-                      snaps: false,
-                    },
-                  }),
+                  updateNotificationStatus(notificationDisabledState),
                 );
                 mmStorage.saveLocal(
                   STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
@@ -425,10 +452,7 @@ export const requestPushNotificationsPermission = async () => {
 
                 mmStorage.saveLocal(
                   STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-                  JSON.stringify({
-                    ...notificationsSettings,
-                    isEnabled: false,
-                  }),
+                  JSON.stringify(notificationDisabledState),
                 );
               },
               style: 'default',
@@ -444,17 +468,12 @@ export const requestPushNotificationsPermission = async () => {
                   permissionStatus = await notifee.requestPermission();
                 }
                 store.dispatch(
-                  updateNotificationStatus({
-                    isEnabled: true,
-                    notificationsOpts: {
-                      assetsReceived: true,
-                      assetsSent: true,
-                      deFi: true,
-                      productAnnouncements: true,
-                      snaps: true,
-                    },
-                    accounts: {},
-                  }),
+                  updateNotificationStatus(notificationEnabledState),
+                );
+
+                mmStorage.saveLocal(
+                  STORAGE_IDS.NOTIFICATIONS_SETTINGS,
+                  JSON.stringify(notificationEnabledState),
                 );
                 // await saveFCMToken();
               },
