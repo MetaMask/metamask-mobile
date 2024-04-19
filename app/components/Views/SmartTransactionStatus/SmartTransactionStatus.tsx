@@ -70,10 +70,10 @@ const SmartTransactionStatus = ({
   const { colors } = useTheme();
 
   const stxEstimatedDeadlineSec =
-    swapFeatureFlags.smartTransactions?.expectedDeadline ||
+    swapFeatureFlags?.smartTransactions?.expectedDeadline ||
     FALLBACK_STX_ESTIMATED_DEADLINE_SEC;
   const stxMaxDeadlineSec =
-    swapFeatureFlags.smartTransactions?.maxDeadline ||
+    swapFeatureFlags?.smartTransactions?.maxDeadline ||
     FALLBACK_STX_MAX_DEADLINE_SEC;
 
   const [isStxPastEstimatedDeadline, setIsStxPastEstimatedDeadline] =

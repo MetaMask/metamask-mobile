@@ -229,7 +229,7 @@ const mapStateToProps = (state) => {
     state.engine.backgroundState.TransactionController.transactions; // these are transactionMeta objs
   const smartTransactions =
     state.engine.backgroundState.SmartTransactionsController
-      .smartTransactionsState.smartTransactions[chainId] || [];
+      ?.smartTransactionsState?.smartTransactions?.[chainId] || [];
 
   // Remove duplicate confirmed STX
 
