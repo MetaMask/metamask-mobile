@@ -1,6 +1,5 @@
 import React, { FC, useEffect, useState } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
-import { MMKV } from 'react-native-mmkv';
 import { useDispatch, useSelector } from 'react-redux';
 import { camelCase } from 'lodash';
 import { strings } from '../../../../../locales/i18n';
@@ -25,8 +24,7 @@ import {
 } from './NotificationsSettings.constants';
 
 import { updateNotificationStatus } from '../../../../actions/notification';
-
-const storage = new MMKV();
+import { mmStorage } from '../../../../util/notifications';
 
 /**
  * TODO: Discuss the granularity of the notifications settings.
@@ -104,7 +102,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
 
   useEffect(() => {
     dispatch(updateNotificationStatus(notificationsSettings));
-    storage.set(
+    mmStorage.saveLocal(
       STORAGE_IDS.NOTIFICATIONS_SETTINGS,
       JSON.stringify(notificationsSettings),
     );
@@ -184,7 +182,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
                     [camelCase(opt.title)]: value,
                   },
                 });
-                storage.set(
+                mmStorage.saveLocal(
                   STORAGE_IDS.NOTIFICATIONS_SETTINGS,
                   JSON.stringify(notificationsSettings),
                 );
@@ -218,7 +216,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
                     [account.address]: value,
                   },
                 });
-                storage.set(
+                mmStorage.saveLocal(
                   STORAGE_IDS.NOTIFICATIONS_SETTINGS,
                   JSON.stringify(notificationsSettings),
                 );
