@@ -54,7 +54,7 @@ import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { containsErrorMessage } from '../../../util/errorHandling';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { LoginViewSelectors } from '../../../../e2e/selectors/LoginView.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
@@ -634,7 +634,7 @@ class Login extends PureComponent {
 Login.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountAddressAsChecksum(state),
   userLoggedIn: state.user.userLoggedIn,
 });
 
