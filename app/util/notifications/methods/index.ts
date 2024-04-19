@@ -1,3 +1,5 @@
+import { Alert } from 'react-native';
+import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { getBlockExplorerTxUrl } from '../../../util/networks';
 import {
   IconColor,
@@ -11,9 +13,14 @@ import {
   HalRawNotification,
   Notification,
   TRIGGER_TYPES,
+  mmStorage,
 } from '../../../util/notifications';
 import { formatAddress } from '../../../util/address';
-
+import { STORAGE_IDS } from '../settings/storage/constants';
+import AppConstants from '../../../core/AppConstants';
+import Device from '../../../util/device';
+import { store } from '../../../store';
+import { updateNotificationStatus } from '../../../actions/notification';
 interface ViewOnEtherscanProps {
   navigation: any;
   transactionObject: {
@@ -363,4 +370,103 @@ export const networkFeeDetails = {
   'transactions.base_fee': 'estimatedBaseFee',
   'transactions.priority_fee': 'maxPriorityFeePerGas',
   'transactions.max_fee': 'maxPriorityFeePerGas',
+};
+
+export const requestPushNotificationsPermission = async () => {
+  let permissionStatus;
+  mmStorage.saveLocal(STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT, 0);
+
+  const promptCount = mmStorage.getLocal(
+    STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
+  );
+  const notificationsSettings = mmStorage.getLocal(
+    STORAGE_IDS.NOTIFICATIONS_SETTINGS,
+  );
+
+  try {
+    permissionStatus = await notifee.requestPermission();
+
+    if (
+      !promptCount ||
+      !permissionStatus ||
+      promptCount < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES
+    ) {
+      if (
+        permissionStatus.authorizationStatus < AuthorizationStatus.AUTHORIZED
+      ) {
+        const times = promptCount + 1 || 1;
+
+        Alert.alert(
+          strings('notifications.prompt_title'),
+          strings('notifications.prompt_desc'),
+          [
+            {
+              text: strings('notifications.prompt_cancel'),
+              onPress: () => {
+                store.dispatch(
+                  updateNotificationStatus({
+                    isEnabled: false,
+                    notificationsOpts: {
+                      assetsReceived: false,
+                      assetsSent: false,
+                      deFi: false,
+                      productAnnouncements: false,
+                      snaps: false,
+                    },
+                  }),
+                );
+                mmStorage.saveLocal(
+                  STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
+                  times,
+                );
+                mmStorage.saveLocal(
+                  STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_TIME,
+                  Date.now().toString(),
+                );
+
+                mmStorage.saveLocal(
+                  STORAGE_IDS.NOTIFICATIONS_SETTINGS,
+                  JSON.stringify({
+                    ...notificationsSettings,
+                    isEnabled: false,
+                  }),
+                );
+              },
+              style: 'default',
+            },
+            {
+              text: strings('notifications.prompt_ok'),
+              onPress: async () => {
+                if (Device.isIos()) {
+                  permissionStatus = await notifee.requestPermission({
+                    provisional: true,
+                  });
+                } else {
+                  permissionStatus = await notifee.requestPermission();
+                }
+                store.dispatch(
+                  updateNotificationStatus({
+                    isEnabled: true,
+                    notificationsOpts: {
+                      assetsReceived: true,
+                      assetsSent: true,
+                      deFi: true,
+                      productAnnouncements: true,
+                      snaps: true,
+                    },
+                    accounts: {},
+                  }),
+                );
+                // await saveFCMToken();
+              },
+            },
+          ],
+          { cancelable: false },
+        );
+      }
+    }
+    return permissionStatus;
+  } catch (e: any) {
+    Logger.error(e, strings('notifications.error_checking_permission'));
+  }
 };
