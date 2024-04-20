@@ -167,6 +167,9 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
   const isHomepage = hostname === getHost(HOMEPAGE_URL);
 
   const { accounts } = useAccounts();
+  const providerConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectChainId);
+  const ticker = useSelector(selectTicker);
 
   const selectedAccount = useMemo(() => {
     if (accounts.length > 0) {
@@ -175,22 +178,11 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
     return undefined;
   }, [accounts]);
 
-  const providerConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
-  const ticker = useSelector(selectTicker);
+  const networkName = useMemo(() => {
+    return providerConfig?.nickname ?? Networks[providerConfig?.type]?.name ?? Networks.rpc.name;
+  }, [providerConfig]);
 
-  const getNetworkName = (providerConfig) => {
-    if (providerConfig?.nickname) {
-      return providerConfig.nickname;
-    } else {
-      return (
-        (Networks[providerConfig.type] && Networks[providerConfig.type].name) ||
-        { ...Networks.rpc, color: null }.name
-      );
-    }
-  }
-
-  const getNetworkBadgeSource = () => {
+  const networkBadgeSource = useMemo(() => {
     if (!chainId) return undefined;
 
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -198,7 +190,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
     if (isLineaMainnetByChainId(chainId)) return images['LINEA-MAINNET'];
 
     return images[ticker];
-  };
+  }, [chainId, ticker, images]);
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>
@@ -244,7 +236,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
                 <Badge
                   variant={BadgeVariant.Network}
                   // TODO: get the correct image source for the active network
-                  imageSource={getNetworkBadgeSource()}
+                  imageSource={networkBadgeSource}
                   name={'Ethereum'}
                   style={styles.networkBadge}
                 />
@@ -268,7 +260,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {selectedAccount?.name ?? 'undefined account'} - {getNetworkName(providerConfig)}
+            {selectedAccount?.name ?? 'undefined account'} - {networkName}
           </Text>
         </View>
       </TouchableOpacity>
