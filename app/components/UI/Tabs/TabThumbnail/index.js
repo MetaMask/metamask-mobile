@@ -47,6 +47,8 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
   return (
     <Container style={styles.checkWrapper} elevation={8}>
       <TouchableOpacity
+        accessible={true}
+        accessibilityLabel="Switch tab"
         onPress={() => onSwitch(tab)}
         style={[styles.tabWrapper, isActiveTab && styles.activeTab]}
       >
@@ -71,6 +73,8 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
             </Text>
           </View>
           <TouchableOpacity
+            accessible={true}
+            accessibilityLabel="Close tab"
             onPress={() => onClose(tab)}
             style={styles.closeTabButton}
           >
