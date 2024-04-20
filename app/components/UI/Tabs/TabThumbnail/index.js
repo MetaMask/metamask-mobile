@@ -51,6 +51,8 @@ if (Device.isAndroid()) {
   paddingTop -= 10;
 }
 
+const DEFAULT_ACCOUNT_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     tabFavicon: {
@@ -159,7 +161,7 @@ const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-li
  */
 const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
   const { colors } = useContext(ThemeContext) || mockTheme;
-  const styles = createStyles(colors);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const Container = Device.isAndroid() ? View : ElevatedView;
   const hostname = getHost(tab.url);
   const isHomepage = hostname === getHost(HOMEPAGE_URL);
@@ -245,7 +247,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
                 <Badge
                   variant={BadgeVariant.Network}
                   // TODO: get the correct image source for the active network
-                  imageSource={(() => { console.log('getNetworkBadgeSource() ', getNetworkBadgeSource()); return getNetworkBadgeSource(); })()}
+                  imageSource={getNetworkBadgeSource()}
                   name={'Ethereum'}
                   style={styles.networkBadge}
                 />
@@ -257,7 +259,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
                 variant={AvatarVariant.Account}
                 accountAddress={
                   selectedAccount?.address ??
-                  '0x0000000000000000000000000000000000000000'
+                  DEFAULT_ACCOUNT_ADDRESS
                 }
               />
             </BadgeWrapper>
