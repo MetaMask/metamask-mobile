@@ -168,18 +168,17 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
   }, [accounts]);
 
   const providerConfig = useSelector(selectProviderConfig);
-  const [networkName, setNetworkName] = useState(null);
 
-  useEffect(() => {
+  const getNetworkNameFromProviderConfig = (providerConfig) => {
     if (providerConfig.nickname) {
-      setNetworkName(providerConfig.nickname);
+      return providerConfig.nickname;
     } else {
-      setNetworkName(
+      return (
         (Networks[providerConfig.type] && Networks[providerConfig.type].name) ||
-        { ...Networks.rpc, color: null }.name,
+        { ...Networks.rpc, color: null }.name
       );
     }
-  }, [providerConfig]);
+  }
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>
@@ -249,7 +248,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {selectedAccount?.name} - {networkName}
+            {selectedAccount?.name} - {getNetworkNameFromProviderConfig(providerConfig)}
           </Text>
         </View>
       </TouchableOpacity>
