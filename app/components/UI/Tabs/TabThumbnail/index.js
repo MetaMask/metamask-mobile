@@ -22,7 +22,7 @@ import { BadgeVariant } from '../../../../component-library/components/Badges/Ba
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import AppConstants from '../../../../core/AppConstants';
-import { selectProviderConfig } from '../../../../selectors/networkController';
+import { selectChainId, selectProviderConfig, selectTicker } from '../../../../selectors/networkController';
 import {
   fontStyles,
   colors as importedColors,
@@ -176,6 +176,8 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
   }, [accounts]);
 
   const providerConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectChainId);
+  const ticker = useSelector(selectTicker);
 
   const getNetworkName = (providerConfig) => {
     if (providerConfig?.nickname) {
@@ -189,18 +191,13 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
   }
 
   const getNetworkBadgeSource = () => {
-    if (providerConfig?.chainId) {
-      const isMainnet = isMainnetByChainId(providerConfig.chainId);
-      const isLineaMainnet = isLineaMainnetByChainId(providerConfig.chainId);
+    if (!chainId) return undefined;
 
-      if (isTestNet(providerConfig.chainId)) return getTestNetImageByChainId(providerConfig.chainId);
+    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+    if (isMainnetByChainId(chainId)) return images.ETHEREUM;
+    if (isLineaMainnetByChainId(chainId)) return images['LINEA-MAINNET'];
 
-      if (isMainnet) return images.ETHEREUM;
-
-      if (isLineaMainnet) return images['LINEA-MAINNET'];
-
-      return ticker ? images[ticker] : undefined;
-    }
+    return images[ticker];
   };
 
   return (
