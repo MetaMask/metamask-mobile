@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useMemo } from 'react';
+import images from 'images/image-icons';
 import {
   Dimensions,
   Image,
@@ -28,7 +29,12 @@ import {
 } from '../../../../styles/common';
 import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
-import Networks from '../../../../util/networks';
+import Networks, {
+  getTestNetImageByChainId,
+  isLineaMainnetByChainId,
+  isMainnetByChainId,
+  isTestNet
+} from '../../../../util/networks';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { useAccounts } from '../../../hooks/useAccounts';
 import WebsiteIcon from '../../WebsiteIcon';
@@ -169,8 +175,8 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
 
   const providerConfig = useSelector(selectProviderConfig);
 
-  const getNetworkNameFromProviderConfig = (providerConfig) => {
-    if (providerConfig.nickname) {
+  const getNetworkName = (providerConfig) => {
+    if (providerConfig?.nickname) {
       return providerConfig.nickname;
     } else {
       return (
@@ -179,6 +185,21 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
       );
     }
   }
+
+  const getNetworkBadgeSource = () => {
+    if (providerConfig?.chainId) {
+      const isMainnet = isMainnetByChainId(providerConfig.chainId);
+      const isLineaMainnet = isLineaMainnetByChainId(providerConfig.chainId);
+
+      if (isTestNet(providerConfig.chainId)) return getTestNetImageByChainId(providerConfig.chainId);
+
+      if (isMainnet) return images.ETHEREUM;
+
+      if (isLineaMainnet) return images['LINEA-MAINNET'];
+
+      return ticker ? images[ticker] : undefined;
+    }
+  };
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>
@@ -224,7 +245,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
                 <Badge
                   variant={BadgeVariant.Network}
                   // TODO: get the correct image source for the active network
-                  imageSource={11}
+                  imageSource={(() => { console.log('getNetworkBadgeSource() ', getNetworkBadgeSource()); return getNetworkBadgeSource(); })()}
                   name={'Ethereum'}
                   style={styles.networkBadge}
                 />
@@ -235,8 +256,8 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
                 size={AvatarSize.Sm}
                 variant={AvatarVariant.Account}
                 accountAddress={
-                  selectedAccount?.address ||
-                  '0x20A1BFeeBf35E6CdBC0D281e68A3a9F832c2Fa88'
+                  selectedAccount?.address ??
+                  '0x0000000000000000000000000000000000000000'
                 }
               />
             </BadgeWrapper>
@@ -248,7 +269,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
             numberOfLines={1}
             ellipsizeMode="tail"
           >
-            {selectedAccount?.name} - {getNetworkNameFromProviderConfig(providerConfig)}
+            {selectedAccount?.name ?? 'undefined account'} - {getNetworkName(providerConfig)}
           </Text>
         </View>
       </TouchableOpacity>
