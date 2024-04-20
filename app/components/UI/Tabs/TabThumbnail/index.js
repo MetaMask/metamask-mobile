@@ -1,4 +1,3 @@
-import images from 'images/image-icons';
 import PropTypes from 'prop-types';
 import React, { useContext, useMemo } from 'react';
 import {
@@ -29,15 +28,9 @@ import {
 } from '../../../../styles/common';
 import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
-import Networks, {
-  getTestNetImageByChainId,
-  isLineaMainnetByChainId,
-  isMainnetByChainId,
-  isTestNet
-} from '../../../../util/networks';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { useAccounts } from '../../../hooks/useAccounts';
 import WebsiteIcon from '../../WebsiteIcon';
+import { useNetworkInfo } from './useNetworkInfo';
 import { useSelectedAccount } from './useSelectedAccount';
 
 const margin = 15;
@@ -167,26 +160,11 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
   const hostname = getHost(tab.url);
   const isHomepage = hostname === getHost(HOMEPAGE_URL);
 
-  const { accounts } = useAccounts();
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
-
   const selectedAccount = useSelectedAccount();
-
-  const networkName = useMemo(() => {
-    return providerConfig?.nickname ?? Networks[providerConfig?.type]?.name ?? Networks.rpc.name;
-  }, [providerConfig]);
-
-  const networkBadgeSource = useMemo(() => {
-    if (!chainId) return undefined;
-
-    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-    if (isMainnetByChainId(chainId)) return images.ETHEREUM;
-    if (isLineaMainnetByChainId(chainId)) return images['LINEA-MAINNET'];
-
-    return images[ticker];
-  }, [chainId, ticker, images]);
+  const { networkName, networkBadgeSource } = useNetworkInfo();
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>
