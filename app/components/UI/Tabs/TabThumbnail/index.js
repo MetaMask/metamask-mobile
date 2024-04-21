@@ -25,10 +25,10 @@ import WebsiteIcon from '../../WebsiteIcon';
 import { createStyles } from './TabThumbnailStyles';
 import { useNetworkInfo } from './useNetworkInfo';
 import { useSelectedAccount } from './useSelectedAccount';
+const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 const { HOMEPAGE_URL } = AppConstants;
 const DEFAULT_ACCOUNT_ADDRESS = '0x0000000000000000000000000000000000000000';
-const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 /**
  * View that renders a tab thumbnail to be displayed in the in-app browser.
@@ -128,7 +128,20 @@ TabThumbnail.propTypes = {
   /**
    * The tab object containing information about the tab.
    */
-  tab: PropTypes.object.isRequired,
+  tab: PropTypes.shape({
+    /**
+     * The URL of the tab.
+     */
+    url: PropTypes.string.isRequired,
+    /**
+     * The id of the tab.
+     */
+    id: PropTypes.number.isRequired,
+    /**
+     * The image URL for the tab's thumbnail.
+     */
+    image: PropTypes.string.isRequired,
+  }).isRequired,
   /**
    * Indicates whether the tab is currently active.
    */
