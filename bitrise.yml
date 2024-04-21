@@ -1343,7 +1343,7 @@ app:
       NODE_VERSION: 18.18.2
     - opts:
         is_expand: false
-      YARN_VERSION: 1.22.19
+      YARN_VERSION: 1.22.22
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
