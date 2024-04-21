@@ -156,10 +156,10 @@ export function viewOnEtherscan(props: ViewOnEtherscanProps, state: any) {
     });
   }
 }
-
-function getNetwork(chain_id: HalRawNotification['chain_id']) {
-  return ChainId[chain_id];
-}
+// TODO: use getNetwork on next PR (Notification's details)
+// function getNetwork(chain_id: HalRawNotification['chain_id']) {
+//   return ChainId[chain_id];
+// }
 
 export function formatNotificationTitle(rawTitle: string): string {
   const words = rawTitle.split('_');
