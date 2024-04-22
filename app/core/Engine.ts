@@ -252,6 +252,9 @@ type GlobalEvents =
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
+type ShowIncomingTransactionKey =
+  keyof PreferencesState['showIncomingTransactions'];
+
 export interface EngineState {
   AccountTrackerController: AccountTrackerState;
   AddressBookController: AddressBookState;
@@ -427,7 +430,18 @@ class Engine {
 
     const assetsContractController = new AssetsContractController({
       onPreferencesStateChange: (listener) =>
-        preferencesController.subscribe(listener),
+        this.controllerMessenger.subscribe(
+          `AccountsController:selectedAccountChange`,
+          (newlySelectedInternalAccount) => {
+            const prevState = preferencesController.state;
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+            listener({
+              ...prevState,
+              selectedAddress: newlySelectedInternalAccount.address,
+            });
+          },
+        ),
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -442,7 +456,18 @@ class Engine {
     const nftController = new NftController(
       {
         onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            `AccountsController:selectedAccountChange`,
+            (newlySelectedInternalAccount) => {
+              const prevState = preferencesController.state;
+              //@ts-expect-error assets-controllers need to be bump to v^26
+              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+              listener({
+                ...prevState,
+                selectedAddress: newlySelectedInternalAccount.address,
+              });
+            },
+          ),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -514,7 +539,18 @@ class Engine {
     const tokensController = new TokensController({
       // TODO: The tokens controller currently does not support internalAccounts. This is done to match the behavior of the previous tokens controller subscription.
       onPreferencesStateChange: (listener) =>
-        preferencesController.subscribe(listener),
+        this.controllerMessenger.subscribe(
+          `AccountsController:selectedAccountChange`,
+          (newlySelectedInternalAccount) => {
+            const prevState = preferencesController.state;
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+            listener({
+              ...prevState,
+              selectedAddress: newlySelectedInternalAccount.address,
+            });
+          },
+        ),
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -738,7 +774,18 @@ class Engine {
 
     const accountTrackerController = new AccountTrackerController({
       onPreferencesStateChange: (listener) =>
-        preferencesController.subscribe(listener),
+        this.controllerMessenger.subscribe(
+          `AccountsController:selectedAccountChange`,
+          (newlySelectedInternalAccount) => {
+            const prevState = preferencesController.state;
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+            listener({
+              ...prevState,
+              selectedAddress: newlySelectedInternalAccount.address,
+            });
+          },
+        ),
       getIdentities: () => preferencesController.state.identities,
       getSelectedAddress: () => accountsController.getSelectedAccount().address,
       getMultiAccountBalancesEnabled: () =>
@@ -966,7 +1013,18 @@ class Engine {
       tokenListController,
       new TokenDetectionController({
         onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            `AccountsController:selectedAccountChange`,
+            (newlySelectedInternalAccount) => {
+              const prevState = preferencesController.state;
+              //@ts-expect-error assets-controllers need to be bump to v^26
+              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+              listener({
+                ...prevState,
+                selectedAddress: newlySelectedInternalAccount.address,
+              });
+            },
+          ),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -994,6 +1052,8 @@ class Engine {
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
         getNetworkState: () => networkController.state,
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
         getPreferencesState: () => preferencesController.state,
         getBalancesInSingleCall:
           assetsContractController.getBalancesInSingleCall.bind(
@@ -1003,7 +1063,18 @@ class Engine {
       new NftDetectionController({
         onNftsStateChange: (listener) => nftController.subscribe(listener),
         onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            `AccountsController:selectedAccountChange`,
+            (newlySelectedInternalAccount) => {
+              const prevState = preferencesController.state;
+              //@ts-expect-error assets-controllers need to be bump to v^26
+              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+              listener({
+                ...prevState,
+                selectedAddress: newlySelectedInternalAccount.address,
+              });
+            },
+          ),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -1038,7 +1109,18 @@ class Engine {
             listener,
           ),
         onPreferencesStateChange: (listener) =>
-          preferencesController.subscribe(listener),
+          this.controllerMessenger.subscribe(
+            `AccountsController:selectedAccountChange`,
+            (newlySelectedInternalAccount) => {
+              const prevState = preferencesController.state;
+              //@ts-expect-error assets-controllers need to be bump to v^26
+              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+              listener({
+                ...prevState,
+                selectedAddress: newlySelectedInternalAccount.address,
+              });
+            },
+          ),
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
         selectedAddress: preferencesController.state.selectedAddress,
@@ -1059,10 +1141,16 @@ class Engine {
           isEnabled: () => {
             const currentHexChainId =
               networkController.state.providerConfig.chainId;
+
+            const showIncomingTransactions =
+              preferencesController?.state?.showIncomingTransactions;
+
             return Boolean(
-              preferencesController?.state?.showIncomingTransactions?.[
-                currentHexChainId
-              ],
+              Object.keys(showIncomingTransactions).includes(currentHexChainId)
+                ? showIncomingTransactions?.[
+                    currentHexChainId as ShowIncomingTransactionKey
+                  ]
+                : false,
             );
           },
           updateTransactions: true,
@@ -1174,7 +1262,16 @@ class Engine {
             allowedEvents: ['NetworkController:stateChange'],
           }),
           onPreferencesChange: (listener) =>
-            preferencesController.subscribe(listener as any),
+            this.controllerMessenger.subscribe(
+              `AccountsController:selectedAccountChange`,
+              (newlySelectedInternalAccount) => {
+                const prevState = preferencesController.state;
+                listener({
+                  ...prevState,
+                  selectedAddress: newlySelectedInternalAccount.address,
+                });
+              },
+            ),
           provider: networkController.getProviderAndBlockTracker()
             .provider as any,
           ppomProvider: {
