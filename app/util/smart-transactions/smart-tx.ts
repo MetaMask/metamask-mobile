@@ -6,7 +6,6 @@ import {
 } from '@metamask/transaction-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { ApprovalController } from '@metamask/approval-controller';
-import { InteractionManager } from 'react-native';
 import {
   getShouldEndFlow,
   getShouldStartFlow,
