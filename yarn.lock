@@ -1311,6 +1311,11 @@
     reflect-metadata "^0.1.13"
     uuid "^9.0.0"
 
+"@contentful/rich-text-types@^16.0.2":
+  version "16.3.5"
+  resolved "https://registry.yarnpkg.com/@contentful/rich-text-types/-/rich-text-types-16.3.5.tgz#927433a84416101ba3dbf19bd0924e755f5e6d65"
+  integrity sha512-ZLq6p5uyQXg+i1XGDFu4tAc2VYS12S1KA/jIOyyZjNgC1DvDajsi1JzuiBuOuMEhi1sKEUy6Ry3Yr9jsQtOKuQ==
+
 "@craftzdog/react-native-buffer@^6.0.5":
   version "6.0.5"
   resolved "https://registry.yarnpkg.com/@craftzdog/react-native-buffer/-/react-native-buffer-6.0.5.tgz#0d4fbe0dd104186d2806655e3c0d25cebdae91d3"
@@ -1879,7 +1884,7 @@
     "@ethereumjs/util" "^8.1.0"
     ethereum-cryptography "^2.0.0"
 
-"@ethereumjs/util@^8.0.0", "@ethereumjs/util@^8.0.2", "@ethereumjs/util@^8.0.6", "@ethereumjs/util@^8.1.0":
+"@ethereumjs/util@^8.0.0", "@ethereumjs/util@^8.1.0":
   version "8.1.0"
   resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-8.1.0.tgz#299df97fb6b034e0577ce9f94c7d9d1004409ed4"
   integrity sha512-zQ0IqbdX8FZ9aw11vP+dZkKDkS+kgIvQPHnSAXzP9pLu+Rfu3D3XEeLbicvoXJTYnhZiPmsZUxgdzXwNKxRPbA==
@@ -3654,7 +3659,7 @@
     "@metamask/utils" "^8.3.0"
     immer "^9.0.6"
 
-"@metamask/browser-passworder@^4.1.0":
+"@metamask/browser-passworder@^4.3.0":
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/browser-passworder/-/browser-passworder-4.3.0.tgz#62c200750efcea864bd31d685120331859e1ab1e"
   integrity sha512-RU1TVVV5DkbZRr6zPYg0NkexZ0/T2LCKNvF3A50jvUweyxDFuoNbSTN6z8K3Fy8O6/X2JQ1yyAbVzxZLq0qrGg==
@@ -3789,15 +3794,16 @@
   resolved "https://registry.yarnpkg.com/@metamask/eslint-config/-/eslint-config-9.0.0.tgz#22d4911b705f7e4e566efbdda0e37912da33e30f"
   integrity sha512-mWlLGQKjXXFOj9EtDClKSoTLeQuPW2kM1w3EpUMf4goYAQ+kLXCCa8pEff6h8ApWAnjhYmXydA1znQ2J4XvD+A==
 
-"@metamask/eth-hd-keyring@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-6.0.0.tgz#a46788d4bbc7aa5d8263ed6e4348101a80519a69"
-  integrity sha512-dEj/I6Ag9FyCmjPcRXeXCkRXkVJE/uElhDVRcLBU6mT/GsXKgzVWXC/k0dhE8rEDrQbidhl+8wEElSJ2LI1InA==
+"@metamask/eth-hd-keyring@^7.0.1":
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-7.0.1.tgz#799006d8fd57c5580dc5843f74a7343eeb2985f3"
+  integrity sha512-EVdaZxsBgDBIcUAHIDYLI10TepQwUuwzBMJ2GQjNwiCwkARYHeckKnvlCkPcYWhwlnjhkfFg+iJn24cA5poulw==
   dependencies:
-    "@ethereumjs/util" "^8.0.2"
-    "@metamask/eth-sig-util" "^5.0.2"
-    "@metamask/scure-bip39" "^2.0.3"
-    ethereum-cryptography "^1.1.2"
+    "@ethereumjs/util" "^8.1.0"
+    "@metamask/eth-sig-util" "^7.0.0"
+    "@metamask/scure-bip39" "^2.1.0"
+    "@metamask/utils" "^8.1.0"
+    ethereum-cryptography "^2.1.2"
 
 "@metamask/eth-json-rpc-infura@^8.1.1":
   version "8.1.1"
@@ -3869,18 +3875,18 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^8.3.0"
 
-"@metamask/eth-keyring-controller@^13.0.1":
-  version "13.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-keyring-controller/-/eth-keyring-controller-13.0.1.tgz#9756a70ed2ea4f4dc6a8c335ac55b6322990e435"
-  integrity sha512-zxULUAAR4CUiIw5lYeELfkyKqfxoepbRjxpEJ9OaSPMZz66oVQGCxIyzKLgXe5i782WfGEihTHLHj338A0RLZw==
+"@metamask/eth-keyring-controller@^15.0.0":
+  version "15.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-keyring-controller/-/eth-keyring-controller-15.1.0.tgz#dc7c5ec3a075a2eb3f90b1f452cd67232714451d"
+  integrity sha512-FL6bVet2Rp3n6z+tKM9Lp0dBhTNj7wPKFLBvTTqJq7wBEbXir/AdN7JtnSXWC4BzbfsonXtnGuX353z0x3+8lw==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
-    "@metamask/browser-passworder" "^4.1.0"
-    "@metamask/eth-hd-keyring" "^6.0.0"
-    "@metamask/eth-sig-util" "^6.0.0"
-    "@metamask/eth-simple-keyring" "^5.0.0"
+    "@metamask/browser-passworder" "^4.3.0"
+    "@metamask/eth-hd-keyring" "^7.0.1"
+    "@metamask/eth-sig-util" "^7.0.0"
+    "@metamask/eth-simple-keyring" "^6.0.1"
     "@metamask/obs-store" "^8.1.0"
-    "@metamask/utils" "^8.1.0"
+    "@metamask/utils" "^8.2.0"
 
 "@metamask/eth-query@^3.0.1":
   version "3.0.1"
@@ -3905,18 +3911,6 @@
   dependencies:
     ethereumjs-abi "^0.6.8"
     ethereumjs-util "^6.2.1"
-    ethjs-util "^0.1.6"
-    tweetnacl "^1.0.3"
-    tweetnacl-util "^0.15.1"
-
-"@metamask/eth-sig-util@^5.0.1", "@metamask/eth-sig-util@^5.0.2":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-sig-util/-/eth-sig-util-5.1.0.tgz#a47f62800ee1917fef976ba67544a0ccd7d1bd6b"
-  integrity sha512-mlgziIHYlA9pi/XZerChqg4NocdOgBPB9NmxgXWQO2U2hH8RGOJQrz6j/AIKkYxgCMIE2PY000+joOwXfzeTDQ==
-  dependencies:
-    "@ethereumjs/util" "^8.0.6"
-    bn.js "^4.12.0"
-    ethereum-cryptography "^2.0.0"
     ethjs-util "^0.1.6"
     tweetnacl "^1.0.3"
     tweetnacl-util "^0.15.1"
@@ -3946,14 +3940,15 @@
     tweetnacl "^1.0.3"
     tweetnacl-util "^0.15.1"
 
-"@metamask/eth-simple-keyring@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-simple-keyring/-/eth-simple-keyring-5.0.0.tgz#307772d1aa3298e41a2444b428cd8f4522b7bf5c"
-  integrity sha512-UJfP36Z9g1eeD8mSHWaVqUvkgbgYm3S7YuzlMzQi+WgPnWu81CdbldMMtvreTlu4I1mTyljXLDMjIp65P0bygQ==
+"@metamask/eth-simple-keyring@^6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-simple-keyring/-/eth-simple-keyring-6.0.1.tgz#2c914c51746aba3588530a256842ce0436481ab5"
+  integrity sha512-UEMOojkcyPAJF30lRUesZvqESeUZIOHQgWyHQv3FzwE4ekXgJMfvvW+TuGydcGY2aeIdJy9l9wJQF0/+V9wNhg==
   dependencies:
-    "@ethereumjs/util" "^8.0.0"
-    "@metamask/eth-sig-util" "^5.0.1"
-    ethereum-cryptography "^1.1.2"
+    "@ethereumjs/util" "^8.1.0"
+    "@metamask/eth-sig-util" "^7.0.0"
+    "@metamask/utils" "^8.1.0"
+    ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
 "@metamask/eth-snap-keyring@^2.1.1":
@@ -4055,17 +4050,17 @@
     superstruct "^1.0.3"
     uuid "^9.0.0"
 
-"@metamask/keyring-controller@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-8.1.0.tgz#e8c9a9a4e4689492b1a4e440ece321a9eea3d279"
-  integrity sha512-b5T2tULBoYjuc/xeP7JxsVPo2zABJsTR3JkboKUkcptL72qGHgMix1eQgPeU4msMHrDC4hc5Bgc8ZD2PxtjzEw==
+"@metamask/keyring-controller@^9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-9.0.0.tgz#d0b3790ed43b8626edd6c4e092c14a9e3c8a3de4"
+  integrity sha512-KSD59AiYvChFt2NyIuHslU6IW5F5pMxyEWKQ3FqjmNEtbtk36DCvXay//8IK+ZURWh6TdWanu2O/+9bn/UcUVQ==
   dependencies:
     "@keystonehq/metamask-airgapped-keyring" "^0.13.1"
     "@metamask/base-controller" "^3.2.3"
-    "@metamask/eth-keyring-controller" "^13.0.1"
+    "@metamask/eth-keyring-controller" "^15.0.0"
     "@metamask/message-manager" "^7.3.5"
     "@metamask/preferences-controller" "^4.4.3"
-    "@metamask/utils" "^8.1.0"
+    "@metamask/utils" "^8.2.0"
     async-mutex "^0.2.6"
     ethereumjs-util "^7.0.10"
     ethereumjs-wallet "^1.0.1"
@@ -4399,7 +4394,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-3.0.0.tgz#8c2b9073fe0722d48693143b0dc8448840daa3bd"
   integrity sha512-j6Z47VOmVyGMlnKXZmL0fyvWfEYtKWCA9yGZkU3FCsGZUT5lHGmvaV9JA5F2Y+010y7+ROtR3WMXIkvl/nVzqQ==
 
-"@metamask/scure-bip39@^2.0.3", "@metamask/scure-bip39@^2.1.0":
+"@metamask/scure-bip39@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/scure-bip39/-/scure-bip39-2.1.0.tgz#13456884736e56ede15e471bd93c0aa0acdedd0b"
   integrity sha512-Ndwdnld0SI6YaftEUUVq20sdoWcWNXsJXxvQkbiY42FKmrA16U6WoSh9Eq+NpugpKKwK6f5uvaTDusjndiEDGQ==
@@ -4701,11 +4696,6 @@
   resolved "https://registry.yarnpkg.com/@noble/ed25519/-/ed25519-1.7.3.tgz#57e1677bf6885354b466c38e2b620c62f45a7123"
   integrity sha512-iR8GBkDt0Q3GyaVcIu7mSsVIqnFbkbRzGLWlvhwunacoLwt4J3swfKhfaM6rN6WY+TBGoYT1GtT1mIh2/jGbRQ==
 
-"@noble/hashes@1.2.0", "@noble/hashes@~1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.2.0.tgz#a3150eeb09cc7ab207ebf6d7b9ad311a9bdbed12"
-  integrity sha512-FZfhjEDbT5GRswV3C6uvLPHMiVD6lQBmpoX5+eSiPaMTXte/IKqI5dykDxzZB/WBeK/CDuQRBWarPdi3FNY2zQ==
-
 "@noble/hashes@1.3.3", "@noble/hashes@~1.3.2":
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.3.3.tgz#39908da56a4adc270147bb07968bf3b16cfe1699"
@@ -4721,7 +4711,7 @@
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.1.5.tgz#1a0377f3b9020efe2fae03290bd2a12140c95c11"
   integrity sha512-LTMZiiLc+V4v1Yi16TD6aX2gmtKszNye0pQgbaLqkvhIqP7nVsSaJsWloGQjJfJ8offaoP5GtX3yY5swbcJxxQ==
 
-"@noble/secp256k1@1.7.1", "@noble/secp256k1@^1.5.5", "@noble/secp256k1@~1.7.0":
+"@noble/secp256k1@^1.5.5":
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/@noble/secp256k1/-/secp256k1-1.7.1.tgz#b251c70f824ce3ca7f8dc3df08d58f005cc0507c"
   integrity sha512-hOUk6AyBFmqVrv7k5WAw/LpszxVbj9gGN4JRkIX52fdFAj1UA61KXmZDvqVEm+pOyec3+fIeZB02LYa/pWOArw==
@@ -5677,15 +5667,6 @@
   resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.1.6.tgz#8ce5d304b436e4c84f896e0550c83e4d88cb917d"
   integrity sha512-ok9AWwhcgYuGG3Zfhyqg+zwl+Wn5uE+dwC0NV/2qQkx4dABbb/bx96vWu8NSj+BNjjSjno+JRYRjle1jV08k3g==
 
-"@scure/bip32@1.1.5":
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/@scure/bip32/-/bip32-1.1.5.tgz#d2ccae16dcc2e75bc1d75f5ef3c66a338d1ba300"
-  integrity sha512-XyNh1rB0SkEqd3tXcXMi+Xe1fvg+kUIcoRIEujP1Jgv7DqW2r9lg3Ah0NkFaCs9sTkQAQA8kw7xiRXzENi9Rtw==
-  dependencies:
-    "@noble/hashes" "~1.2.0"
-    "@noble/secp256k1" "~1.7.0"
-    "@scure/base" "~1.1.0"
-
 "@scure/bip32@1.3.3":
   version "1.3.3"
   resolved "https://registry.yarnpkg.com/@scure/bip32/-/bip32-1.3.3.tgz#a9624991dc8767087c57999a5d79488f48eae6c8"
@@ -5694,14 +5675,6 @@
     "@noble/curves" "~1.3.0"
     "@noble/hashes" "~1.3.2"
     "@scure/base" "~1.1.4"
-
-"@scure/bip39@1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@scure/bip39/-/bip39-1.1.1.tgz#b54557b2e86214319405db819c4b6a370cf340c5"
-  integrity sha512-t+wDck2rVkh65Hmv280fYdVdY25J9YeEUIgn2LG1WM6gxFkGzcksoDiUkWVpVp3Oex9xGC68JU2dSbUfwZ2jPg==
-  dependencies:
-    "@noble/hashes" "~1.2.0"
-    "@scure/base" "~1.1.0"
 
 "@scure/bip39@1.2.2":
   version "1.2.2"
@@ -12053,7 +12026,7 @@ bn.js@5.2.1, bn.js@^5.0.0, bn.js@^5.1.2, bn.js@^5.2.0, bn.js@^5.2.1:
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.2.1.tgz#0bc527a6a0d18d0aa8d5b0538ce4a77dccfa7b70"
   integrity sha512-eXRvHzWyYPBuB4NBy0cmYQjGitUrtqwbvlzP3G6VFnNRbsZQIxQ10PbKKHt8gZ/HW/D/747aDl+QkDqg3KQLMQ==
 
-bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.10.0, bn.js@^4.11.0, bn.js@^4.11.8, bn.js@^4.11.9, bn.js@^4.12.0:
+bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.10.0, bn.js@^4.11.0, bn.js@^4.11.8, bn.js@^4.11.9:
   version "4.12.0"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.12.0.tgz#775b3f278efbb9718eec7361f483fb36fbbfea88"
   integrity sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==
@@ -13330,6 +13303,36 @@ content-type@^1.0.4, content-type@~1.0.4, content-type@~1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/content-type/-/content-type-1.0.5.tgz#8b773162656d1d1086784c8f23a54ce6d73d7918"
   integrity sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==
+
+contentful-resolve-response@^1.8.1:
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/contentful-resolve-response/-/contentful-resolve-response-1.8.1.tgz#b44ff13e12fab7deb00ef6216d8a7171bdda0395"
+  integrity sha512-VXGK2c8dBIGcRCknqudKmkDr2PzsUYfjLN6hhx71T09UzoXOdA/c0kfDhsf/BBCBWPWcLaUgaJEFU0lCo45TSg==
+  dependencies:
+    fast-copy "^2.1.7"
+
+contentful-sdk-core@^8.1.0:
+  version "8.1.2"
+  resolved "https://registry.yarnpkg.com/contentful-sdk-core/-/contentful-sdk-core-8.1.2.tgz#a27ea57cfd631b4c6d58e5ca04fcde6d231e2c1b"
+  integrity sha512-XZvX2JMJF4YiICXLrHFv59KBHaQJ6ElqAP8gSNgnCu4x+pPG7Y1bC2JMNOiyAgJuGQGVUOcNZ5PmK+tsNEayYw==
+  dependencies:
+    fast-copy "^2.1.7"
+    lodash.isplainobject "^4.0.6"
+    lodash.isstring "^4.0.1"
+    p-throttle "^4.1.1"
+    qs "^6.11.2"
+
+contentful@^10.8.7:
+  version "10.8.7"
+  resolved "https://registry.yarnpkg.com/contentful/-/contentful-10.8.7.tgz#ff627069e74995367306f89359c946d3e3dda530"
+  integrity sha512-BkHspZUmeaqCkJXljBJBZ+WnMVU/3N1rYIxVuwH3X/0Q88zF8hb02dsZupmecm5LOHSYWg7lKKrbKit6Q0JL2A==
+  dependencies:
+    "@contentful/rich-text-types" "^16.0.2"
+    axios "^1.6.7"
+    contentful-resolve-response "^1.8.1"
+    contentful-sdk-core "^8.1.0"
+    json-stringify-safe "^5.0.1"
+    type-fest "^4.0.0"
 
 continuation-local-storage@3.x:
   version "3.2.1"
@@ -15781,16 +15784,6 @@ ethereum-cryptography@^0.1.3:
     secp256k1 "^4.0.1"
     setimmediate "^1.0.5"
 
-ethereum-cryptography@^1.1.2:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/ethereum-cryptography/-/ethereum-cryptography-1.2.0.tgz#5ccfa183e85fdaf9f9b299a79430c044268c9b3a"
-  integrity sha512-6yFQC9b5ug6/17CQpCyE3k9eKBMdhyVjzUy1WkiuY/E4vj/SXDBbCw8QEIaXqf0Mf2SnY6RmpDcwlUmBSS0EJw==
-  dependencies:
-    "@noble/hashes" "1.2.0"
-    "@noble/secp256k1" "1.7.1"
-    "@scure/bip32" "1.1.5"
-    "@scure/bip39" "1.1.1"
-
 ethereum-cryptography@^2.0.0, ethereum-cryptography@^2.1.2:
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/ethereum-cryptography/-/ethereum-cryptography-2.1.3.tgz#1352270ed3b339fe25af5ceeadcf1b9c8e30768a"
@@ -16484,6 +16477,11 @@ fast-base64-decode@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fast-base64-decode/-/fast-base64-decode-1.0.0.tgz#b434a0dd7d92b12b43f26819300d2dafb83ee418"
   integrity sha512-qwaScUgUGBYeDNRnbc/KyllVU88Jk1pRHPStuF/lO7B0/RTRLj7U0lkdTAutlBblY08rwZDff6tNU9cjv6j//Q==
+
+fast-copy@^2.1.7:
+  version "2.1.7"
+  resolved "https://registry.yarnpkg.com/fast-copy/-/fast-copy-2.1.7.tgz#affc9475cb4b555fb488572b2a44231d0c9fa39e"
+  integrity sha512-ozrGwyuCTAy7YgFCua8rmqmytECYk/JYAMXcswOcm0qvGoE3tPb7ivBeIHTOK2DiapBhDZgacIhzhQIKU5TCfA==
 
 fast-deep-equal@^2.0.1:
   version "2.0.1"
@@ -20380,6 +20378,11 @@ lodash.isplainobject@^4.0.6:
   resolved "https://registry.yarnpkg.com/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz#7c526a52d89b45c45cc690b88163be0497f550cb"
   integrity sha1-fFJqUtibRcRcxpC4gWO+BJf1UMs=
 
+lodash.isstring@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/lodash.isstring/-/lodash.isstring-4.0.1.tgz#d527dfb5456eca7cc9bb95d5daeaf88ba54a5451"
+  integrity sha512-0wJxfxH1wgO3GrbuP+dTTk7op+6L41QCXbGINEmD+ny/G/eCqGzxyCsh7159S+mgDDcoarnBw6PC1PS5+wUGgw==
+
 lodash.memoize@^4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
@@ -22404,6 +22407,11 @@ p-map@^4.0.0:
   integrity sha512-/bjOqmgETBYB5BoEeGVea8dmvHb2m9GLy1E9W43yeyfP6QQCZGFNa+XRceJEuDB6zqr+gKpIAmlLebMpykw/MQ==
   dependencies:
     aggregate-error "^3.0.0"
+
+p-throttle@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/p-throttle/-/p-throttle-4.1.1.tgz#80b1fbd358af40a8bfa1667f9dc8b72b714ad692"
+  integrity sha512-TuU8Ato+pRTPJoDzYD4s7ocJYcNSEZRvlxoq3hcPI2kZDZ49IQ1Wkj7/gDJc3X7XiEAAvRGtDzdXJI0tC3IL1g==
 
 p-try@^2.0.0:
   version "2.2.0"
@@ -27301,6 +27309,11 @@ type-fest@^2.19.0:
   version "2.19.0"
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-2.19.0.tgz#88068015bb33036a598b952e55e9311a60fd3a9b"
   integrity sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==
+
+type-fest@^4.0.0:
+  version "4.15.0"
+  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-4.15.0.tgz#21da206b89c15774cc718c4f2d693e13a1a14a43"
+  integrity sha512-tB9lu0pQpX5KJq54g+oHOLumOx+pMep4RaM6liXh2PKmVRFF+/vAtUP0ZaJ0kOySfVNjF6doBWPHhBhISKdlIA==
 
 type-is@^1.6.16, type-is@~1.6.18:
   version "1.6.18"
