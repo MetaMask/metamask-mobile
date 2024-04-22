@@ -277,7 +277,6 @@ export default class DeeplinkProtocolService {
     return permissionsController.requestPermissions(
       { origin: channelId },
       { eth_accounts: {} },
-      { id: channelId },
     );
   }
 
