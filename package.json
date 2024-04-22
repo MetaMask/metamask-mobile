@@ -150,7 +150,7 @@
     "@metamask/gas-fee-controller": "^10.0.0",
     "@metamask/key-tree": "^9.0.0",
     "@metamask/keyring-api": "^4.0.0",
-    "@metamask/keyring-controller": "^8.1.0",
+    "@metamask/keyring-controller": "^9.0.0",
     "@metamask/logging-controller": "^1.0.1",
     "@metamask/network-controller": "^15.0.0",
     "@metamask/permission-controller": "7.1.0",
