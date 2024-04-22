@@ -8,7 +8,6 @@ import Networks, { getDecimalChainId } from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { NAVBAR_TITLE_NETWORKS_TEXT } from '../../../../wdio/screen-objects/testIDs/Screens/WalletScreen-testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { withNavigation } from '@react-navigation/compat';
@@ -171,11 +170,7 @@ class NavbarTitle extends PureComponent {
                 color ? { backgroundColor: color } : styles.otherNetworkIcon,
               ]}
             />
-            <Text
-              numberOfLines={1}
-              style={styles.networkName}
-              testID={NAVBAR_TITLE_NETWORKS_TEXT}
-            >
+            <Text numberOfLines={1} style={styles.networkName}>
               {name}
             </Text>
           </View>
