@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const STORAGE_IDS = {
   NOTIFICATIONS: 'notifications',
   GLOBAL_PUSH_NOTIFICATION_SETTINGS: 'globalNotificationSettings',
