@@ -74,6 +74,7 @@ const Routes = {
     CHANGE_PASSWORD: 'ResetPassword',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
+    NOTIFICATIONS: 'NotificationsSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
@@ -114,6 +115,10 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   SWAPS: 'Swaps',
   LOCK_SCREEN: 'LockScreen',
+  NOTIFICATIONS: {
+    OPT_IN: 'OptIn',
+    OPT_IN_STACK: 'OptInStack',
+  },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',

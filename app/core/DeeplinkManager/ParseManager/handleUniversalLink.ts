@@ -45,7 +45,7 @@ function handleUniversalLink({
       SDKConnect.getInstance()
         .bindAndroidSDK()
         .catch((err) => {
-          Logger.error(`DeepLinkManager failed to connect`, err);
+          Logger.error(err, `DeepLinkManager failed to connect`);
         });
       return;
     }
@@ -62,7 +62,7 @@ function handleUniversalLink({
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err: unknown) => {
-          Logger.error(`DeepLinkManager failed to connect`, err);
+          Logger.error(err as Error, `DeepLinkManager failed to connect`);
         });
       }
       return true;
@@ -82,10 +82,10 @@ function handleUniversalLink({
     } else if (action === ACTIONS.WC) {
       // This is called from WC just to open the app and it's not supposed to do anything
       return;
-    } else if (PREFIXES[action]) {
+    } else if (PREFIXES[action as keyof typeof PREFIXES]) {
       const deeplinkUrl = urlObj.href.replace(
         `${DEEP_LINK_BASE}/${action}/`,
-        PREFIXES[action],
+        PREFIXES[action as keyof typeof PREFIXES],
       );
       // loops back to open the link with the right protocol
       instance.parse(deeplinkUrl, { browserCallBack, origin });

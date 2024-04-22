@@ -178,6 +178,12 @@ NativeModules.RNCNetInfo = {
   getCurrentState: jest.fn(() => Promise.resolve()),
 };
 
+NativeModules.NotifeeApiModule = {
+  addListener: jest.fn(),
+  eventsAddListener: jest.fn(),
+  eventsNotifyReady: jest.fn(),
+};
+
 NativeModules.PlatformConstants = {
   forceTouchAvailable: false,
 };
@@ -188,6 +194,23 @@ NativeModules.Aes = {
     const hashBase = '012345678987654';
     return Promise.resolve(hashBase + uniqueAddressChar);
   }),
+  pbkdf2: jest
+    .fn()
+    .mockImplementation((_password, _salt, _iterations, _keyLength) =>
+      Promise.resolve('mockedKey'),
+    ),
+  randomKey: jest.fn().mockResolvedValue('mockedIV'),
+  encrypt: jest.fn().mockResolvedValue('mockedCipher'),
+  decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainText"}'),
+};
+
+NativeModules.AesForked = {
+  pbkdf2: jest
+    .fn()
+    .mockImplementation((_password, _salt) =>
+      Promise.resolve('mockedKeyForked'),
+    ),
+  decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainTextForked"}'),
 };
 
 jest.mock(
@@ -240,27 +263,9 @@ jest.mock('@segment/analytics-react-native', () => ({
   createClient: jest.fn(() => initializeMockClient()),
 }));
 
-jest.mock('react-native-push-notification', () => ({
-  configure: jest.fn(),
-  localNotification: jest.fn(),
-  localNotificationSchedule: jest.fn(),
-  cancelLocalNotifications: jest.fn(),
-  cancelAllLocalNotifications: jest.fn(),
-  removeAllDeliveredNotifications: jest.fn(),
-  getDeliveredNotifications: jest.fn(),
-  getScheduledLocalNotifications: jest.fn(),
-  requestPermissions: jest.fn(),
-  abandonPermissions: jest.fn(),
-  checkPermissions: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  invokeApp: jest.fn(),
-  getChannels: jest.fn(),
-  createChannel: jest.fn(),
-  channelExists: jest.fn(),
-  deleteChannel: jest.fn(),
-  popInitialNotification: jest.fn(),
-}));
+jest.mock('@notifee/react-native', () =>
+  require('@notifee/react-native/jest-mock'),
+);
 
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,
@@ -286,6 +291,7 @@ jest.mock('react-native-default-preference', () => ({
 // eslint-disable-next-line import/no-commonjs
 require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
+global.__DEV__ = false;
 
 jest.mock(
   '../../core/Engine',
@@ -296,3 +302,13 @@ afterEach(() => {
   jest.restoreAllMocks();
   global.gc && global.gc(true);
 });
+
+global.crypto = {
+  getRandomValues: (arr) => {
+    const uint8Max = 255;
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = Math.floor(Math.random() * (uint8Max + 1));
+    }
+    return arr;
+  },
+};

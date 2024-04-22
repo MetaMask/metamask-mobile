@@ -1,4 +1,4 @@
-import { errorCodes as rpcErrorCodes } from 'eth-rpc-errors';
+import { errorCodes as rpcErrorCodes } from '@metamask/rpc-errors';
 import { orderBy } from 'lodash';
 import { RestrictedMethods, CaveatTypes } from './constants';
 import ImportedEngine from '../Engine';
