@@ -120,7 +120,7 @@ export const forgetLedger = async (): Promise<void> => {
  */
 export const getDeviceId = async (): Promise<string> => {
   const ledgerKeyring = await getLedgerKeyring();
-  return ledgerKeyring.deviceId;
+  return ledgerKeyring.getDeviceId();
 };
 
 /**
