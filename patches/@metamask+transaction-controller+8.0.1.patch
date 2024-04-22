@@ -466,7 +466,7 @@ index 2fc96c7..0000000
 -{"version":3,"file":"IncomingTransactionHelper.js","sourceRoot":"","sources":["../src/IncomingTransactionHelper.ts"],"names":[],"mappings":"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","sourcesContent":["import { isSmartContractCode, query } from '@metamask/controller-utils';\nimport type EthQuery from '@metamask/eth-query';\nimport type { NetworkState } from '@metamask/network-controller';\nimport type { Hex } from '@metamask/utils';\n\nimport type {\n  RemoteTransactionSource,\n  Transaction,\n  TransactionMeta,\n  TransactionStatus,\n} from './types';\n\nconst SUPPORTED_NETWORK_IDS = [\n  '1', // Mainnet\n  '5', // Goerli\n  '11155111', // Sepolia\n];\n\nexport class IncomingTransactionHelper {\n  #getNetworkState: () => NetworkState;\n\n  #getEthQuery: () => EthQuery;\n\n  #transactionLimit: number;\n\n  #remoteTransactionSource: RemoteTransactionSource;\n\n  constructor({\n    getNetworkState,\n    getEthQuery,\n    transactionLimit,\n    remoteTransactionSource,\n  }: {\n    getNetworkState: () => NetworkState;\n    getEthQuery: () => EthQuery;\n    transactionLimit: number;\n    remoteTransactionSource: RemoteTransactionSource;\n  }) {\n    this.#getNetworkState = getNetworkState;\n    this.#getEthQuery = getEthQuery;\n    this.#transactionLimit = transactionLimit;\n    this.#remoteTransactionSource = remoteTransactionSource;\n  }\n\n  async reconcile({\n    address,\n    localTransactions,\n    fromBlock,\n    apiKey,\n  }: {\n    address: string;\n    localTransactions: TransactionMeta[];\n    fromBlock?: string;\n    apiKey?: string;\n  }): Promise<{\n    updateRequired: boolean;\n    transactions: TransactionMeta[];\n    latestBlockNumber?: string;\n  }> {\n    const { providerConfig, networkId: currentNetworkId } =\n      this.#getNetworkState();\n    const { chainId: currentChainId, type: networkType } = providerConfig;\n\n    if (\n      currentNetworkId === null ||\n      !SUPPORTED_NETWORK_IDS.includes(currentNetworkId)\n    ) {\n      return { updateRequired: false, transactions: [] };\n    }\n\n    const remoteTransactions =\n      await this.#remoteTransactionSource.fetchTransactions({\n        address,\n        networkType,\n        limit: this.#transactionLimit,\n        currentChainId,\n        currentNetworkId,\n        fromBlock,\n        apiKey,\n      });\n\n    const [updateRequired, transactions] = this.#reconcileTransactions(\n      localTransactions,\n      remoteTransactions,\n    );\n\n    this.#sortTransactionsByTime(transactions);\n\n    const latestBlockNumber = this.#getLatestBlockNumber(\n      transactions,\n      address,\n      currentChainId,\n      currentNetworkId,\n    );\n\n    await this.#updateSmartContractProperty(transactions);\n\n    return { updateRequired, transactions, latestBlockNumber };\n  }\n\n  async #updateSmartContractProperty(transactions: TransactionMeta[]) {\n    await Promise.all(\n      transactions.map(async (tx) => {\n        tx.toSmartContract ??= await this.#isToSmartContract(tx.transaction);\n      }),\n    );\n  }\n\n  #getLatestBlockNumber(\n    transactions: TransactionMeta[],\n    address: string,\n    currentChainId: Hex,\n    currentNetworkId: string,\n  ): string | undefined {\n    let latestBlockNumber: string | undefined;\n\n    for (const tx of transactions) {\n      const onCurrentChain =\n        tx.chainId === currentChainId ||\n        (!tx.chainId && tx.networkID === currentNetworkId);\n\n      const toCurrentAccount =\n        tx.transaction.to?.toLowerCase() === address.toLowerCase();\n\n      const currentBlockNumberValue = tx.blockNumber\n        ? parseInt(tx.blockNumber, 10)\n        : -1;\n\n      const latestBlockNumberValue = latestBlockNumber\n        ? parseInt(latestBlockNumber, 10)\n        : -1;\n\n      if (\n        onCurrentChain &&\n        toCurrentAccount &&\n        latestBlockNumberValue < currentBlockNumberValue\n      ) {\n        latestBlockNumber = tx.blockNumber;\n      }\n    }\n\n    return latestBlockNumber;\n  }\n\n  async #isToSmartContract(transaction: Transaction): Promise<boolean> {\n    // Contract Deploy\n    if (!transaction.to) {\n      return false;\n    }\n\n    // Send\n    if (transaction.data === '0x') {\n      return false;\n    }\n\n    const ethQuery = this.#getEthQuery();\n    const code = await query(ethQuery, 'getCode', [transaction.to]);\n\n    return isSmartContractCode(code);\n  }\n\n  #sortTransactionsByTime(transactions: TransactionMeta[]) {\n    transactions.sort((a, b) => (a.time < b.time ? -1 : 1));\n  }\n\n  #reconcileTransactions(\n    localTxs: TransactionMeta[],\n    remoteTxs: TransactionMeta[],\n  ): [boolean, TransactionMeta[]] {\n    const updatedTxs: TransactionMeta[] = this.#getUpdatedTransactions(\n      remoteTxs,\n      localTxs,\n    );\n\n    const newTxs: TransactionMeta[] = this.#getNewTransactions(\n      remoteTxs,\n      localTxs,\n    );\n\n    const updatedLocalTxs = localTxs.map((tx: TransactionMeta) => {\n      const txIdx = updatedTxs.findIndex(\n        ({ transactionHash }) => transactionHash === tx.transactionHash,\n      );\n      return txIdx === -1 ? tx : updatedTxs[txIdx];\n    });\n\n    const updateRequired = newTxs.length > 0 || updatedTxs.length > 0;\n    const transactions = [...newTxs, ...updatedLocalTxs];\n\n    return [updateRequired, transactions];\n  }\n\n  #getNewTransactions(\n    remoteTxs: TransactionMeta[],\n    localTxs: TransactionMeta[],\n  ): TransactionMeta[] {\n    return remoteTxs.filter((tx) => {\n      const alreadyInTransactions = localTxs.find(\n        ({ transactionHash }) => transactionHash === tx.transactionHash,\n      );\n      return !alreadyInTransactions;\n    });\n  }\n\n  #getUpdatedTransactions(\n    remoteTxs: TransactionMeta[],\n    localTxs: TransactionMeta[],\n  ): TransactionMeta[] {\n    return remoteTxs.filter((remoteTx) => {\n      const isTxOutdated = localTxs.find((localTx) => {\n        return (\n          remoteTx.transactionHash === localTx.transactionHash &&\n          this.#isTransactionOutdated(remoteTx, localTx)\n        );\n      });\n      return isTxOutdated;\n    });\n  }\n\n  #isTransactionOutdated(\n    remoteTx: TransactionMeta,\n    localTx: TransactionMeta,\n  ): boolean {\n    const statusOutdated = this.#isStatusOutdated(\n      remoteTx.transactionHash,\n      localTx.transactionHash,\n      remoteTx.status,\n      localTx.status,\n    );\n\n    const gasDataOutdated = this.#isGasDataOutdated(\n      remoteTx.transaction.gasUsed,\n      localTx.transaction.gasUsed,\n    );\n\n    return statusOutdated || gasDataOutdated;\n  }\n\n  #isStatusOutdated(\n    remoteTxHash: string | undefined,\n    localTxHash: string | undefined,\n    remoteTxStatus: TransactionStatus,\n    localTxStatus: TransactionStatus,\n  ): boolean {\n    return remoteTxHash === localTxHash && remoteTxStatus !== localTxStatus;\n  }\n\n  #isGasDataOutdated(\n    remoteGasUsed: string | undefined,\n    localGasUsed: string | undefined,\n  ): boolean {\n    return remoteGasUsed !== localGasUsed;\n  }\n}\n"]}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
-index 4e3d5e0..223ecad 100644
+index 4e3d5e0..53fa52c 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.d.ts
 @@ -1,13 +1,15 @@
@@ -521,9 +521,11 @@ index 4e3d5e0..223ecad 100644
  /**
   * Multiplier used to determine a transaction's increased gas fee during speed up
   */
-@@ -101,8 +98,13 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -100,9 +97,15 @@ export declare class TransactionController extends BaseController<TransactionCon
+     private readonly provider;
      private handle?;
      private readonly mutex;
++    private readonly mutex2;
      private readonly getNetworkState;
 +    private readonly gasFeeFlows;
 +    private readonly getGasFeeEstimates;
@@ -535,7 +537,7 @@ index 4e3d5e0..223ecad 100644
      private failTransaction;
      private registryLookup;
      /**
-@@ -121,20 +123,44 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -121,20 +124,44 @@ export declare class TransactionController extends BaseController<TransactionCon
       * Creates a TransactionController instance.
       *
       * @param options - The controller options.
@@ -585,7 +587,7 @@ index 4e3d5e0..223ecad 100644
      }, config?: Partial<TransactionConfig>, state?: Partial<TransactionState>);
      /**
       * Starts a new polling interval.
-@@ -155,11 +181,20 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -155,11 +182,20 @@ export declare class TransactionController extends BaseController<TransactionCon
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -609,7 +611,7 @@ index 4e3d5e0..223ecad 100644
      prepareUnsignedEthTx(txParams: Record<string, unknown>): TypedTransaction;
      /**
       * `@ethereumjs/tx` uses `@ethereumjs/common` as a configuration tool for
-@@ -212,6 +247,13 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -212,6 +248,13 @@ export declare class TransactionController extends BaseController<TransactionCon
       * @param transactionMeta - The new transaction to store in state.
       */
      updateTransaction(transactionMeta: TransactionMeta): void;
@@ -623,7 +625,7 @@ index 4e3d5e0..223ecad 100644
      /**
       * Removes all transactions from state, optionally based on the current network.
       *
-@@ -220,32 +262,49 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -220,32 +263,49 @@ export declare class TransactionController extends BaseController<TransactionCon
       */
      wipeTransactions(ignoreNetwork?: boolean): void;
      /**
@@ -690,7 +692,7 @@ index 4e3d5e0..223ecad 100644
      /**
       * Trim the amount of transactions that are set on the state. Checks
       * if the length of the tx history is longer then desired persistence
-@@ -293,9 +352,55 @@ export declare class TransactionController extends BaseController<TransactionCon
+@@ -293,9 +353,55 @@ export declare class TransactionController extends BaseController<TransactionCon
       */
      private checkTxReceiptStatusIsFailed;
      private requestApproval;
@@ -757,7 +759,7 @@ index 61bec0a..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index b67387e..2148c78 100644
+index b67387e..3846561 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -797,7 +799,7 @@ index b67387e..2148c78 100644
  /**
   * Multiplier used to determine a transaction's increased gas fee during speed up
   */
-@@ -50,17 +57,29 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -50,17 +57,30 @@ class TransactionController extends base_controller_1.BaseController {
       * Creates a TransactionController instance.
       *
       * @param options - The controller options.
@@ -826,11 +828,12 @@ index b67387e..2148c78 100644
 +        var _a;
          super(config, state);
          this.mutex = new async_mutex_1.Mutex();
++        this.mutex2 = new async_mutex_1.Mutex();
 +        this.inProcessOfSigning = new Set();
          /**
           * EventEmitter instance used to listen to specific transactional events
           */
-@@ -76,25 +95,54 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -76,25 +96,54 @@ class TransactionController extends base_controller_1.BaseController {
          this.defaultState = {
              methodData: {},
              transactions: [],
@@ -890,7 +893,7 @@ index b67387e..2148c78 100644
          onNetworkStateChange(() => {
              this.ethQuery = new eth_query_1.default(this.provider);
              this.registry = new eth_method_registry_1.default({ provider: this.provider });
-@@ -136,13 +184,14 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -136,13 +185,14 @@ class TransactionController extends base_controller_1.BaseController {
       */
      handleMethodData(fourBytePrefix) {
          return __awaiter(this, void 0, void 0, function* () {
@@ -902,11 +905,11 @@ index b67387e..2148c78 100644
                  if (knownMethod) {
                      return methodData[fourBytePrefix];
                  }
-+                releaseLock = yield this.mutex.acquire();
++                releaseLock = yield this.mutex2.acquire();
                  const registry = yield this.registryLookup(fourBytePrefix);
                  this.update({
                      methodData: Object.assign(Object.assign({}, methodData), { [fourBytePrefix]: registry }),
-@@ -150,7 +199,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -150,7 +200,9 @@ class TransactionController extends base_controller_1.BaseController {
                  return registry;
              }
              finally {
@@ -917,7 +920,7 @@ index b67387e..2148c78 100644
              }
          });
      }
-@@ -160,15 +211,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -160,15 +212,17 @@ class TransactionController extends base_controller_1.BaseController {
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -939,7 +942,7 @@ index b67387e..2148c78 100644
              (0, utils_1.validateTransaction)(transaction);
              const transactionMeta = {
                  id: (0, uuid_1.v1)(),
-@@ -180,6 +233,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -180,6 +234,7 @@ class TransactionController extends base_controller_1.BaseController {
                  transaction,
                  deviceConfirmedOn,
                  verifiedOnBlockchain: false,
@@ -947,7 +950,7 @@ index b67387e..2148c78 100644
              };
              try {
                  const { gas, estimateGasError } = yield this.estimateGas(transaction);
-@@ -199,6 +253,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -199,6 +254,17 @@ class TransactionController extends base_controller_1.BaseController {
              };
          });
      }
@@ -965,7 +968,7 @@ index b67387e..2148c78 100644
      prepareUnsignedEthTx(txParams) {
          return tx_1.TransactionFactory.fromTxData(txParams, {
              common: this.getCommonConfiguration(),
-@@ -218,14 +283,15 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -218,14 +284,15 @@ class TransactionController extends base_controller_1.BaseController {
          const { networkId, providerConfig: { type: chain, chainId, nickname: name }, } = this.getNetworkState();
          if (chain !== controller_utils_1.RPC &&
              chain !== controller_utils_1.NetworkType['linea-goerli'] &&
@@ -983,7 +986,7 @@ index b67387e..2148c78 100644
          };
          return common_1.Common.custom(customChainParams);
      }
-@@ -291,7 +357,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -291,7 +358,7 @@ class TransactionController extends base_controller_1.BaseController {
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
              const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
@@ -992,7 +995,7 @@ index b67387e..2148c78 100644
              transactionMeta.status = types_1.TransactionStatus.cancelled;
              this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
          });
-@@ -343,9 +409,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -343,9 +410,7 @@ class TransactionController extends base_controller_1.BaseController {
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
              const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
@@ -1003,7 +1006,7 @@ index b67387e..2148c78 100644
              const baseTransactionMeta = Object.assign(Object.assign({}, transactionMeta), { id: (0, uuid_1.v1)(), time: Date.now(), transactionHash });
              const newTransactionMeta = newMaxFeePerGas && newMaxPriorityFeePerGas
                  ? Object.assign(Object.assign({}, baseTransactionMeta), { transaction: Object.assign(Object.assign({}, transactionMeta.transaction), { maxFeePerGas: newMaxFeePerGas, maxPriorityFeePerGas: newMaxPriorityFeePerGas }) }) : Object.assign(Object.assign({}, baseTransactionMeta), { transaction: Object.assign(Object.assign({}, transactionMeta.transaction), { gasPrice: newGasPrice }) });
-@@ -404,6 +468,8 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -404,6 +469,8 @@ class TransactionController extends base_controller_1.BaseController {
              }
              catch (error) {
                  estimateGasError = utils_1.ESTIMATE_GAS_ERROR;
@@ -1012,7 +1015,7 @@ index b67387e..2148c78 100644
              }
              // 4. Pad estimated gas without exceeding the most recent block gasLimit. If the network is a
              // a custom network then return the eth_estimateGas value.
-@@ -463,12 +529,29 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -463,12 +530,29 @@ class TransactionController extends base_controller_1.BaseController {
       */
      updateTransaction(transactionMeta) {
          const { transactions } = this.state;
@@ -1043,7 +1046,7 @@ index b67387e..2148c78 100644
      /**
       * Removes all transactions from state, optionally based on the current network.
       *
-@@ -494,30 +577,90 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -494,30 +578,90 @@ class TransactionController extends base_controller_1.BaseController {
          });
      }
      /**
@@ -1155,7 +1158,7 @@ index b67387e..2148c78 100644
      }
      processApproval(transactionMeta) {
          return __awaiter(this, void 0, void 0, function* () {
-@@ -563,97 +706,110 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -563,97 +707,110 @@ class TransactionController extends base_controller_1.BaseController {
          });
      }
      /**
@@ -1343,7 +1346,7 @@ index b67387e..2148c78 100644
      }
      /**
       * Trim the amount of transactions that are set on the state. Checks
-@@ -671,7 +827,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -671,7 +828,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      trimTransactionsForState(transactions) {
          const nonceNetworkSet = new Set();
@@ -1354,7 +1357,7 @@ index b67387e..2148c78 100644
              const { chainId, networkID, status, transaction, time } = tx;
              if (transaction) {
                  const key = `${transaction.nonce}-${chainId ? (0, controller_utils_1.convertHexToDecimal)(chainId) : networkID}-${new Date(time).toDateString()}`;
-@@ -686,7 +844,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -686,7 +845,7 @@ class TransactionController extends base_controller_1.BaseController {
              }
              return false;
          });
@@ -1363,7 +1366,7 @@ index b67387e..2148c78 100644
          return txsToKeep;
      }
      /**
-@@ -758,9 +916,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -758,9 +917,17 @@ class TransactionController extends base_controller_1.BaseController {
                      }
                      /* istanbul ignore next */
                      if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
@@ -1384,7 +1387,7 @@ index b67387e..2148c78 100644
                      }
                      return [meta, false];
                  default:
-@@ -804,13 +970,122 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -804,13 +971,122 @@ class TransactionController extends base_controller_1.BaseController {
              }, true));
          });
      }
@@ -1510,7 +1513,7 @@ index b67387e..2148c78 100644
      isTransactionCompleted(transactionid) {
          const transaction = this.getTransaction(transactionid);
          if (!transaction) {
-@@ -819,6 +1094,164 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -819,6 +1095,164 @@ class TransactionController extends base_controller_1.BaseController {
          const isCompleted = this.isLocalFinalState(transaction.status);
          return { meta: transaction, isCompleted };
      }
