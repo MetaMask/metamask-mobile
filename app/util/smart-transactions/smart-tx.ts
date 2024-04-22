@@ -334,6 +334,7 @@ class SmartTransactionHook {
         undefined,
       );
     } catch (error) {
+      this.onApproveOrReject();
       return useRegularTransactionSubmit;
     }
 
