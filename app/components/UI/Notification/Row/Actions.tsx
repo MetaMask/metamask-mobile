@@ -19,9 +19,10 @@ interface NotificationActionsProps {
   styles: any;
   handleCTAPress: () => void;
 }
+
 function NotificationActions({
-  link,
-  action,
+  action, // Primary Button, meant to navigate within the client (Portfolio/Extension/Mobile) - Deeplinks
+  link, // Secondary Button, meant for external links (URLs)
   styles,
   handleCTAPress,
 }: NotificationActionsProps) {
