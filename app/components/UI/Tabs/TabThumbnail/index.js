@@ -17,9 +17,9 @@ import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import WebsiteIcon from '../../WebsiteIcon';
-import { createStyles } from './TabThumbnailStyles';
-import { useNetworkInfo } from './useNetworkInfo';
-import { useSelectedAccount } from './useSelectedAccount';
+import createStyles from './TabThumbnailStyles';
+import useNetworkInfo from './useNetworkInfo';
+import useSelectedAccount from './useSelectedAccount';
 const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 const { HOMEPAGE_URL } = AppConstants;

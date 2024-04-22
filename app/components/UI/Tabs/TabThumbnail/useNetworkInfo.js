@@ -13,7 +13,7 @@ import Networks, {
   isTestNet,
 } from '../../../../util/networks';
 
-export const useNetworkInfo = () => {
+export default useNetworkInfo = () => {
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
