@@ -1,8 +1,8 @@
-import messages from '../../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 export const TransactionDetailsModalSelectorsText = {
-  TITLE: messages.swaps.transaction_label.swap,
-  CONFIRMED: messages.transaction.confirmed,
+  TITLE: enContent.swaps.transaction_label.swap,
+  CONFIRMED: enContent.transaction.confirmed,
 };
 
 export const TransactionDetailsModalSelectorsIDs = {

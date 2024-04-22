@@ -6,6 +6,7 @@ import {
   Platform,
   FlatList,
   RefreshControl,
+  Pressable,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
@@ -55,6 +56,7 @@ import {
 } from '../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import Button, {
@@ -70,7 +72,7 @@ import SkeletonText from '../Ramp/components/SkeletonText';
 import Routes from '../../../constants/navigation/Routes';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from './constants';
 import AppConstants from '../../../core/AppConstants';
-import {
+import Icon, {
   IconColor,
   IconName,
   IconSize,
@@ -78,6 +80,7 @@ import {
 
 import {
   PORTFOLIO_BUTTON,
+  STAKE_BUTTON,
   TOTAL_BALANCE_TEXT,
 } from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
 
@@ -92,7 +95,6 @@ import {
 import { selectDetectedTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import { regex } from '../../../../app/util/regex';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useIsOriginalNativeTokenSymbol from '../../UI/Ramp/hooks/useIsOriginalNativeTokenSymbol';
 import ButtonIcon, {
@@ -100,6 +102,7 @@ import ButtonIcon, {
 } from '../../../../app/component-library/components/Buttons/ButtonIcon';
 import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
+import { isPortfolioUrl } from '../../../../app/util/url';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -215,6 +218,57 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       </Box>
     </Modal>
   );
+
+  const renderStakeButton = (asset: TokenI) => {
+    const onStakeButtonPress = () => {
+      const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
+        tab.url.includes(AppConstants.STAKE.URL),
+      );
+      let existingTabId;
+      let newTabUrl;
+      if (existingStakeTab) {
+        existingTabId = existingStakeTab.id;
+      } else {
+        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
+      }
+      const params = {
+        ...(newTabUrl && { newTabUrl }),
+        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+        timestamp: Date.now(),
+      };
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params,
+      });
+      trackEvent(MetaMetricsEvents.STAKE_BUTTON_CLICKED, {
+        chain_id: getDecimalChainId(chainId),
+        location: 'Home Screen',
+        text: 'Stake',
+        token_symbol: asset.symbol,
+        url: AppConstants.STAKE.URL,
+      });
+    };
+
+    return (
+      <Pressable
+        onPress={onStakeButtonPress}
+        {...generateTestId(Platform, STAKE_BUTTON)}
+        style={styles.stakeButton}
+      >
+        <Text variant={TextVariant.BodyLGMedium}>
+          {' • '}
+          <Text color={TextColor.Primary} variant={TextVariant.BodyLGMedium}>
+            {`${strings('stake.stake')} `}
+          </Text>
+        </Text>
+        <Icon
+          name={IconName.Plant}
+          size={IconSize.Sm}
+          color={IconColor.Primary}
+        />
+      </Pressable>
+    );
+  };
 
   const goToAddToken = () => {
     setIsAddTokenEnabled(false);
@@ -402,9 +456,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
            * The reason for this is that the wallet_watchAsset doesn't return the name
            * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
            */}
-          <Text variant={TextVariant.BodyLGMedium}>
-            {asset.name || asset.symbol}
-          </Text>
+          <View style={styles.assetName}>
+            <Text variant={TextVariant.BodyLGMedium}>
+              {asset.name || asset.symbol}
+            </Text>
+            {/** Add button link to Portfolio Stake if token is mainnet ETH */}
+            {asset.isETH && isMainnet && renderStakeButton(asset)}
+          </View>
 
           <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
             {mainBalance === TOKEN_BALANCE_LOADING ? (
@@ -527,15 +585,16 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     const fiatBalance = `${renderFiat(total, currentCurrency)}`;
 
     const onOpenPortfolio = () => {
-      const existingPortfolioTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.match(regex.portfolioUrl),
+      const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
+        isPortfolioUrl(url),
       );
+
       let existingTabId;
       let newTabUrl;
       if (existingPortfolioTab) {
         existingTabId = existingPortfolioTab.id;
       } else {
-        newTabUrl = `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`;
+        newTabUrl = `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`;
       }
       const params = {
         ...(newTabUrl && { newTabUrl }),
@@ -547,7 +606,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         params,
       });
       trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-        portfolioUrl: AppConstants.PORTFOLIO_URL,
+        portfolioUrl: AppConstants.PORTFOLIO.URL,
       });
     };
 
