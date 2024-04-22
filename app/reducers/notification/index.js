@@ -3,7 +3,6 @@ const { TRANSACTION, SIMPLE } = NotificationTypes;
 
 export const initialState = {
   notifications: [],
-  notification: {},
 };
 
 export const ACTIONS = {
@@ -18,7 +17,6 @@ export const ACTIONS = {
   REMOVE_NOT_VISIBLE_NOTIFICATIONS: 'REMOVE_NOT_VISIBLE_NOTIFICATIONS',
   SHOW_SIMPLE_NOTIFICATION: 'SHOW_SIMPLE_NOTIFICATION',
   SHOW_TRANSACTION_NOTIFICATION: 'SHOW_TRANSACTION_NOTIFICATION',
-  UPDATE_NOTIFICATION_STATUS: 'UPDATE_NOTIFICATION_STATUS',
 };
 
 const enqueue = (notifications, notification) => [
@@ -189,12 +187,6 @@ const notificationReducer = (state = initialState, action) => {
       return {
         ...state,
         notifications: visibleNotifications,
-      };
-    }
-    case ACTIONS.UPDATE_NOTIFICATION_STATUS: {
-      return {
-        ...state,
-        notificationsSettings: action.notificationsSettings,
       };
     }
     default:

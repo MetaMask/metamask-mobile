@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/prefer-default-export
 export const STORAGE_IDS = {
   NOTIFICATIONS: 'notifications',
   GLOBAL_PUSH_NOTIFICATION_SETTINGS: 'globalNotificationSettings',
@@ -10,7 +11,6 @@ export const STORAGE_IDS = {
   REQUEST_PERMISSION_ASKED: 'REQUEST_PERMISSION_ASKED',
   REQUEST_PERMISSION_GRANTED: 'REQUEST_PERMISSION_GRANTED',
   NOTIFICATION_DATE_FORMAT: 'DD/MM/YYYY HH:mm:ss',
-  NOTIFICATIONS_SETTINGS: 'notifications-settings',
 };
 
 export const STORAGE_TYPES = {
@@ -35,8 +35,6 @@ export const mapStorageTypeToIds = (id: string) => {
       return STORAGE_TYPES.BOOLEAN;
     case STORAGE_IDS.REQUEST_PERMISSION_GRANTED:
       return STORAGE_TYPES.BOOLEAN;
-    case STORAGE_IDS.NOTIFICATIONS_SETTINGS:
-      return STORAGE_TYPES.OBJECT;
     default:
       return STORAGE_TYPES.STRING;
   }

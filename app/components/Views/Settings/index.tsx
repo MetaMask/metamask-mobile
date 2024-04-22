@@ -57,11 +57,6 @@ const Settings = () => {
     navigation.navigate('AdvancedSettings');
   };
 
-  const onPressNotifications = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_NOTIFICATIONS);
-    navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
-  };
-
   const onPressSecurity = () => {
     trackEvent(MetaMetricsEvents.SETTINGS_SECURITY_AND_PRIVACY);
     navigation.navigate('SecuritySettings');
@@ -188,12 +183,6 @@ const Settings = () => {
         onPress={onPressAdvanced}
         title={strings('app_settings.advanced_title')}
         testID={SettingsViewSelectorsIDs.ADVANCED}
-      />
-      <SettingsDrawer
-        description={strings('app_settings.notifications_desc')}
-        onPress={onPressNotifications}
-        title={strings('app_settings.notifications_title')}
-        testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
       />
       <SettingsDrawer
         description={strings('app_settings.contacts_desc')}

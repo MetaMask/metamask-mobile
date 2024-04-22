@@ -13,8 +13,6 @@ import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NetworksSettings from '../../Views/Settings/NetworksSettings';
-import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
-import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import Contacts from '../../Views/Settings/Contacts';
 import Wallet from '../../Views/Wallet';
@@ -228,22 +226,6 @@ const SnapsSettingsStack = () => (
 );
 ///: END:ONLY_INCLUDE_IF
 
-const NotificationsOptInStack = () => (
-  <Stack.Navigator initialRouteName={Routes.NOTIFICATIONS.OPT_IN}>
-    <Stack.Screen
-      mode={'modal'}
-      name={Routes.NOTIFICATIONS.OPT_IN}
-      component={OptIn}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const SettingsFlow = () => (
   <Stack.Navigator initialRouteName={'Settings'}>
     <Stack.Screen
@@ -335,11 +317,6 @@ const SettingsFlow = () => (
       name="EnterPasswordSimple"
       component={EnterPasswordSimple}
       options={EnterPasswordSimple.navigationOptions}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
     />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -578,27 +555,6 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const NotificationsModeView = (props) => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
-    />
-    <Stack.Screen
-      mode={'modal'}
-      name="NotificationsOptIn"
-      component={OptIn}
-      options={OptIn.navigationOptions}
-    />
-    <Stack.Screen
-      name="ContactForm"
-      component={ContactForm}
-      options={ContactForm.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const Swaps = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -702,7 +658,6 @@ const MainNavigator = () => (
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name="NotificationsView" component={NotificationsModeView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
       {() => <RampRoutes rampType={RampType.BUY} />}
     </Stack.Screen>
@@ -722,11 +677,6 @@ const MainNavigator = () => (
       )}
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
-    />
-    <Stack.Screen
-      name={Routes.NOTIFICATIONS.OPT_IN_STACK}
-      component={NotificationsOptInStack}
-      options={NotificationsOptInStack.navigationOptions}
     />
   </Stack.Navigator>
 );
