@@ -1,11 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useContext, useMemo } from 'react';
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
@@ -13,8 +8,6 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
-
-import Spinner from '../../AnimatedSpinner';
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
@@ -48,7 +41,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
   return (
     <Container style={styles.checkWrapper} elevation={8}>
       <TouchableOpacity
-        accessible={true}
+        accessible
         accessibilityLabel="Switch tab"
         onPress={() => onSwitch(tab)}
         style={[styles.tabWrapper, isActiveTab && styles.activeTab]}
@@ -74,7 +67,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
             </Text>
           </View>
           <TouchableOpacity
-            accessible={true}
+            accessible
             accessibilityLabel="Close tab"
             onPress={() => onClose(tab)}
             style={styles.closeTabButton}
@@ -86,8 +79,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
         </View>
         <View style={styles.footerContainer}>
-          {
-            selectedAccount?.address &&
+          {selectedAccount?.address && (
             <View style={styles.badgeWrapperContainer}>
               <BadgeWrapper
                 badgeElement={
@@ -105,13 +97,11 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
                   // TODO: figure out the avatar size, according to figma should be smaller than Sm, but bigger than Xs
                   size={AvatarSize.Sm}
                   variant={AvatarVariant.Account}
-                  accountAddress={
-                    selectedAccount?.address
-                  }
+                  accountAddress={selectedAccount?.address}
                 />
               </BadgeWrapper>
             </View>
-          }
+          )}
           <Text
             // TODO: figure out why the variant is not taking effect when changed
             variant={TextVariant.BodySMBold}
