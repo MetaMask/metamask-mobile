@@ -123,7 +123,8 @@
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "@metamask/transaction-controller/@metamask/controller-utils": "^5.0.0",
     "@spruceid/siwe-parser": "2.1.0",
-    "apg-js": "4.2.0"
+    "apg-js": "4.2.0",
+    "web3-provider-engine": "^16.0.8"
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
