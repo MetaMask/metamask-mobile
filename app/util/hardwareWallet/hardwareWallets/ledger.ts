@@ -8,10 +8,9 @@ export interface LedgerSignModelNavParams {
   type: any;
 }
 
-export const signModalNavDetail = async (params: LedgerSignModelNavParams) => {
-  return createNavigationDetails<LedgerSignModelNavParams>(
+export const signModalNavDetail = async (params: LedgerSignModelNavParams) =>
+  createNavigationDetails<LedgerSignModelNavParams>(
     Routes.LEDGER_MESSAGE_SIGN_MODAL,
   )({
     ...params,
   });
-};

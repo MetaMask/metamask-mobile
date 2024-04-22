@@ -126,7 +126,7 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 
-import Encryptor from './Encryptor';
+import { Encryptor, DERIVATION_PARAMS } from './Encryptor';
 import {
   isMainnetByChainId,
   getDecimalChainId,
@@ -176,7 +176,7 @@ import {
 import { hasProperty, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
@@ -191,11 +191,13 @@ import { lowerCase } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
-} from '../core/redux/slices/inpageProvider';
+} from './redux/slices/inpageProvider';
 
 const NON_EMPTY = 'NON_EMPTY';
 
-const encryptor = new Encryptor();
+const encryptor = new Encryptor({
+  derivationParams: DERIVATION_PARAMS,
+});
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -209,6 +211,7 @@ interface TestOrigin {
   type: `${PhishingController['name']}:testOrigin`;
   handler: PhishingController['test'];
 }
+
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 
 type SnapsGlobalActions =
@@ -347,6 +350,7 @@ class Engine {
    * Object that runs and manages the execution of Snaps
    */
   snapExecutionService: WebViewExecutionService;
+
   ///: END:ONLY_INCLUDE_IF
 
   /**
@@ -1556,7 +1560,7 @@ class Engine {
 
   rejectPendingApproval(
     id: string,
-    reason: Error = ethErrors.provider.userRejectedRequest(),
+    reason: Error = providerErrors.userRejectedRequest(),
     opts: { ignoreMissing?: boolean; logErrors?: boolean } = {},
   ) {
     const { ApprovalController } = this.context;
