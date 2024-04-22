@@ -1,7 +1,8 @@
-import { RampIntent } from "../types";
+import { RampIntent } from '../types';
 
-export default function parseRampIntent(pathParams: Record<string, string | undefined>): RampIntent | undefined {
-
+export default function parseRampIntent(
+  pathParams: Record<string, string | undefined>,
+): RampIntent | undefined {
   // create a rampIntent object if the pathParams contain the necessary fields
   const rampIntent: RampIntent = {
     address: pathParams.address,

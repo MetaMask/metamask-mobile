@@ -53,7 +53,7 @@ const GetStarted: React.FC = () => {
   }, [isBuy, selectedChainId, trackEvent]);
 
   useEffect(() => {
-    if (params && !intent) {
+    if (params) {
       setIntent(params);
     }
   }, [intent, params, setIntent]);

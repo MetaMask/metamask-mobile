@@ -139,6 +139,7 @@ const BuildQuote = () => {
     rampType,
     isBuy,
     isSell,
+    intent,
   } = useRampSDK();
 
   const screenLocation: ScreenLocation = isBuy
@@ -376,6 +377,14 @@ const BuildQuote = () => {
     const { height } = event.nativeEvent.layout;
     keyboardHeight.current = height;
   }, []);
+
+  useEffect(() => {
+    if (intent?.amount) {
+      // TODO: parse fiat amount for buy truncating decimals, truncate decimals for sell
+      setAmount(`${intent.amount}`);
+      setAmountNumber(Number(intent.amount));
+    }
+  }, [intent?.amount]);
 
   /**
    * * Region handlers

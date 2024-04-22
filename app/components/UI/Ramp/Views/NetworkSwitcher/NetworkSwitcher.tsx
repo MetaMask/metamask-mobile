@@ -61,7 +61,7 @@ function NetworkSwitcher() {
 
   const isLoading = isLoadingNetworks || isLoadingNetworksDetail;
   const error = errorFetchingNetworks || errorFetchingNetworksDetail;
-  const rampNetworks = useMemo(() => {
+  const rampNetworksDetails = useMemo(() => {
     const activeNetworkDetails: Network[] = [];
     supportedNetworks.forEach(({ chainId: supportedChainId, active }) => {
       const currentChainId = toHex(supportedChainId);
@@ -73,12 +73,12 @@ function NetworkSwitcher() {
         return;
       }
 
-      const popularNetwork = PopularList.find(
+      const popularNetworkDetail = PopularList.find(
         ({ chainId }) => chainId === currentChainId,
       );
 
-      if (popularNetwork) {
-        activeNetworkDetails.push(popularNetwork);
+      if (popularNetworkDetail) {
+        activeNetworkDetails.push(popularNetworkDetail);
         return;
       }
 
@@ -180,7 +180,7 @@ function NetworkSwitcher() {
       } else if (getDecimalChainId(ChainId['linea-mainnet']) === chainId) {
         switchToMainnet('linea-mainnet');
       } else {
-        const supportedNetworkList = rampNetworks.map(
+        const supportedNetworkConfigurations = rampNetworksDetails.map(
           (networkConfiguration: Network) => {
             const isAdded = Object.values(networkConfigurations).some(
               (savedNetwork: any) =>
@@ -193,9 +193,9 @@ function NetworkSwitcher() {
           },
         );
 
-        const networkConfiguration = supportedNetworkList.find(
+        const networkConfiguration = supportedNetworkConfigurations.find(
           ({ chainId: configurationChainId }) =>
-            configurationChainId === toHex(chainId),
+            toHex(configurationChainId) === toHex(chainId),
         );
         if (networkConfiguration) {
           handleNetworkPress(networkConfiguration);
@@ -205,7 +205,7 @@ function NetworkSwitcher() {
     [
       supportedNetworks,
       switchToMainnet,
-      rampNetworks,
+      rampNetworksDetails,
       networkConfigurations,
       handleNetworkPress,
     ],
@@ -235,7 +235,7 @@ function NetworkSwitcher() {
     }
   }, [networkToBeAdded]);
 
-  if (!isLoading && (error || rampNetworks.length === 0)) {
+  if (!isLoading && (error || rampNetworksDetails.length === 0)) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -355,7 +355,7 @@ function NetworkSwitcher() {
                   showNetworkModal={handleNetworkPress}
                   onNetworkSwitch={() => undefined}
                   shouldNetworkSwitchPopToWallet={false}
-                  customNetworksList={rampNetworks}
+                  customNetworksList={rampNetworksDetails}
                   displayContinue
                 />
               </>
