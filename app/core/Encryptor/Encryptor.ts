@@ -193,7 +193,8 @@ class Encryptor implements GenericEncryptor {
       password,
       salt: payload.salt,
       iterations:
-        payload.keyMetadata?.params.iterations || KeyDerivationIteration.Legacy,
+        payload.keyMetadata?.params.iterations ||
+        KeyDerivationIteration.Legacy5000,
       lib: payload.lib,
     });
     const data = await this.decryptWithKey({
