@@ -326,11 +326,18 @@ class SmartTransactionHook {
       Logger.log(LOG_PREFIX, 'Started approval flow id', this.approvalFlowId);
     }
 
+    // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
+    let getFeesResponse: Fees;
     try {
-      const getFeesResponse = await this.smartTransactionsController.getFees(
+      getFeesResponse = await this.smartTransactionsController.getFees(
         { ...this.transaction, chainId: this.chainId },
         undefined,
       );
+    } catch (error) {
+      return useRegularTransactionSubmit;
+    }
+
+    try {
       const submitTransactionResponse = await this.signAndSubmitTransactions({
         getFeesResponse,
       });
