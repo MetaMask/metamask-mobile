@@ -57,6 +57,10 @@
 - [#9202](https://github.com/MetaMask/metamask-mobile/pull/9202): fix: Revert PR 9075 (#9202)
 - [#9075](https://github.com/MetaMask/metamask-mobile/pull/9075): fix: Send ppom metrics when transaction is cancelled. (#9075)
 
+## 7.20.1 - Apr 18, 2024
+### Fixed
+- [#9092](https://github.com/MetaMask/metamask-mobile/pull/9092): fix: check HD keyring
+
 ## 7.20.0 - Apr 12, 2024
 ### Added
 - [#8982](https://github.com/MetaMask/metamask-mobile/pull/8982): feat: Update gas fee controller to version 6.1.2
