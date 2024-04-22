@@ -17,10 +17,26 @@ const getDefaultState = () => {
       backgroundState: cloneDeep(initialBackgroundState),
     },
     swaps: {
+      featureFlags: {
+        smart_transactions: {
+          mobile_active: false,
+          extension_active: true,
+        },
+        smartTransactions: {
+          mobileActive: false,
+          extensionActive: true,
+          mobileActiveIOS: false,
+          mobileActiveAndroid: false,
+        },
+      },
       '0x1': {
         isLive: true,
-        smartTransactions: {
-          foo: 123,
+        featureFlags: {
+          smartTransactions: {
+            expectedDeadline: 45,
+            maxDeadline: 160,
+            returnTxHashAsap: false,
+          },
         },
       },
     },
@@ -76,6 +92,9 @@ describe('SmartTransactionsController Selectors', () => {
     });
     it('should return true if smart transactions are enabled', () => {
       const state = getDefaultState();
+      state.swaps.featureFlags.smart_transactions.mobile_active = true;
+      state.swaps.featureFlags.smartTransactions.mobileActive = true;
+
       const enabled = getSmartTransactionsEnabled(state);
       expect(enabled).toEqual(true);
     });
@@ -96,6 +115,9 @@ describe('SmartTransactionsController Selectors', () => {
     });
     it('should return true if smart transactions are enabled and opted into', () => {
       const state = getDefaultState();
+      state.swaps.featureFlags.smart_transactions.mobile_active = true;
+      state.swaps.featureFlags.smartTransactions.mobileActive = true;
+
       const isSmartTransaction = getIsSmartTransaction(state);
       expect(isSmartTransaction).toEqual(true);
     });
