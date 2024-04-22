@@ -352,6 +352,11 @@ enum EVENT_NAME {
   LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
   LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
   LEDGER_HARDWARE_WALLET_FORGOTTEN = 'Ledger hardware wallet forgotten',
+
+  //Notifications
+  ALL_NOTIFICATIONS = 'All Notifications',
+  WALLET_NOTIFICATIONS = 'Wallet Notifications',
+  ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
 }
 
 enum ACTIONS {
@@ -400,6 +405,10 @@ enum ACTIONS {
   ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
   ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
   STAKE = 'Stake',
+  // Notifications
+  SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
+  SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
+  SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
 }
 
 const events = {
@@ -922,6 +931,7 @@ enum DESCRIPTION {
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
   STAKE = 'Stake',
+  NOTIFICATIONS = 'Notifications',
 }
 
 const legacyMetaMetricsEvents = {
@@ -1388,6 +1398,23 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.STAKE_BUTTON_CLICKED,
     ACTIONS.STAKE,
     DESCRIPTION.STAKE,
+  ),
+
+  // Notifications
+  ALL_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.ALL_NOTIFICATIONS,
+    ACTIONS.SELECTS_ALL_NOTIFICATIONS,
+    DESCRIPTION.NOTIFICATIONS,
+  ),
+  WALLET_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.WALLET_NOTIFICATIONS,
+    ACTIONS.SELECTS_WALLET_NOTIFICATIONS,
+    DESCRIPTION.NOTIFICATIONS,
+  ),
+  ANNOUCEMENTS_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.ANNOUCEMENTS_NOTIFICATIONS,
+    ACTIONS.SELECTS_ANNOUCEMENTS_NOTIFICATIONS,
+    DESCRIPTION.NOTIFICATIONS,
   ),
 };
 
