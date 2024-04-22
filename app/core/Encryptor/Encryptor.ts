@@ -63,7 +63,7 @@ class Encryptor implements GenericEncryptor {
    * @returns A boolean indicating whether the minimum required iterations are met.
    */
   private isMinimalRequiredIterationsMet = (iterations: number): boolean =>
-    iterations >= KeyDerivationIteration.Legacy5000;
+    iterations >= KeyDerivationIteration.OWASP2023Minimum;
 
   /**
    * Generates a random base64-encoded salt string.
