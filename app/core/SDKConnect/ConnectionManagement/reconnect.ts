@@ -91,11 +91,11 @@ async function reconnect({
     //   instance.removeChannel(channelId, true);
     // }
 
-    // instance condition should not happen keeping it for debug purpose.
-    console.warn(`Priotity to deeplink - overwrite previous connection`);
-    instance.removeChannel({ channelId, sendTerminate: true });
+    // issue can happen during dev because bundle takes too long to load via metro.
+    // should not happen but keeping it for reference / debug purpose.
+    console.warn(`BUNDLE WARNING: Already connecting --- Priotity to deeplink`);
+    // instance.removeChannel({ channelId, sendTerminate: true });
   }
-
   if (!instance.state.connections[channelId]) {
     interruptReason = 'no connection';
   }
@@ -130,7 +130,9 @@ async function reconnect({
     }
   }
 
-  DevLogger.log(`SDKConnect::reconnect - starting reconnection`);
+  DevLogger.log(
+    `SDKConnect::reconnect - starting reconnection channel=${channelId}`,
+  );
 
   const connection = instance.state.connections[channelId];
   instance.state.connecting[channelId] = true;
