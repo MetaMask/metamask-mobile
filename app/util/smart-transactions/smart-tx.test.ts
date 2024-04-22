@@ -360,7 +360,7 @@ describe('submitSmartTransactionHook', () => {
   });
 
   describe('MM Swaps', () => {
-    it.only('starts an approval flow and does not end it if there is an swap tx that requires allowance', async () => {
+    it('starts an approval flow and does not end it if there is an swap tx that requires allowance', async () => {
       const request: SubmitSmartTransactionRequestMocked = createRequest({
         transactionMeta: {
           ...defaultTransactionMeta,
