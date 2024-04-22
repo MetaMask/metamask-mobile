@@ -16,7 +16,7 @@ if (Device.isAndroid()) {
   paddingTop -= 10;
 }
 
-export default createStyles = (colors) =>
+const createStyles = (colors) =>
   StyleSheet.create({
     tabFavicon: {
       alignSelf: 'flex-start',
@@ -118,3 +118,5 @@ export default createStyles = (colors) =>
       borderColor: colors.background.default,
     },
   });
+
+export default createStyles;

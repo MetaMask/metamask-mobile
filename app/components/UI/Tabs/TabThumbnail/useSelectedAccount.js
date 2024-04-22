@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useAccounts } from '../../../hooks/useAccounts';
 
-export default useSelectedAccount = () => {
+const useSelectedAccount = () => {
   const { accounts } = useAccounts();
 
   const selectedAccount = useMemo(
@@ -11,3 +11,6 @@ export default useSelectedAccount = () => {
 
   return selectedAccount;
 };
+
+export default useSelectedAccount;
+
