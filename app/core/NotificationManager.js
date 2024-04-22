@@ -1,21 +1,19 @@
 'use strict';
 
-import notifee, { AuthorizationStatus } from '@notifee/react-native';
+import notifee from '@notifee/react-native';
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
-import Logger from '../util/Logger';
-import AppConstants from '../core/AppConstants';
+
 import { strings } from '../../locales/i18n';
-import { AppState, Alert } from 'react-native';
+import { AppState } from 'react-native';
 import { NotificationTransactionTypes } from '../util/notifications/types';
-import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
-import { mmStorage } from '../util/notifications/settings/storage';
+
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
 import { store } from '../store';
-
+import { requestPushNotificationsPermission } from '../util/notifications';
 const constructTitleAndMessage = (data) => {
   let title, message;
   switch (data.type) {
@@ -235,7 +233,7 @@ class NotificationManager {
 
         Device.isIos() &&
           setTimeout(() => {
-            this.requestPushNotificationsPermission();
+            requestPushNotificationsPermission();
           }, 5000);
 
         // Prompt review
@@ -296,59 +294,6 @@ class NotificationManager {
     this._showNotification(data);
   }
 
-  requestPushNotificationsPermission = async () => {
-    try {
-      const promptCount = mmStorage.getLocal(
-        STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
-      );
-      let permissionStatus;
-      permissionStatus = await notifee.requestPermission();
-
-      if (
-        !promptCount ||
-        promptCount < AppConstants.MAX_PUSH_NOTIFICATION_PROMPT_TIMES
-      ) {
-        if (
-          permissionStatus.authorizationStatus < AuthorizationStatus.AUTHORIZED
-        ) {
-          Alert.alert(
-            strings('notifications.prompt_title'),
-            strings('notifications.prompt_desc'),
-            [
-              {
-                text: strings('notifications.prompt_cancel'),
-                onPress: () => false,
-                style: 'default',
-              },
-              {
-                text: strings('notifications.prompt_ok'),
-                onPress: async () => {
-                  if (Device.isIos()) {
-                    permissionStatus = await notifee.requestPermission({
-                      provisional: true,
-                    });
-                  } else {
-                    permissionStatus = await notifee.requestPermission();
-                  }
-                  // await saveFCMToken();
-                },
-              },
-            ],
-            { cancelable: false },
-          );
-        }
-        const times = promptCount + 1 || 1;
-        mmStorage.saveLocal(STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT, times);
-        mmStorage.saveLocal(
-          STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_TIME,
-          Date.now().toString(),
-        );
-      }
-      return permissionStatus;
-    } catch (e) {
-      Logger.error(e, strings('notifications.error_checking_permission'));
-    }
-  };
   /**
    * Returns the id of the transaction that should
    * be displayed and removes it from memory

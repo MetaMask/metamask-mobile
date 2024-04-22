@@ -160,14 +160,18 @@
       "content1": "Edit your account name, view transactions on Etherscan, share your public key, and see your private key by tapping this icon"
     },
     "step4": {
+      "title": "Notifications",
+      "content1": "Stay in the loop on what's happening in your wallet"
+    },
+    "step5": {
       "title": "Using your wallet",
       "content1": "Buy, send, swap, and receive assets by tapping this icon"
     },
-    "step5": {
+    "step6": {
       "title": "Exploring web3",
       "content1": "Open the browser by tapping this icon"
     },
-    "step6": {
+    "step7": {
       "title": "Using the browser",
       "content1": "Search for sites by keyword or enter a URL. Have fun out there! "
     }
