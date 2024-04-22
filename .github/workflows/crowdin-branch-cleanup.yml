@@ -11,6 +11,7 @@ jobs:
     outputs:
       branch: ${{ steps.extract_current_branch.outputs.branch }}
       pr: ${{ steps.get-prs.outputs.pr }}
+      modified_branch_name: ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }}
     steps:
       - name: Extract current branch name
         shell: bash
@@ -33,7 +34,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CURRENT_BRANCH: ${{ steps.extract_current_branch.outputs.branch }}
-  
+      
+      - name: Modified branch name
+        run: echo "modified_branch_name="${{ steps.extract_current_branch.outputs.branch }} | sed 's#/#-#g'"" >> $GITHUB_OUTPUT
+        id: extract_modified_branch_name
+
   github_cleanup:
     runs-on: ubuntu-latest
     needs: prestep   
@@ -69,5 +74,5 @@ jobs:
         if: needs.prestep.outputs.branch != 'main'
         uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
         with:
-          command: branch delete ${{ needs.prestep.outputs.branch }}
+          command: ${{ needs.prestep.outputs.modified_branch_name }}
           command_args: -v
