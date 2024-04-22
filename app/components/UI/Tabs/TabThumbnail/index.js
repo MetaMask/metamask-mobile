@@ -13,6 +13,8 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
+
+import Spinner from '../../AnimatedSpinner';
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
@@ -28,7 +30,6 @@ import { useSelectedAccount } from './useSelectedAccount';
 const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
 
 const { HOMEPAGE_URL } = AppConstants;
-const DEFAULT_ACCOUNT_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 /**
  * View that renders a tab thumbnail to be displayed in the in-app browser.
@@ -85,30 +86,32 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
         </View>
         <View style={styles.footerContainer}>
-          <View style={styles.badgeWrapperContainer}>
-            <BadgeWrapper
-              badgeElement={
-                // TODO: figure out the badge size, according to figma should be smaller
-                <Badge
-                  variant={BadgeVariant.Network}
-                  // TODO: get the correct image source for the active network
-                  imageSource={networkBadgeSource}
-                  name={'Ethereum'}
-                  style={styles.networkBadge}
-                />
-              }
-            >
-              <Avatar
-                // TODO: figure out the avatar size, according to figma should be smaller than Sm, but bigger than Xs
-                size={AvatarSize.Sm}
-                variant={AvatarVariant.Account}
-                accountAddress={
-                  selectedAccount?.address ??
-                  DEFAULT_ACCOUNT_ADDRESS
+          {
+            selectedAccount?.address &&
+            <View style={styles.badgeWrapperContainer}>
+              <BadgeWrapper
+                badgeElement={
+                  // TODO: figure out the badge size, according to figma should be smaller
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    // TODO: get the correct image source for the active network
+                    imageSource={networkBadgeSource}
+                    name={'Ethereum'}
+                    style={styles.networkBadge}
+                  />
                 }
-              />
-            </BadgeWrapper>
-          </View>
+              >
+                <Avatar
+                  // TODO: figure out the avatar size, according to figma should be smaller than Sm, but bigger than Xs
+                  size={AvatarSize.Sm}
+                  variant={AvatarVariant.Account}
+                  accountAddress={
+                    selectedAccount?.address
+                  }
+                />
+              </BadgeWrapper>
+            </View>
+          }
           <Text
             // TODO: figure out why the variant is not taking effect when changed
             variant={TextVariant.BodySMBold}
