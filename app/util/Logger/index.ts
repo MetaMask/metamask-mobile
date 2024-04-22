@@ -5,7 +5,7 @@ import {
   withScope,
 } from '@sentry/react-native';
 import DefaultPreference from 'react-native-default-preference';
-import { METRICS_OPT_IN, AGREED, DEBUG } from '../constants/storage';
+import { METRICS_OPT_IN, AGREED, DEBUG } from '../../constants/storage';
 
 interface ExtraInfo {
   message?: string;
@@ -44,17 +44,21 @@ export class AsyncLogger {
   /**
    * console.error wrapper
    *
-   * @param {Error|string|unknown} error - error to be logged
+   * @param {Error} error - Error object to be logged
    * @param {string|object} extra - Extra error info
    * @returns - void
    */
   static async error(
-    error: Error | string | unknown,
-    extra: ExtraInfo | string | any,
+    error: Error,
+    extra?: ExtraInfo | string | any,
   ): Promise<void> {
     if (__DEV__) {
       console.warn(DEBUG, error); // eslint-disable-line no-console
       return;
+    }
+
+    if (!error) {
+      return console.warn('No error provided');
     }
 
     // Check if user passed accepted opt-in to metrics
@@ -62,15 +66,8 @@ export class AsyncLogger {
     if (metricsOptIn === AGREED) {
       let exception = error;
 
-      if (!error) {
-        if (!extra) return console.warn('No error nor extra info provided');
-
-        if (typeof extra === 'string') {
-          exception = new Error(extra);
-        } else {
-          exception = new Error(extra.message || JSON.stringify(extra));
-        }
-      } else if (!(error instanceof Error)) {
+      // Continue handling non Error cases to prevent breaking changes
+      if (!(error instanceof Error)) {
         if (typeof error === 'string') {
           exception = new Error(error);
         } else {
@@ -130,14 +127,11 @@ export default class Logger {
   /**
    * console.error wrapper
    *
-   * @param {Error|string|unknown} error - error to be logged
+   * @param {Error} error - Error to be logged
    * @param {string|object} extra - Extra error info
    * @returns - void
    */
-  static error(
-    error: Error | string | unknown,
-    extra: ExtraInfo | string | any,
-  ) {
+  static error(error: Error, extra?: ExtraInfo | string | any) {
     AsyncLogger.error(error, extra).catch(() => {
       // ignore error but avoid dangling promises
     });

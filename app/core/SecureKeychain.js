@@ -1,5 +1,5 @@
 import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
-import Encryptor from './Encryptor';
+import { Encryptor, DERIVATION_PARAMS } from './Encryptor';
 import { strings } from '../../locales/i18n';
 import AsyncStorage from '../store/async-storage-wrapper';
 import { Platform } from 'react-native';
@@ -14,7 +14,9 @@ import {
 import Device from '../util/device';
 
 const privates = new WeakMap();
-const encryptor = new Encryptor();
+const encryptor = new Encryptor({
+  derivationParams: DERIVATION_PARAMS,
+});
 const defaultOptions = {
   service: 'com.metamask',
   authenticationPromptTitle: strings('authentication.auth_prompt_title'),
