@@ -200,15 +200,14 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo "Node and Yarn being installed"
+                echo "Node being installed"
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
                 asdf global nodejs "$NODE_VERSION"
-                asdf plugin add yarn
-                asdf list all yarn
-                asdf install yarn "$YARN_VERSION"
-                asdf global yarn "$YARN_VERSION"
-          title: Install node and yarn
+                echo "Latest Corepack being installed (with npm) and enabled"
+                npm i -g corepack
+                corepack enable
+          title: Install node and setup latest corepack
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
