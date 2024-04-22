@@ -517,6 +517,7 @@ workflows:
           title: Restore CCache
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+            - verbose: true
       - script@1:
           title: Set skip ccache upload
           run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
@@ -528,6 +529,7 @@ workflows:
           title: Restore build from cache
           inputs:
             - key: apk-cache-{{ .CommitHash }}
+            - verbose: true
       - script@1:
           title: Run detox build
           run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
@@ -551,17 +553,20 @@ workflows:
           run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+            - verbose: true
             - paths: |-
                 ccache
       - save-cache@1:
           title: Save build
           inputs:
             - key: apk-cache-{{ .CommitHash }}
+            - verbose: true
             - paths: android/app/build/outputs
       - save-cache@1:
           title: Save node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - verbose: true
             - paths: node_modules
     meta:
       bitrise.io:
@@ -579,10 +584,12 @@ workflows:
           title: Restore cache build
           inputs:
             - key: apk-cache-{{ .CommitHash }}
+            - verbose: true
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - verbose: true
       - script@1:
           title: Download cmake 3.22.1 with sdkmanager
           is_always_run: false
@@ -692,6 +699,7 @@ workflows:
           title: Restore CCache
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+            - verbose: true
       - script@1:
           title: Set skip ccache upload
           run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
@@ -703,6 +711,7 @@ workflows:
           title: Restore build from cache
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
+            - verbose: true
       - script@1:
           title: Run detox build
           run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
@@ -726,12 +735,14 @@ workflows:
           run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
           inputs:
             - key: '{{ getenv "CCACHE_KEY" }}'
+            - verbose: true
             - paths: |-
                 ccache
       - save-cache@1:
           title: Save build
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
+            - verbose: true
             - paths: |-
                 ios/build/Build
                 ../Library/Detox/ios
@@ -739,6 +750,7 @@ workflows:
           title: Save node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - verbose: true
             - paths: node_modules
   ios_e2e_test:
     before_run:
@@ -751,11 +763,13 @@ workflows:
           title: Restore cache build
           inputs:
             - key: ipa-cache-{{ .CommitHash }}
+            - verbose: true
       - restore-cocoapods-cache@2: {}
       - restore-cache@2:
           title: Restore cache node_modules
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+            - verbose: true
       - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
