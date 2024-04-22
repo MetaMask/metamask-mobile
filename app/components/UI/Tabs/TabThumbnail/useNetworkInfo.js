@@ -1,7 +1,11 @@
 import images from 'images/image-icons';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectChainId, selectProviderConfig, selectTicker } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectProviderConfig,
+  selectTicker,
+} from '../../../../selectors/networkController';
 import Networks, {
   getTestNetImageByChainId,
   isLineaMainnetByChainId,
@@ -14,9 +18,13 @@ export const useNetworkInfo = () => {
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
 
-  const networkName = useMemo(() => {
-    return providerConfig?.nickname ?? Networks[providerConfig?.type]?.name ?? Networks.rpc.name;
-  }, [providerConfig]);
+  const networkName = useMemo(
+    () =>
+      providerConfig?.nickname ??
+      Networks[providerConfig?.type]?.name ??
+      Networks.rpc.name,
+    [providerConfig],
+  );
 
   const networkBadgeSource = useMemo(() => {
     if (!chainId) return undefined;
