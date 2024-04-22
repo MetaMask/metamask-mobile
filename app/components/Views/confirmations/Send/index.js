@@ -60,7 +60,7 @@ import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../../selectors/preferencesController';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 
 const REVIEW = 'review';
@@ -520,7 +520,7 @@ class Send extends PureComponent {
   onCancel = (id) => {
     Engine.context.ApprovalController.reject(
       id,
-      ethErrors.provider.userRejectedRequest(),
+      providerErrors.userRejectedRequest(),
     );
     this.props.navigation.pop();
     this.unmountHandled = true;
