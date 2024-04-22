@@ -103,6 +103,7 @@ export default {
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
       'https://support.metamask.io/hc/articles/14764161421467',
+    SMART_TXS: 'https://support.metamask.io/hc/en-us/articles/9184393821211',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
