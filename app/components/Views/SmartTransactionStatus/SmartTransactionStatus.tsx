@@ -235,7 +235,7 @@ const SmartTransactionStatus = ({
       timeLeft: showRemainingTimeInMinAndSec(timeLeftForPendingStxInSec),
     });
   } else if (status === SmartTransactionStatuses.SUCCESS) {
-    icon = IconName.CheckCircle;
+    icon = IconName.Confirmation;
     iconColor = IconColor.Success;
     header = strings('smart_transactions.status_success_header');
     description = undefined;
