@@ -36,7 +36,6 @@ import CheckBold from './assets/check-bold.svg';
 import CheckBoxOff from './assets/check-box-off.svg';
 import CheckBoxOn from './assets/check-box-on.svg';
 import CheckCircleOff from './assets/check-circle-off.svg';
-import CheckCircle from './assets/check-circle.svg';
 import Check from './assets/check.svg';
 import CircleX from './assets/circle-x.svg';
 import Clock from './assets/clock.svg';
@@ -206,7 +205,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.CheckBoxOff]: CheckBoxOff,
   [IconName.CheckBoxOn]: CheckBoxOn,
   [IconName.CheckCircleOff]: CheckCircleOff,
-  [IconName.CheckCircle]: CheckCircle,
   [IconName.Check]: Check,
   [IconName.CircleX]: CircleX,
   [IconName.Clock]: Clock,
