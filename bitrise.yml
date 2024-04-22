@@ -200,13 +200,10 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo "Node being installed with asdf"
+                echo "Node being installed"
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
                 asdf global nodejs "$NODE_VERSION"
-              # asdf install fails on specific yarn releases
-              # missing unpublished .asc artifacts e.g. v1.22.22
-              # https://github.com/yarnpkg/yarn/issues/9050
                 echo "Yarn being installed with npm"
                 npm i -g "yarn@$YARN_VERSION"
                 echo "Corepack being updated and enabled"
