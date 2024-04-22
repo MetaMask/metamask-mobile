@@ -180,7 +180,7 @@ When(/^I log into my wallet$/, async () => {
   await WalletMainScreen.isMainWalletViewVisible();
 });
 
-When(/^I kill the app$/, async () => {3
+When(/^I kill the app$/, async () => {
   const platform = await driver.getPlatform();
   if (platform === 'iOS') {
     await driver.terminateApp('io.metamask.MetaMask-QA');
@@ -219,7 +219,7 @@ When(/^I unlock wallet with (.*)$/, async (password) => {
 
 Then(
   /^I tap (.*) "([^"]*)?" on (.*) (.*) view/,
-  async (elementType, button, screen, type) => {
+  async (elementType, button) => {
     await CommonScreen.checkNoNotification(); // Notification appears a little late and inteferes with clicking function
     await CommonScreen.tapOnText(button);
   },
@@ -231,7 +231,7 @@ Then(/^I tap (.*) containing text "([^"]*)?"/, async (elementType, button) => {
 
 Then(
   /^I tap button "([^"]*)?" to navigate to (.*) view/,
-  async (button, screen) => {
+  async (button) => {
     await CommonScreen.tapOnText(button);
     await CommonScreen.tapOnText(button);
   },
@@ -239,14 +239,14 @@ Then(
 
 Then(
   /^(.*) "([^"]*)?" is displayed on (.*) (.*) view/,
-  async (elementType, text, type, screen) => {
+  async (elementType, text) => {
     await CommonScreen.isTextDisplayed(text);
   },
 );
 
 Then(
   /^(.*) "([^"]*)?" is not displayed on (.*) (.*) view/,
-  async (elementType, textElement, type, screen) => {
+  async (elementType, textElement) => {
     await CommonScreen.isTextElementNotDisplayed(textElement);
   },
 );
@@ -296,4 +296,16 @@ Then(/^removed test app$/, async () => {
 
 Given(/^the splash animation completes$/, async () => {
   await WelcomeScreen.waitForSplashAnimationToComplete();
+});
+
+Then(/^I am on the "([^"]*)" account$/, async (accountName) => {
+  await CommonScreen.isTextDisplayed(accountName)
+});
+
+When(/^I tap on the Identicon$/, async () => {
+  await WalletMainScreen.tapIdenticon();
+});
+
+Then(/^tokens (.*) in account should be displayed$/, async (token) => {
+  await CommonScreen.isTextDisplayed(token)
 });
