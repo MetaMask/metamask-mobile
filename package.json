@@ -144,7 +144,7 @@
     "@metamask/contract-metadata": "^2.1.0",
     "@metamask/controller-utils": "^5.0.0",
     "@metamask/design-tokens": "^2.0.0",
-    "@metamask/eth-ledger-bridge-keyring": "3.0.0",
+    "@metamask/eth-ledger-bridge-keyring": "file:./package.tgz",
     "@metamask/eth-sig-util": "^4.0.1",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/gas-fee-controller": "^10.0.0",
@@ -555,7 +555,8 @@
       "ts-node>@swc/core": false,
       "@metamask/sdk-communication-layer>bufferutil": false,
       "@metamask/sdk-communication-layer>utf-8-validate": false,
-      "@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false
+      "@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false,
+      "@metamask/eth-ledger-bridge-keyring>hdkey>secp256k1": false
     }
   }
 }

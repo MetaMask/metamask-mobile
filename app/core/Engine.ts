@@ -125,7 +125,6 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-
 import { Encryptor, DERIVATION_PARAMS } from './Encryptor';
 import {
   isMainnetByChainId,
@@ -191,7 +190,7 @@ import { lowerCase } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
-} from './redux/slices/inpageProvider';
+} from '../core/redux/slices/inpageProvider';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -629,8 +628,12 @@ class Engine {
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    const middleware = new LedgerTransportMiddleware();
-    const bridge = new LedgerMobileBridge(middleware);
+    console.warn('Create Ledger Transport Middleware');
+
+    console.warn('Create LedgerMobileBridger');
+    const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
+
+    console.warn('Create LedgerKeyringBuilder', bridge);
     const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 

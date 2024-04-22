@@ -33,7 +33,7 @@ const RESTART_LIMIT = 5;
 // Assumptions
 // 1. One big code block - logic all encapsulated in logicToRun
 // 2. logicToRun calls setUpBluetoothConnection
-function useLedgerBluetooth(): UseLedgerBluetoothHook {
+function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
   // This is to track if we are expecting code to run or connection operational
   const [isSendingLedgerCommands, setIsSendingLedgerCommands] =
     useState<boolean>(false);
@@ -74,18 +74,16 @@ function useLedgerBluetooth(): UseLedgerBluetoothHook {
 
   // Sets up the Bluetooth transport
   const setUpBluetoothConnection = async () => {
-    if (transportRef.current) {
+    if (transportRef.current && deviceId) {
       setIsSendingLedgerCommands(true);
     }
 
-    if (!transportRef.current) {
+    if (!transportRef.current && deviceId) {
       try {
         const BluetoothTransport: any = await import(
           '@ledgerhq/react-native-hw-transport-ble'
         );
-
-        //TODO - check if this is the correct way to open the transport
-        transportRef.current = await BluetoothTransport.default.open();
+        transportRef.current = await BluetoothTransport.default.open(deviceId);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         transportRef.current?.on('disconnect', (e: any) => {
           transportRef.current = undefined;
@@ -135,6 +133,7 @@ function useLedgerBluetooth(): UseLedgerBluetoothHook {
       // Initialise the keyring and check for pre-conditions (is the correct app running?)
       const appName = await connectLedgerHardware(
         transportRef.current as unknown as BleTransport,
+        deviceId,
       );
 
       // BOLOS is the Ledger main screen app
