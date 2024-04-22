@@ -367,6 +367,8 @@
     "@metamask/object-multiplex": "^1.1.0",
     "@metamask/providers": "^13.1.0",
     "@metamask/test-dapp": "^8.0.0",
+    "@open-rpc/schema-utils-js": "^1.16.2",
+    "@open-rpc/test-coverage": "^2.2.0",
     "@react-native-community/datetimepicker": "^7.5.0",
     "@react-native-community/eslint-config": "^2.0.0",
     "@react-native-community/slider": "^4.4.3",
