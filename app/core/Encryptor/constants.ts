@@ -12,6 +12,13 @@ export enum KeyDerivationIteration {
   Default = 900_000,
 }
 
+export const LEGACY_DERIVATION_PARAMS: KeyDerivationOptions = {
+  algorithm: 'PBKDF2',
+  params: {
+    iterations: KeyDerivationIteration.Legacy,
+  },
+};
+
 export const DERIVATION_PARAMS: KeyDerivationOptions = {
   algorithm: 'PBKDF2',
   params: {

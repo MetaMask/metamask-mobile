@@ -54,23 +54,8 @@ class Encryptor implements GenericEncryptor {
   }: {
     derivationParams: KeyDerivationOptions;
   }) {
-    this.checkMinimalRequiredIterations(derivationParams.params.iterations);
     this.derivationParams = derivationParams;
   }
-
-  /**
-   * Throws an error if the provided number of iterations does not meet the minimum required for key derivation.
-   * This method ensures that the key derivation process is secure by enforcing a minimum number of iterations.
-   * @param iterations - The number of iterations to check.
-   * @throws Error if the number of iterations is less than the minimum required.
-   */
-  private checkMinimalRequiredIterations = (iterations: number): void => {
-    if (!this.isMinimalRequiredIterationsMet(iterations)) {
-      throw new Error(
-        `Invalid key derivation iterations: ${iterations}. Recommended number of iterations is ${KeyDerivationIteration.Default}. Minimum required is ${KeyDerivationIteration.Minimum}.`,
-      );
-    }
-  };
 
   /**
    * Checks if the provided number of iterations meets the minimum required for key derivation.
@@ -237,30 +222,6 @@ class Encryptor implements GenericEncryptor {
       keyMetadata.algorithm === targetDerivationParams.algorithm &&
       keyMetadata.params.iterations === targetDerivationParams.params.iterations
     );
-  };
-
-  /**
-   * Updates the provided vault, re-encrypting
-   * data with a safer algorithm if one is available.
-   *
-   * If the provided vault is already using the latest available encryption method,
-   * it is returned as is.
-   *
-   * @param vault - The vault to update.
-   * @param password - The password to use for encryption.
-   * @param targetDerivationParams - The options to use for key derivation.
-   * @returns A promise resolving to the updated vault.
-   */
-  updateVault = async (
-    vault: string,
-    password: string,
-    targetDerivationParams = this.derivationParams,
-  ): Promise<string> => {
-    if (this.isVaultUpdated(vault, targetDerivationParams)) {
-      return vault;
-    }
-
-    return this.encrypt(password, await this.decrypt(password, vault));
   };
 }
 
