@@ -141,7 +141,7 @@ export function viewOnEtherscan(props: ViewOnEtherscanProps, state: any) {
       params: { url, title },
     });
     close?.();
-  } catch (e) {
+  } catch (e: any) {
     // eslint-disable-next-line no-console
     Logger.error(e, {
       message: `can't get a block explorer link for network `,
@@ -150,7 +150,7 @@ export function viewOnEtherscan(props: ViewOnEtherscanProps, state: any) {
   }
 }
 
-function getNetwork(chain_id: HalRawNotification['chain_id']) {
+export function getNetwork(chain_id: HalRawNotification['chain_id']) {
   return ChainId[chain_id];
 }
 
