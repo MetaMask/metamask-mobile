@@ -757,7 +757,7 @@ index 61bec0a..0000000
 -{"version":3,"file":"TransactionController.d.ts","sourceRoot":"","sources":["../src/TransactionController.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
 diff --git a/node_modules/@metamask/transaction-controller/dist/TransactionController.js b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
-index b67387e..9b69431 100644
+index b67387e..2148c78 100644
 --- a/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 +++ b/node_modules/@metamask/transaction-controller/dist/TransactionController.js
 @@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -890,7 +890,34 @@ index b67387e..9b69431 100644
          onNetworkStateChange(() => {
              this.ethQuery = new eth_query_1.default(this.provider);
              this.registry = new eth_method_registry_1.default({ provider: this.provider });
-@@ -160,15 +208,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -136,13 +184,14 @@ class TransactionController extends base_controller_1.BaseController {
+      */
+     handleMethodData(fourBytePrefix) {
+         return __awaiter(this, void 0, void 0, function* () {
+-            const releaseLock = yield this.mutex.acquire();
++            let releaseLock;
+             try {
+                 const { methodData } = this.state;
+                 const knownMethod = Object.keys(methodData).find((knownFourBytePrefix) => fourBytePrefix === knownFourBytePrefix);
+                 if (knownMethod) {
+                     return methodData[fourBytePrefix];
+                 }
++                releaseLock = yield this.mutex.acquire();
+                 const registry = yield this.registryLookup(fourBytePrefix);
+                 this.update({
+                     methodData: Object.assign(Object.assign({}, methodData), { [fourBytePrefix]: registry }),
+@@ -150,7 +199,9 @@ class TransactionController extends base_controller_1.BaseController {
+                 return registry;
+             }
+             finally {
+-                releaseLock();
++                if (releaseLock) {
++                    releaseLock();
++                }
+             }
+         });
+     }
+@@ -160,15 +211,17 @@ class TransactionController extends base_controller_1.BaseController {
       * if not provided. If A `<tx.id>:unapproved` hub event will be emitted once added.
       *
       * @param transaction - The transaction object to add.
@@ -912,7 +939,7 @@ index b67387e..9b69431 100644
              (0, utils_1.validateTransaction)(transaction);
              const transactionMeta = {
                  id: (0, uuid_1.v1)(),
-@@ -180,6 +230,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -180,6 +233,7 @@ class TransactionController extends base_controller_1.BaseController {
                  transaction,
                  deviceConfirmedOn,
                  verifiedOnBlockchain: false,
@@ -920,7 +947,7 @@ index b67387e..9b69431 100644
              };
              try {
                  const { gas, estimateGasError } = yield this.estimateGas(transaction);
-@@ -199,6 +250,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -199,6 +253,17 @@ class TransactionController extends base_controller_1.BaseController {
              };
          });
      }
@@ -938,7 +965,7 @@ index b67387e..9b69431 100644
      prepareUnsignedEthTx(txParams) {
          return tx_1.TransactionFactory.fromTxData(txParams, {
              common: this.getCommonConfiguration(),
-@@ -218,14 +280,15 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -218,14 +283,15 @@ class TransactionController extends base_controller_1.BaseController {
          const { networkId, providerConfig: { type: chain, chainId, nickname: name }, } = this.getNetworkState();
          if (chain !== controller_utils_1.RPC &&
              chain !== controller_utils_1.NetworkType['linea-goerli'] &&
@@ -956,7 +983,7 @@ index b67387e..9b69431 100644
          };
          return common_1.Common.custom(customChainParams);
      }
-@@ -291,7 +354,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -291,7 +357,7 @@ class TransactionController extends base_controller_1.BaseController {
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
              const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
@@ -965,7 +992,7 @@ index b67387e..9b69431 100644
              transactionMeta.status = types_1.TransactionStatus.cancelled;
              this.hub.emit(`${transactionMeta.id}:finished`, transactionMeta);
          });
-@@ -343,9 +406,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -343,9 +409,7 @@ class TransactionController extends base_controller_1.BaseController {
              const unsignedEthTx = this.prepareUnsignedEthTx(txParams);
              const signedTx = yield this.sign(unsignedEthTx, transactionMeta.transaction.from);
              const rawTransaction = (0, ethereumjs_util_1.bufferToHex)(signedTx.serialize());
@@ -976,7 +1003,7 @@ index b67387e..9b69431 100644
              const baseTransactionMeta = Object.assign(Object.assign({}, transactionMeta), { id: (0, uuid_1.v1)(), time: Date.now(), transactionHash });
              const newTransactionMeta = newMaxFeePerGas && newMaxPriorityFeePerGas
                  ? Object.assign(Object.assign({}, baseTransactionMeta), { transaction: Object.assign(Object.assign({}, transactionMeta.transaction), { maxFeePerGas: newMaxFeePerGas, maxPriorityFeePerGas: newMaxPriorityFeePerGas }) }) : Object.assign(Object.assign({}, baseTransactionMeta), { transaction: Object.assign(Object.assign({}, transactionMeta.transaction), { gasPrice: newGasPrice }) });
-@@ -404,6 +465,8 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -404,6 +468,8 @@ class TransactionController extends base_controller_1.BaseController {
              }
              catch (error) {
                  estimateGasError = utils_1.ESTIMATE_GAS_ERROR;
@@ -985,7 +1012,7 @@ index b67387e..9b69431 100644
              }
              // 4. Pad estimated gas without exceeding the most recent block gasLimit. If the network is a
              // a custom network then return the eth_estimateGas value.
-@@ -463,12 +526,29 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -463,12 +529,29 @@ class TransactionController extends base_controller_1.BaseController {
       */
      updateTransaction(transactionMeta) {
          const { transactions } = this.state;
@@ -1016,7 +1043,7 @@ index b67387e..9b69431 100644
      /**
       * Removes all transactions from state, optionally based on the current network.
       *
-@@ -494,30 +574,90 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -494,30 +577,90 @@ class TransactionController extends base_controller_1.BaseController {
          });
      }
      /**
@@ -1128,7 +1155,7 @@ index b67387e..9b69431 100644
      }
      processApproval(transactionMeta) {
          return __awaiter(this, void 0, void 0, function* () {
-@@ -563,97 +703,110 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -563,97 +706,110 @@ class TransactionController extends base_controller_1.BaseController {
          });
      }
      /**
@@ -1316,7 +1343,7 @@ index b67387e..9b69431 100644
      }
      /**
       * Trim the amount of transactions that are set on the state. Checks
-@@ -671,7 +824,9 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -671,7 +827,9 @@ class TransactionController extends base_controller_1.BaseController {
       */
      trimTransactionsForState(transactions) {
          const nonceNetworkSet = new Set();
@@ -1327,7 +1354,7 @@ index b67387e..9b69431 100644
              const { chainId, networkID, status, transaction, time } = tx;
              if (transaction) {
                  const key = `${transaction.nonce}-${chainId ? (0, controller_utils_1.convertHexToDecimal)(chainId) : networkID}-${new Date(time).toDateString()}`;
-@@ -686,7 +841,7 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -686,7 +844,7 @@ class TransactionController extends base_controller_1.BaseController {
              }
              return false;
          });
@@ -1336,7 +1363,7 @@ index b67387e..9b69431 100644
          return txsToKeep;
      }
      /**
-@@ -758,9 +913,17 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -758,9 +916,17 @@ class TransactionController extends base_controller_1.BaseController {
                      }
                      /* istanbul ignore next */
                      if (txObj === null || txObj === void 0 ? void 0 : txObj.blockNumber) {
@@ -1357,7 +1384,7 @@ index b67387e..9b69431 100644
                      }
                      return [meta, false];
                  default:
-@@ -804,13 +967,122 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -804,13 +970,122 @@ class TransactionController extends base_controller_1.BaseController {
              }, true));
          });
      }
@@ -1483,7 +1510,7 @@ index b67387e..9b69431 100644
      isTransactionCompleted(transactionid) {
          const transaction = this.getTransaction(transactionid);
          if (!transaction) {
-@@ -819,6 +1091,164 @@ class TransactionController extends base_controller_1.BaseController {
+@@ -819,6 +1094,164 @@ class TransactionController extends base_controller_1.BaseController {
          const isCompleted = this.isLocalFinalState(transaction.status);
          return { meta: transaction, isCompleted };
      }
