@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Switch, StyleSheet } from 'react-native';
+import { View, Switch } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -8,22 +8,8 @@ import { useTheme } from '../../../../app/util/theme';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../app/reducers';
-
-interface BasicFunctionalityComponentProps {
-  handleSwitchToggle: () => void;
-}
-
-const styles = StyleSheet.create({
-  setting: {
-    marginVertical: 16,
-  },
-  heading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 8,
-  },
-});
+import styles from './BasicFunctionality.styles';
+import { BasicFunctionalityComponentProps } from './BasicFunctionality.types';
 
 export default function BasicFunctionalityComponent({
   handleSwitchToggle,
