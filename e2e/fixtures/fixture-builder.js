@@ -258,6 +258,7 @@ class FixtureBuilder {
                   '0xfa2': true,
                   '0xaa36a7': true,
                   '0xe704': true,
+                  '0xe705': true,
                   '0xe708': true,
                   '0x504': true,
                   '0x507': true,
