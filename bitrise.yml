@@ -578,7 +578,7 @@ workflows:
                 ./scripts/cache/set-cache-envs.sh android
       - set-java-version@1:
           inputs:
-          - set_java_version: $OPENJDK_VERSION
+          - set_java_version: 17
       - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
