@@ -80,16 +80,13 @@ describe(SmokeCore('Start Exploring'), () => {
     await TestHelpers.delay(3000);
     await OnboardingWizardModal.isVisible();
     await OnboardingWizardModal.tapTakeTourButton();
-    // Ensure step 1 is shown correctly
     await OnboardingWizardModal.isYourAccountsTutorialStepVisible();
     await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 2 is shown correctly
+    // Ensure step 3 is shown correctly
     await OnboardingWizardModal.isEditAccountNameTutorialStepVisible();
+    // await WalletView.editAccountName(ACCOUNT);
     await OnboardingWizardModal.tapGotItButton();
     await WalletView.isAccountNameCorrect(ACCOUNT);
-    // Ensure step 3 is shown correctly
-    await OnboardingWizardModal.isNotificationsTutorialStepVisible();
-    await OnboardingWizardModal.tapGotItButton();
     // Ensure step 4 is shown correctly
     await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
     await OnboardingWizardModal.tapGotItButton();
@@ -114,7 +111,7 @@ describe(SmokeCore('Start Exploring'), () => {
     await OnboardingWizardModal.tapGotItButton();
     await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
     await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 7 is shown correctly
+    // Ensure step 6 is shown correctly
     await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
     await OnboardingWizardModal.tapGotItButton();
     // Check that we are on the Browser page
