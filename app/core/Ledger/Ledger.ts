@@ -117,9 +117,8 @@ export const getLedgerAccountsByPage = async (
       balance: '0x0',
     }));
   } catch (e) {
-    // TODO: Add test case for when keyring throws
     /* istanbul ignore next */
-    throw new Error(`Unspecified error when connect QR Hardware, ${e}`);
+    throw new Error(`Unspecified error when connect Ledger Hardware, ${e}`);
   }
 };
 
