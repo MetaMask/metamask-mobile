@@ -1,21 +1,22 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Platform, StyleSheet, Text, View } from 'react-native';
-import Device from '../../../../util/device';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
-import { createBrowserNavDetails } from '../../../Views/Browser';
-
 import onboardingStyles from '../styles';
+import Routes from '../../../../constants/navigation/Routes';
+
+import Device from '../../../../util/device';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
+
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 import { useMetrics } from '../../../hooks/useMetrics';
 
 const styles = StyleSheet.create({
@@ -24,47 +25,53 @@ const styles = StyleSheet.create({
   },
   coachmarkContainer: {
     position: 'absolute',
-    alignSelf: 'center',
     left: 0,
     right: 0,
     marginHorizontal: 16,
-    bottom: Device.isIphoneX() ? 80 : Device.isIos() ? 40 : 64,
   },
 });
 
-const Step6 = (props) => {
+const Step7 = (props) => {
   const { setOnboardingWizardStep, onClose, navigation } = props;
   const { trackEvent } = useMetrics();
+
+  const [ready, setReady] = useState(false);
+  const [coachmarkTop, setCoachmarkTop] = useState(0);
   const { colors } = useTheme();
   const dynamicOnboardingStyles = onboardingStyles(colors);
 
   /**
-   * Dispatches 'setOnboardingWizardStep' with next step
+   * If component ref defined, calculate its position and position coachmark accordingly
    */
-  const onNext = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(7);
-    navigation && navigation.navigate(...createBrowserNavDetails());
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
-      tutorial_step_count: 6,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
-    });
+  const getPosition = () => {
+    const position = Device.isAndroid() ? 280 : Device.isIphoneX() ? 320 : 280;
+    setCoachmarkTop(position);
+    setReady(true);
   };
 
+  useEffect(() => {
+    getPosition();
+  }, []);
+
   /**
-   * Dispatches 'setOnboardingWizardStep' with next step
+   * Dispatches 'setOnboardingWizardStep' with back step
    */
   const onBack = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(5);
+    navigation?.navigate?.(Routes.WALLET.HOME);
+    setTimeout(() => {
+      setOnboardingWizardStep && setOnboardingWizardStep(6);
+    }, 1);
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
-      tutorial_step_count: 6,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
+      tutorial_step_count: 7,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[7],
     });
   };
 
   /**
-   * Calls props 'onClose'
+   * Calls props onClose
    */
-  const handleOnClose = () => {
+  const triggerOnClose = () => {
+    navigation?.navigate?.(Routes.WALLET.HOME);
     onClose && onClose(false);
   };
 
@@ -75,25 +82,26 @@ const Step6 = (props) => {
     <View style={dynamicOnboardingStyles.contentContainer}>
       <Text
         style={dynamicOnboardingStyles.content}
-        {...generateTestId(Platform, ONBOARDING_WIZARD_SIXTH_STEP_CONTENT_ID)}
+        {...generateTestId(Platform, ONBOARDING_WIZARD_SEVENTH_STEP_CONTENT_ID)}
       >
-        {strings('onboarding_wizard_new.step6.content1')}
+        {strings('onboarding_wizard_new.step7.content1')}
       </Text>
     </View>
   );
 
+  if (!ready) return null;
+
   return (
     <View style={styles.main}>
-      <View style={styles.coachmarkContainer}>
+      <View style={[styles.coachmarkContainer, { top: coachmarkTop }]}>
         <Coachmark
-          title={strings('onboarding_wizard_new.step6.title')}
+          title={strings('onboarding_wizard_new.step7.title')}
           content={content()}
-          onNext={onNext}
+          onNext={triggerOnClose}
           onBack={onBack}
-          currentStep={5}
-          topIndicatorPosition={false}
-          bottomIndicatorPosition={'bottomRight'}
-          onClose={handleOnClose}
+          topIndicatorPosition={'topCenter'}
+          onClose={onClose}
+          currentStep={6}
         />
       </View>
     </View>
@@ -104,7 +112,7 @@ const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-Step6.propTypes = {
+Step7.propTypes = {
   /**
    * Object that represents the navigator
    */
@@ -114,9 +122,9 @@ Step6.propTypes = {
    */
   setOnboardingWizardStep: PropTypes.func,
   /**
-   * Callback called when closing step
+   * Callback to call when closing
    */
   onClose: PropTypes.func,
 };
 
-export default connect(null, mapDispatchToProps)(Step6);
+export default connect(null, mapDispatchToProps)(Step7);

@@ -1,19 +1,20 @@
-import React, { PureComponent } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Platform, StyleSheet, Text, View } from 'react-native';
-import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
+import Coachmark from '../Coachmark';
+
 import onboardingStyles from './../styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-import { mockTheme, ThemeContext } from '../../../../util/theme';
+import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
-import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { useMetrics } from '../../../hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {
@@ -27,95 +28,59 @@ const styles = StyleSheet.create({
   },
 });
 
-class Step2 extends PureComponent {
-  static propTypes = {
-    /**
-     * Dispatch set onboarding wizard step
-     */
-    setOnboardingWizardStep: PropTypes.func,
-    /**
-     * Coachmark ref to get position
-     */
-    coachmarkRef: PropTypes.object,
-    /**
-     * Callback called when closing step
-     */
-    onClose: PropTypes.func,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
-  };
+const Step2 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
+  const { colors } = useTheme();
+  const { trackEvent } = useMetrics();
 
-  state = {
-    coachmarkTop: 0,
-  };
+  const [coachmarkTop, setCoachmarkTop] = useState(0);
 
-  componentDidMount = () => {
-    this.getPosition(this.props.coachmarkRef.yourAccountRef);
-  };
+  const handleLayout = useCallback(() => {
+    const yourAccRef = coachmarkRef.yourAccountRef?.current;
+    if (!yourAccRef) return;
 
-  /**
-   * If component ref defined, calculate its position and position coachmark accordingly
-   */
-  getPosition = (ref) => {
-    ref &&
-      ref.current &&
-      ref.current.measure((fx, fy, width, height, px, py) => {
-        this.setState({
-          coachmarkTop: py + height,
-        });
-      });
-  };
+    yourAccRef.measure(
+      (
+        accActionsFx,
+        accActionsFy,
+        accActionsWidth,
+        accActionsHeight,
+        accActionsPageX,
+        accActionsPageY,
+      ) => {
+        const top = accActionsHeight + accActionsPageY;
+        setCoachmarkTop(top);
+      },
+    );
+  }, [coachmarkRef.yourAccountRef]);
 
-  /**
-   * Dispatches 'setOnboardingWizardStep' with next step
-   */
-  onNext = () => {
-    const { setOnboardingWizardStep } = this.props;
+  useEffect(() => {
+    handleLayout();
+  }, [handleLayout]);
+
+  const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(3);
-    this.props.metrics.trackEvent(
-      MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED,
-      {
-        tutorial_step_count: 2,
-        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
-      },
-    );
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
+      tutorial_step_count: 2,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
+    });
   };
 
-  /**
-   * Dispatches 'setOnboardingWizardStep' with back step
-   */
-  onBack = () => {
-    const { setOnboardingWizardStep } = this.props;
+  const onBack = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(1);
-    this.props.metrics.trackEvent(
-      MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED,
-      {
-        tutorial_step_count: 2,
-        tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
-      },
-    );
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
+      tutorial_step_count: 2,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
+    });
   };
 
-  getOnboardingStyles = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    return onboardingStyles(colors);
-  };
+  const getOnboardingStyles = () => onboardingStyles(colors);
 
-  /**
-   * Calls props 'onClose'
-   */
-  onClose = () => {
-    const { onClose } = this.props;
+  const onCloseStep = () => {
     onClose && onClose(false);
   };
 
-  /**
-   * Returns content for this step
-   */
-  content = () => {
-    const dynamicOnboardingStyles = this.getOnboardingStyles();
+  const content = () => {
+    const dynamicOnboardingStyles = getOnboardingStyles();
 
     return (
       <View style={dynamicOnboardingStyles.contentContainer}>
@@ -132,36 +97,38 @@ class Step2 extends PureComponent {
     );
   };
 
-  render() {
-    return (
-      <View style={styles.main}>
-        <View
-          style={[
-            styles.coachmarkContainer,
-            {
-              top: this.state.coachmarkTop,
-            },
-          ]}
-        >
-          <Coachmark
-            title={strings('onboarding_wizard_new.step2.title')}
-            content={this.content()}
-            onNext={this.onNext}
-            onBack={this.onBack}
-            topIndicatorPosition={'topCenter'}
-            currentStep={1}
-            onClose={this.onClose}
-          />
-        </View>
+  return (
+    <View style={styles.main}>
+      <View
+        style={[
+          styles.coachmarkContainer,
+          {
+            top: coachmarkTop,
+          },
+        ]}
+      >
+        <Coachmark
+          title={strings('onboarding_wizard_new.step2.title')}
+          content={content()}
+          onNext={onNext}
+          onBack={onBack}
+          topIndicatorPosition={'topCenter'}
+          currentStep={1}
+          onClose={onCloseStep}
+        />
       </View>
-    );
-  }
-}
+    </View>
+  );
+};
+
+Step2.propTypes = {
+  setOnboardingWizardStep: PropTypes.func,
+  coachmarkRef: PropTypes.object,
+  onClose: PropTypes.func,
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
 
-Step2.contextType = ThemeContext;
-
-export default connect(null, mapDispatchToProps)(withMetricsAwareness(Step2));
+export default connect(null, mapDispatchToProps)(Step2);
