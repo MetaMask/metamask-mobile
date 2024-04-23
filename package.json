@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.20.0",
+  "version": "7.20.1",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -123,7 +123,8 @@
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "@metamask/transaction-controller/@metamask/controller-utils": "^5.0.0",
     "@spruceid/siwe-parser": "2.1.0",
-    "apg-js": "4.2.0"
+    "apg-js": "4.2.0",
+    "web3-provider-engine": "^16.0.8"
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
@@ -159,6 +160,7 @@
     "@metamask/ppom-validator": "0.29.0",
     "@metamask/preferences-controller": "^4.0.0",
     "@metamask/react-native-button": "^3.0.0",
+    "@metamask/react-native-splash-screen": "^3.2.0",
     "@metamask/rpc-errors": "^6.2.1",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "^0.18.1",
@@ -305,7 +307,6 @@
     "react-native-share": "7.3.7",
     "react-native-size-matters": "0.4.0",
     "react-native-skeleton-placeholder": "^5.0.0",
-    "react-native-splash-screen": "git+https://github.com/MetaMask/react-native-splash-screen.git#1f45c08c0824cd94fdc6fb699529688a73614fee",
     "react-native-step-indicator": "^1.0.3",
     "react-native-svg": "12.1.1",
     "react-native-svg-charts": "^5.4.0",

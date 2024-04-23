@@ -1,3 +1,5 @@
+import { Alert } from 'react-native';
+import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { getBlockExplorerTxUrl } from '../../../util/networks';
 import {
   IconColor,
@@ -6,9 +8,18 @@ import {
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { Theme } from '../../../util/theme/models';
-import { ChainId, HalRawNotification, Notification, TRIGGER_TYPES } from '..';
+import {
+  ChainId,
+  HalRawNotification,
+  Notification,
+  TRIGGER_TYPES,
+  mmStorage,
+} from '../../../util/notifications';
 import { formatAddress } from '../../../util/address';
-
+import { STORAGE_IDS } from '../settings/storage/constants';
+import Device from '../../../util/device';
+import { store } from '../../../store';
+import { updateNotificationStatus } from '../../../actions/notification';
 interface ViewOnEtherscanProps {
   navigation: any;
   transactionObject: {
@@ -142,7 +153,6 @@ export function viewOnEtherscan(props: ViewOnEtherscanProps, state: any) {
     });
     close?.();
   } catch (e: any) {
-    // eslint-disable-next-line no-console
     Logger.error(e, {
       message: `can't get a block explorer link for network `,
       networkID,
@@ -372,4 +382,121 @@ export const networkFeeDetails = {
   'transactions.base_fee': 'estimatedBaseFee',
   'transactions.priority_fee': 'maxPriorityFeePerGas',
   'transactions.max_fee': 'maxPriorityFeePerGas',
+};
+
+export const notificationSettings = {
+  assetsReceived: false,
+  assetsSent: false,
+  deFi: false,
+  productAnnouncements: false,
+  snaps: false,
+};
+
+export const requestPushNotificationsPermission = async () => {
+  let permissionStatus;
+
+  interface NotificationEnabledState {
+    isEnabled: true;
+    notificationsOpts: {
+      [K in keyof typeof notificationSettings]: true;
+    };
+    accounts: object;
+  }
+
+  interface NotificationDisabledState {
+    isEnabled: false;
+    notificationsOpts: {
+      [K in keyof typeof notificationSettings]: false;
+    };
+    accounts: object;
+  }
+
+  const notificationDisabledState: NotificationDisabledState = {
+    isEnabled: false,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    notificationsOpts: Object.fromEntries(
+      Object.keys(notificationSettings).map((key) => [key, false] as const),
+    ),
+  };
+
+  const notificationEnabledState: NotificationEnabledState = {
+    isEnabled: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    notificationsOpts: Object.fromEntries(
+      Object.keys(notificationSettings).map((key) => [key, true] as const),
+    ),
+    accounts: [],
+  };
+
+  const promptCount = mmStorage.getLocal(
+    STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
+  );
+
+  try {
+    permissionStatus = await notifee.requestPermission();
+
+    if (!promptCount || !permissionStatus) {
+      if (
+        permissionStatus.authorizationStatus < AuthorizationStatus.AUTHORIZED
+      ) {
+        const times = promptCount + 1 || 1;
+
+        Alert.alert(
+          strings('notifications.prompt_title'),
+          strings('notifications.prompt_desc'),
+          [
+            {
+              text: strings('notifications.prompt_cancel'),
+              onPress: () => {
+                store.dispatch(
+                  updateNotificationStatus(notificationDisabledState),
+                );
+                mmStorage.saveLocal(
+                  STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
+                  times,
+                );
+                mmStorage.saveLocal(
+                  STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_TIME,
+                  Date.now().toString(),
+                );
+
+                mmStorage.saveLocal(
+                  STORAGE_IDS.NOTIFICATIONS_SETTINGS,
+                  JSON.stringify(notificationDisabledState),
+                );
+              },
+              style: 'default',
+            },
+            {
+              text: strings('notifications.prompt_ok'),
+              onPress: async () => {
+                if (Device.isIos()) {
+                  permissionStatus = await notifee.requestPermission({
+                    provisional: true,
+                  });
+                } else {
+                  permissionStatus = await notifee.requestPermission();
+                }
+                store.dispatch(
+                  updateNotificationStatus(notificationEnabledState),
+                );
+
+                mmStorage.saveLocal(
+                  STORAGE_IDS.NOTIFICATIONS_SETTINGS,
+                  JSON.stringify(notificationEnabledState),
+                );
+                // await saveFCMToken();
+              },
+            },
+          ],
+          { cancelable: false },
+        );
+      }
+    }
+    return permissionStatus;
+  } catch (e: any) {
+    Logger.error(e, strings('notifications.error_checking_permission'));
+  }
 };

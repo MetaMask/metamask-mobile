@@ -357,6 +357,8 @@ enum EVENT_NAME {
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
+  // Smart transactions
+  SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 }
 
 enum ACTIONS {
@@ -834,6 +836,9 @@ const events = {
   LEDGER_HARDWARE_WALLET_FORGOTTEN: generateOpt(
     EVENT_NAME.LEDGER_HARDWARE_WALLET_FORGOTTEN,
   ),
+
+  // Smart transactions
+  SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
 };
 
 /**
@@ -906,6 +911,7 @@ enum DESCRIPTION {
   // Settings
   SETTINGS_GENERAL = 'General',
   SETTINGS_ADVANCED = 'Advanced',
+  SETTINGS_NOTIFICATIONS = 'Notifications',
   SETTINGS_SECURITY_AND_PRIVACY = 'Security & Privacy',
   SETTINGS_ABOUT = 'About MetaMask',
   SETTINGS_EXPERIMENTAL = 'Experimental',
@@ -1234,6 +1240,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.SETTINGS,
     ACTIONS.SETTINGS,
     DESCRIPTION.SETTINGS_EXPERIMENTAL,
+  ),
+  SETTINGS_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.SETTINGS,
+    ACTIONS.SETTINGS,
+    DESCRIPTION.SETTINGS_NOTIFICATIONS,
   ),
   // Receive Options
   RECEIVE_OPTIONS_SHARE_ADDRESS: generateOpt(
