@@ -1,10 +1,5 @@
 import React, { useCallback, useLayoutEffect } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Linking,
-} from 'react-native';
+import { ScrollView, TouchableOpacity, Linking } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -19,40 +14,7 @@ import { strings } from '../../../../../locales/i18n';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import AppConstants from '../../../../core/AppConstants';
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  description: {
-    fontSize: 14,
-    textAlign: 'left',
-    marginTop: 10,
-    lineHeight: 22,
-    fontWeight: '400',
-  },
-  setting: {
-    marginTop: 32,
-  },
-  toggle: {
-    flexDirection: 'row',
-    marginLeft: 16,
-  },
-  heading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  networkPicker: {
-    marginVertical: 16,
-    alignSelf: 'flex-start',
-  },
-  backButton: {
-    padding: 10,
-  },
-});
+import styles from './index.styles';
 
 const DefaultSettings = () => {
   const navigation = useNavigation();
