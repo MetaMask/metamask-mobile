@@ -17,7 +17,7 @@ import Text from '../../../component-library/components/Texts/Text';
 import { TextColor } from '../../../component-library/components/Texts/Text/Text.types';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
-import Routes from '../../../../app/constants/navigation/Routes';
+import Routes from '../../../constants/navigation/Routes';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import HintModal from '../../UI/HintModal';
 import { useTheme } from '../../../util/theme';

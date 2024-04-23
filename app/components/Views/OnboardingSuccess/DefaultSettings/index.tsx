@@ -14,10 +14,10 @@ import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../app/constants/navigation/Routes';
+import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import BasicFunctionalityComponent from '../../../../components/UI/BasicFunctionality/BasicFunctionality';
-import ManageNetworksComponent from '../../../../components/UI/ManageNetworks/ManageNetworks';
+import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
+import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import AppConstants from '../../../../core/AppConstants';
 
 const styles = StyleSheet.create({

@@ -18,7 +18,7 @@ import Button, {
 import Checkbox from '../../../../component-library/components/Checkbox/Checkbox';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
-import createStyles from './BasicFunctionalitySheet.styles';
+import createStyles from './BasicFunctionalityModal.styles';
 import { RootState } from 'app/reducers';
 import Icon, {
   IconColor,
@@ -26,7 +26,7 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 
-const BasicFunctionalitySheet = () => {
+const BasicFunctionalityModal = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -132,4 +132,4 @@ const BasicFunctionalitySheet = () => {
   );
 };
 
-export default BasicFunctionalitySheet;
+export default BasicFunctionalityModal;

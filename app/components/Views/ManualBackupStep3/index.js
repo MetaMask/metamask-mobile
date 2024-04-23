@@ -21,7 +21,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import OnboardingSuccess from '../Success';
+import OnboardingSuccess from '../OnboardingSuccess';
 
 const createStyles = (colors) =>
   StyleSheet.create({
