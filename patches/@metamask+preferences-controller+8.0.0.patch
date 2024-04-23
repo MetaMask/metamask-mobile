@@ -33,7 +33,7 @@ index bfbfe66..c19399e 100644
       * Toggle the security alert enabled setting.
       *
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index 228cd90..8df6a7c 100644
+index 228cd90..dac2587 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 @@ -18,7 +18,8 @@ const metadata = {
@@ -71,7 +71,7 @@ index 228cd90..8df6a7c 100644
      };
  }
  exports.getDefaultPreferencesState = getDefaultPreferencesState;
-@@ -205,26 +208,39 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -205,26 +208,41 @@ class PreferencesController extends base_controller_1.BaseController {
       * @param useNftDetection - Boolean indicating user preference on NFT detection.
       */
      setUseNftDetection(useNftDetection) {
@@ -109,10 +109,12 @@ index 228cd90..8df6a7c 100644
 +     * @param useSafeChainsListValidation - Boolean indicating user preference on using chainid.network third part to check safe networks.
 +     */
 +    setUseSafeChainsListValidation(useSafeChainsListValidation) {
-+      this.update({ useSafeChainsListValidation });
-+      if (!useSafeChainsListValidation) {
-+          this.update({ useSafeChainsListValidation: false });
-+      }
++        this.update((state) => {
++            state.useSafeChainsListValidation = useSafeChainsListValidation;
++            if (!useSafeChainsListValidation) {
++                state.useSafeChainsListValidation = false;
++            }
++        })    
 +    }
 +
      /**
