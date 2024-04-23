@@ -53,7 +53,7 @@ export class AsyncLogger {
     extra?: ExtraInfo | string | any,
   ): Promise<void> {
     if (__DEV__) {
-      console.warn(DEBUG, error); // eslint-disable-line no-console
+      // console.warn(DEBUG, error); // eslint-disable-line no-console
       return;
     }
 
