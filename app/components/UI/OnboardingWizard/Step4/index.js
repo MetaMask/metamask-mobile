@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
-import Coachmark from '../Coachmark';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
-import onboardingStyles from './../styles';
+import Coachmark from '../Coachmark';
+
+import Device from '../../../../util/device';
+
+import onboardingStyles from '../styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
@@ -13,7 +16,8 @@ import {
 import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+
+import { useMetrics } from '../../../hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {
@@ -23,32 +27,25 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
+    marginHorizontal: 16,
   },
-  coachmark: { marginHorizontal: 16 },
 });
 
-const Step4 = (props) => {
-  const { setOnboardingWizardStep, onClose } = props;
-  const { trackEvent } = useMetrics();
+const Step4 = ({ setOnboardingWizardStep, onClose }) => {
   const { colors } = useTheme();
-  const dynamicOnboardingStyles = onboardingStyles(colors);
-  const [coachmarkBottom, setCoachmarkBottom] = useState();
+  const { trackEvent } = useMetrics();
 
-  const getCoachmarkPosition = useCallback(() => {
-    props?.coachmarkRef?.current?.measure(
-      (x, y, width, heigh, pageX, pageY) => {
-        setCoachmarkBottom(Dimensions.get('window').height - pageY);
-      },
-    );
-  }, [props?.coachmarkRef]);
+  const [coachmarkTop, setCoachmarkTop] = useState(0);
+
+  const handleLayout = useCallback(() => {
+    const top = Device.isIphoneX() ? 80 : Device.isIos() ? 64 : 60;
+    setCoachmarkTop(top);
+  }, []);
 
   useEffect(() => {
-    getCoachmarkPosition();
-  }, [getCoachmarkPosition]);
+    handleLayout();
+  }, [handleLayout]);
 
-  /**
-   * Dispatches 'setOnboardingWizardStep' with next step
-   */
   const onNext = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(5);
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
@@ -57,9 +54,6 @@ const Step4 = (props) => {
     });
   };
 
-  /**
-   * Dispatches 'setOnboardingWizardStep' with back step
-   */
   const onBack = () => {
     setOnboardingWizardStep && setOnboardingWizardStep(3);
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
@@ -68,26 +62,29 @@ const Step4 = (props) => {
     });
   };
 
-  /**
-   * Calls props 'onClose'
-   */
-  const handleOnClose = () => {
+  const getOnboardingStyles = () => onboardingStyles(colors);
+
+  const onCloseStep = () => {
     onClose && onClose(false);
   };
 
-  /**
-   * Returns content for this step
-   */
-  const content = () => (
-    <View style={dynamicOnboardingStyles.contentContainer}>
-      <Text
-        style={dynamicOnboardingStyles.content}
-        {...generateTestId(Platform, ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID)}
-      >
-        {strings('onboarding_wizard_new.step4.content1')}
-      </Text>
-    </View>
-  );
+  const content = () => {
+    const dynamicOnboardingStyles = getOnboardingStyles();
+
+    return (
+      <View style={dynamicOnboardingStyles.contentContainer}>
+        <Text
+          style={dynamicOnboardingStyles.content}
+          {...generateTestId(
+            Platform,
+            ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID,
+          )}
+        >
+          {strings('onboarding_wizard_new.step4.content1')}
+        </Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.main}>
@@ -95,7 +92,7 @@ const Step4 = (props) => {
         style={[
           styles.coachmarkContainer,
           {
-            bottom: coachmarkBottom,
+            top: coachmarkTop,
           },
         ]}
       >
@@ -104,33 +101,22 @@ const Step4 = (props) => {
           content={content()}
           onNext={onNext}
           onBack={onBack}
-          style={styles.coachmark}
-          bottomIndicatorPosition={'bottomCenter'}
+          topIndicatorPosition={'topRight'}
           currentStep={3}
-          onClose={handleOnClose}
+          onClose={onCloseStep}
         />
       </View>
     </View>
   );
 };
 
+Step4.propTypes = {
+  setOnboardingWizardStep: PropTypes.func,
+  onClose: PropTypes.func,
+};
+
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
 });
-
-Step4.propTypes = {
-  /**
-   * Dispatch set onboarding wizard step
-   */
-  setOnboardingWizardStep: PropTypes.func,
-  /**
-   * Callback called when closing step
-   */
-  onClose: PropTypes.func,
-  /**
-   *  coachmark ref to get position
-   */
-  coachmarkRef: PropTypes.object,
-};
 
 export default connect(null, mapDispatchToProps)(Step4);

@@ -158,6 +158,10 @@ const Wallet = ({ navigation }: any) => {
     return undefined;
   }, [accounts]);
 
+  const isNotificationEnabled = useSelector(
+    (state: any) => state.notification?.notificationsSettings?.isEnabled,
+  );
+
   /**
    * ENS name for the currently selected account.
    * This value may be undefined if there is no corresponding ENS name for the account.
@@ -244,10 +248,18 @@ const Wallet = ({ navigation }: any) => {
         onTitlePress,
         navigation,
         themeColors,
+        isNotificationEnabled,
       ),
     );
     /* eslint-disable-next-line */
-  }, [navigation, themeColors, networkName, networkImageSource, onTitlePress]);
+  }, [
+    navigation,
+    themeColors,
+    networkName,
+    networkImageSource,
+    onTitlePress,
+    isNotificationEnabled,
+  ]);
 
   const renderTabBar = useCallback(
     (props) => (
@@ -406,7 +418,7 @@ const Wallet = ({ navigation }: any) => {
    */
   const renderOnboardingWizard = useCallback(
     () =>
-      [1, 2, 3].includes(wizardStep) && (
+      [1, 2, 3, 4, 5, 6].includes(wizardStep) && (
         <OnboardingWizard
           navigation={navigation}
           coachmarkRef={walletRef.current}

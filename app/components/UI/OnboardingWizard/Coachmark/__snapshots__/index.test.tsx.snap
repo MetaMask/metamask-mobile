@@ -159,7 +159,7 @@ exports[`Coachmark should render correctly 1`] = `
           }
         >
           1
-          /5
+          /6
         </Text>
       </View>
       <TouchableOpacity

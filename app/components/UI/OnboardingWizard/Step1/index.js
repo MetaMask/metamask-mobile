@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: Device.isIphoneX() ? 80 : Device.isIos() ? 40 : 60,
+    bottom: Device.isIphoneX() ? 80 : Device.isIos() ? 40 : 64,
   },
 });
 
