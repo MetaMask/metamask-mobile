@@ -92,7 +92,6 @@ export function createLoggerMiddleware(opts) {
              * This will make the error log to sentry with the title "gas required exceeds allowance (59956966) or always failing transaction"
              * making it easier to differentiate each error.
              */
-            let errorToLog = error;
             const errorParams = {
               message: 'Error in RPC response',
               orginalError: error,
@@ -100,19 +99,11 @@ export function createLoggerMiddleware(opts) {
               req,
             };
 
-            if (error.message) {
-              errorToLog = new Error(error.message);
-            }
-
             if (error.data) {
               errorParams.data = error.data;
-
-              if (error.data.message) {
-                errorToLog = new Error(error.data.message);
-              }
             }
 
-            Logger.error(errorToLog, errorParams);
+            Logger.error(error, errorParams);
           }
         }
       }
