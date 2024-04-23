@@ -24403,6 +24403,18 @@ react-native-swipe-gestures@^1.0.5:
   resolved "https://registry.yarnpkg.com/react-native-swipe-gestures/-/react-native-swipe-gestures-1.0.5.tgz#a172cb0f3e7478ccd681fd36b8bfbcdd098bde7c"
   integrity sha512-Ns7Bn9H/Tyw278+5SQx9oAblDZ7JixyzeOczcBK8dipQk2pD7Djkcfnf1nB/8RErAmMLL9iXgW0QHqiII8AhKw==
 
+"react-native-tcp@npm:@metamask/react-native-tcp@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-tcp/-/react-native-tcp-4.0.0.tgz#5afd79eca397397e8927c3091bcbefcd637f1915"
+  integrity sha512-FkiL03Trc54IEYKiFSWZr+0x78BrFCOx51ridUfBV5Qj5+sGUrVIc+uBEu9eS0XsQxLcE/6jT9Xkrneo92tz0Q==
+  dependencies:
+    base64-js "1.3.1"
+    buffer "^5.4.3"
+    events "^3.0.0"
+    ip-regex "^4.1.0"
+    process "^0.11.9"
+    util "^0.12.1"
+
 react-native-url-polyfill@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/react-native-url-polyfill/-/react-native-url-polyfill-1.3.0.tgz#c1763de0f2a8c22cc3e959b654c8790622b6ef6a"
