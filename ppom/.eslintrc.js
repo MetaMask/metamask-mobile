@@ -3,7 +3,6 @@ module.exports = {
   root: true,
   parser: 'babel-eslint',
   extends: [
-    // @react-native-community
     // - Depends on babel-eslint parser
     // - Migrated to @react-native/eslint-config after v3.2.0
     '@react-native-community',
