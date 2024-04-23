@@ -59,7 +59,9 @@ const NotificationsView = ({
       /**
        * Sort notifications by time and remove duplicates
        */
-      const allNotificationsSorted = sortNotifications(allNotifications).filter(
+      const allNotificationsSorted = sortNotifications(
+        allNotifications,
+      )?.filter(
         (notification, index, self) =>
           self.findIndex(
             (_notification) => _notification.id === notification.id,
@@ -72,7 +74,7 @@ const NotificationsView = ({
        * Based on a sorted and deduplicated list of notifications, filter notifications by type to populate different tabs
        */
 
-      allNotificationsSorted.filter((notification) => {
+      allNotificationsSorted?.filter((notification) => {
         switch (notification.type) {
           case TRIGGER_TYPES.FEATURES_ANNOUNCEMENT:
             annoucements.push(notification);
@@ -104,6 +106,9 @@ const NotificationsView = ({
     }, [navigation, isNotificationEnabled]),
   );
 
+  const notificationToShow =
+    allNotifications || walletNotifications || annoucementsNotifications;
+
   /** Current address is an important piece of notification since it is
    * used by MM auth snap to derivated the token/identifier and to MM storage to store notifications
    * TODO: Need to figure out the best place to fetch notifications from MM auth when user switches accounts, Maybe on the Engine and store it on the redux store
@@ -114,7 +119,7 @@ const NotificationsView = ({
       style={styles.wrapper}
       testID={NotificationsViewSelectorsIDs.NOTIFICATIONS_CONTAINER}
     >
-      {isNotificationEnabled ? (
+      {isNotificationEnabled && notificationToShow.length > 0 ? (
         <Notifications
           navigation={navigation}
           allNotifications={allNotifications}

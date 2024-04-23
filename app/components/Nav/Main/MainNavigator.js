@@ -579,8 +579,13 @@ const PaymentRequestView = () => (
   </Stack.Navigator>
 );
 
-const NotificationsModeView = (props) => (
+const NotificationsModeView = () => (
   <Stack.Navigator>
+    <Stack.Screen
+      name={Routes.NOTIFICATIONS.VIEW}
+      component={NotificationsView}
+      options={NotificationsView.navigationOptions}
+    />
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
@@ -611,16 +616,6 @@ const Swaps = () => (
       name="SwapsQuotesView"
       component={SwapsQuotesView}
       options={SwapsQuotesView.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
-const NotificationsModeView = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.NOTIFICATIONS.VIEW}
-      component={NotificationsView}
-      options={NotificationsView.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -714,7 +709,6 @@ const MainNavigator = () => (
     <Stack.Screen name="NotificationsView" component={NotificationsModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
-    <Stack.Screen name="NotificationsView" component={NotificationsModeView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
       {() => <RampRoutes rampType={RampType.BUY} />}
     </Stack.Screen>
