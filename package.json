@@ -143,7 +143,7 @@
     "@metamask/assets-controllers": "^14.0.0",
     "@metamask/base-controller": "^4.1.1",
     "@metamask/composable-controller": "^3.0.0",
-    "@metamask/contract-metadata": "^2.1.0",
+    "@metamask/contract-metadata": "^2.5.0",
     "@metamask/controller-utils": "^5.0.0",
     "@metamask/design-tokens": "^2.0.0",
     "@metamask/eth-sig-util": "^4.0.1",
