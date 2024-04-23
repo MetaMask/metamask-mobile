@@ -19,6 +19,8 @@ exports[`TabThumbnail should render correctly 1`] = `
   }
 >
   <TouchableOpacity
+    accessibilityLabel="Switch tab"
+    accessible={true}
     onPress={[Function]}
     style={
       Array [
@@ -47,8 +49,8 @@ exports[`TabThumbnail should render correctly 1`] = `
           "backgroundColor": "#FFFFFF",
           "flexDirection": "row",
           "justifyContent": "flex-start",
-          "paddingHorizontal": 10,
-          "paddingVertical": 10,
+          "paddingHorizontal": 8,
+          "paddingVertical": 8,
         }
       }
     >
@@ -122,6 +124,8 @@ exports[`TabThumbnail should render correctly 1`] = `
         </Text>
       </View>
       <TouchableOpacity
+        accessibilityLabel="Close tab"
+        accessible={true}
         onPress={[Function]}
         style={
           Object {
@@ -192,6 +196,35 @@ exports[`TabThumbnail should render correctly 1`] = `
           }
         }
       />
+    </View>
+    <View
+      style={
+        Object {
+          "alignItems": "center",
+          "backgroundColor": "#FFFFFF",
+          "borderTopColor": "#BBC0C5",
+          "borderTopWidth": 1,
+          "flexDirection": "row",
+          "height": 36,
+          "justifyContent": "flex-start",
+          "padding": 8,
+        }
+      }
+    >
+      <Text
+        ellipsizeMode="tail"
+        numberOfLines={1}
+        style={
+          Object {
+            "width": "90%",
+          }
+        }
+        variant="sBodySMBold"
+      >
+        undefined account
+         - 
+        Ethereum Main Network
+      </Text>
     </View>
   </TouchableOpacity>
 </View>
