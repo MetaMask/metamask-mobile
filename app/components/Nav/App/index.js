@@ -104,6 +104,7 @@ import { MetaMetrics } from '../../../core/Analytics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import LedgerSelectAccount from '../../Views/LedgerAccountInfo/LedgerSelectAccount';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -408,6 +409,7 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
+
     initSDKConnect().catch((err) => {
       Logger.error(err, 'Error initializing SDKConnect');
     });
@@ -649,7 +651,10 @@ const App = ({ userLoggedIn }) => {
 
   const LedgerConnectFlow = () => (
     <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
-      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerConnect} />
+      <Stack.Screen
+        name={Routes.HW.LEDGER_CONNECT}
+        component={LedgerSelectAccount}
+      />
     </Stack.Navigator>
   );
 

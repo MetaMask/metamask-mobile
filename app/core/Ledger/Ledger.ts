@@ -45,7 +45,6 @@ export const connectLedgerHardware = async (
   transport: BleTransport,
   deviceId: string,
 ): Promise<string> => {
-  console.warn('connectLedgerHardware');
   const keyring = await getLedgerKeyring();
   keyring.setHdPath("m/44'/60'/0'/0");
   keyring.setDeviceId(deviceId);
@@ -54,32 +53,6 @@ export const connectLedgerHardware = async (
   // keyring.setTransport(transport as unknown as any, deviceId);
   const { appName } = await bridge.getAppNameAndVersion();
   return appName;
-};
-
-/**
- * Retrieve the first account from the Ledger device.
- * @param isAccountImportReq - Whether we need to import a ledger account by calling addNewAccountForKeyring
- * @returns The default (first) account on the device
- */
-export const unlockLedgerDefaultAccount = async (
-  isAccountImportReq: boolean,
-): Promise<{
-  address: string;
-  balance: string;
-}> => {
-  const keyringController = Engine.context.KeyringController;
-
-  const keyring = await getLedgerKeyring();
-
-  if (isAccountImportReq) {
-    await keyringController.addNewAccountForKeyring(keyring);
-  }
-  const address = await keyring.getFirstPage();
-
-  return {
-    address: address[0].address,
-    balance: `0x0`,
-  };
 };
 
 /**
@@ -101,7 +74,7 @@ export const closeRunningAppOnLedger = async (): Promise<void> => {
 };
 
 /**
- * Forgets the ledger keyring's previous device specific state.
+ * Forgets the ledger keyring previous device specific state.
  */
 export const forgetLedger = async (): Promise<void> => {
   const { KeyringController, PreferencesController } = Engine.context;
@@ -121,6 +94,33 @@ export const forgetLedger = async (): Promise<void> => {
 export const getDeviceId = async (): Promise<string> => {
   const ledgerKeyring = await getLedgerKeyring();
   return ledgerKeyring.getDeviceId();
+};
+
+export const getLedgerAccountsByPage = async (
+  page: number,
+): Promise<{ balance: string; address: string; index: number }[]> => {
+  try {
+    const keyring = await getLedgerKeyring();
+    let accounts;
+    switch (page) {
+      case -1:
+        accounts = await keyring.getPreviousPage();
+        break;
+      case 1:
+        accounts = await keyring.getNextPage();
+        break;
+      default:
+        accounts = await keyring.getFirstPage();
+    }
+    return accounts.map((account) => ({
+      ...account,
+      balance: '0x0',
+    }));
+  } catch (e) {
+    // TODO: Add test case for when keyring throws
+    /* istanbul ignore next */
+    throw new Error(`Unspecified error when connect QR Hardware, ${e}`);
+  }
 };
 
 /**

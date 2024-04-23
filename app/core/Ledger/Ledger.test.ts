@@ -6,22 +6,28 @@ import {
   closeRunningAppOnLedger,
   forgetLedger,
   ledgerSignTypedMessage,
-  unlockLedgerDefaultAccount,
 } from './Ledger';
 import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 
 const ledgerKeyring = {
-  setTransport: jest.fn(),
   getAppAndVersion: jest.fn().mockResolvedValue({ appName: 'appName' }),
   getDefaultAccount: jest.fn().mockResolvedValue('defaultAccount'),
   openEthApp: jest.fn(),
   quitApp: jest.fn(),
   forgetDevice: jest.fn(),
   deserialize: jest.fn(),
+  setHdPath: jest.fn(),
+  setDeviceId: jest.fn(),
+  bridge: {
+    updateTransportMethod: jest.fn(),
+    getAppNameAndVersion: jest.fn().mockResolvedValue({ appName: 'appName' }),
+    openEthApp: jest.fn(),
+    closeApps: jest.fn(),
+  },
+  deviceId: 'deviceId',
   getName: jest.fn().mockResolvedValue('name'),
-  openEthereumAppOnLedger: jest.fn(),
 };
 
 describe('Ledger core', () => {
@@ -78,57 +84,42 @@ describe('Ledger core', () => {
 
   describe('connectLedgerHardware', () => {
     const mockTransport = 'foo' as unknown as BleTransport;
-    it('should call keyring.setTransport', async () => {
-      await connectLedgerHardware(mockTransport);
-      expect(ledgerKeyring.setTransport).toHaveBeenCalled();
+    it('should call keyring.bridge.updateTransportMethod', async () => {
+      await connectLedgerHardware(mockTransport, 'bar');
+      expect(ledgerKeyring.setHdPath).toHaveBeenCalledWith("m/44'/60'/0'/0");
+      expect(ledgerKeyring.setDeviceId).toHaveBeenCalledWith('bar');
+      expect(ledgerKeyring.bridge.updateTransportMethod).toHaveBeenCalledWith(
+        mockTransport,
+      );
     });
 
-    it('should call keyring.getAppAndVersion', async () => {
-      await connectLedgerHardware(mockTransport);
-      expect(ledgerKeyring.getAppAndVersion).toHaveBeenCalled();
+    it('should call keyring.bridge.getAppAndVersion', async () => {
+      await connectLedgerHardware(mockTransport, 'bar');
+      expect(ledgerKeyring.setHdPath).toHaveBeenCalledWith("m/44'/60'/0'/0");
+      expect(ledgerKeyring.setDeviceId).toHaveBeenCalledWith('bar');
+      expect(ledgerKeyring.bridge.updateTransportMethod).toHaveBeenCalledWith(
+        mockTransport,
+      );
+      expect(ledgerKeyring.bridge.getAppNameAndVersion).toHaveBeenCalled();
     });
 
     it('should return app name', async () => {
-      const value = await connectLedgerHardware(mockTransport);
+      const value = await connectLedgerHardware(mockTransport, 'bar');
       expect(value).toBe('appName');
-    });
-  });
-
-  describe('unlockLedgerDefaultAccount', () => {
-    it('should not call KeyringController.addNewAccountForKeyring if isAccountImportReq is false', async () => {
-      const account = await unlockLedgerDefaultAccount(false);
-      expect(mockAddNewAccountForKeyring).not.toHaveBeenCalled();
-      expect(ledgerKeyring.getDefaultAccount).toHaveBeenCalled();
-
-      expect(account).toEqual({
-        address: 'defaultAccount',
-        balance: '0x0',
-      });
-    });
-
-    it('should call KeyringController.addNewAccountForKeyring if isAccountImportReq is true', async () => {
-      const account = await unlockLedgerDefaultAccount(true);
-      expect(mockAddNewAccountForKeyring).toHaveBeenCalledWith(ledgerKeyring);
-      expect(ledgerKeyring.getDefaultAccount).toHaveBeenCalled();
-
-      expect(account).toEqual({
-        address: 'defaultAccount',
-        balance: '0x0',
-      });
     });
   });
 
   describe('openEthereumAppOnLedger', () => {
     it('should call keyring.openEthApp', async () => {
       await openEthereumAppOnLedger();
-      expect(ledgerKeyring.openEthApp).toHaveBeenCalled();
+      expect(ledgerKeyring.bridge.openEthApp).toHaveBeenCalled();
     });
   });
 
   describe('closeRunningAppOnLedger', () => {
     it('should call keyring.quitApp', async () => {
       await closeRunningAppOnLedger();
-      expect(ledgerKeyring.quitApp).toHaveBeenCalled();
+      expect(ledgerKeyring.bridge.closeApps).toHaveBeenCalled();
     });
   });
 

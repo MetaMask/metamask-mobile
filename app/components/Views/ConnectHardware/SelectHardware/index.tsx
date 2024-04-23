@@ -16,7 +16,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import { fontStyles } from '../../../../styles/common';
 import {
   mockTheme,
@@ -105,23 +104,11 @@ const SelectHardwareWallet = () => {
   };
 
   const navigateToConnectLedger = async () => {
-    const ledgerKeyring = await getLedgerKeyring();
-    const accounts = await ledgerKeyring.getAccounts();
-
     trackEvent(MetaMetricsEvents.CONNECT_LEDGER, {
       device_type: 'Ledger',
     });
 
-    if (accounts.length === 0) {
-      navigation.navigate(Routes.HW.CONNECT_LEDGER);
-    } else {
-      navigation.navigate(Routes.HW.LEDGER_ACCOUNT, {
-        screen: Routes.HW.LEDGER_ACCOUNT,
-        params: {
-          accounts,
-        },
-      });
-    }
+    navigation.navigate(Routes.HW.CONNECT_LEDGER);
   };
 
   const renderHardwareButton = (image: any, onPress: any) => (

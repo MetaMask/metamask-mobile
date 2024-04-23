@@ -1,17 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View,
-  StyleSheet,
+  ActivityIndicator,
   Image,
   SafeAreaView,
+  StyleSheet,
   TextStyle,
-  ActivityIndicator,
+  View,
 } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Device as NanoDevice } from '@ledgerhq/react-native-hw-transport-ble/lib/types';
 import { useDispatch } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
 import StyledButton from '../../../components/UI/StyledButton';
 import Text from '../../../components/Base/Text';
 import {
@@ -28,15 +27,12 @@ import LedgerConnectionError, {
   LedgerConnectionErrorProps,
 } from './LedgerConnectionError';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
-import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
 
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import ledgerConnectLightImage from '../../../images/ledger-connect-light.png';
 import ledgerConnectDarkImage from '../../../images/ledger-connect-dark.png';
-import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSystemVersion } from 'react-native-device-info';
 import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
@@ -111,10 +107,14 @@ const createStyles = (theme: any) =>
     },
   });
 
-const LedgerConnect = () => {
-  const { AccountTrackerController } = Engine.context as any;
+interface LedgerConnectProps {
+  onConnectLedger: () => void;
+}
+
+const LedgerConnect = ({ onConnectLedger }: LedgerConnectProps) => {
+  // const { AccountTrackerController } = Engine.context as any;
   const theme = useAppThemeFromContext() ?? mockTheme;
-  const { trackEvent } = useMetrics();
+  // const { trackEvent } = useMetrics();
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [selectedDevice, setSelectedDevice] = useState<NanoDevice>(null);
@@ -140,16 +140,17 @@ const LedgerConnect = () => {
 
   const connectLedger = () => {
     setLoading(true);
-    trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
-      device_type: 'Ledger',
-    });
+    // trackEvent(MetaMetricsEvents.CONTINUE_LEDGER_HARDWARE_WALLET, {
+    //   device_type: 'Ledger',
+    // });
     ledgerLogicToRun(async () => {
-      const account = await unlockLedgerDefaultAccount(true);
-      await AccountTrackerController.syncBalanceWithAddresses([account]);
-      trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
-        device_type: 'Ledger',
-      });
-      navigation.dispatch(StackActions.pop(2));
+      // const account = await unlockLedgerDefaultAccount(true);
+      // await AccountTrackerController.syncBalanceWithAddresses([account]);
+      // trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
+      //   device_type: 'Ledger',
+      // });
+      // navigation.dispatch(StackActions.pop(2));
+      onConnectLedger();
     });
   };
 

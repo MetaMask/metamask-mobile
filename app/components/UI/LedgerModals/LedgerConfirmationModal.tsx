@@ -10,7 +10,6 @@ import ConfirmationStep from './Steps/ConfirmationStep';
 import ErrorStep from './Steps/ErrorStep';
 import OpenETHAppStep from './Steps/OpenETHAppStep';
 import SearchingForDeviceStep from './Steps/SearchingForDeviceStep';
-import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
@@ -71,7 +70,6 @@ const LedgerConfirmationModal = ({
   const connectLedger = () => {
     try {
       ledgerLogicToRun(async () => {
-        await unlockLedgerDefaultAccount(false);
         await onConfirmation();
       });
     } catch (_e) {

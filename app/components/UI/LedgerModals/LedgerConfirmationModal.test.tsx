@@ -15,15 +15,10 @@ import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
-import { unlockLedgerDefaultAccount } from '../../../core/Ledger/Ledger';
 import { strings } from '../../../../locales/i18n';
 import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent } from '@testing-library/react-native';
-
-jest.mock('../../../core/Ledger/Ledger', () => ({
-  unlockLedgerDefaultAccount: jest.fn(),
-}));
 
 jest.mock('../../hooks/Ledger/useBluetooth', () => ({
   __esModule: true,
@@ -340,7 +335,6 @@ describe('LedgerConfirmationModal', () => {
 
   it('calls onConfirmation when ledger commands are being sent and confirmed have been received.', async () => {
     const onConfirmation = jest.fn();
-    unlockLedgerDefaultAccount.mockReturnValue(Promise.resolve(true));
     useLedgerBluetooth.mockReturnValue({
       isSendingLedgerCommands: true,
       isAppLaunchConfirmationNeeded: false,
@@ -359,11 +353,10 @@ describe('LedgerConfirmationModal', () => {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     await act(async () => {});
 
-    expect(unlockLedgerDefaultAccount).toHaveBeenCalled();
     expect(onConfirmation).toHaveBeenCalled();
   });
 
-  it('logs LEDGER_HARDWARE_WALLET_ERROR thrown by unlockLedgerDefaultAccount', async () => {
+  it('logs LEDGER_HARDWARE_WALLET_ERROR thrown', async () => {
     const onConfirmation = jest.fn();
 
     const ledgerLogicToRun = jest.fn();
