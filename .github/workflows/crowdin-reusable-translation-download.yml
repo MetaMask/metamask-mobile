@@ -38,18 +38,22 @@ jobs:
         with:
           ref: ${{ inputs.branch }}
       
+      - name: Modified branch name
+        run: echo "modified_branch_name="${{ inputs.branch }} | sed 's#/#-#g'"" >> "$GITHUB_OUTPUT"
+        id: extract_modified_branch_name      
+      
       - name: Check translation progress
         # when main just pull whatever you have (aka skip this) - need to test
         if: ${{ inputs.branch != 'main' }} 
         uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
         with:
           command: 'status translation'
-          command_args: '-b ${{ inputs.branch }} --fail-if-incomplete'
-
+          command_args: '-b ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }} --fail-if-incomplete'
+      
       - name: Synchronize with Crowdin
         uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
         with:
-          crowdin_branch_name: ${{ inputs.branch }}
+          crowdin_branch_name: ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }}
           upload_sources: false
           upload_translations: false
           download_translations: true
