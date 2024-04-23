@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
   },
   infoButton: {
     paddingRight: Device.isAndroid() ? 0 : 18,
+
     marginTop: 5,
   },
   disabled: {
@@ -898,6 +899,7 @@ export function getWalletNavbarOptions(
   onPressTitle,
   navigation,
   themeColors,
+  isNotificationEnabled,
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -966,6 +968,14 @@ export function getWalletNavbarOptions(
     trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
   }
 
+  function handleNotificationOnPress() {
+    if (isNotificationEnabled) {
+      // [ATTENTION]: will navigate to Notifications screen. Notifications screen will be implemented on a diff PR.
+    } else {
+      navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
+    }
+  }
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -989,9 +999,11 @@ export function getWalletNavbarOptions(
       <View style={styles.leftButtonContainer}>
         <ButtonIcon
           variant={ButtonIconVariants.Primary}
+          onPress={handleNotificationOnPress}
           iconName={IconName.Notification}
           style={styles.infoButton}
           size={IconSize.Xl}
+          testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
         />
         <ButtonIcon
           variant={ButtonIconVariants.Primary}
