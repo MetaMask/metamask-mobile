@@ -7,6 +7,7 @@ import {
   createBuyNavigationDetails,
   createSellNavigationDetails,
 } from '../routes/utils';
+import Logger from '../../../../util/Logger';
 
 interface RampUrlOptions {
   rampPath: string;
@@ -19,23 +20,27 @@ export default function handleRampUrl({
   rampType,
   navigation,
 }: RampUrlOptions) {
-  const [redirectPaths, pathParams] = getRedirectPathsAndParams(rampPath);
+  try {
+    const [redirectPaths, pathParams] = getRedirectPathsAndParams(rampPath);
 
-  if (redirectPaths.length > 0) {
-    return handleRedirection(redirectPaths, pathParams, rampType, navigation);
-  }
+    if (redirectPaths.length > 0) {
+      return handleRedirection(redirectPaths, pathParams, rampType, navigation);
+    }
 
-  let rampIntent;
-  if (pathParams) {
-    rampIntent = parseRampIntent(pathParams);
-  }
+    let rampIntent;
+    if (pathParams) {
+      rampIntent = parseRampIntent(pathParams);
+    }
 
-  switch (rampType) {
-    case RampType.BUY:
-      navigation.navigate(...createBuyNavigationDetails(rampIntent));
-      break;
-    case RampType.SELL:
-      navigation.navigate(...createSellNavigationDetails(rampIntent));
-      break;
+    switch (rampType) {
+      case RampType.BUY:
+        navigation.navigate(...createBuyNavigationDetails(rampIntent));
+        break;
+      case RampType.SELL:
+        navigation.navigate(...createSellNavigationDetails(rampIntent));
+        break;
+    }
+  } catch (error) {
+    Logger.error(error, `Error in handleRampUrl. rampPath: ${rampPath}`);
   }
 }
