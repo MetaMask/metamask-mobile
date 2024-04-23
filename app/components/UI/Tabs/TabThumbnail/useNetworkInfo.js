@@ -40,5 +40,3 @@ const useNetworkInfo = () => {
 };
 
 export default useNetworkInfo;
-
-

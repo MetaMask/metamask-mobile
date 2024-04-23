@@ -13,4 +13,3 @@ const useSelectedAccount = () => {
 };
 
 export default useSelectedAccount;
-
