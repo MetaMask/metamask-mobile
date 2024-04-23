@@ -124,10 +124,22 @@ export function handleMetaMaskDeeplink({
       .catch((err) => {
         console.warn(`DeepLinkManager failed to connect`, err);
       });
-  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`)) {
-    instance._handleBuyCrypto();
-  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`)) {
-    instance._handleSellCrypto();
+  } else if (
+    url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`) ||
+    url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY}`)
+  ) {
+    const rampPath = url
+      .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`, '')
+      .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY}`, '');
+    instance._handleBuyCrypto(rampPath);
+  } else if (
+    url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`) ||
+    url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SELL}`)
+  ) {
+    const rampPath = url
+      .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`, '')
+      .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
+    instance._handleSellCrypto(rampPath);
   }
 }
 
