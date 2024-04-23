@@ -83,22 +83,22 @@ import ConfirmAddAsset from '../../UI/ConfirmAddAsset';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const styles = StyleSheet.create( {
+const styles = StyleSheet.create({
   headerLogo: {
     width: 125,
     height: 50,
   },
-} );
+});
 
 const clearStackNavigatorOptions = {
   headerShown: false,
   cardStyle: {
     backgroundColor: 'transparent',
-    cardStyleInterpolator: () => ( {
+    cardStyleInterpolator: () => ({
       overlayStyle: {
         opacity: 0,
       },
-    } ),
+    }),
   },
   animationEnabled: false,
 };
@@ -114,7 +114,7 @@ const WalletModalFlow = () => (
 );
 
 /* eslint-disable react/prop-types */
-const AssetStackFlow = ( props ) => (
+const AssetStackFlow = (props) => (
   <Stack.Navigator>
     <Stack.Screen
       name={'Asset'}
@@ -129,7 +129,7 @@ const AssetStackFlow = ( props ) => (
   </Stack.Navigator>
 );
 
-const AssetModalFlow = ( props ) => (
+const AssetModalFlow = (props) => (
   <Stack.Navigator
     mode={'modal'}
     initialRouteName={'AssetStackFlow'}
@@ -210,7 +210,7 @@ const BrowserFlow = () => (
   </Stack.Navigator>
 );
 
-export const DrawerContext = React.createContext( { drawerRef: null } );
+export const DrawerContext = React.createContext({ drawerRef: null });
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapsSettingsStack = () => (
@@ -358,49 +358,49 @@ const SettingsFlow = () => (
 
 const HomeTabs = () => {
   const { trackEvent } = useMetrics();
-  const drawerRef = useRef( null );
-  const [isKeyboardHidden, setIsKeyboardHidden] = useState( true );
+  const drawerRef = useRef(null);
+  const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
-  const accountsLength = useSelector( selectAccountsLength );
+  const accountsLength = useSelector(selectAccountsLength);
 
-  const chainId = useSelector( ( state ) => {
-    const providerConfig = selectProviderConfig( state );
+  const chainId = useSelector((state) => {
+    const providerConfig = selectProviderConfig(state);
     return ChainId[providerConfig.type];
-  } );
+  });
 
   const amountOfBrowserOpenTabs = useSelector(
-    ( state ) => state.browser.tabs.length,
+    (state) => state.browser.tabs.length,
   );
 
   /* tabs: state.browser.tabs, */
   /* activeTab: state.browser.activeTab, */
-  const activeConnectedDapp = useSelector( ( state ) => {
-    const activeTabUrl = getActiveTabUrl( state );
-    if ( !isUrl( activeTabUrl ) ) return [];
+  const activeConnectedDapp = useSelector((state) => {
+    const activeTabUrl = getActiveTabUrl(state);
+    if (!isUrl(activeTabUrl)) return [];
     try {
       const permissionsControllerState =
         state.engine.backgroundState.PermissionController;
-      const hostname = new URL( activeTabUrl ).hostname;
+      const hostname = new URL(activeTabUrl).hostname;
       const permittedAcc = getPermittedAccountsByHostname(
         permissionsControllerState,
         hostname,
       );
       return permittedAcc;
-    } catch ( error ) {
-      Logger.error( error, {
+    } catch (error) {
+      Logger.error(error, {
         message: 'ParseUrl::MainNavigator error while parsing URL',
-      } );
+      });
     }
-  }, isEqual );
+  }, isEqual);
 
   const options = {
     home: {
       tabBarIconKey: TabBarIconKey.Wallet,
       callback: () => {
-        trackEvent( MetaMetricsEvents.WALLET_OPENED, {
+        trackEvent(MetaMetricsEvents.WALLET_OPENED, {
           number_of_accounts: accountsLength,
-          chain_id: getDecimalChainId( chainId ),
-        } );
+          chain_id: getDecimalChainId(chainId),
+        });
       },
       rootScreenName: Routes.WALLET_VIEW,
     },
@@ -411,57 +411,57 @@ const HomeTabs = () => {
     browser: {
       tabBarIconKey: TabBarIconKey.Browser,
       callback: () => {
-        trackEvent( MetaMetricsEvents.BROWSER_OPENED, {
+        trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
           number_of_accounts: accountsLength,
-          chain_id: getDecimalChainId( chainId ),
+          chain_id: getDecimalChainId(chainId),
           source: 'Navigation Tab',
           active_connected_dapp: activeConnectedDapp,
           number_of_open_tabs: amountOfBrowserOpenTabs,
-        } );
+        });
       },
       rootScreenName: Routes.BROWSER_VIEW,
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
       callback: () => {
-        trackEvent( MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY );
+        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY);
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
       callback: () => {
-        trackEvent( MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS );
+        trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS);
       },
       rootScreenName: Routes.SETTINGS_VIEW,
       unmountOnBlur: true,
     },
   };
 
-  useEffect( () => {
+  useEffect(() => {
     // Hide keyboard on Android when keyboard is visible.
     // Better solution would be to update android:windowSoftInputMode in the AndroidManifest and refactor pages to support it.
-    if ( Platform.OS === 'android' ) {
-      const showSubscription = Keyboard.addListener( 'keyboardDidShow', () => {
-        setIsKeyboardHidden( false );
-      } );
-      const hideSubscription = Keyboard.addListener( 'keyboardDidHide', () => {
-        setIsKeyboardHidden( true );
-      } );
+    if (Platform.OS === 'android') {
+      const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+        setIsKeyboardHidden(false);
+      });
+      const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+        setIsKeyboardHidden(true);
+      });
 
       return () => {
         showSubscription.remove();
         hideSubscription.remove();
       };
     }
-  }, [] );
+  }, []);
 
   return (
     <DrawerContext.Provider value={{ drawerRef }}>
       <Drawer ref={drawerRef}>
         <Tab.Navigator
           initialRouteName={Routes.WALLET.HOME}
-          tabBar={( { state, descriptors, navigation } ) =>
+          tabBar={({ state, descriptors, navigation }) =>
             isKeyboardHidden ? (
               <TabBar
                 state={state}
@@ -674,11 +674,11 @@ const MainNavigator = () => (
       options={{
         //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
         cardStyle: { backgroundColor: importedColors.transparent },
-        cardStyleInterpolator: () => ( {
+        cardStyleInterpolator: () => ({
           overlayStyle: {
             opacity: 0,
           },
-        } ),
+        }),
       }}
     />
     <Stack.Screen
@@ -687,11 +687,11 @@ const MainNavigator = () => (
       options={{
         //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
         cardStyle: { backgroundColor: importedColors.transparent },
-        cardStyleInterpolator: () => ( {
+        cardStyleInterpolator: () => ({
           overlayStyle: {
             opacity: 0,
           },
-        } ),
+        }),
       }}
     />
     <Stack.Screen name="Home" component={HomeTabs} />
@@ -722,7 +722,7 @@ const MainNavigator = () => (
       headerTitle={() => (
         <Image
           style={styles.headerLogo}
-          source={require( '../../../images/metamask-name.png' )}
+          source={require('../../../images/metamask-name.png')}
           resizeMode={'contain'}
         />
       )}
