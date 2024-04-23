@@ -15650,7 +15650,7 @@ eth-json-rpc-filters@~5.0.0:
     json-rpc-engine "^6.1.0"
     pify "^5.0.0"
 
-eth-json-rpc-infura@5.1.0, eth-json-rpc-infura@^5.1.0:
+eth-json-rpc-infura@^5.1.0:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/eth-json-rpc-infura/-/eth-json-rpc-infura-5.1.0.tgz#e6da7dc47402ce64c54e7018170d89433c4e8fb6"
   integrity sha512-THzLye3PHUSGn1EXMhg6WTLW9uim7LQZKeKaeYsS9+wOBcamRiCQVGHa6D2/4P0oS0vSaxsBnU/J6qvn0MPdow==
