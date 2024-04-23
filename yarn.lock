@@ -3966,22 +3966,6 @@
     "@metamask/number-to-bn" "^1.7.1"
     bn.js "^5.2.1"
 
-"@metamask/gas-fee-controller@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-3.0.0.tgz#6b6c81ba9e553b253e4875bacf6f84e17d2238e1"
-  integrity sha512-5kFnfqimsRAJKydjG8jgGFdosjDI42+72vIPuGeCZkSV93KsXX30NjrQQD6Sl1ZJjyfmysdQbFS6unsOheU0lg==
-  dependencies:
-    "@metamask/base-controller" "^1.1.2"
-    "@metamask/controller-utils" "^2.0.0"
-    "@metamask/network-controller" "^3.0.0"
-    "@types/uuid" "^8.3.0"
-    babel-runtime "^6.26.0"
-    eth-query "^2.1.2"
-    ethereumjs-util "^7.0.10"
-    ethjs-unit "^0.1.6"
-    immer "^9.0.6"
-    uuid "^8.3.2"
-
 "@metamask/gas-fee-controller@^10.0.0":
   version "10.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-10.0.1.tgz#2804513add865810e1467e6578d7cf287a94d8f3"
@@ -3994,6 +3978,22 @@
     "@metamask/polling-controller" "^1.0.2"
     "@metamask/utils" "^8.2.0"
     "@types/uuid" "^8.3.0"
+    ethereumjs-util "^7.0.10"
+    ethjs-unit "^0.1.6"
+    immer "^9.0.6"
+    uuid "^8.3.2"
+
+"@metamask/gas-fee-controller@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-3.0.0.tgz#6b6c81ba9e553b253e4875bacf6f84e17d2238e1"
+  integrity sha512-5kFnfqimsRAJKydjG8jgGFdosjDI42+72vIPuGeCZkSV93KsXX30NjrQQD6Sl1ZJjyfmysdQbFS6unsOheU0lg==
+  dependencies:
+    "@metamask/base-controller" "^1.1.2"
+    "@metamask/controller-utils" "^2.0.0"
+    "@metamask/network-controller" "^3.0.0"
+    "@types/uuid" "^8.3.0"
+    babel-runtime "^6.26.0"
+    eth-query "^2.1.2"
     ethereumjs-util "^7.0.10"
     ethjs-unit "^0.1.6"
     immer "^9.0.6"
@@ -15655,21 +15655,6 @@ eth-json-rpc-middleware@^8.1.0:
     json-stable-stringify "^1.0.1"
     node-fetch "^2.6.7"
     pify "^3.0.0"
-
-eth-keyring-controller@^6.2.1:
-  version "6.2.1"
-  resolved "https://registry.yarnpkg.com/eth-keyring-controller/-/eth-keyring-controller-6.2.1.tgz#61901071fc74059ed37cb5ae93870fdcae6e3781"
-  integrity sha512-x2gTM1iHp2Kbvdtd9Eslysw0qzVZiqOzpVB3AU/ni2Xiit+rlcv2H80zYKjrEwlfWFDj4YILD3bOqlnEMmRJOA==
-  dependencies:
-    bip39 "^2.4.0"
-    bluebird "^3.5.0"
-    browser-passworder "^2.0.3"
-    eth-hd-keyring "^3.6.0"
-    eth-sig-util "^3.0.1"
-    eth-simple-keyring "^4.2.0"
-    ethereumjs-util "^7.0.9"
-    loglevel "^1.5.0"
-    obs-store "^4.0.3"
 
 eth-method-registry@1.1.0:
   version "1.1.0"
@@ -28078,9 +28063,9 @@ web3-net@^4.0.7:
     web3-utils "^4.0.7"
 
 web3-provider-engine@^16.0.3:
-  version "16.0.7"
-  resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-16.0.7.tgz#f1ff65af9422da558c39891c948f321d67f06605"
-  integrity sha512-I/3809UDA0LpGlBGGulalrKO4zFWPQIgOMwgt717sXlKVXW4cRPZZgO8gPbnOq9PotOuV89dYDse0ClLqw+kcA==
+  version "16.0.8"
+  resolved "https://registry.yarnpkg.com/web3-provider-engine/-/web3-provider-engine-16.0.8.tgz#c015dc804d0d499f695a8e4b110945b25e29c64f"
+  integrity sha512-Pq70Ch+PHDKcy0dycenDLTDPZh3y7Wf1XmDtrpm61q+0MlROJs1uP1BxJmP8t4KZHHj7ZWTE+jJ3SbVQ2Fd27g==
   dependencies:
     "@cypress/request" "^3.0.0"
     "@ethereumjs/tx" "^3.3.0"
