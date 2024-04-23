@@ -42,6 +42,7 @@ const Routes = {
     MODAL_CONFIRMATION: 'ModalConfirmation',
     MODAL_MANDATORY: 'ModalMandatory',
     WHATS_NEW: 'WhatsNewModal',
+    SMART_TRANSACTIONS_OPT_IN: 'SmartTransactionsOptInModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
@@ -74,6 +75,8 @@ const Routes = {
     CHANGE_PASSWORD: 'ResetPassword',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
+    ADVANCED_SETTINGS: 'AdvancedSettings',
+    NOTIFICATIONS: 'NotificationsSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
