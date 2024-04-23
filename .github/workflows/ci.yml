@@ -5,7 +5,7 @@ on:
   pull_request:
 jobs:
   setup:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -54,7 +54,7 @@ jobs:
             git update-index --no-assume-unchanged "$path"
           done
   dedupe:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: setup
     steps:
       - uses: actions/checkout@v3
@@ -73,7 +73,7 @@ jobs:
             exit 1
           fi
   scripts:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: setup
     strategy:
       matrix:
@@ -120,7 +120,7 @@ jobs:
             git update-index --no-assume-unchanged "$path"
           done
   unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: setup
     strategy:
       matrix:
@@ -175,7 +175,7 @@ jobs:
             git update-index --no-assume-unchanged "$path"
           done
   merge-unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: unit-tests
     steps:
       - uses: actions/checkout@v3
@@ -227,7 +227,7 @@ jobs:
             git update-index --no-assume-unchanged "$path"
           done
   sonar-cloud:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: merge-unit-tests
     steps:
       - uses: actions/checkout@v3
@@ -292,7 +292,7 @@ jobs:
         shell: bash
   all-jobs-pass:
     name: All jobs pass
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [setup, dedupe, scripts, unit-tests, check-workflows, sonar-cloud]
     steps:
       - run: echo "Great success!"
