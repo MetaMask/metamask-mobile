@@ -36,7 +36,7 @@ export default function useCryptoCurrencies() {
       sdkCryptoCurrencies
     ) {
       const filteredTokens = sdkCryptoCurrencies.filter(
-        (token) => Number(token.network?.chainId) === Number(selectedChainId),
+        (token) => `${token.network?.chainId}` === selectedChainId,
       );
       return filteredTokens;
     }
@@ -68,6 +68,7 @@ export default function useCryptoCurrencies() {
 
       if (
         !selectedAsset ||
+        `${selectedAsset.network?.chainId}` !== selectedChainId ||
         !cryptoCurrencies.find(
           (token) => token.address === selectedAsset.address,
         )
@@ -78,7 +79,13 @@ export default function useCryptoCurrencies() {
         setSelectedAsset(nativeAsset || cryptoCurrencies?.[0]);
       }
     }
-  }, [cryptoCurrencies, intent?.address, selectedAsset, setSelectedAsset]);
+  }, [
+    cryptoCurrencies,
+    intent?.address,
+    selectedAsset,
+    selectedChainId,
+    setSelectedAsset,
+  ]);
 
   return {
     cryptoCurrencies,
