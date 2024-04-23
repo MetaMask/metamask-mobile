@@ -511,6 +511,10 @@ workflows:
           title: Restore build from cache
           inputs:
             - key: apk-cache-{{ .CommitHash }}
+      - file-downloader@1:
+          inputs:
+            - source: $BITRISEIO_ANDROID_KEYSTORE_URL
+            - destination: android/keystores/release.keystore
       - script@1:
           title: Run detox build
           run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
