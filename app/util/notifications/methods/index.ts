@@ -9,8 +9,6 @@ import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { Theme } from '../../../util/theme/models';
 import {
-  ChainId,
-  HalRawNotification,
   Notification,
   TRIGGER_TYPES,
   mmStorage,
