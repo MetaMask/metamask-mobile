@@ -207,7 +207,7 @@ const SmartTransactionsOptInModal = () => {
                 ]}
               />
               <Benefit
-                iconName={IconName.SecurityDouble}
+                iconName={IconName.Security}
                 text={[
                   strings('whats_new.stx.benefit_2_1'),
                   strings('whats_new.stx.benefit_2_2'),
