@@ -33,7 +33,7 @@ index bfbfe66..c19399e 100644
       * Toggle the security alert enabled setting.
       *
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index 228cd90..51b48c7 100644
+index 228cd90..8df6a7c 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 @@ -18,7 +18,8 @@ const metadata = {
@@ -55,7 +55,23 @@ index 228cd90..51b48c7 100644
          securityAlertsEnabled: false,
          selectedAddress: '',
          showIncomingTransactions: {
-@@ -205,26 +206,39 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -61,6 +62,7 @@ function getDefaultPreferencesState() {
+             [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.FANTOM_TESTNET]: true,
+             [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.SEPOLIA]: true,
+             [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.LINEA_GOERLI]: true,
++            [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.LINEA_SEPOLIA]: true,
+             [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.LINEA_MAINNET]: true,
+             [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.MOONBEAM]: true,
+             [constants_1.ETHERSCAN_SUPPORTED_CHAIN_IDS.MOONBEAM_TESTNET]: true,
+@@ -70,6 +72,7 @@ function getDefaultPreferencesState() {
+         showTestNetworks: false,
+         useNftDetection: false,
+         useTokenDetection: true,
++        useSafeChainsListValidation: true,
+     };
+ }
+ exports.getDefaultPreferencesState = getDefaultPreferencesState;
+@@ -205,26 +208,39 @@ class PreferencesController extends base_controller_1.BaseController {
       * @param useNftDetection - Boolean indicating user preference on NFT detection.
       */
      setUseNftDetection(useNftDetection) {
@@ -102,6 +118,18 @@ index 228cd90..51b48c7 100644
      /**
       * Toggle the security alert enabled setting.
       *
+diff --git a/node_modules/@metamask/preferences-controller/dist/constants.d.ts b/node_modules/@metamask/preferences-controller/dist/constants.d.ts
+index cb9a3d4..5662d1c 100644
+--- a/node_modules/@metamask/preferences-controller/dist/constants.d.ts
++++ b/node_modules/@metamask/preferences-controller/dist/constants.d.ts
+@@ -13,6 +13,7 @@ export declare const ETHERSCAN_SUPPORTED_CHAIN_IDS: {
+     readonly FANTOM_TESTNET: "0xfa2";
+     readonly SEPOLIA: "0xaa36a7";
+     readonly LINEA_GOERLI: "0xe704";
++    readonly LINEA_SEPOLIA: "0xe705";
+     readonly LINEA_MAINNET: "0xe708";
+     readonly MOONBEAM: "0x504";
+     readonly MOONBEAM_TESTNET: "0x507";
 diff --git a/node_modules/@metamask/preferences-controller/dist/constants.js b/node_modules/@metamask/preferences-controller/dist/constants.js
 index f8d26cb..dade0b8 100644
 --- a/node_modules/@metamask/preferences-controller/dist/constants.js
