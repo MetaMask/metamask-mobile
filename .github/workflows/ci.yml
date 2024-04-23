@@ -5,7 +5,7 @@ on:
   pull_request:
 jobs:
   setup:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -35,7 +35,7 @@ jobs:
             echo "No changes detected"
           fi
   dedupe:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: setup
     steps:
       - uses: actions/checkout@v3
@@ -54,7 +54,7 @@ jobs:
             exit 1
           fi
   scripts:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: setup
     strategy:
       matrix:
@@ -82,7 +82,7 @@ jobs:
             echo "No changes detected"
           fi
   unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: setup
     strategy:
       matrix:
@@ -118,7 +118,7 @@ jobs:
             echo "No changes detected"
           fi
   merge-unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: unit-tests
     steps:
       - uses: actions/checkout@v3
@@ -152,7 +152,7 @@ jobs:
           fi
 
   js-bundle-size-check:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: setup
     steps:
       - uses: actions/checkout@v3
@@ -170,7 +170,7 @@ jobs:
         run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 40
 
   sonar-cloud:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: merge-unit-tests
     steps:
       - uses: actions/checkout@v3
@@ -260,7 +260,7 @@ jobs:
         shell: bash
   all-jobs-pass:
     name: All jobs pass
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs:
       [
         setup,
