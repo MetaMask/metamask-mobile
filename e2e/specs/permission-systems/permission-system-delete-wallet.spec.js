@@ -95,7 +95,7 @@ describe(
           await Browser.isVisible();
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
-          await Assertions.checkIfVisible(NetworkListModal.testSwitch);
+          await Assertions.checkIfVisible(NetworkListModal.testNetToggle);
         },
       );
     });
