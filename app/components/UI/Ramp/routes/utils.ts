@@ -1,5 +1,5 @@
-import { RampIntent, RampType } from "../types";
-import Routes from "../../../../constants/navigation/Routes";
+import { RampIntent, RampType } from '../types';
+import Routes from '../../../../constants/navigation/Routes';
 
 function createRampNavigationDetails(rampType: RampType, intent?: RampIntent) {
   const route = rampType === RampType.BUY ? Routes.RAMP.BUY : Routes.RAMP.SELL;

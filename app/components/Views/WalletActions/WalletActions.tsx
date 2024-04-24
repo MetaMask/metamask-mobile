@@ -19,7 +19,6 @@ import { toggleReceiveModal } from '../../../actions/modals';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
 import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
-import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';

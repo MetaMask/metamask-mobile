@@ -64,7 +64,7 @@ describe('handleRampUrl', () => {
       params: {
         chainId: '1',
         address: '0x123456',
-      }
+      },
     });
   });
 
@@ -80,7 +80,7 @@ describe('handleRampUrl', () => {
       params: {
         chainId: '1',
         address: '0x123456',
-      }
+      },
     });
   });
 });

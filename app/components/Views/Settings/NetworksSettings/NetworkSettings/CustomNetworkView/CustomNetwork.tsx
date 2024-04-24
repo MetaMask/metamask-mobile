@@ -17,8 +17,6 @@ import {
 } from '../../../../../../selectors/networkController';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import { toHex } from '@metamask/controller-utils';
-import { getDecimalChainId } from '../../../../../../util/networks';
 
 const CustomNetwork = ({
   isNetworkModalVisible,
@@ -35,8 +33,6 @@ const CustomNetwork = ({
 }: CustomNetworkProps) => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedChainId = useSelector(selectChainId);
-
-  console.log('selectedChainId: ', selectedChainId);
 
   const supportedNetworkList = (customNetworksList ?? PopularList).map(
     (networkConfiguration: Network) => {

@@ -91,7 +91,6 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
-import Routes from '../../../constants/navigation/Routes';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import {
   SWAP_QUOTE_SUMMARY,
