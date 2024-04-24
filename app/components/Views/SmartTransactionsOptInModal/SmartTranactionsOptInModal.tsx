@@ -168,14 +168,6 @@ const SmartTransactionsOptInModal = () => {
       SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN,
       version as string,
     );
-
-    // See if we need to show What's New modal
-    const shouldShowWhatsNew = await shouldShowWhatsNewModal();
-    if (shouldShowWhatsNew) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.WHATS_NEW,
-      });
-    }
   };
 
   return (
