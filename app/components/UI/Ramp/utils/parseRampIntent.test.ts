@@ -23,10 +23,26 @@ describe('parseRampIntent', () => {
     });
   });
 
-  it('should return a RampIntent object with only defined fields', () => {
+  it('should default to chainId 1 if token is defined but chainId is not', () => {
     const pathParams = {
       address: '0x1234567890',
       chainId: undefined,
+      amount: '10',
+      currency: 'usd',
+    };
+    const result = parseRampIntent(pathParams);
+    expect(result).toEqual({
+      address: '0x1234567890',
+      chainId: '1',
+      amount: '10',
+      currency: 'usd',
+    });
+  });
+
+  it('should return a RampIntent object with only defined fields', () => {
+    const pathParams = {
+      address: '0x1234567890',
+      chainId: '76',
       amount: '10',
       currency: 'usd',
       extraneaous: 'field',
@@ -34,6 +50,7 @@ describe('parseRampIntent', () => {
     const result = parseRampIntent(pathParams);
     expect(result).toEqual({
       address: '0x1234567890',
+      chainId: '76',
       amount: '10',
       currency: 'usd',
     });
