@@ -1,4 +1,4 @@
-import messages from '../../locales/languages/en.json';
+import enContent from '../../locales/languages/en.json';
 
 export const CommonSelectorsIDs = {
   ERROR_MESSAGE: 'error-message-warning',
@@ -18,9 +18,9 @@ export const CommonSelectorsIDs = {
 };
 
 export const CommonSelectorsText = {
-  OK_ALERT_BUTTON: messages.template_confirmation.ok,
-  CANCEL_BUTTON: messages.template_confirmation.cancel,
-  TOAST_REVOKE_ACCOUNTS: messages.toast.revoked_all,
-  TOAST_CONNECTED_ACCOUNTS: messages.toast.connected_and_active,
-  YES_ALERT_BUTTON: messages.drawer.lock_ok,
+  OK_ALERT_BUTTON: enContent.template_confirmation.ok,
+  CANCEL_BUTTON: enContent.template_confirmation.cancel,
+  TOAST_REVOKE_ACCOUNTS: enContent.toast.revoked_all,
+  TOAST_CONNECTED_ACCOUNTS: enContent.toast.connected_and_active,
+  YES_ALERT_BUTTON: enContent.drawer.lock_ok,
 };

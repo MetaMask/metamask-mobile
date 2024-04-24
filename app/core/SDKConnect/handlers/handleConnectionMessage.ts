@@ -108,9 +108,7 @@ export const handleConnectionMessage = async ({
       NetworkController: NetworkController;
     }
   ).NetworkController;
-  const networkId = networkController.state.networkId ?? 1; // default to mainnet;
-  // transform networkId to 0x value
-  const hexChainId = `0x${networkId.toString(16)}`;
+  const chainId = networkController.state.providerConfig.chainId;
 
   // Wait for bridge to be ready before handling messages.
   // It will wait until user accept/reject the connection request.
@@ -147,7 +145,7 @@ export const handleConnectionMessage = async ({
   const processedRpc = await handleCustomRpcCalls({
     batchRPCManager: connection.batchRPCManager,
     selectedAddress,
-    selectedChainId: hexChainId,
+    selectedChainId: chainId,
     connection,
     navigation: connection.navigation,
     rpc: {

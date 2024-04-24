@@ -1,6 +1,8 @@
+/* eslint-disable no-undef */
+
 import { getGanachePort } from './utils';
 import { merge } from 'lodash';
-
+import { PopularNetworksList } from '../resources/networks.e2e';
 const DAPP_URL = 'localhost';
 
 /**
@@ -136,7 +138,6 @@ class FixtureBuilder {
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
-              networkId: '1',
               providerConfig: {
                 type: 'mainnet',
                 chainId: '0x1',
@@ -344,6 +345,7 @@ class FixtureBuilder {
               gasFeeEstimates: {},
               estimatedGasFeeTimeBounds: {},
               gasEstimateType: 'none',
+              gasFeeEstimatesByChainId: {},
             },
             TokenDetectionController: {},
             NftDetectionController: {},
@@ -387,6 +389,7 @@ class FixtureBuilder {
           lockTime: 30000,
           useBlockieIcon: true,
           hideZeroBalanceTokens: false,
+          basicFunctionalityEnabled: true,
         },
         alert: {
           isVisible: false,
@@ -578,6 +581,9 @@ class FixtureBuilder {
         experimentalSettings: {
           securityAlertsEnabled: true,
         },
+        inpageProvider: {
+          networkId: '1',
+        },
       },
       asyncState: {
         '@MetaMask:existingUser': 'true',
@@ -670,6 +676,27 @@ class FixtureBuilder {
         ticker: 'ETH',
       },
     };
+    return this;
+  }
+
+  withPopularNetworks() {
+    const fixtures = this.fixture.state.engine.backgroundState;
+    const networkIDs = {}; // Object to store network configurations
+
+    // Loop through each network in PopularNetworkList
+    for (const key in PopularNetworksList) {
+      const network = PopularNetworksList[key];
+      const { rpcUrl, chainId, ticker, nickname } = network.providerConfig;
+
+      networkIDs[nickname] = { rpcUrl, chainId, ticker, nickname };
+    }
+
+    // Assign networkIDs object to NetworkController in fixtures
+    fixtures.NetworkController = {
+      isCustomNetwork: true,
+      networkConfigurations: networkIDs,
+    };
+
     return this;
   }
 
