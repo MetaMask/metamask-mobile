@@ -20,6 +20,7 @@ import { STORAGE_IDS } from '../settings/storage/constants';
 import Device from '../../../util/device';
 import { store } from '../../../store';
 import { updateNotificationStatus } from '../../../actions/notification';
+import { renderFromWei } from '../../../util/number';
 interface ViewOnEtherscanProps {
   navigation: any;
   transactionObject: {
@@ -40,7 +41,7 @@ interface NotificationRowProps {
     createdAt: string;
 
     badgeIcon?: IconName;
-    imageUri?: string;
+    imageUrl?: string;
     description?: {
       asset?: {
         symbol?: string;
@@ -48,7 +49,7 @@ interface NotificationRowProps {
       };
       text?: string;
     };
-    value?: string;
+    value: string;
   };
   details: Record<string, any>;
 }
@@ -167,159 +168,179 @@ export function getNetwork(chain_id: HalRawNotification['chain_id']) {
 export function formatNotificationTitle(rawTitle: string): string {
   const words = rawTitle.split('_');
   words.shift();
-  return words.join('_');
+  return words.join('_').toLowerCase();
 }
 
 export function getRowDetails(
   notification: Notification,
-): NotificationRowProps | null {
-  if (!notification.data) {
-    return null;
-  }
-
-  if (notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
-    switch (notification.type) {
-      case TRIGGER_TYPES.LIDO_STAKE_COMPLETED:
-      case TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED:
-      case TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED:
-      case TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED:
-      case TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED:
-        return {
-          row: {
-            badgeIcon: getNotificationBadge(notification.type),
-            title: strings(formatNotificationTitle(notification.type)),
-            description: {
-              asset: {
-                symbol: notification.data.stake_out.symbol,
-                name: notification.data.stake_out.name,
-              },
+): NotificationRowProps {
+  switch (notification.type) {
+    case TRIGGER_TYPES.LIDO_STAKE_COMPLETED:
+    case TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED:
+    case TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED:
+    case TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED:
+    case TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          title: strings(
+            `notifications.${formatNotificationTitle(notification.type)}`,
+          ),
+          description: {
+            asset: {
+              symbol: notification.data.stake_out.symbol,
+              name: notification.data.stake_out.name,
             },
-            createdAt: formatDate(notification.createdAt),
-            imageUri: notification.data.stake_out.image,
-            value: `${notification.data.stake_out.amount} ${notification.data.stake_out.symbol}`,
           },
-          details: {},
-        };
-      case TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN:
-        return {
-          row: {
-            badgeIcon: getNotificationBadge(notification.type),
-            title: strings(formatNotificationTitle(notification.type)),
-            description: {
-              asset: {
-                symbol: notification.data.staked_eth.symbol,
-                name: notification.data.staked_eth.name,
-              },
+          createdAt: formatDate(notification.createdAt),
+          imageUrl:
+            notification.data.stake_out.image ||
+            notification.data.stake_in.image, //using the stake_in image as a fallback,
+          value: `${renderFromWei(notification.data.stake_out.amount)} ${
+            notification.data.stake_out.symbol
+          }`,
+        },
+        details: {},
+      };
+    case TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          title: strings(
+            `notifications.${formatNotificationTitle(notification.type)}`,
+          ),
+          description: {
+            asset: {
+              symbol: notification.data.staked_eth.symbol,
+              name: notification.data.staked_eth.name,
             },
-            createdAt: formatDate(notification.createdAt),
-            imageUri: notification.data.staked_eth.image,
-            value: `${notification.data.staked_eth.amount} ${notification.data.staked_eth.symbol}`,
           },
-          details: {},
-        };
-      case TRIGGER_TYPES.METAMASK_SWAP_COMPLETED:
-        return {
-          row: {
-            badgeIcon: getNotificationBadge(notification.type),
-            title: strings(formatNotificationTitle(notification.type), {
-              from: notification.data.token_in.symbol,
-            }),
-            description: {
-              asset: {
-                symbol: notification.data.token_out.symbol,
-                name: notification.data.token_out.name,
-              },
+          createdAt: formatDate(notification.createdAt),
+          imageUrl: notification.data.staked_eth.image,
+          value: `${notification.data.staked_eth.amount} ${notification.data.staked_eth.symbol}`,
+        },
+        details: {},
+      };
+    case TRIGGER_TYPES.METAMASK_SWAP_COMPLETED:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          title: strings('notifications.swap_completed', {
+            from: notification.data.token_in.symbol,
+            to: notification.data.token_out.symbol,
+          }),
+          description: {
+            asset: {
+              symbol: notification.data.token_out.symbol,
+              name: notification.data.token_out.name,
             },
-            createdAt: formatDate(notification.createdAt),
-            imageUri: notification.data.token_out.image,
-            value: `${notification.data.token_out.amount} ${notification.data.token_out.symbol}`,
           },
-          details: {},
-        };
-      case TRIGGER_TYPES.ETH_SENT:
-      case TRIGGER_TYPES.ETH_RECEIVED:
-        return {
-          row: {
-            badgeIcon: getNotificationBadge(notification.type),
-            createdAt: formatDate(notification.createdAt),
-            title: strings(formatNotificationTitle(notification.type), {
+          createdAt: formatDate(notification.createdAt),
+          imageUrl:
+            notification.data.token_out.image ||
+            notification.data.token_in.image, //using the token_in image as a fallback,
+          value: `${renderFromWei(notification.data.token_out.amount)} ${
+            notification.data.token_out.symbol
+          }`,
+        },
+        details: {},
+      };
+    case TRIGGER_TYPES.ETH_SENT:
+    case TRIGGER_TYPES.ETH_RECEIVED:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          createdAt: formatDate(notification.createdAt),
+          title: strings(
+            `notifications.${formatNotificationTitle(notification.type)}`,
+            {
               address: formatAddress(
                 notification.type.includes('sent')
                   ? notification.data.to
                   : notification.data.from,
                 'short',
               ),
-            }),
-            value: `${notification.data.amount.eth} ETH`,
+            },
+          ),
+          description: {
+            asset: {
+              symbol: 'ETH',
+              name: 'Ethereum',
+            },
           },
-          details: {},
-        };
-      case TRIGGER_TYPES.ERC20_SENT:
-      case TRIGGER_TYPES.ERC20_RECEIVED:
-        return {
-          row: {
-            badgeIcon: getNotificationBadge(notification.type),
-            title: strings(formatNotificationTitle(notification.type), {
+          value: `${notification.data.amount.eth} ETH`,
+        },
+        details: {},
+      };
+    case TRIGGER_TYPES.ERC20_SENT:
+    case TRIGGER_TYPES.ERC20_RECEIVED:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          title: strings(
+            `notifications.${formatNotificationTitle(notification.type)}`,
+            {
               address: formatAddress(
                 notification.data.kind.includes('sent')
                   ? notification.data.to
                   : notification.data.from,
                 'short',
               ),
-            }),
-            description: {
-              asset: {
-                symbol: notification.data.token.symbol,
-                name: notification.data.token.name,
-              },
             },
-            createdAt: formatDate(notification.createdAt),
-            imageUri: notification.data.token.image,
-            value: `${notification.data.token.amount} ${notification.data.token.symbol}`,
-          },
-          details: {},
-        };
-      case TRIGGER_TYPES.ERC721_SENT:
-      case TRIGGER_TYPES.ERC721_RECEIVED:
-      case TRIGGER_TYPES.ERC1155_SENT:
-      case TRIGGER_TYPES.ERC1155_RECEIVED:
-        return {
-          row: {
-            badgeIcon: getNotificationBadge(notification.type),
-            title: strings(formatNotificationTitle(notification.type), {
-              address: formatAddress(
-                notification.data.kind.includes('sent')
-                  ? notification.data.to
-                  : notification.data.from,
-                'short',
-              ),
-            }),
-            description: {
-              asset: {
-                symbol: notification.data?.nft?.collection.symbol,
-                name: notification.data?.nft?.collection.name,
-              },
+          ),
+          description: {
+            asset: {
+              symbol: notification.data.token.symbol,
+              name: notification.data.token.name,
             },
-            createdAt: formatDate(notification.createdAt),
-            imageUri: notification.data?.nft?.image,
-            value: `#${notification.data?.nft?.token_id}`,
           },
-          details: {},
-        };
+          createdAt: formatDate(notification.createdAt),
+          imageUrl: notification.data.token.image,
+          value: `${renderFromWei(notification.data.token.amount)} ${
+            notification.data.token.symbol
+          }`,
+        },
+        details: {},
+      };
+    case TRIGGER_TYPES.ERC721_SENT:
+    case TRIGGER_TYPES.ERC721_RECEIVED:
+    case TRIGGER_TYPES.ERC1155_SENT:
+    case TRIGGER_TYPES.ERC1155_RECEIVED:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          title: strings(`notifications.${notification.type}`, {
+            address: formatAddress(
+              notification.type.includes('sent')
+                ? notification.data.to
+                : notification.data.from,
+              'short',
+            ),
+          }),
+          description: {
+            asset: {
+              symbol: notification.data?.nft?.collection.symbol,
+              name: notification.data?.nft?.collection.name,
+            },
+          },
+          createdAt: formatDate(notification.createdAt),
+          imageUrl: notification.data?.nft?.image,
+          value: `#${notification.data?.nft?.token_id}`,
+        },
+        details: {},
+      };
 
-      default:
-        return { row: {} as any, details: {} as any };
-    }
+    default:
+      return {
+        row: {
+          title: notification.data.title,
+          description: { text: notification.data.shortDescription },
+          createdAt: formatDate(notification.createdAt),
+          value: '',
+        },
+        details: {},
+      };
   }
-
-  return {
-    row: {
-      title: notification.data.title,
-      description: { text: notification.data.shortDescription },
-      createdAt: formatDate(notification.createdAt),
-    },
-    details: {},
-  };
 }
 
 export enum AvatarType {
