@@ -105,6 +105,9 @@ class AuthenticationService {
     await KeyringController.submitPassword(password);
     const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
     const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    console.log('ENTER encryptionLib', encryptionLib);
+    console.log('ENTER ORIGINAL', ORIGINAL);
+    console.log('ENTER existingUser', existingUser);
     if (encryptionLib !== ORIGINAL && existingUser) {
       try {
         await recreateVaultWithSamePassword(password, selectedAddress);
@@ -351,6 +354,10 @@ class AuthenticationService {
       await this.storePassword(password, authData?.currentAuthType);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+      if (encryptionLib !== ORIGINAL) {
+        await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+      }
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
@@ -382,6 +389,10 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
+      if (encryptionLib !== ORIGINAL) {
+        await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+      }
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
