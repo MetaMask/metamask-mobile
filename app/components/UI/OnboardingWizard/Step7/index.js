@@ -71,7 +71,6 @@ const Step7 = (props) => {
    * Calls props onClose
    */
   const triggerOnClose = () => {
-    navigation?.navigate?.(Routes.WALLET.HOME);
     onClose && onClose(false);
   };
 
