@@ -121,10 +121,12 @@
     "axios": "^1.6.8",
     "react-native-ble-plx": "3.1.2",
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
-    "@metamask/transaction-controller/@metamask/controller-utils": "^5.0.0",
+    "@metamask/transaction-controller/@metamask/controller-utils": "^8.0.4",
     "@spruceid/siwe-parser": "2.1.0",
     "apg-js": "4.2.0",
-    "web3-provider-engine": "^16.0.8"
+    "web3-provider-engine": "^16.0.8",
+    "@metamask/assets-controllers/@metamask/controller-utils": "^8.0.4"
+
   },
   "dependencies": {
     "@consensys/ledgerhq-metamask-keyring": "0.0.9",
@@ -144,7 +146,7 @@
     "@metamask/base-controller": "^4.1.1",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",
-    "@metamask/controller-utils": "^5.0.0",
+    "@metamask/controller-utils": "^8.0.4",
     "@metamask/design-tokens": "^2.0.0",
     "@metamask/eth-sig-util": "^4.0.1",
     "@metamask/etherscan-link": "^2.0.0",
