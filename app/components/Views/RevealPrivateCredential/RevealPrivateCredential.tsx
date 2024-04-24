@@ -448,7 +448,7 @@ const RevealPrivateCredential = ({
                 ? strings('reveal_credential.private_key_text')
                 : strings('reveal_credential.srp_abbreviation_text'),
             })}
-            onLongPress={() => revealCredential(privCredentialName)}
+            onPress={() => revealCredential(privCredentialName)}
             {...generateTestId(
               Platform,
               RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
