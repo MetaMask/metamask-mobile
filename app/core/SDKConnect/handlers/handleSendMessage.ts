@@ -77,16 +77,21 @@ export const handleSendMessage = async ({
         connection.rpcQueueManager,
       );
       connection.setLoading(false);
-      if (
-        !method &&
-        connection.navigation?.getCurrentRoute()?.name === 'AccountConnect'
-      ) {
+      const currentRoute = connection.navigation?.getCurrentRoute()?.name;
+      if (!method && currentRoute === 'AccountConnect') {
         DevLogger.log(`[handleSendMessage] remove modal`);
         if (
           Device.isIos() &&
           parseInt(Platform.Version as string) >= 17 &&
           connection.navigation?.canGoBack()
         ) {
+          const isLastPendingRequest = connection.rpcQueueManager.isEmpty();
+          if (!isLastPendingRequest) {
+            DevLogger.log(
+              `[handleSendMessage] pending request --- skip goback`,
+            );
+            return;
+          }
           try {
             DevLogger.log(
               `[handleSendMessage] goBack()`,
@@ -94,7 +99,9 @@ export const handleSendMessage = async ({
             );
             connection.navigation?.goBack();
             await wait(200); // delay to allow modal to close
-            DevLogger.log(`[handleSendMessage] navigate to ROOT_MODAL_FLOW`);
+            DevLogger.log(
+              `[handleSendMessage] navigate to ROOT_MODAL_FLOW from ${currentRoute}`,
+            );
           } catch (_e) {
             // Ignore temporarily until next stage of permissions system implementation
             DevLogger.log(`[handleSendMessage] error goBack()`, _e);
@@ -107,7 +114,10 @@ export const handleSendMessage = async ({
       return;
     }
 
-    if (connection.trigger !== 'deeplink') {
+    if (
+      connection.trigger !== 'deeplink' &&
+      connection.origin !== AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+    ) {
       DevLogger.log(`[handleSendMessage] NOT deeplink --- skip goBack()`);
       return;
     }
