@@ -111,7 +111,8 @@ export class BackgroundBridge extends EventEmitter {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
+    // eslint-disable-next-line no-console
+    console.log('ENTER this.sendStateUpdate', this.sendStateUpdate);
 
     Engine.controllerMessenger.subscribe(
       'KeyringController:lock',
@@ -325,7 +326,7 @@ export class BackgroundBridge extends EventEmitter {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.context.PreferencesController.unsubscribe(this.sendStateUpdate);
+
     this.port.emit('disconnect', { name: this.port.name, data: null });
   };
 
