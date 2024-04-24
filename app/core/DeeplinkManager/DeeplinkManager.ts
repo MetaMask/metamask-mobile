@@ -3,12 +3,13 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { ParseOutput } from 'eth-url-parser';
 import { AnyAction, Dispatch, Store } from 'redux';
-import Routes from '../../constants/navigation/Routes';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
+import handleRampUrl from './Handlers/handleRampUrl';
 import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
+import { RampType } from '../../reducers/fiatOrders/types';
 
 class DeeplinkManager {
   public navigation: NavigationProp<ParamListBase>;
@@ -67,12 +68,20 @@ class DeeplinkManager {
     });
   }
 
-  _handleBuyCrypto() {
-    this.navigation.navigate(Routes.RAMP.BUY);
+  _handleBuyCrypto(rampPath: string) {
+    handleRampUrl({
+      rampPath,
+      navigation: this.navigation,
+      rampType: RampType.BUY,
+    });
   }
 
-  _handleSellCrypto() {
-    this.navigation.navigate(Routes.RAMP.SELL);
+  _handleSellCrypto(rampPath: string) {
+    handleRampUrl({
+      rampPath,
+      navigation: this.navigation,
+      rampType: RampType.SELL,
+    });
   }
 
   parse(

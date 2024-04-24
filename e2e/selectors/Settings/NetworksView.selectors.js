@@ -17,6 +17,7 @@ export const NetworksViewSelectorsIDs = {
   REMOVE_NETWORK_BUTTON: 'remove-network-button',
   CLOSE_ICON: 'close-network-icon',
   BACK_ARROW_BUTTON: 'back-arrow-button',
+  SEARCH_NETWORK_INPUT_BOX_ID: 'network-search-input',
 };
 
 export const NetworkViewSelectorsText = {
@@ -24,4 +25,6 @@ export const NetworkViewSelectorsText = {
   REMOVE_NETWORK: enContent.app_settings.remove_network,
   CUSTOM_NETWORK_TAB: enContent.app_settings.custom_network_name,
   POPULAR_NETWORK_TAB: enContent.app_settings.popular,
+  NO_MATCHING_SEARCH_RESULTS: enContent.networks.no_match,
+  EMPTY_POPULAR_NETWORKS: enContent.networks.empty_popular_networks,
 };
