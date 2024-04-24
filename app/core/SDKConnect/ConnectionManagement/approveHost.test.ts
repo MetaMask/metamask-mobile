@@ -1,9 +1,8 @@
-import DefaultPreference from 'react-native-default-preference';
 import AppConstants from '../../../core/AppConstants';
 import SDKConnect from '../SDKConnect';
+import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import approveHost from './approveHost';
-import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 
 jest.mock('../../../core/AppConstants');
 jest.mock('../SDKConnect');
@@ -48,10 +47,6 @@ describe('approveHost', () => {
     expect(DevLogger.log).toHaveBeenCalledWith(
       `SDKConnect approveHost ${mockHost}`,
       mockInstance.state.approvedHosts,
-    );
-    expect(DefaultPreference.set).toHaveBeenCalledWith(
-      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-      'mockStringifiedApprovedHosts',
     );
   });
 
@@ -142,28 +137,6 @@ describe('approveHost', () => {
       host: mockHost,
       instance: mockInstance,
     });
-
-    expect(DefaultPreference.set).toHaveBeenCalledWith(
-      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-      'mockStringifiedApprovedHosts',
-    );
-  });
-
-  it('should emit a refresh event', () => {
-    const mockHost = 'mockHost';
-    const mockApprovedUntil = 1234567890;
-
-    jest.spyOn(Date, 'now').mockReturnValueOnce(mockApprovedUntil);
-    jest
-      .spyOn(JSON, 'stringify')
-      .mockReturnValueOnce('mockStringifiedApprovedHosts');
-
-    approveHost({
-      host: mockHost,
-      instance: mockInstance,
-    });
-
-    expect(mockInstance.emit).toHaveBeenCalledWith('refresh');
   });
 
   describe('Handling disabled hosts', () => {

@@ -32,14 +32,11 @@ export const KEYSTONE_LEARN_MORE =
   'https://keyst.one/metamask?rfsn=6088257.656b3e9&utm_source=refersion&utm_medium=affiliate&utm_campaign=6088257.656b3e9';
 export const KEYSTONE_SUPPORT_VIDEO = 'https://keyst.one/mmmvideo';
 
-// MixPanel
-export const MIXPANEL_PROXY_ENDPOINT_BASE_URL =
-  'https://proxy.metafi.codefi.network/mixpanel/v1/api/app';
-
 // Network
 export const CHAINLIST_URL = 'https://chainlist.wtf';
 export const MM_ETHERSCAN_URL = 'https://etherscamdb.info/domain/meta-mask.com';
 export const LINEA_GOERLI_BLOCK_EXPLORER = 'https://goerli.lineascan.build';
+export const LINEA_SEPOLIA_BLOCK_EXPLORER = 'https://sepolia.lineascan.build';
 export const LINEA_MAINNET_BLOCK_EXPLORER = 'https://lineascan.build';
 
 // Phishing
@@ -67,7 +64,6 @@ export const MM_PLAY_STORE_LINK = `market://details?id=${AppConstants.BUNDLE_IDS
 // SDK
 export const MM_SDK_DEEPLINK = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/connect?`;
 
-export const BLOCKAID_ATTRIBUTION_LINK = 'https://blockaid.io';
 export const FALSE_POSITIVE_REPORT_BASE_URL =
   'https://blockaid-false-positive-portal.metamask.io';
 export const UTM_SOURCE = 'metamask-ppom';
@@ -81,3 +77,6 @@ export const ADD_CUSTOM_NETWORK_ARTCILE =
 
 export const LEDGER_SUPPORT_LINK =
   'https://support.ledger.com/hc/en-us/articles/360009576554-Ethereum-ETH-?docs=true';
+
+export const GOERLI_DEPRECATED_ARTICLE =
+  'https://github.com/eth-clients/goerli#goerli-goerlitzer-testnet';

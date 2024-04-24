@@ -207,14 +207,11 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   );
 
   const onForget = useCallback(async () => {
-    const { PreferencesController } = Engine.context as any;
     resetError();
     // removedAccounts and remainingAccounts are not checksummed here.
     const { removedAccounts, remainingAccounts } =
       await KeyringController.forgetQRDevice();
-    PreferencesController.setSelectedAddress(
-      remainingAccounts[remainingAccounts.length - 1],
-    );
+    Engine.setSelectedAddress(remainingAccounts[remainingAccounts.length - 1]);
     const checksummedRemovedAccounts = removedAccounts.map(
       safeToChecksumAddress,
     );

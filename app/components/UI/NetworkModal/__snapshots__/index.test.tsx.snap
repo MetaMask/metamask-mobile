@@ -425,7 +425,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                         }
                       }
                     >
-                      https:/
+                      https://localhost:8545
                     </Text>
                     <TouchableOpacity
                       activeOpacity={0.5}

@@ -1,7 +1,5 @@
-import removeAll from './removeAll';
 import SDKConnect from '../SDKConnect';
-import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../AppConstants';
+import removeAll from './removeAll';
 
 jest.mock('react-native-default-preference', () => ({
   set: jest.fn().mockResolvedValue([]),
@@ -28,7 +26,7 @@ describe('removeAll', () => {
         paused: true,
       },
       removeChannel: mockRemoveChannel,
-      loadAndroidConnections: jest.fn().mockResolvedValue({}),
+      loadDappConnections: jest.fn().mockResolvedValue({}),
       emit: jest.fn(),
     } as unknown as SDKConnect;
   });
@@ -44,17 +42,8 @@ describe('removeAll', () => {
 
     expect(mockRemoveChannel).toHaveBeenCalledWith({
       channelId: mockChannelId,
-      emitRefresh: false,
       sendTerminate: true,
     });
-  });
-
-  it('should clear all android connections from DefaultPreference', async () => {
-    await removeAll(mockInstance);
-
-    expect(DefaultPreference.clear).toHaveBeenCalledWith(
-      AppConstants.MM_SDK.ANDROID_CONNECTIONS,
-    );
   });
 
   describe('Resetting state properties', () => {
@@ -93,21 +82,5 @@ describe('removeAll', () => {
 
       expect(mockInstance.state.paused).toBe(false);
     });
-  });
-
-  it('should clear SDK connections from DefaultPreference', async () => {
-    await removeAll(mockInstance);
-
-    expect(DefaultPreference.clear).toHaveBeenCalledWith(
-      AppConstants.MM_SDK.SDK_CONNECTIONS,
-    );
-  });
-
-  it('should clear approved hosts from DefaultPreference', async () => {
-    await removeAll(mockInstance);
-
-    expect(DefaultPreference.clear).toHaveBeenCalledWith(
-      AppConstants.MM_SDK.SDK_APPROVEDHOSTS,
-    );
   });
 });

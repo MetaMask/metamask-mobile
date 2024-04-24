@@ -151,7 +151,7 @@ enum EVENT_NAME {
   BROWSER_RELOAD = 'Reload Browser',
   BROWSER_ADD_FAVORITES = 'Added Site To Favorites',
   BROWSER_SWITCH_TAB = 'Switched tab within Browser',
-  DAPP_VISITED = 'Dapp Visited',
+  DAPP_VIEWED = 'Dapp Viewed',
 
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS = 'Views Security & Privacy',
@@ -280,6 +280,9 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
 
+  // Stake
+  STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
+
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
   FORCE_UPGRADE_UPDATE_TO_THE_LATEST_VERSION_CLICKED = 'Force Upgrade Clicked Update to Latest Version',
@@ -349,6 +352,9 @@ enum EVENT_NAME {
   LEDGER_HARDWARE_TRANSACTION_CANCELLED = 'User canceled Ledger hardware transaction',
   LEDGER_HARDWARE_WALLET_ERROR = 'Ledger hardware wallet error',
   LEDGER_HARDWARE_WALLET_FORGOTTEN = 'Ledger hardware wallet forgotten',
+
+  // Smart transactions
+  SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 }
 
 enum ACTIONS {
@@ -396,6 +402,7 @@ enum ACTIONS {
   ADVANCED_SETTINGS_ETH_SIGN_FRICTION_SECOND_STEP = 'eth_sign_input_seen',
   ADVANCED_SETTINGS_ETH_SIGN_ENABLED = 'eth_sign_enabled',
   ADVANCED_SETTINGS_ETH_SIGN_DISABLED = 'eth_sign_disabled',
+  STAKE = 'Stake',
 }
 
 const events = {
@@ -534,7 +541,7 @@ const events = {
   BROWSER_SHARE_SITE: generateOpt(EVENT_NAME.BROWSER_SHARE_SITE),
   BROWSER_RELOAD: generateOpt(EVENT_NAME.BROWSER_RELOAD),
   BROWSER_ADD_FAVORITES: generateOpt(EVENT_NAME.BROWSER_ADD_FAVORITES),
-  DAPP_VISITED: generateOpt(EVENT_NAME.DAPP_VISITED),
+  DAPP_VIEWED: generateOpt(EVENT_NAME.DAPP_VIEWED),
   // Security & Privacy Settings
   VIEW_SECURITY_SETTINGS: generateOpt(EVENT_NAME.VIEW_SECURITY_SETTINGS),
   // Reveal SRP
@@ -821,6 +828,9 @@ const events = {
   LEDGER_HARDWARE_WALLET_FORGOTTEN: generateOpt(
     EVENT_NAME.LEDGER_HARDWARE_WALLET_FORGOTTEN,
   ),
+
+  // Smart transactions
+  SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
 };
 
 /**
@@ -893,6 +903,7 @@ enum DESCRIPTION {
   // Settings
   SETTINGS_GENERAL = 'General',
   SETTINGS_ADVANCED = 'Advanced',
+  SETTINGS_NOTIFICATIONS = 'Notifications',
   SETTINGS_SECURITY_AND_PRIVACY = 'Security & Privacy',
   SETTINGS_ABOUT = 'About MetaMask',
   SETTINGS_EXPERIMENTAL = 'Experimental',
@@ -917,6 +928,7 @@ enum DESCRIPTION {
   PAYMENTS_SELECTS_APPLE_PAY = 'Selects Apple Pay as payment method',
   SWAPS = 'Swaps',
   BRIDGE = 'Bridge',
+  STAKE = 'Stake',
 }
 
 const legacyMetaMetricsEvents = {
@@ -1220,6 +1232,11 @@ const legacyMetaMetricsEvents = {
     ACTIONS.SETTINGS,
     DESCRIPTION.SETTINGS_EXPERIMENTAL,
   ),
+  SETTINGS_NOTIFICATIONS: generateOpt(
+    EVENT_NAME.SETTINGS,
+    ACTIONS.SETTINGS,
+    DESCRIPTION.SETTINGS_NOTIFICATIONS,
+  ),
   // Receive Options
   RECEIVE_OPTIONS_SHARE_ADDRESS: generateOpt(
     EVENT_NAME.RECEIVE_OPTIONS,
@@ -1378,6 +1395,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.BRIDGE_LINK_CLICKED,
     ACTIONS.BRIDGE,
     DESCRIPTION.BRIDGE,
+  ),
+  STAKE_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.STAKE_BUTTON_CLICKED,
+    ACTIONS.STAKE,
+    DESCRIPTION.STAKE,
   ),
 };
 

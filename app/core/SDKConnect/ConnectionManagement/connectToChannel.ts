@@ -1,5 +1,5 @@
-import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../AppConstants';
+import { resetConnections } from '../../../../app/actions/sdk';
+import { store } from '../../../../app/store';
 import { Connection, ConnectionProps } from '../Connection';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
@@ -94,16 +94,13 @@ async function connectToChannel({
   // Make sure to watch event before you connect
   instance.watchConnection(instance.state.connected[id]);
 
-  await DefaultPreference.set(
-    AppConstants.MM_SDK.SDK_CONNECTIONS,
-    JSON.stringify(instance.state.connections),
-  );
+  store.dispatch(resetConnections(instance.state.connections));
+
   // Initialize connection
   instance.state.connected[id].connect({
     withKeyExchange: true,
   });
   instance.state.connecting[id] = false;
-  instance.emit('refresh');
 }
 
 export default connectToChannel;

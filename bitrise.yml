@@ -15,6 +15,7 @@ pipelines:
     stages:
       - create_build_release: {}
       - deploy_build_release: {}
+      - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
       - release_notify: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
@@ -44,9 +45,7 @@ pipelines:
   release_e2e_pipeline:
     stages:
       - build_e2e_ios_android_stage: {}
-      - run_e2e_ios_android_stage: {}
-      # - build_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully.
-      # - run_regression_e2e_ios_android_stage: {} Enable whenever regression tests are running successfully.
+      - run_release_e2e_ios_android_stage: {}
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
@@ -130,6 +129,17 @@ stages:
     workflows:
       - ios_run_regression_tests: {}
       - android_run_regression_tests: {}
+  run_release_e2e_ios_android_stage:
+    workflows:
+      - ios_run_regression_tests: {}
+      - android_run_regression_tests: {}
+      - run_tag_smoke_confirmations_ios: {}
+      - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
+      - run_tag_smoke_core_ios: {}
+      - run_tag_smoke_core_android: {}
+      - run_tag_upgrade_android: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -408,6 +418,20 @@ workflows:
       - TEST_SUITE: 'Regression'
     after_run:
       - android_e2e_test
+  run_tag_upgrade_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    envs:
+      - PRODUCTION_APP_URL: 'bs://3f81fdb66cba8140909d1ff0a05bc2ace97b307f' # Last production's QA build
+      - PRODUCTION_BUILD_VERSION_NAME: 7.20.0
+      - PRODUCTION_BUILD_VERSION_NUMBER: 1308
+      - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
+      - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_VERSION_NAME ($PRODUCTION_BUILD_VERSION_NUMBER)'
+      - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
+    after_run:
+      - run_android_appium_test
 
   ### Seperating workflows so they run concurrently during smoke runs
   run_tag_smoke_confirmations_ios:
@@ -695,7 +719,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:build
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -751,7 +775,7 @@ workflows:
                 #!/usr/bin/env bash
                 if [ -n "$TEST_SUITE_FOLDER" ]; then
                   echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi                
+                fi
                 if [ "$TEST_SUITE" = "Regression" ]; then
                   TEST_SUITE="Regression"
                 else
@@ -764,7 +788,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
           title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
@@ -884,6 +908,15 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-20.04
         machine_type_id: elite-xl
+  run_android_appium_test:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: elite-xl
+    before_run:
+      - build_android_qa
+    after_run:
+      - wdio_android_e2e_test
   build_android_qa:
     before_run:
       - code_setup
@@ -979,20 +1012,6 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
-      - build-router-start@0:
-          inputs:
-            - workflows: |-
-                wdio_android_e2e_test
-            - wait_for_builds: 'false'
-            - abort_on_fail: 'yes'
-            - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-            - environment_key_list: BROWSERSTACK_APP_URL
-
-                BROWSERSTACK_DEVICE
-
-                BROWSERSTACK_OS_VERSION
-
-                BROWSERSTACK_TAG_EXPRESSION
   wdio_android_e2e_test:
     before_run:
       - code_setup
@@ -1300,16 +1319,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.17.0
+      VERSION_NAME: 7.20.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1267
+      VERSION_NUMBER: 1314
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.17.0
+      FLASK_VERSION_NAME: 7.20.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1267
+      FLASK_VERSION_NUMBER: 1314
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

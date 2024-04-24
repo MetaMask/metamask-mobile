@@ -1,14 +1,12 @@
 {
   "blockaid_banner": {
     "approval_farming_description": "Si vous approuvez cette demande, un tiers connu pour ses activités frauduleuses pourrait s’emparer de tous vos actifs.",
-    "attribution": "Fourni par",
-    "attribution_link_name": "Blockaid",
     "blur_farming_description": "Si vous approuvez cette demande, quelqu’un pourrait s’emparer de vos actifs répertoriés sur Blur.",
     "deceptive_request_title": "Cette demande est trompeuse",
     "failed_title": "Cette demande peut présenter des risques",
     "failed_description": "À cause d’une erreur, cette demande n’a pas été vérifiée par le fournisseur de services de sécurité. Veuillez agir avec prudence.",
     "loading_title": "En train de vérifier s’il y a des alertes de sécurité…",
-    "loading_complete_title": "No alerts received. Always do your own due diligence before approving requests.",
+    "loading_complete_title": "Aucune alerte n’a été reçue. Faites toujours preuve de diligence raisonnable avant d’approuver les demandes.",
     "malicious_domain_description": "Vous interagissez avec un domaine malveillant. Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "other_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
     "raw_signature_farming_description": "Si vous approuvez cette demande, vous risquez de perdre vos actifs.",
@@ -353,12 +351,17 @@
     "no_collectibles": "Vous ne voyez pas votre NFT ?",
     "no_available_tokens": "Vous ne voyez pas votre jeton ?",
     "add_tokens": "Importer des jetons",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} nouveaux {{tokensLabel}} trouvés dans ce compte",
     "token_toast": {
       "tokens_imported_title": "Jetons importés",
       "tokens_imported_desc": "{{tokenSymbols}} importés avec succès",
       "token_imported_title": "Jeton importé",
       "token_imported_desc": "{{tokenSymbol}} importé avec succès",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Masquer les jetons",
       "tokens_hidden_desc": "Masquer les jetons détectés dans votre portefeuille",
       "token_hidden_title": "Masquer le jeton",
@@ -378,6 +381,8 @@
     "nfts_autodetection_desc": "Cela permet à MetaMask de détecter automatiquement les NFT d’OpenSea et de les afficher dans votre portefeuille MetaMask.",
     "network_details_check": "Vérification des détails du réseau",
     "network_with_chain_id": "Le réseau qui a un ID de chaîne",
+    "chain_list_returned_different_ticker_symbol": "Le symbole de ce jeton ne correspond pas au nom du réseau ou à l’ID de chaîne saisi. De nombreux jetons populaires utilisent des symboles similaires dont les escrocs peuvent se servir pour vous amener à leur envoyer un jeton de plus grande valeur en retour. Vérifiez toutes les informations avant de continuer.",
+    "suggested_token_symbol": "Symbole boursier suggéré :",
     "potential_scam": "Il pourrait s’agir d’une arnaque",
     "network_not_matching": "L’ID ou le nom de la chaîne associée à ce réseau n’est pas correct. De nombreux jetons populaires utilisent le nom",
     "target_scam_network": ", ce qui en fait une cible pour les escrocs. Vérifiez toutes les informations avant de continuer, car vous risquez de vous faire arnaquer.",
@@ -441,8 +446,8 @@
   "add_asset": {
     "title": "Importer des jetons",
     "title_nft": "Importer des NFT",
-    "search_token": "RECHERCHER",
-    "custom_token": "JETON PERSONNALISÉ",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "ANNULER",
       "add_token": "IMPORTER"
@@ -499,14 +504,16 @@
     "resultPageErrorDefaultMessage": "L’opération a échoué."
   },
   "token": {
-    "token_symbol": "Symbole du jeton",
+    "token_symbol": "Token symbol",
     "token_address": "Adresse du jeton",
-    "token_decimal": "Nombre de décimales du jeton",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Chercher des jetons",
     "address_cant_be_empty": "L’adresse du jeton ne peut être vide.",
     "address_must_be_valid": "L’adresse du jeton doit être valide.",
     "symbol_cant_be_empty": "Le symbole du jeton ne peut être vide.",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Le nombre de décimales du jeton ne peut être vide.",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "Nous n’avons pas trouvé de jetons portant ce nom.",
     "select_token": "Sélectionnez un jeton",
     "address_must_be_smart_contract": "Adresse personnelle détectée. Saisissez l’adresse du contrat de jeton."
@@ -543,10 +550,10 @@
   },
   "accounts": {
     "create_new_account": "Créer un nouveau compte",
-    "qr_hardware": "Matériel QR",
     "import_account": "Importer un compte",
     "connect_hardware": "Connecter un portefeuille matériel",
     "imported": "Importés",
+    "qr_hardware": "Matériel QR",
     "remove_account_title": "Suppression du compte",
     "remove_account_message": "Souhaitez-vous vraiment supprimer ce compte ?",
     "no": "Non",
@@ -893,7 +900,6 @@
     "security_check_subheading": "Contrôles de sécurité",
     "symbol_required": "Le symbole est requis.",
     "blockaid": "Blockaid",
-    "blockaid_desc": "Protection de la vie privée : aucune donnée n’est partagée avec des tiers. Disponible sur Arbitrum, Avalanche, BNB chain, Optimism, Polygon et le réseau principal Ethereum.",
     "security_alerts": "Alertes de sécurité",
     "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos demandes de transaction et de signature. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité. En l’activant, vous acceptez les conditions d’utilisation du fournisseur."
   },
@@ -902,27 +908,27 @@
     "disconnect_all_info": "Si vous supprimez vos connexions à tous les sites, vous devrez autoriser la connexion à nouveau.",
     "disconnect": "Déconnecter",
     "disconnect_all": "Déconnecter tous",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "manage_connections": "Manage Connections",
-    "manage": "Manage",
+    "disconnect_all_accounts": "Déconnecter tous les comptes",
+    "manage_connections": "Gérer les connexions",
+    "manage": "Gérer",
     "cancel": "Annuler",
     "loading": "Connexion à MetaMask...",
     "unkown_dapp": "Nom de DAPP non disponible",
-    "no_connections": "No connections",
-    "no_connections_desc": "If you connect an account to a site or an app, you’ll see it here."
+    "no_connections": "Aucune connexion",
+    "no_connections_desc": "Les comptes que vous connectez à un site ou à une application seront affichés ici."
   },
   "sdk_session_item": {
-    "connected_accounts": "{{accountsLength}} account(s) connected."
+    "connected_accounts": "{{accountsLength}} compte(s) connecté(s)."
   },
   "sdk_disconnect_modal": {
-    "disconnect_all": "Disconnect from all sites?",
-    "disconnect_all_desc": "If you disconnect your accounts from all sites, you'll need to give permissions to reconnect them.",
-    "disconnect_account": "Disconnect account?",
-    "disconnect_all_accounts": "Disconnect all Accounts",
-    "disconnect_all_accounts_desc": "If you disconnect all accounts from {{dapp}}, you will need to give permissions to reconnect them.",
-    "disconnect_account_desc": "If you disconnect {{account}} from {{dapp}}, you will need to give permissions to reconnect it.",
-    "disconnect_confirm": "Disconnect",
-    "cancel": "Cancel"
+    "disconnect_all": "Déconnecter de tous les sites ?",
+    "disconnect_all_desc": "Si vous déconnectez vos comptes de tous les sites, vous devrez accorder des autorisations pour les reconnecter.",
+    "disconnect_account": "Voulez-vous déconnecter le compte ?",
+    "disconnect_all_accounts": "Déconnecter tous les comptes",
+    "disconnect_all_accounts_desc": "Si vous déconnectez tous les comptes de {{dapp}}, vous devrez accorder des autorisations pour les reconnecter.",
+    "disconnect_account_desc": "Si vous déconnectez {{account}} de {{dapp}}, vous devrez accorder des autorisations pour le reconnecter.",
+    "disconnect_confirm": "Déconnecter",
+    "cancel": "Annuler"
   },
   "sdk_return_to_app_modal": {
     "title": "Retourner à l’application",
@@ -1294,6 +1300,7 @@
     "contract": "Contrat ({{address}})",
     "contract_name": "Nom du contrat :",
     "contract_address": "Adresse du contrat :",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Provision :",
     "data": "Données",
     "function_approve": "Fonction : approuver",
@@ -1508,8 +1515,8 @@
     "select_network": "Sélectionner un réseau",
     "show_test_networks": "Afficher les réseaux de test",
     "deprecated_goerli": "En raison des changements apportés au protocole d’Ethereum, le réseau de test Goerli pourra ne pas fonctionner d’une manière aussi fiable qu’auparavant et deviendra bientôt obsolète.",
-    "network_deprecated_title": "This network is deprecated",
-    "network_deprecated_description": "The network you're trying to connect to is no longer supported on Metamask."
+    "network_deprecated_title": "Ce réseau est obsolète",
+    "network_deprecated_description": "Le réseau auquel vous essayez de vous connecter n’est plus pris en charge par Metamask."
   },
   "select": {
     "cancel": "Annuler",
@@ -1789,6 +1796,9 @@
     "pending_deposit_message": "En attente de réalisation du dépôt",
     "pending_withdrawal_message": "En attente de réalisation du retrait",
     "error_message": "Appuyez pour voir cette transaction",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Appuyez pour voir cette transaction",
     "speedup_message": "Tentative d’accélération de la transaction",
     "success_deposit_message": "Vos fonds peuvent être utilisés",
@@ -2058,6 +2068,10 @@
     "fetching_new_quotes": "Récupération des nouvelles cotations…",
     "quotes_expire_in": "Les cotations expirent dans",
     "get_new_quotes": "Obtenir de nouvelles cotations",
+    "explore_more_options": "Découvrez d’autres options",
+    "one_more_option": "1 option supplémentaire",
+    "more_options": "{{count}} options supplémentaires",
+    "previously_used": "Utilisé précédemment",
     "quotes_timeout": "Expiration des cotations",
     "request_new_quotes": "Veuillez demander de nouvelles cotations pour obtenir le meilleur taux actuellement disponible.",
     "terms_of_service": "Conditions d’utilisation",
@@ -2405,7 +2419,6 @@
       "title": "Restez en sécurité grâce aux alertes de sécurité",
       "description_1": "Évitez les arnaques les plus courantes et protégez vos données privées grâce aux alertes de sécurité fournies par Blockaid. Cette fonctionnalité est désormais activée par défaut pour tous les utilisateurs de MetaMask.",
       "description_2": "Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande.",
-      "description_3": "Disponible sur Arbitrum, Avalanche, BNB chain, Linea, Optimism, Polygon et le réseau principal Ethereum.",
       "got_it": "D’accord"
     },
     "sell": {
@@ -2717,8 +2730,10 @@
     "bluetooth_off_message": "Veuillez activer le Bluetooth sur votre appareil",
     "bluetooth_access_blocked": "Ledger requiert l’accès au Bluetooth pour être couplé à votre appareil mobile.",
     "bluetooth_access_blocked_message": "Si vous souhaitez coupler votre appareil Ledger par Bluetooth, activez-le dans « Settings » (Paramètres), puis réessayez.",
-    "location_access_blocked": "Ledger requiert l’accès à la localisation pour être couplé à votre appareil mobile.",
+    "location_access_blocked": "MetaMask a besoin d’une autorisation d’accès à vos données de localisation pour se coupler à votre appareil Ledger.",
     "location_access_blocked_message": "Si vous souhaitez coupler votre appareil Ledger par Bluetooth, vous devez activer l’accès à la localisation dans « Settings » (Paramètres), puis réessayer.",
+    "nearbyDevices_access_blocked": "MetaMask a besoin d’une autorisation « Appareils à proximité » pour se coupler à votre appareil Ledger.",
+    "nearbyDevices_access_blocked_message": "Si vous souhaitez coupler votre appareil Ledger par Bluetooth, vous devez activer l’accès aux appareils à proximité dans les « Paramètres », puis réessayer.",
     "bluetooth_scanning_error": "Erreur lors du scan de l’appareil",
     "bluetooth_scanning_error_message": "Veuillez vous assurer que votre appareil est débloqué et que l’application Ethereum est en cours d’exécution.",
     "bluetooth_connection_failed": "Échec de la connexion Bluetooth",
@@ -2738,10 +2753,12 @@
     "connect_ledger": "Connectez-vous à Ledger",
     "looking_for_device": "Recherche d’un appareil",
     "ledger_reminder_message": "Veuillez vérifier les éléments suivants :",
-    "ledger_reminder_message_step_one": "1. Votre Ledger Nano X est débloqué",
-    "ledger_reminder_message_step_two": "2. L’application Ethereum est installée",
-    "ledger_reminder_message_step_three": "3. Le Bluetooth est activé",
-    "ledger_reminder_message_step_four": "4. La localisation est activée",
+    "ledger_reminder_message_step_one": "1. Déverrouillez votre Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. Installez et ouvrez l’application Ethereum",
+    "ledger_reminder_message_step_three": "3. Activez le Bluetooth",
+    "ledger_reminder_message_step_four": "4. La localisation est activée avec l’autorisation d’utiliser la localisation précise",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. L’option « Appareils à proximité » est activée",
+    "ledger_reminder_message_step_five": "5. L’option « Ne pas déranger » doit être désactivée",
     "available_devices": "Appareils disponibles",
     "retry": "Réessayer",
     "continue": "Continuer",
@@ -2824,5 +2841,8 @@
     "okay_action": "OK",
     "error_title": "Échec de l'installation",
     "error_description": "L’installation de {{snap}} a échoué."
+  },
+  "stake": {
+    "stake": "Stake"
   }
 }

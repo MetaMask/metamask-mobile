@@ -155,7 +155,11 @@ class NetworksSettings extends PureComponent {
     this.updateNavBar();
   };
 
-  componentDidUpdate = () => {
+  componentDidUpdate = (prevProps) => {
+    if (this.props.networkConfigurations !== prevProps.networkConfigurations) {
+      this.handleSearchTextChange(this.state.searchString);
+    }
+
     this.updateNavBar();
   };
 
@@ -466,6 +470,7 @@ class NetworksSettings extends PureComponent {
             placeholderTextColor={colors.text.default}
             value={this.state.searchString}
             onChangeText={this.handleSearchTextChange}
+            testID={NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID}
           />
           {this.state.searchString.length > 0 && (
             <Icon
@@ -473,6 +478,7 @@ class NetworksSettings extends PureComponent {
               size={20}
               color={colors.icon.default}
               onPress={this.clearSearchInput}
+              testID={NetworksViewSelectorsIDs.CLOSE_ICON}
             />
           )}
         </View>

@@ -181,7 +181,7 @@ const LedgerAccountInfo = () => {
           index={1}
           address={account}
           balance={accountBalance}
-          ticker={provider.ticker || 'ETH'}
+          ticker={provider.ticker}
           toBlockExplorer={toBlockExplorer}
         />
       </View>

@@ -398,7 +398,7 @@ class TransactionReview extends PureComponent {
   };
 
   getStyles = () => {
-    const colors = this.context?.colors || mockTheme.colors;
+    const colors = this.context.colors || mockTheme.colors;
     return createStyles(colors);
   };
 

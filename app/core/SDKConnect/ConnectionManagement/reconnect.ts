@@ -29,6 +29,7 @@ async function reconnect({
     if (trigger) {
       instance.state.connected[channelId].setTrigger('deeplink');
     }
+    instance.updateSDKLoadingState({ channelId, loading: false });
 
     return;
   }
@@ -90,11 +91,11 @@ async function reconnect({
     //   instance.removeChannel(channelId, true);
     // }
 
-    // instance condition should not happen keeping it for debug purpose.
-    console.warn(`Priotity to deeplink - overwrite previous connection`);
-    instance.removeChannel({ channelId, sendTerminate: true });
+    // issue can happen during dev because bundle takes too long to load via metro.
+    // should not happen but keeping it for reference / debug purpose.
+    console.warn(`BUNDLE WARNING: Already connecting --- Priotity to deeplink`);
+    // instance.removeChannel({ channelId, sendTerminate: true });
   }
-
   if (!instance.state.connections[channelId]) {
     interruptReason = 'no connection';
   }
@@ -116,6 +117,7 @@ async function reconnect({
       DevLogger.log(
         `SDKConnect::reconnect - already connected [connected] -- trigger updated to '${trigger}'`,
       );
+      instance.updateSDKLoadingState({ channelId, loading: false });
       return;
     }
 
@@ -123,11 +125,14 @@ async function reconnect({
       DevLogger.log(
         `SDKConnect::reconnect - already connected [ready=${ready}] -- ignoring`,
       );
+      instance.updateSDKLoadingState({ channelId, loading: false });
       return;
     }
   }
 
-  DevLogger.log(`SDKConnect::reconnect - starting reconnection`);
+  DevLogger.log(
+    `SDKConnect::reconnect - starting reconnection channel=${channelId}`,
+  );
 
   const connection = instance.state.connections[channelId];
   instance.state.connecting[channelId] = true;
@@ -154,11 +159,11 @@ async function reconnect({
   instance.state.connected[channelId].connect({
     withKeyExchange: true,
   });
+
   instance.watchConnection(instance.state.connected[channelId]);
   const afterConnected =
     instance.state.connected[channelId].remote.isConnected() ?? false;
   instance.state.connecting[channelId] = !afterConnected; // If not connected, it means it's connecting.
-  instance.emit('refresh');
 }
 
 export default reconnect;

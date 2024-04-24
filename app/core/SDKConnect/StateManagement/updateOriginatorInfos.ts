@@ -1,7 +1,8 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+import { resetConnections } from '../../../../app/actions/sdk';
+import { store } from '../../../../app/store';
 import SDKConnect from '../SDKConnect';
-import DefaultPreference from 'react-native-default-preference';
-import AppConstants from '../../AppConstants';
+import DevLogger from '../utils/DevLogger';
 
 function updateOriginatorInfos({
   channelId,
@@ -17,14 +18,18 @@ function updateOriginatorInfos({
     return;
   }
 
-  instance.state.connections[channelId].originatorInfo = originatorInfo;
-  DefaultPreference.set(
-    AppConstants.MM_SDK.SDK_CONNECTIONS,
-    JSON.stringify(instance.state.connections),
-  ).catch((err) => {
-    throw err;
-  });
-  instance.emit('refresh');
+  // update originatorInfo
+  instance.state.connections[channelId] = {
+    ...instance.state.connections[channelId],
+    originatorInfo,
+    connected: true,
+  };
+
+  DevLogger.log(
+    `SDKConnect::updateOriginatorInfos`,
+    instance.state.connections,
+  );
+  store.dispatch(resetConnections(instance.state.connections));
 }
 
 export default updateOriginatorInfos;

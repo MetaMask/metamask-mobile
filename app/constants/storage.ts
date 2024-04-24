@@ -16,6 +16,16 @@ export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`
 export const METAMETRICS_DELETION_REGULATION_ID = `${prefix}MetaMetricsDeletionRegulationId`;
 export const ANALYTICS_DATA_RECORDED = `${prefix}analyticsDataRecorded`;
 export const METAMETRICS_ID = `${prefix}MetaMetricsId`;
+
+/**
+ * @deprecated, use {@link METAMETRICS_ID} instead
+ * Keeping MIXPANEL_METAMETRICS_ID for backward compatibility
+ *
+ * TODO remove MIXPANEL_METAMETRICS_ID:
+ * - add a migration
+ * - remove the legacy id test from {@link MetaMetrics}.#getMetaMetricsId()
+ * @see https://github.com/MetaMask/metamask-mobile/issues/8833
+ */
 export const MIXPANEL_METAMETRICS_ID = `${prefix}MixpanelMetaMetricsId`;
 
 export const WALLETCONNECT_SESSIONS = `${prefix}walletconnectSessions`;
@@ -43,6 +53,7 @@ export const LAST_APP_VERSION = `${prefix}LastAppVersion`;
 export const CURRENT_APP_VERSION = `${prefix}CurrentAppVersion`;
 
 export const WHATS_NEW_APP_VERSION_SEEN = `${prefix}WhatsNewAppVersionSeen`;
+export const SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN = `${prefix}SmartTransactionsOptInModalAppVersionSeen`;
 
 export const REVIEW_EVENT_COUNT = 'reviewEventCount';
 

@@ -1,7 +1,10 @@
 import { CoreTypes } from '@walletconnect/types';
 import Device from '../util/device';
 import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
+
 const DEVELOPMENT = 'development';
+const PORTFOLIO_URL =
+  process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -14,8 +17,16 @@ export default {
   SWARM_DEFAULT_GATEWAY_URL: 'https://swarm-gateways.net/bzz:/',
   supportedTLDs: ['eth', 'xyz', 'test'],
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
-  PORTFOLIO_URL:
-    process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io',
+  PORTFOLIO: {
+    URL: PORTFOLIO_URL,
+  },
+  BRIDGE: {
+    ACTIVE: true,
+    URL: `${PORTFOLIO_URL}/bridge`,
+  },
+  STAKE: {
+    URL: `${PORTFOLIO_URL}/stake`,
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -75,13 +86,10 @@ export default {
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,
   },
-  BRIDGE: {
-    ACTIVE: true,
-  },
   MAX_SAFE_CHAIN_ID: 4503599627370476,
   URLS: {
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
-    PRIVACY_POLICY: 'https://legal.consensys.io/metamask/privacy-policy/',
+    PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
@@ -95,6 +103,10 @@ export default {
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
       'https://support.metamask.io/hc/articles/14764161421467',
+    WHAT_IS_SRP:
+      'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
+    PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
+    SMART_TXS: 'https://support.metamask.io/hc/en-us/articles/9184393821211',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -138,11 +150,13 @@ export default {
     WC2: 'WalletConnectV2',
     IN_APP_BROWSER: 'In-App-Browser',
     SDK_ANDROID: 'MetaMask-SDK-Android',
+    SDK_IOS: 'MetaMask-SDK-IOS',
   },
   MM_SDK: {
     SDK_CONNECTIONS: 'sdkConnections',
     ANDROID_CONNECTIONS: 'androidConnections',
     ANDROID_SDK: 'AndroidSDK',
+    IOS_SDK: 'iOSSDK',
     SDK_APPROVEDHOSTS: 'sdkApprovedHosts',
     SERVER_URL: process.env.SDK_COMMLAYER_URL ?? DEFAULT_SERVER_URL,
     PLATFORM: 'metamask-mobile',
@@ -153,6 +167,7 @@ export default {
   SPEED_UP_RATE: 'Transactions (Speed Up)',
   NETWORK_STATE_CHANGE_EVENT: 'NetworkController:stateChange',
   KEYRING_STATE_CHANGE_EVENT: 'KeyringController:stateChange',
+  TOKEN_LIST_STATE_CHANGE_EVENT: 'TokenListController:stateChange',
   ETH_SIGN_ERROR: 'eth_sign requires 32 byte message hash',
   TERMS_OF_USE: {
     TERMS_DISPLAYED: 'ToU Displayed',
@@ -163,4 +178,13 @@ export default {
   FAVICON_CACHE_MAX_SIZE: 100,
   PPOM_INITIALISATION_STATE_CHANGE_EVENT:
     'PPOMController:initialisationStateChangeEvent',
+  BASIC_FUNCTIONALITY_BLOCK_LIST: [
+    'token-api',
+    'gas-api',
+    'price-api',
+    'phishing-detection',
+    'infura.io',
+    'static.metafi',
+    'config-api.metamask.io/featureFlags',
+  ],
 } as const;

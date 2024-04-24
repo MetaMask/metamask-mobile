@@ -28,7 +28,6 @@ class EngineService {
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     const Engine = UntypedEngine as any;
-
     Engine.init(state);
     this.updateControllers(store, Engine);
   };
@@ -51,7 +50,10 @@ class EngineService {
         name: 'NetworkController',
         key: AppConstants.NETWORK_STATE_CHANGE_EVENT,
       },
-      { name: 'PhishingController' },
+      {
+        name: 'PhishingController',
+        key: `${engine.context.PhishingController.name}:maybeUpdateState`,
+      },
       { name: 'PreferencesController' },
       { name: 'TokenBalancesController' },
       { name: 'TokenRatesController' },
@@ -90,6 +92,10 @@ class EngineService {
       {
         name: 'LoggingController',
         key: `${engine.context.LoggingController.name}:stateChange`,
+      },
+      {
+        name: 'AccountsController',
+        key: `${engine.context.AccountsController.name}:stateChange`,
       },
     ];
 

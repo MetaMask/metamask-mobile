@@ -17,6 +17,7 @@ import SkipAccountSecurityModal from './pages/modals/SkipAccountSecurityModal';
 import ProtectYourWalletModal from './pages/modals/ProtectYourWalletModal';
 import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
+import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 
 import TestHelpers from './helpers';
 
@@ -63,6 +64,7 @@ export const importWalletWithRecoveryPhrase = async () => {
 
   // Should dismiss Automatic Security checks screen
   await TestHelpers.delay(3500);
+  await OnboardingSuccessView.tapDone();
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
@@ -115,6 +117,7 @@ export const CreateNewWallet = async () => {
 
   //'Should dismiss Automatic Security checks screen'
   await TestHelpers.delay(3500);
+  await OnboardingSuccessView.tapDone();
   await EnableAutomaticSecurityChecksView.isVisible();
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
@@ -189,7 +192,6 @@ export const loginToApp = async () => {
   await LoginView.isVisible();
   await LoginView.enterPassword(PASSWORD);
 
-  await WalletView.isVisible();
   await TestHelpers.delay(2500);
   try {
     await WhatsNewModal.isVisible();

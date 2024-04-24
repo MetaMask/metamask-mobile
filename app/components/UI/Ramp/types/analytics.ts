@@ -278,6 +278,7 @@ interface RampTransaction {
   currency_source: string;
   currency_destination: string;
   order_id?: string;
+  provider_offramp: string;
 }
 
 interface RampQuotesExpanded {

@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Button should render correctly 1`] = `
-<GenericButton
+<TouchableOpacity
+  delayPressIn={50}
   style={
     Array [
       Object {

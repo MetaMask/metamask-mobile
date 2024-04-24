@@ -9,7 +9,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-describe('useNativeTokenFiatAmount', () => {
+describe('useIsOriginalNativeTokenSymbol', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });

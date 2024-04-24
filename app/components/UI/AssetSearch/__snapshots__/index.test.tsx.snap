@@ -1,41 +1,120 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AssetSearch should render correctly 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
+<View
+  style={
+    Array [
+      Object {
+        "alignItems": "center",
+        "borderColor": "#BBC0C5",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "color": "#24272A",
+        "flex": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "margin": 16,
+        "marginBottom": 0,
       },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
+    ]
   }
+  testID="add-searched-token-screen"
 >
-  <Component
-    onBlur={[Function]}
-    onFocus={[Function]}
-    onSearch={[Function]}
-  />
-</ContextProvider>
+  <View
+    style={
+      Object {
+        "color": "#6A737D",
+        "paddingLeft": 20,
+      }
+    }
+  >
+    <SvgMock
+      color="#24272A"
+      height={16}
+      name="Search"
+      style={
+        Object {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "borderColor": "#0260A4",
+        "color": "#6A737D",
+        "paddingHorizontal": 12,
+        "paddingVertical": 12,
+        "width": "80%",
+      }
+    }
+  >
+    <TextInput
+      keyboardAppearance="light"
+      onBlur={[Function]}
+      onChangeText={[Function]}
+      onFocus={[Function]}
+      placeholder="Search Tokens"
+      placeholderTextColor="#BBC0C5"
+      style={
+        Array [
+          Object {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontWeight": "400",
+          },
+          Object {
+            "height": "85%",
+            "width": "85%",
+          },
+        ]
+      }
+      testID="input-search-asset"
+      value=""
+    />
+  </View>
+  <View
+    style={
+      Object {
+        "color": "#6A737D",
+        "paddingRight": 20,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        Object {
+          "alignItems": "center",
+          "borderRadius": 8,
+          "height": 24,
+          "justifyContent": "center",
+          "opacity": 1,
+          "width": 24,
+        }
+      }
+    >
+      <SvgMock
+        color="#24272A"
+        height={16}
+        name="Close"
+        style={
+          Object {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        width={16}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
 `;

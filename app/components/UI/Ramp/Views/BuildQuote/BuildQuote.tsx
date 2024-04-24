@@ -458,8 +458,6 @@ const BuildQuote = () => {
   const handleChangePaymentMethod = useCallback(
     (paymentMethodId) => {
       if (paymentMethodId) {
-        setAmount('0');
-        setAmountNumber(0);
         setSelectedPaymentMethodId(paymentMethodId);
       }
       hidePaymentMethodModal();
@@ -666,12 +664,9 @@ const BuildQuote = () => {
     );
   }
 
-  let displayAmount;
-  if (isBuy) {
-    displayAmount = amountFocused ? amount : formatAmount(amountNumber);
-  } else {
-    displayAmount = `${amount} ${selectedAsset?.symbol}`;
-  }
+  const displayAmount = isBuy
+    ? formatAmount(amountNumber)
+    : `${amount} ${selectedAsset?.symbol}`;
 
   let quickAmounts: QuickAmount[] = [];
 

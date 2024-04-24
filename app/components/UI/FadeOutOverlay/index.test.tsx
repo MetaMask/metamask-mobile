@@ -1,11 +1,11 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import FadeOutOverlay from './';
 jest.useFakeTimers();
 
 describe('FadeOutOverlay', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<FadeOutOverlay />);
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<FadeOutOverlay />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

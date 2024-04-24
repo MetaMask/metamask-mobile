@@ -1,11 +1,40 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountOverview from './';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
+import initialBackgroundState from '../../../util/test/initial-background-state.json';
 
-const mockStore = configureMockStore();
-const store = mockStore({});
+import Engine from '../../../core/Engine';
+
+const mockedEngine = Engine;
+jest.mock('../../../core/Engine.ts', () => ({
+  init: () => mockedEngine.init({}),
+  context: {
+    KeyringController: {
+      getQRKeyringState: async () => ({ subscribe: () => ({}) }),
+      state: {
+        keyrings: [
+          {
+            accounts: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
+            index: 0,
+            type: 'HD Key Tree',
+          },
+        ],
+      },
+    },
+  },
+}));
+
+const mockInitialState = {
+  settings: {},
+  engine: {
+    backgroundState: {
+      ...initialBackgroundState,
+      PreferencesController: {
+        selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      },
+    },
+  },
+};
 
 describe('AccountOverview', () => {
   it('should render correctly', () => {
@@ -14,11 +43,10 @@ describe('AccountOverview', () => {
       balanceFiat: 1604.2,
       label: 'Account 1',
     };
-    const wrapper = shallow(
-      <Provider store={store}>
-        <AccountOverview account={account} />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <AccountOverview account={account} />,
+      { state: mockInitialState },
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

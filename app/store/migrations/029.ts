@@ -11,7 +11,14 @@ import {
   AddressBookEntry,
   AddressBookState,
 } from '@metamask/address-book-controller';
-import { Nft, NftContract, NftState } from '@metamask/assets-controllers';
+import {
+  Nft,
+  NftContract,
+  NftState,
+  TokenListState,
+  TokenRatesState,
+  TokensState,
+} from '@metamask/assets-controllers';
 
 /**
  * Converting chain id on decimal format to hexadecimal format
@@ -28,7 +35,8 @@ import { Nft, NftContract, NftState } from '@metamask/assets-controllers';
  * @param {any} state - Redux state.
  * @returns Migrated Redux state.
  */
-export default function migrate(state: unknown) {
+export default async function migrate(stateAsync: unknown) {
+  const state = await stateAsync;
   // Chaning chain id to hexadecimal chain Id on the networks already on the local state
   if (!isObject(state)) {
     captureException(
@@ -122,43 +130,15 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
-
-  if (
-    !hasProperty(
-      networkControllerState.networkDetails,
-      'isEIP1559Compatible',
-    ) ||
-    networkControllerState.networkDetails.isEIP1559Compatible === null ||
-    networkControllerState.networkDetails.isEIP1559Compatible === undefined
-  ) {
-    captureException(
-      new Error(
-        `Migration 29: Invalid NetworkController networkDetails isEIP1559Compatible: '${JSON.stringify(
-          networkControllerState.networkDetails.isEIP1559Compatible,
-        )}'`,
-      ),
-    );
-    return state;
-  }
-
   // Addressing networkDetails property change
   const isEIP1559Compatible =
-    networkControllerState.networkDetails.isEIP1559Compatible;
+    !!networkControllerState.networkDetails.isEIP1559Compatible;
 
-  if (isEIP1559Compatible) {
-    networkControllerState.networkDetails = {
-      EIPS: {
-        1559: true,
-      },
-    };
-  } else {
-    networkControllerState.networkDetails = {
-      EIPS: {
-        1559: false,
-      },
-    };
-  }
-
+  networkControllerState.networkDetails = {
+    EIPS: {
+      1559: isEIP1559Compatible,
+    },
+  };
   if (isObject(networkControllerState.networkDetails)) {
     delete networkControllerState.networkDetails.isEIP1559Compatible;
   }
@@ -482,6 +462,198 @@ export default function migrate(state: unknown) {
         }
       },
     );
+  }
+
+  const tokenListControllerState =
+    state?.engine?.backgroundState?.TokenListController;
+  const newTokenListControllerState = state?.engine?.backgroundState
+    ?.TokenListController as TokenListState;
+
+  if (!isObject(tokenListControllerState)) {
+    captureException(
+      new Error(
+        `Migration 29: Invalid TokenListController state: '${JSON.stringify(
+          tokenListControllerState,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (
+    !hasProperty(tokenListControllerState, 'tokensChainsCache') ||
+    !isObject(tokenListControllerState.tokensChainsCache)
+  ) {
+    captureException(
+      new Error(
+        `Migration 29: Invalid tokenListControllerState tokensChainsCache: '${JSON.stringify(
+          tokenListControllerState.tokensChainsCache,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (Object.keys(tokenListControllerState.tokensChainsCache).length) {
+    Object.keys(tokenListControllerState.tokensChainsCache).forEach(
+      (chainId) => {
+        if (!isHexString(chainId)) {
+          const hexChainId = toHex(chainId);
+          newTokenListControllerState.tokensChainsCache[hexChainId] =
+            //@ts-expect-error Is verified on Line 508 that tokenChainsCache is a property
+            tokenListControllerState.tokensChainsCache[chainId];
+
+          if (isObject(tokenListControllerState.tokensChainsCache)) {
+            delete tokenListControllerState.tokensChainsCache[chainId];
+          }
+        }
+      },
+    );
+  }
+
+  const tokenRatesControllerState =
+    state?.engine?.backgroundState?.TokenRatesController;
+  const newTokenRatesControllerState = state?.engine?.backgroundState
+    ?.TokenRatesController as TokenRatesState;
+
+  if (!isObject(tokenRatesControllerState)) {
+    captureException(
+      new Error(
+        `Migration 29: Invalid TokenRatesController state: '${JSON.stringify(
+          tokenRatesControllerState,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (
+    isObject(tokenRatesControllerState.contractExchangeRatesByChainId) &&
+    Object.keys(tokenRatesControllerState.contractExchangeRatesByChainId).length
+  ) {
+    Object.keys(
+      tokenRatesControllerState.contractExchangeRatesByChainId,
+    ).forEach((chainId) => {
+      if (!isHexString(chainId)) {
+        const hexChainId = toHex(chainId);
+        newTokenRatesControllerState.contractExchangeRatesByChainId[
+          hexChainId
+        ] =
+          //@ts-expect-error Is verified on Line 558 that contractExchangeRatesByChainId is a property
+          tokenRatesControllerState.contractExchangeRatesByChainId[chainId];
+
+        if (
+          isObject(tokenRatesControllerState.contractExchangeRatesByChainId)
+        ) {
+          delete tokenRatesControllerState.contractExchangeRatesByChainId[
+            chainId
+          ];
+        }
+      }
+    });
+  }
+
+  const tokensControllerState =
+    state?.engine?.backgroundState?.TokensController;
+  const newTokensControllerState = state?.engine?.backgroundState
+    ?.TokensController as TokensState;
+
+  if (!isObject(tokensControllerState)) {
+    captureException(
+      new Error(
+        `Migration 29: Invalid TokensController state: '${JSON.stringify(
+          tokensControllerState,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (
+    !hasProperty(tokensControllerState, 'allTokens') ||
+    !isObject(tokensControllerState.allTokens)
+  ) {
+    captureException(
+      new Error(
+        `Migration 29: Invalid TokensController allTokens: '${JSON.stringify(
+          tokensControllerState.allTokens,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (Object.keys(tokensControllerState.allTokens).length) {
+    Object.keys(tokensControllerState.allTokens).forEach((chainId) => {
+      if (!isHexString(chainId)) {
+        const hexChainId = toHex(chainId);
+        newTokensControllerState.allTokens[hexChainId] =
+          //@ts-expect-error Is verified on Line 613 that allTokens is a property
+          tokensControllerState.allTokens[chainId];
+
+        if (isObject(tokensControllerState.allTokens)) {
+          delete tokensControllerState.allTokens[chainId];
+        }
+      }
+    });
+  }
+
+  if (
+    !hasProperty(tokensControllerState, 'allIgnoredTokens') ||
+    !isObject(tokensControllerState.allIgnoredTokens)
+  ) {
+    captureException(
+      new Error(
+        `Migration 29: Invalid TokensController allIgnoredTokens: '${JSON.stringify(
+          tokensControllerState.allIgnoredTokens,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (Object.keys(tokensControllerState.allIgnoredTokens).length) {
+    Object.keys(tokensControllerState.allIgnoredTokens).forEach((chainId) => {
+      if (!isHexString(chainId)) {
+        const hexChainId = toHex(chainId);
+        newTokensControllerState.allIgnoredTokens[hexChainId] =
+          //@ts-expect-error Is verified on Line 643 that allIgnoredTokens is a property
+          tokensControllerState.allIgnoredTokens[chainId];
+
+        if (isObject(tokensControllerState.allIgnoredTokens)) {
+          delete tokensControllerState.allIgnoredTokens[chainId];
+        }
+      }
+    });
+  }
+
+  if (
+    !hasProperty(tokensControllerState, 'allDetectedTokens') ||
+    !isObject(tokensControllerState.allDetectedTokens)
+  ) {
+    captureException(
+      new Error(
+        `Migration 29: Invalid TokensController allDetectedTokens: '${JSON.stringify(
+          tokensControllerState.allDetectedTokens,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  if (Object.keys(tokensControllerState.allDetectedTokens).length) {
+    Object.keys(tokensControllerState.allDetectedTokens).forEach((chainId) => {
+      if (!isHexString(chainId)) {
+        const hexChainId = toHex(chainId);
+        newTokensControllerState.allDetectedTokens[hexChainId] =
+          //@ts-expect-error Is verified on Line 671 that allIgnoredTokens is a property
+          tokensControllerState.allDetectedTokens[chainId];
+
+        if (isObject(tokensControllerState.allDetectedTokens)) {
+          delete tokensControllerState.allDetectedTokens[chainId];
+        }
+      }
+    });
   }
 
   return state;

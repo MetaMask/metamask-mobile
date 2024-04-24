@@ -266,12 +266,18 @@ class AdvancedSettings extends PureComponent {
     // A not so great way to copy objects by value
 
     try {
-      const data = generateStateLogs(fullState);
+      const stateLogsWithReleaseDetails = generateStateLogs({
+        ...fullState,
+        appVersion,
+        buildNumber,
+      });
 
-      let url = `data:text/plain;base64,${new Buffer(data).toString('base64')}`;
+      let url = `data:text/plain;base64,${new Buffer(
+        stateLogsWithReleaseDetails,
+      ).toString('base64')}`;
       // // Android accepts attachements as BASE64
       if (Device.isIos()) {
-        await RNFS.writeFile(path, data, 'utf8');
+        await RNFS.writeFile(path, stateLogsWithReleaseDetails, 'utf8');
         url = path;
       }
 

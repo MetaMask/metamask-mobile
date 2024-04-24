@@ -1,5 +1,5 @@
-import { ThemeColors } from '@metamask/design-tokens/dist/js/themes/types';
-import { ThemeTypography } from '@metamask/design-tokens/dist/js/typography';
+import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typography';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, TextStyle, View } from 'react-native';
@@ -30,9 +30,9 @@ interface SDKSessionViewProps {
   connection: {
     id: ConnectionProps['id'];
     originatorInfo?: ConnectionProps['originatorInfo'];
+    connected?: ConnectionProps['connected'];
   };
   trigger?: number; // used to force refresh fetching permitted accounts
-  connected?: boolean;
 }
 
 const createStyles = (
@@ -85,7 +85,6 @@ const createStyles = (
 
 export const SDKSessionItem = ({
   connection,
-  connected = false,
   trigger,
 }: SDKSessionViewProps) => {
   const safeAreaInsets = useSafeAreaInsets();
@@ -99,7 +98,7 @@ export const SDKSessionItem = ({
   >([]);
 
   DevLogger.log(
-    `Rendering SDKSessionItem connected=${connected} ${connection.id}`,
+    `Rendering SDKSessionItem connected=${connection.connected} ${connection.id}`,
   );
   useEffect(() => {
     let _sessionName = connection.id;
@@ -154,7 +153,7 @@ export const SDKSessionItem = ({
       <BadgeWrapper
         style={styles.selfCenter}
         badgeElement={
-          connected ? (
+          connection.connected ? (
             <Badge
               variant={BadgeVariant.Status}
               state={BadgeStatusState.Active}
