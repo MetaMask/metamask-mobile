@@ -121,7 +121,7 @@ import {
   LoggingControllerActions,
 } from '@metamask/logging-controller';
 import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
-import { Encryptor, DERIVATION_PARAMS } from './Encryptor';
+import { Encryptor, LEGACY_DERIVATION_PARAMS } from './Encryptor';
 import {
   isMainnetByChainId,
   getDecimalChainId,
@@ -191,7 +191,7 @@ import {
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
-  derivationParams: DERIVATION_PARAMS,
+  derivationParams: LEGACY_DERIVATION_PARAMS,
 });
 let currentChainId: any;
 
