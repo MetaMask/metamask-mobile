@@ -33,8 +33,6 @@ const styleSheet = (params: {
 
   const baseStyle: ViewStyle = {
     backgroundColor,
-    borderColor: colors.border.default,
-    borderWidth: 1,
     borderRadius: 99,
     paddingVertical: 4,
     paddingLeft: 8,

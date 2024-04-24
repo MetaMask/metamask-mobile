@@ -11,7 +11,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { NameTagProperties } from './NameTag.types';
 
-const backdropStyle = { backgroundColor: 'black', padding: 50 };
+const backdropStyle = { backgroundColor: 'white', padding: 50 };
 const ADDRESS_1 = '0x2990079bcdEe240329a520d2444386FC119da21a';
 
 type Story = StoryObj<NameTagProperties>;
