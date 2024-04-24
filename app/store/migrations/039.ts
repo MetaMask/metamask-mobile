@@ -1,4 +1,4 @@
-import { isObject, hasProperty } from '@metamask/utils';
+import { isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 
 export default function migrate(state: unknown) {
