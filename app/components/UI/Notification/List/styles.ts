@@ -59,7 +59,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
       justifyContent: 'center',
       alignSelf: 'flex-start',
       position: 'absolute',
-      left: 16,
       top: '25%',
     },
     assetLogo: {
@@ -114,7 +113,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
       justifyContent: 'center',
       alignSelf: 'flex-start',
       position: 'absolute',
-      left: 16,
       top: '25%',
     },
     textBox: {
@@ -125,5 +123,10 @@ export const createStyles = ({ colors, typography }: Theme) =>
       marginTop: 16,
       width: '100%',
       alignSelf: 'center',
+    },
+    trashIconContainer: {
+      position: 'absolute',
+      right: '10%',
+      top: '25%',
     },
   });
