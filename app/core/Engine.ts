@@ -576,7 +576,7 @@ class Engine {
         'GasFeeController',
         | 'NetworkController:getNetworkClientById'
         | 'NetworkController:getEIP1559Compatibility',
-        'NetworkController:stateChange'
+        'NetworkController:networkDidChange'
       >({
         name: 'GasFeeController',
         allowedActions: [
@@ -588,9 +588,9 @@ class Engine {
       getProvider: () =>
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         networkController.getProviderAndBlockTracker().provider,
-      onNetworkStateChange: (listener) =>
+      onNetworkDidChange: (listener) =>
         this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_STATE_CHANGE_EVENT,
+          'NetworkController:networkDidChange',
           listener,
         ),
       getCurrentNetworkEIP1559Compatibility: async () =>

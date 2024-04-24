@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.d.ts b/node_modules/@metamask/network-controller/dist/NetworkController.d.ts
-index 4f7faf6..78c3a46 100644
+index 07fa511..0bf89b6 100644
 --- a/node_modules/@metamask/network-controller/dist/NetworkController.d.ts
 +++ b/node_modules/@metamask/network-controller/dist/NetworkController.d.ts
-@@ -69,7 +69,7 @@ export declare type NetworkConfiguration = {
+@@ -68,7 +68,7 @@ export declare type NetworkConfiguration = {
  /**
   * The collection of network configurations in state.
   */
@@ -12,7 +12,7 @@ index 4f7faf6..78c3a46 100644
  }>;
  /**
 diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.js b/node_modules/@metamask/network-controller/dist/NetworkController.js
-index 4bce7f5..405b954 100644
+index 3741b67..5c61648 100644
 --- a/node_modules/@metamask/network-controller/dist/NetworkController.js
 +++ b/node_modules/@metamask/network-controller/dist/NetworkController.js
 @@ -22,7 +22,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -24,7 +24,7 @@ index 4bce7f5..405b954 100644
  Object.defineProperty(exports, "__esModule", { value: true });
  exports.NetworkController = exports.defaultState = exports.knownKeysOf = void 0;
  const base_controller_1 = require("@metamask/base-controller");
-@@ -234,6 +234,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -234,6 +234,7 @@ class NetworkController extends base_controller_1.BaseController {
          _NetworkController_providerProxy.set(this, void 0);
          _NetworkController_provider.set(this, void 0);
          _NetworkController_blockTrackerProxy.set(this, void 0);
@@ -32,7 +32,7 @@ index 4bce7f5..405b954 100644
          _NetworkController_autoManagedNetworkClientRegistry.set(this, void 0);
          if (!infuraProjectId || typeof infuraProjectId !== 'string') {
              throw new Error('Invalid Infura project ID');
-@@ -252,6 +253,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -252,6 +253,7 @@ class NetworkController extends base_controller_1.BaseController {
          this.messagingSystem.registerActionHandler(`${this.name}:setProviderType`, this.setProviderType.bind(this));
          this.messagingSystem.registerActionHandler(`${this.name}:findNetworkClientIdByChainId`, this.findNetworkClientIdByChainId.bind(this));
          __classPrivateFieldSet(this, _NetworkController_previousProviderConfig, this.state.providerConfig, "f");
@@ -40,7 +40,7 @@ index 4bce7f5..405b954 100644
      }
      /**
       * Accesses the provider and block tracker for the currently selected network.
-@@ -438,7 +440,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -438,7 +440,7 @@ class NetworkController extends base_controller_1.BaseController {
                      updatedNetworkStatus = constants_1.NetworkStatus.Unknown;
                  }
              }
@@ -49,7 +49,7 @@ index 4bce7f5..405b954 100644
                  // If the network has changed, then `lookupNetwork` either has been or is
                  // in the process of being called, so we don't need to go further.
                  return;
-@@ -715,6 +717,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -715,6 +717,7 @@ class NetworkController extends base_controller_1.BaseController {
      destroy() {
          var _a;
          return __awaiter(this, void 0, void 0, function* () {
@@ -57,7 +57,7 @@ index 4bce7f5..405b954 100644
              yield ((_a = __classPrivateFieldGet(this, _NetworkController_blockTrackerProxy, "f")) === null || _a === void 0 ? void 0 : _a.destroy());
          });
      }
-@@ -745,7 +748,7 @@ class NetworkController extends base_controller_1.BaseControllerV2 {
+@@ -745,7 +748,7 @@ class NetworkController extends base_controller_1.BaseController {
      }
  }
  exports.NetworkController = NetworkController;
