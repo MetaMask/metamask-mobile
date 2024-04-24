@@ -192,6 +192,7 @@ android {
 
 	  packagingOptions {
 		  exclude 'META-INF/DEPENDENCIES'
+      pickFirst 'lib/arm64-v8a/libcrypto.so'
 	  }
 
 	  signingConfigs {
