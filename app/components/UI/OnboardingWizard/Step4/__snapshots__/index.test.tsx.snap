@@ -32,8 +32,6 @@ exports[`Step4 should render correctly 1`] = `
     }
   }
 >
-  <Component
-    coachmarkRef={Object {}}
-  />
+  <Component />
 </ContextProvider>
 `;
