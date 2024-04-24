@@ -240,11 +240,14 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           new_wallet: false,
         });
-        !onboardingWizard && setOnboardingWizardStep(1);
-        navigation.reset({
-          index: 1,
-          routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
-        });
+        if (onboardingWizard) {
+          navigation.replace(Routes.ONBOARDING.MANUAL_BACKUP.STEP_3);
+        } else {
+          setOnboardingWizardStep(1);
+          navigation.replace(Routes.ONBOARDING.HOME_NAV, {
+            screen: Routes.WALLET_VIEW,
+          });
+        }
         await importAdditionalAccounts();
       } catch (error) {
         // Should we force people to enable passcode / biometrics?

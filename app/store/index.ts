@@ -58,11 +58,6 @@ const createStoreAndPersistor = async () => {
      * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
      * - V8: SES_UNHANDLED_REJECTION
      */
-    store.dispatch({
-      type: 'TOGGLE_BASIC_FUNCTIONALITY',
-      basicFunctionalityEnabled:
-        store.getState().settings.basicFunctionalityEnabled,
-    });
     EngineService.initalizeEngine(store);
     Authentication.init(store);
     LockManagerService.init(store);

@@ -43,14 +43,8 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectSelectedAddress } from '../../../selectors/preferencesController';
-import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import Text, {
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useAccounts } from '../../hooks/useAccounts';
-import { RootState } from 'app/reducers';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -83,11 +77,6 @@ const createStyles = ({ colors, typography }: Theme) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-    },
-    banner: {
-      widht: '80%',
-      marginTop: 20,
-      paddingHorizontal: 16,
     },
   });
 
@@ -135,13 +124,6 @@ const Wallet = ({ navigation }: any) => {
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
-
-  /**
-   * Is basic functionality enabled
-   */
-  const basicFunctionalityEnabled = useSelector(
-    (state: RootState) => state.settings.basicFunctionalityEnabled,
-  );
 
   /**
    * A list of all the user accounts and a mapping of ENS name to account address if they exist
@@ -291,12 +273,6 @@ const Wallet = ({ navigation }: any) => {
     [trackEvent],
   );
 
-  const turnOnBasicFunctionality = useCallback(() => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BASIC_FUNCTIONALITY,
-    });
-  }, [navigation]);
-
   const renderContent = useCallback(() => {
     let balance: any = 0;
     let assets = tokens;
@@ -337,19 +313,6 @@ const Wallet = ({ navigation }: any) => {
     }
     return (
       <View style={styles.wrapper}>
-        {!basicFunctionalityEnabled ? (
-          <View style={styles.banner}>
-            <BannerAlert
-              severity={BannerAlertSeverity.Error}
-              title={strings('wallet.banner.title')}
-              description={
-                <Text color={TextColor.Info} onPress={turnOnBasicFunctionality}>
-                  {strings('wallet.banner.link')}
-                </Text>
-              }
-            />
-          </View>
-        ) : null}
         {selectedAccount ? (
           <WalletAccount
             account={selectedAccount}
@@ -391,10 +354,7 @@ const Wallet = ({ navigation }: any) => {
     providerConfig.chainId,
     selectedAddress,
     styles.wrapper,
-    styles.banner,
     styles.walletAccount,
-    basicFunctionalityEnabled,
-    turnOnBasicFunctionality,
     selectedAccount,
     ensForSelectedAccount,
     renderTabBar,
