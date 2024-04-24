@@ -204,11 +204,9 @@ workflows:
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
                 asdf global nodejs "$NODE_VERSION"
-                echo "Yarn $YARN_VERSION being installed with npm"
-                npm i -g "yarn@$YARN_VERSION"
                 echo "Corepack being installed with npm"
                 npm i -g "corepack@$COREPACK_VERSION"
-                echo "Corepack being enabled"
+                echo "Corepack enabling $YARN_VERSION"
                 corepack enable
           title: Install node, yarn and corepack
 
