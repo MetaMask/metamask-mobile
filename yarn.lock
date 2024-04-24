@@ -8677,13 +8677,6 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-native-actionsheet@^2.4.3":
-  version "2.4.3"
-  resolved "https://registry.yarnpkg.com/@types/react-native-actionsheet/-/react-native-actionsheet-2.4.3.tgz#8a7f3f02d298482cade5b2f9cfe9b7fe6173b6ec"
-  integrity sha512-pAL+G0Ug6GPpB+Qc7WMYdAs8T3B0CHTfMXKL3HnIFrCnfd43fK3aZuGgK1ZRmTZSIqOxl+Y9LjeVmaZJxA7+pg==
-  dependencies:
-    "@types/react" "*"
-
 "@types/react-native-background-timer@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@types/react-native-background-timer/-/react-native-background-timer-2.0.0.tgz#c44c57f8fbca9d9d5521fdd72a8f55232b79381e"
