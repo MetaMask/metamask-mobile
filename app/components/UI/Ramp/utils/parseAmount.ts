@@ -20,7 +20,7 @@ function trimTrailingZeros(str: string) {
 function parseAmount(amount: string, decimalPlaces = 0) {
   try {
     //If the amount is not a string that matches the regex, return undefined
-    const match = amount.match(regex);
+    const match = regex.exec(amount);
     if (!match) {
       return;
     }
