@@ -187,6 +187,7 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -438,7 +439,9 @@ class Engine {
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...prevState,
-              selectedAddress: newlySelectedInternalAccount.address,
+              selectedAddress: toChecksumHexAddress(
+                newlySelectedInternalAccount.address,
+              ),
             });
           },
         ),
@@ -464,7 +467,9 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...prevState,
-                selectedAddress: newlySelectedInternalAccount.address,
+                selectedAddress: toChecksumHexAddress(
+                  newlySelectedInternalAccount.address,
+                ),
               });
             },
           ),
@@ -547,7 +552,9 @@ class Engine {
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...prevState,
-              selectedAddress: newlySelectedInternalAccount.address,
+              selectedAddress: toChecksumHexAddress(
+                newlySelectedInternalAccount.address,
+              ),
             });
           },
         ),
@@ -792,7 +799,9 @@ class Engine {
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...prevState,
-              selectedAddress: newlySelectedInternalAccount.address,
+              selectedAddress: toChecksumHexAddress(
+                newlySelectedInternalAccount.address,
+              ),
             });
           },
         ),
@@ -1031,7 +1040,9 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...prevState,
-                selectedAddress: newlySelectedInternalAccount.address,
+                selectedAddress: toChecksumHexAddress(
+                  newlySelectedInternalAccount.address,
+                ),
               });
             },
           ),
@@ -1081,7 +1092,9 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...prevState,
-                selectedAddress: newlySelectedInternalAccount.address,
+                selectedAddress: toChecksumHexAddress(
+                  newlySelectedInternalAccount.address,
+                ),
               });
             },
           ),
@@ -1127,7 +1140,9 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...prevState,
-                selectedAddress: newlySelectedInternalAccount.address,
+                selectedAddress: toChecksumHexAddress(
+                  newlySelectedInternalAccount.address,
+                ),
               });
             },
           ),
@@ -1278,7 +1293,9 @@ class Engine {
                 const prevState = preferencesController.state;
                 listener({
                   ...prevState,
-                  selectedAddress: newlySelectedInternalAccount.address,
+                  selectedAddress: toChecksumHexAddress(
+                    newlySelectedInternalAccount.address,
+                  ),
                 });
               },
             ),
