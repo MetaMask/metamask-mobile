@@ -1,0 +1,52 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NameTag unknown address should render snapshot correctly 1`] = `
+<View
+  style={
+    Object {
+      "alignItems": "center",
+      "alignSelf": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderColor": "#BBC0C5",
+      "borderRadius": 99,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "gap": 5,
+      "paddingLeft": 8,
+      "paddingRight": 8,
+      "paddingVertical": 4,
+    }
+  }
+>
+  <SvgMock
+    color="#24272A"
+    height={20}
+    name="Question"
+    style={
+      Object {
+        "height": 20,
+        "width": 20,
+      }
+    }
+    width={20}
+  />
+  <Text
+    accessibilityRole="text"
+    ellipsizeMode="middle"
+    numberOfLines={1}
+    style={
+      Object {
+        "color": "#24272A",
+        "flexShrink": 1,
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    0x2990079bcdEe240329a520d2444386FC119da21a
+  </Text>
+</View>
+`;

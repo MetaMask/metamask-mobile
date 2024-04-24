@@ -5,24 +5,41 @@ import React from 'react';
 import { View } from 'react-native';
 
 // Internal dependencies.
-import { default as NameTag } from './NameTag';
+import { default as NameTagComponent } from './NameTag';
+import { Meta, StoryObj } from '@storybook/react-native';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import { NameTagProperties } from './NameTag.types';
 
-const NameTagMeta = {
-  title: 'Component Library / Tags',
-  component: NameTag,
-  argTypes: {
-    label: {
-      control: { type: 'text' },
-      defaultValue: 'Imported',
-    },
+const backdropStyle = { backgroundColor: 'black', padding: 50 };
+const ADDRESS_1 = '0x2990079bcdEe240329a520d2444386FC119da21a';
+
+type Story = StoryObj<NameTagProperties>;
+
+const storeMock = configureStore({
+  reducer: (state) => state,
+  preloadedState: {
+    settings: { useBlockieIcon: false },
   },
-};
-export default NameTagMeta;
+});
 
-export const Tag = {
-  render: () => (
-    <View style={{ alignItems: 'flex-start' }}>
-      <NameTag />
-    </View>
-  ),
+const meta: Meta<typeof NameTagComponent> = {
+  title: 'Component Library / NameTag',
+  component: NameTagComponent,
+  decorators: [
+    (story) => (
+      <Provider store={storeMock}>
+        <View style={backdropStyle}>{story()}</View>
+      </Provider>
+    ),
+  ],
+};
+export default meta;
+
+export const UnknownAddress: Story = {
+  args: { address: ADDRESS_1 },
+};
+
+export const NarrowWidth: Story = {
+  args: { address: ADDRESS_1, style: { width: 150 } },
 };
