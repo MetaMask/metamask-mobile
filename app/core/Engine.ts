@@ -1074,6 +1074,8 @@ class Engine {
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         blockTracker:
           networkController.getProviderAndBlockTracker().blockTracker,
+        disableSendFlowHistory: true,
+        disableHistory: true,
         getGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
         getCurrentNetworkEIP1559Compatibility:
           networkController.getEIP1559Compatibility.bind(networkController),
@@ -1108,8 +1110,6 @@ class Engine {
           ),
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
         provider: networkController.getProviderAndBlockTracker().provider,
-        disableSendFlowHistory: true,
-        disableHistory: true,
       }),
       new SwapsController(
         {

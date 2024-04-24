@@ -93,17 +93,19 @@ describe('Migration #39', () => {
       scenario: 'transactionController is invalid',
     },
   ];
-  for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, async () => {
-      const newState = await migrate(state);
+  it.each(invalidStates)(
+    'should capture exception if $scenario',
+    ({ errorMessage, state }) => {
+      const newState = migrate(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         errorMessage,
       );
-    });
-  }
+    },
+  );
+
   it('apply migration, change property transaction, transactionHash and rawTransaction', () => {
     const oldState = {
       engine: {

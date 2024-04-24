@@ -40,7 +40,7 @@ export default function migrate(state: unknown) {
   const transactionControllerState =
     state.engine.backgroundState.TransactionController;
 
-  if (!hasProperty(transactionControllerState, 'transactions')) {
+  if (!Array.isArray(transactionControllerState.transactions)) {
     captureException(
       new Error(
         `Migration 39: Missing transactions property from TransactionController: '${typeof state
@@ -49,24 +49,20 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
+  transactionControllerState.transactions.forEach((transaction: any) => {
+    if (transaction.rawTransaction) {
+      transaction.rawTx = transaction.rawTransaction;
+      delete transaction.rawTransaction;
+    }
+    if (transaction.transactionHash) {
+      transaction.hash = transaction.transactionHash;
+      delete transaction.transactionHash;
+    }
+    if (transaction.transaction) {
+      transaction.txParams = transaction.transaction;
+      delete transaction.transaction;
+    }
+  });
 
-  if ((transactionControllerState.transactions as []).length) {
-    (transactionControllerState.transactions as []).forEach(
-      (transaction: any) => {
-        if (transaction.rawTransaction) {
-          transaction.rawTx = transaction.rawTransaction;
-          delete transaction.rawTransaction;
-        }
-        if (transaction.transactionHash) {
-          transaction.hash = transaction.transactionHash;
-          delete transaction.transactionHash;
-        }
-        if (transaction.transaction) {
-          transaction.txParams = transaction.transaction;
-          delete transaction.transaction;
-        }
-      },
-    );
-  }
   return state;
 }
