@@ -34,12 +34,13 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
    * Current onboarding wizard step
    */
   const wizardStep = useSelector((reduxState: any) => reduxState.wizard.step);
+
   /**
    * Return current step of onboarding wizard if not step 5 nor 0
    */
   const renderOnboardingWizard = useCallback(
     () =>
-      [4, 5, 6].includes(wizardStep) && (
+      [4, 5].includes(wizardStep) && (
         <OnboardingWizard navigation={navigation} coachmarkRef={tabBarRef} />
       ),
     [navigation, wizardStep],
