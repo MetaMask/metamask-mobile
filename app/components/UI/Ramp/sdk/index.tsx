@@ -80,7 +80,12 @@ export interface RampSDK {
   setRampType: (rampType: RampType) => void;
 
   intent: RampIntent | undefined;
-  setIntent: (intent: RampIntent | undefined) => void;
+  setIntent: (
+    intentOrSetter:
+      | RampIntent
+      | ((previousIntent: RampIntent | undefined) => void)
+      | undefined,
+  ) => void;
 
   selectedRegion: Region | null;
   setSelectedRegion: (region: Region | null) => void;

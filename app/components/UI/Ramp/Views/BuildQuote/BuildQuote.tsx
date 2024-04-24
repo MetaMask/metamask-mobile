@@ -71,6 +71,7 @@ import {
   fromTokenMinimalUnitString,
 } from '../../../../../util/number';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
+import useIntentAmount from '../../hooks/useIntentAmount';
 
 // TODO: Convert into typescript and correctly type
 const ListItem = BaseListItem as any;
@@ -139,7 +140,6 @@ const BuildQuote = () => {
     rampType,
     isBuy,
     isSell,
-    intent,
   } = useRampSDK();
 
   const screenLocation: ScreenLocation = isBuy
@@ -180,6 +180,13 @@ const BuildQuote = () => {
 
   const { limits, isAmountBelowMinimum, isAmountAboveMaximum, isAmountValid } =
     useLimits();
+
+  useIntentAmount(
+    setAmount,
+    setAmountNumber,
+    setAmountBNMinimalUnit,
+    currentFiatCurrency,
+  );
 
   const gasPriceEstimation = useGasPriceEstimation({
     // 0 is set when buying since there's no transaction involved
@@ -377,14 +384,6 @@ const BuildQuote = () => {
     const { height } = event.nativeEvent.layout;
     keyboardHeight.current = height;
   }, []);
-
-  useEffect(() => {
-    if (intent?.amount) {
-      // TODO: parse fiat amount for buy truncating decimals, truncate decimals for sell
-      setAmount(`${intent.amount}`);
-      setAmountNumber(Number(intent.amount));
-    }
-  }, [intent?.amount]);
 
   /**
    * * Region handlers
