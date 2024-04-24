@@ -108,6 +108,7 @@ const SmartTransactionStatus = ({
       textAlign: 'center',
       fontWeight: 'bold',
       fontSize: 18,
+      color: colors.text.default,
     },
     desc: {
       textAlign: 'center',
