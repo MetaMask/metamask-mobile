@@ -75,10 +75,10 @@ function NotificationRoot({
   }));
 
   const rIconStyle = useAnimatedStyle(() => {
-    const opacity = withTiming(transX.value < SWIPE_THRESHOLD ? 1 : 0, {
+    const opct = withTiming(transX.value < SWIPE_THRESHOLD ? 1 : 0, {
       duration: 300,
     });
-    return { opacity };
+    return { opacity: opct };
   });
 
   const rContainerStyle = useAnimatedStyle(() => ({
