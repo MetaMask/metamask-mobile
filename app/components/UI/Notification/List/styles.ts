@@ -4,9 +4,15 @@ import type { Theme } from '@metamask/design-tokens';
 
 export const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background.default,
+    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
     },
     loaderContainer: {
       position: 'absolute',
@@ -44,4 +50,80 @@ export const createStyles = ({ colors, typography }: Theme) =>
       flex: 1,
     },
     list: { flexGrow: 1 },
+    fox: {
+      width: 20,
+      height: 20,
+    },
+    badgeWrapper: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      alignSelf: 'flex-start',
+      position: 'absolute',
+      left: 16,
+      top: '25%',
+    },
+    assetLogo: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      overflow: 'hidden',
+      borderWidth: 0.5,
+      borderColor: colors.background.alternative,
+    },
+    assetPlaceholder: {
+      backgroundColor: colors.background.alternative,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      borderWidth: 0.5,
+      borderColor: colors.background.alternative,
+    },
+    nftLogo: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      overflow: 'hidden',
+      borderWidth: 0.5,
+      borderColor: colors.background.alternative,
+    },
+    nftPlaceholder: {
+      backgroundColor: colors.background.alternative,
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      borderWidth: 0.5,
+      borderColor: colors.background.alternative,
+    },
+    rowContainer: { flex: 1, marginLeft: 42, alignItem: 'center' },
+    rowInsider: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    ethLogo: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+    },
+    foxWrapper: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.background.alternative,
+      alignItems: 'center',
+      justifyContent: 'center',
+      alignSelf: 'flex-start',
+      position: 'absolute',
+      left: 16,
+      top: '25%',
+    },
+    textBox: {
+      flexShrink: 1,
+      maxWidth: '85%',
+    },
+    button: {
+      marginTop: 16,
+      width: '100%',
+      alignSelf: 'center',
+    },
   });

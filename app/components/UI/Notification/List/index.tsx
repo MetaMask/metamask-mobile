@@ -11,13 +11,18 @@ import { createStyles } from './styles';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationRow } from '../Row';
-import { Notification } from '../../../../util/notifications';
+import {
+  FeatureAnnouncementRawNotification,
+  HalRawNotification,
+  Notification,
+  getRowDetails,
+} from '../../../../util/notifications';
 
 interface NotificationsList {
   navigation: any;
   allNotifications: Notification[];
-  walletNotifications: Notification[];
-  annoucementsNotifications: Notification[];
+  walletNotifications: HalRawNotification[];
+  annoucementsNotifications: FeatureAnnouncementRawNotification[];
   loading: boolean;
 }
 
@@ -35,6 +40,7 @@ const Notifications = ({
 
   const onPress = useCallback(
     (item) => {
+      //TODO: details will be implemented on a separete PR
       navigation.navigate('NotificationsDetails', { notification: item });
     },
     [navigation],
@@ -83,6 +89,43 @@ const Notifications = ({
     [allNotifications, walletNotifications, annoucementsNotifications],
   );
 
+  const renderNotificationRow = useCallback(
+    (notification) => {
+      const hasActions =
+        !!notification.data?.link || !!notification.data?.action;
+      const { title, description, badgeIcon, createdAt, imageUrl, value } =
+        getRowDetails(notification)?.row || {};
+      return (
+        <NotificationRow.Root
+          handleOnPress={() => onPress(notification)}
+          styles={styles}
+        >
+          <NotificationRow.Icon
+            notificationType={notification.type}
+            badgeIcon={badgeIcon}
+            imageUrl={imageUrl}
+            styles={styles}
+          />
+          <NotificationRow.Content
+            title={title}
+            description={description}
+            createdAt={createdAt}
+            value={value}
+            styles={styles}
+          />
+          {hasActions && (
+            <NotificationRow.Actions
+              link={notification.data.link}
+              action={notification.data.action}
+              styles={styles}
+            />
+          )}
+        </NotificationRow.Root>
+      );
+    },
+    [onPress, styles],
+  );
+
   const renderList = useCallback(
     (list, idx) => (
       <FlatList
@@ -94,42 +137,17 @@ const Notifications = ({
         data={list}
         ListEmptyComponent={<Empty />}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <NotificationRow.Root
-            handleOnPress={() => onPress(item)}
-            styles={styles}
-          >
-            <NotificationRow.Icon
-              notificationType={item.type}
-              styles={styles}
-              badgeIcon={item.badgeIcon}
-              imageUri={item.imageUri}
-            />
-            <NotificationRow.Content
-              title={item.title}
-              description={item.description}
-              createdAt={item.createdAt}
-              value={item.value}
-              styles={styles}
-            />
-            <NotificationRow.Actions
-              link={item.link}
-              action={item.action}
-              styles={styles}
-              handleCTAPress={() => onPress(item)}
-            />
-          </NotificationRow.Root>
-        )}
+        renderItem={({ item }) => renderNotificationRow(item)}
         initialNumToRender={10}
         maxToRenderPerBatch={2}
         onEndReachedThreshold={0.5}
       />
     ),
-    [combinedLists, onPress, styles],
+    [combinedLists, renderNotificationRow, styles.list],
   );
 
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.container}>
       {loading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator color={colors.icon.default} size="large" />

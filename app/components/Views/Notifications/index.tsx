@@ -8,6 +8,8 @@ import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/Notific
 import { createStyles } from './styles';
 import Notifications from '../../UI/Notification/List';
 import {
+  FeatureAnnouncementRawNotification,
+  HalRawNotification,
   Notification,
   TRIGGER_TYPES,
   sortNotifications,
@@ -22,6 +24,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import Empty from '../../UI/Notification/Empty';
 import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
 
 const NotificationsView = ({
   navigation,
@@ -36,10 +39,10 @@ const NotificationsView = ({
   const [allNotifications, setAllTransactions] =
     useState<Notification[]>(notifications);
   const [walletNotifications, setWalletNotifications] = useState<
-    Notification[]
+    HalRawNotification[]
   >([]);
   const [annoucementsNotifications, setAnnoucementsNotifications] = useState<
-    Notification[]
+    FeatureAnnouncementRawNotification[]
   >([]);
   const isNotificationEnabled = useSelector(
     (state: any) => state.notification.notificationsSettings?.isEnabled,
@@ -53,8 +56,8 @@ const NotificationsView = ({
         return;
       }
 
-      const wallet: any = [];
-      const annoucements: any = [];
+      const wallet: HalRawNotification[] = [];
+      const annoucements: FeatureAnnouncementRawNotification[] = [];
 
       /**
        * Sort notifications by time and remove duplicates
@@ -92,6 +95,7 @@ const NotificationsView = ({
     },
     [allNotifications],
   );
+
   useEffect(() => {
     setLoading(true);
     InteractionManager.runAfterInteractions(() => {
@@ -143,7 +147,7 @@ NotificationsView.navigationOptions = ({
 }) => ({
   headerRight: () => (
     <TouchableOpacity
-      onPress={() => navigation.navigate('NotificationsSettings')}
+      onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
     >
       <Icon
         name={IconName.Setting}
