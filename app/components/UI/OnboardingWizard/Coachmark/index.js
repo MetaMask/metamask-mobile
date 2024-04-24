@@ -328,7 +328,7 @@ export default class Coachmark extends PureComponent {
       <View style={styles.progress}>
         <View style={styles.progessContainer}>
           {currentStep !== 0 && (
-            <Text style={styles.stepCounter}>{currentStep}/6</Text>
+            <Text style={styles.stepCounter}>{currentStep}/5</Text>
           )}
         </View>
 
