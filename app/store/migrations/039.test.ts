@@ -13,7 +13,7 @@ const oldState = {
         currentCurrency: 'usd',
         pendingCurrentCurrency: null,
         pendingNativeCurrency: null,
-        usdConversionRate: 1815.41,
+        usdConversionRate: 1900,
       },
     },
   },
@@ -28,7 +28,7 @@ const expectedNewState = {
           ETH: {
             conversionDate: 1684232393.997,
             conversionRate: 1815.41,
-            usdConversionRate: 1815.41,
+            usdConversionRate: 1900,
           },
         },
       },

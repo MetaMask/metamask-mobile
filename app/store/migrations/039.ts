@@ -20,11 +20,13 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  const currentCurrency = currencyRateState.currentCurrency;
-  const nativeCurrency = currencyRateState.nativeCurrency;
-  const conversionRate = currencyRateState.conversionRate;
-  const conversionDate = currencyRateState.conversionDate;
-  const usdConversionRate = currencyRateState.usdConversionRate;
+  const {
+    currentCurrency,
+    nativeCurrency,
+    conversionRate,
+    conversionDate,
+    usdConversionRate,
+  } = currencyRateState;
 
   delete currencyRateState.pendingCurrentCurrency;
   delete currencyRateState.pendingNativeCurrency;
