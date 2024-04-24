@@ -24,7 +24,6 @@ import { isTest } from './app/util/test/utils.js';
 import NotificationManager from './app/core/NotificationManager';
 
 // List of warnings that we're ignoring
-
 LogBox.ignoreLogs([
   '{}',
   // Uncomment the below lines (21 and 22) to run browser-tests.spec.js in debug mode
@@ -95,13 +94,13 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
 });
 
 /* Uncomment and comment regular registration below */
-import Storybook from './.storybook';
-AppRegistry.registerComponent(name, () => Storybook);
+// import Storybook from './.storybook';
+// AppRegistry.registerComponent(name, () => Storybook);
 
 /**
  * Application entry point responsible for registering root component
  */
-// AppRegistry.registerComponent(name, () =>
-//   // Disable Sentry for E2E tests
-//   isTest ? Root : Sentry.wrap(Root),
-// );
+AppRegistry.registerComponent(name, () =>
+  // Disable Sentry for E2E tests
+  isTest ? Root : Sentry.wrap(Root),
+);
