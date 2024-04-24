@@ -120,6 +120,14 @@ export const recreateVaultWithNewPassword = async (
   } catch (e) {
     Logger.error(e, 'error while trying to import accounts on recreate vault');
   }
+  const recreatedKeyrings = KeyringController.state.keyrings;
+  // Reselect previous selected account if still available
+  for (const keyring of recreatedKeyrings) {
+    if (keyring.accounts.includes(selectedAddress.toLowerCase())) {
+      Engine.setSelectedAddress(selectedAddress);
+      return;
+    }
+  }
 };
 
 /**
