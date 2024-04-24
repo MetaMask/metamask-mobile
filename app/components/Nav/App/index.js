@@ -68,7 +68,6 @@ import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import LedgerAccountInfo from '../../Views/LedgerAccountInfo';
-import LedgerConnect from '../../Views/LedgerConnect';
 import { AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS } from '../../../constants/error';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { EnableAutomaticSecurityChecksModal } from '../../../components/UI/EnableAutomaticSecurityChecksModal';
