@@ -105,9 +105,6 @@ class AuthenticationService {
     await KeyringController.submitPassword(password);
     const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
     const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-    console.log('ENTER encryptionLib', encryptionLib);
-    console.log('ENTER ORIGINAL', ORIGINAL);
-    console.log('ENTER existingUser', existingUser);
     if (encryptionLib !== ORIGINAL && existingUser) {
       try {
         await recreateVaultWithSamePassword(password, selectedAddress);
