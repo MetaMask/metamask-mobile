@@ -41,6 +41,9 @@ export default function handleRampUrl({
         break;
     }
   } catch (error) {
-    Logger.error(error, `Error in handleRampUrl. rampPath: ${rampPath}`);
+    Logger.error(
+      error as Error,
+      `Error in handleRampUrl. rampPath: ${rampPath}`,
+    );
   }
 }
