@@ -583,7 +583,7 @@ class Engine {
           'NetworkController:getNetworkClientById',
           'NetworkController:getEIP1559Compatibility',
         ],
-        allowedEvents: ['NetworkController:stateChange'],
+        allowedEvents: ['NetworkController:networkDidChange'],
       }),
       getProvider: () =>
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`

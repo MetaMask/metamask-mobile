@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.d.ts b/node_modules/@metamask/network-controller/dist/NetworkController.d.ts
+index af00de3..b43922c 100644
+--- a/node_modules/@metamask/network-controller/dist/NetworkController.d.ts
++++ b/node_modules/@metamask/network-controller/dist/NetworkController.d.ts
+@@ -68,7 +68,7 @@ export declare type NetworkConfiguration = {
+ /**
+  * The collection of network configurations in state.
+  */
+-declare type NetworkConfigurations = Record<NetworkConfigurationId, NetworkConfiguration & {
++export declare type NetworkConfigurations = Record<NetworkConfigurationId, NetworkConfiguration & {
+     id: NetworkConfigurationId;
+ }>;
+ /**
