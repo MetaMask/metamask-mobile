@@ -27,7 +27,8 @@ interface NotificationRootProps
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const TRANSLATE_X_THRESHOLD = -SCREEN_WIDTH * 0.3;
+const DELETE_BUTTON_WIDTH = -SCREEN_WIDTH * 0.3;
+const SWIPE_THRESHOLD = DELETE_BUTTON_WIDTH;
 
 function NotificationRoot({
   children,
@@ -36,19 +37,26 @@ function NotificationRoot({
   onDismiss,
   simultaneousHandlers,
 }: NotificationRootProps) {
-  const translateX = useSharedValue(0);
+  const transX = useSharedValue(0);
   const itemHeight = useSharedValue();
   const paddingVertical = useSharedValue(10);
   const opacity = useSharedValue(1);
 
   const panGesture = useAnimatedGestureHandler<PanGestureHandlerGestureEvent>({
     onActive: (event: PanGestureHandlerGestureEvent) => {
-      translateX.value = event.translationX;
+      const isSwipingLeft = event.translationX > 0;
+
+      if (isSwipingLeft) {
+        transX.value = 0;
+        return;
+      }
+
+      transX.value = event.translationX;
     },
     onEnd: () => {
-      const isDismissed = translateX.value < TRANSLATE_X_THRESHOLD;
+      const isDismissed = transX.value < SWIPE_THRESHOLD;
       if (isDismissed) {
-        translateX.value = withTiming(-SCREEN_WIDTH);
+        transX.value = withTiming(-SCREEN_WIDTH);
         itemHeight.value = withTiming(0);
         paddingVertical.value = withTiming(0);
         opacity.value = withTiming(0, undefined, (isFinished: boolean) => {
@@ -57,19 +65,19 @@ function NotificationRoot({
           }
         });
       } else {
-        translateX.value = withTiming(0);
+        transX.value = withTiming(0);
       }
     },
   });
 
   const rChildrenStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+    transform: [{ translateX: transX.value }],
   }));
 
   const rIconStyle = useAnimatedStyle(() => {
-    const opacity = withTiming(
-      translateX.value < TRANSLATE_X_THRESHOLD ? 1 : 0,
-    );
+    const opacity = withTiming(transX.value < SWIPE_THRESHOLD ? 1 : 0, {
+      duration: 300,
+    });
     return { opacity };
   });
 
@@ -95,7 +103,7 @@ function NotificationRoot({
         <Icon
           size={IconSize.Md}
           name={IconName.Trash}
-          color={IconColor.Warning}
+          color={IconColor.Default}
         />
       </Animated.View>
     </Animated.View>
