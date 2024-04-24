@@ -5505,13 +5505,6 @@
     prompts "^2.4.0"
     semver "^7.5.2"
 
-"@react-native-community/datetimepicker@^7.5.0":
-  version "7.7.0"
-  resolved "https://registry.yarnpkg.com/@react-native-community/datetimepicker/-/datetimepicker-7.7.0.tgz#0d0162b0434c7b35883f8c5af846f35e23d045ec"
-  integrity sha512-nYzZy4DQLRFUzKJShWzRleCaebmCJfZ1lIcFmZgMXJoiVuGJNw3OIGHSWmHhPETh3OhP1RO3to882d7WmDIyrA==
-  dependencies:
-    invariant "^2.2.4"
-
 "@react-native-community/eslint-config@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@react-native-community/eslint-config/-/eslint-config-2.0.0.tgz#35dcc529a274803fc4e0a6b3d6c274551fb91774"
@@ -14079,7 +14072,7 @@ decompress-response@^6.0.0:
 dedent@^0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/dedent/-/dedent-0.6.0.tgz#0e6da8f0ce52838ef5cec5c8f9396b0c1b64a3cb"
-  integrity sha1-Dm2o8M5Sg471zsXI+TlrDBtko8s=
+  integrity sha512-cSfRWjXJtZQeRuZGVvDrJroCR5V2UvBNUMHsPCdNYzuAG8b9V8aAy3KUcdQrGQPXs17Y+ojbPh1aOCplg9YR9g==
 
 dedent@^0.7.0:
   version "0.7.0"
@@ -24594,10 +24587,10 @@ react-native-webview@11.13.0:
     escape-string-regexp "2.0.0"
     invariant "2.2.4"
 
-react-native@0.72.12:
-  version "0.72.12"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.72.12.tgz#480440d350530ac9485543f6eb058cd860fc1735"
-  integrity sha512-aQoibDdvylyPZ9qOqpLNpNPz6tU0rScc2yUgFj0VuhPEFB+gsqQW9CkZGSnhuYRkDF0cBqUEEcWiWbH3gR+Pog==
+react-native@0.72.13:
+  version "0.72.13"
+  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.72.13.tgz#27c495a34025d55b5e5ef4ed65470b7ff1bdd123"
+  integrity "sha1-J8SVo0Al1VteXvTtZUcLf/G90SM= sha512-YH2BZScuLdUtfSA3Ha2kJntOc/kkPPG7e4DFyrdsHahXBCDNfBmbtJ13aPrFVvndpKPU32vJAEessgVUgZGBSg=="
   dependencies:
     "@jest/create-cache-key-function" "^29.2.1"
     "@react-native-community/cli" "^11.4.1"

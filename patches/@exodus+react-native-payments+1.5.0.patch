@@ -8,14 +8,14 @@ index 2dac59c..0d066bd 100644
  android {
 -    compileSdkVersion 23
 -    buildToolsVersion "23.0.1"
-+    compileSdkVersion 28
-+    buildToolsVersion "28.0.3"
++    compileSdkVersion 33
++    buildToolsVersion "33.0.0"
  
      defaultConfig {
 -        minSdkVersion 16
 -        targetSdkVersion 22
 +        minSdkVersion 21
-+        targetSdkVersion 28
++        targetSdkVersion 33
          versionCode 1
          versionName "1.0"
          ndk {
