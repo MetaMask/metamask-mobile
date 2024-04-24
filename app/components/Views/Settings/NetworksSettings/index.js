@@ -471,6 +471,7 @@ class NetworksSettings extends PureComponent {
             placeholderTextColor={colors.text.default}
             value={this.state.searchString}
             onChangeText={this.handleSearchTextChange}
+            testID={NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID}
           />
           {this.state.searchString.length > 0 && (
             <Icon
@@ -478,6 +479,7 @@ class NetworksSettings extends PureComponent {
               size={20}
               color={colors.icon.default}
               onPress={this.clearSearchInput}
+              testID={NetworksViewSelectorsIDs.CLOSE_ICON}
             />
           )}
         </View>
