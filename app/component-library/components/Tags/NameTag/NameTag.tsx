@@ -5,8 +5,8 @@ import Text, { TextVariant } from '../../Texts/Text';
 import { NameTagProperties } from './NameTag.types';
 import { View } from 'react-native';
 import useDisplayName, {
-  DisplayNameType,
-} from '../../../../components/hooks/Names/useDisplayName';
+  DisplayNameVariant,
+} from '../../../../components/hooks/DisplayName/useDisplayName';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NameTag.styles';
 import Identicon from '../../../../components/UI/Identicon';
@@ -16,18 +16,20 @@ const NameTag: React.FC<NameTagProperties> = ({ address, style, ...props }) => {
   const displayName = useDisplayName(address);
   const { styles } = useStyles(styleSheet, {
     style,
-    displayNameType: displayName.type,
+    displayNameVariant: displayName.variant,
   });
 
   // If the display name is just the address, we want to ellipsize
   // the middle so that the end of the address is still visible.
   // For all other names we ellipsize the end.
   const ellipsizeMode =
-    displayName.type === DisplayNameType.UnknownAddress ? 'middle' : 'tail';
+    displayName.variant === DisplayNameVariant.UnknownAddress
+      ? 'middle'
+      : 'tail';
 
   return (
     <View style={styles.base} {...props}>
-      {displayName.type === DisplayNameType.UnknownAddress ? (
+      {displayName.variant === DisplayNameVariant.UnknownAddress ? (
         <Icon name={IconName.Question} />
       ) : (
         <Identicon address={address} diameter={16} />

@@ -3,7 +3,7 @@ import { StyleSheet, TextStyle, ViewProps, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
-import { DisplayNameType } from '../../../../components/hooks/Names/useDisplayName';
+import { DisplayNameVariant } from '../../../../components/hooks/DisplayName/useDisplayName';
 
 /**
  * Style sheet function for TagUrl component.
@@ -15,19 +15,19 @@ import { DisplayNameType } from '../../../../components/hooks/Names/useDisplayNa
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: { style: ViewProps['style']; displayNameType: DisplayNameType };
+  vars: { style: ViewProps['style']; displayNameVariant: DisplayNameVariant };
 }) => {
   const { theme, vars } = params;
   const { colors } = theme;
-  const { style, displayNameType } = vars;
+  const { style, displayNameVariant } = vars;
 
   const backgroundColor =
-    displayNameType === DisplayNameType.SavedName
+    displayNameVariant === DisplayNameVariant.SavedName
       ? colors.info.muted
       : colors.background.alternative;
 
   const textColor =
-    displayNameType === DisplayNameType.SavedName
+    displayNameVariant === DisplayNameVariant.SavedName
       ? colors.info.default
       : colors.text.default;
 

@@ -1,11 +1,11 @@
 /**
- * Indicate the source and nature of the display name.
+ * Indicate the source and nature of a display name for a given address.
  */
-export enum DisplayNameType {
+export enum DisplayNameVariant {
   /**
    * The display name was saved by the user for the given address.
    *
-   * This indicates that the user has manually set a custom "petname" 
+   * This indicates that the user has manually set a custom "petname"
    * for the address.
    */
   SavedName = 'SavedName',
@@ -19,19 +19,16 @@ export enum DisplayNameType {
   RecognizedName = 'RecognizedName',
 
   /**
-   * The display name is just the address itself since it was not recognized 
-   * or saved.
-   *
-   * If the address is not known to MetaMask and the user has not saved
-   * a custom name, the address itself is used as the display name.
+   * The address is not known to MetaMask and the user has not saved a custom
+   * name. The address itself is used as the display name.
    */
   UnknownAddress = 'UnknownAddress',
 }
 export interface DisplayName {
   /**
-   * The type of display name.
+   * The type of this display name.
    */
-  type: DisplayNameType;
+  variant: DisplayNameVariant;
   /**
    * The name to display.
    */
@@ -44,7 +41,7 @@ export interface DisplayName {
  * @param address The address to get the display name for.
  */
 const useDisplayName: (address: string) => DisplayName = (address) => ({
-  type: DisplayNameType.UnknownAddress,
+  variant: DisplayNameVariant.UnknownAddress,
   name: address,
 });
 
