@@ -6,6 +6,7 @@ import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
+import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import WalletView from '../../pages/WalletView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -52,6 +53,7 @@ describe(
       await ProtectYourWalletView.tapOnRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
+      await OnboardingSuccessView.tapDone();
       await WalletView.isVisible();
     });
 
