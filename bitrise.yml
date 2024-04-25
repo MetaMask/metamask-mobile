@@ -592,7 +592,7 @@ workflows:
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - avd-manager@1:
           inputs:
-            - api_level: '34'
+            - api_level: '30'
             - create_command_flags: --sdcard 8192M
             - start_command_flags: -read-only
             - profile: pixel_5
