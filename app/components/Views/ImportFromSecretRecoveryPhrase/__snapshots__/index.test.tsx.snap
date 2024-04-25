@@ -694,7 +694,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                           },
                                         ]
                                       }
-                                      value="loan sorry legend spot loyal system loud right income pair immune notable"
+                                      value=""
                                     />
                                   </View>
                                 </View>
@@ -1052,7 +1052,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                             },
                                           ]
                                         }
-                                        value="12345678"
+                                        value=""
                                       />
                                     </View>
                                   </View>
@@ -1084,20 +1084,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     "height": 20,
                                   }
                                 }
-                                testID="import-from-seed-screen-seed-password-strength-id"
-                              >
-                                Password strength:
-                                <Text
-                                  style={
-                                    Object {
-                                      "color": "#1C8234",
-                                    }
-                                  }
-                                >
-                                   
-                                  Strong
-                                </Text>
-                              </Text>
+                              />
                             </View>
                             <View
                               style={
@@ -1350,7 +1337,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                             },
                                           ]
                                         }
-                                        value="12345678"
+                                        value=""
                                       />
                                     </View>
                                   </View>
@@ -1381,29 +1368,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     "top": 52,
                                   }
                                 }
-                              >
-                                <Text
-                                  allowFontScaling={false}
-                                  style={
-                                    Array [
-                                      Object {
-                                        "color": "#1C8234",
-                                        "fontSize": 12,
-                                      },
-                                      undefined,
-                                      Object {
-                                        "fontFamily": "FontAwesome",
-                                        "fontStyle": "normal",
-                                        "fontWeight": "normal",
-                                      },
-                                      Object {},
-                                    ]
-                                  }
-                                  testID="import-from-seed-screen-seed-password-match-icon-id"
-                                >
-                                  
-                                </Text>
-                              </View>
+                              />
                               <Text
                                 style={
                                   Object {
@@ -1428,9 +1393,8 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                               <TouchableOpacity
                                 accessibilityRole="button"
                                 accessible={true}
-                                activeOpacity={0.2}
-                                disabled={false}
-                                onPress={[Function]}
+                                activeOpacity={1}
+                                disabled={true}
                                 style={
                                   Array [
                                     Array [
@@ -1444,7 +1408,9 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       },
                                       undefined,
                                     ],
-                                    null,
+                                    Object {
+                                      "opacity": 0.6,
+                                    },
                                   ]
                                 }
                                 testID="import-from-seed-screen-submit-button-id"
@@ -1458,7 +1424,9 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         "fontWeight": "500",
                                         "textAlign": "center",
                                       },
-                                      null,
+                                      Object {
+                                        "color": "#dcdcdc",
+                                      },
                                       Array [
                                         Object {
                                           "fontFamily": "EuclidCircularB-Bold",
@@ -1471,7 +1439,9 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         },
                                         undefined,
                                       ],
-                                      null,
+                                      Object {
+                                        "opacity": 0.6,
+                                      },
                                     ]
                                   }
                                 >
