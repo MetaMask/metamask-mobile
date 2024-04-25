@@ -3,17 +3,13 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 import App from './';
 import { MetaMetrics } from '../../../core/Analytics';
 import { waitFor } from '@testing-library/react-native';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../selectors/accountsController.test';
 
 const initialState = {
   user: {
     loggedIn: true,
   },
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-    },
+    ...initialBackgroundState,
   },
 };
 

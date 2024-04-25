@@ -26,12 +26,12 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import MetaMaskAnimation from '../../UI/MetaMaskAnimation';
 import SimpleWebview from '../../Views/SimpleWebview';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkManager';
+import Engine from '../../../core/Engine';
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { routingInstrumentation } from '../../../util/sentry/utils';
-import { connect, useDispatch, useSelector } from 'react-redux';
-import Engine from '../../../core/Engine';
+import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
   EXISTING_USER,
@@ -107,7 +107,6 @@ import generateUserSettingsAnalyticsMetaData from '../../../util/metrics/UserSet
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
-import { selectSelectedInternalAccountAddressAsChecksum } from '../../../selectors/accountsController';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -310,17 +309,12 @@ const App = ({ userLoggedIn }) => {
     }
   };
 
-  // const selectedAddress = useSelector(
-  //   selectSelectedInternalAccountAddressAsChecksum,
-  // );
-
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
-      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       const { PreferencesController } = Engine.context;
       const selectedAddress = PreferencesController.state.selectedAddress;
-
+      const existingUser = await AsyncStorage.getItem(EXISTING_USER);
       try {
         if (existingUser && selectedAddress) {
           await Authentication.appTriggeredAuth({ selectedAddress });
@@ -358,7 +352,6 @@ const App = ({ userLoggedIn }) => {
       .catch((error) => {
         Logger.error(error, 'App: Error in appTriggeredAuth');
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
