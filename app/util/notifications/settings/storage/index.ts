@@ -1,7 +1,7 @@
 import { MMKV } from 'react-native-mmkv';
 import { STORAGE_TYPES, STORAGE_IDS, mapStorageTypeToIds } from './constants';
 
-export const notificationSettingsStorage = new MMKV({
+export const notificationStorage = new MMKV({
   id: STORAGE_IDS.NOTIFICATIONS,
 });
 
@@ -15,15 +15,15 @@ export class mmStorage {
 
     switch (keyType) {
       case STORAGE_TYPES.STRING:
-        return notificationSettingsStorage.getString(key);
+        return notificationStorage.getString(key);
       case STORAGE_TYPES.NUMBER:
-        return notificationSettingsStorage.getNumber(key);
+        return notificationStorage.getNumber(key);
       case STORAGE_TYPES.BOOLEAN:
-        return notificationSettingsStorage.getBoolean(key);
+        return notificationStorage.getBoolean(key);
       case STORAGE_TYPES.OBJECT:
-        return JSON.parse(notificationSettingsStorage.getString(key) || '{}');
+        return JSON.parse(notificationStorage.getString(key) || '{}');
       default:
-        return notificationSettingsStorage.getString(key);
+        return notificationStorage.getString(key);
     }
   }
 
@@ -34,10 +34,10 @@ export class mmStorage {
     const valueType = typeof value;
 
     if (valueType === 'object') {
-      return notificationSettingsStorage.set(key, JSON.stringify(value));
+      return notificationStorage.set(key, JSON.stringify(value));
     }
 
-    return notificationSettingsStorage.set(key, value);
+    return notificationStorage.set(key, value);
   }
 
   static clearAllStorages() {

@@ -2,7 +2,7 @@
 
 ## Current Main Branch
 
-## 7.21.0 - Apr 12, 2024
+## 7.21.0 - Apr 25, 2024
 ### Added
 - [#9222](https://github.com/MetaMask/metamask-mobile/pull/9222): feat:  Cherry pick controller utils v5 (#9222)
 - [#9218](https://github.com/MetaMask/metamask-mobile/pull/9218): feat: cherry-pick assets controller v14 (#9218)

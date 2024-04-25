@@ -14,6 +14,17 @@ jest.mock('./handleDappUrl');
 jest.mock('./handleMetaMaskDeeplink');
 jest.mock('./handleUniversalLink');
 jest.mock('./connectWithWC');
+jest.mock('../../../../locales/i18n', () => ({
+  strings: jest.fn((key) => key),
+}));
+
+const invalidUrls = [
+  'htp://incorrect-format-url',
+  'http://',
+  ':invalid-protocol://some-url',
+  '',
+  'https://?!&%5E#@()*]',
+];
 
 describe('parseDeeplink', () => {
   let instance: DeeplinkManager;
@@ -180,5 +191,19 @@ describe('parseDeeplink', () => {
     });
 
     expect(result).toBe(true);
+  });
+
+  invalidUrls.forEach((url) => {
+    it(`should log an error and alert the user when an invalid URL is passed => url=${url}`, () => {
+      const result = parseDeeplink({
+        deeplinkManager: instance,
+        url,
+        origin: 'testOrigin',
+        browserCallBack: mockBrowserCallBack,
+        onHandled: mockOnHandled,
+      });
+
+      expect(result).toBe(false);
+    });
   });
 });
