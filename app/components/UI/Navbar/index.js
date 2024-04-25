@@ -996,7 +996,7 @@ export function getWalletNavbarOptions(
     ),
     headerRight: () => (
       <View style={styles.leftButtonContainer}>
-        {!isNotificationsFeatureEnabled() &&
+        {!isNotificationsFeatureEnabled() && (
           <ButtonIcon
             variant={ButtonIconVariants.Primary}
             onPress={handleNotificationOnPress}
@@ -1004,7 +1004,8 @@ export function getWalletNavbarOptions(
             style={styles.infoButton}
             size={IconSize.Xl}
             testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-          />}
+          />
+        )}
 
         <ButtonIcon
           variant={ButtonIconVariants.Primary}
@@ -1086,12 +1087,12 @@ export function getImportTokenNavbarOptions(
             onClose
               ? () => onClose()
               : () =>
-                navigation.navigate(Routes.WALLET.HOME, {
-                  screen: Routes.WALLET.TAB_STACK_FLOW,
-                  params: {
-                    screen: Routes.WALLET_VIEW,
-                  },
-                })
+                  navigation.navigate(Routes.WALLET.HOME, {
+                    screen: Routes.WALLET.TAB_STACK_FLOW,
+                    params: {
+                      screen: Routes.WALLET_VIEW,
+                    },
+                  })
           }
         />
       </TouchableOpacity>
@@ -1165,15 +1166,15 @@ export function getNetworkNavbarOptions(
     ),
     headerRight: onRightPress
       ? () => (
-        <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
-          <MaterialCommunityIcon
-            name={'dots-horizontal'}
-            size={28}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-        // eslint-disable-next-line no-mixed-spaces-and-tabs
-      )
+          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+            <MaterialCommunityIcon
+              name={'dots-horizontal'}
+              size={28}
+              style={innerStyles.headerIcon}
+            />
+          </TouchableOpacity>
+          // eslint-disable-next-line no-mixed-spaces-and-tabs
+        )
       : () => <View />,
     headerStyle: [
       innerStyles.headerStyle,

@@ -190,14 +190,14 @@ const Settings = () => {
         title={strings('app_settings.advanced_title')}
         testID={SettingsViewSelectorsIDs.ADVANCED}
       />
-      { !isNotificationsFeatureEnabled() &&
-      <SettingsDrawer
-        description={strings('app_settings.notifications_desc')}
-        onPress={onPressNotifications}
-        title={strings('app_settings.notifications_title')}
-        testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
-      />
-      }
+      {!isNotificationsFeatureEnabled() && (
+        <SettingsDrawer
+          description={strings('app_settings.notifications_desc')}
+          onPress={onPressNotifications}
+          title={strings('app_settings.notifications_title')}
+          testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
+        />
+      )}
       <SettingsDrawer
         description={strings('app_settings.contacts_desc')}
         onPress={onPressContacts}
