@@ -53,3 +53,10 @@ export function setUseBlockieIcon(useBlockieIcon) {
     useBlockieIcon,
   };
 }
+
+export function toggleBasicFunctionality(basicFunctionalityEnabled) {
+  return {
+    type: 'TOGGLE_BASIC_FUNCTIONALITY',
+    basicFunctionalityEnabled,
+  };
+}
