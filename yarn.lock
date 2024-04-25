@@ -1231,7 +1231,14 @@
   resolved "https://registry.yarnpkg.com/@babel/regjsgen/-/regjsgen-0.8.0.tgz#f0ba69b075e1f05fb2825b7fad991e7adbb18310"
   integrity sha512-x/rqGMdzj+fWZvCOYForTghzbtqPDZ5gPwaoNGHdgDfF2QA/XZbCBp4Moo5scrkAMPhB7z26XM/AaHuIJdgauA==
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.1", "@babel/runtime@^7.12.13", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.15.4", "@babel/runtime@^7.17.2", "@babel/runtime@^7.17.8", "@babel/runtime@^7.23.2", "@babel/runtime@^7.24.1", "@babel/runtime@^7.3.1", "@babel/runtime@^7.4.3", "@babel/runtime@^7.4.4", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.0", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.2":
+"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.11.2", "@babel/runtime@^7.12.1", "@babel/runtime@^7.12.13", "@babel/runtime@^7.12.5", "@babel/runtime@^7.13.10", "@babel/runtime@^7.15.4", "@babel/runtime@^7.17.2", "@babel/runtime@^7.17.8", "@babel/runtime@^7.23.2", "@babel/runtime@^7.3.1", "@babel/runtime@^7.4.3", "@babel/runtime@^7.4.4", "@babel/runtime@^7.5.5", "@babel/runtime@^7.6.0", "@babel/runtime@^7.6.3", "@babel/runtime@^7.7.2", "@babel/runtime@^7.8.4", "@babel/runtime@^7.8.7", "@babel/runtime@^7.9.2":
+  version "7.23.2"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.23.2.tgz#062b0ac103261d68a966c4c7baf2ae3e62ec3885"
+  integrity sha512-mM8eg4yl5D6i3lu2QKPuPH4FArvJ8KhTofbE7jwMUv9KX5mBvwPAqnV3MlyBNqdp9RyRKP6Yck8TrfYrPvX3bg==
+  dependencies:
+    regenerator-runtime "^0.14.0"
+
+"@babel/runtime@^7.24.1":
   version "7.24.4"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.24.4.tgz#de795accd698007a66ba44add6cc86542aff1edd"
   integrity sha512-dkxf7+hn8mFBwKjs9bvBlArzLVxVbS8usaPUDd5p2a9JCL9tB8OaOVN1isD4+Xyk4ns89/xeOmbQvgdK7IIVdA==
@@ -3913,7 +3920,18 @@
     json-rpc-engine "^6.1.0"
     node-fetch "^2.6.7"
 
-"@metamask/eth-json-rpc-infura@^9.0.0", "@metamask/eth-json-rpc-infura@^9.1.0":
+"@metamask/eth-json-rpc-infura@^9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-infura/-/eth-json-rpc-infura-9.0.0.tgz#0d2001d3fce38adb528ae572e50bc28217022b94"
+  integrity sha512-9VSqEE/TrdctipzUOdGOcxtZcY1laVdVV/7f1NPK41o5tLVqTcjmxvYhWSrRR+VoeXVkUCzer/U033prF4TWWA==
+  dependencies:
+    "@metamask/eth-json-rpc-provider" "^2.1.0"
+    "@metamask/json-rpc-engine" "^7.1.1"
+    "@metamask/rpc-errors" "^6.0.0"
+    "@metamask/utils" "^8.1.0"
+    node-fetch "^2.6.7"
+
+"@metamask/eth-json-rpc-infura@^9.1.0":
   version "9.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-infura/-/eth-json-rpc-infura-9.1.0.tgz#8e09588ed58f49058615cab7040dcbce4682a292"
   integrity sha512-47x7evivl5XUsTsRoF9t27guCXgmfsbQq+pjHHFf87WoISGsgua6wVr91b1iVCv8MzQqupJBewtnG8AzWpwEEQ==
@@ -3939,7 +3957,22 @@
     pify "^3.0.0"
     safe-stable-stringify "^2.3.2"
 
-"@metamask/eth-json-rpc-middleware@^12.0.1", "@metamask/eth-json-rpc-middleware@^12.1.0":
+"@metamask/eth-json-rpc-middleware@^12.0.1":
+  version "12.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-middleware/-/eth-json-rpc-middleware-12.0.1.tgz#fc16df51ef7aa490ed356070947e85e558a193ec"
+  integrity sha512-gPYixBh2oN0tDOs3jV4KCcsjKoZ1NGokLsYi8EyO1VTfeSKGmSHS4izyGo8NCOgv3paYO+3IJX10qT4m+4P1rg==
+  dependencies:
+    "@metamask/eth-json-rpc-provider" "^2.1.0"
+    "@metamask/eth-sig-util" "^7.0.0"
+    "@metamask/json-rpc-engine" "^7.1.1"
+    "@metamask/rpc-errors" "^6.0.0"
+    "@metamask/utils" "^8.1.0"
+    eth-block-tracker "^8.0.0"
+    klona "^2.0.6"
+    pify "^5.0.0"
+    safe-stable-stringify "^2.4.3"
+
+"@metamask/eth-json-rpc-middleware@^12.1.0":
   version "12.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-middleware/-/eth-json-rpc-middleware-12.1.0.tgz#237f018a1a3c99297fcb5a8263b6c669379b168c"
   integrity sha512-fTr9xqBeb6TnblGYr89DikrEVdRQj+lj2mrGK56nbnLfHsA1awpFn5RxR38o8ml6DD9OsEo13au5UpqQyUEbIQ==
@@ -4367,7 +4400,27 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^17.0.0", "@metamask/network-controller@^17.2.0", "@metamask/network-controller@^17.2.1":
+"@metamask/network-controller@^17.0.0":
+  version "17.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-17.0.0.tgz#ba43edbc9e98bde59c43a467ec3dbaf8f8cab6cd"
+  integrity sha512-eZolQ6RFeDYVNWsp+e+h9vAV6poL1vZ9SMt/urvNZUSKvn81RrzEXhZbuf+VnMcyUpsX+jxro5G+zZuM1pbbbg==
+  dependencies:
+    "@metamask/base-controller" "^4.0.0"
+    "@metamask/controller-utils" "^6.0.0"
+    "@metamask/eth-json-rpc-infura" "^9.0.0"
+    "@metamask/eth-json-rpc-middleware" "^12.0.1"
+    "@metamask/eth-json-rpc-provider" "^2.3.0"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/json-rpc-engine" "^7.3.0"
+    "@metamask/rpc-errors" "^6.1.0"
+    "@metamask/swappable-obj-proxy" "^2.1.0"
+    "@metamask/utils" "^8.2.0"
+    async-mutex "^0.2.6"
+    eth-block-tracker "^8.0.0"
+    immer "^9.0.6"
+    uuid "^8.3.2"
+
+"@metamask/network-controller@^17.2.0", "@metamask/network-controller@^17.2.1":
   version "17.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-17.2.1.tgz#55d846e9e6000f3264e9ac1cc9c5b1493bac335a"
   integrity sha512-+cWbnqJyuLO+a3c9Rmdr10onNXv03J2Knl+IAR8QztAczqegtXB0pwTYlclU+j73Rsi9XWrUxS6fMGK1Vb3r9g==
@@ -4822,7 +4875,12 @@
     superstruct "^1.0.3"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/swappable-obj-proxy@^2.1.0", "@metamask/swappable-obj-proxy@^2.2.0":
+"@metamask/swappable-obj-proxy@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.1.0.tgz#7558cd5c51d60b64207d2219cba61702aa44de52"
+  integrity sha512-8INYn7w5VbS0YMDQMYoZ9aNxg3AKY60RtrB7CvG1HOUaC7cgr8HqXKZfxHXmQf6unvKQdRuv+HP0iIoV/4WoTA==
+
+"@metamask/swappable-obj-proxy@^2.2.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.2.0.tgz#31b8e0ce57e28bf9847b3b24b214996f7748cc99"
   integrity sha512-0OjVwQtrrPFRGipw64yDUQA0CUXCK161LWCv2KlTTDZD8BKeWSNb0gbnpDI7HvhsJ0gki5gScZj1hF3ShDnBzA==
@@ -8396,7 +8454,14 @@
   dependencies:
     "@types/node" "*"
 
-"@types/bn.js@^5.1.0", "@types/bn.js@^5.1.5":
+"@types/bn.js@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-5.1.0.tgz#32c5d271503a12653c62cf4d2b45e6eab8cebc68"
+  integrity sha512-QSSVYj7pYFN49kW77o2s9xTCwZ8F2xLbjLLSEVh8D2F4JUhZtPAGOFLTD+ffqksBx/u4cE/KImFjyhqCjn/LIA==
+  dependencies:
+    "@types/node" "*"
+
+"@types/bn.js@^5.1.5":
   version "5.1.5"
   resolved "https://registry.yarnpkg.com/@types/bn.js/-/bn.js-5.1.5.tgz#2e0dacdcce2c0f16b905d20ff87aedbc6f7b4bf0"
   integrity sha512-V46N0zwKRF5Q00AZ6hWtN0T8gGmDUaUzLWQvHFo5yThtVwK/VCenFY3wXVbOvNfajEpsTfQM4IN9k/d6gUVX3A==
@@ -28573,7 +28638,6 @@ wordwrap@^1.0.0:
   integrity sha512-gvVzJFlPycKc5dZN4yPkP8w7Dc37BtP1yczEneOb4uq34pXZcvrtRTmWV8W+Ume+XCxKgbjM+nevkyFPMybd4Q==
 
 "wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
-  name wrap-ansi-cjs
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
