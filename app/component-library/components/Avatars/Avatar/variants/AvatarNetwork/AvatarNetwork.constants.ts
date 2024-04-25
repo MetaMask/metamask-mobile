@@ -27,10 +27,10 @@ const SAMPLE_AVATARNETWORK_IMAGESOURCE_REMOTE: ImageSourcePropType = {
 };
 
 /* eslint-disable-next-line */
-export const SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL: ImageSourcePropType = require('../../../../../../images/ethereum.png');
-
+export const SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL: ImageSourcePropType = require('../../../../../../images/avalanche.png');
+export const SAMPLE_AVATARNETWORK_NAME = 'Ethereum';
 export const SAMPLE_AVATARNETWORK_PROPS: AvatarNetworkProps = {
   size: DEFAULT_AVATARNETWORK_SIZE,
-  name: 'Ethereum',
+  name: SAMPLE_AVATARNETWORK_NAME,
   imageSource: SAMPLE_AVATARNETWORK_IMAGESOURCE_REMOTE,
 };
