@@ -298,10 +298,10 @@ const prepareDependenciesTask = {
         updateGitSubmodulesTask,
         // Inpage bridge must generate before node modules are altered
         buildInpageBridgeTask,
+        patchPackageTask,
         nodeifyTask,
         jetifyTask,
         runLavamoatAllowScriptsTask,
-        patchPackageTask,
       ],
       {
         exitOnError: true,
