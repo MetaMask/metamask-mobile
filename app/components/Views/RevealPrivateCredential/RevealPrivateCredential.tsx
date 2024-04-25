@@ -76,7 +76,6 @@ const RevealPrivateCredential = ({
   const [clipboardPrivateCredential, setClipboardPrivateCredential] =
     useState<string>('');
   const [unlocked, setUnlocked] = useState<boolean>(false);
-  const [isUserUnlocked, setIsUserUnlocked] = useState<boolean>(false);
   const [password, setPassword] = useState<string>('');
   const [warningIncorrectPassword, setWarningIncorrectPassword] =
     useState<string>('');
@@ -130,7 +129,7 @@ const RevealPrivateCredential = ({
         );
       }
 
-      if (privateCredential && (isUserUnlocked || isPrivateKeyReveal)) {
+      if (privateCredential) {
         setClipboardPrivateCredential(privateCredential);
         setUnlocked(true);
       }
@@ -264,7 +263,6 @@ const RevealPrivateCredential = ({
 
   const revealCredential = (privCredentialName: string) => {
     tryUnlockWithPassword(password, privCredentialName);
-    setIsUserUnlocked(true);
     setIsModalVisible(false);
   };
 

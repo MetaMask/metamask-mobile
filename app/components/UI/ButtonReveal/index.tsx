@@ -75,7 +75,7 @@ const ButtonReveal = ({ onPress, label }: Props) => {
   const styles = createStyles(colors);
 
   return (
-    <TouchableOpacity onPress={() => onPress()} activeOpacity={1}>
+    <TouchableOpacity onPress={onPress} activeOpacity={1}>
       <View style={[styles.container]}>
         <Text style={styles.label}>{label}</Text>
       </View>
