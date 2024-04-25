@@ -1084,7 +1084,6 @@ class Engine {
           category: string;
           sensitiveProperties: any;
         }) => {
-          Logger.log('STX trackMetaMetricsEvent', params);
           const { event, category, ...restParams } = params;
 
           MetaMetrics.getInstance().trackEvent(

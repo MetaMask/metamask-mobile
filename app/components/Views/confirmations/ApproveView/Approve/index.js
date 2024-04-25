@@ -774,7 +774,6 @@ class Approve extends PureComponent {
 
     if (!transaction.id) return null;
 
-    Logger.log('STX RENDER app/components/Views/ApproveView/Approve/index.js');
     return (
       <Modal
         isVisible={this.props.modalVisible}
