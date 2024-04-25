@@ -6,6 +6,8 @@ import {
   closeRunningAppOnLedger,
   forgetLedger,
   ledgerSignTypedMessage,
+  getDeviceId,
+  getLedgerAccountsByPage,
 } from './Ledger';
 import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -26,8 +28,44 @@ const ledgerKeyring = {
     openEthApp: jest.fn(),
     closeApps: jest.fn(),
   },
-  deviceId: 'deviceId',
+  getDeviceId: jest.fn().mockResolvedValue('deviceId'),
   getName: jest.fn().mockResolvedValue('name'),
+  getFirstPage: jest.fn().mockResolvedValue([
+    {
+      balance: '0',
+      address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+      index: 0,
+    },
+    {
+      balance: '1',
+      address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+      index: 1,
+    },
+  ]),
+  getPreviousPage: jest.fn().mockResolvedValue([
+    {
+      balance: '2',
+      address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB6',
+      index: 2,
+    },
+    {
+      balance: '3',
+      address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB7',
+      index: 3,
+    },
+  ]),
+  getNextPage: jest.fn().mockResolvedValue([
+    {
+      balance: '4',
+      address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB4',
+      index: 4,
+    },
+    {
+      balance: '5',
+      address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB5',
+      index: 5,
+    },
+  ]),
 };
 
 describe('Ledger core', () => {
@@ -135,6 +173,73 @@ describe('Ledger core', () => {
       expect(mockUpdateIdentities).toBeCalledWith([
         '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
       ]);
+    });
+  });
+
+  describe('getDeviceId', () => {
+    it('should return the device id', async () => {
+      const value = await getDeviceId();
+      expect(value).toBe('deviceId');
+      expect(ledgerKeyring.getDeviceId).toHaveBeenCalled();
+    });
+  });
+
+  describe('getLedgerAccountsByPage', () => {
+    it('should return first page accounts when page is 1', async () => {
+      const value = await getLedgerAccountsByPage(0);
+      expect(value).toEqual([
+        {
+          balance: '0x0',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
+          index: 0,
+        },
+        {
+          balance: '0x0',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+          index: 1,
+        },
+      ]);
+
+      expect(ledgerKeyring.getFirstPage).toHaveBeenCalled();
+    });
+
+    it('should return next page accounts when page is 1', async () => {
+      const value = await getLedgerAccountsByPage(1);
+      expect(value).toEqual([
+        {
+          balance: '0x0',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB4',
+          index: 4,
+        },
+        {
+          balance: '0x0',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB5',
+          index: 5,
+        },
+      ]);
+    });
+
+    it('should return previous page accounts when page is -1', async () => {
+      const value = await getLedgerAccountsByPage(-1);
+      expect(value).toEqual([
+        {
+          balance: '0x0',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB6',
+          index: 2,
+        },
+        {
+          balance: '0x0',
+          address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB7',
+          index: 3,
+        },
+      ]);
+    });
+
+    it('should throw an error when an unspecified error occurs', async () => {
+      ledgerKeyring.getFirstPage.mockRejectedValueOnce(new Error('error'));
+      await expect(getLedgerAccountsByPage(0)).rejects.toThrow(
+        'Unspecified error when connect Ledger Hardware, Error: error',
+      );
     });
   });
 
