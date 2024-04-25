@@ -32,8 +32,6 @@ function SwapLiveness() {
         AppConstants.SWAPS.CLIENT_ID,
       );
 
-      Logger.log('STX SwapLiveness featureFlags', featureFlags);
-
       setLiveness(chainId, featureFlags);
     } catch (error) {
       Logger.error(error as any, 'Swaps: error while fetching swaps liveness');

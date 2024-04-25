@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { selectPendingApprovals } from '../../../../selectors/approvalController';
 import { cloneDeep, isEqual } from 'lodash';
 import { ApprovalRequest } from '@metamask/approval-controller';
-import Logger from '../../../../util/Logger';
 
 const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
@@ -28,28 +27,16 @@ const useApprovalRequest = () => {
         { ...approvalRequest.requestData, ...(value || {}) },
         opts,
       );
-
-      // TODO remove these
-      Logger.log(
-        'STX useApprovalRequest Engine.acceptPendingApproval',
-        approvalRequest.id,
-      );
     },
     [approvalRequest],
   );
 
   const onReject = useCallback(() => {
-    Logger.log('STX useApprovalRequest onReject', approvalRequest);
-
     if (!approvalRequest) return;
 
     Engine.rejectPendingApproval(
       approvalRequest.id,
       providerErrors.userRejectedRequest(),
-    );
-    Logger.log(
-      'STX useApprovalRequest Engine.rejectPendingApproval',
-      approvalRequest.id,
     );
   }, [approvalRequest]);
 

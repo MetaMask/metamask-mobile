@@ -10,7 +10,6 @@ function getValues(
   strings: (key: string, params?: Record<string, string>) => string,
   actions: Actions,
 ): ConfirmationTemplateValues {
-  Logger.log('STX SmartTransactionStatus pendingApproval', pendingApproval);
   return {
     content: [
       {
@@ -34,9 +33,8 @@ function getValues(
         // Remove the loading spinner on swipe down if tx is in progress
         // If swipe down after tx success an error is thrown b/c app/util/smart-transactions/smart-tx.ts ends the flow if tx success, so just catch
         Engine.context.ApprovalController.endFlow({ id: pendingApproval.id });
-        Logger.log('STX SmartTransactionStatus onCancel');
-      } catch (e) {
-        Logger.log('STX SmartTransactionStatus onCancel error', e);
+      } catch (e: any) {
+        Logger.error(e, 'STX SmartTransactionStatus onCancel error');
       }
     },
     hideCancelButton: true,

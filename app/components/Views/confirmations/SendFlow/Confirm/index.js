@@ -902,12 +902,10 @@ class Confirm extends PureComponent {
           waitForResult: false,
         });
         navigation && navigation.dangerouslyGetParent()?.pop();
-        Logger.log('STX Send Confirm');
       } else {
         await ApprovalController.accept(transactionMeta.id, undefined, {
           waitForResult: true,
         });
-        Logger.log('STX Send Confirm 2');
       }
 
       await new Promise((resolve) => resolve(result));
@@ -936,7 +934,6 @@ class Confirm extends PureComponent {
           // We popped it already earlier
           navigation && navigation.dangerouslyGetParent()?.pop();
         }
-        Logger.log('STX Send Confirm 3');
       });
     } catch (error) {
       if (
