@@ -592,7 +592,7 @@ workflows:
                 "${ANDROID_HOME}/tools/bin/sdkmanager" "cmake;3.22.1"
       - avd-manager@1:
           inputs:
-            - api_level: '30'
+            - api_level: '34'
             - create_command_flags: --sdcard 8192M
             - start_command_flags: -read-only
             - profile: pixel_5
@@ -788,7 +788,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE" 
           title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
