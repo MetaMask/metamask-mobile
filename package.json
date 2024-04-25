@@ -131,7 +131,6 @@
     "@consensys/on-ramp-sdk": "1.27.1",
     "@eth-optimism/contracts": "0.0.0-2021919175625",
     "@ethereumjs/tx": "^3.2.1",
-    "@ethereumjs/util": "^9.0.2",
     "@ethersproject/abi": "^5.7.0",
     "@keystonehq/bc-ur-registry-eth": "^0.19.1",
     "@keystonehq/metamask-airgapped-keyring": "^0.13.1",
