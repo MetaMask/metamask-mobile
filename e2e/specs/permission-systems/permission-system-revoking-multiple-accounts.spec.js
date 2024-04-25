@@ -31,6 +31,8 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         await TabBarComponent.tapBrowser();
         await Browser.isVisible();
 
+        //TODO: should re add connecting to an external swap step after detox has been updated
+
         await Browser.navigateToTestDApp();
         await Browser.isAccountToastVisible('Account 1');
         await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
