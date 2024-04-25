@@ -20,11 +20,11 @@ index dd71b0b..7e94401 100644
          readonly rpcPrefs: undefined;
      };
  };
--export declare const OPENSEA_PROXY_URL = "https://proxy.cx.metamask.io/opensea/v1/api/v1";
+-export declare const OPENSEA_PROXY_URL = "https://proxy.metafi.codefi.network/opensea/v1/api/v1";
 -export declare const OPENSEA_API_URL = "https://api.opensea.io/api/v1";
 -export declare const OPENSEA_TEST_API_URL = "https://testnets-api.opensea.io/api/v1";
 +
-+export declare const OPENSEA_PROXY_URL = "https://proxy.cx.metamask.io/opensea/v1/api/v2";
++export declare const OPENSEA_PROXY_URL = "https://proxy.metafi.codefi.network/opensea/v1/api/v2";
  export declare const ORIGIN_METAMASK = "metamask";
  /**
   * Approval request types for various operations.
@@ -58,10 +58,10 @@ index 706d989..2ea5be8 100644
      },
  };
  // APIs
--exports.OPENSEA_PROXY_URL = 'https://proxy.cx.metamask.io/opensea/v1/api/v1';
+-exports.OPENSEA_PROXY_URL = 'https://proxy.metafi.codefi.network/opensea/v1/api/v1';
 -exports.OPENSEA_API_URL = 'https://api.opensea.io/api/v1';
 -exports.OPENSEA_TEST_API_URL = 'https://testnets-api.opensea.io/api/v1';
-+exports.OPENSEA_PROXY_URL = 'https://proxy.cx.metamask.io/opensea/v1/api/v2';
++exports.OPENSEA_PROXY_URL = 'https://proxy.metafi.codefi.network/opensea/v1/api/v2';
  // Default origin for controllers
  exports.ORIGIN_METAMASK = 'metamask';
  /**
