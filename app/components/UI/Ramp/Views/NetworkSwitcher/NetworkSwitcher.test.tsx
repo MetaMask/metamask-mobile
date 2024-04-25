@@ -274,8 +274,8 @@ describe('NetworkSwitcher View', () => {
     fireEvent.press(lineaNetworkText);
     expect(Engine.context.NetworkController.setProviderType.mock.calls)
       .toMatchInlineSnapshot(`
-      [
-        [
+      Array [
+        Array [
           "linea-mainnet",
         ],
       ]
@@ -286,16 +286,16 @@ describe('NetworkSwitcher View', () => {
     fireEvent.press(polygonNetworkTest);
     expect(Engine.context.NetworkController.setActiveNetwork.mock.calls)
       .toMatchInlineSnapshot(`
-      [
-        [
+      Array [
+        Array [
           "networkId1",
         ],
       ]
     `);
     expect(Engine.context.CurrencyRateController.setNativeCurrency.mock.calls)
       .toMatchInlineSnapshot(`
-      [
-        [
+      Array [
+        Array [
           "MATIC",
         ],
       ]
@@ -366,8 +366,8 @@ describe('NetworkSwitcher View', () => {
   it('navigates on supported network', async () => {
     render(NetworkSwitcher, '1');
     expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
+      Array [
+        Array [
           "GetStarted",
         ],
       ]

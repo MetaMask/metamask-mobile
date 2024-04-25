@@ -368,9 +368,9 @@ describe('SendTransaction View', () => {
   it('calls analytics when rendering', async () => {
     render(SendTransaction);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      [
+      Array [
         "OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED",
-        {
+        Object {
           "chain_id_source": 1,
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
@@ -402,15 +402,15 @@ describe('SendTransaction View', () => {
     fireEvent.press(nextButton);
     expect(mockAddTransaction).toBeCalledTimes(1);
     expect(mockAddTransaction.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          {
+      Array [
+        Array [
+          Object {
             "chainId": "0x1",
             "from": "0x1234",
             "to": "0x34256",
             "value": "0x2bea80d2171600",
           },
-          {
+          Object {
             "deviceConfirmedOn": "metamask_mobile",
           },
         ],
@@ -423,9 +423,9 @@ describe('SendTransaction View', () => {
     const nextButton = screen.getByRole('button', { name: 'Next' });
     fireEvent.press(nextButton);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      [
+      Array [
         "OFFRAMP_SEND_TRANSACTION_INVOKED",
-        {
+        Object {
           "chain_id_source": 1,
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
@@ -446,15 +446,15 @@ describe('SendTransaction View', () => {
     fireEvent.press(nextButton);
     expect(mockAddTransaction).toBeCalledTimes(1);
     expect(mockAddTransaction.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          {
+      Array [
+        Array [
+          Object {
             "data": "0xa9059cbb0000000000000000000000000000000000000000000000000000000000034256000000000000000000000000000000000000000000000000002bea80d2171600",
             "from": "0x1234",
             "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
             "value": "0x0",
           },
-          {
+          Object {
             "deviceConfirmedOn": "metamask_mobile",
           },
         ],
@@ -471,9 +471,9 @@ describe('SendTransaction View', () => {
 
     await act(async () => fireEvent.press(nextButton));
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      [
+      Array [
         "OFFRAMP_SEND_TRANSACTION_CONFIRMED",
-        {
+        Object {
           "chain_id_source": 1,
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
@@ -499,10 +499,10 @@ describe('SendTransaction View', () => {
     await act(async () => fireEvent.press(nextButton));
     expect(mockDispatch).toBeCalledTimes(1);
     expect(mockDispatch.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          {
-            "payload": {
+      Array [
+        Array [
+          Object {
+            "payload": Object {
               "orderId": "test-id-1",
               "txHash": "0x987654321",
             },
@@ -522,9 +522,9 @@ describe('SendTransaction View', () => {
 
     await act(async () => fireEvent.press(nextButton));
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      [
+      Array [
         "OFFRAMP_SEND_TRANSACTION_REJECTED",
-        {
+        Object {
           "chain_id_source": 1,
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
