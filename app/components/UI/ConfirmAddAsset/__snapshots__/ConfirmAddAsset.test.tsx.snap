@@ -163,7 +163,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
                     "aspectRatio": 1,
                     "height": "50%",
                     "justifyContent": "center",
-                    "minHeight": 16,
+                    "minHeight": 8,
                     "opacity": 0,
                   }
                 }
@@ -174,11 +174,19 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
                     Object {
                       "alignItems": "center",
                       "backgroundColor": "#F2F4F6",
-                      "borderRadius": 16,
+                      "borderColor": "#FFFFFF",
+                      "borderRadius": 999,
                       "borderWidth": 1,
                       "height": 32,
                       "justifyContent": "center",
                       "overflow": "hidden",
+                      "shadowColor": "#0000001A",
+                      "shadowOffset": Object {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 1,
+                      "shadowRadius": 4,
                       "transform": Array [
                         Object {
                           "scale": 1,

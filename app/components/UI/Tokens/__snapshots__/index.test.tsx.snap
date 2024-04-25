@@ -615,7 +615,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -625,9 +625,18 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
-                                          "borderRadius": 16,
+                                          "borderColor": "#FFFFFF",
+                                          "borderRadius": 999,
+                                          "borderWidth": 1,
                                           "height": 32,
                                           "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": Object {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
                                           "transform": Array [
                                             Object {
                                               "scale": 1,
@@ -924,7 +933,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -934,9 +943,18 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
-                                          "borderRadius": 16,
+                                          "borderColor": "#FFFFFF",
+                                          "borderRadius": 999,
+                                          "borderWidth": 1,
                                           "height": 32,
                                           "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": Object {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
                                           "transform": Array [
                                             Object {
                                               "scale": 1,
@@ -1767,7 +1785,7 @@ exports[`Tokens should render correctly 1`] = `
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -1777,9 +1795,18 @@ exports[`Tokens should render correctly 1`] = `
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
-                                          "borderRadius": 16,
+                                          "borderColor": "#FFFFFF",
+                                          "borderRadius": 999,
+                                          "borderWidth": 1,
                                           "height": 32,
                                           "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": Object {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
                                           "transform": Array [
                                             Object {
                                               "scale": 1,
@@ -2076,7 +2103,7 @@ exports[`Tokens should render correctly 1`] = `
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -2086,9 +2113,18 @@ exports[`Tokens should render correctly 1`] = `
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
-                                          "borderRadius": 16,
+                                          "borderColor": "#FFFFFF",
+                                          "borderRadius": 999,
+                                          "borderWidth": 1,
                                           "height": 32,
                                           "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": Object {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
                                           "transform": Array [
                                             Object {
                                               "scale": 1,
@@ -2927,7 +2963,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -2937,9 +2973,18 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
-                                          "borderRadius": 16,
+                                          "borderColor": "#FFFFFF",
+                                          "borderRadius": 999,
+                                          "borderWidth": 1,
                                           "height": 32,
                                           "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": Object {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
                                           "transform": Array [
                                             Object {
                                               "scale": 1,
@@ -3236,7 +3281,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -3246,9 +3291,18 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
-                                          "borderRadius": 16,
+                                          "borderColor": "#FFFFFF",
+                                          "borderRadius": 999,
+                                          "borderWidth": 1,
                                           "height": 32,
                                           "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": Object {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
                                           "transform": Array [
                                             Object {
                                               "scale": 1,
@@ -3464,7 +3518,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -3474,9 +3528,18 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       style={
                                         Object {
                                           "backgroundColor": "#FFFFFF",
-                                          "borderRadius": 16,
+                                          "borderColor": "#FFFFFF",
+                                          "borderRadius": 999,
+                                          "borderWidth": 1,
                                           "height": 32,
                                           "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": Object {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
                                           "transform": Array [
                                             Object {
                                               "scale": 1,
