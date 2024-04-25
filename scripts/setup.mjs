@@ -196,7 +196,7 @@ const nodeifyTask = {
     if (IS_NODE) {
       return task.skip('Skipping nodeifying npm packages.');
     }
-    await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
+    await $`node_modules/.bin/rn-nodeify --install --yarn crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
   },
 };
 
