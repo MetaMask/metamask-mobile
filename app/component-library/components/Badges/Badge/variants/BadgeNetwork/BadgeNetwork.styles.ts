@@ -23,12 +23,10 @@ const styleSheet = (params: {
   const { style, containerSize, size } = vars;
   let scaleRatio = 1;
   let opacity = 0;
-  let borderWidth = 1;
 
   if (containerSize) {
     scaleRatio = containerSize.height / Number(size);
     opacity = 1;
-    borderWidth /= scaleRatio;
   }
 
   return StyleSheet.create({
@@ -43,7 +41,7 @@ const styleSheet = (params: {
     networkIcon: Object.assign(
       {
         transform: [{ scale: scaleRatio }],
-        borderWidth,
+        borderWidth: 2,
         borderRadius: 999,
         borderColor: theme.colors.background.default,
         ...theme.shadows.size.xs,
