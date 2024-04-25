@@ -150,6 +150,12 @@ const patchModulesTask = {
         await $`./scripts/build-inpage-bridge.sh`;
       }
     },
+    {
+      title: 'Patch npm packages',
+      task: async () => {
+        await $`yarn patch-package`;
+      }
+    },
     // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
     {
       title: 'React Native nodeify',
@@ -161,12 +167,6 @@ const patchModulesTask = {
       title: 'Jetify',
       task: async () => {
         await $`yarn jetify`;
-      }
-    },
-    {
-      title: 'Patch npm packages',
-      task: async () => {
-        await $`yarn patch-package`;
       }
     },
     {
