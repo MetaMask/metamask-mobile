@@ -18,6 +18,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
+import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
 
@@ -85,6 +86,7 @@ describe(
           await ProtectYourWalletView.tapOnRemindMeLaterButton();
           await SkipAccountSecurityModal.tapIUnderstandCheckBox();
           await SkipAccountSecurityModal.tapSkipButton();
+          await OnboardingSuccessView.tapDone();
           await WalletView.isVisible();
           await ProtectYourWalletModal.tapRemindMeLaterButton();
           await SkipAccountSecurityModal.tapIUnderstandCheckBox();
