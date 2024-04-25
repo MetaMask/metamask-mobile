@@ -14,6 +14,10 @@ import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
+import AppConstants from '../../../app/core/AppConstants';
+
+const originalSend = XMLHttpRequest.prototype.send;
+const originalOpen = XMLHttpRequest.prototype.open;
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -105,7 +109,60 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
   }
 }
 
+export function* basicFunctionalityToggle() {
+  const overrideXMLHttpRequest = () => {
+    // Store the URL of the current request
+    let currentUrl = '';
+    const blockList = AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST;
+
+    const shouldBlockRequest = (url: string) =>
+      blockList.some((blockedUrl) => url.includes(blockedUrl));
+
+    const handleError = () =>
+      Promise.reject(new Error(`Disallowed URL: ${currentUrl}`)).catch(
+        (error) => {
+          console.error(error);
+        },
+      );
+
+    // Override the 'open' method to capture the request URL
+    XMLHttpRequest.prototype.open = function (method, url) {
+      currentUrl = url.toString(); // Convert URL object to string
+      return originalOpen.apply(this, [method, currentUrl]);
+    };
+
+    // Override the 'send' method to implement the blocking logic
+    XMLHttpRequest.prototype.send = function (body) {
+      // Check if the current request should be blocked
+      if (shouldBlockRequest(currentUrl)) {
+        handleError(); // Trigger an error callback or handle the blocked request as needed
+        return; // Do not proceed with the request
+      }
+      // For non-blocked requests, proceed as normal
+      return originalSend.call(this, body);
+    };
+  };
+
+  function restoreXMLHttpRequest() {
+    XMLHttpRequest.prototype.open = originalOpen;
+    XMLHttpRequest.prototype.send = originalSend;
+  }
+
+  while (true) {
+    const { basicFunctionalityEnabled } = yield take(
+      'TOGGLE_BASIC_FUNCTIONALITY',
+    );
+
+    if (basicFunctionalityEnabled) {
+      restoreXMLHttpRequest();
+    } else {
+      overrideXMLHttpRequest();
+    }
+  }
+}
+
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
   yield fork(authStateMachine);
+  yield fork(basicFunctionalityToggle);
 }
