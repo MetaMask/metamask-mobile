@@ -431,8 +431,6 @@ class Approval extends PureComponent {
    * Callback on confirm transaction
    */
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
-    Logger.log('STX Approval::onConfirm');
-
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
     const {
@@ -459,8 +457,6 @@ class Approval extends PureComponent {
 
     this.setState({ transactionConfirmed: true });
 
-    Logger.log('STX Approval::onConfirm transactionConfirmed');
-
     try {
       if (assetType === 'ETH') {
         transaction = this.prepareTransaction({
@@ -477,8 +473,6 @@ class Approval extends PureComponent {
         });
       }
 
-      Logger.log('STX Approval::onConfirm::transaction', transaction);
-
       // For STX, don't wait for TxController to get finished event, since it will take some time to get hash for STX
       if (isSmartTransaction) {
         this.setState({ transactionHandled: true });
@@ -488,14 +482,6 @@ class Approval extends PureComponent {
       TransactionController.hub.once(
         `${transaction.id}:finished`,
         (transactionMeta) => {
-          Logger.log(
-            'STX Approval::onConfirm::transactionMeta',
-            `${transaction.id}:finished`,
-            {
-              id: transactionMeta.id,
-              transactionHash: transactionMeta.transactionHash,
-            },
-          );
           if (transactionMeta.status === 'submitted') {
             if (!isLedgerAccount) {
               this.setState({ transactionHandled: true });
@@ -515,8 +501,6 @@ class Approval extends PureComponent {
       const updatedTx = { ...fullTx, transaction };
       await updateTransaction(updatedTx);
       await KeyringController.resetQRKeyringState();
-
-      Logger.log('STX Approval::onConfirm 2');
 
       // For Ledger Accounts we handover the signing to the confirmation flow
       if (isLedgerAccount) {
@@ -546,10 +530,7 @@ class Approval extends PureComponent {
       });
 
       this.showWalletConnectNotification(true);
-
-      Logger.log('STX Approval::onConfirm 3');
     } catch (error) {
-      Logger.error('STX Approval::onConfirm::error', error);
       if (
         !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
         !error?.message.startsWith(STX_NO_HASH_ERROR)

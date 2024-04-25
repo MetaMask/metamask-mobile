@@ -1040,12 +1040,6 @@ class Engine {
         publish: (transactionMeta) => {
           const isSmartTransaction = getIsSmartTransaction(store.getState());
 
-          Logger.log(
-            'STX',
-            'publish hook isSmartTransaction',
-            isSmartTransaction,
-          );
-
           return submitSmartTransactionHook({
             transactionMeta,
             transactionController: this.txController,
