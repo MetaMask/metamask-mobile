@@ -1,7 +1,4 @@
-// Third party dependencies.
 import { StyleSheet, TextStyle, ViewProps, ViewStyle } from 'react-native';
-
-// External dependencies.
 import { Theme } from '../../../../util/theme/models';
 import { DisplayNameVariant } from '../../../../components/hooks/DisplayName/useDisplayName';
 
