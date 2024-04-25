@@ -1,24 +1,24 @@
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import {
-  NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
   NETWORK_EDUCATION_MODAL_CONTAINER_ID,
   NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
 } from '../testIDs/Components/NetworkEducationModalTestIds';
+import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from "../testIDs/Screens/NetworksScreen.testids";
 
 class NetworkEducationModal {
   get container() {
-    return Selectors.getElementByPlatform(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+    return Selectors.getXpathElementByResourceId(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
   }
 
   get networkEducationCloseButton() {
     return Selectors.getElementByPlatform(
-      NETWORK_EDUCATION_MODAL_CLOSE_BUTTON_ID,
+      NETWORK_EDUCATION_MODAL_CLOSE_BUTTON,
     );
   }
 
   get networkEducationNetworkName() {
-    return Selectors.getElementByPlatform(
+    return Selectors.getXpathElementByResourceId(
       NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
     );
   }

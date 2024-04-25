@@ -258,7 +258,7 @@ export default class DeeplinkProtocolService {
       await Linking.openURL(deeplink);
     } catch (error) {
       Logger.error(
-        error,
+        error as Error,
         `DeeplinkProtocolService::openDeeplink error opening deeplink`,
       );
     }
@@ -289,10 +289,10 @@ export default class DeeplinkProtocolService {
     request?: string;
   }) {
     if (!params.originatorInfo) {
-      Logger.error(
+      const deepLinkError = new Error(
         'DeeplinkProtocolService::handleConnection no originatorInfo',
-        params,
       );
+      Logger.error(deepLinkError, params);
 
       return;
     }

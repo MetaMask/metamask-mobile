@@ -1,0 +1,64 @@
+name: Crowdin - Find all branches with translations and trigger completion checks
+# This workflow will run on a schedule. It will pull all pull requests with a label of
+# ready-for-translation and create a matrix of the associated branches to run the 
+# crowdin-reusable-translation-download.yml workflow on.
+# That workflow will check the status of the translations and if complete create a pull
+# request with the translations off of the branch.
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# TODO: Add a schedule to run this workflow twice a day(?) once the testing is complete
+on: workflow_dispatch
+
+jobs: 
+  run-check-and-download-for-branch:
+    needs: get-branches
+    if: ${{ needs.get-branches.outputs.matrix != '[]' && needs.get-branches.outputs.matrix != '' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{fromJson(needs.get-branches.outputs.matrix)}}
+    uses: ./.github/workflows/crowdin-reusable-translation-download.yml
+    with:
+      branch: ${{ matrix.branch }}
+    secrets:
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
+      crowdin_personal_token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+      crowdin_project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
+
+  get-branches:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix-outputs.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get Branches with Label
+        id: get-branches
+        run: |
+          GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+          REPO="${{ github.repository }}"
+          
+          LABEL="ready-for-translation"
+          API_URL="https://api.github.com/repos/$REPO/pulls?state=open&per_page=100"
+          
+          # Fetch the list of open pull requests with the specified label using curl
+          PRS=$(curl -sS --header "Authorization: Bearer $GITHUB_TOKEN" "$API_URL")
+          
+          BRANCHES=$(echo "$PRS" | jq -r '[.[] | select(.labels[].name == "'"$LABEL"'") | .head.ref] | @json')
+          echo "Found branches: $BRANCHES"
+          echo "branches=$BRANCHES" >> "$GITHUB_OUTPUT"
+
+      - name: Set up matrix
+        id: matrix-outputs
+        run: |
+          # Parse the branches output and create a matrix
+          BRANCHES="${{ toJson(steps.get-branches.outputs.branches) }}"
+          echo "Creating matrix from branches..."
+          MATRIX="${BRANCHES}"
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+
