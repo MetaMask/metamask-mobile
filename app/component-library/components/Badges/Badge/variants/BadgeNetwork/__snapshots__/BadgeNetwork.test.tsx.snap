@@ -9,16 +9,34 @@ exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `
       "aspectRatio": 1,
       "height": "50%",
       "justifyContent": "center",
-      "minHeight": 16,
+      "minHeight": 8,
       "opacity": 0,
     }
   }
   testID="badge-network"
 >
   <Avatar
+    imageSource={
+      Object {
+        "default": Object {
+          "uri": "MockImage",
+        },
+      }
+    }
+    name="Ethereum"
     size="32"
     style={
       Object {
+        "borderColor": "#FFFFFF",
+        "borderRadius": 999,
+        "borderWidth": 1,
+        "shadowColor": "#0000001A",
+        "shadowOffset": Object {
+          "height": 2,
+          "width": 0,
+        },
+        "shadowOpacity": 1,
+        "shadowRadius": 4,
         "transform": Array [
           Object {
             "scale": 1,
