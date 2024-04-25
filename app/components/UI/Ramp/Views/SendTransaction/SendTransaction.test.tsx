@@ -52,10 +52,10 @@ const mockOrder = {
       ],
       logo: {
         light: [
-          'https://on-ramp.api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
+          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
         ],
         dark: [
-          'https://on-ramp.api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
+          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
         ],
       },
       delay: [0, 0],
@@ -158,10 +158,10 @@ const mockOrder2 = {
       ],
       logo: {
         light: [
-          'https://on-ramp.api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
+          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
         ],
         dark: [
-          'https://on-ramp.api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
+          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
         ],
       },
       delay: [0, 0],
@@ -244,10 +244,10 @@ const mockOrder3 = {
       ],
       logo: {
         light: [
-          'https://on-ramp.api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
+          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
         ],
         dark: [
-          'https://on-ramp.api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
+          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
         ],
       },
       delay: [0, 0],

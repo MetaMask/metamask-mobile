@@ -16,10 +16,10 @@ export const mockPaymentMethods = [
     ],
     logo: {
       light: [
-        'https://on-ramp.api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
+        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
       ],
       dark: [
-        'https://on-ramp.api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
+        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
       ],
     },
     delay: [0, 0],
@@ -40,12 +40,12 @@ export const mockPaymentMethods = [
     ],
     logo: {
       light: [
-        'https://on-ramp.api.cx.metamask.io/assets/Visa-regular@3x.png',
-        'https://on-ramp.api.cx.metamask.io/assets/Mastercard-regular@3x.png',
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png',
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png',
       ],
       dark: [
-        'https://on-ramp.api.cx.metamask.io/assets/Visa@3x.png',
-        'https://on-ramp.api.cx.metamask.io/assets/Mastercard@3x.png',
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa@3x.png',
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard@3x.png',
       ],
     },
     disclaimer: 'Apple Cash is not supported.',
@@ -67,12 +67,12 @@ export const mockPaymentMethods = [
     ],
     logo: {
       light: [
-        'https://on-ramp.api.cx.metamask.io/assets/Visa-regular@3x.png',
-        'https://on-ramp.api.cx.metamask.io/assets/Mastercard-regular@3x.png',
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png',
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png',
       ],
       dark: [
-        'https://on-ramp.api.cx.metamask.io/assets/Visa@3x.png',
-        'https://on-ramp.api.cx.metamask.io/assets/Mastercard@3x.png',
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa@3x.png',
+        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard@3x.png',
       ],
     },
     disclaimer:
