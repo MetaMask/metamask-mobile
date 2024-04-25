@@ -6,10 +6,17 @@ const mockMetrics = {
   trackAfterInteractions: jest.fn(),
 };
 
-const handler = createRPCMethodTrackingMiddleware({
-  metrics: mockMetrics,
-  rateLimitSeconds: 1,
-});
+const createHandler = (
+  opts?: Partial<Parameters<typeof createRPCMethodTrackingMiddleware>[0]>,
+) =>
+  createRPCMethodTrackingMiddleware({
+    metrics: mockMetrics,
+    rateLimitTimeout: 500,
+    rateLimitSamplePercent: 0.1,
+    globalRateLimitTimeout: 0,
+    globalRateLimitMaxAmount: 0,
+    ...opts,
+  });
 
 function getNext(timeout = 500) {
   let deferred: { resolve: (value: unknown) => void };
@@ -61,6 +68,7 @@ describe('createRPCMethodTrackingMiddleware', () => {
         error: null,
       };
       const { executeMiddlewareStack, next } = getNext();
+      const handler = createHandler();
       handler(req, res, next);
       await executeMiddlewareStack();
       expect(mockMetrics.trackAfterInteractions).not.toHaveBeenCalled();
@@ -82,6 +90,7 @@ describe('createRPCMethodTrackingMiddleware', () => {
         error: null,
       };
       const { next, executeMiddlewareStack } = getNext();
+      const handler = createHandler();
       handler(req, res, next);
       expect(mockMetrics.trackAfterInteractions).not.toHaveBeenCalled();
       executeMiddlewareStack();
@@ -102,10 +111,11 @@ describe('createRPCMethodTrackingMiddleware', () => {
       while (callCount < 3) {
         callCount += 1;
         const { next, executeMiddlewareStack } = getNext();
+        const handler = createHandler();
         handler(req, res, next);
         await executeMiddlewareStack();
         if (callCount !== 3) {
-          await waitForSeconds(0.6);
+          await waitForSeconds(0.3);
         }
       }
 
@@ -136,94 +146,177 @@ describe('createRPCMethodTrackingMiddleware', () => {
       );
     });
 
-    it(`should only track rate limited events when under threshold such as 'eth_requestAccounts'`, async () => {
-      const req = {
-        method: 'eth_requestAccounts',
-        origin: 'some.dapp',
-      };
+    describe('events rated limited by timeout', () => {
+      it.each([
+        ['wallet_requestPermissions'],
+        ['eth_requestAccounts'],
+      ])(
+        `should only track '%s' events while the timeout rate limit is not active`,
+        async (method) => {
+          const req = {
+            method,
+            origin: 'some.dapp',
+          };
 
-      const res = {
-        error: null,
-      };
+          const res = {
+            error: null,
+          };
 
-      let callCount = 0;
+          const handler = createHandler();
 
-      while (callCount < 3) {
-        callCount += 1;
-        const { next, executeMiddlewareStack } = getNext();
-        handler(req, res, next);
-        await executeMiddlewareStack();
-        if (callCount !== 3) {
-          await waitForSeconds(0.6);
-        }
-      }
+          let callCount = 0;
+          while (callCount < 3) {
+            callCount += 1;
+            const { next, executeMiddlewareStack } = getNext();
+            handler(req, res, next);
+            await executeMiddlewareStack();
+            if (callCount !== 3) {
+              await waitForSeconds(0.3);
+            }
+          }
 
-      const expectedArgs = [
-        MetaMetricsEvents.PROVIDER_METHOD_CALLED,
-        {
-          referrer: {
-            url: 'some.dapp',
-          },
-          properties: {
-            method: 'eth_requestAccounts',
-          },
+          const expectedArgs = [
+            MetaMetricsEvents.PROVIDER_METHOD_CALLED,
+            {
+              referrer: {
+                url: 'some.dapp',
+              },
+              properties: {
+                method,
+              },
+            },
+          ];
+
+          expect(mockMetrics.trackAfterInteractions).toHaveBeenCalledTimes(2);
+          expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+            1,
+            ...expectedArgs,
+          );
+          expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+            2,
+            ...expectedArgs,
+          );
         },
-      ];
-
-      expect(mockMetrics.trackAfterInteractions).toHaveBeenCalledTimes(2);
-      expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
-        1,
-        ...expectedArgs,
-      );
-      expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
-        2,
-        ...expectedArgs,
       );
     });
 
-    it(`should treat tracking methods as rate limited by default`, async () => {
-      const req = {
-        method: 'some_unknown_event',
-        origin: 'some.dapp',
-      };
+    describe('events rated limited by random', () => {
+      beforeEach(() => {
+        jest
+          .spyOn(Math, 'random')
+          .mockReturnValueOnce(0) // not rate limited
+          .mockReturnValueOnce(0.09) // not rate limited
+          .mockReturnValueOnce(0.1) // rate limited
+          .mockReturnValueOnce(0.11) // rate limited
+          .mockReturnValueOnce(1); // rate limited
+      });
+      afterEach(() => {
+        jest.spyOn(Math, 'random').mockRestore();
+      });
+      it.each([
+        ['any_method_without_rate_limit_type_set'],
+        ['eth_getBalance'],
+      ])(
+        `should only track a random percentage of '%s' events`,
+        async (method) => {
+          const req = {
+            method,
+            origin: 'some.dapp',
+          };
 
-      const res = {
-        error: null,
-      };
+          const res = {
+            error: null,
+          };
 
-      let callCount = 0;
+          const handler = createHandler();
 
-      while (callCount < 3) {
-        callCount += 1;
-        const { next, executeMiddlewareStack } = getNext();
-        handler(req, res, next);
-        await executeMiddlewareStack();
-        if (callCount !== 3) {
-          await waitForSeconds(0.6);
-        }
-      }
+          let callCount = 0;
+          while (callCount < 5) {
+            callCount += 1;
+            const { next, executeMiddlewareStack } = getNext();
+            handler(req, res, next);
+            await executeMiddlewareStack();
+          }
 
-      const expectedArgs = [
-        MetaMetricsEvents.PROVIDER_METHOD_CALLED,
-        {
-          referrer: {
-            url: 'some.dapp',
-          },
-          properties: {
-            method: 'some_unknown_event',
-          },
+          const expectedArgs = [
+            MetaMetricsEvents.PROVIDER_METHOD_CALLED,
+            {
+              referrer: {
+                url: 'some.dapp',
+              },
+              properties: {
+                method,
+              },
+            },
+          ];
+
+          expect(mockMetrics.trackAfterInteractions).toHaveBeenCalledTimes(2);
+          expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+            1,
+            ...expectedArgs,
+          );
+          expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+            2,
+            ...expectedArgs,
+          );
         },
-      ];
+      );
+    });
 
-      expect(mockMetrics.trackAfterInteractions).toHaveBeenCalledTimes(2);
-      expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
-        1,
-        ...expectedArgs,
-      );
-      expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
-        2,
-        ...expectedArgs,
-      );
+    describe('events rated globally rate limited', () => {
+      it('should only track events if the global rate limit has not been hit', async () => {
+        const req = {
+          method: 'some_method_rate_limited_by_sample',
+          origin: 'some.dapp',
+        };
+
+        const res = {
+          error: null,
+        };
+
+        const handler = createHandler({
+          rateLimitSamplePercent: 1, // track every event for this spec
+          globalRateLimitTimeout: 1000,
+          globalRateLimitMaxAmount: 3,
+        });
+
+        let callCount = 0;
+        while (callCount < 4) {
+          callCount += 1;
+          const { next, executeMiddlewareStack } = getNext();
+          handler(req, res, next);
+          await executeMiddlewareStack();
+          if (callCount !== 4) {
+            await waitForSeconds(0.3);
+          }
+        }
+
+        const expectedArgs = [
+          MetaMetricsEvents.PROVIDER_METHOD_CALLED,
+          {
+            referrer: {
+              url: 'some.dapp',
+            },
+            properties: {
+              method: 'some_method_rate_limited_by_sample',
+            },
+          },
+        ];
+
+        expect(mockMetrics.trackAfterInteractions).toHaveBeenCalledTimes(3);
+        expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+          1,
+          ...expectedArgs,
+        );
+        expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+          2,
+          ...expectedArgs,
+        );
+        expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+          3,
+          ...expectedArgs,
+        );
+      });
     });
   });
 });
