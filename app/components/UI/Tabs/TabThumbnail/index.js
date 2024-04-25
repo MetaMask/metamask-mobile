@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { useContext, useMemo } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, TouchableOpacity, View } from 'react-native';
+import Text from '../../../../component-library/components/Texts/Text';
 import ElevatedView from 'react-native-elevated-view';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
@@ -87,15 +88,14 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
                   <Badge
                     variant={BadgeVariant.Network}
                     // TODO: get the correct image source for the active network
-                    imageSource={networkBadgeSource}
+                    imageSource={14}
                     name={'Ethereum'}
-                    style={styles.networkBadge}
                   />
                 }
               >
                 <Avatar
                   // TODO: figure out the avatar size, according to figma should be smaller than Sm, but bigger than Xs
-                  size={AvatarSize.Sm}
+                  size={AvatarSize.Xs}
                   variant={AvatarVariant.Account}
                   accountAddress={selectedAccount?.address}
                 />
@@ -104,7 +104,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
           )}
           <Text
             // TODO: figure out why the variant is not taking effect when changed
-            variant={TextVariant.BodySMBold}
+            variant={TextVariant.BodySM}
             style={styles.footerText}
             numberOfLines={1}
             ellipsizeMode="tail"

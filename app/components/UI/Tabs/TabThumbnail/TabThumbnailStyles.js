@@ -106,16 +106,17 @@ const createStyles = (colors) =>
       padding: 8,
     },
     footerText: {
-      width: '90%',
+      flex: 1,
     },
     badgeWrapperContainer: {
       paddingRight: 8,
-      paddingLeft: 2,
+      // paddingLeft: 2,
     },
     networkBadge: {
-      borderRadius: 7,
-      borderWidth: 1,
-      borderColor: colors.background.default,
+      // borderWidth: 2,
+      // borderColor: colors.background.default,
+      // borderRadius: 8,
+      // minHeight: 14,
     },
   });
 
