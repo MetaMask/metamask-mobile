@@ -146,12 +146,6 @@ const patchModulesTask = {
       }
     },
     {
-      title: 'Jetify',
-      task: async () => {
-        await $`yarn jetify`;
-      }
-    },
-    {
       title: 'Patch npm packages',
       task: async () => {
         await $`yarn patch-package`;
