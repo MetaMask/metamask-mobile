@@ -391,17 +391,10 @@ export const getRpcMethodMiddleware = ({
           );
         }
 
-        validateParams(from[0], ['amount', 'chainId', 'token_address'], 'from');
-        validateParams(to, ['token_address', 'chainId'], 'to');
+        validateParams(from[0], ['amount', 'token_address'], 'from');
+        validateParams(to, ['token_address'], 'to');
 
         const chainId = selectChainId(store.getState());
-
-        //  This verification is not needed when we support cross chain swaps
-        if (from[0].chainId !== to.chainId) {
-          throw ethErrors.rpc.invalidParams(
-            'ChainId value is not consistent between from and to',
-          );
-        }
 
         const checksummedDappConnectedAccount =
           safeToChecksumAddress(dappConnectedAccount);
@@ -415,22 +408,6 @@ export const getRpcMethodMiddleware = ({
           );
         }
 
-        if (
-          chainId !== parseInt(from[0].chainId, 16).toString() ||
-          chainId !== parseInt(to.chainId, 16).toString()
-        ) {
-          await RPCMethods.wallet_switchEthereumChain({
-            req: {
-              params: [{ chainId: from[0].chainId }],
-            },
-            res,
-            requestUserApproval,
-            analytics: {
-              request_source: getSource(),
-              request_platform: analytics?.platform,
-            },
-          });
-        }
         // switch to the chain id asked from the dapp
         // validate if swaps is enable on that network
         const swapsIsLive = swapsLivenessSelector(store.getState());
