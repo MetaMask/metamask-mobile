@@ -7,6 +7,7 @@ import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView'
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import WalletView from '../../pages/WalletView';
+import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import Browser from '../../pages/Browser';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
@@ -63,6 +64,11 @@ describe(SmokeCore('Start Exploring'), () => {
     await WalletView.isVisible();
   });
 
+  it('Should skip onboarding success screen', async () => {
+    // Press Done on the Onboarding Success screen
+    await OnboardingSuccessView.tapDone();
+  });
+
   it('Should dismiss Automatic Security checks screen', async () => {
     await TestHelpers.delay(3500);
     await EnableAutomaticSecurityChecksView.isVisible();
@@ -72,44 +78,41 @@ describe(SmokeCore('Start Exploring'), () => {
   it('should go through the onboarding wizard flow', async () => {
     // Check that Take the tour CTA is visible and tap it
     await TestHelpers.delay(3000);
-    await OnboardingWizardModal.isVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
     await OnboardingWizardModal.tapTakeTourButton();
-    // Ensure step 1 is shown correctly
-    await OnboardingWizardModal.isYourAccountsTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepTwoContainer);
     await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 2 is shown correctly
-    await OnboardingWizardModal.isEditAccountNameTutorialStepVisible();
+    // Ensure step 3 is shown correctly
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepThreeContainer);
+    // await WalletView.editAccountName(ACCOUNT);
     await OnboardingWizardModal.tapGotItButton();
     await WalletView.isAccountNameCorrect(ACCOUNT);
-    // Ensure step 3 is shown correctly
-    await OnboardingWizardModal.isNotificationsTutorialStepVisible();
-    await OnboardingWizardModal.tapGotItButton();
     // Ensure step 4 is shown correctly
-    await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
     await OnboardingWizardModal.tapGotItButton();
     // Ensure step 5 is shown correctly
-    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
     // Tap on Back
     await OnboardingWizardModal.tapBackButton();
     // Ensure step 4 is shown correctly
-    await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
     await OnboardingWizardModal.tapGotItButton();
     // Ensure step 5 is shown correctly
-    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
     await OnboardingWizardModal.tapGotItButton();
     // Ensure step 6 is shown correctly
-    await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepSixContainer);
     await OnboardingWizardModal.tapBackButton();
     // Ensure step 5 is shown correctly
-    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
     await OnboardingWizardModal.tapBackButton();
     // Ensure step 4 is shown correctly
-    await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
     await OnboardingWizardModal.tapGotItButton();
-    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
     await OnboardingWizardModal.tapGotItButton();
-    // Ensure step 7 is shown correctly
-    await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
+    // Ensure step 6 is shown correctly
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepSixContainer);
     await OnboardingWizardModal.tapGotItButton();
     // Check that we are on the Browser page
     // dealing with flakiness on bitrise.

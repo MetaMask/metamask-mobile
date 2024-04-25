@@ -1,0 +1,265 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DefaultSettings should render correctly 1`] = `
+<RCTScrollView
+  style={
+    Object {
+      "flex": 1,
+      "paddingHorizontal": 16,
+      "paddingTop": 16,
+    }
+  }
+>
+  <View>
+    <Text
+      accessibilityRole="text"
+      style={
+        Object {
+          "color": "#24272A",
+          "fontFamily": "Euclid Circular B",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.
+      <Text
+        accessibilityRole="text"
+        onPress={[Function]}
+        style={
+          Object {
+            "color": "#0376C9",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+         
+        Learn more about privacy best practices.
+      </Text>
+    </Text>
+    <View
+      style={
+        Object {
+          "marginVertical": 16,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "paddingBottom": 8,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Basic functionality
+        </Text>
+        <RCTSwitch
+          accessibilityRole="switch"
+          onChange={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          onTintColor="#0376C9"
+          style={
+            Array [
+              Object {
+                "height": 31,
+                "width": 51,
+              },
+              Object {
+                "backgroundColor": "#D6D9DC",
+                "borderRadius": 16,
+              },
+            ]
+          }
+          thumbTintColor="#FFFFFF"
+          tintColor="#D6D9DC"
+          value={false}
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.
+      </Text>
+    </View>
+    <View
+      style={
+        Object {
+          "marginVertical": 16,
+        }
+      }
+    >
+      <View
+        style={
+          Object {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#24272A",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Manage networks
+        </Text>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          Object {
+            "color": "#535A61",
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 10,
+            "textAlign": "left",
+          }
+        }
+      >
+        We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our 
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            Object {
+              "color": "#0376C9",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Privacy policy
+        </Text>
+         to learn more about how Infura handles data.
+      </Text>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          Object {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#F2F4F6",
+            "borderRadius": 16,
+            "flexDirection": "row",
+            "height": 32,
+            "marginVertical": 16,
+            "paddingHorizontal": 8,
+          }
+        }
+        testID="accounts-connected-network-picker"
+      >
+        <View
+          style={
+            Object {
+              "alignItems": "center",
+              "backgroundColor": "#F2F4F6",
+              "borderRadius": 8,
+              "borderWidth": 1,
+              "height": 16,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "width": 16,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#24272A",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 10,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": undefined,
+              }
+            }
+          >
+            E
+          </Text>
+        </View>
+        <Text
+          accessibilityRole="text"
+          numberOfLines={1}
+          style={
+            Object {
+              "color": "#24272A",
+              "flexShrink": 1,
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginHorizontal": 8,
+            }
+          }
+          testID="open-networks-text"
+        >
+          Ethereum Main Network
+        </Text>
+        <SvgMock
+          color="#24272A"
+          height={12}
+          name="ArrowDown"
+          style={
+            Object {
+              "height": 12,
+              "width": 12,
+            }
+          }
+          testID="pickernetwork-arrow"
+          width={12}
+        />
+      </TouchableOpacity>
+    </View>
+  </View>
+</RCTScrollView>
+`;

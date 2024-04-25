@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -11,14 +11,13 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import {
   selectIdentities,
   selectSelectedAddress,
 } from '../../../../selectors/preferencesController';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
@@ -27,9 +26,6 @@ const styles = StyleSheet.create({
   },
   coachmarkContainer: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    marginHorizontal: 16,
   },
 });
 
@@ -38,6 +34,8 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
   const { trackEvent } = useMetrics();
 
   const [coachmarkTop, setCoachmarkTop] = useState(0);
+  const [coachmarkLeft, setCoachmarkLeft] = useState(0);
+  const [coachmarkRight, setCoachmarkRight] = useState(0);
 
   const handleLayout = useCallback(() => {
     const accActionsRef = coachmarkRef.accountActionsRef?.current;
@@ -53,7 +51,11 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
         accActionsPageY,
       ) => {
         const top = accActionsHeight + accActionsPageY;
+        const right =
+          Dimensions.get('window').width - (accActionsPageX + accActionsWidth);
         setCoachmarkTop(top);
+        setCoachmarkLeft(accActionsPageX);
+        setCoachmarkRight(right);
       },
     );
   }, [coachmarkRef.accountActionsRef]);
@@ -91,7 +93,7 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
       <View style={dynamicOnboardingStyles.contentContainer}>
         <Text
           style={dynamicOnboardingStyles.content}
-          {...generateTestId(Platform, ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID)}
+          testID={OnboardingWizardModalSelectorsIDs.STEP_THREE_CONTAINER}
         >
           {strings('onboarding_wizard_new.step3.content1')}
         </Text>
@@ -106,6 +108,8 @@ const Step3 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
           styles.coachmarkContainer,
           {
             top: coachmarkTop,
+            left: coachmarkLeft,
+            right: coachmarkRight,
           },
         ]}
       >
