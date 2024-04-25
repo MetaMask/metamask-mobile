@@ -334,10 +334,6 @@ class Approval extends PureComponent {
           };
         }
       }
-      console.log(
-        'STX Approval::getAnalyticsParams::smartTransactionMetadata',
-        smartTransactionMetadata,
-      );
 
       return {
         account_type: getAddressAccountType(selectedAddress),
