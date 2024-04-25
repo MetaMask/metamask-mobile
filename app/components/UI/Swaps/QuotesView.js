@@ -927,12 +927,6 @@ function SwapsQuotesView({
           },
         );
 
-        Logger.log(
-          'STX QuotesView handleSwapTransaction',
-          'transactionMeta.id',
-          transactionMeta.id,
-        );
-
         updateSwapsTransactions(
           transactionMeta,
           approvalTransactionMetaId,
@@ -981,13 +975,6 @@ function SwapsQuotesView({
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
             origin: process.env.MM_FOX_CODE,
           },
-        );
-
-        Logger.log(
-          'STX QuotesView handleApprovaltransaction approvalTransactionMetaId',
-          approvalTransactionMetaId,
-          'transactionMeta.id',
-          transactionMeta.id,
         );
 
         setRecipient(selectedAddress);
@@ -1047,8 +1034,6 @@ function SwapsQuotesView({
     startSwapAnalytics(selectedQuote, selectedAddress);
 
     const { TransactionController } = Engine.context;
-
-    Logger.log('STX approvalTransaction', !!approvalTransaction);
 
     const newSwapsTransactions =
       TransactionController.state.swapsTransactions || {};

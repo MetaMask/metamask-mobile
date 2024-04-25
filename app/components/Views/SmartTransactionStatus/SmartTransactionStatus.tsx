@@ -17,7 +17,6 @@ import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
 import { getSwapsChainFeatureFlags } from '../../../reducers/swaps';
-import Logger from '../../../util/Logger';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -193,12 +192,10 @@ const SmartTransactionStatus = ({
   const viewActivity = () => {
     onConfirm();
     navigation.navigate(Routes.TRANSACTIONS_VIEW);
-    Logger.log('STX - View Activity');
   };
 
   const closeStatusPage = () => {
     onConfirm();
-    Logger.log('STX - Close Status Page');
   };
 
   const createNewSwap = () => {
