@@ -1,0 +1,50 @@
+diff --git a/node_modules/rn-nodeify/browser-browserify.json b/node_modules/rn-nodeify/browser-browserify.json
+index 52fa68a..371ceb6 100644
+--- a/node_modules/rn-nodeify/browser-browserify.json
++++ b/node_modules/rn-nodeify/browser-browserify.json
+@@ -4,7 +4,7 @@
+   "constants": "constants-browserify",
+   "crypto": "crypto-browserify",
+   "dns": "dns.js",
+-  "net": "react-native-tcp",
++  "net": "@metamask/react-native-tcp",
+   "domain": "domain-browser",
+   "http": "stream-http",
+   "https": "https-browserify",
+diff --git a/node_modules/rn-nodeify/browser.json b/node_modules/rn-nodeify/browser.json
+index dad26ae..d1fca5c 100644
+--- a/node_modules/rn-nodeify/browser.json
++++ b/node_modules/rn-nodeify/browser.json
+@@ -4,7 +4,7 @@
+   "constants": "constants-browserify",
+   "crypto": "react-native-crypto",
+   "dns": "dns.js",
+-  "net": "react-native-tcp",
++  "net": "@metamask/react-native-tcp",
+   "domain": "domain-browser",
+   "http": "@tradle/react-native-http",
+   "https": "https-browserify",
+diff --git a/node_modules/rn-nodeify/shims-browserify.js b/node_modules/rn-nodeify/shims-browserify.js
+index 5952ae2..4b6ebbf 100644
+--- a/node_modules/rn-nodeify/shims-browserify.js
++++ b/node_modules/rn-nodeify/shims-browserify.js
+@@ -27,6 +27,6 @@ module.exports = {
+   "url": "~0.10.1",
+   "util": "~0.10.1",
+   "utp": "0.0.8",
+-  "react-native-tcp": "^3.2.1",
++  "@metamask/react-native-tcp": "^3.2.1",
+   "vm-browserify": "~0.0.1"
+ }
+diff --git a/node_modules/rn-nodeify/shims.js b/node_modules/rn-nodeify/shims.js
+index c0e00fa..75e1240 100644
+--- a/node_modules/rn-nodeify/shims.js
++++ b/node_modules/rn-nodeify/shims.js
+@@ -27,6 +27,6 @@ module.exports = {
+   "tty-browserify": "0.0.0",
+   "url": "~0.10.1",
+   "util": "~0.10.3",
+-  "react-native-tcp": "^3.2.1",
++  "@metamask/react-native-tcp": "^3.2.1",
+   "vm-browserify": "0.0.4"
+ }
