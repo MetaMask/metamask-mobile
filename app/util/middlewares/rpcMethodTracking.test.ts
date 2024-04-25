@@ -147,10 +147,7 @@ describe('createRPCMethodTrackingMiddleware', () => {
     });
 
     describe('events rated limited by timeout', () => {
-      it.each([
-        ['wallet_requestPermissions'],
-        ['eth_requestAccounts'],
-      ])(
+      it.each([['wallet_requestPermissions'], ['eth_requestAccounts']])(
         `should only track '%s' events while the timeout rate limit is not active`,
         async (method) => {
           const req = {
@@ -213,10 +210,7 @@ describe('createRPCMethodTrackingMiddleware', () => {
       afterEach(() => {
         jest.spyOn(Math, 'random').mockRestore();
       });
-      it.each([
-        ['any_method_without_rate_limit_type_set'],
-        ['eth_getBalance'],
-      ])(
+      it.each([['any_method_without_rate_limit_type_set'], ['eth_getBalance']])(
         `should only track a random percentage of '%s' events`,
         async (method) => {
           const req = {
