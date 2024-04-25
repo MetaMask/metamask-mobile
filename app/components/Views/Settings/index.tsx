@@ -16,6 +16,7 @@ import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/Sn
 ///: END:ONLY_INCLUDE_IF
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -189,12 +190,14 @@ const Settings = () => {
         title={strings('app_settings.advanced_title')}
         testID={SettingsViewSelectorsIDs.ADVANCED}
       />
+      { !isNotificationsFeatureEnabled() &&
       <SettingsDrawer
         description={strings('app_settings.notifications_desc')}
         onPress={onPressNotifications}
         title={strings('app_settings.notifications_title')}
         testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
       />
+      }
       <SettingsDrawer
         description={strings('app_settings.contacts_desc')}
         onPress={onPressContacts}
