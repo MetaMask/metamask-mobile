@@ -27,8 +27,8 @@ function useFetchRampNetworks() {
     } catch (requestError) {
       setError(requestError as Error);
       Logger.error(
-        'useFetchOnRampNetworks::getNetworks',
         requestError as Error,
+        'useFetchOnRampNetworks::getNetworks',
       );
     } finally {
       setIsLoading(false);

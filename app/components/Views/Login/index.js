@@ -47,7 +47,7 @@ import DefaultPreference from 'react-native-default-preference';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from 'react-native-animated-fox';
+import AnimatedFox from '@metamask/react-native-animated-fox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
@@ -372,7 +372,8 @@ class Login extends PureComponent {
       // Check https://github.com/MetaMask/mobile-planning/issues/1507
       const { selectedAddress } = this.props;
       if (typeof selectedAddress !== 'string') {
-        Logger.error('Login error', 'selectedAddress is not a string');
+        const loginError = new Error('Login error');
+        Logger.error(loginError, 'selectedAddress is not a string');
       }
 
       await Authentication.userEntryAuth(
@@ -435,7 +436,7 @@ class Login extends PureComponent {
       } else {
         this.setState({ loading: false, error });
       }
-      Logger.error(error, 'Failed to unlock');
+      Logger.error(e, 'Failed to unlock');
     }
   };
 
@@ -448,7 +449,8 @@ class Login extends PureComponent {
       // Check https://github.com/MetaMask/mobile-planning/issues/1507
       const { selectedAddress } = this.props;
       if (typeof selectedAddress !== 'string') {
-        Logger.error('unlockKeychain error', 'selectedAddress is not a string');
+        const unlockKeychainError = new Error('unlockKeychain error');
+        Logger.error(unlockKeychainError, 'selectedAddress is not a string');
       }
       await Authentication.appTriggeredAuth({
         selectedAddress: this.props.selectedAddress,

@@ -45,7 +45,7 @@ function handleUniversalLink({
       SDKConnect.getInstance()
         .bindAndroidSDK()
         .catch((err) => {
-          Logger.error(`DeepLinkManager failed to connect`, err);
+          Logger.error(err, `DeepLinkManager failed to connect`);
         });
       return;
     }
@@ -62,7 +62,7 @@ function handleUniversalLink({
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err: unknown) => {
-          Logger.error(`DeepLinkManager failed to connect`, err);
+          Logger.error(err as Error, `DeepLinkManager failed to connect`);
         });
       }
       return true;
@@ -89,10 +89,16 @@ function handleUniversalLink({
       );
       // loops back to open the link with the right protocol
       instance.parse(deeplinkUrl, { browserCallBack, origin });
-    } else if (action === ACTIONS.BUY_CRYPTO) {
-      instance._handleBuyCrypto();
-    } else if (action === ACTIONS.SELL_CRYPTO) {
-      instance._handleSellCrypto();
+    } else if (action === ACTIONS.BUY_CRYPTO || action === ACTIONS.BUY) {
+      const rampPath = urlObj.href
+        .replace(`${DEEP_LINK_BASE}/${ACTIONS.BUY_CRYPTO}`, '')
+        .replace(`${DEEP_LINK_BASE}/${ACTIONS.BUY}`, '');
+      instance._handleBuyCrypto(rampPath);
+    } else if (action === ACTIONS.SELL_CRYPTO || action === ACTIONS.SELL) {
+      const rampPath = urlObj.href
+        .replace(`${DEEP_LINK_BASE}/${ACTIONS.SELL_CRYPTO}`, '')
+        .replace(`${DEEP_LINK_BASE}/${ACTIONS.SELL}`, '');
+      instance._handleSellCrypto(rampPath);
     } else {
       // If it's our universal link or Apple store deep link don't open it in the browser
       if (

@@ -10,23 +10,21 @@ import {
 
 class ImportAccountScreen {
   get importAccountContainer() {
-    return Selectors.getElementByPlatform(IMPORT_ACCOUNT_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(IMPORT_ACCOUNT_SCREEN_ID);
   }
-  get importButton() {
-    return Selectors.getElementByPlatform(IMPORT_PRIVATE_KEY_BUTTON_ID);
-  }
+
   get closeButton() {
     return Selectors.getElementByPlatform(
       CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID,
     );
   }
+
   get privateKeyInputBox() {
-    return Selectors.getElementByPlatform(PRIVATE_KEY_INPUT_BOX_ID);
+    return Selectors.getXpathElementByResourceId(PRIVATE_KEY_INPUT_BOX_ID);
   }
 
   async typePrivateKeyAndDismissKeyboard(privateKey) {
     await Gestures.typeText(this.privateKeyInputBox, privateKey);
-    await driver.pause(2500);
   }
 
   async tapImportButton() {
