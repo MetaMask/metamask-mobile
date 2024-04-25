@@ -13,4 +13,5 @@ export const AddContactViewSelectorsIDs = {
 export const AddContactViewSelectorsText = {
   EDIT_BUTTON: enContent.address_book.edit,
   EDIT_CONTACT: enContent.address_book.edit_contact,
+  MEMO: enContent.address_book.memo,
 };

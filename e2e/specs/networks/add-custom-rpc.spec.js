@@ -52,7 +52,6 @@ describe(Regression('Custom RPC Tests'), () => {
 
   it('should add Gnosis network', async () => {
     // Tap on Add Network button
-    await TestHelpers.delay(3000);
     await NetworkView.tapAddNetworkButton();
     await NetworkView.switchToCustomNetworks();
     await NetworkView.typeInNetworkName(
@@ -72,16 +71,10 @@ describe(Regression('Custom RPC Tests'), () => {
       await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
       await NetworkView.tapRpcNetworkAddButton();
     }
-
-    await TestHelpers.delay(3000);
     await Assertions.checkIfVisible(NetworkApprovalModal.container);
     await NetworkApprovalModal.tapApproveButton();
-
-    await TestHelpers.delay(3000);
     await Assertions.checkIfVisible(NetworkAddedModal.switchNetwork);
     await NetworkAddedModal.tapSwitchToNetwork();
-
-    await TestHelpers.delay(3000);
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible(
       CustomNetworks.Gnosis.providerConfig.nickname,
@@ -89,51 +82,59 @@ describe(Regression('Custom RPC Tests'), () => {
   });
 
   it('should dismiss network education modal', async () => {
-    await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.isNetworkNameCorrect(
+    await Assertions.checkIfVisible(NetworkEducationModal.container);
+    await Assertions.checkIfElementToHaveText(
+      NetworkEducationModal.networkName,
       CustomNetworks.Gnosis.providerConfig.nickname,
     );
     await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
   });
 
-  it('should validate that xDai is added to network list', async () => {
+  it('should validate that Gnosis is added to network list', async () => {
     // Tap to prompt network list
     await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.isVisible();
-    await NetworkListModal.isNetworkNameVisibleInListOfNetworks(
-      CustomNetworks.Gnosis.providerConfig.nickname,
+    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+    await Assertions.checkIfVisible(
+      NetworkListModal.getCustomNetwork(
+        CustomNetworks.Gnosis.providerConfig.nickname,
+        true,
+      ),
     );
   });
 
   it('should switch to Sepolia then dismiss the network education modal', async () => {
-    await NetworkListModal.isTestNetworkToggleOn();
-    await NetworkListModal.changeNetwork(
+    await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
+    await NetworkListModal.changeNetworkTo(
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
-    await NetworkEducationModal.isVisible();
-    await NetworkEducationModal.isNetworkNameCorrect('Goreli Test Network');
+    await Assertions.checkIfVisible(NetworkEducationModal.container);
+    await Assertions.checkIfElementToHaveText(
+      NetworkEducationModal.networkName,
+      CustomNetworks.Sepolia.providerConfig.nickname,
+    );
     await NetworkEducationModal.tapGotItButton();
-    await NetworkEducationModal.isNotVisible();
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await WalletView.isVisible();
   });
 
-  it('should switch back to xDAI', async () => {
+  it('should switch back to Gnosis', async () => {
     await WalletView.isNetworkNameVisible(
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
     await WalletView.tapNetworksButtonOnNavBar();
-    await NetworkListModal.isVisible();
+    await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await NetworkListModal.scrollToBottomOfNetworkList();
-    // Change to back to xDai Network
-    await NetworkListModal.changeNetwork(
+    // Change to back to Gnosis Network
+    await NetworkListModal.changeNetworkTo(
       CustomNetworks.Gnosis.providerConfig.nickname,
+      true,
     );
     await WalletView.isVisible();
     await WalletView.isNetworkNameVisible(
       CustomNetworks.Gnosis.providerConfig.nickname,
     );
-    await NetworkEducationModal.isNotVisible();
+    await Assertions.checkIfNotVisible(NetworkEducationModal.container);
   });
 
   it('should go to settings networks and remove xDai network', async () => {
@@ -146,7 +147,7 @@ describe(Regression('Custom RPC Tests'), () => {
     }
     await NetworkView.longPressToRemoveNetwork(
       CustomNetworks.Gnosis.providerConfig.nickname,
-    ); // Tap on xDai to remove network
+    ); // Tap on Gnosis to remove network
     await TestHelpers.delay(3000);
     await NetworkEducationModal.tapGotItButton();
     await TabBarComponent.tapWallet();
