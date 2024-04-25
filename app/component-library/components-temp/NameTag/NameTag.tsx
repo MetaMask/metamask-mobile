@@ -1,16 +1,16 @@
 /* eslint-disable react/prop-types */
 
 import React from 'react';
-import Text, { TextVariant } from '../../Texts/Text';
+import Text, { TextVariant } from '../../components/Texts/Text';
 import { NameTagProperties } from './NameTag.types';
 import { View } from 'react-native';
 import useDisplayName, {
   DisplayNameVariant,
-} from '../../../../components/hooks/DisplayName/useDisplayName';
-import { useStyles } from '../../../../component-library/hooks';
+} from '../../../components/hooks/DisplayName/useDisplayName';
+import { useStyles } from '../../hooks';
 import styleSheet from './NameTag.styles';
-import Identicon from '../../../../components/UI/Identicon';
-import Icon, { IconName } from '../../Icons/Icon';
+import Identicon from '../../../components/UI/Identicon';
+import Icon, { IconName } from '../../components/Icons/Icon';
 
 const NameTag: React.FC<NameTagProperties> = ({ address, style, ...props }) => {
   const displayName = useDisplayName(address);

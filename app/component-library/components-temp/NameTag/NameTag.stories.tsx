@@ -24,7 +24,7 @@ const storeMock = configureStore({
 });
 
 const meta: Meta<typeof NameTagComponent> = {
-  title: 'Component Library / NameTag',
+  title: 'Components Temp / NameTag',
   component: NameTagComponent,
   decorators: [
     (story) => (

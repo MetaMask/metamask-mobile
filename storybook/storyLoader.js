@@ -57,7 +57,6 @@ function loadStories() {
   require('../app/component-library/components/Select/SelectValue/SelectValue.stories');
   require('../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories');
   require('../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories');
-  require('../app/component-library/components/Tags/NameTag/NameTag.stories');
   require('../app/component-library/components/Tags/Tag/Tag.stories');
   require('../app/component-library/components/Tags/TagUrl/TagUrl.stories');
   require('../app/component-library/components/Texts/Text/Text.stories');
@@ -76,6 +75,7 @@ function loadStories() {
   require('../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories');
   require('../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories');
   require('../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories');
+  require('../app/component-library/components-temp/NameTag/NameTag.stories');
   require('../app/component-library/components-temp/TagColored/TagColored.stories');
 }
 
@@ -133,7 +133,6 @@ const stories = [
   '../app/component-library/components/Select/SelectValue/SelectValue.stories',
   '../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories',
   '../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories',
-  '../app/component-library/components/Tags/NameTag/NameTag.stories',
   '../app/component-library/components/Tags/Tag/Tag.stories',
   '../app/component-library/components/Tags/TagUrl/TagUrl.stories',
   '../app/component-library/components/Texts/Text/Text.stories',
@@ -152,6 +151,7 @@ const stories = [
   '../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories',
   '../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories',
   '../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories',
+  '../app/component-library/components-temp/NameTag/NameTag.stories',
   '../app/component-library/components-temp/TagColored/TagColored.stories',
 ];
 
