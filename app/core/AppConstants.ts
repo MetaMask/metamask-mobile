@@ -180,11 +180,15 @@ export default {
     'PPOMController:initialisationStateChangeEvent',
   BASIC_FUNCTIONALITY_BLOCK_LIST: [
     'token-api',
+    'token.api',
     'gas-api',
+    'gas.api',
     'price-api',
+    'price.api',
     'phishing-detection',
     'infura.io',
     'static.metafi',
+    'static.cx',
     'config-api.metamask.io/featureFlags',
   ],
 } as const;
