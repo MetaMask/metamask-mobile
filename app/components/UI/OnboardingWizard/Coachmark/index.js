@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Animated, Platform, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 import {
   colors as importedColors,
   fontStyles,
@@ -20,13 +20,7 @@ import {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import Button from '../../../../component-library/components/Buttons/Button/Button';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import {
-  ONBOARDING_WIZARD_BACK_BUTTON,
-  ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON,
-  ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID,
-  ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -328,7 +322,7 @@ export default class Coachmark extends PureComponent {
       <View style={styles.progress}>
         <View style={styles.progessContainer}>
           {currentStep !== 0 && (
-            <Text style={styles.stepCounter}>{currentStep}/6</Text>
+            <Text style={styles.stepCounter}>{currentStep}/5</Text>
           )}
         </View>
 
@@ -336,7 +330,7 @@ export default class Coachmark extends PureComponent {
           containerStyle={[styles.progressButton, styles.rightProgessButton]}
           type={'inverse'}
           onPress={this.onNext}
-          testID={ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON}
+          testID={OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON}
         >
           {strings('onboarding_wizard_new.coachmark.progress_next')}
         </StyledButton>
@@ -361,7 +355,7 @@ export default class Coachmark extends PureComponent {
           label={strings('onboarding_wizard_new.coachmark.action_back')}
           style={styles.actionButtonPrimary}
           variant={ButtonVariants.Primary}
-          {...generateTestId(Platform, ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID)}
+          testID={OnboardingWizardModalSelectorsIDs.NO_THANKS_BUTTON}
         />
 
         <Button
@@ -371,10 +365,7 @@ export default class Coachmark extends PureComponent {
           label={strings('onboarding_wizard_new.coachmark.action_next')}
           variant={ButtonVariants.Secondary}
           style={styles.actionButtonSecondary}
-          {...generateTestId(
-            Platform,
-            ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID,
-          )}
+          testID={OnboardingWizardModalSelectorsIDs.TAKE_TOUR_BUTTON}
         />
       </View>
     );
@@ -410,7 +401,7 @@ export default class Coachmark extends PureComponent {
                 size={IconSize.Sm}
                 onPress={this.onBack}
                 iconColorOverride={colors.primary.inverse}
-                {...generateTestId(Platform, ONBOARDING_WIZARD_BACK_BUTTON)}
+                testID={OnboardingWizardModalSelectorsIDs.BACK_BUTTON}
               />
             ) : (
               <View />

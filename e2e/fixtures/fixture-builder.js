@@ -389,6 +389,7 @@ class FixtureBuilder {
           lockTime: 30000,
           useBlockieIcon: true,
           hideZeroBalanceTokens: false,
+          basicFunctionalityEnabled: true,
         },
         alert: {
           isVisible: false,
