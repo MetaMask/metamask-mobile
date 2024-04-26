@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
 
 interface Props {
