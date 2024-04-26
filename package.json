@@ -124,7 +124,7 @@
     "@metamask/transaction-controller/@metamask/controller-utils": "^5.0.0",
     "@spruceid/siwe-parser": "2.1.0",
     "apg-js": "4.2.0",
-    "highlight.js": "~10.4.1"
+    "highlight.js": "~10.4.1",
     "web3-provider-engine": "^16.0.8"
   },
   "dependencies": {
