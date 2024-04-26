@@ -59,7 +59,11 @@ describe('lib', () => {
 
       expect(
         async () =>
-          await lib.deriveKey(mockPassword, mockSalt, DERIVATION_OPTIONS_MINIMUM_OWASP2023),
+          await lib.deriveKey(
+            mockPassword,
+            mockSalt,
+            DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+          ),
       ).rejects.toThrow(
         `Invalid number of iterations, should be: ${LEGACY_DERIVATION_OPTIONS.params.iterations}`,
       );

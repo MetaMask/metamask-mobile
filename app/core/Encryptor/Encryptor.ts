@@ -3,7 +3,6 @@ import {
   SALT_BYTES_COUNT,
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
-  KeyDerivationIteration,
 } from './constants';
 import type {
   WithKeyEncryptor,
