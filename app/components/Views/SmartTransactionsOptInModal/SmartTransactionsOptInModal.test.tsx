@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import SmartTransactionsOptInModal from './SmartTranactionsOptInModal';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../util/test/initial-background-state.json';
 import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import AsyncStorage from '../../../store/async-storage-wrapper';
 import { SMART_TRANSACTIONS_OPT_IN_MODAL_APP_VERSION_SEEN } from '../../../constants/storage';
@@ -139,25 +138,7 @@ describe('SmartTransactionsOptInModal', () => {
     );
   });
 
-  it("should navigate to What's New modal if required", async () => {
-    // @ts-ignore
-    shouldShowWhatsNewModal.mockImplementation(async () => true);
-
-    const { getByText } = renderWithProvider(<SmartTransactionsOptInModal />, {
-      state: initialState,
-    });
-
-    const primaryButton = getByText(strings('whats_new.stx.primary_button'));
-    fireEvent.press(primaryButton);
-
-    // Need this since shouldShowWhatsNewModal is an async fn and is awaited on
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.WHATS_NEW,
-      });
-    });
-  });
-  it("should not navigate to What's New modal if not required", async () => {
+  it("should not navigate to What's New modal", async () => {
     // @ts-ignore
     shouldShowWhatsNewModal.mockImplementation(async () => false);
 
