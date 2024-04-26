@@ -3,6 +3,30 @@
 
 ## Current Main Branch
 
+## <Enter Release Number> - <Date>
+
+### Fixed
+- [#](): fix version number
+
+### Other
+- [#9324](https://github.com/MetaMask/metamask-mobile/pull/9324): chore: version bump 1314 (#9324)
+- [#9323](https://github.com/MetaMask/metamask-mobile/pull/9323): chore: bump version update changelog (#9323)
+- [#9311](https://github.com/MetaMask/metamask-mobile/pull/9311): chore: cherry-pick #9181 (#9311)
+- [#9303](https://github.com/MetaMask/metamask-mobile/pull/9303): chore: cherry-pick #9092 (#9303)
+
+
+## <Enter Release Number> - <Date>
+
+### Fixed
+- [#](): fix version number
+
+### Other
+- [#9324](https://github.com/MetaMask/metamask-mobile/pull/9324): chore: version bump 1314 (#9324)
+- [#9323](https://github.com/MetaMask/metamask-mobile/pull/9323): chore: bump version update changelog (#9323)
+- [#9311](https://github.com/MetaMask/metamask-mobile/pull/9311): chore: cherry-pick #9181 (#9311)
+- [#9303](https://github.com/MetaMask/metamask-mobile/pull/9303): chore: cherry-pick #9092 (#9303)
+
+
 
 ## 7.19.0 - Mar 19, 2024
 ### Added

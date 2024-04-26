@@ -76,6 +76,7 @@
     "test:merge-coverage": "nyc report --temp-dir ./tests/coverage --report-dir ./tests/merged-coverage/ --reporter json --reporter text --reporter lcovonly",
     "test:validate-coverage": "nyc check-coverage --nycrc-path ./coverage-thresholds.json -t ./tests/merged-coverage/",
     "update-changelog": "./scripts/auto-changelog.sh",
+    "changeset-changelog": "wrap () { node ./scripts/generate-rc-commits.js \"$@\" | cat  && ./scripts/changelog-csv.sh; }; wrap ",
     "prestorybook": "rnstl",
     "deduplicate": "yarn yarn-deduplicate && yarn install",
     "create-release": "./scripts/set-versions.sh",

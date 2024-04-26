@@ -206,6 +206,8 @@ function escapeCSV(field) {
 function assignChangeType(field) {
   if (field.includes('feat'))
     return 'Added';
+  else if (field.includes('cherry') || field.includes('bump'))
+    return 'Ops';
   else if (field.includes('chore') || field.includes('test') || field.includes('ci')  || field.includes('docs') || field.includes('refactor'))
     return 'Changed';
   else if (field.includes('fix'))

@@ -1,75 +1,60 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 set -u
 set -o pipefail
 
-readonly CSV_FILE='changes.csv'
-# Temporary file for new entries
-NEW_ENTRIES=$(mktemp)
-# Backup file for existing CHANGELOG
-CHANGELOG_BACKUP="CHANGELOG.md.bak"
+readonly URL='https://github.com/MetaMask/metamask-mobile'
 
-# Backup existing CHANGELOG.md
-cp CHANGELOG.md "$CHANGELOG_BACKUP"
+git fetch --tags
 
-# Function to append entry to the correct category in the temp file
-append_entry() {
-    local change_type="$1"
-    local entry="$2"
-    # Ensure the "Other" category is explicitly handled
-    case "$change_type" in
-        Added|Changed|Fixed) ;;
-        *) change_type="Other" ;; # Categorize as "Other" if not matching predefined categories
-    esac
-    echo "$entry" >> "$NEW_ENTRIES-$change_type"
-}
+most_recent_tag="$(git describe --tags "$(git rev-list --tags --max-count=1)")"
 
-# Read the CSV file and append entries to temp files based on change type
-while IFS=, read -r commit_message author pr_link team change_type
+git rev-list "${most_recent_tag}"..HEAD --reverse | while read commit
+
 do
-    pr_id=$(echo "$pr_link" | grep -o '[^/]*$')
-    entry="- [#$pr_id]($pr_link): $commit_message"
-    append_entry "$change_type" "$entry"
-done < <(tail -n +2 "$CSV_FILE") # Skip the header line
+	subject="$(git show -s --format="%s" "$commit")"
 
-# Function to insert new entries into CHANGELOG.md after a specific line
-insert_new_entries() {
-    local marker="## Current Main Branch"
-    local changelog="CHANGELOG.md"
-    local temp_changelog=$(mktemp)
+	# Squash & Merge: the commit subject is parsed as `<description> (#<PR ID>)`
+	if grep -E -q '\(#[[:digit:]]+\)' <<< "$subject"
+	then
+		pr="$(awk '{print $NF}' <<< "$subject" | tr -d '()')"
+		prefix="[$pr]($URL/pull/${pr###}): "
+		description="$(awk '{NF--; print $0}' <<< "$subject")"
 
-    # Find the line number of the marker
-    local line_num=$(grep -n "$marker" "$CHANGELOG_BACKUP" | cut -d ':' -f 1)
+	# Merge: the PR ID is parsed from the git subject (which is of the form `Merge pull request
+	#   #<PR ID> from <branch>`, and the description is assumed to be the first line of the body.
+	#   If no body is found, the description is set to the commit subject
+	elif grep -E -q '#[[:digit:]]+\sfrom' <<< "$subject"
+	then
+		pr="$(awk '{print $4}' <<< "$subject")"
+		prefix="[$pr]($URL/pull/${pr###}): "
 
-    # Split the existing CHANGELOG at the marker line
-    head -n "$line_num" "$CHANGELOG_BACKUP" > "$temp_changelog"
+		first_line_of_body="$(git show -s --format="%b" "$commit" | head -n 1 | tr -d '\r')"
+		if [[ -z "$first_line_of_body" ]]
+		then
+			description="$subject"
+		else
+			description="$first_line_of_body"
+		fi
 
-    # Append the release header
-    echo "" >> "$temp_changelog"
-    echo "## <Enter Release Number> - <Date>" >> "$temp_changelog"
-    echo "" >> "$temp_changelog"
+	# Normal commits: The commit subject is the description, and the PR ID is omitted.
+	else
+		pr=''
+		prefix=''
+		description="$subject"
+	fi
 
-    # Append new entries for each change type if they exist
-    for change_type in Added Changed Fixed Other; do
-        if [[ -s "$NEW_ENTRIES-$change_type" ]]; then
-            echo "### $change_type" >> "$temp_changelog"
-            cat "$NEW_ENTRIES-$change_type" >> "$temp_changelog"
-            echo "" >> "$temp_changelog" # Add a newline for spacing
-        fi
-    done
-
-    # Append the rest of the original CHANGELOG content
-    tail -n +$((line_num + 1)) "$CHANGELOG_BACKUP" >> "$temp_changelog"
-
-    # Replace the original CHANGELOG with the updated one
-    mv "$temp_changelog" "$changelog"
-}
-
-# Insert new entries into CHANGELOG.md
-insert_new_entries
-
-# Cleanup
-rm "$NEW_ENTRIES-"* "$CHANGELOG_BACKUP"
-
+	# add entry to CHANGELOG
+	if [[ "$OSTYPE" == "linux-gnu" ]]
+	then
+		# shellcheck disable=SC1004
+		sed -i'' '/## Current Main Branch/a\
+- '"$prefix$description"''$'\n' CHANGELOG.md
+	else
+		# shellcheck disable=SC1004
+		sed -i '' '/## Current Main Branch/a\
+- '"$prefix$description"''$'\n' CHANGELOG.md
+	fi
+done
 echo 'CHANGELOG updated'
