@@ -18,18 +18,6 @@ export default class SwapView {
     await waitFor(element(by.id(SwapsViewSelectors.SWIPE_TO_SWAP_BUTTON)))
       .toBeVisible(100)
       .withTimeout(8000);
-
-    if (
-      await TestHelpers.checkIfElementByTextIsVisible(
-        enContent.swaps.fetching_quotes,
-      )
-    ) {
-      await TestHelpers.checkIfElementWithTextIsNotVisible(
-        enContent.swaps.fetching_quotes,
-      );
-    } else {
-      return;
-    }
     await TestHelpers.delay(3000);
     await TestHelpers.swipe(
       SwapsViewSelectors.SWIPE_TO_SWAP_BUTTON,
