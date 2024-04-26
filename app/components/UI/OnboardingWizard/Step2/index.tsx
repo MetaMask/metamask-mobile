@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Platform, StyleSheet, Text, View } from 'react-native';
@@ -43,10 +44,19 @@ const Step2 = ({ coachmarkRef, onClose }: Step2Props) => {
     const yourAccRef = coachmarkRef.yourAccountRef?.current;
     if (!yourAccRef) return;
 
-    yourAccRef.measure((accActionsHeight: number, accActionsPageY: number) => {
-      const top = accActionsHeight + accActionsPageY;
-      setCoachmarkTop(top);
-    });
+    yourAccRef.measure(
+      (
+        accActionsFx: number,
+        accActionsFy: number,
+        accActionsWidth: number,
+        accActionsHeight: number,
+        accActionsPageX: number,
+        accActionsPageY: number,
+      ) => {
+        const top = accActionsHeight + accActionsPageY;
+        setCoachmarkTop(top);
+      },
+    );
   }, [coachmarkRef.yourAccountRef]);
 
   useEffect(() => {
