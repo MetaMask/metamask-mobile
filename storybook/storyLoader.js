@@ -68,6 +68,7 @@ function loadStories() {
   require('../app/components/Base/Title.stories');
   require('../app/components/UI/ButtonReveal/ButtonReveal.stories');
   require('../app/components/UI/Fox/Fox.stories');
+  require('../app/components/UI/NameTag/NameTag.stories');
   require('../app/components/UI/StyledButton/StyledButton.stories');
   require('../app/components/UI/TextEstimated/TextEstimated.stories');
   require('../app/components/UI/WarningAlert/WarningAlert.stories');
@@ -75,7 +76,6 @@ function loadStories() {
   require('../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories');
   require('../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories');
   require('../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories');
-  require('../app/component-library/components-temp/NameTag/NameTag.stories');
   require('../app/component-library/components-temp/TagColored/TagColored.stories');
 }
 
@@ -144,6 +144,7 @@ const stories = [
   '../app/components/Base/Title.stories',
   '../app/components/UI/ButtonReveal/ButtonReveal.stories',
   '../app/components/UI/Fox/Fox.stories',
+  '../app/components/UI/NameTag/NameTag.stories',
   '../app/components/UI/StyledButton/StyledButton.stories',
   '../app/components/UI/TextEstimated/TextEstimated.stories',
   '../app/components/UI/WarningAlert/WarningAlert.stories',
@@ -151,7 +152,6 @@ const stories = [
   '../app/component-library/components-temp/Accounts/AccountBalance/AccountBalance.stories',
   '../app/component-library/components-temp/Contracts/ContractBox/ContractBox.stories',
   '../app/component-library/components-temp/CustomSpendCap/CustomSpendCap.stories',
-  '../app/component-library/components-temp/NameTag/NameTag.stories',
   '../app/component-library/components-temp/TagColored/TagColored.stories',
 ];
 

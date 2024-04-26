@@ -1,14 +1,9 @@
-/* eslint-disable react/display-name */
-/* eslint-disable react-native/no-inline-styles */
-// External dependencies.
 import React from 'react';
 import { View } from 'react-native';
-
-// Internal dependencies.
-import { default as NameTagComponent } from './NameTag';
-import { Meta, StoryObj } from '@storybook/react-native';
 import { Provider } from 'react-redux';
+import { Meta, StoryObj } from '@storybook/react-native';
 import { configureStore } from '@reduxjs/toolkit';
+import { default as NameTagComponent } from './NameTag';
 import { NameTagProperties } from './NameTag.types';
 
 const backdropStyle = { backgroundColor: 'white', padding: 50 };
@@ -24,7 +19,7 @@ const storeMock = configureStore({
 });
 
 const meta: Meta<typeof NameTagComponent> = {
-  title: 'Components Temp / NameTag',
+  title: 'Components / UI / NameTag',
   component: NameTagComponent,
   decorators: [
     (story) => (
