@@ -25,7 +25,6 @@ import Icon, {
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { Colors } from '../../../util/theme/models';
 import { SmartTransactionsOptInModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SmartTransactionsOptInModal.selectors';
-import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import Button, {
   ButtonVariants,
