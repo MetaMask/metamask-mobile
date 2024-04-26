@@ -339,6 +339,7 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
+    "xhr2": "^0.2.1",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
