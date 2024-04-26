@@ -121,7 +121,7 @@ import {
   LoggingControllerActions,
 } from '@metamask/logging-controller';
 import LedgerKeyring from '@consensys/ledgerhq-metamask-keyring';
-import Encryptor from './Encryptor';
+import { Encryptor, LEGACY_DERIVATION_PARAMS } from './Encryptor';
 import {
   isMainnetByChainId,
   getDecimalChainId,
@@ -171,7 +171,7 @@ import {
 import { hasProperty, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
@@ -190,7 +190,9 @@ import {
 
 const NON_EMPTY = 'NON_EMPTY';
 
-const encryptor = new Encryptor();
+const encryptor = new Encryptor({
+  derivationParams: LEGACY_DERIVATION_PARAMS,
+});
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -1552,7 +1554,7 @@ class Engine {
 
   rejectPendingApproval(
     id: string,
-    reason: Error = ethErrors.provider.userRejectedRequest(),
+    reason: Error = providerErrors.userRejectedRequest(),
     opts: { ignoreMissing?: boolean; logErrors?: boolean } = {},
   ) {
     const { ApprovalController } = this.context;

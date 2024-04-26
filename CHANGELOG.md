@@ -2,7 +2,66 @@
 
 ## Current Main Branch
 
-## 7.20.0 - Apr 1, 2024
+## 7.21.0 - Apr 25, 2024
+### Added
+- [#9222](https://github.com/MetaMask/metamask-mobile/pull/9222): feat:  Cherry pick controller utils v5 (#9222)
+- [#9218](https://github.com/MetaMask/metamask-mobile/pull/9218): feat: cherry-pick assets controller v14 (#9218)
+- [#9065](https://github.com/MetaMask/metamask-mobile/pull/9065): feat: Update network controller to version 13.0.1 (#9065)
+- [#9166](https://github.com/MetaMask/metamask-mobile/pull/9166): feat: signature controller update to v6.0.0 (#9166)
+- [#9194](https://github.com/MetaMask/metamask-mobile/pull/9194): feat: 7.19.1 (#9194)
+- [#9136](https://github.com/MetaMask/metamask-mobile/pull/9136): feat: add eth stake button (#9136)
+- [#8988](https://github.com/MetaMask/metamask-mobile/pull/8988): feat: import tokens new UI (#8988)
+- [#9205](https://github.com/MetaMask/metamask-mobile/pull/9205): feat: translate multi import tokens (#9205)
+- [#9161](https://github.com/MetaMask/metamask-mobile/pull/9161): feat: update popular network (#9161)
+- [#9165](https://github.com/MetaMask/metamask-mobile/pull/9165): feat: translate symbol warning text (#9165)
+- [#9110](https://github.com/MetaMask/metamask-mobile/pull/9110): feat: patch linea token pricing (#9110)
+- [#9114](https://github.com/MetaMask/metamask-mobile/pull/9114): feat: sdk deeplinking protocol (#9114)
+- [#9188](https://github.com/MetaMask/metamask-mobile/pull/9188): feat: wc fixes + ux improvements (#9188)
+- [#9045](https://github.com/MetaMask/metamask-mobile/pull/9045): feat: sdk connection dependency upgrade (#9045)
+- [#8701](https://github.com/MetaMask/metamask-mobile/pull/8701): feat: notifications (#8701)
+
+### Changed
+- [#9199](https://github.com/MetaMask/metamask-mobile/pull/9199): chore: Chore/resolve xcode changes (#9199)
+- [#9197](https://github.com/MetaMask/metamask-mobile/pull/9197): test: Change instances of messages to enContent while importing from locales (#9197)
+- [#9181](https://github.com/MetaMask/metamask-mobile/pull/9181): test: fix rpc test on Ci for Android (#9181)
+- [#9124](https://github.com/MetaMask/metamask-mobile/pull/9124): chore: added new privacy file and identified reason for using privacy APIs (#9124)
+- [#9146](https://github.com/MetaMask/metamask-mobile/pull/9146): test: Refactor Tab bar page object (#9146)
+- [#9135](https://github.com/MetaMask/metamask-mobile/pull/9135): chore: Update dependabot.yml to use new team label (#9135)
+- [#9106](https://github.com/MetaMask/metamask-mobile/pull/9106): test: fix secrets for tenderly (#9106)
+- [#9217](https://github.com/MetaMask/metamask-mobile/pull/9217): chore: cherry-pick #9092 (#9217)
+- [#8992](https://github.com/MetaMask/metamask-mobile/pull/8992): chore: New Crowdin translations by Github Action (#8992)
+- [#9190](https://github.com/MetaMask/metamask-mobile/pull/9190): chore(deps): bump tar from 6.2.0 to 6.2.1 (#9190)
+- [#9189](https://github.com/MetaMask/metamask-mobile/pull/9189): chore(deps): bump tar from 6.2.0 to 6.2.1 in /scripts/generate-attributions (#9189)
+- [#9025](https://github.com/MetaMask/metamask-mobile/pull/9025): chore: improve yarn setup logs (#9025)
+- [#9024](https://github.com/MetaMask/metamask-mobile/pull/9024): docs: Add xocde required config steps (#9024)
+- [#9139](https://github.com/MetaMask/metamask-mobile/pull/9139): chore(deps): bump es5-ext from 0.10.62 to 0.10.64 (#9139)
+- [#9133](https://github.com/MetaMask/metamask-mobile/pull/9133): chore(deps-dev): bump chromedriver from 99.0.0 to 123.0.1 (#9133)
+- [#8645](https://github.com/MetaMask/metamask-mobile/pull/8645): chore(deps): bump ip from 1.1.5 to 1.1.9 (#8645)
+- [#9062](https://github.com/MetaMask/metamask-mobile/pull/9062): chore(deps): bump express from 4.18.2 to 4.19.2 (#9062)
+- [#9028](https://github.com/MetaMask/metamask-mobile/pull/9028): chore(deps): bump webpack-dev-middleware from 6.1.1 to 6.1.2 (#9028)
+- [#8674](https://github.com/MetaMask/metamask-mobile/pull/8674): refactor: Remove usage of regex for portfolio URLs (#8674)
+- [#5022](https://github.com/MetaMask/metamask-mobile/pull/5022): chore: Bump buffer from 5.2.1 to 6.0.3 (#5022)
+- [#5093](https://github.com/MetaMask/metamask-mobile/pull/5093): chore: Bump pify from 4.0.1 to 6.1.0 (#5093)
+
+### Fixed
+- [#8958](https://github.com/MetaMask/metamask-mobile/pull/8958): fix: unit test metametrics at app startup (#8958)
+- [#9206](https://github.com/MetaMask/metamask-mobile/pull/9206): fix: fix nfts displayed on account and refactor collectibles component (#9206)
+- [#9174](https://github.com/MetaMask/metamask-mobile/pull/9174): fix: change CUSTOM_TOKEN_IMPORTED tracking mode (#9174)
+- [#9148](https://github.com/MetaMask/metamask-mobile/pull/9148): fix: Tokens disappearing when updating (#9148)
+- [#9123](https://github.com/MetaMask/metamask-mobile/pull/9123): fix: Revert  Update controller utils to 5.0.2 (#9123)
+- [#8603](https://github.com/MetaMask/metamask-mobile/pull/8603): fix: nft detection running too many times (#8603)
+- [#9125](https://github.com/MetaMask/metamask-mobile/pull/9125): fix: add display warning for mumbai (#9125)
+- [#9150](https://github.com/MetaMask/metamask-mobile/pull/9150): fix: wc connections and permissions system network improvement (#9150)
+- [#9185](https://github.com/MetaMask/metamask-mobile/pull/9185): fix: 9108 Keystone QR code can't send asset transaction (#9185)
+- [#8745](https://github.com/MetaMask/metamask-mobile/pull/8745): fix: request location permission after it is rejected during Ledger connection (#8745)
+- [#9202](https://github.com/MetaMask/metamask-mobile/pull/9202): fix: Revert PR 9075 (#9202)
+- [#9075](https://github.com/MetaMask/metamask-mobile/pull/9075): fix: Send ppom metrics when transaction is cancelled. (#9075)
+
+## 7.20.1 - Apr 18, 2024
+### Fixed
+- [#9092](https://github.com/MetaMask/metamask-mobile/pull/9092): fix: check HD keyring
+
+## 7.20.0 - Apr 12, 2024
 ### Added
 - [#8982](https://github.com/MetaMask/metamask-mobile/pull/8982): feat: Update gas fee controller to version 6.1.2
 - [#9079](https://github.com/MetaMask/metamask-mobile/pull/9079): feat: Update controller utils to 5.0.2

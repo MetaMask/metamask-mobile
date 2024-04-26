@@ -17,6 +17,7 @@ import TestHelpers from '../../helpers';
 import WalletView from '../../pages/WalletView';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
+import Assertions from '../../utils/Assertions';
 
 const SAI_CONTRACT_ADDRESS = '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
 const fixtureServer = new FixtureServer();
@@ -77,6 +78,6 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
   });
 
   it('should see protect your wallet modal', async () => {
-    await ProtectYourWalletModal.isVisible();
+    await Assertions.checkIfVisible(ProtectYourWalletModal.container);
   });
 });
