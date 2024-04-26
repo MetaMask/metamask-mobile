@@ -107,6 +107,7 @@ exports[`TabThumbnail should render correctly 1`] = `
           </View>
         </View>
         <Text
+          accessibilityRole="text"
           numberOfLines={1}
           style={
             Object {
@@ -114,6 +115,8 @@ exports[`TabThumbnail should render correctly 1`] = `
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
+              "letterSpacing": 0,
+              "lineHeight": 22,
               "marginLeft": 5,
               "marginRight": 40,
               "marginTop": 0,
@@ -212,14 +215,20 @@ exports[`TabThumbnail should render correctly 1`] = `
       }
     >
       <Text
+        accessibilityRole="text"
         ellipsizeMode="tail"
         numberOfLines={1}
         style={
           Object {
-            "width": "90%",
+            "color": "#24272A",
+            "flex": 1,
+            "fontFamily": "Euclid Circular B",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
           }
         }
-        variant="sBodySMBold"
       >
         undefined account
          - 
