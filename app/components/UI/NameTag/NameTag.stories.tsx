@@ -36,5 +36,11 @@ export const UnknownAddress: Story = {
 };
 
 export const NarrowWidth: Story = {
-  args: { address: ADDRESS_1, style: { width: 150 } },
+  render() {
+    return (
+      <View style={backdropStyle}>
+        <NameTagComponent address={ADDRESS_1} />
+      </View>
+    );
+  },
 };

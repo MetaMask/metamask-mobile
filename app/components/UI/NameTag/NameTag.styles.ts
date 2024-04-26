@@ -1,4 +1,4 @@
-import { StyleSheet, TextStyle, ViewProps, ViewStyle } from 'react-native';
+import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 import { DisplayNameVariant } from '../../hooks/DisplayName/useDisplayName';
 
@@ -12,19 +12,19 @@ import { DisplayNameVariant } from '../../hooks/DisplayName/useDisplayName';
  */
 const styleSheet = (params: {
   theme: Theme;
-  vars: { style: ViewProps['style']; displayNameVariant: DisplayNameVariant };
+  vars: { displayNameVariant: DisplayNameVariant };
 }) => {
   const { theme, vars } = params;
   const { colors } = theme;
-  const { style, displayNameVariant } = vars;
+  const { displayNameVariant } = vars;
 
   const backgroundColor =
-    displayNameVariant === DisplayNameVariant.SavedName
+    displayNameVariant === DisplayNameVariant.Saved
       ? colors.info.muted
       : colors.background.alternative;
 
   const textColor =
-    displayNameVariant === DisplayNameVariant.SavedName
+    displayNameVariant === DisplayNameVariant.Saved
       ? colors.info.default
       : colors.text.default;
 
@@ -46,7 +46,7 @@ const styleSheet = (params: {
   };
 
   return StyleSheet.create({
-    base: Object.assign(baseStyle, style),
+    base: baseStyle,
     label: labelStyle,
   });
 };

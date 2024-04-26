@@ -1,5 +1,3 @@
-import { ViewProps } from 'react-native';
-
-export interface NameTagProperties extends ViewProps {
+export interface NameTagProperties {
   address: string;
 }

@@ -1,3 +1,5 @@
+import { toChecksumAddress } from 'ethereumjs-util';
+
 /**
  * Indicate the source and nature of a display name for a given address.
  */
@@ -8,7 +10,7 @@ export enum DisplayNameVariant {
    * This indicates that the user has manually set a custom "petname"
    * for the address.
    */
-  SavedName = 'SavedName',
+  Saved = 'Saved',
 
   /**
    * The display name is provided by MetaMask for a known token or contract.
@@ -16,14 +18,15 @@ export enum DisplayNameVariant {
    * MetaMask recognizes certain tokens and contracts and provides a default
    * display name for them.
    */
-  RecognizedName = 'RecognizedName',
+  Recognized = 'Recognized',
 
   /**
    * The address is not known to MetaMask and the user has not saved a custom
    * name. The address itself is used as the display name.
    */
-  UnknownAddress = 'UnknownAddress',
+  Unknown = 'Unknown',
 }
+
 export interface DisplayName {
   /**
    * The type of this display name.
@@ -41,8 +44,8 @@ export interface DisplayName {
  * @param address The address to get the display name for.
  */
 const useDisplayName: (address: string) => DisplayName = (address) => ({
-  variant: DisplayNameVariant.UnknownAddress,
-  name: address,
+  variant: DisplayNameVariant.Unknown,
+  name: toChecksumAddress(address),
 });
 
 export default useDisplayName;
