@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -10,9 +10,8 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 import { useMetrics } from '../../../hooks/useMetrics';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
 
 const styles = StyleSheet.create({
   main: {
@@ -82,7 +81,7 @@ const Step3 = ({ coachmarkRef, onClose }: Step3Props) => {
       <View style={dynamicOnboardingStyles.contentContainer}>
         <Text
           style={dynamicOnboardingStyles.content}
-          {...generateTestId(Platform, ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID)}
+          testID={OnboardingWizardModalSelectorsIDs.STEP_THREE_CONTAINER}
         >
           {strings('onboarding_wizard_new.step3.content1')}
         </Text>

@@ -7,9 +7,6 @@ export const ONBOARDING_WIZARD_STEP_1_NO_THANKS_ID =
 export const ONBOARDING_WIZARD_STEP_1_TAKE_THE_TOUR_ID =
   'onboarding-wizard-next-button';
 
-export const ONBOARDING_WIZARD_SKIP_TUTORIAL_BUTTON =
-  'onboarding-wizard-skip-button';
-
 export const ONBOARDING_WIZARD_NEXT_GOT_IT_BUTTON =
   'onboarding-wizard-got-it-button';
 
