@@ -10,6 +10,7 @@ import initialBackgroundState from '../../../util/test/initial-background-state.
 // Internal dependencies
 import NetworkSelector from './NetworkSelector';
 import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
 
 const mockEngine = Engine;
 
@@ -140,7 +141,9 @@ describe('Network Selector', () => {
   });
   it('toggles the test networks switch correctly', () => {
     const { getByTestId } = renderComponent(initialState);
-    const testNetworksSwitch = getByTestId('test-network-switch-id');
+    const testNetworksSwitch = getByTestId(
+      NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
+    );
 
     fireEvent(testNetworksSwitch, 'onValueChange', true);
 
@@ -167,7 +170,9 @@ describe('Network Selector', () => {
         },
       },
     });
-    const testNetworksSwitch = getByTestId('test-network-switch-id');
+    const testNetworksSwitch = getByTestId(
+      NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
+    );
 
     expect(testNetworksSwitch.props.value).toBeTruthy();
     expect(testNetworksSwitch.props.disabled).toBeTruthy();
