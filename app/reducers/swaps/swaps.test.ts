@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { cloneDeep } from 'lodash';
 import Device from '../../util/device';
 import reducer, {
@@ -60,6 +61,7 @@ describe('swaps reducer', () => {
       Device.isAndroid = jest.fn().mockReturnValue(false);
 
       const initalState = reducer(undefined, emptyAction);
+      // @ts-ignore
       const liveState = reducer(initalState, {
         type: SWAPS_SET_LIVENESS,
         payload: {
@@ -91,6 +93,7 @@ describe('swaps reducer', () => {
         },
       };
 
+      // @ts-ignore
       const liveState = reducer(initalState, {
         type: SWAPS_SET_LIVENESS,
         payload: {
@@ -122,6 +125,7 @@ describe('swaps reducer', () => {
         },
       };
 
+      // @ts-ignore
       const liveState = reducer(initalState, {
         type: SWAPS_SET_LIVENESS,
         payload: {
@@ -153,6 +157,7 @@ describe('swaps reducer', () => {
         },
       };
 
+      // @ts-ignore
       const liveState = reducer(initalState, {
         type: SWAPS_SET_LIVENESS,
         payload: {
@@ -178,7 +183,6 @@ describe('swaps reducer', () => {
       };
 
       rootState.swaps = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         featureFlags: {
           smart_transactions: {
@@ -193,7 +197,6 @@ describe('swaps reducer', () => {
           },
         },
         '0x1': {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           featureFlags: {
             smartTransactions: {
@@ -222,7 +225,6 @@ describe('swaps reducer', () => {
       };
 
       rootState.swaps = {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         featureFlags: {
           smart_transactions: {
@@ -237,7 +239,6 @@ describe('swaps reducer', () => {
           },
         },
         '0x1': {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           featureFlags: {
             smartTransactions: {
@@ -272,14 +273,12 @@ describe('swaps reducer', () => {
 
   it('should set has onboarded', () => {
     const initalState = reducer(undefined, emptyAction);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const notOnboardedState = reducer(initalState, {
       type: SWAPS_SET_HAS_ONBOARDED,
       payload: false,
     });
     expect(notOnboardedState.hasOnboarded).toBe(false);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const liveState = reducer(initalState, {
       type: SWAPS_SET_HAS_ONBOARDED,
