@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useContext, useMemo } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
-import Text from '../../../../component-library/components/Texts/Text';
 import ElevatedView from 'react-native-elevated-view';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
@@ -12,7 +11,9 @@ import Avatar, {
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 import AppConstants from '../../../../core/AppConstants';
 import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
@@ -88,7 +89,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
                   <Badge
                     variant={BadgeVariant.Network}
                     // TODO: get the correct image source for the active network
-                    imageSource={14}
+                    imageSource={networkBadgeSource}
                     name={'Ethereum'}
                   />
                 }
