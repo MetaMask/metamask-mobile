@@ -71,22 +71,23 @@ function NotificationIcon({
     >
       {notificationType.toLowerCase().includes('eth') ? (
         <NetworkMainAssetLogo style={styles.ethLogo} />
-      ) : svgSource ? (
-        <View style={styles.assetLogo}>
-          <SvgUri
-            uri={
-              'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg'
-            }
-            width={'100%'}
-            height={'100%'}
-          />
-        </View>
-      ) : (
+      ) : !svgSource ? (
         <RemoteImage
           source={{ uri: imageUrl }}
           style={customStyles().style}
           placeholderStyle={customStyles().placeholderStyle}
         />
+      ) : (
+        <View style={customStyles().style}>
+          <SvgUri
+            uri={
+              svgSource ??
+              'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg'
+            }
+            width={32}
+            height={32}
+          />
+        </View>
       )}
     </BadgeWrapper>
   );
