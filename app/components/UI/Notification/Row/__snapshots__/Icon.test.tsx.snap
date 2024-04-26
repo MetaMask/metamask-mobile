@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationIcon renders correctly with Announcement type 1`] = `
+<View
+  style={Object {}}
+  testID="notification-icon-fox"
+>
+  <Image
+    resizeMethod="auto"
+    source={
+      Object {
+        "default": Object {
+          "uri": "MockImage",
+        },
+      }
+    }
+    style={Object {}}
+    testID="fox-icon"
+  />
+</View>
+`;
