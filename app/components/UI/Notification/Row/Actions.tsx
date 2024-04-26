@@ -45,6 +45,7 @@ function NotificationActions({
 
   return (
     <Button
+      testID="notification-actions-button"
       variant={ButtonVariants.Secondary}
       label={link?.linkText || action?.actionText}
       onPress={handleCTAPress}

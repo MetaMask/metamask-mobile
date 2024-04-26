@@ -10,14 +10,10 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
-const Empty = () => {
+const Empty = ({ testID }: { testID?: string }) => {
   const styles = createStyles();
   return (
-    <View
-      style={styles.wrapper}
-      testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
-    >
+    <View style={styles.wrapper} testID={testID}>
       <Icon
         name={IconName.Notification}
         size={IconSize.Xl}

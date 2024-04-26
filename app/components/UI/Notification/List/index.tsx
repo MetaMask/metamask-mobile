@@ -17,6 +17,7 @@ import {
   Notification,
   getRowDetails,
 } from '../../../../util/notifications';
+import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
 
 interface NotificationsList {
   navigation: any;
@@ -135,7 +136,11 @@ const Notifications = ({
         keyExtractor={(_, index) => index.toString()}
         key={combinedLists.indexOf(list)}
         data={list}
-        ListEmptyComponent={<Empty />}
+        ListEmptyComponent={
+          <Empty
+            testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
+          />
+        }
         contentContainerStyle={styles.list}
         renderItem={({ item }) => renderNotificationRow(item)}
         initialNumToRender={10}
