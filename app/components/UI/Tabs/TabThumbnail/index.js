@@ -85,17 +85,15 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
             <View style={styles.badgeWrapperContainer}>
               <BadgeWrapper
                 badgeElement={
-                  // TODO: figure out the badge size, according to figma should be smaller
                   <Badge
+                    size={AvatarSize.Sm}
                     variant={BadgeVariant.Network}
-                    // TODO: get the correct image source for the active network
                     imageSource={networkBadgeSource}
-                    name={'Ethereum'}
+                    name={networkName}
                   />
                 }
               >
                 <Avatar
-                  // TODO: figure out the avatar size, according to figma should be smaller than Sm, but bigger than Xs
                   size={AvatarSize.Xs}
                   variant={AvatarVariant.Account}
                   accountAddress={selectedAccount?.address}
@@ -104,7 +102,6 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
             </View>
           )}
           <Text
-            // TODO: figure out why the variant is not taking effect when changed
             variant={TextVariant.BodySM}
             style={styles.footerText}
             numberOfLines={1}
