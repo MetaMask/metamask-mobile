@@ -35,6 +35,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import preProcessAnalyticsEvent from '../../util/events/preProcessAnalyticsEvent';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -331,7 +332,6 @@ class MetaMetrics implements IMetaMetrics {
     properties: JsonMap,
     saveDataRecording = true,
   ): void => {
-    console.log('XXX #trackEvent:', event, properties);
     this.segmentClient?.track(event, properties);
     saveDataRecording &&
       !this.dataRecorded &&
@@ -586,12 +586,11 @@ class MetaMetrics implements IMetaMetrics {
     return Promise.resolve();
   };
 
-  parseProperties = (
+  handleEvent = (
     event: IMetaMetricsEvent,
     params: JsonMap,
     saveDataRecording: boolean,
   ) => {
-    let anonymousEvent = false;
     if (!params || Object.keys(params).length === 0) {
       this.#trackEvent(
         event?.category,
@@ -599,37 +598,10 @@ class MetaMetrics implements IMetaMetrics {
         saveDataRecording,
       );
     }
-
-    const userParams = {} as any;
-    const anonymousParams = {} as any;
-
-    for (const key in params) {
-      const property = params[key];
-
-      if (
-        property &&
-        typeof property === 'object' &&
-        !Array.isArray(property)
-      ) {
-        if (property.anonymous) {
-          anonymousEvent = true;
-          // Anonymous property - add only to anonymous params
-          anonymousParams[key] = property.value;
-        } else {
-          // Non-anonymous property - add to both
-          userParams[key] = property.value;
-          anonymousParams[key] = property.value;
-        }
-      } else {
-        // Non-anonymous properties - add to both
-        userParams[key] = property;
-        anonymousParams[key] = property;
-      }
-    }
+    const [userParams, anonymousParams] = preProcessAnalyticsEvent(params);
 
     // Log all non-anonymous properties
     if (Object.keys(userParams).length) {
-      console.log('++++++ non-anonymous params:', userParams);
       this.#trackEvent(
         event?.category,
         { anonymous: false, ...event?.properties, ...userParams },
@@ -638,8 +610,7 @@ class MetaMetrics implements IMetaMetrics {
     }
 
     // Log all anonymous properties
-    if (anonymousEvent && Object.keys(anonymousParams).length) {
-      console.log('++++++ anonymous params:', anonymousParams);
+    if (Object.keys(anonymousParams).length) {
       this.#trackEvent(
         event.category,
         { anonymous: true, ...anonymousParams },
@@ -667,16 +638,7 @@ class MetaMetrics implements IMetaMetrics {
     saveDataRecording = true,
   ): void {
     if (this.enabled) {
-      const { anonymous } = properties;
-      anonymous &&
-        console.log('>>>>>>>> current trackAnonymous data:', event, properties);
-      this.parseProperties(event, properties, saveDataRecording);
-      // this.#trackEvent(
-      //   event.category,
-      //   { anonymous: true, ...properties },
-      //   saveDataRecording,
-      // );
-      // this.#trackEvent(event.category, { anonymous: true }, saveDataRecording);
+      this.handleEvent(event, properties, saveDataRecording);
     }
   }
 
@@ -693,19 +655,7 @@ class MetaMetrics implements IMetaMetrics {
     saveDataRecording = true,
   ): void => {
     if (this.enabled) {
-      // FRANK: filter out "anonymous" property from the properties and then pass thru
-      // TODO: account for someone sending anonymous data here
-      // pass anonymous data to the anonymous event
-      const { anonymous } = properties;
-      anonymous &&
-        console.log('(>>>>>>>> current trackEvent data:', event, properties);
-      this.parseProperties(event, properties, saveDataRecording);
-      // this.#trackEvent(
-      //   // NOTE: we use optional event to avoid undefined error in case of legacy untyped call form JS
-      //   event?.category,
-      //   { anonymous: false, ...event?.properties, ...properties },
-      //   saveDataRecording,
-      // );
+      this.handleEvent(event, properties, saveDataRecording);
     }
   };
 
