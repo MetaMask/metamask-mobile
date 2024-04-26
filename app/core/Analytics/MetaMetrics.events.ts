@@ -22,7 +22,7 @@ const generateOpt = (
   return { category: name };
 };
 
-const ONBOARDING_WIZARD_STEP_DESCRIPTION = {
+const ONBOARDING_WIZARD_STEP_DESCRIPTION: { [key: number]: string } = {
   1: 'Welcome',
   2: 'Accounts',
   3: 'Account Name',

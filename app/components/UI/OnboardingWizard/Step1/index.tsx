@@ -1,7 +1,7 @@
-import React, { PureComponent } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import React, { useCallback, useContext } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
+import { useDispatch } from 'react-redux';
+
 import Coachmark from '../Coachmark';
 import Device from '../../../../util/device';
 import setOnboardingWizardStep from '../../../../actions/wizard';
@@ -11,11 +11,10 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
-
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
-import { withMetricsAwareness } from '../../../hooks/useMetrics';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
   main: {
@@ -32,87 +31,55 @@ const styles = StyleSheet.create({
     bottom: Device.isIphoneX() ? 80 : Device.isIos() ? 40 : 64,
   },
 });
+interface Step1Props {
+  onClose: (arg0: boolean) => void;
+}
 
-class Step1 extends PureComponent {
-  static propTypes = {
-    /**
-     * Callback called when closing step
-     */
-    onClose: PropTypes.func,
-    /**
-     * Dispatch set onboarding wizard step
-     */
-    setOnboardingWizardStep: PropTypes.func,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
-  };
+const Step1 = ({ onClose }: Step1Props) => {
+  const theme = useContext(ThemeContext) || mockTheme;
+  const dynamicOnboardingStyles = onboardingStyles(theme.colors);
+  const dispatch = useDispatch();
+  const { trackEvent } = useMetrics();
 
-  /**
-   * Dispatches 'setOnboardingWizardStep' with next step
-   */
-  onNext = () => {
-    const { setOnboardingWizardStep } = this.props;
-    setOnboardingWizardStep && setOnboardingWizardStep(2);
-
-    this.props.metrics.trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
-      tutorial_step_count: 1,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
-    });
-  };
-
-  /**
-   * Calls props 'onClose'
-   */
-  onClose = () => {
-    const { onClose } = this.props;
-    onClose?.(false);
-  };
-
-  /**
-   * Returns content for this step
-   */
-  content = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const dynamicOnboardingStyles = onboardingStyles(colors);
-
-    return (
+  const content = useCallback(
+    () => (
       <View style={dynamicOnboardingStyles.contentContainer}>
         <Text style={dynamicOnboardingStyles.content}>
           {strings('onboarding_wizard_new.step1.content1')}
         </Text>
       </View>
-    );
-  };
+    ),
+    [dynamicOnboardingStyles],
+  );
 
-  render() {
-    return (
-      <View
-        style={styles.main}
-        {...generateTestId(Platform, ONBOARDING_WIZARD_STEP_1_CONTAINER_ID)}
-      >
-        <View style={styles.coachmarkContainer}>
-          <Coachmark
-            title={strings('onboarding_wizard_new.step1.title')}
-            content={this.content()}
-            onNext={this.onNext}
-            onBack={this.onClose}
-            coachmarkStyle={styles.coachmark}
-            bottomIndicatorPosition={'bottomLeftCorner'}
-            action
-            onClose={this.onClose}
-          />
-        </View>
+  const onNext = useCallback(() => {
+    dispatch(setOnboardingWizardStep?.(2));
+
+    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
+      tutorial_step_count: 1,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
+    });
+  }, [dispatch, trackEvent]);
+
+  return (
+    <View
+      style={styles.main}
+      {...generateTestId(Platform, ONBOARDING_WIZARD_STEP_1_CONTAINER_ID)}
+    >
+      <View style={styles.coachmarkContainer}>
+        <Coachmark
+          title={strings('onboarding_wizard_new.step1.title')}
+          content={content()}
+          onNext={onNext}
+          onBack={onClose}
+          coachmarkStyle={styles.coachmark}
+          bottomIndicatorPosition={'bottomLeftCorner'}
+          action
+          onClose={onClose}
+        />
       </View>
-    );
-  }
-}
+    </View>
+  );
+};
 
-const mapDispatchToProps = (dispatch) => ({
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-});
-
-Step1.contextType = ThemeContext;
-
-export default connect(null, mapDispatchToProps)(withMetricsAwareness(Step1));
+export default Step1;
