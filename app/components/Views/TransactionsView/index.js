@@ -67,7 +67,6 @@ const TransactionsView = ({
       const addedAccountTime = identities[selectedAddress]?.importTime;
 
       const submittedTxs = [];
-      const newPendingTxs = [];
       const confirmedTxs = [];
       const submittedNonces = [];
 
@@ -101,9 +100,6 @@ const TransactionsView = ({
           case TX_PENDING:
             submittedTxs.push(tx);
             return false;
-          // case TX_PENDING:
-          //   newPendingTxs.push(tx);
-          //   break;
           case TX_CONFIRMED:
             confirmedTxs.push(tx);
             break;
