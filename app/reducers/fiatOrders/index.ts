@@ -187,8 +187,7 @@ export const getOrders = createSelector(
       (order) =>
         !order.excludeFromPurchases &&
         order.account === selectedAddress &&
-        (isTestNet(toHex(chainId)) ||
-          Number(order.network) === Number(chainId)),
+        (order.network === chainId || isTestNet(toHex(chainId))),
     ),
 );
 
@@ -200,7 +199,7 @@ export const getPendingOrders = createSelector(
     orders.filter(
       (order) =>
         order.account === selectedAddress &&
-        Number(order.network) === Number(chainId) &&
+        order.network === chainId &&
         order.state === FIAT_ORDER_STATES.PENDING,
     ),
 );
@@ -218,7 +217,7 @@ export const getCustomOrderIds = createSelector(
     customOrderIds.filter(
       (customOrderId) =>
         customOrderId.account === selectedAddress &&
-        Number(customOrderId.chainId) === Number(chainId),
+        customOrderId.chainId === chainId,
     ),
 );
 
@@ -255,8 +254,8 @@ export const networkShortNameSelector = createSelector(
   getRampNetworks,
   (chainId, networks) => {
     const network = networks.find(
-      (aggregatorNetwork) =>
-        Number(aggregatorNetwork.chainId) === Number(chainId),
+      // TODO(ramp, chainId-string): remove once chainId is a string
+      (aggregatorNetwork) => `${aggregatorNetwork.chainId}` === chainId,
     );
 
     return network?.shortName;
