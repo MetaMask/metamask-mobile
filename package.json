@@ -337,7 +337,6 @@
     "uuid": "^8.3.2",
     "valid-url": "1.0.9",
     "vm-browserify": "1.1.2",
-    "xhr2": "^0.2.1",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
@@ -467,6 +466,7 @@
     "wdio-cucumberjs-json-reporter": "^4.4.3",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
+    "xhr2": "^0.2.1",
     "xml2js": "^0.5.0",
     "yarn-deduplicate": "^6.0.2"
   },
