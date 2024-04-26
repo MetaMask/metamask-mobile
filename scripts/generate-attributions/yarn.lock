@@ -46,7 +46,7 @@
     spdx-expression-parse "^3.0.1"
     treeify "^1.1.0"
 
-"@metamask/oss-attribution-generator@^2.0.1":
+"@metamask/oss-attribution-generator@^2.0.2":
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/oss-attribution-generator/-/oss-attribution-generator-2.0.2.tgz#2d59af6adc08dc4a8c2c6151d7fa7f95deb362d7"
   integrity sha512-q2NLv0yRnqYi0YNN+VVBoO6xejc683h5GILY4a7mj8OfJYvrm0oitFZVu1xov+pGpgdzjL8RZyvcV3dd1aKJ3w==
