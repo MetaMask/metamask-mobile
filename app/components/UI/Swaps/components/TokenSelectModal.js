@@ -60,7 +60,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
 import { getDecimalChainId } from '../../../../util/networks';
-import Logger from '../../../../util/Logger';
 
 const createStyles = (colors) =>
   StyleSheet.create({
