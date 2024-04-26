@@ -132,7 +132,9 @@ const NotificationsView = ({
           loading={loading}
         />
       ) : (
-        <Empty />
+        <Empty
+          testID={NotificationsViewSelectorsIDs.NO_NOTIFICATIONS_CONTAINER}
+        />
       )}
     </View>
   );
