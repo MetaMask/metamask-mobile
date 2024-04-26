@@ -539,6 +539,7 @@ class AdvancedSettings extends PureComponent {
                 </Text>
                 <View style={styles.toggle}>
                   <Switch
+                    testID={AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS}
                     value={showFiatOnTestnets}
                     onValueChange={(showFiatOnTestnets) => {
                       if (showFiatOnTestnets) {

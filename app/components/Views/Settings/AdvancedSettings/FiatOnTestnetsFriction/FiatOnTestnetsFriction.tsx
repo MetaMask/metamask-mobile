@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -20,6 +20,11 @@ import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../Base/Text';
 import { useDispatch } from 'react-redux';
 import { setShowFiatOnTestnets } from '../../../../../../app/actions/settings';
+import generateTestId from '../../../../../../wdio/utils/generateTestId';
+import {
+  CANCEL_BUTTON,
+  CONTINUE_BUTTON,
+} from '../../../../../../wdio/screen-objects/testIDs/Components/FiatOnTestnetsModal.testIds';
 
 const FiatOnTestnetsFriction = () => {
   const dispatch = useDispatch();
@@ -61,6 +66,7 @@ const FiatOnTestnetsFriction = () => {
         </Text>
         <View style={styles.buttonsContainer}>
           <Button
+            {...generateTestId(Platform, CANCEL_BUTTON)}
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
@@ -71,6 +77,7 @@ const FiatOnTestnetsFriction = () => {
             onPress={() => sheetRef.current?.onCloseBottomSheet()}
           />
           <Button
+            {...generateTestId(Platform, CONTINUE_BUTTON)}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
