@@ -26,8 +26,6 @@ import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { Colors } from '../../../util/theme/models';
 import { SmartTransactionsOptInModalSelectorsIDs } from '../../../../e2e/selectors/Modals/SmartTransactionsOptInModal.selectors';
 import { useNavigation } from '@react-navigation/native';
-import { shouldShowWhatsNewModal } from '../../../util/onboarding';
-import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import Button, {
   ButtonVariants,
@@ -133,7 +131,6 @@ const Benefit = ({ iconName, text }: Props) => {
 };
 
 const SmartTransactionsOptInModal = () => {
-  const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
