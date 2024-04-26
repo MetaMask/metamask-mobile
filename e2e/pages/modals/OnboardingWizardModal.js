@@ -73,8 +73,8 @@ class OnboardingWizardModal {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON)
       : Matchers.getElementByLabel(
-        OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON,
-      );
+          OnboardingWizardModalSelectorsIDs.GOT_IT_BUTTON,
+        );
   }
 
   get backButton() {
