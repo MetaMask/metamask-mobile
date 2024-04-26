@@ -44,24 +44,11 @@ jobs:
         id: set-versions
         shell: bash
         run: SEMVER_VERSION=${{ github.event.inputs.semver-version }} VERSION_NUMBER=${{ github.event.inputs.version-number }} yarn create-release
-      # - name: Create Release PR
-      #   id: create-release-pr
-      #   shell: bash
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     ./scripts/create-release-pr.sh ${{ github.event.inputs.semver-version }}
-      - name: Generate Changelog CSV
-        id: generate-changelog-csv
+      - name: Create Release PR
+        id: create-release-pr
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name metamaskbot
-          git config user.email metamaskbot@users.noreply.github.com
+          ./scripts/create-release-pr.sh ${{ github.event.inputs.semver-version }}
           
-          git commit -am "Updated app version ${{ github.event.inputs.semver-version }}"
-          git push
-          git checkout chore/auto-generate-changelist
-          node ./scripts/generate-rc-commits.js v7.19.0 "release/7.20.0"
-          ./scripts/auto-changelog.sh
