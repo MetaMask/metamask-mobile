@@ -171,8 +171,13 @@ export default class TestHelpers {
       .withTimeout(10000);
   }
 
+  // static async checkIfElementWithTextIsNotVisible(text) {
+  //   return await expect(element(by.text(text)).atIndex(0)).not.toBeVisible();
+  // }
   static async checkIfElementWithTextIsNotVisible(text) {
-    return await expect(element(by.text(text)).atIndex(0)).not.toBeVisible();
+    return await waitFor(element(by.text(text)).atIndex(0))
+      .not.toBeVisible()
+      .withTimeout(10000);
   }
 
   static async checkIfElementNotToHaveText(elementId, text) {
