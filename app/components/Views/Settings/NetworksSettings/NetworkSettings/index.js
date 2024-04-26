@@ -473,7 +473,7 @@ class NetworkSettings extends PureComponent {
     try {
       endpointChainId = await jsonRpcRequest(rpcUrl, 'eth_chainId');
     } catch (err) {
-      Logger.error('Failed to fetch the chainId from the endpoint.', err);
+      Logger.error(err, 'Failed to fetch the chainId from the endpoint.');
       providerError = err;
     }
 
@@ -488,10 +488,10 @@ class NetworkSettings extends PureComponent {
         try {
           endpointChainId = new BigNumber(endpointChainId, 16).toString(10);
         } catch (err) {
-          Logger.error(
-            'Failed to convert endpoint chain ID to decimal',
+          Logger.error(err, {
             endpointChainId,
-          );
+            message: 'Failed to convert endpoint chain ID to decimal',
+          });
         }
       }
 

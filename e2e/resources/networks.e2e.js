@@ -3,6 +3,7 @@ import { toHex } from '@metamask/controller-utils';
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
+const TENDERLY_KEY = process.env.TENDERLY_NETWORK_ID;
 
 const PopularNetworksList = {
   Avalanche: {
@@ -23,22 +24,22 @@ const PopularNetworksList = {
       ticker: 'BNB',
     },
   },
-  Fantom: {
+  zkSync: {
     providerConfig: {
       type: 'rpc',
-      chainId: toHex('250'),
-      rpcUrl: 'https://rpc.ftm.tools/',
-      nickname: 'Fantom Opera',
+      chainId: toHex('324'),
+      rpcUrl: `https://mainnet.era.zksync.io`,
+      nickname: 'zkSync Era Mainnet',
       ticker: 'FTM',
     },
   },
-  Harmony: {
+  Base: {
     providerConfig: {
       type: 'rpc',
-      chainId: toHex('1666600000'),
-      rpcUrl: 'https://api.harmony.one/',
-      nickname: 'Harmony Mainnet Shard 0',
-      ticker: 'ONE',
+      chainId: toHex('8453'),
+      rpcUrl: `https://mainnet.base.org`,
+      nickname: 'Base Mainnet',
+      ticker: 'ETH',
     },
   },
   Optimism: {
@@ -95,7 +96,7 @@ const CustomNetworks = {
     providerConfig: {
       type: 'rpc',
       chainId: '0x1',
-      rpcUrl: `https://rpc.tenderly.co/fork/${process.env.TENDERLY_NETWORK_ID}`,
+      rpcUrl: `https://rpc.tenderly.co/fork/${TENDERLY_KEY}`,
       nickname: 'Tenderly',
       ticker: 'ETH',
     },

@@ -46,11 +46,11 @@ import {
   selectSelectedAddress,
 } from '../../../selectors/preferencesController';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
-import { regex } from '../../../util/regex';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
+import { isPortfolioUrl } from '../../../util/url';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -244,9 +244,8 @@ class AccountOverview extends PureComponent {
       this.doENSLookup();
     });
 
-    const { PreferencesController } = Engine.context;
     if (!this.isAccountLabelDefined(accountLabel)) {
-      PreferencesController.setAccountLabel(selectedAddress, 'Account');
+      Engine.setAccountLabel(selectedAddress, 'Account');
     }
   };
 
@@ -262,13 +261,12 @@ class AccountOverview extends PureComponent {
   }
 
   setAccountLabel = () => {
-    const { PreferencesController } = Engine.context;
     const { selectedAddress, identities } = this.props;
     const { accountLabel } = this.state;
 
     const lastAccountLabel = identities[selectedAddress].name;
 
-    PreferencesController.setAccountLabel(
+    Engine.setAccountLabel(
       selectedAddress,
       this.isAccountLabelDefined(accountLabel)
         ? accountLabel
@@ -322,14 +320,14 @@ class AccountOverview extends PureComponent {
   onOpenPortfolio = () => {
     const { navigation, browserTabs } = this.props;
     const existingPortfolioTab = browserTabs.find((tab) =>
-      tab.url.match(regex.portfolioUrl),
+      isPortfolioUrl(tab.url),
     );
     let existingTabId;
     let newTabUrl;
     if (existingPortfolioTab) {
       existingTabId = existingPortfolioTab.id;
     } else {
-      newTabUrl = `${AppConstants.PORTFOLIO_URL}/?metamaskEntry=mobile`;
+      newTabUrl = `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`;
     }
     const params = {
       ...(newTabUrl && { newTabUrl }),
@@ -341,7 +339,7 @@ class AccountOverview extends PureComponent {
       params,
     });
     this.props.metrics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-      portfolioUrl: AppConstants.PORTFOLIO_URL,
+      portfolioUrl: AppConstants.PORTFOLIO.URL,
     });
   };
 

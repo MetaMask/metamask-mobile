@@ -94,6 +94,24 @@
     "your_wallet": "ウォレットが消去されました",
     "delete_current": "現在のウォレットを削除しています"
   },
+  "onboarding_success": {
+    "title": "Congratulations!",
+    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
+    "description_bold": "Settings > Security & Privacy.",
+    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
+    "learn_more": "Learn more",
+    "learn_how": "Learn how",
+    "leave_hint": "Leave yourself a hint?",
+    "default_settings": "Default settings",
+    "manage_default_settings": "Manage default settings",
+    "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
+    "no_srp_title": "Reminder set!",
+    "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
+    "import_title": "Your Wallet is ready",
+    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
+    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
+    "done": "Done"
+  },
   "onboarding_carousel": {
     "title1": "MetaMaskへようこそ",
     "title2": "デジタル資産の管理",
@@ -160,14 +178,18 @@
       "content1": "このアイコンをタップすると、アカウント名の編集、Etherscanでのトランザクションの表示、公開鍵の共有、秘密鍵の表示が行えます。"
     },
     "step4": {
-      "title": "ウォレットの使用",
-      "content1": "このアイコンをタップすると、資産の購入、送金、スワップ、受取が行えます。"
+      "title": "通知",
+      "content1": "ウォレットで何が起きているか、常に把握しましょう"
     },
     "step5": {
+      "title": "ウォレットの使用",
+      "content1": "このアイコンをタップすると、資産の購入、送金、スワップ、受取が行えます"
+    },
+    "step6": {
       "title": "Web3の閲覧",
       "content1": "このアイコンをタップしてブラウザを開きます"
     },
-    "step6": {
+    "step7": {
       "title": "ブラウザの使用",
       "content1": "キーワードでサイトを検索するか、URLを入力します。楽しく閲覧しましょう！"
     }
@@ -351,12 +373,17 @@
     "no_collectibles": "NFTが見当たりませんか？",
     "no_available_tokens": "トークンが見当たりませんか？",
     "add_tokens": "トークンをインポート",
+    "are_you_sure_exit": "終了してよろしいですか？",
+    "search_information_not_saved": "検索情報は保存されません。",
+    "import_token": "このトークンをインポートしますか？",
     "tokens_detected_in_account": "このアカウントに{{tokenCount}}件の新しい{{tokensLabel}}が見つかりました",
     "token_toast": {
       "tokens_imported_title": "トークンをインポートしました",
       "tokens_imported_desc": "{{tokenSymbols}}がインポートされました",
       "token_imported_title": "トークンをインポートしました",
       "token_imported_desc": "{{tokenSymbol}}がインポートされました",
+      "token_imported_desc_1": "トークンをインポートしました。",
+      "tokens_import_success_multiple": "{{tokensNumber}}種類のトークンをインポートしました。",
       "tokens_hidden_title": "トークンの非表示",
       "tokens_hidden_desc": "検出されたトークンをウォレットから非表示にしています",
       "token_hidden_title": "トークンの非表示",
@@ -376,6 +403,8 @@
     "nfts_autodetection_desc": "MetaMaskがOpenSeaからNFTを自動検出し、MetaMaskウォレットに表示できるように許可してください。",
     "network_details_check": "ネットワーク情報の確認",
     "network_with_chain_id": "チェーンIDを持つネットワーク",
+    "chain_list_returned_different_ticker_symbol": "このトークンシンボルは、入力されたネットワーク名またはチェーンIDと一致しません。人気のトークンの多くはシンボルが似ているため、詐欺師がそれを利用してより価値の高いトークンを送り返すように仕向ける可能性があります。続行する前にすべてを確認してください。",
+    "suggested_token_symbol": "推奨ティッカーシンボル:",
     "potential_scam": "これは詐欺の可能性があります",
     "network_not_matching": "このネットワークは、関連付けられたチェーンIDまたは名前と一致しません。人気のトークンの多くが「",
     "target_scam_network": "」という名前を使用しているため、詐欺の標的となっています。詐欺師は、より価値の高い通貨を送り返すように仕向ける可能性があります。続ける前にすべてを確認してください。",
@@ -415,7 +444,11 @@
     "nfts_autodetect_cta": "設定でNFTの検出をオンにする",
     "turn_on_network_check_cta": "ネットワーク情報の確認をオンにする",
     "display_nft_media_cta_new_1": "NFTを表示するには、次の場所で「NFTメディアを表示」を有効にしてください",
-    "display_nft_media_cta_new_2": "「設定」>「セキュリティとプライバシー」。"
+    "display_nft_media_cta_new_2": "「設定」>「セキュリティとプライバシー」。",
+    "banner": {
+      "title": "Basic functionality is off",
+      "link": "Turn on basic functionality"
+    }
   },
   "asset_details": {
     "token": "トークン",
@@ -504,7 +537,9 @@
     "address_cant_be_empty": "トークンアドレスは必須入力項目です。",
     "address_must_be_valid": "トークンアドレスは有効なアドレスである必要があります。",
     "symbol_cant_be_empty": "トークンシンボルは必須入力項目です。",
+    "symbol_length": "シンボルは11文字以下でなければなりません",
     "decimals_cant_be_empty": "トークンの小数点以下は必須入力項目です。",
+    "decimals_is_required": "小数点以下の桁数が必要です。確認はこちら:",
     "no_tokens_found": "その名前のトークンは見つかりませんでした。",
     "select_token": "トークンを選択",
     "address_must_be_smart_contract": "パーソナルアドレスが検出されました。トークンのコントラクトアドレスを入力してください。"
@@ -532,7 +567,8 @@
     "collectible_asset_contract": "アセットコントラクト",
     "share_check_out_nft": "私のNFTにご注目ください！",
     "share_via": "共有方法:",
-    "untitled_collection": "無題のコレクション"
+    "untitled_collection": "無題のコレクション",
+    "collection": "コレクション"
   },
   "transfer": {
     "title": "送金",
@@ -541,10 +577,10 @@
   },
   "accounts": {
     "create_new_account": "新規アカウントの作成",
-    "qr_hardware": "QRハードウェア",
     "import_account": "アカウントのインポート",
     "connect_hardware": "ハードウェアウォレットの接続",
     "imported": "インポートされました",
+    "qr_hardware": "QRハードウェア",
     "remove_account_title": "アカウントの削除",
     "remove_account_message": "このアカウントを削除してよろしいですか？",
     "no": "いいえ",
@@ -673,6 +709,12 @@
     "nft_opensea_desc": "NFTのメディアとデータを表示すると、IPアドレスが中央サーバーに公開される可能性があります。OpenSeaのAPIを使用してNFTデータを取得してください。NFTの自動検出機能はOpenSeaのAPIを使用するため、この機能がオフの場合利用できません。NFTの自動検出を有効にすると、他のユーザーからウォレットに偽のNFTが送られる可能性があり、攻撃者にイーサリアムアドレスからIPアドレスをつきとめられる場合があります。",
     "nft_autodetect_mode": "NFTを自動検出",
     "nft_autodetect_desc": "NFTのメディアとデータを表示すると、IPアドレスが中央サーバーに公開される可能性があります。ウォレットのNFTを検出するには、サードパーティー API (OpenSea など) が使用されます。これによりこれらのサービスにアカウントのアドレスが公開されます。アプリがこれらのサービスからデータを取得しないようにするには、この機能を無効のままにしてください。",
+    "show_fiat_on_testnets": "Show conversion on test networks",
+    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
+    "show_fiat_on_testnets_modal_title": "Be careful",
+    "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
+    "show_fiat_on_testnets_modal_learn_more": "Learn more.",
+    "show_fiat_on_testnets_modal_button": "Continue",
     "show_hex_data": "16進データを表示",
     "show_hex_data_desc": "送信画面に16進データフィールドを表示するにはこれを選択します。",
     "toggleEthSignBannerDescription": "フィッシング攻撃のリスクがあります。eth_signを無効にして自分の身を守ってください。",
@@ -703,6 +745,26 @@
     "general_desc": "通貨換算、主要通貨、言語、検索エンジン",
     "advanced_title": "高度な設定",
     "advanced_desc": "開発者機能、アカウントのリセット、テストネットのセットアップ、ステータスログ、IPFSゲートウェイ、カスタムRPC",
+    "notifications_title": "通知",
+    "notifications_desc": "通知の管理",
+    "allow_notifications": "通知を許可する",
+    "allow_notifications_desc": "通知を使えば、ウォレットで何が起きているか常に把握できます。通知を使用するには、プロファイルを使用してデバイス間で一部の設定を同期します。この機能を使用する際に当社がユーザーのプライバシーをどのように保護するのか、詳細をご覧ください。",
+    "notifications_opts": {
+      "customize_session_title": "通知のカスタマイズ",
+      "customize_session_desc": "受け取る通知の種類をオンにします",
+      "account_session_title": "アカウントのアクティビティ",
+      "account_session_desc": "通知を受けたいアカウントを選択してください:",
+      "assets_sent_title": "資産が送金されました",
+      "assets_sent_desc": "資金とNFT",
+      "assets_received_title": "資産を受け取りました",
+      "assets_received_desc": "資金とNFT",
+      "defi_title": "DeFi",
+      "defi_desc": "ステーキング、スワップ、ブリッジ",
+      "snaps_title": "Snap",
+      "snaps_desc": "新機能や最新情報",
+      "products_announcements_title": "製品に関するお知らせ",
+      "products_announcements_desc": "新しい製品や機能"
+    },
     "contacts_title": "連絡先",
     "contacts_desc": "アカウントを追加、編集、削除、管理します",
     "security_title": "セキュリティとプライバシー",
@@ -765,6 +827,7 @@
     "ses_heading": "コードロックダウン",
     "ses_description": "これは、アプリのJavaScriptコードを許可なく変更できないようにするテスト機能です。",
     "ses_link": "詳細",
+    "general_heading": "General",
     "privacy_heading": "プライバシー",
     "failed_to_fetch_chain_id": "チェーンIDを取得できませんでした。正しいRPC URLか確認してください。",
     "endpoint_returned_different_chain_id": "エンドポイントが異なるIDを返しました: %{chainIdReturned}",
@@ -891,8 +954,12 @@
     "security_check_subheading": "セキュリティチェック",
     "symbol_required": "シンボルが必要です",
     "blockaid": "Blockaid",
+    "blockaid_desc": "プライバシーを保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygon、Sepolia、Baseで利用可能。",
     "security_alerts": "セキュリティアラート",
-    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。"
+    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
+    "smart_transactions_opt_in_heading": "スマートトランザクション",
+    "smart_transactions_opt_in_desc": "スマートトランザクションをオンにして、ETHメインネットでより信頼性が高く安全なトランザクションと、調整可能な手数料をご利用ください。",
+    "smart_transactions_learn_more": "詳細。"
   },
   "sdk": {
     "disconnect_title": "すべてのサイトとの接続を解除しますか？",
@@ -1119,6 +1186,7 @@
     "confirm": "確定"
   },
   "transaction": {
+    "transaction_id": "トランザクションID",
     "alert": "アラート",
     "amount": "金額",
     "next": "次へ",
@@ -1291,6 +1359,7 @@
     "contract": "コントラクト ({{address}})",
     "contract_name": "コントラクト名:",
     "contract_address": "コントラクトアドレス:",
+    "invalid_contract_address": "コントラクトアドレスが無効です。新しいアドレスを入力してください",
     "contract_allowance": "許容額:",
     "data": "データ",
     "function_approve": "関数: 承認",
@@ -1399,8 +1468,12 @@
     "to": "送信先",
     "details": "詳細",
     "amount": "金額",
+    "gas_used": "使用ガス (単位)",
     "gas_limit": "ガスリミット (単位)",
     "gas_price": "ガス価格 (gwei)",
+    "base_fee": "基本料金 (gwei)",
+    "priority_fee": "優先手数料 (gwei)",
+    "max_fee": "ガス1単位あたりの最大手数料",
     "total": "合計",
     "view_on": "表示方法:",
     "view_on_etherscan": "Etherscanで表示",
@@ -1422,7 +1495,26 @@
     "sign_title_device": "Keystoneで",
     "sign_description_1": "Keystoneで署名した後、",
     "sign_description_2": "「署名を取得」をタップします",
-    "sign_get_signature": "署名を取得"
+    "sign_get_signature": "署名を取得",
+    "network_fee": "ネットワーク手数料"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "トランザクションを送信中",
+    "status_submitting_description": "完了までの推定時間: {{timeLeft}}",
+    "status_success_header": "トランザクションが完了しました",
+    "status_submitting_past_estimated_deadline_header": "お待たせして申し訳ございません",
+    "status_submitting_past_estimated_deadline_description": "{{timeLeft}}以内にトランザクションが完了しない場合はキャンセルされ、ガス代は請求されません。",
+    "status_cancelled_header": "トランザクションがキャンセルされました",
+    "status_cancelled_description": "トランザクションを完了できなかったため、不要なガス代の支払いを避けるためにキャンセルされました。",
+    "status_failed_header": "トランザクションに失敗しました",
+    "status_failed_description": "突然の市場の変化により失敗する場合があります。問題が解決されない場合は、MetaMaskカスタマーサポートにお問い合わせください。",
+    "view_transaction": "トランザクションを表示",
+    "view_activity": "アクティビティを表示",
+    "return_to_dapp": "{{dappName}}に戻る",
+    "try_again": "再試行",
+    "create_new": "新しい{{txType}}を作成",
+    "swap": "スワップ",
+    "send": "送金"
   },
   "address_book": {
     "recents": "最近",
@@ -1771,6 +1863,16 @@
     "back_to_safety": "安全な場所に戻る"
   },
   "notifications": {
+    "stake_completed": "ステーキングが完了しました",
+    "withdrawal_completed": "出金が完了しました",
+    "unstake_completed": "ステーキングの解除が完了しました",
+    "withdrawal_requested": "出金がリクエストされました",
+    "stake_ready_to_be_withdrawn": "ステークの出金準備が完了しました",
+    "swap_completed": "{{from}}を{{to}}にスワップしました",
+    "sent": "{{address}}に送りました",
+    "received": "{{address}}から受け取りました",
+    "sent_nft": "{{address}}にNFTを送りました",
+    "received_nft": "{{address}}からNFTを受け取りました",
     "pending_title": "トランザクションが送信されました",
     "pending_deposit_title": "入金が進行中です。",
     "pending_withdrawal_title": "出金が進行中です。",
@@ -1786,6 +1888,9 @@
     "pending_deposit_message": "入金の完了待ち",
     "pending_withdrawal_message": "出金の完了待ち",
     "error_message": "このトランザクションを表示するにはタップしてください",
+    "error_retrieving_fcm_token": "FCMトークンの取得および保存中にエラーが発生しました",
+    "error_fcm_not_found": "getFCMToken: FCMトークンが見つかりませんでした",
+    "error_checking_permission": "ユーザーにプッシュ通知のアクセス許可があるか確認中にエラーが発生しました",
     "success_message": "このトランザクションを表示するにはタップしてください",
     "speedup_message": "トランザクションの高速化を試みています",
     "success_deposit_message": "資金の使用準備ができました",
@@ -1805,7 +1910,30 @@
     "wc_signed_failed_title": "この署名リクエストは失敗しました",
     "wc_sent_tx_rejected_title": "トランザクションリクエストを拒否しました",
     "approved_tx_rejected_title": "アクセス許可の付与を拒否しました",
-    "wc_description": "アプリケーションを確認してください"
+    "wc_description": "アプリケーションを確認してください",
+    "wallet": "ウォレット",
+    "web3": "Web3",
+    "empty": {
+      "title": "ここに表示する内容はありません",
+      "message": "ウォレットにアクティビティがあると、ここに通知が表示されます。"
+    },
+    "list": {
+      "0": "すべて",
+      "1": "ウォレット",
+      "2": "お知らせ"
+    },
+    "address_copied_to_clipboard": "アドレスがクリップボードにコピーされました",
+    "transaction_id_copied_to_clipboard": "トランザクションIDがクリップボードにコピーされました",
+    "activation_card": {
+      "title": "通知をオンにする",
+      "description_1": "通知を使えば、ウォレットで何が起きているか常に把握できます。",
+      "description_2": "この機能を使うために、アカウントの匿名のIDが生成されます。このIDはMetaMask内のユーザーのデータの同期にのみ使用され、アクティビティや他の識別要素にはリンクされず、プライバシーは確保されます。",
+      "learn_more": "この機能を使用する際に当社がどのようにユーザーのプライバシーを保護するのか、詳細をご覧ください。",
+      "manage_preferences_1": "通知は",
+      "manage_preferences_2": "「設定」>「通知」でいつでもオフにできます。",
+      "cancel": "キャンセル",
+      "cta": "オンにする"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "ウォレットを保護",
@@ -2406,12 +2534,28 @@
       "title": "セキュリティアラートで安全を確保",
       "description_1": "Blockaidのセキュリティアラートで、プライバシーを確保しつつ既知の詐欺から身を守ります。この機能は、MetaMaskユーザー全員を対象にデフォルトでオンになります。",
       "description_2": "要求を承認する前に、必ず独自のデューデリジェンスを行ってください。",
+      "description_3": "Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Linea、Optimism、Polygon、Sepolia、Baseで利用できます。",
       "got_it": "了解"
     },
     "sell": {
       "title": "キャッシュアウトが簡単になりました",
       "description": "MetaMaskで直接仮想通貨を売却！信頼できるプロバイダーからのクォートを取得して、毎回簡単・迅速・安全に仮想通貨を売却できます。",
       "action_text": "お試しください"
+    },
+    "stx": {
+      "header": "スマートトランザクションのご紹介",
+      "description_1": "最も安全で信頼性が高く、簡単なトランザクションをご利用ください - Web3をよりスマートにナビゲート。",
+      "description_2": "トランザクションの失敗やフロントランニングにより、毎月何百万ドルもの損失が発生しています。スマートトランザクションはこの問題を解決します。",
+      "description_3": "現在スマートトランザクションはETHメインネットでのみご利用いただけます。この機能は設定でいつでもオフにできます。",
+      "secondary_button": "また後で",
+      "primary_button": "スマートトランザクションを有効にする",
+      "learn_more": "詳細。",
+      "benefit_1_1": "失敗率が82%減少",
+      "benefit_1_2": "トランザクション",
+      "benefit_2_1": "トランザクション",
+      "benefit_2_2": "保護",
+      "benefit_3_1": "リアルタイム",
+      "benefit_3_2": "最新情報"
     }
   },
   "invalid_network": {
@@ -2717,8 +2861,10 @@
     "bluetooth_off_message": "デバイスのBluetoothをオンにしてください",
     "bluetooth_access_blocked": "LedgerはモバイルデバイスとのペアリングにBluetoothが必要です。",
     "bluetooth_access_blocked_message": "BluetoothでLedgerデバイスをペアリングするには、設定で有効にしてからもう一度お試しください。",
-    "location_access_blocked": "Ledgerはモバイルデバイスとのペアリングに位置情報へのアクセスが必要です。",
+    "location_access_blocked": "MetaMaskがLedgerとのペアリングを行うには、位置情報へのアクセス許可が必要です。",
     "location_access_blocked_message": "BluetoothでLedgerデバイスをペアリングするには、設定で位置情報へのアクセスを有効にしてからもう一度お試しください。",
+    "nearbyDevices_access_blocked": "MetaMaskがLedgerとのペアリングを行うには、近くのデバイスへのアクセス許可が必要です。",
+    "nearbyDevices_access_blocked_message": "BluetoothでLedgerデバイスをペアリングするには、設定で近くのデバイスへのアクセスを有効にしてからもう一度お試しください。",
     "bluetooth_scanning_error": "デバイスのスキャン中にエラーが発生しました",
     "bluetooth_scanning_error_message": "デバイスのロックが解除されていて、イーサリアムアプリが実行されていることを確認してください。",
     "bluetooth_connection_failed": "Bluetooth接続に失敗しました",
@@ -2738,10 +2884,12 @@
     "connect_ledger": "Ledgerを接続する",
     "looking_for_device": "デバイスを検索中",
     "ledger_reminder_message": "Ledger Nano Xが次の状態であることを確認してください:",
-    "ledger_reminder_message_step_one": "1. ロック解除済み",
-    "ledger_reminder_message_step_two": "2. イーサリアムアプリがインストール済み",
-    "ledger_reminder_message_step_three": "3. Bluetoothが有効",
-    "ledger_reminder_message_step_four": "4. 位置情報が有効",
+    "ledger_reminder_message_step_one": "1. Ledger Nano Xのロックを解除します",
+    "ledger_reminder_message_step_two": "2. イーサリアムアプリをインストールして開きます",
+    "ledger_reminder_message_step_three": "3. Bluetoothを有効にします",
+    "ledger_reminder_message_step_four": "4. 位置情報は有効で、正確な位置情報の使用がオンになっています",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. 近くのデバイスは有効です",
+    "ledger_reminder_message_step_five": "5. サイレントモードがオフになっている必要があります",
     "available_devices": "利用可能なデバイス",
     "retry": "再試行",
     "continue": "続行",
@@ -2824,5 +2972,33 @@
     "okay_action": "OK",
     "error_title": "インストールに失敗しました",
     "error_description": "{{snap}}のインストールに失敗しました。"
+  },
+  "stake": {
+    "stake": "ステーク"
+  },
+  "default_settings": {
+    "title": "Your Wallet is ready",
+    "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
+    "learn_more_about_privacy": "Learn more about privacy best practices.",
+    "privacy_policy": "Privacy policy",
+    "default_settings": "Default Settings",
+    "done": "Done",
+    "basic_functionality": "Basic functionality",
+    "manage_networks": "Manage networks",
+    "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
+    "manage_networks_body2": " to learn more about how Infura handles data.",
+    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
+    "sheet": {
+      "title_off": "Turn off basic functionality",
+      "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
+      "title_on": "Turn on basic functionality",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
+      "checkbox_label": "I understand and want to continue",
+      "buttons": {
+        "cancel": "Cancel",
+        "turn_on": "Turn on",
+        "turn_off": "Turn off"
+      }
+    }
   }
 }
