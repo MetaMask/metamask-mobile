@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Image } from 'react-native';
-import { SvgUri } from 'react-native-svg';
-import { isNumber } from 'lodash';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
@@ -27,13 +25,18 @@ function NotificationIcon({
   badgeIcon,
   imageUrl,
 }: NotificationIconProps) {
-  const [svgSource, setSvgSource] = useState<string>('');
-
-  useEffect(() => {
-    if (imageUrl && !isNumber(imageUrl)) {
-      if (imageUrl?.match('.svg')) setSvgSource(imageUrl);
+  const customStyles = () => {
+    if (notificationType.toLowerCase().includes('erc721' || 'erc1155')) {
+      return {
+        style: styles.nftLogo,
+        placeholderStyle: styles.nftPlaceholder,
+      };
     }
-  }, [imageUrl]);
+    return {
+      style: styles.assetLogo,
+      placeholderStyle: styles.assetPlaceholder,
+    };
+  };
 
   if (notificationType === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
     return (
@@ -48,19 +51,6 @@ function NotificationIcon({
     );
   }
 
-  const customStyles = () => {
-    if (notificationType.includes('erc721' || 'erc1155')) {
-      return {
-        style: styles.nftLogo,
-        placeholderStyle: styles.nftPlaceholder,
-      };
-    }
-    return {
-      style: styles.assetLogo,
-      placeholderStyle: styles.assetPlaceholder,
-    };
-  };
-
   return (
     <BadgeWrapper
       badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
@@ -71,23 +61,16 @@ function NotificationIcon({
     >
       {notificationType.toLowerCase().includes('eth') ? (
         <NetworkMainAssetLogo style={styles.ethLogo} />
-      ) : !svgSource ? (
+      ) : (
         <RemoteImage
-          source={{ uri: imageUrl }}
+          source={{
+            uri:
+              imageUrl ||
+              'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
+          }}
           style={customStyles().style}
           placeholderStyle={customStyles().placeholderStyle}
         />
-      ) : (
-        <View style={customStyles().style}>
-          <SvgUri
-            uri={
-              svgSource ??
-              'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg'
-            }
-            width={32}
-            height={32}
-          />
-        </View>
       )}
     </BadgeWrapper>
   );

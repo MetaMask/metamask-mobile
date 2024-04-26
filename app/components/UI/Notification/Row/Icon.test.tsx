@@ -41,7 +41,7 @@ describe('NotificationIcon', () => {
     notificationType: TRIGGER_TYPES.ERC20_SENT,
     badgeIcon: IconName.Send2,
     imageUrl:
-      'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/usdc.svg',
+      'https://github.com/MetaMask/brand-resources/blob/master/SVG/SVG_MetaMask_Icon_Color.svg',
   };
 
   it('renders correctly with Wallet type', () => {
@@ -49,11 +49,10 @@ describe('NotificationIcon', () => {
       <NotificationIcon
         notificationType={walletNotification.notificationType}
         imageUrl={walletNotification.imageUrl}
+        badgeIcon={walletNotification.badgeIcon}
         styles={styles}
       />,
-      {
-        state: mockInitialState,
-      },
+      { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });

@@ -34,7 +34,7 @@ describe('NotificationActions', () => {
   it('renders correctly with LINK only', () => {
     const { toJSON } = renderWithProvider(
       <NotificationActions link={link} styles={styles} />,
-    ).toJSON();
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 
