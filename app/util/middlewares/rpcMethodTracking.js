@@ -106,7 +106,7 @@ export default function createRPCMethodTrackingMiddleware({
       userParticipatingInMetaMetrics === true;
 
     if (shouldTrackEvent) {
-      metrics.trackAfterInteractions(MetaMetricsEvents.PROVIDER_METHOD_CALLED, {
+      metrics.trackEvent(MetaMetricsEvents.PROVIDER_METHOD_CALLED, {
         referrer: {
           url: origin,
         },

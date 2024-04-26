@@ -3,7 +3,7 @@ import createRPCMethodTrackingMiddleware from './rpcMethodTracking';
 
 const mockMetrics = {
   isEnabled: jest.fn(),
-  trackAfterInteractions: jest.fn(),
+  trackEvent: jest.fn(),
 };
 
 const createHandler = (
@@ -71,7 +71,7 @@ describe('createRPCMethodTrackingMiddleware', () => {
       const handler = createHandler();
       handler(req, res, next);
       await executeMiddlewareStack();
-      expect(mockMetrics.trackAfterInteractions).not.toHaveBeenCalled();
+      expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
     });
   });
 
@@ -92,7 +92,7 @@ describe('createRPCMethodTrackingMiddleware', () => {
       const { next, executeMiddlewareStack } = getNext();
       const handler = createHandler();
       handler(req, res, next);
-      expect(mockMetrics.trackAfterInteractions).not.toHaveBeenCalled();
+      expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
       executeMiddlewareStack();
     });
 
@@ -131,16 +131,16 @@ describe('createRPCMethodTrackingMiddleware', () => {
         },
       ];
 
-      expect(mockMetrics.trackAfterInteractions).toHaveBeenCalledTimes(3);
-      expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+      expect(mockMetrics.trackEvent).toHaveBeenCalledTimes(3);
+      expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
         1,
         ...expectedArgs,
       );
-      expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+      expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
         2,
         ...expectedArgs,
       );
-      expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+      expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
         3,
         ...expectedArgs,
       );
@@ -184,12 +184,12 @@ describe('createRPCMethodTrackingMiddleware', () => {
             },
           ];
 
-          expect(mockMetrics.trackAfterInteractions).toHaveBeenCalledTimes(2);
-          expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+          expect(mockMetrics.trackEvent).toHaveBeenCalledTimes(2);
+          expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
             1,
             ...expectedArgs,
           );
-          expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+          expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
             2,
             ...expectedArgs,
           );
@@ -244,12 +244,12 @@ describe('createRPCMethodTrackingMiddleware', () => {
             },
           ];
 
-          expect(mockMetrics.trackAfterInteractions).toHaveBeenCalledTimes(2);
-          expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+          expect(mockMetrics.trackEvent).toHaveBeenCalledTimes(2);
+          expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
             1,
             ...expectedArgs,
           );
-          expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+          expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
             2,
             ...expectedArgs,
           );
@@ -297,16 +297,16 @@ describe('createRPCMethodTrackingMiddleware', () => {
           },
         ];
 
-        expect(mockMetrics.trackAfterInteractions).toHaveBeenCalledTimes(3);
-        expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+        expect(mockMetrics.trackEvent).toHaveBeenCalledTimes(3);
+        expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
           1,
           ...expectedArgs,
         );
-        expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+        expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
           2,
           ...expectedArgs,
         );
-        expect(mockMetrics.trackAfterInteractions).toHaveBeenNthCalledWith(
+        expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
           3,
           ...expectedArgs,
         );
