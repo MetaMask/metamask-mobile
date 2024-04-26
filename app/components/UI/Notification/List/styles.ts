@@ -128,5 +128,6 @@ export const createStyles = ({ colors, typography }: Theme) =>
       position: 'absolute',
       right: '10%',
       top: '25%',
+      alignSelf: 'center',
     },
   });
