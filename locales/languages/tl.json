@@ -94,6 +94,24 @@
     "your_wallet": "Matagumpay na nabura ang iyong wallet",
     "delete_current": "Tinatanggal ang kasalukuyang wallet"
   },
+  "onboarding_success": {
+    "title": "Congratulations!",
+    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
+    "description_bold": "Settings > Security & Privacy.",
+    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
+    "learn_more": "Learn more",
+    "learn_how": "Learn how",
+    "leave_hint": "Leave yourself a hint?",
+    "default_settings": "Default settings",
+    "manage_default_settings": "Manage default settings",
+    "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
+    "no_srp_title": "Reminder set!",
+    "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
+    "import_title": "Your Wallet is ready",
+    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
+    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
+    "done": "Done"
+  },
   "onboarding_carousel": {
     "title1": "Welcome sa MetaMask",
     "title2": "Pamahalaan ang iyong mga digital na asset",
@@ -160,14 +178,18 @@
       "content1": "I-edit ang pangalan ng iyong account, tingnan ang mga transaksyon sa Etherscan, ibahagi ang iyong pampublikong key, at tingnan ang iyong pribadong key sa pamamagitan ng pag-tap sa icon na ito"
     },
     "step4": {
+      "title": "Mga notipikasyon",
+      "content1": "Manatiling may-alam sa nangyayari sa iyong wallet"
+    },
+    "step5": {
       "title": "Gamit ang iyong wallet",
       "content1": "Bumili, magpadala, mag-swap, at tumanggap ng mga asset sa pamamagitan ng pag-tap sa icon na ito"
     },
-    "step5": {
+    "step6": {
       "title": "Paggalugad sa web3",
       "content1": "Buksan ang browser sa pamamagitan ng pag-tap sa icon na ito"
     },
-    "step6": {
+    "step7": {
       "title": "Gamit ang browser",
       "content1": "Maghanap ng mga site sa pamamagitan ng keyword o maglagay ng URL. Magsaya ka doon! "
     }
@@ -351,17 +373,17 @@
     "no_collectibles": "Hindi makita ang iyong NFT?",
     "no_available_tokens": "Hindi mo ba nakikita ang iyong token?",
     "add_tokens": "Mag-import ng mga token",
-    "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
-    "import_token": "Would you like to import this token?",
+    "are_you_sure_exit": "Sigurado ka bang gusto mong umalis?",
+    "search_information_not_saved": "Ang iyong impormasyon sa paghahanap ay hindi ise-save.",
+    "import_token": "Gusto mo bang i-import ang token na ito?",
     "tokens_detected_in_account": "{{tokenCount}} (na) bagong {{tokensLabel}} ang natagpuan sa account na ito",
     "token_toast": {
       "tokens_imported_title": "Mga Na-import na Token",
       "tokens_imported_desc": "Matagumpay na na-import ang {{tokenSymbols}}",
       "token_imported_title": "Na-import na Token",
       "token_imported_desc": "Matagumpay na na-import ang {{tokenSymbol}}",
-      "token_imported_desc_1": "You’ve imported a token.",
-      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
+      "token_imported_desc_1": "Ikaw ay nag-import ng token.",
+      "tokens_import_success_multiple": "Ikaw ay nag-import ng {{tokensNumber}} token.",
       "tokens_hidden_title": "Itinatago ang mga Token",
       "tokens_hidden_desc": "Itinatago ang mga nakitang token mula sa iyong wallet",
       "token_hidden_title": "Itinatago ang mga Token",
@@ -422,7 +444,11 @@
     "nfts_autodetect_cta": "I-on ang awtomatikong pagtuklas ng ng NFT sa Mga Setting",
     "turn_on_network_check_cta": "I-on ang pagsusuri ng ng detalye ng network",
     "display_nft_media_cta_new_1": "Para makita ang NFT, i-on ang Display NFT media sa",
-    "display_nft_media_cta_new_2": "Mga Setting > Seguridad at Pagkapribado."
+    "display_nft_media_cta_new_2": "Mga Setting > Seguridad at Pagkapribado.",
+    "banner": {
+      "title": "Basic functionality is off",
+      "link": "Turn on basic functionality"
+    }
   },
   "asset_details": {
     "token": "Token",
@@ -446,8 +472,8 @@
   "add_asset": {
     "title": "Mag-import ng mga token",
     "title_nft": "Mag-import ng NFT",
-    "search_token": "Search",
-    "custom_token": "Custom token",
+    "search_token": "Maghanap",
+    "custom_token": "Custom na token",
     "tokens": {
       "cancel_add_token": "KANSELAHIN",
       "add_token": "MAG-IMPORT"
@@ -504,16 +530,16 @@
     "resultPageErrorDefaultMessage": "Nabigo ang operasyon."
   },
   "token": {
-    "token_symbol": "Token symbol",
+    "token_symbol": "Simbolo ng token",
     "token_address": "Address ng Token",
-    "token_decimal": "Token decimal",
+    "token_decimal": "Decimal na token",
     "search_tokens_placeholder": "Maghanap ng Mga Token",
     "address_cant_be_empty": "Hindi maaaring walang laman ang address ng token.",
     "address_must_be_valid": "Ang address ng token ay dapat na wastong address.",
     "symbol_cant_be_empty": "Hindi maaaring walang laman ang simbolo ng token.",
-    "symbol_length": "Symbol must be 11 characters or fewer",
+    "symbol_length": "Dapat ay 11 character o mas kaunti ang simbolo",
     "decimals_cant_be_empty": "Hindi maaaring walang laman ang smga decimal ng token.",
-    "decimals_is_required": "Decimal is required. Find it on:",
+    "decimals_is_required": "Kailangan ang decimal. Hanapin ito sa:",
     "no_tokens_found": "Wala kaming mahanap na anumang token na may ganyang pangalan.",
     "select_token": "Pumili ng Token",
     "address_must_be_smart_contract": "Natukoy ang personal na address. Ilagay ang address ng kontrata ng token."
@@ -541,7 +567,8 @@
     "collectible_asset_contract": "Kontrata ng asset",
     "share_check_out_nft": "Tingnan mo ang NFT ko!",
     "share_via": "Ibinahagi sa pamamagitan ng",
-    "untitled_collection": "Walang Pamagat na Koleksyon"
+    "untitled_collection": "Walang Pamagat na Koleksyon",
+    "collection": "Koleksyon"
   },
   "transfer": {
     "title": "Maglipat",
@@ -682,6 +709,12 @@
     "nft_opensea_desc": "Ang pagpapakita ng media at data ng NFT ay maaaring ilantad ang iyong IP address sa mga sentralisadong server. Gamitin ang API ng OpenSea para kumuha ng data ng NFT. Ang awtomatikong pagtuklas ng NFT ay umaasa sa API ng OpenSea, at hindi magagamit kapag naka-off ito. Ang pagpapagana sa awtomatikong pagtuklas ng NFT ay maaaring maglantad sa iyo sa mga pekeng NFT na ipinapadala sa iyong wallet ng sinuman, at maaaring payagan ang isang umaatake na malaman ang iyong IP address mula sa iyong Ethereum address.",
     "nft_autodetect_mode": "Awtomatikong tuklasin and mga NFT",
     "nft_autodetect_desc": "Ang pagpapakita ng media at data ng NFT ay maaaring ilantad ang iyong IP address sa mga sentralisadong server. Ginagamit ang mga third-party na API (tulad ng OpenSea) para makita ang mga NFT sa iyong wallet. Inilalantad nito ang address ng iyong account sa mga serbisyong iyon. Iwan itong hindi gumagana kung ayaw mong makuha ng app ang data mula sa mga serbisyong iyon.",
+    "show_fiat_on_testnets": "Show conversion on test networks",
+    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
+    "show_fiat_on_testnets_modal_title": "Be careful",
+    "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
+    "show_fiat_on_testnets_modal_learn_more": "Learn more.",
+    "show_fiat_on_testnets_modal_button": "Continue",
     "show_hex_data": "Ipakita ang Hex na Data",
     "show_hex_data_desc": "Piliin ito para ipakita ang field ng hex na data sa screen ng pagpapadala.",
     "toggleEthSignBannerDescription": "Nanganganib ka sa mga phishing na pag-atake. Protektahan ang sarili mo sa pamamagitan ng pag-off sa eth_sign.",
@@ -712,6 +745,26 @@
     "general_desc": "Palitan ng currency, pangunahing currency, wika at search engine",
     "advanced_title": "Advanced",
     "advanced_desc": "I-access ang mga pang-developer na feature, i-reset ang account, i-set up ang mga testnet, mga log ng estado, IPFS gateway at custom na RPC",
+    "notifications_title": "Mga notipikasyon",
+    "notifications_desc": "Pamahalaan ang mga notipikasyon mo",
+    "allow_notifications": "Payagan ang mga notipikasyon",
+    "allow_notifications_desc": "Manatiling may-alam sa nangyayari sa iyong wallet gamit ang mga notipikasyon. Para gamitin ang mga notipikasyon, gumagamit kami ng profile para i-sync ang ilang mga setting sa lahat ng iyong mga device. Alamin kung paano namin pinoprotektahan ang iyong pagkapribado habang ginagamit ang tampok na ito.",
+    "notifications_opts": {
+      "customize_session_title": "I-customize ang mga notipikasyon mo",
+      "customize_session_desc": "I-on ang mga uri ng notipikasyon na nais mong matanggap:",
+      "account_session_title": "Aktibidad ng account",
+      "account_session_desc": "Piliin ang mga account na nais mong makakuha ng abiso:",
+      "assets_sent_title": "Ipinadala ang mga Asset",
+      "assets_sent_desc": "Mga Pondo at NFT",
+      "assets_received_title": "Natanggap ang mga Asset",
+      "assets_received_desc": "Mga Pondo at NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "Staking, swapping, at bridging",
+      "snaps_title": "Mga Snap",
+      "snaps_desc": "Mga bagong tampok at update",
+      "products_announcements_title": "Mga anunsiyo ng produkto",
+      "products_announcements_desc": "Mga bagong produkto at tampok"
+    },
     "contacts_title": "Mga Kontak",
     "contacts_desc": "Magdagdag, mag-edit, mag-alis, at mamahala ng iyong mga account",
     "security_title": "Seguridad at Pagkapribado",
@@ -774,6 +827,7 @@
     "ses_heading": "Code Lockdown",
     "ses_description": "Ito ay isang subok na tampok na bina-block ang anumang pagbabago sa JavaScript ng app nang walang permiso.",
     "ses_link": "Matuto pa",
+    "general_heading": "General",
     "privacy_heading": "Pagkapribado",
     "failed_to_fetch_chain_id": "Hindi makuha ang ID ng chain. Tama ba ang URL ng iyong RPC?",
     "endpoint_returned_different_chain_id": "Nagbalik ang endpoint ng ibang ID ng chain: %{chainIdReturned}",
@@ -899,8 +953,12 @@
     "token_nft_ens_subheading": "Awtomatikong pagtuklas ng token, NFT at ENS",
     "security_check_subheading": "Pagsusuring panseguridad",
     "symbol_required": "Kailangan ang simbolo.",
+    "blockaid_desc": "Pagpapanatili ng privacy - walang data na ibinabahagi sa mga third party. Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia at Base.",
     "security_alerts": "Mga alerto sa seguridad",
-    "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider."
+    "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
+    "smart_transactions_opt_in_heading": "Mga Smart Transaction",
+    "smart_transactions_opt_in_desc": "I-on ang mga Smart Transaction para sa mas maaasahan at ligtas na mga transaksyon, at naaayong singil sa ETH Mainnet.",
+    "smart_transactions_learn_more": "Matuto pa."
   },
   "sdk": {
     "disconnect_title": "Idiskonekta ang lahat ng site?",
@@ -1127,6 +1185,7 @@
     "confirm": "Kumpirmahin"
   },
   "transaction": {
+    "transaction_id": "ID ng Transaksyon",
     "alert": "ALERTO",
     "amount": "Halaga",
     "next": "Susunod",
@@ -1299,7 +1358,7 @@
     "contract": "Kontrata ({{address}})",
     "contract_name": "Pangalan ng kontrata:",
     "contract_address": "Address ng kontrata:",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
+    "invalid_contract_address": " Hindi balido ang address ng kontrata. Maglagay ng bago",
     "contract_allowance": "Palugit:",
     "data": "Datos",
     "function_approve": "Function: Aprubahan",
@@ -1408,8 +1467,12 @@
     "to": "Para kay/sa",
     "details": "Mga Detalye",
     "amount": "Halaga",
+    "gas_used": "Ginamit na Gas (Mga Unit)",
     "gas_limit": "Limitasyon ng Gas (Mga Unit)",
     "gas_price": "Presyo ng Gas (GWEI)",
+    "base_fee": "Base Fee (GWEI)",
+    "priority_fee": "Priority Fee (GWEI)",
+    "max_fee": "Max na Bayad Bawat Gas",
     "total": "Kabuuan",
     "view_on": "TINGNAN SA",
     "view_on_etherscan": "Tingnan sa Etherscan",
@@ -1431,7 +1494,26 @@
     "sign_title_device": "gamit ang iyong Keystone",
     "sign_description_1": "Pagkatapos mong pumirma sa Keystone,",
     "sign_description_2": "i-tap ang Kumuha ng Lagda",
-    "sign_get_signature": "Kumuha ng Lagda"
+    "sign_get_signature": "Kumuha ng Lagda",
+    "network_fee": "Bayad sa Network"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "Isinusumite ang iyong transaksyon",
+    "status_submitting_description": "Tinatayang pagkumpleto {{timeLeft}}",
+    "status_success_header": "Nakumpleto ang transaksyon mo",
+    "status_submitting_past_estimated_deadline_header": "Paumanhin sa paghihintay",
+    "status_submitting_past_estimated_deadline_description": "Kung ang transaksyon mo ay hindi natapos sa loob ng {{timeLeft}}, ito ay kakanselahin at hindi ka sisingilin para sa gas.",
+    "status_cancelled_header": "Nakansela ang transaksyon mo",
+    "status_cancelled_description": "Hindi nakumpleto ang transaksyon mo, kaya kinansela ito para maiwasan mo ang pagbabayad ng mga hindi kinakailangang gas fee.",
+    "status_failed_header": "Nabigo ang transaksyon mo",
+    "status_failed_description": "Maaaring magdulot ng pagkabigo ang biglaang pagbabago sa merkado. Kung magpatuloy ang problema, makipag-ugnayan sa customer support ng MetaMask.",
+    "view_transaction": "Tingnan ang transaksyon",
+    "view_activity": "Tingnan ang aktibidad",
+    "return_to_dapp": "Bumalik sa {{dappName}}",
+    "try_again": "Subukang muli",
+    "create_new": "Lumikha ng bagong {{txType}}",
+    "swap": "i-swap",
+    "send": "ipadala"
   },
   "address_book": {
     "recents": "Mga Kamakailan",
@@ -1780,6 +1862,16 @@
     "back_to_safety": "Bumalik sa ligtas"
   },
   "notifications": {
+    "stake_completed": "Nakumpleto ang pag-stake",
+    "withdrawal_completed": "Nakumpleto ang pag-withdraw",
+    "unstake_completed": "Nakumpleto ang pag-unstake",
+    "withdrawal_requested": "Hiniling ang pag-withdraw",
+    "stake_ready_to_be_withdrawn": "Handa ng i-withdraw ang stake",
+    "swap_completed": "I-swap ang {{from}} sa {{to}}",
+    "sent": "Ipinadala sa {{address}}",
+    "received": "Natanggap mula sa {{address}}",
+    "sent_nft": "Ipinadala ang NFT sa {{address}}",
+    "received_nft": "Natanggap ang NFT mula sa {{address}}",
     "pending_title": "Naisumite ang transaksyon",
     "pending_deposit_title": "Kasalukuyang nagdedeposito!",
     "pending_withdrawal_title": "Kasalukuyang nagwi-withdraw!",
@@ -1795,9 +1887,9 @@
     "pending_deposit_message": "Hinihintay na matapos magdeposito",
     "pending_withdrawal_message": "Hinihintay na matapos mag-withdraw",
     "error_message": "Mag-tap para tingnan ang transaksyong ito",
-    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
-    "error_fcm_not_found": "getFCMToken: No FCM token found",
-    "error_checking_permission": "Error checking if a user has push notifications permission",
+    "error_retrieving_fcm_token": "May error sa pagkuha at pag-save ng FCM token",
+    "error_fcm_not_found": "getFCMToken: Walang FCM token na nahanap",
+    "error_checking_permission": "May error sa pagsusuri kung ang user ay may pahintulot sa push notification",
     "success_message": "Mag-tap para tingnan ang transaksyong ito",
     "speedup_message": "Sinusubukang pabilisin ang transaksyon",
     "success_deposit_message": "Handa nang gamitin ang iyong mga pondo",
@@ -1817,7 +1909,30 @@
     "wc_signed_failed_title": "Nabigo ang kahilingan sa lagda na ito",
     "wc_sent_tx_rejected_title": "Tinanggihan mo ang kahilingan sa transaksyon",
     "approved_tx_rejected_title": "Tumanggi ka sa pagbibigay ng pahintulot",
-    "wc_description": "Mangyaring suriin ang aplikasyon"
+    "wc_description": "Mangyaring suriin ang aplikasyon",
+    "wallet": "Wallet",
+    "web3": "Web3",
+    "empty": {
+      "title": "Walang makikita rito",
+      "message": "Dito mo mahahanap ang mga notipikasyon kapag may aktibidad sa wallet mo. "
+    },
+    "list": {
+      "0": "Lahat",
+      "1": "Wallet",
+      "2": "Mga anunsiyo"
+    },
+    "address_copied_to_clipboard": "Nakopya ang address sa clipboard",
+    "transaction_id_copied_to_clipboard": "Nakopya ang ID ng transaksyon sa clipboard",
+    "activation_card": {
+      "title": "I-on ang mga notipikasyon",
+      "description_1": "Manatiling may-alam sa nangyayari sa iyong wallet gamit ang mga notipikasyon. ",
+      "description_2": "Para gamitin ang tampok na ito, kami ay gagawa ng isang hindi kilalang ID para sa iyong account. Ginagamit lang ito para sa pag-sync ng data sa MetaMask at hindi inuugnay ang iyong mga aktibidad o iba pang mga pagkakakilanlan, tinitiyak ang iyong pagkapribado.",
+      "learn_more": "Matutunan kung paano namin protektahan ang iyong pagkapribado habang gamit ang tampok na ito. ",
+      "manage_preferences_1": "Maaari mong i-off ang mga notipikasypon anumang oras sa ",
+      "manage_preferences_2": "Mga Setting > Mga notipikasyon.",
+      "cancel": "Kanselahin",
+      "cta": "I-on"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Protektahan ang iyong wallet",
@@ -2418,12 +2533,28 @@
       "title": "Manatiling ligtas gamit ang mga alerto sa seguridad",
       "description_1": "Manatiling ligtas sa mga scam habang patuloy na pinoprotektahan ang iyong pagkapribado sa pamamagitan ng mga alerto sa seguridad na pinatatakbo ng Blockaid. Ang tampok na ito ay naka-on nang default para sa lahat ng user ng MetaMask.",
       "description_2": "Palaging gumawa ng sarili mong pagsusuri bago aprubahan ang mga kahilingan.",
+      "description_3": "Available sa Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon, Sepolia at Base.",
       "got_it": "Nakuha ko"
     },
     "sell": {
       "title": "Pinadali ang pag-cash out",
       "description": "Ibenta ang iyong crypto nang direkta sa MetaMask! Tutulungan ka naming maghanap ng mga quote mula sa mga mapagkakatiwalaang provider, nang sa gayon ay maibenta mo ang iyong crypto sa isang accessible, mabilis, at secure na paraan, sa bawat pagkakataon.",
       "action_text": "Subukan ito"
+    },
+    "stx": {
+      "header": "Ipinapakilala ang mga Smart Transaction",
+      "description_1": "I-unlock ang pinakaligtas, pinakamaaasahan, at pinakamadaling karanasan sa transakyon - isang mas matalinong paraan sa pag-navigate sa web3.",
+      "description_2": "Milyun-milyong dolyar ang nawawala bawat buwan dahil sa mga nabigong transaksyon at frontrunning. Inaayos ito ng mga smart transaction.",
+      "description_3": "Sa ngayon, ang mga Smart Transaction ay available lamang sa ETH Mainnet. Maaari mo itong i-off anumang oras sa settings.",
+      "secondary_button": "Hindi ngayon",
+      "primary_button": "Payagan ang mga Smart Transaction",
+      "learn_more": "Matuto pa.",
+      "benefit_1_1": "82% mas kaunting bigo",
+      "benefit_1_2": "mga transaksyon",
+      "benefit_2_1": "Transaksyon",
+      "benefit_2_2": "protektahan",
+      "benefit_3_1": "Real-time",
+      "benefit_3_2": "mga update"
     }
   },
   "invalid_network": {
@@ -2842,6 +2973,31 @@
     "error_description": "Nabigo ang pag-install ng {{snap}}."
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "Mag-stake"
+  },
+  "default_settings": {
+    "title": "Your Wallet is ready",
+    "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
+    "learn_more_about_privacy": "Learn more about privacy best practices.",
+    "privacy_policy": "Privacy policy",
+    "default_settings": "Default Settings",
+    "done": "Done",
+    "basic_functionality": "Basic functionality",
+    "manage_networks": "Manage networks",
+    "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
+    "manage_networks_body2": " to learn more about how Infura handles data.",
+    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
+    "sheet": {
+      "title_off": "Turn off basic functionality",
+      "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
+      "title_on": "Turn on basic functionality",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
+      "checkbox_label": "I understand and want to continue",
+      "buttons": {
+        "cancel": "Cancel",
+        "turn_on": "Turn on",
+        "turn_off": "Turn off"
+      }
+    }
   }
 }
