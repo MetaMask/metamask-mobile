@@ -386,7 +386,7 @@ class SmartTransactionHook {
       this.onApproveOrReject();
 
       return { transactionHash };
-    } catch (error) {
+    } catch (error: any) {
       Logger.error(
         error,
         `${LOG_PREFIX} Error in smart transaction publish hook`,
