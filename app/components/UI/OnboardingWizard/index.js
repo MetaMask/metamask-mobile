@@ -9,7 +9,7 @@ import { colors as importedColors } from '../../../styles/common';
 import Step1 from './Step1';
 import Step2 from './Step2';
 import Step3 from './Step3';
-import Step4 from './Step4';
+import Step4 from './Step4/index.tsx';
 import Step5 from './Step5';
 import Step6 from './Step6';
 import Step7 from './Step7';
@@ -20,12 +20,12 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../core/Analytics';
-import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
+import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import AsyncStorageWrapper from '../../../store/async-storage-wrapper';
 import { isTest } from '../../../util/test/utils';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const createStyles = ({ colors, typography }) =>
   StyleSheet.create({

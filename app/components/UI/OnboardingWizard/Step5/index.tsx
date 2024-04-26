@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { Dimensions, Platform, StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
@@ -27,20 +26,23 @@ const styles = StyleSheet.create({
   },
 });
 
-const Step5 = (props) => {
-  const { setOnboardingWizardStep, onClose } = props;
+interface Step5Props {
+  coachmarkRef: any;
+  onClose: (arg0: boolean) => void;
+}
+
+const Step5 = ({ coachmarkRef, onClose }: Step5Props) => {
   const { trackEvent } = useMetrics();
   const { colors } = useTheme();
+  const dispatch = useDispatch();
   const dynamicOnboardingStyles = onboardingStyles(colors);
   const [coachmarkBottom, setCoachmarkBottom] = useState(50);
 
   const getCoachmarkPosition = useCallback(() => {
-    props?.coachmarkRef?.current?.measure(
-      (x, y, width, heigh, pageX, pageY) => {
-        setCoachmarkBottom(Dimensions.get('window').height - pageY);
-      },
-    );
-  }, [props?.coachmarkRef]);
+    coachmarkRef?.current?.measure((pageY: number) => {
+      setCoachmarkBottom(Dimensions.get('window').height - pageY);
+    });
+  }, [coachmarkRef]);
 
   useEffect(() => {
     getCoachmarkPosition();
@@ -50,7 +52,7 @@ const Step5 = (props) => {
    * Dispatches 'setOnboardingWizardStep' with next step
    */
   const onNext = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(6);
+    dispatch(setOnboardingWizardStep?.(6));
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
       tutorial_step_count: 5,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
@@ -61,7 +63,7 @@ const Step5 = (props) => {
    * Dispatches 'setOnboardingWizardStep' with back step
    */
   const onBack = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(4);
+    dispatch(setOnboardingWizardStep?.(4));
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 5,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
@@ -72,7 +74,7 @@ const Step5 = (props) => {
    * Calls props 'onClose'
    */
   const handleOnClose = () => {
-    onClose && onClose(false);
+    onClose?.(false);
   };
 
   /**
@@ -113,23 +115,4 @@ const Step5 = (props) => {
   );
 };
 
-const mapDispatchToProps = (dispatch) => ({
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-});
-
-Step5.propTypes = {
-  /**
-   * Dispatch set onboarding wizard step
-   */
-  setOnboardingWizardStep: PropTypes.func,
-  /**
-   * Callback called when closing step
-   */
-  onClose: PropTypes.func,
-  /**
-   *  coachmark ref to get position
-   */
-  coachmarkRef: PropTypes.object,
-};
-
-export default connect(null, mapDispatchToProps)(Step5);
+export default Step5;

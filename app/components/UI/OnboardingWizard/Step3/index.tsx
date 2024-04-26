@@ -1,19 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
-import Coachmark from '../Coachmark';
-
-import onboardingStyles from './../styles';
+import onboardingStyles from '../styles';
 import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
 import { useMetrics } from '../../../hooks/useMetrics';
 
 const styles = StyleSheet.create({
@@ -28,55 +26,53 @@ const styles = StyleSheet.create({
   },
 });
 
-const Step2 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
+interface Step3Props {
+  coachmarkRef: any;
+  onClose: (arg0: boolean) => void;
+}
+
+const Step3 = ({ coachmarkRef, onClose }: Step3Props) => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
-
+  const dispatch = useDispatch();
   const [coachmarkTop, setCoachmarkTop] = useState(0);
 
   const handleLayout = useCallback(() => {
-    const yourAccRef = coachmarkRef.yourAccountRef?.current;
-    if (!yourAccRef) return;
+    const accActionsRef = coachmarkRef.accountActionsRef?.current;
+    if (!accActionsRef) return;
 
-    yourAccRef.measure(
-      (
-        accActionsFx,
-        accActionsFy,
-        accActionsWidth,
-        accActionsHeight,
-        accActionsPageX,
-        accActionsPageY,
-      ) => {
+    accActionsRef.measure(
+      (accActionsHeight: number, accActionsPageY: number) => {
         const top = accActionsHeight + accActionsPageY;
         setCoachmarkTop(top);
       },
     );
-  }, [coachmarkRef.yourAccountRef]);
+  }, [coachmarkRef.accountActionsRef]);
 
   useEffect(() => {
     handleLayout();
   }, [handleLayout]);
 
   const onNext = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(3);
+    dispatch(setOnboardingWizardStep?.(4));
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
-      tutorial_step_count: 2,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
+      tutorial_step_count: 3,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
     });
   };
 
   const onBack = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(1);
+    dispatch(setOnboardingWizardStep?.(2));
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
-      tutorial_step_count: 2,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[2],
+      tutorial_step_count: 3,
+      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
     });
   };
 
   const getOnboardingStyles = () => onboardingStyles(colors);
 
   const onCloseStep = () => {
-    onClose && onClose(false);
+    onClose?.(false);
   };
 
   const content = () => {
@@ -86,12 +82,9 @@ const Step2 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
       <View style={dynamicOnboardingStyles.contentContainer}>
         <Text
           style={dynamicOnboardingStyles.content}
-          {...generateTestId(
-            Platform,
-            ONBOARDING_WIZARD_SECOND_STEP_CONTENT_ID,
-          )}
+          {...generateTestId(Platform, ONBOARDING_WIZARD_THIRD_STEP_CONTENT_ID)}
         >
-          {strings('onboarding_wizard_new.step2.content1')}
+          {strings('onboarding_wizard_new.step3.content1')}
         </Text>
       </View>
     );
@@ -108,12 +101,12 @@ const Step2 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
         ]}
       >
         <Coachmark
-          title={strings('onboarding_wizard_new.step2.title')}
+          title={strings('onboarding_wizard_new.step3.title')}
           content={content()}
           onNext={onNext}
           onBack={onBack}
-          topIndicatorPosition={'topCenter'}
-          currentStep={1}
+          topIndicatorPosition={'topRightCorner'}
+          currentStep={2}
           onClose={onCloseStep}
         />
       </View>
@@ -121,14 +114,4 @@ const Step2 = ({ setOnboardingWizardStep, coachmarkRef, onClose }) => {
   );
 };
 
-Step2.propTypes = {
-  setOnboardingWizardStep: PropTypes.func,
-  coachmarkRef: PropTypes.object,
-  onClose: PropTypes.func,
-};
-
-const mapDispatchToProps = (dispatch) => ({
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-});
-
-export default connect(null, mapDispatchToProps)(Step2);
+export default Step3;

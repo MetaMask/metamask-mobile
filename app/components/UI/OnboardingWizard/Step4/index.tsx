@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
@@ -31,10 +30,14 @@ const styles = StyleSheet.create({
   },
 });
 
-const Step4 = ({ setOnboardingWizardStep, onClose }) => {
+interface Step4Props {
+  onClose: (arg0: boolean) => void;
+}
+
+const Step4 = ({ onClose }: Step4Props) => {
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
-
+  const dispatch = useDispatch();
   const [coachmarkTop, setCoachmarkTop] = useState(0);
 
   const handleLayout = useCallback(() => {
@@ -47,7 +50,7 @@ const Step4 = ({ setOnboardingWizardStep, onClose }) => {
   }, [handleLayout]);
 
   const onNext = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(5);
+    dispatch(setOnboardingWizardStep?.(5));
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
       tutorial_step_count: 4,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
@@ -55,7 +58,7 @@ const Step4 = ({ setOnboardingWizardStep, onClose }) => {
   };
 
   const onBack = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(3);
+    dispatch(setOnboardingWizardStep?.(3));
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 4,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
@@ -65,7 +68,7 @@ const Step4 = ({ setOnboardingWizardStep, onClose }) => {
   const getOnboardingStyles = () => onboardingStyles(colors);
 
   const onCloseStep = () => {
-    onClose && onClose(false);
+    onClose?.(false);
   };
 
   const content = () => {
@@ -110,13 +113,4 @@ const Step4 = ({ setOnboardingWizardStep, onClose }) => {
   );
 };
 
-Step4.propTypes = {
-  setOnboardingWizardStep: PropTypes.func,
-  onClose: PropTypes.func,
-};
-
-const mapDispatchToProps = (dispatch) => ({
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-});
-
-export default connect(null, mapDispatchToProps)(Step4);
+export default Step4;

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import Coachmark from '../Coachmark';
 import setOnboardingWizardStep from '../../../../actions/wizard';
@@ -31,10 +30,14 @@ const styles = StyleSheet.create({
   },
 });
 
-const Step7 = (props) => {
-  const { setOnboardingWizardStep, onClose, navigation } = props;
-  const { trackEvent } = useMetrics();
+interface Step7Props {
+  navigation: any;
+  onClose: (arg0: boolean) => void;
+}
 
+const Step7 = ({ navigation, onClose }: Step7Props) => {
+  const { trackEvent } = useMetrics();
+  const dispatch = useDispatch();
   const [ready, setReady] = useState(false);
   const [coachmarkTop, setCoachmarkTop] = useState(0);
   const { colors } = useTheme();
@@ -59,7 +62,7 @@ const Step7 = (props) => {
   const onBack = () => {
     navigation?.navigate?.(Routes.WALLET.HOME);
     setTimeout(() => {
-      setOnboardingWizardStep && setOnboardingWizardStep(6);
+      dispatch(setOnboardingWizardStep?.(6));
     }, 1);
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 7,
@@ -71,7 +74,7 @@ const Step7 = (props) => {
    * Calls props onClose
    */
   const triggerOnClose = () => {
-    onClose && onClose(false);
+    onClose?.(false);
   };
 
   /**
@@ -107,23 +110,4 @@ const Step7 = (props) => {
   );
 };
 
-const mapDispatchToProps = (dispatch) => ({
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-});
-
-Step7.propTypes = {
-  /**
-   * Object that represents the navigator
-   */
-  navigation: PropTypes.object,
-  /**
-   * Dispatch set onboarding wizard step
-   */
-  setOnboardingWizardStep: PropTypes.func,
-  /**
-   * Callback to call when closing
-   */
-  onClose: PropTypes.func,
-};
-
-export default connect(null, mapDispatchToProps)(Step7);
+export default Step7;

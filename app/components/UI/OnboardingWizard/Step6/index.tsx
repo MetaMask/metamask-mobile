@@ -1,6 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import Device from '../../../../util/device';
 import Coachmark from '../Coachmark';
@@ -32,18 +31,22 @@ const styles = StyleSheet.create({
   },
 });
 
-const Step6 = (props) => {
-  const { setOnboardingWizardStep, onClose, navigation } = props;
+interface Step6Props {
+  navigation: any;
+  onClose: (arg0: boolean) => void;
+}
+
+const Step6 = ({ onClose, navigation }: Step6Props) => {
   const { trackEvent } = useMetrics();
   const { colors } = useTheme();
   const dynamicOnboardingStyles = onboardingStyles(colors);
-
+  const dispatch = useDispatch();
   /**
    * Dispatches 'setOnboardingWizardStep' with next step
    */
   const onNext = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(7);
-    navigation && navigation.navigate(...createBrowserNavDetails());
+    dispatch(setOnboardingWizardStep?.(7));
+    navigation?.navigate(...createBrowserNavDetails());
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
       tutorial_step_count: 6,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
@@ -54,7 +57,7 @@ const Step6 = (props) => {
    * Dispatches 'setOnboardingWizardStep' with next step
    */
   const onBack = () => {
-    setOnboardingWizardStep && setOnboardingWizardStep(5);
+    dispatch(setOnboardingWizardStep?.(5));
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
       tutorial_step_count: 6,
       tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[6],
@@ -65,7 +68,7 @@ const Step6 = (props) => {
    * Calls props 'onClose'
    */
   const handleOnClose = () => {
-    onClose && onClose(false);
+    onClose?.(false);
   };
 
   /**
@@ -100,23 +103,4 @@ const Step6 = (props) => {
   );
 };
 
-const mapDispatchToProps = (dispatch) => ({
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
-});
-
-Step6.propTypes = {
-  /**
-   * Object that represents the navigator
-   */
-  navigation: PropTypes.object,
-  /**
-   * Dispatch set onboarding wizard step
-   */
-  setOnboardingWizardStep: PropTypes.func,
-  /**
-   * Callback called when closing step
-   */
-  onClose: PropTypes.func,
-};
-
-export default connect(null, mapDispatchToProps)(Step6);
+export default Step6;

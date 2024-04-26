@@ -128,6 +128,7 @@ exports[`Step7 should render correctly 1`] = `
             accessible={true}
             activeOpacity={1}
             disabled={false}
+            onPress={[MockFunction]}
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={

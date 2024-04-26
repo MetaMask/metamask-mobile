@@ -1,25 +1,13 @@
 import React from 'react';
-import Step4 from '.';
-import { shallow } from 'enzyme';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import Step4 from './';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 
-const mockStore = configureMockStore();
-const initialState = {
-  engine: {
-    backgroundState: initialBackgroundState,
-  },
-};
-const store = mockStore(initialState);
-
+const closeOnboardingWizard = jest.fn();
 describe('Step4', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Step4 coachmarkRef={{}} />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <Step4 onClose={closeOnboardingWizard} />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
