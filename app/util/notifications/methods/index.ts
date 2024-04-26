@@ -9,6 +9,8 @@ import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { Theme } from '../../../util/theme/models';
 import {
+  ChainId,
+  HalRawNotification,
   Notification,
   TRIGGER_TYPES,
   mmStorage,
@@ -154,10 +156,13 @@ export function viewOnEtherscan(props: ViewOnEtherscanProps, state: any) {
     });
   }
 }
-// TODO: use getNetwork on next PR (Notification's details)
-// function getNetwork(chain_id: HalRawNotification['chain_id']) {
-//   return ChainId[chain_id];
-// }
+
+export function getNetwork(chain_id: HalRawNotification['chain_id']) {
+  return ChainId[chain_id];
+}
+
+export const isNotificationsFeatureEnabled = () =>
+  process.env.MM_NOTIFICATIONS_UI_ENABLED;
 
 export function formatNotificationTitle(rawTitle: string): string {
   const words = rawTitle.split('_');
