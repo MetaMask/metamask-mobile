@@ -4,7 +4,7 @@ import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
-import { TestDApp } from '../../pages/TestDApp';
+import { TestDApp } from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,

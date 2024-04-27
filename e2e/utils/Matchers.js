@@ -104,6 +104,16 @@ class Matchers {
   }
 
   /**
+   * Get element by ID.
+   *
+   * @param {string} id - id expression to locate the element
+   * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
+   */
+  static async getElementByWebID(id) {
+    return web.element(by.web.id(id));
+  }
+
+  /**
  * Creates a Detox matcher for identifying an element by its ID.
  *
  * @param {string} selectorString - The selector string for identifying the element

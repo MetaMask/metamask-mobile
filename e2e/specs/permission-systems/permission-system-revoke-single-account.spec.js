@@ -1,7 +1,7 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
-import Browser from '../../pages/Browser';
+import Browser from '../../pages/Browser/Browser';
 import TabBarComponent from '../../pages/TabBarComponent';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
@@ -28,9 +28,9 @@ describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Browser.isVisible();
+        await Assertions.checkIfVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
-        await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
+        await Browser.tapNetworkAvatarButtonOnBrowser();
         await ConnectedAccountsModal.tapPermissionsButton();
         await ConnectedAccountsModal.tapDisconnectAllButton();
         await Browser.isAccountToastVisible('Account 1');

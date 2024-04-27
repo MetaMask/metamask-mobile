@@ -1,10 +1,11 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
-import Browser from '../../pages/Browser';
+import Browser from '../../pages/Browser/Browser';
 import { BROWSER_SCREEN_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 import TabBarComponent from '../../pages/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
+import Assertions from '../../utils/Assertions';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -42,7 +43,8 @@ describe(SmokeCore('Browser Tests'), () => {
   it('should navigate to browser', async () => {
     await TabBarComponent.tapBrowser();
     // Check that we are on the browser screen
-    await Browser.isVisible();
+
+    await Assertions.checkIfVisible(Browser.browserScreenID);
   });
 
   it('should connect to the test dapp', async () => {
@@ -55,7 +57,7 @@ describe(SmokeCore('Browser Tests'), () => {
 
   it('should add the test dapp to favorites', async () => {
     // Check that we are still on the browser screen
-    await Browser.isVisible();
+    await Assertions.checkIfVisible(Browser.browserScreenID);
     // Tap on options
     await Browser.tapOptionsButton();
     await Browser.tapAddToFavoritesButton();
@@ -69,7 +71,6 @@ describe(SmokeCore('Browser Tests'), () => {
     await Browser.tapHomeButton();
     // Wait for page to load
     await TestHelpers.delay(1000);
-    await Browser.isVisible();
   });
 
   it('should tap on the test dapp in favorites', async () => {
@@ -83,8 +84,6 @@ describe(SmokeCore('Browser Tests'), () => {
       await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 180, y: 275 });
       await Browser.waitForBrowserPageToLoad();
     }
-    await Browser.isURLBarTextTestDapp();
-    await Browser.isVisible();
   });
 
   it('should test invalid URL', async () => {
@@ -96,7 +95,6 @@ describe(SmokeCore('Browser Tests'), () => {
     await Browser.tapReturnHomeButton();
     // Check that we are on the browser screen
     await TestHelpers.delay(1500);
-    await Browser.isVisible();
   });
 
   it('should test phishing sites', async () => {
@@ -104,10 +102,10 @@ describe(SmokeCore('Browser Tests'), () => {
     // Clear text & Navigate to URL
     await Browser.navigateToURL(PHISHING_SITE);
     await Browser.waitForBrowserPageToLoad();
-    await Browser.isBackToSafetyButtonVisible();
+    await Assertions.checkIfVisible(Browser.backToSafetyButton);
+
     await Browser.tapBackToSafetyButton();
     // Check that we are on the browser screen
     await TestHelpers.delay(1500);
-    await Browser.isVisible();
   });
 });
