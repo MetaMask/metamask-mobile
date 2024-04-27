@@ -5669,6 +5669,16 @@
   resolved "https://registry.yarnpkg.com/@react-native/js-polyfills/-/js-polyfills-0.72.1.tgz#905343ef0c51256f128256330fccbdb35b922291"
   integrity sha512-cRPZh2rBswFnGt5X5EUEPs0r+pAsXxYsifv/fgy9ZLQokuT52bPH+9xjDR+7TafRua5CttGW83wP4TntRcWNDA==
 
+"@react-native/metro-config@^0.72.12":
+  version "0.72.12"
+  resolved "https://registry.yarnpkg.com/@react-native/metro-config/-/metro-config-0.72.12.tgz#f55a0a68100824ac57989ee9ae9518a69b0c43c5"
+  integrity sha512-6NC5nr70oV8gH5vTz0yVYig6TGn97NfE58DdYottuOGPEODZf9Jpb7gdLs6Rqj5ryFDsKVPU3NsFmXKBJwEgXQ==
+  dependencies:
+    "@react-native/js-polyfills" "^0.72.1"
+    metro-config "^0.76.9"
+    metro-react-native-babel-transformer "^0.76.9"
+    metro-runtime "^0.76.9"
+
 "@react-native/normalize-color@*", "@react-native/normalize-color@^2.0.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@react-native/normalize-color/-/normalize-color-2.1.0.tgz#939b87a9849e81687d3640c5efa2a486ac266f91"
@@ -21019,7 +21029,7 @@ metro-cache@0.76.9:
     metro-core "0.76.9"
     rimraf "^3.0.2"
 
-metro-config@0.76.9, metro-config@^0.76.9, metro-config@~0.76.9:
+metro-config@0.76.9, metro-config@^0.76.9:
   version "0.76.9"
   resolved "https://registry.yarnpkg.com/metro-config/-/metro-config-0.76.9.tgz#5e60aff9d8894c1ee6bbc5de23b7c8515a0b84a3"
   integrity sha512-oYyJ16PY3rprsfoi80L+gDJhFJqsKI3Pob5LKQbJpvL+gGr8qfZe1eQzYp5Xxxk9DOHKBV1xD94NB8GdT/DA8Q==
