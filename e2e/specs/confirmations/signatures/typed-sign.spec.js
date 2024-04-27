@@ -1,9 +1,9 @@
 'use strict';
-import Browser from '../../../pages/Browser';
+import Browser from '../../../pages/Browser/Browser';
 import TabBarComponent from '../../../pages/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
 import SigningModal from '../../../pages/modals/SigningModal';
-import { TestDApp } from '../../../pages/TestDApp';
+import { TestDApp } from '../../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,

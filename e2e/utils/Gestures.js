@@ -94,9 +94,8 @@ class Gestures {
    */
   static async typeTextAndHideKeyboard(elementID, text) {
     const element = await elementID;
-    if (device.getPlatform() === 'android') {
-      await this.clearField(element);
-    }
+    await this.clearField(element);
+
     await element.typeText(text + '\n');
   }
 

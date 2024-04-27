@@ -123,6 +123,6 @@ describe(SmokeCore('Start Exploring'), () => {
     } catch {
       //
     }
-    await Browser.isVisible();
+    await Assertions.checkIfVisible(Browser.browserScreenID);
   });
 });

@@ -1,11 +1,22 @@
-import enContent from '../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 export const BrowserViewSelectorsIDs = {
   ANDROID_CONTAINER: 'browser-webview',
   AVATAR_IMAGE: 'network-avatar-image',
   DAPP_EIP1559_BUTTON: 'sendEIP1559Button',
   DAPP_CONNECT_BUTTON: 'connectButton',
-  URL_INPUT: 'browser-url-bar',
+  URL_INPUT: 'url-input',
+  BROWSER_SCREEN_ID: 'browser-screen',
+  TABS_NUMBER: 'show-tabs-number',
+  BACK_BUTTON: 'back-arrow-button',
+  HOME_BUTTON: 'home-button',
+  FORWARD_BUTTON: 'go-forward-button',
+  SEARCH_BUTTON: 'search-button',
+  OPTIONS_BUTTON: 'options-button',
+  ACCOUNT_BUTTON: 'navbar-account-button',
+  TABS_BUTTON: 'show-tabs-button',
+  CANCEL_BUTTON_ON_BROWSER_ID: 'cancel-url-button',
+  URL_CLEAR_ICON: 'url-clear-icon',
 };
 
 export const BrowserViewSelectorsText = {

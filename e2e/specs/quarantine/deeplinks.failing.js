@@ -181,7 +181,7 @@ describe(Regression('Deep linking Tests'), () => {
 
     await TestHelpers.checkIfElementWithTextIsVisible('app.sushi.com', 0);
 
-    await Browser.isVisible();
+    await Assertions.checkIfVisible(Browser.browserScreenID);
     await Assertions.checkIfNotVisible(ConnectModal.container);
   });
 });
