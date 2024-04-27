@@ -54,7 +54,14 @@ function handleUniversalLink({
       if (params.redirect) {
         Minimizer.goBack();
       } else if (params.channelId) {
+        const protocolVersion = parseInt(params.v ?? '1', 10);
+
+        DevLogger.log(
+          `handleUniversalLink:: deeplink_scheme protocolVersion=${protocolVersion} v=${params.v}`,
+        );
+
         handleDeeplink({
+          protocolVersion,
           channelId: params.channelId,
           origin,
           context: 'deeplink_universal',
