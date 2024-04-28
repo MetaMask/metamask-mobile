@@ -111,8 +111,6 @@ export class BackgroundBridge extends EventEmitter {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    // eslint-disable-next-line no-console
-    console.log('ENTER this.sendStateUpdate', this.sendStateUpdate);
 
     Engine.controllerMessenger.subscribe(
       'KeyringController:lock',
