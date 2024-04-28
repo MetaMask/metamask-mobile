@@ -15,12 +15,18 @@ import Identicon from '../Identicon';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 const NameTag: React.FC<NameTagProperties> = ({ address }) => {
   const displayName = useDisplayName(address);
   const { styles } = useStyles(styleSheet, {
     displayNameVariant: displayName.variant,
   });
+
+  const labelText =
+    displayName.variant === DisplayNameVariant.Unknown
+      ? toChecksumAddress(address)
+      : displayName.name;
 
   // If the display name is just the address, we want to ellipsize
   // the middle so that the end of the address is still visible.
@@ -41,7 +47,7 @@ const NameTag: React.FC<NameTagProperties> = ({ address }) => {
         style={styles.label}
         variant={TextVariant.BodyMD}
       >
-        {displayName.name}
+        {labelText}
       </Text>
     </View>
   );
