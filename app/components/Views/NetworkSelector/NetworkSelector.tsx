@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useRef } from 'react';
-import { Platform, Switch, View } from 'react-native';
+import { Switch, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -44,12 +44,7 @@ import {
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { ADD_NETWORK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
-import {
-  NETWORK_SCROLL_ID,
-  NETWORK_TEST_SWITCH_ID,
-} from '../../../../wdio/screen-objects/testIDs/Components/NetworkListModal.TestIds';
+import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkListModal.selectors';
 import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import {
@@ -248,7 +243,7 @@ const NetworkSelector = () => {
         }}
         thumbColor={theme.brandColors.white['000']}
         ios_backgroundColor={colors.border.muted}
-        {...generateTestId(Platform, NETWORK_TEST_SWITCH_ID)}
+        testID={NetworkListModalSelectorsIDs.TEST_NET_TOGGLE}
         disabled={isTestNet(providerConfig.chainId)}
       />
     </View>
@@ -257,7 +252,7 @@ const NetworkSelector = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <SheetHeader title={strings('networks.select_network')} />
-      <ScrollView {...generateTestId(Platform, NETWORK_SCROLL_ID)}>
+      <ScrollView testID={NetworkListModalSelectorsIDs.SCROLL}>
         {renderMainnet()}
         {renderLineaMainnet()}
         {renderRpcNetworks()}
@@ -272,7 +267,7 @@ const NetworkSelector = () => {
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
         style={styles.addNetworkButton}
-        {...generateTestId(Platform, ADD_NETWORK_BUTTON)}
+        testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
       />
     </BottomSheet>
   );
