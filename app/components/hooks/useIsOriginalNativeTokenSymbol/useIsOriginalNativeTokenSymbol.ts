@@ -42,7 +42,9 @@ function useIsOriginalNativeTokenSymbol(
         const mappedCurrencySymbol = CURRENCY_SYMBOL_BY_CHAIN_ID[networkId];
 
         if (mappedCurrencySymbol) {
-          setIsOriginalNativeSymbol(mappedCurrencySymbol === ticker);
+          setIsOriginalNativeSymbol(
+            mappedCurrencySymbol?.toLowerCase() === ticker?.toLowerCase(),
+          );
           return;
         }
 
@@ -55,7 +57,9 @@ function useIsOriginalNativeTokenSymbol(
         );
 
         const symbol = matchedChain?.nativeCurrency?.symbol ?? null;
-        setIsOriginalNativeSymbol(symbol === ticker);
+        setIsOriginalNativeSymbol(
+          symbol?.toLowerCase() === ticker?.toLowerCase(),
+        );
         return;
       } catch (err) {
         setIsOriginalNativeSymbol(false);
