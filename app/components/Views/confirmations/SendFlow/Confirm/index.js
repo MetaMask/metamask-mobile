@@ -395,11 +395,6 @@ class Confirm extends PureComponent {
     this.setState({
       pollToken,
     });
-    // For analytics
-    this.props.metrics.trackEvent(
-      MetaMetricsEvents.SEND_TRANSACTION_STARTED,
-      this.getAnalyticsParams(),
-    );
 
     showCustomNonce && (await this.setNetworkNonce());
     navigation.setParams({ providerType, isPaymentRequest });
@@ -443,6 +438,15 @@ class Confirm extends PureComponent {
 
       ppomUtil.validateRequest(reqObject, id);
     }
+
+    // For analytics
+    this.props.metrics.trackEvent(MetaMetricsEvents.SEND_TRANSACTION_STARTED, {
+      ...this.getAnalyticsParams(),
+      ...getBlockaidTransactionMetricsParams({
+        ...this.props.transaction,
+        id: transactionMeta.id,
+      }),
+    });
   };
 
   componentDidUpdate = (prevProps, prevState) => {
