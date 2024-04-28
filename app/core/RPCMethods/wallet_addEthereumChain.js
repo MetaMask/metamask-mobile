@@ -155,7 +155,7 @@ const wallet_addEthereumChain = async ({
       throw providerErrors.userRejectedRequest();
     }
 
-    CurrencyRateController.setNativeCurrency(networkConfiguration.ticker);
+    CurrencyRateController.updateExchangeRate(networkConfiguration.ticker);
     NetworkController.setActiveNetwork(networkConfigurationId);
 
     MetaMetrics.getInstance().trackEvent(
@@ -301,7 +301,7 @@ const wallet_addEthereumChain = async ({
       requestData: { ...requestData, type: 'new' },
     });
 
-    CurrencyRateController.setNativeCurrency(ticker);
+    CurrencyRateController.updateExchangeRate(ticker);
     NetworkController.setActiveNetwork(networkConfigurationId);
   } finally {
     endApprovalFlow({ id: approvalFlowId });

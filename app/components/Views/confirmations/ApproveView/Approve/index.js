@@ -60,7 +60,6 @@ import {
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
 import {
@@ -899,7 +898,6 @@ const mapStateToProps = (state) => ({
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  nativeCurrency: selectNativeCurrency(state),
   showCustomNonce: state.settings.showCustomNonce,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   providerType: selectProviderType(state),
