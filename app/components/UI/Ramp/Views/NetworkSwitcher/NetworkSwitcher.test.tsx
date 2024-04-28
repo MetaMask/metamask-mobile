@@ -112,7 +112,7 @@ jest.mock('../../../../../core/Engine', () => ({
       setActiveNetwork: jest.fn(),
     },
     CurrencyRateController: {
-      setNativeCurrency: jest.fn(),
+      updateExchangeRate: jest.fn(),
     },
   },
 }));
@@ -292,7 +292,7 @@ describe('NetworkSwitcher View', () => {
         ],
       ]
     `);
-    expect(Engine.context.CurrencyRateController.setNativeCurrency.mock.calls)
+    expect(Engine.context.CurrencyRateController.updateExchangeRate.mock.calls)
       .toMatchInlineSnapshot(`
       Array [
         Array [
