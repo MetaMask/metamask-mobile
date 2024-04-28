@@ -1,5 +1,5 @@
 import React from 'react';
-import { default as NameTag } from './NameTag';
+import { default as Name } from './Name';
 import { render } from '@testing-library/react-native';
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
@@ -8,18 +8,18 @@ const UNKNOWN_ADDRESS_CHECKSUMMED =
 const UNKNOWN_ADDRESS_NOT_CHECKSUMMED =
   UNKNOWN_ADDRESS_CHECKSUMMED.toLowerCase();
 
-describe('NameTag', () => {
+describe('Name', () => {
   describe('unknown address', () => {
     it('displays checksummed address', () => {
       const wrapper = render(
-        <NameTag address={UNKNOWN_ADDRESS_NOT_CHECKSUMMED} />,
+        <Name address={UNKNOWN_ADDRESS_NOT_CHECKSUMMED} />,
       );
       expect(wrapper.getByText(UNKNOWN_ADDRESS_CHECKSUMMED)).toBeTruthy();
     });
 
     it('should render snapshot correctly', () => {
       const wrapper = render(
-        <NameTag address={UNKNOWN_ADDRESS_NOT_CHECKSUMMED} />,
+        <Name address={UNKNOWN_ADDRESS_NOT_CHECKSUMMED} />,
       );
       expect(wrapper).toMatchSnapshot();
     });

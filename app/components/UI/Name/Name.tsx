@@ -4,20 +4,20 @@ import React from 'react';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { NameTagProperties } from './NameTag.types';
+import { NameProperties } from './Name.types';
 import { View } from 'react-native';
 import useDisplayName, {
   DisplayNameVariant,
 } from '../../hooks/DisplayName/useDisplayName';
 import { useStyles } from '../../../component-library/hooks';
-import styleSheet from './NameTag.styles';
+import styleSheet from './Name.styles';
 import Identicon from '../Identicon';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { toChecksumAddress } from 'ethereumjs-util';
 
-const NameTag: React.FC<NameTagProperties> = ({ address }) => {
+const Name: React.FC<NameProperties> = ({ address }) => {
   const displayName = useDisplayName(address);
   const { styles } = useStyles(styleSheet, {
     displayNameVariant: displayName.variant,
@@ -53,4 +53,4 @@ const NameTag: React.FC<NameTagProperties> = ({ address }) => {
   );
 };
 
-export default NameTag;
+export default Name;

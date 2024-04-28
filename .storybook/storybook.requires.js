@@ -105,7 +105,7 @@ const getStories = () => {
     "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
     "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
     "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
-    "./app/components/UI/NameTag/NameTag.stories.tsx": require("../app/components/UI/NameTag/NameTag.stories.tsx"),
+    "./app/components/UI/Name/Name.stories.tsx": require("../app/components/UI/Name/Name.stories.tsx"),
   };
 };
 

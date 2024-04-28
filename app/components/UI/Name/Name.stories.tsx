@@ -3,13 +3,13 @@ import { View } from 'react-native';
 import { Provider } from 'react-redux';
 import { Meta, StoryObj } from '@storybook/react-native';
 import { configureStore } from '@reduxjs/toolkit';
-import { default as NameTagComponent } from './NameTag';
-import { NameTagProperties } from './NameTag.types';
+import { default as NameComponent } from './Name';
+import { NameProperties } from './Name.types';
 
 const backdropStyle = { backgroundColor: 'white', padding: 50 };
 const ADDRESS_1 = '0x2990079bcdEe240329a520d2444386FC119da21a';
 
-type Story = StoryObj<NameTagProperties>;
+type Story = StoryObj<NameProperties>;
 
 const storeMock = configureStore({
   reducer: (state) => state,
@@ -18,9 +18,9 @@ const storeMock = configureStore({
   },
 });
 
-const meta: Meta<typeof NameTagComponent> = {
-  title: 'Components / UI / NameTag',
-  component: NameTagComponent,
+const meta: Meta<typeof NameComponent> = {
+  title: 'Components / UI / Name',
+  component: NameComponent,
   decorators: [
     (story) => (
       <Provider store={storeMock}>
@@ -39,7 +39,7 @@ export const NarrowWidth: Story = {
   render() {
     return (
       <View style={backdropStyle}>
-        <NameTagComponent address={ADDRESS_1} />
+        <NameComponent address={ADDRESS_1} />
       </View>
     );
   },
