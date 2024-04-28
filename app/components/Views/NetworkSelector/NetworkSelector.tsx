@@ -29,7 +29,12 @@ import Networks, {
   getNetworkImageSource,
   isTestNet,
 } from '../../../util/networks';
-import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
+import {
+  LINEA_MAINNET,
+  LINEA_SEPOLIA,
+  MAINNET,
+  SEPOLIA,
+} from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
@@ -51,6 +56,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 
 // Internal dependencies
 import styles from './NetworkSelector.styles';
+import { TESTNET_TICKER_SYMBOLS } from '@metamask/controller-utils';
 
 const NetworkSelector = () => {
   const { navigate } = useNavigation();
@@ -63,6 +69,7 @@ const NetworkSelector = () => {
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
+  // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: string) => {
     const {
       NetworkController,
@@ -70,7 +77,15 @@ const NetworkSelector = () => {
       AccountTrackerController,
     } = Engine.context;
 
-    CurrencyRateController.setNativeCurrency('ETH');
+    let ticker = type;
+    if (type === LINEA_SEPOLIA) {
+      ticker = TESTNET_TICKER_SYMBOLS.LINEA_SEPOLIA;
+    }
+    if (type === SEPOLIA) {
+      ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA;
+    }
+
+    CurrencyRateController.updateExchangeRate(ticker);
     NetworkController.setProviderType(type);
     AccountTrackerController.refresh();
 
@@ -101,7 +116,7 @@ const NetworkSelector = () => {
       const [networkConfigurationId, networkConfiguration] = entry;
       const { ticker, nickname } = networkConfiguration;
 
-      CurrencyRateController.setNativeCurrency(ticker);
+      CurrencyRateController.updateExchangeRate(ticker);
 
       NetworkController.setActiveNetwork(networkConfigurationId);
 
