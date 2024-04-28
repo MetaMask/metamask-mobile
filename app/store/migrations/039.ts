@@ -1,16 +1,46 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  ENCRYPTION_LIB,
-  EXISTING_USER,
-  ORIGINAL,
-} from '../../constants/storage';
+import { captureException } from '@sentry/react-native';
+import { isObject } from '@metamask/utils';
+import { ensureValidState } from './util';
 
-export default async function migrate(state: unknown) {
-  const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-  const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-  if (existingUser && !encryptionLib) {
-    await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
+export default function migrate(state: unknown) {
+  if (!ensureValidState(state, 39)) {
+    return state;
   }
+
+  const currencyRateState = state.engine.backgroundState.CurrencyRateController;
+
+  if (!isObject(currencyRateState)) {
+    captureException(
+      new Error(
+        `Migration 39: Invalid CurrencyRateController state error: '${JSON.stringify(
+          currencyRateState,
+        )}'`,
+      ),
+    );
+    return state;
+  }
+
+  const {
+    currentCurrency,
+    nativeCurrency,
+    conversionRate,
+    conversionDate,
+    usdConversionRate,
+  } = currencyRateState;
+
+  delete currencyRateState.pendingCurrentCurrency;
+  delete currencyRateState.pendingNativeCurrency;
+
+  state.engine.backgroundState.CurrencyRateController = {
+    currentCurrency,
+    currencyRates: {
+      [nativeCurrency as string]: {
+        conversionRate,
+        conversionDate,
+        usdConversionRate,
+      },
+    },
+  };
 
   return state;
 }

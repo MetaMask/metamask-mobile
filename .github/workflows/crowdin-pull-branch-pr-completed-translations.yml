@@ -40,9 +40,10 @@ jobs:
         id: get-branches
         run: |
           GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+          REPO="${{ github.repository }}"
           
           LABEL="ready-for-translation"
-          API_URL="https://api.github.com/repos/Metamask/crowdin-sandbox/pulls?state=open&per_page=100"
+          API_URL="https://api.github.com/repos/$REPO/pulls?state=open&per_page=100"
           
           # Fetch the list of open pull requests with the specified label using curl
           PRS=$(curl -sS --header "Authorization: Bearer $GITHUB_TOKEN" "$API_URL")
