@@ -85,8 +85,12 @@ const initialState = {
         },
       },
       CurrencyRateController: {
-        conversionRate: 10,
         currentCurrency: 'usd',
+        currencyRates: {
+          ETH: {
+            conversionRate: 10,
+          },
+        },
       },
       NetworkController: {
         providerConfig: {

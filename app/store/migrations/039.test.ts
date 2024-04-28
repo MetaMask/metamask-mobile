@@ -1,49 +1,36 @@
-import migrate from './039';
+import migration from './039';
 import { merge } from 'lodash';
-import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
+import { captureException } from '@sentry/react-native';
 
-const expectedState = {
+const oldState = {
   engine: {
     backgroundState: {
-      TransactionController: {
-        transactions: [
-          {
-            chainId: '0x5',
-            id: '1',
-            origin: 'test.com',
-            status: 'confirmed',
-            time: 1631714312,
-            txParams: {
-              from: '0x1',
-            },
-            hash: '0x2',
-            rawTx: '0x3',
+      CurrencyRateController: {
+        conversionDate: 1684232393.997,
+        conversionRate: 1815.41,
+        nativeCurrency: 'ETH',
+        currentCurrency: 'usd',
+        pendingCurrentCurrency: null,
+        pendingNativeCurrency: null,
+        usdConversionRate: 1900,
+      },
+    },
+  },
+};
+
+const expectedNewState = {
+  engine: {
+    backgroundState: {
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        currencyRates: {
+          ETH: {
+            conversionDate: 1684232393.997,
+            conversionRate: 1815.41,
+            usdConversionRate: 1900,
           },
-          {
-            chainId: '0x5',
-            id: '2',
-            origin: 'test.com',
-            status: 'confirmed',
-            time: 1631714312,
-            txParams: {
-              from: '0x1',
-            },
-            hash: '0x2',
-          },
-          {
-            chainId: '0x1',
-            id: '3',
-            origin: 'test2.com',
-            status: 'submitted',
-            time: 1631714313,
-            txParams: {
-              from: '0x6',
-            },
-            hash: '0x4',
-            rawTx: '0x5',
-          },
-        ],
+        },
       },
     },
   },
@@ -62,15 +49,10 @@ describe('Migration #39', () => {
 
   const invalidStates = [
     {
-      state: null,
-      errorMessage: "Migration 39: Invalid root state: 'object'",
-      scenario: 'state is invalid',
-    },
-    {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 39: Invalid root engine state: 'object'",
+      errorMessage: "Migration 39: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -80,81 +62,37 @@ describe('Migration #39', () => {
         },
       }),
       errorMessage:
-        "Migration 39: Invalid root engine backgroundState: 'object'",
+        "Migration 39: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
       state: merge({}, initialRootState, {
         engine: {
-          backgroundState: { TransactionController: null },
+          backgroundState: {
+            CurrencyRateController: null,
+          },
         },
       }),
-      errorMessage: "Migration 39: Invalid TransactionController state: 'null'",
-      scenario: 'transactionController is invalid',
+      errorMessage:
+        "Migration 39: Invalid CurrencyRateController state error: 'null'",
+      scenario: 'CurrencyRateController state is invalid',
     },
   ];
-  it.each(invalidStates)(
-    'should capture exception if $scenario',
-    ({ errorMessage, state }) => {
-      const newState = migrate(state);
+
+  for (const { errorMessage, scenario, state } of invalidStates) {
+    it(`should capture exception if ${scenario}`, async () => {
+      const newState = await migration(state);
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         errorMessage,
       );
-    },
-  );
+    });
+  }
 
-  it('apply migration, change property transaction, transactionHash and rawTransaction', () => {
-    const oldState = {
-      engine: {
-        backgroundState: {
-          TransactionController: {
-            transactions: [
-              {
-                chainId: '0x5',
-                id: '1',
-                origin: 'test.com',
-                status: 'confirmed',
-                time: 1631714312,
-                transaction: {
-                  from: '0x1',
-                },
-                transactionHash: '0x2',
-                rawTransaction: '0x3',
-              },
-              {
-                chainId: '0x5',
-                id: '2',
-                origin: 'test.com',
-                status: 'confirmed',
-                time: 1631714312,
-                transaction: {
-                  from: '0x1',
-                },
-                transactionHash: '0x2',
-              },
-              {
-                chainId: '0x1',
-                id: '3',
-                origin: 'test2.com',
-                status: 'submitted',
-                time: 1631714313,
-                transaction: {
-                  from: '0x6',
-                },
-                transactionHash: '0x4',
-                rawTransaction: '0x5',
-              },
-            ],
-          },
-        },
-      },
-    };
-
-    const newState = migrate(oldState);
-
-    expect(newState).toStrictEqual(expectedState);
+  it('must change state property structure of currency rate controller state', async () => {
+    const newState = await migration(oldState);
+    expect(newState).toStrictEqual(expectedNewState);
   });
 });

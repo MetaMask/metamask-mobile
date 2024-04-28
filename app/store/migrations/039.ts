@@ -1,68 +1,46 @@
-import { isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
+import { isObject } from '@metamask/utils';
+import { ensureValidState } from './util';
 
 export default function migrate(state: unknown) {
-  if (!isObject(state)) {
-    captureException(
-      new Error(`Migration 39: Invalid root state: '${typeof state}'`),
-    );
+  if (!ensureValidState(state, 39)) {
     return state;
   }
 
-  if (!isObject(state.engine)) {
+  const currencyRateState = state.engine.backgroundState.CurrencyRateController;
+
+  if (!isObject(currencyRateState)) {
     captureException(
       new Error(
-        `Migration 39: Invalid root engine state: '${typeof state.engine}'`,
+        `Migration 39: Invalid CurrencyRateController state error: '${JSON.stringify(
+          currencyRateState,
+        )}'`,
       ),
     );
     return state;
   }
 
-  if (!isObject(state.engine.backgroundState)) {
-    captureException(
-      new Error(
-        `Migration 39: Invalid root engine backgroundState: '${typeof state
-          .engine.backgroundState}'`,
-      ),
-    );
-    return state;
-  }
+  const {
+    currentCurrency,
+    nativeCurrency,
+    conversionRate,
+    conversionDate,
+    usdConversionRate,
+  } = currencyRateState;
 
-  if (!isObject(state.engine.backgroundState.TransactionController)) {
-    captureException(
-      new Error(
-        `Migration 39: Invalid TransactionController state: '${state.engine.backgroundState.TransactionController}'`,
-      ),
-    );
-    return state;
-  }
+  delete currencyRateState.pendingCurrentCurrency;
+  delete currencyRateState.pendingNativeCurrency;
 
-  const transactionControllerState =
-    state.engine.backgroundState.TransactionController;
-
-  if (!Array.isArray(transactionControllerState.transactions)) {
-    captureException(
-      new Error(
-        `Migration 39: Missing transactions property from TransactionController: '${typeof state
-          .engine.backgroundState.TransactionController}'`,
-      ),
-    );
-    return state;
-  }
-  transactionControllerState.transactions.forEach((transaction: any) => {
-    if (transaction.rawTransaction) {
-      transaction.rawTx = transaction.rawTransaction;
-      delete transaction.rawTransaction;
-    }
-    if (transaction.transactionHash) {
-      transaction.hash = transaction.transactionHash;
-      delete transaction.transactionHash;
-    }
-    if (transaction.transaction) {
-      transaction.txParams = transaction.transaction;
-      delete transaction.transaction;
-    }
-  });
+  state.engine.backgroundState.CurrencyRateController = {
+    currentCurrency,
+    currencyRates: {
+      [nativeCurrency as string]: {
+        conversionRate,
+        conversionDate,
+        usdConversionRate,
+      },
+    },
+  };
 
   return state;
 }

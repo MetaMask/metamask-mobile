@@ -26,6 +26,22 @@ class Matchers {
   }
 
   /**
+   * Get element that match by id and label.
+   * This strategy matches elements by combining 2 matchers together.
+   * Elements returned match the provided ID and Label at the same time.
+   * At this moment, this strategy is only used when trying to select a custom network.
+   * TODO: remove the dependency of by.id and by.label. This only reduce further possible acceptable matchers.
+   *
+   * @param {string} id - Match elements with the specified text
+   * @param {string | RegExp} label - Match elements with the specified text
+   * @param {number} index - Index of the element (default: 0)
+   * @return {Promise<Detox.NativeElement>} - Resolves to the located element
+   */
+  static async getElementByIDAndLabel(id, label, index = 0) {
+    return element(by.id(id).and(by.label(label))).atIndex(index);
+  }
+
+  /**
    * Get element by label.
    *
    * @param {string} label - Match elements with the specified accessibility label (iOS) or content description (Android)
