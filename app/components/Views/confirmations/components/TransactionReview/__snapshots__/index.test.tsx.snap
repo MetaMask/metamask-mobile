@@ -208,6 +208,7 @@ Array [
                       "aspectRatio": 1,
                       "height": "50%",
                       "justifyContent": "center",
+                      "maxHeight": 24,
                       "minHeight": 8,
                       "opacity": 0,
                     }

@@ -24,7 +24,8 @@ const styleSheet = (params: {
   const { style, containerSize, size } = vars;
   /**
    * Design Requirements:
-   * - The Network Badge needs to be 1/2 the height of its content.
+   * - The Network Badge needs to be 1/2 the height of its content, up to 1/2 the height
+   * of the largest AvatarSize.
    * - It needs to have a 1px stroke on a 16px badge.
    * (Current) Solution:
    * - Use invisible base wrapper and set height to 50% to get the 1/2 height measurement.
@@ -34,9 +35,11 @@ const styleSheet = (params: {
   const badgeToContentScaleRatio = 0.5;
   const borderWidthRatio = 1 / 16;
   const borderWidth = Number(size) * borderWidthRatio;
-  const currentSmallestAvatarSize = Math.min(
-    ...Object.values(AvatarSize).map((avatarSize) => Number(avatarSize)),
+  const currentAvatarSizes = Object.values(AvatarSize).map((avatarSize) =>
+    Number(avatarSize),
   );
+  const currentSmallestAvatarSize = Math.min(...currentAvatarSizes);
+  const currentLargestAvatarSize = Math.max(...currentAvatarSizes);
   let scaleRatio = 1;
   let opacity = 0;
 
@@ -51,6 +54,7 @@ const styleSheet = (params: {
       height: `${(badgeToContentScaleRatio * 100).toString()}%`,
       aspectRatio: 1,
       minHeight: currentSmallestAvatarSize * badgeToContentScaleRatio,
+      maxHeight: currentLargestAvatarSize * badgeToContentScaleRatio,
       alignItems: 'center',
       justifyContent: 'center',
       opacity,

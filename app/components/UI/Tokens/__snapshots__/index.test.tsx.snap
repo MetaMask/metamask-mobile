@@ -615,6 +615,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
+                                        "maxHeight": 24,
                                         "minHeight": 8,
                                         "opacity": 0,
                                       }
@@ -933,6 +934,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
+                                        "maxHeight": 24,
                                         "minHeight": 8,
                                         "opacity": 0,
                                       }
@@ -1785,6 +1787,7 @@ exports[`Tokens should render correctly 1`] = `
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
+                                        "maxHeight": 24,
                                         "minHeight": 8,
                                         "opacity": 0,
                                       }
@@ -2103,6 +2106,7 @@ exports[`Tokens should render correctly 1`] = `
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
+                                        "maxHeight": 24,
                                         "minHeight": 8,
                                         "opacity": 0,
                                       }
@@ -2963,6 +2967,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
+                                        "maxHeight": 24,
                                         "minHeight": 8,
                                         "opacity": 0,
                                       }
@@ -3281,6 +3286,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
+                                        "maxHeight": 24,
                                         "minHeight": 8,
                                         "opacity": 0,
                                       }
@@ -3518,6 +3524,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
+                                        "maxHeight": 24,
                                         "minHeight": 8,
                                         "opacity": 0,
                                       }

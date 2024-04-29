@@ -264,6 +264,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   "aspectRatio": 1,
                   "height": "50%",
                   "justifyContent": "center",
+                  "maxHeight": 24,
                   "minHeight": 8,
                   "opacity": 0,
                 }
@@ -600,6 +601,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   "aspectRatio": 1,
                   "height": "50%",
                   "justifyContent": "center",
+                  "maxHeight": 24,
                   "minHeight": 8,
                   "opacity": 0,
                 }
