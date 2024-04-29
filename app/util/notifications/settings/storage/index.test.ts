@@ -1,11 +1,11 @@
 import { MMKV } from 'react-native-mmkv';
-import { notificationSettingsStorage, mmStorage } from './index';
+import { notificationStorage, mmStorage } from './index';
 
 describe('mmStorage', () => {
   let storage: MMKV;
 
   beforeAll(() => {
-    storage = notificationSettingsStorage;
+    storage = notificationStorage;
   });
 
   it('should get local storage correctly', () => {

@@ -637,7 +637,11 @@ exports[`SecuritySettings should render correctly 1`] = `
       <View
         style={
           Object {
-            "marginVertical": 16,
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginTop": 32,
           }
         }
       >
@@ -655,48 +659,6 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         >
           Security alerts
-        </Text>
-        <Text
-          accessibilityRole="text"
-          style={
-            Object {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-              "marginTop": 8,
-            }
-          }
-        >
-          This feature alerts you to malicious activity by locally reviewing your transaction and signature requests. Always do your own due diligence before approving any requests. There's no guarantee that this feature will detect all malicious activity. By enabling this feature you agree to the provider's terms of use.
-        </Text>
-      </View>
-      <View
-        style={
-          Object {
-            "alignItems": "center",
-            "display": "flex",
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            Object {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 16,
-              "fontWeight": "500",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          Blockaid
         </Text>
         <RCTSwitch
           accessibilityRole="switch"
@@ -769,6 +731,95 @@ exports[`SecuritySettings should render correctly 1`] = `
         >
           Privacy
         </Text>
+      </View>
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            Object {
+              "color": "#535A61",
+              "fontFamily": "Euclid Circular B",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginTop": 0,
+            }
+          }
+        >
+          General
+        </Text>
+        <View
+          style={
+            Object {
+              "marginVertical": 16,
+            }
+          }
+        >
+          <View
+            style={
+              Object {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                Object {
+                  "color": "#24272A",
+                  "fontFamily": "Euclid Circular B",
+                  "fontSize": 16,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Basic functionality
+            </Text>
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#0376C9"
+              style={
+                Array [
+                  Object {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  Object {
+                    "backgroundColor": "#D6D9DC",
+                    "borderRadius": 16,
+                  },
+                ]
+              }
+              thumbTintColor="#FFFFFF"
+              tintColor="#D6D9DC"
+              value={false}
+            />
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              Object {
+                "color": "#535A61",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.
+          </Text>
+        </View>
       </View>
       <Text
         accessibilityRole="text"

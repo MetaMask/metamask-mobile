@@ -45,7 +45,8 @@ export async function backupVault(
       options,
     );
     if (backupResult === false) {
-      Logger.error(VAULT_BACKUP_KEY, VAULT_BACKUP_FAILED);
+      const vaultBackupFailedError = new Error(VAULT_BACKUP_KEY);
+      Logger.error(vaultBackupFailedError, VAULT_BACKUP_FAILED);
       const response: KeyringBackupResponse = {
         success: false,
         error: VAULT_BACKUP_FAILED,
@@ -58,7 +59,8 @@ export async function backupVault(
     };
     return response;
   }
-  Logger.error(VAULT_BACKUP_KEY, VAULT_BACKUP_FAILED_UNDEFINED);
+  const vaultBackupUndefinedError = new Error(VAULT_BACKUP_KEY);
+  Logger.error(vaultBackupUndefinedError, VAULT_BACKUP_FAILED_UNDEFINED);
   const response: KeyringBackupResponse = {
     success: false,
     error: VAULT_BACKUP_FAILED_UNDEFINED,
@@ -80,7 +82,8 @@ export async function getVaultFromBackup(): Promise<KeyringBackupResponse> {
   if (credentials) {
     return { success: true, vault: credentials.password };
   }
-  Logger.error(VAULT_BACKUP_KEY, VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP);
+  const vaultFetchError = new Error(VAULT_BACKUP_KEY);
+  Logger.error(vaultFetchError, VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP);
   return { success: false, error: VAULT_FAILED_TO_GET_VAULT_FROM_BACKUP };
 }
 
