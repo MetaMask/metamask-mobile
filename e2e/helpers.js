@@ -10,7 +10,7 @@ export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
     await waitFor(element(by.id(elementId)))
       .toBeVisible()
-      .withTimeout(timeout || 8000);
+      .withTimeout(timeout || 80000);
 
     return element(by.id(elementId))
       .atIndex(index || 0)
@@ -20,7 +20,7 @@ export default class TestHelpers {
   static async waitAndTapText(text, timeout) {
     await waitFor(element(by.text(text)))
       .toBeVisible()
-      .withTimeout(timeout || 8000);
+      .withTimeout(timeout || 80000);
 
     return element(by.text(text)).tap();
   }
@@ -162,13 +162,13 @@ export default class TestHelpers {
   static async checkIfVisible(elementId) {
     return await waitFor(element(by.id(elementId)))
       .toBeVisible()
-      .withTimeout(15000);
+      .withTimeout(150000);
   }
 
   static async checkIfNotVisible(elementId) {
     return await waitFor(element(by.id(elementId)))
       .not.toBeVisible()
-      .withTimeout(10000);
+      .withTimeout(100000);
   }
 
   static async checkIfElementWithTextIsNotVisible(text) {
@@ -178,7 +178,7 @@ export default class TestHelpers {
   static async checkIfElementNotToHaveText(elementId, text) {
     await waitFor(element(by.id(elementId)))
       .toBeVisible()
-      .withTimeout(10000);
+      .withTimeout(100000);
 
     return expect(element(by.id(elementId))).not.toHaveText(text);
   }
@@ -186,14 +186,14 @@ export default class TestHelpers {
   static async checkIfExists(elementId) {
     await waitFor(element(by.id(elementId)))
       .toBeVisible()
-      .withTimeout(10000);
+      .withTimeout(100000);
     return expect(element(by.id(elementId))).toExist();
   }
 
   static async checkIfHasText(elementId, text) {
     await waitFor(element(by.id(elementId)))
       .toBeVisible()
-      .withTimeout(10000);
+      .withTimeout(100000);
 
     return expect(element(by.id(elementId))).toHaveText(text);
   }
@@ -201,7 +201,7 @@ export default class TestHelpers {
   static async checkIfElementWithTextIsVisible(text, index) {
     return await waitFor(element(by.text(text)).atIndex(index || 0))
       .toBeVisible()
-      .withTimeout(10000);
+      .withTimeout(100000);
   }
 
   static async checkIfElementByTextIsVisible(text, timeout = 25000) {

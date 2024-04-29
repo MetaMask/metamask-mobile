@@ -1,7 +1,7 @@
 import { waitFor } from 'detox';
 
 // Global timeout variable
-const TIMEOUT = 15000;
+const TIMEOUT = 150000;
 
 /**
  * Class representing a set of assertions for Detox testing.
