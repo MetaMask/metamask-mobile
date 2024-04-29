@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   },
 });
 interface Step1Props {
-  onClose: (arg0: boolean) => void;
+  onClose: () => Promise<void>;
 }
 
 const Step1 = ({ onClose }: Step1Props) => {

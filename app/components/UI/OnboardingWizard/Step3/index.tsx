@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
 
 interface Step3Props {
   coachmarkRef: any;
-  onClose: (arg0: boolean) => void;
+  onClose: () => Promise<void>;
 }
 
 const Step3 = ({ coachmarkRef, onClose }: Step3Props) => {
@@ -70,10 +70,6 @@ const Step3 = ({ coachmarkRef, onClose }: Step3Props) => {
 
   const getOnboardingStyles = () => onboardingStyles(colors);
 
-  const onCloseStep = () => {
-    onClose?.(false);
-  };
-
   const content = () => {
     const dynamicOnboardingStyles = getOnboardingStyles();
 
@@ -106,7 +102,7 @@ const Step3 = ({ coachmarkRef, onClose }: Step3Props) => {
           onBack={onBack}
           topIndicatorPosition={'topRightCorner'}
           currentStep={2}
-          onClose={onCloseStep}
+          onClose={onClose}
         />
       </View>
     </View>

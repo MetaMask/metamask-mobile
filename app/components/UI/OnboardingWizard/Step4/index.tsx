@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 });
 
 interface Step4Props {
-  onClose: (arg0: boolean) => void;
+  onClose: () => Promise<void>;
 }
 
 const Step4 = ({ onClose }: Step4Props) => {
@@ -66,10 +66,6 @@ const Step4 = ({ onClose }: Step4Props) => {
   };
 
   const getOnboardingStyles = () => onboardingStyles(colors);
-
-  const onCloseStep = () => {
-    onClose?.(false);
-  };
 
   const content = () => {
     const dynamicOnboardingStyles = getOnboardingStyles();
@@ -106,7 +102,7 @@ const Step4 = ({ onClose }: Step4Props) => {
           onBack={onBack}
           topIndicatorPosition={'topRight'}
           currentStep={3}
-          onClose={onCloseStep}
+          onClose={onClose}
         />
       </View>
     </View>

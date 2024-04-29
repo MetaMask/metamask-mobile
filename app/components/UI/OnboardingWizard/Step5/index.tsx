@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
 
 interface Step5Props {
   coachmarkRef: any;
-  onClose: (arg0: boolean) => void;
+  onClose: () => Promise<void>;
 }
 
 const Step5 = ({ coachmarkRef, onClose }: Step5Props) => {
@@ -71,13 +71,6 @@ const Step5 = ({ coachmarkRef, onClose }: Step5Props) => {
   };
 
   /**
-   * Calls props 'onClose'
-   */
-  const handleOnClose = () => {
-    onClose?.(false);
-  };
-
-  /**
    * Returns content for this step
    */
   const content = () => (
@@ -108,7 +101,7 @@ const Step5 = ({ coachmarkRef, onClose }: Step5Props) => {
           onBack={onBack}
           bottomIndicatorPosition={'bottomCenter'}
           currentStep={4}
-          onClose={handleOnClose}
+          onClose={onClose}
         />
       </View>
     </View>

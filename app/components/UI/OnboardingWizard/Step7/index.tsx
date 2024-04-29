@@ -71,13 +71,6 @@ const Step7 = ({ navigation, onClose }: Step7Props) => {
   };
 
   /**
-   * Calls props onClose
-   */
-  const triggerOnClose = () => {
-    onClose?.(false);
-  };
-
-  /**
    * Returns content for this step
    */
   const content = () => (
@@ -99,7 +92,7 @@ const Step7 = ({ navigation, onClose }: Step7Props) => {
         <Coachmark
           title={strings('onboarding_wizard_new.step7.title')}
           content={content()}
-          onNext={triggerOnClose}
+          onNext={onClose}
           onBack={onBack}
           topIndicatorPosition={'topCenter'}
           onClose={onClose}

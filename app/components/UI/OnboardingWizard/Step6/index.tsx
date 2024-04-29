@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
 
 interface Step6Props {
   navigation: any;
-  onClose: (arg0: boolean) => void;
+  onClose: () => Promise<void>;
 }
 
 const Step6 = ({ onClose, navigation }: Step6Props) => {
@@ -65,13 +65,6 @@ const Step6 = ({ onClose, navigation }: Step6Props) => {
   };
 
   /**
-   * Calls props 'onClose'
-   */
-  const handleOnClose = () => {
-    onClose?.(false);
-  };
-
-  /**
    * Returns content for this step
    */
   const content = () => (
@@ -96,7 +89,7 @@ const Step6 = ({ onClose, navigation }: Step6Props) => {
           currentStep={5}
           topIndicatorPosition={false}
           bottomIndicatorPosition={'bottomRight'}
-          onClose={handleOnClose}
+          onClose={onClose}
         />
       </View>
     </View>
