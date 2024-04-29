@@ -51,10 +51,10 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     base: {
-      height: `${(badgeToContentScaleRatio * 100).toString()}%`,
-      aspectRatio: 1,
       minHeight: currentSmallestAvatarSize * badgeToContentScaleRatio,
       maxHeight: currentLargestAvatarSize * badgeToContentScaleRatio,
+      height: `${(badgeToContentScaleRatio * 100).toString()}%`,
+      aspectRatio: 1,
       alignItems: 'center',
       justifyContent: 'center',
       opacity,
