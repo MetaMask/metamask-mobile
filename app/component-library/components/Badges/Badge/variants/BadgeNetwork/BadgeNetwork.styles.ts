@@ -23,12 +23,12 @@ const styleSheet = (params: {
   const { style, containerSize, size } = vars;
   /**
    * Design Requirements:
-   *  - The Network Badge needs to be 1/2 the height of its content.
-   *  - It needs to have a 1px stroke on a 16px badge.
+   * - The Network Badge needs to be 1/2 the height of its content.
+   * - It needs to have a 1px stroke on a 16px badge.
    * (Current) Solution:
-   *  - Use invisible base wrapper and set height to 50% to get the 1/2 height measurement.
-   *  - Scale content to a scale ratio based on the container size's height.
-   *  - Set borderWidth to scale with given Network Icon size (always given with default).
+   * - Use invisible base wrapper and set height to 50% to get the 1/2 height measurement.
+   * - Scale content to a scale ratio based on the container size's height.
+   * - Set borderWidth to scale with given Network Icon size (always given with default).
    */
   const badgeToContentScaleRatio = 0.5;
   const borderWidthRatio = 1 / 16;
