@@ -170,6 +170,10 @@
     "step6": {
       "title": "Menggunakan browser",
       "content1": "Telusuri situs dengan kata kunci atau masukkan URL. Selamat bersenang-senang! "
+    },
+    "step7": {
+      "title": "Menggunakan browser",
+      "content1": "Cari situs berdasarkan kata kunci atau masukkan URL. Selamat bersenang-senang! "
     }
   },
   "create_wallet": {
@@ -541,7 +545,8 @@
     "collectible_asset_contract": "Kontrak aset",
     "share_check_out_nft": "Lihat NFT saya!",
     "share_via": "Dibagikan melalui",
-    "untitled_collection": "Koleksi Tanpa Judul"
+    "untitled_collection": "Koleksi Tanpa Judul",
+    "collection": "Koleksi"
   },
   "transfer": {
     "title": "Transfer",
@@ -682,6 +687,12 @@
     "nft_opensea_desc": "Menampilkan media dan data NFT dapat mengekspos alamat IP Anda ke server terpusat. Gunakan API OpenSea untuk mengambil data NFT. Deteksi otomatis NFT bergantung pada API OpenSea, dan tidak akan tersedia jika dinonaktifkan. Mengaktifkan deteksi otomatis NFT dapat mengekspos Anda kepada NFT palsu yang dikirim ke dompet Anda oleh siapa pun, dan dapat memungkinkan penyerang untuk mempelajari alamat IP dari alamat Ethereum Anda.",
     "nft_autodetect_mode": "Deteksi otomatis NFT",
     "nft_autodetect_desc": "Menampilkan media dan data NFT dapat mengekspos alamat IP Anda ke server terpusat. API pihak ketiga (seperti OpenSea) digunakan untuk mendeteksi NFT di dompet Anda. Ini memperlihatkan alamat akun Anda dengan layanan tersebut. Nonaktifkan API jika Anda tidak ingin aplikasi menarik data dari layanan tersebut.",
+    "show_fiat_on_testnets": "",
+    "show_fiat_on_testnets_desc": "",
+    "show_fiat_on_testnets_modal_title": "",
+    "show_fiat_on_testnets_modal_description": "",
+    "show_fiat_on_testnets_modal_learn_more": "",
+    "show_fiat_on_testnets_modal_button": "",
     "show_hex_data": "Tampilkan Data Hex",
     "show_hex_data_desc": "Pilih ini untuk menampilkan bidang data hex pada layar kirim.",
     "toggleEthSignBannerDescription": "Anda berisiko terkena serangan pengelabuan. Lindungi diri dengan menonaktifkan eth_sign.",
@@ -712,6 +723,26 @@
     "general_desc": "Konversi mata uang, mata uang utama, bahasa, dan mesin pencari",
     "advanced_title": "Lanjutan",
     "advanced_desc": "Akses fitur pengembang, reset akun, reset testnet, log status, gateway IPFS, dan RPC khusus",
+    "notifications_title": "Notifikasi",
+    "notifications_desc": "Kelola notifikasi",
+    "allow_notifications": "Izinkan notifikasi",
+    "allow_notifications_desc": "Pantau terus segala yang terjadi di dompet Anda dengan notifikasi. Untuk menggunakan notifikasi, kami menggunakan profil untuk menyinkronkan beberapa pengaturan di seluruh perangkat Anda. Pelajari cara kami melindungi privasi Anda saat menggunakan fitur ini.",
+    "notifications_opts": {
+      "customize_session_title": "Sesuaikan notifikasi",
+      "customize_session_desc": "Aktifkan jenis notifikasi yang ingin diterima:",
+      "account_session_title": "Aktivitas akun",
+      "account_session_desc": "Pilih akun yang ingin mendapatkan notifikasi:",
+      "assets_sent_title": "Aset Terkirim",
+      "assets_sent_desc": "Dana dan NFT",
+      "assets_received_title": "Aset Diterima",
+      "assets_received_desc": "Dana dan NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "Stake, swap, dan bridge",
+      "snaps_title": "Snap",
+      "snaps_desc": "Fitur dan pembaruan terkini",
+      "products_announcements_title": "Pengumuman produk",
+      "products_announcements_desc": "Produk dan fitur baru"
+    },
     "contacts_title": "Kontak",
     "contacts_desc": "Tambahkan, edit, hapus, dan kelola akun Anda",
     "security_title": "Keamanan dan Privasi",
@@ -832,8 +863,13 @@
       "sdk_activation_keys": "Kunci Aktivasi SDK",
       "activation_keys_description": "Kunci Aktivasi akan mengaktifkan fitur atau penyedia tertentu.",
       "add_activation_key": "Tambahkan Kunci Aktivasi",
+      "edit_activation_key": "Edit Kunci Aktivasi",
       "paste_or_type_activation_key": "Tempel atau ketik Kunci Aktivasi",
+      "add_label": "Tambahkan label ke kunci ini",
+      "label": "Label",
+      "key": "Kunci",
       "add": "Tambah",
+      "update": "Perbarui",
       "cancel": "Batal"
     },
     "request_feature": "Minta fitur",
@@ -900,8 +936,12 @@
     "security_check_subheading": "Pemeriksaan keamanan",
     "symbol_required": "Simbol wajib diisi.",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Menjaga privasi - tidak ada data yang dibagikan kepada pihak ketiga. Tersedia di Arbitrum, Avalanche, BNB chain, Mainnet Ethereum, Optimism, Polygon, Sepolia, dan Base.",
     "security_alerts": "Peringatan keamanan",
-    "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia."
+    "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia.",
+    "smart_transactions_opt_in_heading": "Transaksi Pintar",
+    "smart_transactions_opt_in_desc": "Aktifkan Transaksi Pintar untuk transaksi yang lebih andal dan aman, serta biaya yang dapat disesuaikan di ETH Mainnet.",
+    "smart_transactions_learn_more": "Selengkapnya."
   },
   "sdk": {
     "disconnect_title": "Putuskan koneksi semua situs?",
@@ -1128,6 +1168,7 @@
     "confirm": "Konfirmasikan"
   },
   "transaction": {
+    "transaction_id": "ID Transaksi",
     "alert": "PERINGATAN",
     "amount": "Jumlah",
     "next": "Selanjutnya",
@@ -1409,8 +1450,12 @@
     "to": "Ke",
     "details": "Detail",
     "amount": "Jumlah",
+    "gas_used": "Gas yang Digunakan (Unit)",
     "gas_limit": "Batas Gas (Unit)",
     "gas_price": "Harga Gas (GWEI)",
+    "base_fee": "Biaya Dasar (GWEI)",
+    "priority_fee": "Biaya Prioritas (GWEI)",
+    "max_fee": "Biaya Maks Per Gas",
     "total": "Total",
     "view_on": "LIHAT DI",
     "view_on_etherscan": "Lihat di Etherscan",
@@ -1432,7 +1477,26 @@
     "sign_title_device": "dengan Keystone Anda",
     "sign_description_1": "Setelah Anda menandatangani dengan Keystone,",
     "sign_description_2": "ketuk Dapatkan Tanda Tangan",
-    "sign_get_signature": "Dapatkan Tanda Tangan"
+    "sign_get_signature": "Dapatkan Tanda Tangan",
+    "network_fee": "Biaya Jaringan"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "Mengirimkan transaksi Anda",
+    "status_submitting_description": "Estimasi penyelesaian {{timeLeft}}",
+    "status_success_header": "Transaksi Anda selesai",
+    "status_submitting_past_estimated_deadline_header": "Maaf telah menunggu",
+    "status_submitting_past_estimated_deadline_description": "Jika transaksi tidak diselesaikan dalam waktu {{timeLeft}}, transaksi akan dibatalkan dan Anda tidak akan dikenakan biaya gas.",
+    "status_cancelled_header": "Transaksi Anda dibatalkan",
+    "status_cancelled_description": "Transaksi Anda tidak dapat diselesaikan, sehingga dibatalkan agar Anda tidak perlu membayar biaya gas yang tidak seharusnya.",
+    "status_failed_header": "Transaksi Anda gagal",
+    "status_failed_description": "Perubahan pasar yang mendadak dapat menyebabkan kegagalan. Jika masalah berlanjut, hubungi dukungan pelanggan MetaMask.",
+    "view_transaction": "Lihat transaksi",
+    "view_activity": "Lihat aktivitas",
+    "return_to_dapp": "Kembali ke {{dappName}}",
+    "try_again": "Coba lagi",
+    "create_new": "Buat {{txType}} baru",
+    "swap": "swap",
+    "send": "kirim"
   },
   "address_book": {
     "recents": "Terbaru",
@@ -1781,6 +1845,16 @@
     "back_to_safety": "Kembali ke keamanan"
   },
   "notifications": {
+    "stake_completed": "Stake selesai",
+    "withdrawal_completed": "Penarikan selesai",
+    "unstake_completed": "Pembatalan stake selesai",
+    "withdrawal_requested": "Penarikan diminta",
+    "stake_ready_to_be_withdrawn": "Stake siap untuk ditarik",
+    "swap_completed": "Swap {{from}} dengan {{to}}",
+    "sent": "Dikirim ke {{address}}",
+    "received": "Diterima dari {{address}}",
+    "sent_nft": "Mengirim NFT ke {{address}}",
+    "received_nft": "Menerima NFT dari {{address}}",
     "pending_title": "Transaksi dikirim",
     "pending_deposit_title": "Deposit sedang diproses!",
     "pending_withdrawal_title": "Penarikan sedang diproses!",
@@ -1818,7 +1892,30 @@
     "wc_signed_failed_title": "Permintaan penandatanganan ini gagal",
     "wc_sent_tx_rejected_title": "Anda telah menolak permintaan transaksi",
     "approved_tx_rejected_title": "Anda telah menolak memberikan izin",
-    "wc_description": "Harap periksa permohonan ini"
+    "wc_description": "Harap periksa permohonan ini",
+    "wallet": "Dompet",
+    "web3": "Web3",
+    "empty": {
+      "title": "Tak ada apa pun di sini",
+      "message": "Di sinilah Anda dapat menemukan notifikasi saat terjadi aktivitas di dompet. "
+    },
+    "list": {
+      "0": "Semua",
+      "1": "Dompet",
+      "2": "Pengumuman"
+    },
+    "address_copied_to_clipboard": "Alamat disalin ke papan klip",
+    "transaction_id_copied_to_clipboard": "ID Transaksi disalin ke papan klip",
+    "activation_card": {
+      "title": "Aktifkan notifikasi",
+      "description_1": "Pantau terus segala perkembangan yang terjadi di dompet Anda dengan notifikasi. ",
+      "description_2": "Untuk menggunakan fitur ini, kami akan membuat ID anonim untuk akun Anda. Ini hanya digunakan untuk menyinkronkan data di MetaMask dan tidak terhubung dengan aktivitas atau pengidentifikasi lainnya, sehingga privasi tetap terjaga.",
+      "learn_more": "Pelajari cara kami melindungi privasi Anda saat menggunakan fitur ini. ",
+      "manage_preferences_1": "Notifikasi dapat dinonaktifkan setiap saat ",
+      "manage_preferences_2": "Pengaturan > Notifikasi.",
+      "cancel": "Batal",
+      "cta": "Aktifkan"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Lindungi dompet Anda",
@@ -1956,7 +2053,7 @@
     "limited_time": "waktu terbatas",
     "supported_countries": "Negara yang didukung",
     "no_countries_result": "Tidak ada negara yang didukung yang cocok dengan “{{searchString}}”",
-    "wyre_loading_rates": " ",
+    "wyre_loading_rates": "",
     "fast_no_registration": "Cepat - Tak perlu mendaftar",
     "debit_credit_card_required": "Kartu Debit atau Kredit. Tidak mendukung Apple Cash.",
     "select_card_country": "Pilih negara tempat kartu Anda terdaftar (bukan lokasi Anda saat ini).",
@@ -2419,12 +2516,28 @@
       "title": "Tetap aman bersama peringatan keamanan",
       "description_1": "Hindari penipuan yang diketahui sambil tetap melindungi privasi Anda bersama peringatan keamanan yang didukung oleh Blockaid. Saat ini fitur ini diaktifkan secara default untuk semua pengguna MetaMask.",
       "description_2": "Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan.",
+      "description_3": "Tersedia di Arbitrum, Avalanche, BNB chain, Mainnet Ethereum, Linea, Optimism, Polygon, Sepolia, dan Base.",
       "got_it": "Mengerti"
     },
     "sell": {
       "title": "Pencairan uang tunai semakin mudah",
       "description": "Jual kripto langsung di MetaMask! Kami akan membantu menemukan penawaran harga dari penyedia tepercaya, sehingga Anda dapat menjual kripto dengan cara yang mudah diakses, cepat, dan aman, setiap saat.",
       "action_text": "Cobalah"
+    },
+    "stx": {
+      "header": "Memperkenalkan Transaksi Pintar",
+      "description_1": "Dapatkan pengalaman transaksi teraman, paling andal, dan termudah - cara yang lebih cerdas untuk menavigasi web3.",
+      "description_2": "Jutaan dolar hilang setiap bulan karena transaksi gagal & frontrunning. Transaksi pintar memperbaikinya.",
+      "description_3": "Saat ini, Transaksi Pintar hanya tersedia di ETH Mainnet. Anda dapat menonaktifkannya di pengaturan.",
+      "secondary_button": "Tidak sekarang",
+      "primary_button": "Aktifkan Transaksi Pintar",
+      "learn_more": "Selengkapnya.",
+      "benefit_1_1": "82% lebih minim gagal",
+      "benefit_1_2": "transaksi",
+      "benefit_2_1": "Transaksi",
+      "benefit_2_2": "perlindungan",
+      "benefit_3_1": "Waktu nyata",
+      "benefit_3_2": "pembaruan"
     }
   },
   "invalid_network": {

@@ -170,6 +170,10 @@
     "step6": {
       "title": "ब्राउज़र का उपयोग करना",
       "content1": "खोजशब्दों द्वारा साइटों को खोजें या एक URL दर्ज करें। वहाँ मज़े करो! "
+    },
+    "step7": {
+      "title": "",
+      "content1": ""
     }
   },
   "create_wallet": {
@@ -541,7 +545,8 @@
     "collectible_asset_contract": "संपत्ति का अनुबंध",
     "share_check_out_nft": "मेरे NFT को देखें!",
     "share_via": "के जरिए साझा किया गया",
-    "untitled_collection": "शीर्षकहीन संग्रह"
+    "untitled_collection": "शीर्षकहीन संग्रह",
+    "collection": ""
   },
   "transfer": {
     "title": "स्थानांतरण",
@@ -682,6 +687,12 @@
     "nft_opensea_desc": " NFT मीडिया और डेटा के प्रदर्शन से आपका IP एड्रेस केन्द्रीकृत सर्वरों के सामने आ सकता है।  NFT डेटा लाने के लिए OpenSea के API का उपयोग करें। NFT का ऑटो-डिटेक्शन OpenSea के API पर भरोसा करता है, और जब यह बंद होता है तो यह उपलब्ध नहीं होगा। NFT को ऑटो-डिटेक्शन समर्थ बनाना आपके वॉलेट में किसी के द्वारा भेजे गए नकली NFT को आपके सामने लाता है, और एक हमलावर को आपके Ethereum पते से आपका IP एड्रेस जानने की अनुमति दे सकता है।",
     "nft_autodetect_mode": "ऑटोडिटेक्ट NFT",
     "nft_autodetect_desc": " NFT मीडिया और डेटा के प्रदर्शन से आपका IP एड्रेस केन्द्रीकृत सर्वरों के सामने आ सकता है।  तीसरे-पक्ष API (जैसे OpenSea) का उपयोग आपके वॉलेट में NFT का पता लगाने में किया जाता है। यह आपके अकाउंट के पते को उन सेवाओं के सामने उजागर करता है। इसे अक्षम ही छोड़ दें यदि आप नहीं चाहते कि ऐप उन सेवाओं में से डेटा बाहर निकालें।",
+    "show_fiat_on_testnets": "",
+    "show_fiat_on_testnets_desc": "",
+    "show_fiat_on_testnets_modal_title": "",
+    "show_fiat_on_testnets_modal_description": "",
+    "show_fiat_on_testnets_modal_learn_more": "",
+    "show_fiat_on_testnets_modal_button": "",
     "show_hex_data": "हेक्स डेटा दिखाएं",
     "show_hex_data_desc": "भेजे गए स्क्रीन पर हेक्स डेटा फील्ड को दिखाने के लिए इसको चुनें।",
     "toggleEthSignBannerDescription": "आपको फिशिंग हमलों का जोखिम है। Eth_sign को बंद करके अपनी सुरक्षा करें।",
@@ -712,6 +723,26 @@
     "general_desc": "करेंसी का रुपांतरण, प्राथमिक करेंसी, भाषा और सर्च इंजन",
     "advanced_title": "एडवांस",
     "advanced_desc": "डेवलपर फीचर, अकाउंट रिसेट, टेस्टनेट सेटअप, स्टेट लॉग, IPFS गेटवे और कस्टम RPC तक पहुंच बनाएं",
+    "notifications_title": "",
+    "notifications_desc": "",
+    "allow_notifications": "",
+    "allow_notifications_desc": "",
+    "notifications_opts": {
+      "customize_session_title": "",
+      "customize_session_desc": "",
+      "account_session_title": "",
+      "account_session_desc": "",
+      "assets_sent_title": "",
+      "assets_sent_desc": "",
+      "assets_received_title": "",
+      "assets_received_desc": "",
+      "defi_title": "",
+      "defi_desc": "",
+      "snaps_title": "",
+      "snaps_desc": "",
+      "products_announcements_title": "",
+      "products_announcements_desc": ""
+    },
     "contacts_title": "संपर्क",
     "contacts_desc": "अपने अकाउंट को जोड़ें, संपादित करें, और प्रबंधित करें",
     "security_title": "सुरक्षा और गोपनीयता",
@@ -832,8 +863,13 @@
       "sdk_activation_keys": "SDK सक्रियण कुंजियाँ",
       "activation_keys_description": "सक्रियकरण कुंजियाँ विशिष्ट विशेषताओं या प्रदाताओं को सक्षम करेंगी।",
       "add_activation_key": "सक्रियकरण कुंजी जोड़ें",
+      "edit_activation_key": "एक्टिवेशन की (key) एडिट करें",
       "paste_or_type_activation_key": "एक सक्रियकरण कुंजी चिपकाएँ या टाइप करें",
+      "add_label": "इस की (key) के लिए एक लेबल जोड़ें",
+      "label": "लेबल",
+      "key": "की (key)",
       "add": "जोड़ें",
+      "update": "अपडेट करें",
       "cancel": "रद्द करें"
     },
     "request_feature": "एक सुविधा का रिक्वेस्ट करें",
@@ -900,8 +936,12 @@
     "security_check_subheading": "सुरक्षा जाँचें",
     "symbol_required": "सिंबल की ज़रूरत है।",
     "blockaid": "Blockaid",
+    "blockaid_desc": "गोपनीयता को सुरक्षित रखना - कोई भी डेटा थर्ड पार्टी के साथ साझा नहीं किया जाता है। Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia और Base पर उपलब्ध है।",
     "security_alerts": "सुरक्षा एलर्ट",
-    "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।"
+    "security_alerts_desc": "यह सुविधा स्थानीय रूप से आपके ट्रांसेक्शन और हस्ताक्षर अनुरोधों की समीक्षा करके आपको बुरी नीयत वाली गतिविधि के प्रति एलर्ट करती है। किसी भी अनुरोध को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें। इस बात की कोई गारंटी नहीं है कि यह सुविधा सभी बुरी नीयत वाली गतिविधि का पता लगा लेगी। इस सुविधा को सक्षम करके आप प्रदाता की उपयोग की शर्तों से सहमत होते हैं।",
+    "smart_transactions_opt_in_heading": "",
+    "smart_transactions_opt_in_desc": "",
+    "smart_transactions_learn_more": ""
   },
   "sdk": {
     "disconnect_title": "सभी साइटों को डिसकनेक्ट करें?",
@@ -1128,6 +1168,7 @@
     "confirm": "पुष्टि करें"
   },
   "transaction": {
+    "transaction_id": "",
     "alert": "सावधान",
     "amount": "रकम",
     "next": "अगला",
@@ -1409,8 +1450,12 @@
     "to": "को",
     "details": "विवरण",
     "amount": "रकम",
+    "gas_used": "",
     "gas_limit": "गैस की सीमा (इकाई)",
     "gas_price": "गैस की कीमत (GWEI)",
+    "base_fee": "",
+    "priority_fee": "",
+    "max_fee": "",
     "total": "कुल",
     "view_on": "देखें",
     "view_on_etherscan": "Etherscan पर देखें",
@@ -1432,7 +1477,26 @@
     "sign_title_device": "अपने कीस्टोन के साथ",
     "sign_description_1": "कीस्टोन के साथ आपके द्वारा साइन किए जाने के बाद",
     "sign_description_2": "गेट सिग्नेचर पर टैप करें",
-    "sign_get_signature": "हस्ताक्षर प्राप्त करें"
+    "sign_get_signature": "हस्ताक्षर प्राप्त करें",
+    "network_fee": ""
+  },
+  "smart_transactions": {
+    "status_submitting_header": "",
+    "status_submitting_description": "",
+    "status_success_header": "",
+    "status_submitting_past_estimated_deadline_header": "",
+    "status_submitting_past_estimated_deadline_description": "",
+    "status_cancelled_header": "",
+    "status_cancelled_description": "",
+    "status_failed_header": "",
+    "status_failed_description": "",
+    "view_transaction": "",
+    "view_activity": "",
+    "return_to_dapp": "",
+    "try_again": "",
+    "create_new": "",
+    "swap": "",
+    "send": ""
   },
   "address_book": {
     "recents": "हाल ही",
@@ -1781,6 +1845,16 @@
     "back_to_safety": "सुरक्षा पर वापस जाएं"
   },
   "notifications": {
+    "stake_completed": "",
+    "withdrawal_completed": "",
+    "unstake_completed": "",
+    "withdrawal_requested": "",
+    "stake_ready_to_be_withdrawn": "",
+    "swap_completed": "",
+    "sent": "",
+    "received": "",
+    "sent_nft": "",
+    "received_nft": "",
     "pending_title": "लेन-देन सबमिट किया गया",
     "pending_deposit_title": "प्रगति में जमा करें!",
     "pending_withdrawal_title": "प्रगति में निकालें!",
@@ -1818,7 +1892,30 @@
     "wc_signed_failed_title": "यह साइन रिक्वेस्ट विफल हो गया",
     "wc_sent_tx_rejected_title": "आपने लेन-देन का रिक्वेस्ट अएप्रूव कर दिया है",
     "approved_tx_rejected_title": "आपने अनुमति देने से इनकार किया है",
-    "wc_description": "कृपया एप्लिकेशन को जांचें"
+    "wc_description": "कृपया एप्लिकेशन को जांचें",
+    "wallet": "",
+    "web3": "",
+    "empty": {
+      "title": "",
+      "message": ""
+    },
+    "list": {
+      "0": "",
+      "1": "",
+      "2": ""
+    },
+    "address_copied_to_clipboard": "",
+    "transaction_id_copied_to_clipboard": "",
+    "activation_card": {
+      "title": "",
+      "description_1": "",
+      "description_2": "",
+      "learn_more": "",
+      "manage_preferences_1": "",
+      "manage_preferences_2": "",
+      "cancel": "",
+      "cta": ""
+    }
   },
   "protect_your_wallet_modal": {
     "title": "अपने वॉलेट की सुरक्षा करें",
@@ -1956,7 +2053,7 @@
     "limited_time": "सीमित समय",
     "supported_countries": "समर्थित देश",
     "no_countries_result": "कोई समर्थित देश “{{searchString}}”से मेल नहीं खाते",
-    "wyre_loading_rates": " ",
+    "wyre_loading_rates": "",
     "fast_no_registration": "फास्ट- पंजीकरण की आवश्यकता नहीं",
     "debit_credit_card_required": "डेबिट या क्रेडिट कार्ड। Apple Cash समर्थित नहीं है।",
     "select_card_country": "उस देश का चयन करें जहां आपके कार्ड का पंजीकरण हुआ है (वहां नहीं जहां आप रहते हैं)।",
@@ -2419,12 +2516,28 @@
       "title": "सुरक्षा चेतावनियों के माध्यम से सुरक्षित रहें",
       "description_1": "ब्लॉकएड द्वारा संचालित सिक्योरिटी अलर्ट के साथ अपनी गोपनीयता की रक्षा करते हुए पहचाने गए स्कैम से सुरक्षित रहें। यह सुविधा अब सभी MetaMask उपयोगकर्ताओं के लिए डिफ़ॉल्ट रूप से चालू है।",
       "description_2": "किसी भी रिक्वेस्ट को मंजूरी देने से पहले हमेशा पूरी जांच-पड़ताल ज़रूर करें।",
+      "description_3": "Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon, Sepolia और Base पर उपलब्ध है।",
       "got_it": "समझ गए"
     },
     "sell": {
       "title": "पैसे निकालना आसान कर दिया गया",
       "description": "अपना क्रिप्टो सीधे MetaMask में बेचें! हम आपको भरोसेमंद प्रोवाइडर्स से कोटेशन पाने में मदद करेंगे, ताकि आप हर बार अपने क्रिप्टो को एक्सेस किए जा सकने वाले, तेज़ और सुरक्षित तरीके से बेच सकें।",
       "action_text": "इसे आज़माकर देखें"
+    },
+    "stx": {
+      "header": "",
+      "description_1": "",
+      "description_2": "",
+      "description_3": "",
+      "secondary_button": "",
+      "primary_button": "",
+      "learn_more": "",
+      "benefit_1_1": "",
+      "benefit_1_2": "",
+      "benefit_2_1": "",
+      "benefit_2_2": "",
+      "benefit_3_1": "",
+      "benefit_3_2": ""
     }
   },
   "invalid_network": {

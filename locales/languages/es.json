@@ -170,6 +170,10 @@
     "step6": {
       "title": "Utilizar el navegador",
       "content1": "Busque sitios por palabra clave o ingrese una URL. ¡Diviértase! "
+    },
+    "step7": {
+      "title": "Usando el navegador",
+      "content1": "Busque sitios por palabra clave o ingrese una URL. ¡Diviértase por ahí! "
     }
   },
   "create_wallet": {
@@ -541,7 +545,8 @@
     "collectible_asset_contract": "Contrato de activos",
     "share_check_out_nft": "¡Conoce mi NTF!",
     "share_via": "Compartido mediante",
-    "untitled_collection": "Colección sin nombre"
+    "untitled_collection": "Colección sin nombre",
+    "collection": "Colección"
   },
   "transfer": {
     "title": "Transferir",
@@ -682,6 +687,12 @@
     "nft_opensea_desc": "La visualización de medios y datos de NFT puede exponer su dirección IP a servidores centralizados. Utilice la API de OpenSea para obtener datos NFT. La detección automática de NFT se basa en la API de OpenSea y no estará disponible cuando esté desactivada. Habilitar la detección automática de NFT puede exponerlo a que cualquier persona envíe NFT falsos a su monedero, y puede permitir que un atacante obtenga su dirección IP de su dirección Ethereum.",
     "nft_autodetect_mode": "Detectar NFTs automáticamente",
     "nft_autodetect_desc": "La exposición de medios y datos NFT puede mostrar su dirección IP a servidores centralizados. Las API de terceros (como OpenSea) se utilizan para detectar NFTs en su monedero. Esto expone la dirección de su cuenta con esos servicios. Deje esto deshabilitado si no desea que la aplicación extraiga datos de esos servicios.",
+    "show_fiat_on_testnets": "",
+    "show_fiat_on_testnets_desc": "",
+    "show_fiat_on_testnets_modal_title": "",
+    "show_fiat_on_testnets_modal_description": "",
+    "show_fiat_on_testnets_modal_learn_more": "",
+    "show_fiat_on_testnets_modal_button": "",
     "show_hex_data": "Mostrar datos hexadecimales",
     "show_hex_data_desc": "Seleccione esta opción para mostrar el campo de datos hexadecimales en la pantalla de envío.",
     "toggleEthSignBannerDescription": "Está en riesgo de sufrir ataques de phishing. Protéjase desactivando eth_sign.",
@@ -712,6 +723,26 @@
     "general_desc": "Conversión de moneda, moneda principal, idioma y motor de búsqueda",
     "advanced_title": "Avanzado",
     "advanced_desc": "Acceder a recursos para desarrolladores, restablecer cuenta, configurar redes de prueba, registros de estado, puerta de enlace de IPFS y RPC personalizada",
+    "notifications_title": "Notificaciones",
+    "notifications_desc": "Administre sus notificaciones",
+    "allow_notifications": "Permitir notificaciones",
+    "allow_notifications_desc": "Manténgase informado sobre lo que sucede en su monedero con notificaciones. Para usar notificaciones, utilizamos un perfil para sincronizar algunas configuraciones en sus dispositivos. Aprenda más sobre cómo protegemos su privacidad mientras usa esta función.",
+    "notifications_opts": {
+      "customize_session_title": "Personalice sus notificaciones",
+      "customize_session_desc": "Active los tipos de notificaciones que desea recibir:",
+      "account_session_title": "Actividad de la cuenta",
+      "account_session_desc": "Seleccione las cuentas sobre las que desea recibir notificaciones:",
+      "assets_sent_title": "Activos enviados",
+      "assets_sent_desc": "Fondos y NFT",
+      "assets_received_title": "Activos recibidos",
+      "assets_received_desc": "Fondos y NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "Staking, canjeando y puenteando",
+      "snaps_title": "Snaps",
+      "snaps_desc": "Nuevas características y actualizaciones",
+      "products_announcements_title": "Anuncios de producto",
+      "products_announcements_desc": "Nuevos productos y características"
+    },
     "contacts_title": "Contactos",
     "contacts_desc": "Agregar, editar, quitar y administrar sus cuentas",
     "security_title": "Seguridad y privacidad",
@@ -832,8 +863,13 @@
       "sdk_activation_keys": "Claves de activación SDK",
       "activation_keys_description": "Las claves de activación habilitarán funciones o proveedores específicos.",
       "add_activation_key": "Agregar clave de activación",
+      "edit_activation_key": "Editar clave de activación",
       "paste_or_type_activation_key": "Pegue o escriba una clave de activación",
+      "add_label": "Añadir una etiqueta a esta clave",
+      "label": "Etiqueta",
+      "key": "Clave",
       "add": "Agregar",
+      "update": "Actualizar",
       "cancel": "Cancelar"
     },
     "request_feature": "Solicitar una función",
@@ -900,8 +936,12 @@
     "security_check_subheading": "Verificaciones de seguridad",
     "symbol_required": "Se requiere símbolo.",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Preservación de la privacidad: no se comparten datos con terceros. Disponible en Arbitrum, Avalanche, BNB Chain, la red principal de Ethereum, Optimism, Polygon, Sepolia y Base.",
     "security_alerts": "Alertas de seguridad",
-    "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al habilitar esta función, acepta los términos de uso del proveedor."
+    "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al habilitar esta función, acepta los términos de uso del proveedor.",
+    "smart_transactions_opt_in_heading": "Transacciones inteligentes",
+    "smart_transactions_opt_in_desc": "Active las transacciones inteligentes para realizar transacciones más confiables y seguras, y tarifas ajustables en la red principal de ETH.",
+    "smart_transactions_learn_more": "Más información."
   },
   "sdk": {
     "disconnect_title": "¿Desconectar de todos los sitios?",
@@ -1128,6 +1168,7 @@
     "confirm": "Confirmar"
   },
   "transaction": {
+    "transaction_id": "ID de transacción",
     "alert": "ALERTA",
     "amount": "Importe",
     "next": "Siguiente",
@@ -1409,8 +1450,12 @@
     "to": "Para",
     "details": "Detalles",
     "amount": "Importe",
+    "gas_used": "Gas usado (unidades)",
     "gas_limit": "Límite de gas (unidades)",
     "gas_price": "Precio de gas (GWEI)",
+    "base_fee": "Tarifa base (GWEI)",
+    "priority_fee": "Tarifa de prioridad (GWEI)",
+    "max_fee": "Tarifa máxima por gas",
     "total": "Total",
     "view_on": "VER EN",
     "view_on_etherscan": "Ver en Etherscan",
@@ -1432,7 +1477,26 @@
     "sign_title_device": "con su monedero Keystone",
     "sign_description_1": "Después de haber firmado con su monedero Keystone,",
     "sign_description_2": "pulse en Obtener firma",
-    "sign_get_signature": "Obtener firma"
+    "sign_get_signature": "Obtener firma",
+    "network_fee": "Tarifa de red"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "Enviando su transacción",
+    "status_submitting_description": "Finalización estimada {{timeLeft}}",
+    "status_success_header": "Su transacción está completa",
+    "status_submitting_past_estimated_deadline_header": "Disculpe la espera",
+    "status_submitting_past_estimated_deadline_description": "Si su transacción no finaliza en {{timeLeft}}, se cancelará y no se le cobrará el gas.",
+    "status_cancelled_header": "Su transacción se canceló",
+    "status_cancelled_description": "Su transacción no se pudo completar, por lo que se canceló para evitarle pagar tarifas de gas innecesarias.",
+    "status_failed_header": "Su transacción falló",
+    "status_failed_description": "Los cambios repentinos en el mercado pueden provocar fallos. Si el problema continúa, comuníquese con el soporte al cliente de MetaMask.",
+    "view_transaction": "Ver transacción",
+    "view_activity": "Ver actividad",
+    "return_to_dapp": "Volver a {{dappName}}",
+    "try_again": "Intente de nuevo",
+    "create_new": "Crear nueva {{txType}}",
+    "swap": "canjear",
+    "send": "enviar"
   },
   "address_book": {
     "recents": "Recientes",
@@ -1781,6 +1845,16 @@
     "back_to_safety": "Volver a Seguridad"
   },
   "notifications": {
+    "stake_completed": "Staking finalizado",
+    "withdrawal_completed": "Retiro finalizado",
+    "unstake_completed": "Unstaking finalizado",
+    "withdrawal_requested": "Retiro solicitado",
+    "stake_ready_to_be_withdrawn": "Staking listo para ser retirado",
+    "swap_completed": "Canjeado {{from}} por {{to}}",
+    "sent": "Enviado a {{address}}",
+    "received": "Recibido desde {{address}}",
+    "sent_nft": "Enviando NFT a {{address}}",
+    "received_nft": "NFT recibido desde {{address}}",
     "pending_title": "Transacción enviada",
     "pending_deposit_title": "¡Depósito en curso!",
     "pending_withdrawal_title": "El retiro está en curso",
@@ -1818,7 +1892,30 @@
     "wc_signed_failed_title": "Error en esta solicitud de firma",
     "wc_sent_tx_rejected_title": "Rechazó la solicitud de transacción",
     "approved_tx_rejected_title": "Ha rechazado la concesión de permiso",
-    "wc_description": "Revise su aplicación"
+    "wc_description": "Revise su aplicación",
+    "wallet": "Monedero",
+    "web3": "Web3",
+    "empty": {
+      "title": "Nada que ver aquí",
+      "message": "Aquí es donde puede encontrar notificaciones una vez que haya actividad en su monedero. "
+    },
+    "list": {
+      "0": "Todo",
+      "1": "Monedero",
+      "2": "Anuncios"
+    },
+    "address_copied_to_clipboard": "Dirección copiada al portapapeles",
+    "transaction_id_copied_to_clipboard": "ID de transacción copiado al portapapeles",
+    "activation_card": {
+      "title": "Activar las notificaciones",
+      "description_1": "Manténgase informado sobre lo que sucede en su monedero con notificaciones. ",
+      "description_2": "Para utilizar esta función, generaremos un ID anónimo para su cuenta. Se utiliza únicamente para sincronizar sus datos en MetaMask y no se vincula a sus actividades ni a otros identificadores, lo que garantiza su privacidad.",
+      "learn_more": "Obtenga más información sobre cómo protegemos su privacidad mientras utiliza esta función. ",
+      "manage_preferences_1": "Puede desactivar las notificaciones en cualquier momento ",
+      "manage_preferences_2": "Configuración > Notificaciones.",
+      "cancel": "Cancelar",
+      "cta": "Activar"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Proteger su monedero",
@@ -1956,7 +2053,7 @@
     "limited_time": "tiempo limitad",
     "supported_countries": "Países admitidos",
     "no_countries_result": "Los países bi admitidos coinciden con “{{searchString}}”",
-    "wyre_loading_rates": " ",
+    "wyre_loading_rates": "",
     "fast_no_registration": "Rápido: no es necesario registrarse",
     "debit_credit_card_required": "Tarjetas de débito o crédito. No se admite Apple Cash.",
     "select_card_country": "Seleccione el país donde esté registrada su tarjeta (no donde usted se encuentre).",
@@ -2419,12 +2516,28 @@
       "title": "Manténgase seguro con alertas de seguridad",
       "description_1": "Manténgase a salvo de estafas conocidas y al mismo tiempo proteja su privacidad con alertas de seguridad impulsadas por Blockaid. Esta función ahora está activada de forma predeterminada para todos los usuarios de MetaMask.",
       "description_2": "Siempre asegúrese de hacer su propia diligencia debida antes de aprobar cualquier solicitud.",
+      "description_3": "Disponible en Arbitrum, Avalanche, BNB Chain, la red principal de Ethereum, Linea, Optimism, Polygon, Sepolia y Base.",
       "got_it": "Entendido"
     },
     "sell": {
       "title": "Cobrar es fácil",
       "description": "¡Venda su cripto directamente en MetaMask! Lo ayudaremos a encontrar cotizaciones de proveedores confiables, para que pueda vender su cripto de manera accesible, rápida y segura, en todo momento.",
       "action_text": "Inténtelo"
+    },
+    "stx": {
+      "header": "Presentamos las transacciones inteligentes",
+      "description_1": "Desbloquee la experiencia de transacción más segura, confiable y sencilla: una forma más inteligente de navegar por la web3.",
+      "description_2": "Cada mes se pierden millones de dólares debido a transacciones fallidas y al frontrunning. Las transacciones inteligentes solucionan este problema.",
+      "description_3": "En este momento, las transacciones inteligentes solo están disponibles en la red principal de ETH. Puede desactivarlas en cualquier momento en la configuración.",
+      "secondary_button": "Ahora no",
+      "primary_button": "Habilitar transacciones inteligentes",
+      "learn_more": "Más información.",
+      "benefit_1_1": "82 % menos de transacciones fallidas",
+      "benefit_1_2": "transacciones",
+      "benefit_2_1": "Transacción",
+      "benefit_2_2": "protección",
+      "benefit_3_1": "Tiempo real",
+      "benefit_3_2": "actualizaciones"
     }
   },
   "invalid_network": {

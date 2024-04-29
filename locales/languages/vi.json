@@ -170,6 +170,10 @@
     "step6": {
       "title": "Sử dụng trình duyệt",
       "content1": "Tìm kiếm trang web theo từ khóa hoặc nhập URL. Chúc bạn vui vẻ! "
+    },
+    "step7": {
+      "title": "Sử dụng trình duyệt",
+      "content1": "Tìm kiếm trang web theo từ khóa hoặc nhập URL. Chúc bạn vui vẻ!  "
     }
   },
   "create_wallet": {
@@ -541,7 +545,8 @@
     "collectible_asset_contract": "Hợp đồng tài sản",
     "share_check_out_nft": "Kiểm tra NFT của tôi!",
     "share_via": "Đã chia sẻ qua",
-    "untitled_collection": "Bộ sưu tập không có tiêu đề"
+    "untitled_collection": "Bộ sưu tập không có tiêu đề",
+    "collection": "Bộ sưu tập"
   },
   "transfer": {
     "title": "Chuyển",
@@ -682,6 +687,12 @@
     "nft_opensea_desc": "Việc hiển thị phương tiện và dữ liệu NFT có thể làm lộ địa chỉ IP của bạn cho các máy chủ tập trung. Sử dụng API của OpenSea để tìm nạp dữ liệu NFT. Tính năng tự động phát hiện NFT phụ thuộc vào API của OpenSea và sẽ không thể hoạt động khi tính năng này bị tắt. Việc bật tính năng tự động phát hiện NFT có thể khiến bạn bị một người bất kỳ gửi các NFT giả đến ví của bạn và có thể cho phép kẻ tấn công tìm địa chỉ IP từ địa chỉ Ethereum của bạn.",
     "nft_autodetect_mode": "Tự động phát hiện NFT",
     "nft_autodetect_desc": "Việc hiển thị phương tiện và dữ liệu NFT có thể làm lộ địa chỉ IP của bạn cho các máy chủ tập trung. API của bên thứ ba (như OpenSea) được sử dụng để phát hiện NFT trong ví của bạn. Điều này làm lộ địa chỉ tài khoản của bạn cho các dịch vụ đó. Hãy tắt tính năng này nếu bạn không muốn ứng dụng lấy dữ liệu từ các dịch vụ đó.",
+    "show_fiat_on_testnets": "",
+    "show_fiat_on_testnets_desc": "",
+    "show_fiat_on_testnets_modal_title": "",
+    "show_fiat_on_testnets_modal_description": "",
+    "show_fiat_on_testnets_modal_learn_more": "",
+    "show_fiat_on_testnets_modal_button": "",
     "show_hex_data": "Hiển thị dữ liệu với mã Hex",
     "show_hex_data_desc": "Chọn mục này để hiển thị trường dữ liệu với mã hex trên màn hình gửi.",
     "toggleEthSignBannerDescription": "Bạn có nguy cơ bị tấn công lừa đảo. Tự bảo vệ mình bằng cách tắt eth_sign.",
@@ -712,6 +723,26 @@
     "general_desc": "Chuyển đổi tiền tệ, đơn vị tiền tệ chính, ngôn ngữ và công cụ tìm kiếm",
     "advanced_title": "Nâng cao",
     "advanced_desc": "Truy cập các tính năng của lập trình viên, đặt lại tài khoản, thiết lập mạng thử nghiệm, nhật ký trạng thái, giao thức IPFS và RPC tùy chỉnh",
+    "notifications_title": "Thông báo",
+    "notifications_desc": "Quản lý thông báo",
+    "allow_notifications": "Cho phép thông báo",
+    "allow_notifications_desc": "Nhận thông báo để cập nhật tình hình trong ví của bạn. Để sử dụng thông báo, chúng tôi dùng hồ sơ để đồng bộ một số cài đặt trên các thiết bị của bạn. Tìm hiểu cách chúng tôi bảo vệ quyền riêng tư của bạn khi sử dụng tính năng này.",
+    "notifications_opts": {
+      "customize_session_title": "Tùy chỉnh thông báo",
+      "customize_session_desc": "Bật các loại thông báo mà bạn muốn nhận:",
+      "account_session_title": "Hoạt động của tài khoản",
+      "account_session_desc": "Chọn tài khoản mà bạn muốn nhận thông báo:",
+      "assets_sent_title": "Đã gửi tài sản",
+      "assets_sent_desc": "Tiền và NFT",
+      "assets_received_title": "Đã nhận tài sản",
+      "assets_received_desc": "Tiền và NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "Ký gửi, hoán đổi và cầu nối",
+      "snaps_title": "Snap",
+      "snaps_desc": "Tính năng và cập nhật mới",
+      "products_announcements_title": "Thông báo sản phẩm",
+      "products_announcements_desc": "Sản phẩm và tính năng mới"
+    },
     "contacts_title": "Danh bạ",
     "contacts_desc": "Thêm, sửa, xóa và quản lý các tài khoản của bạn",
     "security_title": "Bảo mật & Quyền riêng tư",
@@ -832,8 +863,13 @@
       "sdk_activation_keys": "Khóa kích hoạt SDK",
       "activation_keys_description": "Khóa kích hoạt sẽ kích hoạt các tính năng hoặc nhà cung cấp cụ thể.",
       "add_activation_key": "Thêm Khóa kích hoạt",
+      "edit_activation_key": "Chỉnh sửa khóa kích hoạt",
       "paste_or_type_activation_key": "Dán hoặc nhập Khóa kích hoạt",
+      "add_label": "Thêm nhãn vào khóa này",
+      "label": "Nhãn",
+      "key": "Khóa",
       "add": "Thêm",
+      "update": "Cập nhật",
       "cancel": "Hủy"
     },
     "request_feature": "Yêu cầu tính năng",
@@ -900,8 +936,12 @@
     "security_check_subheading": "Kiểm tra bảo mật",
     "symbol_required": "Ký hiệu là bắt buộc.",
     "blockaid": "Blockaid",
+    "blockaid_desc": "Bảo vệ quyền riêng tư - không có dữ liệu nào được chia sẻ với các bên thứ ba. Có sẵn trên Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia và Base.",
     "security_alerts": "Cảnh báo bảo mật",
-    "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp."
+    "security_alerts_desc": "Tính năng này sẽ cảnh báo bạn về hoạt động độc hại bằng cách xem xét cục bộ các yêu cầu giao dịch và chữ ký của bạn. Hãy luôn tự mình thực hiện quy trình thẩm định trước khi chấp thuận bất kỳ yêu cầu nào. Không có gì đảm bảo rằng tính năng này sẽ phát hiện được tất cả các hoạt động độc hại. Bằng cách bật tính năng này, bạn đồng ý với các điều khoản sử dụng của nhà cung cấp.",
+    "smart_transactions_opt_in_heading": "Giao dịch thông minh",
+    "smart_transactions_opt_in_desc": "Bật Giao dịch thông minh để có các giao dịch đáng tin cậy và an toàn hơn, cùng phí có thể điều chỉnh trên Mạng chính của ETH.",
+    "smart_transactions_learn_more": "Tìm hiểu thêm."
   },
   "sdk": {
     "disconnect_title": "Ngắt kết nối tất cả các trang web?",
@@ -1128,6 +1168,7 @@
     "confirm": "Xác nhận"
   },
   "transaction": {
+    "transaction_id": "ID giao dịch",
     "alert": "CẢNH BÁO",
     "amount": "Số tiền",
     "next": "Tiếp",
@@ -1409,8 +1450,12 @@
     "to": "Đến",
     "details": "Chi tiết",
     "amount": "Số tiền",
+    "gas_used": "Gas đã sử dụng (Đơn vị)",
     "gas_limit": "Giới hạn gas (Đơn vị)",
     "gas_price": "Giá gas (GWEI)",
+    "base_fee": "Phí cơ bản (GWEI)",
+    "priority_fee": "Phí ưu tiên (GWEI)",
+    "max_fee": "Phí tối đa mỗi Gas",
     "total": "Tổng",
     "view_on": "XEM TRÊN",
     "view_on_etherscan": "Xem trên Etherscan",
@@ -1432,7 +1477,26 @@
     "sign_title_device": "bằng Keystone của bạn",
     "sign_description_1": "Sau khi bạn đã ký bằng Keystone,",
     "sign_description_2": "nhấn vào Lấy Chữ Ký",
-    "sign_get_signature": "Lấy Chữ Ký"
+    "sign_get_signature": "Lấy Chữ Ký",
+    "network_fee": "Phí mạng"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "Gửi giao dịch của bạn",
+    "status_submitting_description": "Thời gian hoàn tất dự kiến {{timeLeft}}",
+    "status_success_header": "Giao dịch của bạn đã hoàn tất",
+    "status_submitting_past_estimated_deadline_header": "Xin lỗi đã để bạn đợi lâu",
+    "status_submitting_past_estimated_deadline_description": "Nếu giao dịch của bạn không được hoàn thành trong vòng {{timeLeft}}, thì giao dịch sẽ bị hủy và bạn sẽ không bị tính phí gas.",
+    "status_cancelled_header": "Giao dịch của bạn đã bị hủy",
+    "status_cancelled_description": "Giao dịch của bạn không thể hoàn tất nên nó đã bị hủy để giúp bạn không phải trả phí gas không cần thiết.",
+    "status_failed_header": "Giao dịch của bạn đã thất bại",
+    "status_failed_description": "Biến động đột ngột của thị trường có thể gây ra lỗi. Nếu sự cố tiếp diễn, hãy liên hệ với bộ phận hỗ trợ khách hàng của MetaMask.",
+    "view_transaction": "Xem giao dịch",
+    "view_activity": "Xem hoạt động",
+    "return_to_dapp": "Quay lại {{dappName}}",
+    "try_again": "Thử lại",
+    "create_new": "Tạo {{txType}} mới",
+    "swap": "hoán đổi",
+    "send": "gửi"
   },
   "address_book": {
     "recents": "Gần đây",
@@ -1781,6 +1845,16 @@
     "back_to_safety": "Quay lại mục an toàn"
   },
   "notifications": {
+    "stake_completed": "Ký gửi đã hoàn tất",
+    "withdrawal_completed": "Rút tiền đã hoàn tất",
+    "unstake_completed": "Hủy ký gửi đã hoàn tất",
+    "withdrawal_requested": "Đã yêu cầu rút tiền",
+    "stake_ready_to_be_withdrawn": "Tài sản ký gửi đã sẵn sàng để rút",
+    "swap_completed": "Đã hoán đổi {{from}} thành {{to}}",
+    "sent": "Đã gửi đến {{address}}",
+    "received": "Đã nhận được từ {{address}}",
+    "sent_nft": "Đã gửi NFT đến {{address}}",
+    "received_nft": "Đã nhận được NFT từ {{address}}",
     "pending_title": "Đã gửi giao dịch",
     "pending_deposit_title": "Đang nạp tiền!",
     "pending_withdrawal_title": "Đang rút tiền!",
@@ -1818,7 +1892,30 @@
     "wc_signed_failed_title": "Yêu cầu ký này đã không thành công",
     "wc_sent_tx_rejected_title": "Bạn đã từ chối yêu cầu giao dịch",
     "approved_tx_rejected_title": "Bạn đã từ chối cấp quyền",
-    "wc_description": "Vui lòng kiểm tra ứng dụng"
+    "wc_description": "Vui lòng kiểm tra ứng dụng",
+    "wallet": "Ví",
+    "web3": "Web3",
+    "empty": {
+      "title": "Không có gì ở đây",
+      "message": "Đây là nơi bạn có thể tìm thấy thông báo khi có hoạt động trong ví của bạn. "
+    },
+    "list": {
+      "0": "Tất cả",
+      "1": "Ví",
+      "2": "Thông báo"
+    },
+    "address_copied_to_clipboard": "Đã sao chép địa chỉ vào bộ nhớ đệm",
+    "transaction_id_copied_to_clipboard": "Đã sao chép ID giao dịch vào bộ nhớ đệm",
+    "activation_card": {
+      "title": "Bật thông báo",
+      "description_1": "Nhận thông báo để cập nhật tình hình trong ví của bạn. ",
+      "description_2": "Để sử dụng tính năng này, chúng tôi sẽ tạo một ID ẩn danh cho tài khoản của bạn. ID này chỉ được dùng để đồng bộ dữ liệu của bạn trong MetaMask và không được liên kết với các hoạt động hoặc mã định danh khác của bạn, qua đó đảm bảo quyền riêng tư của bạn.",
+      "learn_more": "Tìm hiểu cách chúng tôi bảo vệ quyền riêng tư của bạn khi sử dụng tính năng này. ",
+      "manage_preferences_1": "Bạn có thể tắt thông báo bất kỳ lúc nào trong phần ",
+      "manage_preferences_2": "Cài đặt > Thông báo.",
+      "cancel": "Hủy",
+      "cta": "Bật"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Bảo vệ ví của bạn",
@@ -2419,12 +2516,28 @@
       "title": "Đảm bảo an toàn với cảnh báo bảo mật",
       "description_1": "Đảm bảo an toàn trước các hành vi lừa đảo đã biết, đồng thời vẫn bảo vệ quyền riêng tư của bạn với các cảnh báo bảo mật do Blockaid cung cấp. Tính năng này hiện được bật theo mặc định dành cho tất cả người dùng MetaMask.",
       "description_2": "Luôn tự thẩm định trước khi chấp thuận các yêu cầu.",
+      "description_3": "Có sẵn trên Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon, Sepolia và Base.",
       "got_it": "Đã hiểu"
     },
     "sell": {
       "title": "Rút tiền dễ dàng",
       "description": "Bán tiền mã hóa trực tiếp trong MetaMask! Chúng tôi sẽ giúp bạn tìm báo giá từ các nhà cung cấp đáng tin cậy, qua đó bạn có thể bán tiền mã hóa mọi lúc một cách dễ dàng, nhanh chóng và an toàn.",
       "action_text": "Thử ngay"
+    },
+    "stx": {
+      "header": "Giới thiệu Giao dịch thông minh",
+      "description_1": "Mở khóa trải nghiệm giao dịch an toàn, đáng tin cậy và dễ dàng nhất - cách sử dụng web3 thông minh hơn.",
+      "description_2": "Hàng triệu đô-la bị mất mỗi tháng do giao dịch thất bại và hành vi lợi dụng thông tin biết trước. Giao dịch thông minh sẽ khắc phục điều này.",
+      "description_3": "Hiện tại, Giao dịch thông minh chỉ có trên Mạng chính của ETH. Bạn có thể tắt bất kỳ lúc nào trong phần cài đặt.",
+      "secondary_button": "Không phải bây giờ",
+      "primary_button": "Bật Giao dịch thông minh",
+      "learn_more": "Tìm hiểu thêm.",
+      "benefit_1_1": "Tỷ lệ giao dịch thất bại",
+      "benefit_1_2": "thấp hơn 82%",
+      "benefit_2_1": "Bảo vệ",
+      "benefit_2_2": "giao dịch",
+      "benefit_3_1": "Cập nhật",
+      "benefit_3_2": "theo thời gian thực"
     }
   },
   "invalid_network": {

@@ -170,6 +170,10 @@
     "step6": {
       "title": "使用该浏览器",
       "content1": "通过关键字搜索网站或者输入 URL。祝您玩得开心！ "
+    },
+    "step7": {
+      "title": "使用该浏览器",
+      "content1": "通过关键字搜索网站或者输入 URL。祝您玩得开心！ "
     }
   },
   "create_wallet": {
@@ -541,7 +545,8 @@
     "collectible_asset_contract": "资产合约",
     "share_check_out_nft": "看看我的 NFT！",
     "share_via": "通过以下方式分享：",
-    "untitled_collection": "无标题收藏"
+    "untitled_collection": "无标题收藏",
+    "collection": "收藏品"
   },
   "transfer": {
     "title": "转账",
@@ -682,6 +687,12 @@
     "nft_opensea_desc": "显示 NFT 媒体和数据可能会将您的 IP 地址暴露给集中式服务器。使用 OpenSea 的 API 来获取 NFT 数据。NFT 自动检测依赖于 OpenSea 的 API，当它关闭时将不可用。启用 NFT 自动检测会使您暴露在任何人向您钱包发送的虚假 NFT 中，并可能使攻击者从您的以太坊地址中知道您的 IP 地址。",
     "nft_autodetect_mode": "自动检测 NFT",
     "nft_autodetect_desc": "显示 NFT 媒体和数据可能会将您的 IP 地址暴露给集中式服务器。第三方 API（如 OpenSea）被用来检测您钱包中的 NFT。这将使您的账户地址暴露在这些服务中。如果您不希望应用程序从这些服务中获取数据，请禁用该功能。",
+    "show_fiat_on_testnets": "",
+    "show_fiat_on_testnets_desc": "",
+    "show_fiat_on_testnets_modal_title": "",
+    "show_fiat_on_testnets_modal_description": "",
+    "show_fiat_on_testnets_modal_learn_more": "",
+    "show_fiat_on_testnets_modal_button": "",
     "show_hex_data": "显示十六进制数据",
     "show_hex_data_desc": "选择此项可在发送屏幕上显示十六进制数据字段。",
     "toggleEthSignBannerDescription": "您面临网络钓鱼攻击的风险。通过关闭 eth_sign 保护自己。",
@@ -712,6 +723,26 @@
     "general_desc": "货币转换、主要货币、语言和搜索引擎",
     "advanced_title": "高级",
     "advanced_desc": "访问开发者功能、重置账户、设置测试网、状态日志、IPFS 网关和自定义 RPC",
+    "notifications_title": "通知",
+    "notifications_desc": "管理您的通知",
+    "allow_notifications": "允许通知",
+    "allow_notifications_desc": "通过通知随时了解您的钱包动态。为了使用通知，我们使用配置文件在您的不同设备上同步一些设置。了解我们如何在使用此功能时保护您的隐私。",
+    "notifications_opts": {
+      "customize_session_title": "自定义您的通知",
+      "customize_session_desc": "开启您想要接收的通知类型：",
+      "account_session_title": "账户活动",
+      "account_session_desc": "选择您想要接收通知的账户：",
+      "assets_sent_title": "已发送资产",
+      "assets_sent_desc": "资金和 NFT",
+      "assets_received_title": "已接收资产",
+      "assets_received_desc": "资金和 NFT",
+      "defi_title": "去中心化金融",
+      "defi_desc": "质押、兑换和跨链桥",
+      "snaps_title": "Snap",
+      "snaps_desc": "新功能和更新",
+      "products_announcements_title": "产品公告",
+      "products_announcements_desc": "新产品和功能"
+    },
     "contacts_title": "联系方式",
     "contacts_desc": "添加、编辑、删除和管理您的账户",
     "security_title": "安全和隐私",
@@ -832,8 +863,13 @@
       "sdk_activation_keys": "SDK 激活密钥",
       "activation_keys_description": "激活密钥将启用特定功能或提供商。",
       "add_activation_key": "添加激活密钥",
+      "edit_activation_key": "编辑激活密钥",
       "paste_or_type_activation_key": "粘贴或键入激活密钥",
+      "add_label": "为此密钥添加标签",
+      "label": "标签",
+      "key": "密钥",
       "add": "添加",
+      "update": "更新",
       "cancel": "取消"
     },
     "request_feature": "功能请求",
@@ -900,8 +936,12 @@
     "security_check_subheading": "安全检查",
     "symbol_required": "需要符号。",
     "blockaid": "Blockaid",
+    "blockaid_desc": "隐私保护 - 不会与第三方共享任何数据。适用于 Arbitrum、Avalanche、BNB Chain、以太坊主网、Optimism、Polygon、Sepolia 和 Base。",
     "security_alerts": "安全提醒",
-    "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。"
+    "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
+    "smart_transactions_opt_in_heading": "智能交易",
+    "smart_transactions_opt_in_desc": "开启智能交易，以实现更加安全可靠的交易，并在 ETH 主网上调整费用。",
+    "smart_transactions_learn_more": "了解更多。"
   },
   "sdk": {
     "disconnect_title": "要断开所有网站的连接吗?",
@@ -1128,6 +1168,7 @@
     "confirm": "确认"
   },
   "transaction": {
+    "transaction_id": "交易 ID",
     "alert": "警报",
     "amount": "数额",
     "next": "下一步",
@@ -1409,8 +1450,12 @@
     "to": "至",
     "details": "详细信息",
     "amount": "数额",
+    "gas_used": "已使用燃料（单位）",
     "gas_limit": "燃料限额（单位）",
     "gas_price": "燃料价格 (GWEI)",
+    "base_fee": "基础费用（GWEI）",
+    "priority_fee": "优先费用（GWEI）",
+    "max_fee": "每单位燃料的最大费用",
     "total": "总计",
     "view_on": "在以下位置查看：",
     "view_on_etherscan": "在 Etherscan 上查看",
@@ -1432,7 +1477,26 @@
     "sign_title_device": "通过您的Keystone",
     "sign_description_1": "您在使用Keystone签署后，",
     "sign_description_2": "点击‘’获取签名‘’",
-    "sign_get_signature": "获取签名"
+    "sign_get_signature": "获取签名",
+    "network_fee": "网络费"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "正在提交您的交易",
+    "status_submitting_description": "预计完成时间 {{timeLeft}}",
+    "status_success_header": "您的交易已完成",
+    "status_submitting_past_estimated_deadline_header": "抱歉让您久等",
+    "status_submitting_past_estimated_deadline_description": "如果您的交易在 {{timeLeft}} 内未完成，则会取消，您无需支付燃料费。",
+    "status_cancelled_header": "您的交易已取消",
+    "status_cancelled_description": "您的交易无法完成，因此已取消，以避免您支付不必要的燃料费。",
+    "status_failed_header": "您的交易失败",
+    "status_failed_description": "市场的突然变化可导致失败。如果问题仍然存在，请联系 MetaMask 客户支持团队。",
+    "view_transaction": "查看交易",
+    "view_activity": "查看活动",
+    "return_to_dapp": "返回 {{dappName}}",
+    "try_again": "再试一次",
+    "create_new": "创建新 {{txType}}",
+    "swap": "兑换",
+    "send": "发送"
   },
   "address_book": {
     "recents": "最近",
@@ -1781,6 +1845,16 @@
     "back_to_safety": "返回以确保安全"
   },
   "notifications": {
+    "stake_completed": "质押已完成",
+    "withdrawal_completed": "提取已完成",
+    "unstake_completed": "取消质押已完成",
+    "withdrawal_requested": "已请求提取",
+    "stake_ready_to_be_withdrawn": "已准备好提取质押",
+    "swap_completed": "已用 {{from}} 兑换 {{to}}",
+    "sent": "已发送至 {{address}}",
+    "received": "已从 {{address}} 收到",
+    "sent_nft": "已发送 NFT 至 {{address}}",
+    "received_nft": "已从 {{address}} 收到 NFT",
     "pending_title": "已提交交易",
     "pending_deposit_title": "保证经进行中！",
     "pending_withdrawal_title": "提取进行中！",
@@ -1818,7 +1892,30 @@
     "wc_signed_failed_title": "此签署请求失败",
     "wc_sent_tx_rejected_title": "您已拒绝交易请求",
     "approved_tx_rejected_title": "您拒绝授予权限",
-    "wc_description": "请检查应用程序"
+    "wc_description": "请检查应用程序",
+    "wallet": "钱包",
+    "web3": "Web3",
+    "empty": {
+      "title": "此处无内容",
+      "message": "当您的钱包有活动时，您可以在此处找到通知。"
+    },
+    "list": {
+      "0": "所有",
+      "1": "钱包",
+      "2": "公告"
+    },
+    "address_copied_to_clipboard": "地址已复制到剪贴板",
+    "transaction_id_copied_to_clipboard": "交易 ID 已复制到剪贴板",
+    "activation_card": {
+      "title": "开启通知",
+      "description_1": "通过通知随时了解您的钱包动态。",
+      "description_2": "要使用此功能，我们将为您的账户生成一个匿名 ID。它仅用于同步您在 MetaMask 中的数据，不会链接到您的活动或其他标识符，从而保护您的隐私。",
+      "learn_more": "了解我们如何在使用此功能时保护您的隐私。",
+      "manage_preferences_1": "您可以随时通过以下方式关闭通知：",
+      "manage_preferences_2": "设置 > 通知。",
+      "cancel": "取消",
+      "cta": "开启"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "保护您的钱包",
@@ -1956,7 +2053,7 @@
     "limited_time": "有限时间",
     "supported_countries": "支持的国家／地区",
     "no_countries_result": "没有支持的国家／地区和“{{searchString}}”匹配",
-    "wyre_loading_rates": " ",
+    "wyre_loading_rates": "",
     "fast_no_registration": "快速 - 无需注册",
     "debit_credit_card_required": "借记卡或信用卡。不支持Apple Cash。",
     "select_card_country": "选择您的卡所注册的国家／地区（而不是您所在地点）。",
@@ -2419,12 +2516,28 @@
       "title": "安全警报助您确保安全",
       "description_1": "通过由 Blockaid 提供的安全提醒避免受到已知欺诈，同时保护您的隐私。目前所有 MetaMask 用户默认启用此功能。",
       "description_2": "在批准请求之前，必须自行作出审慎调查。",
+      "description_3": "适用于 Arbitrum、Avalanche、BNB Chain、以太坊主网、Linea、Optimism、Polygon、Sepolia 和 Base。",
       "got_it": "知道了"
     },
     "sell": {
       "title": "兑现变得容易",
       "description": "直接在 MetaMask 卖出您的加密货币！我们将帮助您从值得信赖的提供商处获取报价，以便您每次都能够以便捷、快速、安全的方式卖出您的加密货币。",
       "action_text": "试试看吧"
+    },
+    "stx": {
+      "header": "智能交易简介",
+      "description_1": "解锁最安全、最可靠、最简便的交易体验 - 以更智能的方式体验 Web3。",
+      "description_2": "由于交易失败和抢先交易，每月会损失数百万美元。智能交易可以解决这一问题。",
+      "description_3": "目前，仅 ETH 主网支持智能交易。您可以随时在设置中关闭此功能。",
+      "secondary_button": "暂时不",
+      "primary_button": "启用智能交易",
+      "learn_more": "了解更多。",
+      "benefit_1_1": "失败率降低 82%",
+      "benefit_1_2": "交易",
+      "benefit_2_1": "交易",
+      "benefit_2_2": "保护",
+      "benefit_3_1": "实时",
+      "benefit_3_2": "更新"
     }
   },
   "invalid_network": {

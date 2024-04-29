@@ -170,6 +170,10 @@
     "step6": {
       "title": "ブラウザの使用",
       "content1": "キーワードでサイトを検索するか、URLを入力します。楽しく閲覧しましょう！"
+    },
+    "step7": {
+      "title": "ブラウザの使用",
+      "content1": "キーワードでサイトを検索するか、URLを入力します。楽しく閲覧しましょう！"
     }
   },
   "create_wallet": {
@@ -541,7 +545,8 @@
     "collectible_asset_contract": "アセットコントラクト",
     "share_check_out_nft": "私のNFTにご注目ください！",
     "share_via": "共有方法:",
-    "untitled_collection": "無題のコレクション"
+    "untitled_collection": "無題のコレクション",
+    "collection": "コレクション"
   },
   "transfer": {
     "title": "送金",
@@ -682,6 +687,12 @@
     "nft_opensea_desc": "NFTのメディアとデータを表示すると、IPアドレスが中央サーバーに公開される可能性があります。OpenSeaのAPIを使用してNFTデータを取得してください。NFTの自動検出機能はOpenSeaのAPIを使用するため、この機能がオフの場合利用できません。NFTの自動検出を有効にすると、他のユーザーからウォレットに偽のNFTが送られる可能性があり、攻撃者にイーサリアムアドレスからIPアドレスをつきとめられる場合があります。",
     "nft_autodetect_mode": "NFTを自動検出",
     "nft_autodetect_desc": "NFTのメディアとデータを表示すると、IPアドレスが中央サーバーに公開される可能性があります。ウォレットのNFTを検出するには、サードパーティー API (OpenSea など) が使用されます。これによりこれらのサービスにアカウントのアドレスが公開されます。アプリがこれらのサービスからデータを取得しないようにするには、この機能を無効のままにしてください。",
+    "show_fiat_on_testnets": "",
+    "show_fiat_on_testnets_desc": "",
+    "show_fiat_on_testnets_modal_title": "",
+    "show_fiat_on_testnets_modal_description": "",
+    "show_fiat_on_testnets_modal_learn_more": "",
+    "show_fiat_on_testnets_modal_button": "",
     "show_hex_data": "16進データを表示",
     "show_hex_data_desc": "送信画面に16進データフィールドを表示するにはこれを選択します。",
     "toggleEthSignBannerDescription": "フィッシング攻撃のリスクがあります。eth_signを無効にして自分の身を守ってください。",
@@ -712,6 +723,26 @@
     "general_desc": "通貨換算、主要通貨、言語、検索エンジン",
     "advanced_title": "高度な設定",
     "advanced_desc": "開発者機能、アカウントのリセット、テストネットのセットアップ、ステータスログ、IPFSゲートウェイ、カスタムRPC",
+    "notifications_title": "通知",
+    "notifications_desc": "通知の管理",
+    "allow_notifications": "通知を許可する",
+    "allow_notifications_desc": "通知を使えば、ウォレットで何が起きているか常に把握できます。通知を使用するには、プロファイルを使用してデバイス間で一部の設定を同期します。この機能を使用する際に当社がユーザーのプライバシーをどのように保護するのか、詳細をご覧ください。",
+    "notifications_opts": {
+      "customize_session_title": "通知のカスタマイズ",
+      "customize_session_desc": "受け取る通知の種類をオンにします",
+      "account_session_title": "アカウントのアクティビティ",
+      "account_session_desc": "通知を受けたいアカウントを選択してください:",
+      "assets_sent_title": "資産が送金されました",
+      "assets_sent_desc": "資金とNFT",
+      "assets_received_title": "資産を受け取りました",
+      "assets_received_desc": "資金とNFT",
+      "defi_title": "DeFi",
+      "defi_desc": "ステーキング、スワップ、ブリッジ",
+      "snaps_title": "Snap",
+      "snaps_desc": "新機能や最新情報",
+      "products_announcements_title": "製品に関するお知らせ",
+      "products_announcements_desc": "新しい製品や機能"
+    },
     "contacts_title": "連絡先",
     "contacts_desc": "アカウントを追加、編集、削除、管理します",
     "security_title": "セキュリティとプライバシー",
@@ -832,8 +863,13 @@
       "sdk_activation_keys": "SDKのアクティベーションキー",
       "activation_keys_description": "アクティベーションキーを使うと、特定の機能やプロバイダーが使用できるようになります。",
       "add_activation_key": "アクティベーションキーを追加",
+      "edit_activation_key": "アクティベーションキーを編集",
       "paste_or_type_activation_key": "アクティベーションキーを貼り付けるか、入力してください",
+      "add_label": "このキーにラベルを追加",
+      "label": "ラベル",
+      "key": "キー",
       "add": "追加",
+      "update": "更新",
       "cancel": "キャンセル"
     },
     "request_feature": "機能のリクエスト",
@@ -900,8 +936,12 @@
     "security_check_subheading": "セキュリティチェック",
     "symbol_required": "シンボルが必要です",
     "blockaid": "Blockaid",
+    "blockaid_desc": "プライバシーを保護 - サードパーティとデータが一切共有されません。Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Optimism、Polygon、Sepolia、Baseで利用可能。",
     "security_alerts": "セキュリティアラート",
-    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。"
+    "security_alerts_desc": "この機能は、トランザクションと署名要求をローカルで確認することで、悪質な行為に関するアラートを発します。要求を承認する前に、必ず独自のデューデリジェンスを行ってください。この機能がすべての悪質な行為を検出するという保証はありません。この機能を有効にすることで、プロバイダーの利用規約に同意したものとみなされます。",
+    "smart_transactions_opt_in_heading": "スマートトランザクション",
+    "smart_transactions_opt_in_desc": "スマートトランザクションをオンにして、ETHメインネットでより信頼性が高く安全なトランザクションと、調整可能な手数料をご利用ください。",
+    "smart_transactions_learn_more": "詳細。"
   },
   "sdk": {
     "disconnect_title": "すべてのサイトとの接続を解除しますか？",
@@ -1128,6 +1168,7 @@
     "confirm": "確定"
   },
   "transaction": {
+    "transaction_id": "トランザクションID",
     "alert": "アラート",
     "amount": "金額",
     "next": "次へ",
@@ -1409,8 +1450,12 @@
     "to": "送信先",
     "details": "詳細",
     "amount": "金額",
+    "gas_used": "使用ガス (単位)",
     "gas_limit": "ガスリミット (単位)",
     "gas_price": "ガス価格 (gwei)",
+    "base_fee": "基本料金 (gwei)",
+    "priority_fee": "優先手数料 (gwei)",
+    "max_fee": "ガス1単位あたりの最大手数料",
     "total": "合計",
     "view_on": "表示方法:",
     "view_on_etherscan": "Etherscanで表示",
@@ -1432,7 +1477,26 @@
     "sign_title_device": "Keystoneで",
     "sign_description_1": "Keystoneで署名した後、",
     "sign_description_2": "「署名を取得」をタップします",
-    "sign_get_signature": "署名を取得"
+    "sign_get_signature": "署名を取得",
+    "network_fee": "ネットワーク手数料"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "トランザクションを送信中",
+    "status_submitting_description": "完了までの推定時間: {{timeLeft}}",
+    "status_success_header": "トランザクションが完了しました",
+    "status_submitting_past_estimated_deadline_header": "お待たせして申し訳ございません",
+    "status_submitting_past_estimated_deadline_description": "{{timeLeft}}以内にトランザクションが完了しない場合はキャンセルされ、ガス代は請求されません。",
+    "status_cancelled_header": "トランザクションがキャンセルされました",
+    "status_cancelled_description": "トランザクションを完了できなかったため、不要なガス代の支払いを避けるためにキャンセルされました。",
+    "status_failed_header": "トランザクションに失敗しました",
+    "status_failed_description": "突然の市場の変化により失敗する場合があります。問題が解決されない場合は、MetaMaskカスタマーサポートにお問い合わせください。",
+    "view_transaction": "トランザクションを表示",
+    "view_activity": "アクティビティを表示",
+    "return_to_dapp": "{{dappName}}に戻る",
+    "try_again": "再試行",
+    "create_new": "新しい{{txType}}を作成",
+    "swap": "スワップ",
+    "send": "送金"
   },
   "address_book": {
     "recents": "最近",
@@ -1781,6 +1845,16 @@
     "back_to_safety": "安全な場所に戻る"
   },
   "notifications": {
+    "stake_completed": "ステーキングが完了しました",
+    "withdrawal_completed": "出金が完了しました",
+    "unstake_completed": "ステーキングの解除が完了しました",
+    "withdrawal_requested": "出金がリクエストされました",
+    "stake_ready_to_be_withdrawn": "ステークの出金準備が完了しました",
+    "swap_completed": "{{from}}を{{to}}にスワップしました",
+    "sent": "{{address}}に送りました",
+    "received": "{{address}}から受け取りました",
+    "sent_nft": "{{address}}にNFTを送りました",
+    "received_nft": "{{address}}からNFTを受け取りました",
     "pending_title": "トランザクションが送信されました",
     "pending_deposit_title": "入金が進行中です。",
     "pending_withdrawal_title": "出金が進行中です。",
@@ -1818,7 +1892,30 @@
     "wc_signed_failed_title": "この署名リクエストは失敗しました",
     "wc_sent_tx_rejected_title": "トランザクションリクエストを拒否しました",
     "approved_tx_rejected_title": "アクセス許可の付与を拒否しました",
-    "wc_description": "アプリケーションを確認してください"
+    "wc_description": "アプリケーションを確認してください",
+    "wallet": "ウォレット",
+    "web3": "Web3",
+    "empty": {
+      "title": "ここに表示する内容はありません",
+      "message": "ウォレットにアクティビティがあると、ここに通知が表示されます。"
+    },
+    "list": {
+      "0": "すべて",
+      "1": "ウォレット",
+      "2": "お知らせ"
+    },
+    "address_copied_to_clipboard": "アドレスがクリップボードにコピーされました",
+    "transaction_id_copied_to_clipboard": "トランザクションIDがクリップボードにコピーされました",
+    "activation_card": {
+      "title": "通知をオンにする",
+      "description_1": "通知を使えば、ウォレットで何が起きているか常に把握できます。",
+      "description_2": "この機能を使うために、アカウントの匿名のIDが生成されます。このIDはMetaMask内のユーザーのデータの同期にのみ使用され、アクティビティや他の識別要素にはリンクされず、プライバシーは確保されます。",
+      "learn_more": "この機能を使用する際に当社がどのようにユーザーのプライバシーを保護するのか、詳細をご覧ください。",
+      "manage_preferences_1": "通知は",
+      "manage_preferences_2": "「設定」>「通知」でいつでもオフにできます。",
+      "cancel": "キャンセル",
+      "cta": "オンにする"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "ウォレットを保護",
@@ -1956,7 +2053,7 @@
     "limited_time": "期間限定",
     "supported_countries": "対応している国",
     "no_countries_result": "「{{searchString}}」と一致する対応国がありません",
-    "wyre_loading_rates": " ",
+    "wyre_loading_rates": "",
     "fast_no_registration": "迅速 - 登録不要",
     "debit_credit_card_required": "デビットカードまたはクレジットカード。Apple Cashには対応していません。",
     "select_card_country": "(お住まいの国ではなく) カードが登録されている国を選択してください。",
@@ -2419,12 +2516,28 @@
       "title": "セキュリティアラートで安全を確保",
       "description_1": "Blockaidのセキュリティアラートで、プライバシーを確保しつつ既知の詐欺から身を守ります。この機能は、MetaMaskユーザー全員を対象にデフォルトでオンになります。",
       "description_2": "要求を承認する前に、必ず独自のデューデリジェンスを行ってください。",
+      "description_3": "Arbitrum、Avalanche、BNB Chain、イーサリアムメインネット、Linea、Optimism、Polygon、Sepolia、Baseで利用できます。",
       "got_it": "了解"
     },
     "sell": {
       "title": "キャッシュアウトが簡単になりました",
       "description": "MetaMaskで直接仮想通貨を売却！信頼できるプロバイダーからのクォートを取得して、毎回簡単・迅速・安全に仮想通貨を売却できます。",
       "action_text": "お試しください"
+    },
+    "stx": {
+      "header": "スマートトランザクションのご紹介",
+      "description_1": "最も安全で信頼性が高く、簡単なトランザクションをご利用ください - Web3をよりスマートにナビゲート。",
+      "description_2": "トランザクションの失敗やフロントランニングにより、毎月何百万ドルもの損失が発生しています。スマートトランザクションはこの問題を解決します。",
+      "description_3": "現在スマートトランザクションはETHメインネットでのみご利用いただけます。この機能は設定でいつでもオフにできます。",
+      "secondary_button": "また後で",
+      "primary_button": "スマートトランザクションを有効にする",
+      "learn_more": "詳細。",
+      "benefit_1_1": "失敗率が82%減少",
+      "benefit_1_2": "トランザクション",
+      "benefit_2_1": "トランザクション",
+      "benefit_2_2": "保護",
+      "benefit_3_1": "リアルタイム",
+      "benefit_3_2": "最新情報"
     }
   },
   "invalid_network": {
