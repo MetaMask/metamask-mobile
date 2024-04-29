@@ -65,9 +65,12 @@ const initialState = {
         },
       },
       CurrencyRateController: {
-        conversionRate: 3200,
         currentCurrency: 'usd',
-        nativeCurrency: 'ETH',
+        currencyRates: {
+          ETH: {
+            conversionRate: 3200,
+          },
+        },
       },
     },
   },

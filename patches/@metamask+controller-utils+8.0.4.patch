@@ -2,7 +2,15 @@ diff --git a/node_modules/@metamask/controller-utils/dist/constants.d.ts b/node_
 index ac69412..2a69348 100644
 --- a/node_modules/@metamask/controller-utils/dist/constants.d.ts
 +++ b/node_modules/@metamask/controller-utils/dist/constants.d.ts
-@@ -61,6 +61,13 @@ export declare const BUILT_IN_NETWORKS: {
+@@ -28,6 +28,7 @@ export declare const TESTNET_TICKER_SYMBOLS: {
+     GOERLI: string;
+     SEPOLIA: string;
+     LINEA_GOERLI: string;
++    LINEA_SEPOLIA: string;
+ };
+ /**
+  * Map of all build-in Infura networks to their network, ticker and chain IDs.
+@@ -61,6 +62,13 @@ export declare const BUILT_IN_NETWORKS: {
              readonly blockExplorerUrl: "https://goerli.lineascan.build";
          };
      };
