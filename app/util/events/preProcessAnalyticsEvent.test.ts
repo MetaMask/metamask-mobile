@@ -7,6 +7,16 @@ describe('preProcessAnalyticsEvent', () => {
     expect(anonymousParams).toEqual({});
   });
 
+  it('should return empty objects for both userParams and anonymousParams when params is undefined', () => {
+    // Simulate calling the function with undefined by casting undefined to any
+    const [userParams, anonymousParams] = preProcessAnalyticsEvent(
+      undefined as any,
+    );
+
+    expect(userParams).toEqual({});
+    expect(anonymousParams).toEqual({});
+  });
+
   it('should process non-object properties correctly', () => {
     const params = {
       prop1: 'value1',
