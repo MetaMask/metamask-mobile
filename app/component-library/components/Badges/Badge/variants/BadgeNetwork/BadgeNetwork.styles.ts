@@ -21,28 +21,46 @@ const styleSheet = (params: {
 }) => {
   const { theme, vars } = params;
   const { style, containerSize, size } = vars;
+  /**
+   * Design Requirements:
+   *  - The Network Badge needs to be 1/2 the height of its content.
+   *  - It needs to have a 1px stroke on a 16px badge.
+   * (Current) Solution:
+   *  - Use invisible base wrapper and set height to 50% to get the 1/2 height measurement.
+   *  - Scale content to a scale ratio based on the container size's height.
+   *  - Set borderWidth to scale with given Network Icon size (always given with default).
+   */
+  const badgeToContentScaleRatio = 0.5;
+  const borderWidthRatio = 1 / 16;
+  const borderWidth = Number(size) * borderWidthRatio;
   let scaleRatio = 1;
   let opacity = 0;
 
   if (containerSize) {
     scaleRatio = containerSize.height / Number(size);
+    // This is so that the BadgeNetwork won't be visible until a containerSize is known
     opacity = 1;
   }
 
   return StyleSheet.create({
     base: {
-      height: '50%',
+      height: `${(badgeToContentScaleRatio * 100).toString()}%`,
       aspectRatio: 1,
-      minHeight: 8,
+      // Smallest badge size * badgeToContentScaleRatio
+      minHeight: 16 * badgeToContentScaleRatio,
       alignItems: 'center',
       justifyContent: 'center',
       opacity,
     },
     networkIcon: Object.assign(
       {
+        /**
+         * This is to make sure scale the Network Icon.
+         * If the BadgeNetwork needs to have style changes specifically with dimensions,
+         * set transform to [{scale: 1}] first
+         */
         transform: [{ scale: scaleRatio }],
-        borderWidth: 2,
-        borderRadius: 999,
+        borderWidth,
         borderColor: theme.colors.background.default,
         ...theme.shadows.size.xs,
       } as ViewStyle,

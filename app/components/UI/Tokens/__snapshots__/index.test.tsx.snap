@@ -626,7 +626,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         Object {
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
-                                          "borderRadius": 999,
+                                          "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "overflow": "hidden",
@@ -944,7 +944,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         Object {
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
-                                          "borderRadius": 999,
+                                          "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "overflow": "hidden",
@@ -1796,7 +1796,7 @@ exports[`Tokens should render correctly 1`] = `
                                         Object {
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
-                                          "borderRadius": 999,
+                                          "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "overflow": "hidden",
@@ -2114,7 +2114,7 @@ exports[`Tokens should render correctly 1`] = `
                                         Object {
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
-                                          "borderRadius": 999,
+                                          "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "overflow": "hidden",
@@ -2974,7 +2974,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         Object {
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
-                                          "borderRadius": 999,
+                                          "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "overflow": "hidden",
@@ -3292,7 +3292,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         Object {
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
-                                          "borderRadius": 999,
+                                          "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "overflow": "hidden",
@@ -3529,7 +3529,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         Object {
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
-                                          "borderRadius": 999,
+                                          "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
                                           "overflow": "hidden",

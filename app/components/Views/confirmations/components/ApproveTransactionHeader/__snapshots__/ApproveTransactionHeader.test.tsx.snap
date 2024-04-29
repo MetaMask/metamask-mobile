@@ -275,7 +275,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   Object {
                     "backgroundColor": "#FFFFFF",
                     "borderColor": "#FFFFFF",
-                    "borderRadius": 999,
+                    "borderRadius": 16,
                     "borderWidth": 2,
                     "height": 32,
                     "overflow": "hidden",
@@ -611,7 +611,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   Object {
                     "backgroundColor": "#FFFFFF",
                     "borderColor": "#FFFFFF",
-                    "borderRadius": 999,
+                    "borderRadius": 16,
                     "borderWidth": 2,
                     "height": 32,
                     "overflow": "hidden",

@@ -175,7 +175,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
                       "alignItems": "center",
                       "backgroundColor": "#F2F4F6",
                       "borderColor": "#FFFFFF",
-                      "borderRadius": 999,
+                      "borderRadius": 16,
                       "borderWidth": 2,
                       "height": 32,
                       "justifyContent": "center",

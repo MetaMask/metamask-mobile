@@ -306,7 +306,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                                 Object {
                                   "backgroundColor": "#FFFFFF",
                                   "borderColor": "#FFFFFF",
-                                  "borderRadius": 999,
+                                  "borderRadius": 16,
                                   "borderWidth": 2,
                                   "height": 32,
                                   "overflow": "hidden",
@@ -971,7 +971,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                                 Object {
                                   "backgroundColor": "#FFFFFF",
                                   "borderColor": "#FFFFFF",
-                                  "borderRadius": 999,
+                                  "borderRadius": 16,
                                   "borderWidth": 2,
                                   "height": 32,
                                   "overflow": "hidden",
