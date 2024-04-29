@@ -3,6 +3,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
+import { AvatarSize } from '../../../../Avatars/Avatar';
 
 // Internal dependencies.
 import { BadgeNetworkStyleSheetVars } from './BadgeNetwork.types';
@@ -33,6 +34,9 @@ const styleSheet = (params: {
   const badgeToContentScaleRatio = 0.5;
   const borderWidthRatio = 1 / 16;
   const borderWidth = Number(size) * borderWidthRatio;
+  const currentSmallestAvatarSize = Math.min(
+    ...Object.values(AvatarSize).map((avatarSize) => Number(avatarSize)),
+  );
   let scaleRatio = 1;
   let opacity = 0;
 
@@ -46,8 +50,7 @@ const styleSheet = (params: {
     base: {
       height: `${(badgeToContentScaleRatio * 100).toString()}%`,
       aspectRatio: 1,
-      // Smallest badge size * badgeToContentScaleRatio
-      minHeight: 16 * badgeToContentScaleRatio,
+      minHeight: currentSmallestAvatarSize * badgeToContentScaleRatio,
       alignItems: 'center',
       justifyContent: 'center',
       opacity,
