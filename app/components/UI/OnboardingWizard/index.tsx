@@ -72,7 +72,7 @@ const createStyles = ({ colors, typography }: Theme) =>
 
 interface OnboardingWizardProps {
   navigation: any;
-  coachmarkRef: React.RefObject<any>;
+  coachmarkRef: React.RefObject<any> | null;
 }
 
 const OnboardingWizard = ({
