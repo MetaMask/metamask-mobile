@@ -35,6 +35,9 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
+    if (device.getPlatform() === 'ios') {
+      await device.disableSynchronization();
+    }
     await loginToApp();
   });
 

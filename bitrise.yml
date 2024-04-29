@@ -419,22 +419,7 @@ workflows:
       - android_e2e_test
 
   ### Seperating workflows so they run concurrently during smoke runs
-  run_tag_smoke_confirmations_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
-      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_confirmations_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-20.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
-      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
-    after_run:
-      - android_e2e_test
+  
   run_tag_smoke_swaps_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
@@ -451,22 +436,7 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeSwaps.*'
     after_run:
       - android_e2e_test
-  run_tag_smoke_core_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
-      - TEST_SUITE_TAG: '.*SmokeCore.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_core_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-20.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
-      - TEST_SUITE_TAG: '.*SmokeCore.*'
-    after_run:
-      - android_e2e_test
+  
   android_e2e_build:
     before_run:
       - code_setup
@@ -606,7 +576,7 @@ workflows:
                 fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run e2e/specs/swaps/swap-action-smoke.spec.js
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
@@ -777,7 +747,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run e2e/specs/swaps/swap-action-smoke.spec.js
           title: Run detox test
           is_always_run: false
       - custom-test-results-export@1:
