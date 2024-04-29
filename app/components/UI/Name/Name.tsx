@@ -4,8 +4,8 @@ import React from 'react';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { NameProperties } from './Name.types';
-import { View } from 'react-native';
+import { NameProperties, NameType } from './Name.types';
+import { TextProps, View } from 'react-native';
 import useDisplayName, {
   DisplayNameVariant,
 } from '../../hooks/DisplayName/useDisplayName';
@@ -17,38 +17,55 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { toChecksumAddress } from 'ethereumjs-util';
 
-const Name: React.FC<NameProperties> = ({ address }) => {
-  const displayName = useDisplayName(address);
+const NameLabel: React.FC<{
+  displayNameVariant: DisplayNameVariant;
+  ellipsizeMode: TextProps['ellipsizeMode'];
+}> = ({ displayNameVariant, ellipsizeMode, children }) => {
+  const { styles } = useStyles(styleSheet, { displayNameVariant });
+  return (
+    <Text
+      style={styles.label}
+      ellipsizeMode={ellipsizeMode}
+      numberOfLines={1}
+      variant={TextVariant.BodyMD}
+    >
+      {children}
+    </Text>
+  );
+};
+
+const UnknownEthereumAddress: React.FC<{ address: string }> = ({ address }) => {
+  const displayNameVariant = DisplayNameVariant.Unknown;
+  const { styles } = useStyles(styleSheet, { displayNameVariant });
+  return (
+    <View style={styles.base}>
+      <Icon name={IconName.Question} />
+      <NameLabel displayNameVariant={displayNameVariant} ellipsizeMode="middle">
+        {toChecksumAddress(address)}
+      </NameLabel>
+    </View>
+  );
+};
+
+const Name: React.FC<NameProperties> = ({ type, value }) => {
+  if (type !== NameType.EthereumAddress) {
+    throw new Error('Unsupported NameType: ' + type);
+  }
+  const displayName = useDisplayName(type, value);
   const { styles } = useStyles(styleSheet, {
     displayNameVariant: displayName.variant,
   });
 
-  const labelText =
-    displayName.variant === DisplayNameVariant.Unknown
-      ? toChecksumAddress(address)
-      : displayName.name;
-
-  // If the display name is just the address, we want to ellipsize
-  // the middle so that the end of the address is still visible.
-  // For all other names we ellipsize the end.
-  const ellipsizeMode =
-    displayName.variant === DisplayNameVariant.Unknown ? 'middle' : 'tail';
+  if (displayName.variant === DisplayNameVariant.Unknown) {
+    return <UnknownEthereumAddress address={value} />;
+  }
 
   return (
     <View style={styles.base}>
-      {displayName.variant === DisplayNameVariant.Unknown ? (
-        <Icon name={IconName.Question} />
-      ) : (
-        <Identicon address={address} diameter={16} />
-      )}
-      <Text
-        ellipsizeMode={ellipsizeMode}
-        numberOfLines={1}
-        style={styles.label}
-        variant={TextVariant.BodyMD}
-      >
-        {labelText}
-      </Text>
+      <Identicon address={value} diameter={16} />
+      <NameLabel displayNameVariant={displayName.variant} ellipsizeMode="tail">
+        {displayName.name}
+      </NameLabel>
     </View>
   );
 };

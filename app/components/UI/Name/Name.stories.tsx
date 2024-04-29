@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { Meta, StoryObj } from '@storybook/react-native';
 import { configureStore } from '@reduxjs/toolkit';
 import { default as NameComponent } from './Name';
-import { NameProperties } from './Name.types';
+import { NameProperties, NameType } from './Name.types';
 
 const backdropStyle = { backgroundColor: 'white', padding: 50 };
 const ADDRESS_1 = '0x2990079bcdEe240329a520d2444386FC119da21a';
@@ -32,14 +32,14 @@ const meta: Meta<typeof NameComponent> = {
 export default meta;
 
 export const UnknownAddress: Story = {
-  args: { address: ADDRESS_1 },
+  args: { type: NameType.EthereumAddress, value: ADDRESS_1 },
 };
 
 export const NarrowWidth: Story = {
   render() {
     return (
       <View style={backdropStyle}>
-        <NameComponent address={ADDRESS_1} />
+        <NameComponent type={NameType.EthereumAddress} value={ADDRESS_1} />
       </View>
     );
   },

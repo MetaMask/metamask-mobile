@@ -1,3 +1,5 @@
+import { NameType } from '../../UI/Name/Name.types';
+
 /**
  * Indicate the source and nature of a display name for a given address.
  */
@@ -36,11 +38,12 @@ export type DisplayName =
     };
 
 /**
- * Get the display name for the given address.
+ * Get the display name for the given value.
  *
- * @param address The address to get the display name for.
+ * @param type The NameType to get the display name for.
+ * @param value The value to get the display name for.
  */
-const useDisplayName: (address: string) => DisplayName = () => ({
+const useDisplayName: (type: NameType, value: string) => DisplayName = () => ({
   variant: DisplayNameVariant.Unknown,
 });
 

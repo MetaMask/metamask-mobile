@@ -1,3 +1,4 @@
+import { NameType } from '../../UI/Name/Name.types';
 import useDisplayName, { DisplayNameVariant } from './useDisplayName';
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
@@ -6,7 +7,10 @@ const UNKNOWN_ADDRESS_CHECKSUMMED =
 describe('useDisplayName', () => {
   describe('unknown address', () => {
     it('should not return a name', () => {
-      const displayName = useDisplayName(UNKNOWN_ADDRESS_CHECKSUMMED);
+      const displayName = useDisplayName(
+        NameType.EthereumAddress,
+        UNKNOWN_ADDRESS_CHECKSUMMED,
+      );
       expect(displayName).toEqual({
         variant: DisplayNameVariant.Unknown,
       });
