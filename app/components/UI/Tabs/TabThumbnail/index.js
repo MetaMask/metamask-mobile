@@ -38,7 +38,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
   const hostname = getHost(tab.url);
   const isHomepage = hostname === getHost(HOMEPAGE_URL);
   const selectedAccount = useSelectedAccount();
-  const { networkName, networkBadgeSource } = useNetworkInfo();
+  const { networkName, networkImageSource } = useNetworkInfo();
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>
@@ -88,7 +88,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
                   <Badge
                     size={AvatarSize.Sm}
                     variant={BadgeVariant.Network}
-                    imageSource={networkBadgeSource}
+                    imageSource={networkImageSource}
                     name={networkName}
                   />
                 }

@@ -1,42 +1,29 @@
-import images from 'images/image-icons';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { selectProviderConfig } from '../../../../selectors/networkController';
 import {
-  selectChainId,
-  selectProviderConfig,
-  selectTicker,
-} from '../../../../selectors/networkController';
-import Networks, {
-  getTestNetImageByChainId,
-  isLineaMainnetByChainId,
-  isMainnetByChainId,
-  isTestNet,
+  getNetworkImageSource,
+  getNetworkNameFromProviderConfig,
 } from '../../../../util/networks';
 
 const useNetworkInfo = () => {
   const providerConfig = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
-  const ticker = useSelector(selectTicker);
 
   const networkName = useMemo(
-    () =>
-      providerConfig?.nickname ??
-      Networks[providerConfig?.type]?.name ??
-      Networks.rpc.name,
+    () => getNetworkNameFromProviderConfig(providerConfig),
     [providerConfig],
   );
 
-  const networkBadgeSource = useMemo(() => {
-    if (!chainId) return undefined;
+  const networkImageSource = useMemo(
+    () =>
+      getNetworkImageSource({
+        networkType: providerConfig.type,
+        chainId: providerConfig.chainId,
+      }),
+    [providerConfig],
+  );
 
-    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-    if (isMainnetByChainId(chainId)) return images.ETHEREUM;
-    if (isLineaMainnetByChainId(chainId)) return images['LINEA-MAINNET'];
-
-    return images[ticker];
-  }, [chainId, ticker]);
-
-  return { networkName, networkBadgeSource };
+  return { networkName, networkImageSource };
 };
 
 export default useNetworkInfo;
