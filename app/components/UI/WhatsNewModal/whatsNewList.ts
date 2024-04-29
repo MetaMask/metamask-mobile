@@ -52,5 +52,23 @@ export const whatsNew: WhatsNew = {
           ],
         ] as WhatsNew['slides'])
       : []),
+    [
+      {
+        type: 'image',
+        image: require('../../../images/whats_new_transaction_simulation.png'),
+      },
+      {
+        type: 'title',
+        title: strings('whats_new.transaction_simulation.title'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.transaction_simulation.description_1'),
+      },
+      {
+        type: 'description',
+        description: strings('whats_new.transaction_simulation.description_2'),
+      },
+    ],
   ],
 };
