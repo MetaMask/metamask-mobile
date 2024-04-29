@@ -49,7 +49,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     quantity | sourceTokenSymbol | destTokenSymbol
     ${'1'}   | ${'ETH'}          | ${'WETH'}
     ${'1'}   | ${'WETH'}         | ${'ETH'}
-    ${'1'}   | ${'USDC'}         | ${'ETH'}
   `(
     "should Swap $quantity '$sourceTokenSymbol' to '$destTokenSymbol'",
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {

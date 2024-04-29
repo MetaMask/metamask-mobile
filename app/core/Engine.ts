@@ -210,7 +210,6 @@ interface TestOrigin {
   type: `${PhishingController['name']}:testOrigin`;
   handler: PhishingController['test'];
 }
-
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 
 type SnapsGlobalActions =
@@ -349,7 +348,6 @@ class Engine {
    * Object that runs and manages the execution of Snaps
    */
   snapExecutionService: WebViewExecutionService;
-
   ///: END:ONLY_INCLUDE_IF
 
   /**
@@ -628,12 +626,7 @@ class Engine {
     const qrKeyringBuilder = () => new QRHardwareKeyring();
     qrKeyringBuilder.type = QRHardwareKeyring.type;
 
-    console.warn('Create Ledger Transport Middleware');
-
-    console.warn('Create LedgerMobileBridger');
     const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
-
-    console.warn('Create LedgerKeyringBuilder', bridge);
     const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 
@@ -1208,7 +1201,7 @@ class Engine {
             'NetworkController:stateChange'
           >({
             name: 'PPOMController',
-            allowedEvents: ['NetworkController:stateChange'],
+            allowedEvents: [`${networkController.name}:stateChange`],
           }),
           onPreferencesChange: (listener) =>
             preferencesController.subscribe(listener as any),
@@ -1313,7 +1306,7 @@ class Engine {
     );
 
     this.controllerMessenger.subscribe(
-      'NetworkController:networkWillChange',
+      `${networkController.name}:networkWillChange`,
       () => {
         store.dispatch(networkIdWillUpdate());
       },
@@ -1405,9 +1398,11 @@ class Engine {
     const { currentCurrency } = CurrencyRateController.state;
     const networkProvider = NetworkController.state.providerConfig;
     const conversionRate =
-      CurrencyRateController.state.conversionRate === null
+      CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
+        ?.conversionRate === null
         ? 0
-        : CurrencyRateController.state.conversionRate;
+        : CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
+            ?.conversionRate;
     const { accountsByChainId } = AccountTrackerController.state;
 
     const { tokens } = TokensController.state;

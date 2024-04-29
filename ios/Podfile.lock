@@ -758,7 +758,7 @@ DEPENDENCIES:
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
-  - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
+  - "react-native-splash-screen (from `../node_modules/@metamask/react-native-splash-screen`)"
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -932,7 +932,7 @@ EXTERNAL SOURCES:
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
   react-native-splash-screen:
-    :path: "../node_modules/react-native-splash-screen"
+    :path: "../node_modules/@metamask/react-native-splash-screen"
   react-native-video:
     :path: "../node_modules/react-native-video"
   react-native-view-shot:
@@ -1028,7 +1028,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Base64: cecfb41a004124895a7bcee567a89bae5a89d49b
-  boost: 7dcd2de282d72e344012f7d6564d024930a6a440
+  boost: 57d2868c099736d80fcd648bf211b4431e51a558
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
   BVLinearGradient: e3aad03778a456d77928f594a649e96995f1c872
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
@@ -1100,7 +1100,7 @@ SPEC CHECKSUMS:
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   react-native-slider: 1cdd6ba29675df21f30544253bf7351d3c2d68c4
-  react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
+  react-native-splash-screen: 49a7160705f32169d27ab8dff9dda53331592412
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
   react-native-view-shot: 4475fde003fe8a210053d1f98fb9e06c1d834e1c
   react-native-webview: 133a6a5149f963259646e710b4545c67ef35d7c9

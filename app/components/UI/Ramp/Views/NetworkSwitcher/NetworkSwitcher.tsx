@@ -148,7 +148,7 @@ function NetworkSwitcher() {
         const [networkConfigurationId] = entry;
         const { ticker } = networkConfiguration;
 
-        CurrencyRateController.setNativeCurrency(ticker);
+        CurrencyRateController.updateExchangeRate(ticker);
         NetworkController.setActiveNetwork(networkConfigurationId);
       }
     },

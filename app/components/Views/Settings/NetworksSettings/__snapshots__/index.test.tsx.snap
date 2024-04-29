@@ -428,6 +428,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               "paddingLeft": 10,
                             }
                           }
+                          testID="network-search-input"
                           value=""
                         />
                       </View>

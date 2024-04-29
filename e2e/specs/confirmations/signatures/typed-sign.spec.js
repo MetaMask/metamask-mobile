@@ -40,34 +40,14 @@ describe(SmokeConfirmations('Typed Sign'), () => {
         await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapTypedSignButton();
           await SigningModal.isTypedRequestVisible();
-          await SigningModal.tapSignButton();
+          await SigningModal.tapCancelButton();
+
           await SigningModal.isNotVisible();
-        });
-      },
-    );
-  });
 
-  it('should cancel typed message', async () => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
-          .build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-      },
-      async () => {
-        await loginToApp();
-
-        await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-
-        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
           await TestDApp.tapTypedSignButton();
           await SigningModal.isTypedRequestVisible();
-          await SigningModal.tapCancelButton();
+          await SigningModal.tapSignButton();
+
           await SigningModal.isNotVisible();
         });
       },
