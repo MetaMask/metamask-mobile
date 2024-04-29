@@ -94,24 +94,6 @@
     "your_wallet": "Dompet Anda berhasil dihapus",
     "delete_current": "Menghapus dompet saat ini"
   },
-  "onboarding_success": {
-    "title": "Congratulations!",
-    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
-    "description_bold": "Settings > Security & Privacy.",
-    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
-    "learn_more": "Learn more",
-    "learn_how": "Learn how",
-    "leave_hint": "Leave yourself a hint?",
-    "default_settings": "Default settings",
-    "manage_default_settings": "Manage default settings",
-    "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
-    "no_srp_title": "Reminder set!",
-    "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
-    "import_title": "Your Wallet is ready",
-    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
-    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
-    "done": "Done"
-  },
   "onboarding_carousel": {
     "title1": "Selamat datang di MetaMask",
     "title2": "Kelola aset digital Anda",
@@ -178,16 +160,16 @@
       "content1": "Edit nama akun, lihat transaksi di Etherscan, bagikan kunci publik, dan lihat kunci pribadi dengan mengetuk ikon ini"
     },
     "step4": {
-      "title": "Notifikasi",
-      "content1": "Pantau terus segala perkembangan yang terjadi di dompet Anda"
-    },
-    "step5": {
       "title": "Menggunakan dompet Anda",
       "content1": "Beli, kirim, tukar, dan terima aset dengan mengetuk ikon ini"
     },
-    "step6": {
+    "step5": {
       "title": "Menjelajahi web3",
       "content1": "Buka browser dengan mengetuk ikon ini"
+    },
+    "step6": {
+      "title": "Menggunakan browser",
+      "content1": "Telusuri situs dengan kata kunci atau masukkan URL. Selamat bersenang-senang! "
     },
     "step7": {
       "title": "Menggunakan browser",
@@ -373,17 +355,17 @@
     "no_collectibles": "Tidak melihat NFT Anda?",
     "no_available_tokens": "Tidak melihat token Anda?",
     "add_tokens": "Impor token",
-    "are_you_sure_exit": "Yakin ingin keluar?",
-    "search_information_not_saved": "Informasi pencarian tidak akan disimpan.",
-    "import_token": "Ingin mengimpor token ini?",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} {{tokensLabel}} baru ditemukan di akun ini",
     "token_toast": {
       "tokens_imported_title": "Token Diimpor",
       "tokens_imported_desc": "Berhasil mengimpor {{tokenSymbols}}",
       "token_imported_title": "Token Diimpor",
       "token_imported_desc": "Berhasil mengimpor {{tokenSymbol}}",
-      "token_imported_desc_1": "Anda telah mengimpor token.",
-      "tokens_import_success_multiple": "Anda telah mengimpor {{tokensNumber}} token.",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Menyembunyikan Token",
       "tokens_hidden_desc": "Menyembunyikan token yang terdeteksi dari dompet Anda",
       "token_hidden_title": "Menyembunyikan Token",
@@ -444,11 +426,7 @@
     "nfts_autodetect_cta": "Aktifkan Autodeteksi NFT di Pengaturan",
     "turn_on_network_check_cta": "Aktifkan pemeriksaan detail jaringan",
     "display_nft_media_cta_new_1": "Untuk melihat NFT, aktifkan Tampilkan media NFT di",
-    "display_nft_media_cta_new_2": "Pengaturan > Keamanan dan Privasi.",
-    "banner": {
-      "title": "Basic functionality is off",
-      "link": "Turn on basic functionality"
-    }
+    "display_nft_media_cta_new_2": "Pengaturan > Keamanan dan Privasi."
   },
   "asset_details": {
     "token": "Token",
@@ -472,8 +450,8 @@
   "add_asset": {
     "title": "Impor token",
     "title_nft": "Impor NFT",
-    "search_token": "Cari",
-    "custom_token": "Token kustom",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "BATAL",
       "add_token": "IMPOR"
@@ -530,16 +508,16 @@
     "resultPageErrorDefaultMessage": "Operasi gagal."
   },
   "token": {
-    "token_symbol": "Simbol token",
+    "token_symbol": "Token symbol",
     "token_address": "Alamat Token",
-    "token_decimal": "Desimal token",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Cari Token",
     "address_cant_be_empty": "Alamat token wajib diisi.",
     "address_must_be_valid": "Alamat token harus berupa alamat yang valid.",
     "symbol_cant_be_empty": "Simbol token wajib diisi.",
-    "symbol_length": "Simbol harus terdiri dari 11 karakter atau kurang",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Desimal token wajib diisi.",
-    "decimals_is_required": "Desimal diperlukan. Temukan di:",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "Kami tidak dapat menemukan token dengan nama tersebut.",
     "select_token": "Pilih Token",
     "address_must_be_smart_contract": "Alamat pribadi terdeteksi. Masukkan alamat kontrak token."
@@ -709,12 +687,12 @@
     "nft_opensea_desc": "Menampilkan media dan data NFT dapat mengekspos alamat IP Anda ke server terpusat. Gunakan API OpenSea untuk mengambil data NFT. Deteksi otomatis NFT bergantung pada API OpenSea, dan tidak akan tersedia jika dinonaktifkan. Mengaktifkan deteksi otomatis NFT dapat mengekspos Anda kepada NFT palsu yang dikirim ke dompet Anda oleh siapa pun, dan dapat memungkinkan penyerang untuk mempelajari alamat IP dari alamat Ethereum Anda.",
     "nft_autodetect_mode": "Deteksi otomatis NFT",
     "nft_autodetect_desc": "Menampilkan media dan data NFT dapat mengekspos alamat IP Anda ke server terpusat. API pihak ketiga (seperti OpenSea) digunakan untuk mendeteksi NFT di dompet Anda. Ini memperlihatkan alamat akun Anda dengan layanan tersebut. Nonaktifkan API jika Anda tidak ingin aplikasi menarik data dari layanan tersebut.",
-    "show_fiat_on_testnets": "Show conversion on test networks",
-    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
-    "show_fiat_on_testnets_modal_title": "Be careful",
-    "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
-    "show_fiat_on_testnets_modal_learn_more": "Learn more.",
-    "show_fiat_on_testnets_modal_button": "Continue",
+    "show_fiat_on_testnets": "",
+    "show_fiat_on_testnets_desc": "",
+    "show_fiat_on_testnets_modal_title": "",
+    "show_fiat_on_testnets_modal_description": "",
+    "show_fiat_on_testnets_modal_learn_more": "",
+    "show_fiat_on_testnets_modal_button": "",
     "show_hex_data": "Tampilkan Data Hex",
     "show_hex_data_desc": "Pilih ini untuk menampilkan bidang data hex pada layar kirim.",
     "toggleEthSignBannerDescription": "Anda berisiko terkena serangan pengelabuan. Lindungi diri dengan menonaktifkan eth_sign.",
@@ -827,7 +805,6 @@
     "ses_heading": "Penguncian Kode",
     "ses_description": "Ini merupakan fitur pengujian yang memblokir perubahan apa pun pada kode JavaScript aplikasi tanpa izin.",
     "ses_link": "Selengkapnya",
-    "general_heading": "General",
     "privacy_heading": "Privasi",
     "failed_to_fetch_chain_id": "Tidak dapat mengambil ID chain. Apakah URL RPC Anda sudah benar?",
     "endpoint_returned_different_chain_id": "Titik akhir mengembalikan ID chain yang berbeda: %{chainIdReturned}",
@@ -886,8 +863,13 @@
       "sdk_activation_keys": "Kunci Aktivasi SDK",
       "activation_keys_description": "Kunci Aktivasi akan mengaktifkan fitur atau penyedia tertentu.",
       "add_activation_key": "Tambahkan Kunci Aktivasi",
+      "edit_activation_key": "Edit Kunci Aktivasi",
       "paste_or_type_activation_key": "Tempel atau ketik Kunci Aktivasi",
+      "add_label": "Tambahkan label ke kunci ini",
+      "label": "Label",
+      "key": "Kunci",
       "add": "Tambah",
+      "update": "Perbarui",
       "cancel": "Batal"
     },
     "request_feature": "Minta fitur",
@@ -953,6 +935,7 @@
     "token_nft_ens_subheading": "Autodeteksi Token, NFT, dan ENS",
     "security_check_subheading": "Pemeriksaan keamanan",
     "symbol_required": "Simbol wajib diisi.",
+    "blockaid": "Blockaid",
     "blockaid_desc": "Menjaga privasi - tidak ada data yang dibagikan kepada pihak ketiga. Tersedia di Arbitrum, Avalanche, BNB chain, Mainnet Ethereum, Optimism, Polygon, Sepolia, dan Base.",
     "security_alerts": "Peringatan keamanan",
     "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia.",
@@ -1358,7 +1341,7 @@
     "contract": "Kontrak ({{address}})",
     "contract_name": "Nama kontrak:",
     "contract_address": "Alamat kontrak:",
-    "invalid_contract_address": " Alamat kontrak tidak valid. Masukkan yang baru",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Tunjangan:",
     "data": "Data",
     "function_approve": "Fungsi: Setujui",
@@ -1887,9 +1870,9 @@
     "pending_deposit_message": "Menunggu deposit selesai",
     "pending_withdrawal_message": "Menunggu penarikan selesai",
     "error_message": "Ketuk untuk melihat transaksi ini",
-    "error_retrieving_fcm_token": "Terjadi kesalahan saat mendapatkan dan menyimpan token FCM",
-    "error_fcm_not_found": "getFCMToken: Tidak ada token FCM yang ditemukan",
-    "error_checking_permission": "Terjadi kesalahan saat memeriksa jika pengguna memiliki izin notifikasi push",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Ketuk untuk melihat transaksi ini",
     "speedup_message": "Mencoba untuk mempercepat transaksi",
     "success_deposit_message": "Dana Anda sudah siap digunakan",
@@ -2070,7 +2053,7 @@
     "limited_time": "waktu terbatas",
     "supported_countries": "Negara yang didukung",
     "no_countries_result": "Tidak ada negara yang didukung yang cocok dengan “{{searchString}}”",
-    "wyre_loading_rates": " ",
+    "wyre_loading_rates": "",
     "fast_no_registration": "Cepat - Tak perlu mendaftar",
     "debit_credit_card_required": "Kartu Debit atau Kredit. Tidak mendukung Apple Cash.",
     "select_card_country": "Pilih negara tempat kartu Anda terdaftar (bukan lokasi Anda saat ini).",
@@ -2974,30 +2957,5 @@
   },
   "stake": {
     "stake": "Stake"
-  },
-  "default_settings": {
-    "title": "Your Wallet is ready",
-    "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
-    "learn_more_about_privacy": "Learn more about privacy best practices.",
-    "privacy_policy": "Privacy policy",
-    "default_settings": "Default Settings",
-    "done": "Done",
-    "basic_functionality": "Basic functionality",
-    "manage_networks": "Manage networks",
-    "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
-    "manage_networks_body2": " to learn more about how Infura handles data.",
-    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
-    "sheet": {
-      "title_off": "Turn off basic functionality",
-      "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
-      "title_on": "Turn on basic functionality",
-      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
-      "checkbox_label": "I understand and want to continue",
-      "buttons": {
-        "cancel": "Cancel",
-        "turn_on": "Turn on",
-        "turn_off": "Turn off"
-      }
-    }
   }
 }

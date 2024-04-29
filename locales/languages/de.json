@@ -94,24 +94,6 @@
     "your_wallet": "Ihre Wallet wurde erfolgreich gelöscht.",
     "delete_current": "Aktuelle Wallet wird gelöscht"
   },
-  "onboarding_success": {
-    "title": "Congratulations!",
-    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
-    "description_bold": "Settings > Security & Privacy.",
-    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
-    "learn_more": "Learn more",
-    "learn_how": "Learn how",
-    "leave_hint": "Leave yourself a hint?",
-    "default_settings": "Default settings",
-    "manage_default_settings": "Manage default settings",
-    "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
-    "no_srp_title": "Reminder set!",
-    "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
-    "import_title": "Your Wallet is ready",
-    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
-    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
-    "done": "Done"
-  },
   "onboarding_carousel": {
     "title1": "Willkommen bei MetaMask",
     "title2": "Verwalten Sie Ihre digitalen Assets.",
@@ -178,16 +160,16 @@
       "content1": "Bearbeiten Sie Ihren Kontonamen, sehen Sie sich Transaktionen auf Etherscan an, teilen Sie ihren öffentlichen Schlüssel oder zeigen Sie Ihren privaten Schlüssel an, indem Sie auf dieses Symbol tippen"
     },
     "step4": {
-      "title": "Benachrichtigungen",
-      "content1": "Bleiben Sie auf dem Laufenden darüber, was in Ihrer Wallet passiert."
-    },
-    "step5": {
       "title": "Verwendung Ihrer Wallet",
       "content1": "Kaufen, senden, tauschen und empfangen Sie Assets, indem Sie auf dieses Symbol tippen."
     },
-    "step6": {
+    "step5": {
       "title": "Erforschung von web3",
-      "content1": "Öffnen Sie den Browser, indem Sie auf dieses Symbol tippen"
+      "content1": "Öffnen Sie den Browser, indem Sie auf dieses Symbol tippen."
+    },
+    "step6": {
+      "title": "Verwendung des Browsers",
+      "content1": "Suchen Sie über Stichworte nach Websites oder geben Sie eine URL ein. Viel Spaß da draußen! "
     },
     "step7": {
       "title": "Verwendung des Browsers",
@@ -373,17 +355,17 @@
     "no_collectibles": "Sehen Sie Ihr NFT nicht?",
     "no_available_tokens": "Sehen Sie Ihr Token nicht?",
     "add_tokens": "Token importieren",
-    "are_you_sure_exit": "Sind Sie sicher, dass Sie beenden möchten?",
-    "search_information_not_saved": "Ihre Suchinformationen werden nicht gespeichert.",
-    "import_token": "Möchten Sie dieses Token importieren?",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} neue {{tokensLabel}} in diesem Konto gefunden",
     "token_toast": {
       "tokens_imported_title": "Importierte Tokens",
       "tokens_imported_desc": "{{tokenSymbols}} erfolgreich importiert",
       "token_imported_title": "Importiertes Token",
       "token_imported_desc": "{{tokenSymbol}} erfolgreich importiert",
-      "token_imported_desc_1": "Sie haben ein Token importiert.",
-      "tokens_import_success_multiple": "Sie haben {{tokensNumber}} Tokens importiert.",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Tokens werden verborgen",
       "tokens_hidden_desc": "Gefundene Tokens in Ihrer Wallet verborgen",
       "token_hidden_title": "Token wird verborgen",
@@ -444,11 +426,7 @@
     "nfts_autodetect_cta": "„Automatische Erkennung von NFTs“ in den Einstellungen aktivieren",
     "turn_on_network_check_cta": "Überprüfung der Netzwerkdetails einschalten",
     "display_nft_media_cta_new_1": "Zur Anzeige eines NFT aktivieren Sie „NFT-Medien anzeigen” in",
-    "display_nft_media_cta_new_2": "Einstellungen > Sicherheit und Datenschutz.",
-    "banner": {
-      "title": "Basic functionality is off",
-      "link": "Turn on basic functionality"
-    }
+    "display_nft_media_cta_new_2": "Einstellungen > Sicherheit und Datenschutz."
   },
   "asset_details": {
     "token": "Token",
@@ -472,8 +450,8 @@
   "add_asset": {
     "title": "Token importieren",
     "title_nft": "NFT importieren",
-    "search_token": "Suche",
-    "custom_token": "Benutzerdefiniertes Token",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "STORNIEREN",
       "add_token": "IMPORTIEREN"
@@ -530,16 +508,16 @@
     "resultPageErrorDefaultMessage": "Der Vorgang ist fehlgeschlagen."
   },
   "token": {
-    "token_symbol": "Token-Symbol",
+    "token_symbol": "Token symbol",
     "token_address": "Token-Adresse",
-    "token_decimal": "Token-Dezimale",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Token suchen",
     "address_cant_be_empty": "Token-Adresse kann nicht leer sein.",
     "address_must_be_valid": "Die Token-Adresse muss eine gültige Adresse sein.",
     "symbol_cant_be_empty": "Token-Symbol kann nicht leer sein.",
-    "symbol_length": "Das Symbol darf maximal 11 Zeichen lang sein",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Token-Dezimalzahlen können nicht leer sein.",
-    "decimals_is_required": "Dezimalstelle ist erforderlich. Finden Sie sie auf:",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "Wir konnten keine Token mit diesem Namen finden.",
     "select_token": "Token auswählen",
     "address_must_be_smart_contract": "Privatadresse erkannt. Geben Sie die Token-Contract-Adresse ein."
@@ -709,12 +687,12 @@
     "nft_opensea_desc": "Das Anzeigen von NFT-Medien und -Daten könnte Ihre IP-Adresse an zentralisierte Server weitergeben. Verwenden Sie OpenSeas API, um NFT-Daten zu empfangen. NFT-Autoerkennung läuft über OpenSeas API und wird nicht verfügbar sein, wenn diese Funktion deaktiviert wird. Die Aktivierung von NFT-Autoerkennung kann dazu führen, dass gefälschte NFTs von anderen in Ihre Wallet gesendet werden können. Dies kann es auch einem Angreifer ermöglichen, Ihre IP-Adresse über Ihre Ethereum-Adresse herauszufinden.",
     "nft_autodetect_mode": "NFTs automatisch erkennen",
     "nft_autodetect_desc": "Das Anzeigen von NFT-Medien und -Daten könnte Ihre IT-Adresse an zentralisierte Server weitergeben. Drittanbieter-APIs (wie OpenSea) werden zur Erkennung von NFTs in Ihrer Wallet verwendet. Dies gibt Ihre Kontoadresse an diese Dienste weiter. Lassen Sie diese Funktion deaktiviert, wenn Sie nicht möchten, dass die App Daten von diesen Diensten abruft.",
-    "show_fiat_on_testnets": "Show conversion on test networks",
-    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
-    "show_fiat_on_testnets_modal_title": "Be careful",
-    "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
-    "show_fiat_on_testnets_modal_learn_more": "Learn more.",
-    "show_fiat_on_testnets_modal_button": "Continue",
+    "show_fiat_on_testnets": "",
+    "show_fiat_on_testnets_desc": "",
+    "show_fiat_on_testnets_modal_title": "",
+    "show_fiat_on_testnets_modal_description": "",
+    "show_fiat_on_testnets_modal_learn_more": "",
+    "show_fiat_on_testnets_modal_button": "",
     "show_hex_data": "Hex-Daten anzeigen",
     "show_hex_data_desc": "Wählen Sie dies, um das Hex-Datenfeld auf dem Sendebildschirm anzuzeigen.",
     "toggleEthSignBannerDescription": "Sie sind einem Risiko auf Phishing-Angriffe ausgesetzt. Schützen Sie sich selbst, indem Sie eth_sign deaktivieren.",
@@ -827,7 +805,6 @@
     "ses_heading": "Code-Sperre",
     "ses_description": "Hierbei handelt es sich um eine Testfunktion, die alle Änderungen am JavaScript-Code der Anwendung ohne Genehmigung blockiert.",
     "ses_link": "Mehr erfahren",
-    "general_heading": "General",
     "privacy_heading": "Datenschutz",
     "failed_to_fetch_chain_id": "Chain-ID konnte nicht abgerufen werden. Ist Ihre RPC-URL korrekt?",
     "endpoint_returned_different_chain_id": "Der Endpunkt hat eine andere Chain-ID angegeben: %{chainIdReturned}",
@@ -886,8 +863,13 @@
       "sdk_activation_keys": "SDK-Aktivierungsschlüssel",
       "activation_keys_description": "Aktivierungsschlüssel aktivieren bestimmte Funktionen oder Anbieter.",
       "add_activation_key": "Aktivierungsschlüssel hinzufügen",
+      "edit_activation_key": "Aktivierungsschlüssel bearbeiten",
       "paste_or_type_activation_key": "Aktivierungsschlüssel einfügen oder eingeben",
+      "add_label": "Eine Bezeichnung zu diesem Schlüssel hinzufügen",
+      "label": "Bezeichnung",
+      "key": "Schlüssel",
       "add": "Hinzufügen",
+      "update": "Update",
       "cancel": "Stornieren"
     },
     "request_feature": "Eine Funktion anfragen",
@@ -953,6 +935,7 @@
     "token_nft_ens_subheading": "Automatische Token-, NFT- und ENS-Erkennung",
     "security_check_subheading": "Sicherheitsprüfungen",
     "symbol_required": "Symbol ist erforderlich.",
+    "blockaid": "Blockaid",
     "blockaid_desc": "Wahrung der Privatsphäre – es werden keine Daten an Dritte weitergegeben. Verfügbar auf Arbitrum, Avalanche, BNB Chain, Ethereum Mainnet, Optimism, Polygon, Sepolia und Base.",
     "security_alerts": "Sicherheitsbenachrichtigungen",
     "security_alerts_desc": "Diese Funktion warnt Sie vor bösartigen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie Anfragen genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",
@@ -1358,7 +1341,7 @@
     "contract": "Contract ({{address}})",
     "contract_name": "Contract-Name:",
     "contract_address": "Contract-Adresse",
-    "invalid_contract_address": " Kontraktadresse ist ungültig. Geben Sie eine neue ein",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Erlaubnis:",
     "data": "Daten",
     "function_approve": "Funktion: Genehmigen",
@@ -1887,9 +1870,9 @@
     "pending_deposit_message": "Warten auf Abschluss der Einzahlung",
     "pending_withdrawal_message": "Warten auf Abschluss der Abhebung",
     "error_message": "Zum Anzeigen dieser Transaktion tippen",
-    "error_retrieving_fcm_token": "Fehler beim Abrufen und Speichern des FCM-Tokens",
-    "error_fcm_not_found": "getFCMToken: Kein FCM-Token gefunden",
-    "error_checking_permission": "Fehler bei der Prüfung, ob ein Benutzer die Berechtigung für Push-Benachrichtigungen hat",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Zum Anzeigen dieser Transaktion tippen",
     "speedup_message": "Versuch, diese Transaktion zu beschleunigen",
     "success_deposit_message": "Ihre Gelder sind zur Nutzung bereit.",
@@ -2973,31 +2956,6 @@
     "error_description": "Installation von {{snap}} fehlgeschlagen."
   },
   "stake": {
-    "stake": "Anteil"
-  },
-  "default_settings": {
-    "title": "Your Wallet is ready",
-    "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
-    "learn_more_about_privacy": "Learn more about privacy best practices.",
-    "privacy_policy": "Privacy policy",
-    "default_settings": "Default Settings",
-    "done": "Done",
-    "basic_functionality": "Basic functionality",
-    "manage_networks": "Manage networks",
-    "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
-    "manage_networks_body2": " to learn more about how Infura handles data.",
-    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
-    "sheet": {
-      "title_off": "Turn off basic functionality",
-      "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
-      "title_on": "Turn on basic functionality",
-      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
-      "checkbox_label": "I understand and want to continue",
-      "buttons": {
-        "cancel": "Cancel",
-        "turn_on": "Turn on",
-        "turn_off": "Turn off"
-      }
-    }
+    "stake": "Stake"
   }
 }
