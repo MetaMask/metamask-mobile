@@ -59,7 +59,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    *
    * @param params - An object containing key derivation parameters.
    * @param params.keyDerivationOptions - The key derivation options to use for encryption and decryption operations.
-   * @throws Error if the provided iterations in `keyDerivationOptions` do not meet the minimum required.
    */
   constructor({
     keyDerivationOptions,
