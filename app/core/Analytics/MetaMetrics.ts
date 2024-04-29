@@ -590,11 +590,12 @@ class MetaMetrics implements IMetaMetrics {
     event: IMetaMetricsEvent,
     params: JsonMap,
     saveDataRecording: boolean,
+    anon?: boolean,
   ) => {
     if (!params || Object.keys(params).length === 0) {
       this.#trackEvent(
         event?.category,
-        { anonymous: false, ...event },
+        { anonymous: anon || false, ...event?.properties },
         saveDataRecording,
       );
     }
@@ -638,7 +639,7 @@ class MetaMetrics implements IMetaMetrics {
     saveDataRecording = true,
   ): void {
     if (this.enabled) {
-      this.handleEvent(event, properties, saveDataRecording);
+      this.handleEvent(event, properties, saveDataRecording, true);
     }
   }
 
