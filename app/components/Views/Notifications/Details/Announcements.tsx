@@ -32,7 +32,7 @@ const renderAnnouncementsDetails = (
   };
 
   return (
-    <View style={styles.renderFCMContainer}>
+    <View style={styles.renderContainer}>
       <View style={styles.renderFCMCard}>
         <Image
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment

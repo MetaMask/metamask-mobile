@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { Hex } from '@metamask/utils';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import images from 'images/image-icons';
@@ -13,6 +13,13 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
+import {
+  getRowDetails,
+  Notification,
+  TRIGGER_TYPES,
+  TxStatus,
+  returnAvatarProps,
+} from '../../../../util/notifications';
 import AvatarIcon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarIcon';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Badge, {
@@ -48,17 +55,11 @@ import {
 import { balanceToFiat } from '../../../../util/number';
 import { Theme } from '../../../../util/theme/models';
 import EthereumAddress from '../../../UI/EthereumAddress';
-import { NotificationsActionsTypes } from '../../Settings/NotificationsSettings/NotificationsSettings.constants';
-import {
-  HalRawNotification,
-  TRIGGER_TYPES,
-} from '../../../../util/notifications';
-import { TxStatus, returnAvatarProps } from '../utils';
 import GasDetails from './GasDetails';
 import { createStyles } from './styles';
 
 interface Props {
-  notification: HalRawNotification;
+  notification: Notification;
   styles: any;
   theme: Theme;
   accountAvatarType?: AvatarAccountType;
@@ -75,50 +76,19 @@ const TXDetails: React.FC<Props> = ({
   copyToClipboard,
 }: Props) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [notificationDetails, setNotificationDetails] =
+    useState<Record<string, any>>();
+
   const sheetRef = useRef<BottomSheetRef>(null);
   const styles = createStyles(theme);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const contractExchangeRates = useSelector(selectContractExchangeRates);
 
-  const nftSourceURI = {
-    uri: notification.data?.nft.image,
-  };
+  useEffect(() => {
+    setNotificationDetails(getRowDetails(notification)?.details || {});
+  }, [notification]);
 
-  const isMainnet = isMainnetByChainId(notification.chain_id);
-  const isLineaMainnet = isLineaMainnetByChainId(notification.chain_id);
-
-  const NetworkBadgeSource = (chainId: Hex) => {
-    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-
-    if (isMainnet) return images.ETHEREUM;
-
-    if (isLineaMainnet) return images['LINEA-MAINNET'];
-
-    return notification.data.token.symbol
-      ? images[notification.data.token.symbol]
-      : undefined;
-  };
-
-  const renderNFT = useCallback(
-    () => (
-      <View style={styles.renderTxContainer}>
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={NetworkBadgeSource(`0x${notification.chain_id}`)}
-          style={styles.nftBadgeWrapper}
-        />
-        <RemoteImage
-          placeholderStyle={styles.nftPlaceholder}
-          source={nftSourceURI || NftFallbackImage}
-          style={styles.renderTxNFT}
-        />
-      </View>
-    ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [notification],
-  );
-  // const renderCollection = (NFT: any) => ();
   const renderAddress = useCallback(
     ({
       key,
@@ -138,6 +108,7 @@ const TXDetails: React.FC<Props> = ({
           <Avatar
             variant={AvatarVariant.Account}
             type={accountAvatarType}
+            // @ts-ignore
             accountAddress={notification.data?.from}
             size={AvatarSize.Md}
             style={styles.badgeWrapper}
@@ -181,68 +152,171 @@ const TXDetails: React.FC<Props> = ({
     },
     [accountAvatarType, copyToClipboard, navigation, notification, styles],
   );
-  // const renderStatus = useCallback(
-  //   (status: TxStatus) => (
-  //     <View style={styles.row}>
-  //       <Avatar
-  //         variant={AvatarVariant.Icon}
-  //         size={AvatarSize.Md}
-  //         style={styles.badgeWrapper}
-  //         {...returnAvatarProps(status, theme)}
-  //       />
-  //       <View style={styles.boxLeft}>
-  //         <Text variant={TextVariant.BodyLGMedium}>
-  //           {strings('transactions.status')}
-  //         </Text>
 
-  //         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-  //           {strings(`transaction.${status}`)}
-  //         </Text>
-  //       </View>
-  //       <Pressable
-  //         style={styles.rightSection}
-  //         onPress={() => copyToClipboard('transaction', notification.tx_hash)}
-  //         hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
-  //       >
-  //         <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
-  //           {strings('transaction.transaction_id')}
-  //         </Text>
-  //         <Icon
-  //           color={IconColor.Primary}
-  //           style={styles.copyIconRight}
-  //           name={IconName.Copy}
-  //           size={IconSize.Md}
-  //         />
-  //       </Pressable>
-  //     </View>
-  //   ),
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   [copyToClipboard, notification, theme],
-  // );
-  // const renderNetwork = useCallback(
-  //   () => (
-  //     <View style={styles.row}>
-  //       <Avatar
-  //         variant={AvatarVariant.Network}
-  //         size={AvatarSize.Md}
-  //         style={styles.badgeWrapper}
-  //         imageSource={NetworkBadgeSource(`0x${notification.chain_id}`)}
-  //       />
+  const renderStatus = useCallback(
+    (status: TxStatus, tx_hash: string) => (
+      <View style={styles.row}>
+        <Avatar
+          variant={AvatarVariant.Icon}
+          size={AvatarSize.Md}
+          style={styles.badgeWrapper}
+          {...returnAvatarProps(status, theme)}
+        />
+        <View style={styles.boxLeft}>
+          <Text variant={TextVariant.BodyLGMedium}>
+            {strings('transactions.status')}
+          </Text>
 
-  //       <View style={styles.boxLeft}>
-  //         <Text variant={TextVariant.BodyLGMedium}>
-  //           {strings('asset_details.network')}
-  //         </Text>
+          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+            {strings(`transaction.${status}`)}
+          </Text>
+        </View>
+        <Pressable
+          style={styles.rightSection}
+          onPress={() => copyToClipboard('transaction', tx_hash)}
+          hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
+        >
+          <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
+            {strings('transaction.transaction_id')}
+          </Text>
+          <Icon
+            color={IconColor.Primary}
+            style={styles.copyIconRight}
+            name={IconName.Copy}
+            size={IconSize.Md}
+          />
+        </Pressable>
+      </View>
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [copyToClipboard, notification, theme],
+  );
 
-  //         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-  //           Ethereum
-  //         </Text>
-  //       </View>
-  //     </View>
-  //   ),
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   [],
-  // );
+    const renderNetwork = useCallback(
+    (network) => (
+      <View style={styles.row}>
+        <Avatar
+          variant={AvatarVariant.Network}
+          size={AvatarSize.Md}
+          style={styles.badgeWrapper}
+          imageSource={NetworkBadgeSource(`0x${(notification as any).chain_id }`)}
+        />
+
+        <View style={styles.boxLeft}>
+          <Text variant={TextVariant.BodyLGMedium}>
+            {strings('asset_details.network')}
+          </Text>
+
+          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+          {network}
+          </Text>
+        </View>
+      </View>
+    ),
+    [],
+  );
+
+  const renderNFT = useCallback(
+    (notificationDetails) => {
+      const { nft, from, to, status, tx_hash, collection, network, networkFee } = notificationDetails;
+      return (
+        <>
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={NetworkBadgeSource(`0x${(notification as any).chain_id }`)}
+            style={styles.nftBadgeWrapper}
+          />
+          <RemoteImage
+            placeholderStyle={styles.nftPlaceholder}
+            source={nft.image || NftFallbackImage}
+            style={styles.renderTxNFT}
+          />
+          {renderAddress({ key: 'from', address: from, actionType: notification.type})}
+          {renderAddress({ key: 'to', address: to, actionType: notification.type})}
+          {renderStatus(status, tx_hash)}
+          <View style={styles.row}>
+        <Avatar
+          variant={AvatarVariant.Icon}
+          size={AvatarSize.Md}
+          style={styles.badgeWrapper}
+          {...returnAvatarProps(status, theme)}
+        />
+        <View style={styles.boxLeft}>
+          <Text variant={TextVariant.BodyLGMedium}>
+            {strings('transactions.status')}
+          </Text>
+
+          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+            {strings(`transaction.${status}`)}
+          </Text>
+        </View>
+        <Pressable
+          style={styles.rightSection}
+          onPress={() => copyToClipboard('transaction', tx_hash)}
+          hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
+        >
+          <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
+            {strings('transaction.transaction_id')}
+          </Text>
+          <Icon
+            color={IconColor.Primary}
+            style={styles.copyIconRight}
+            name={IconName.Copy}
+            size={IconSize.Md}
+          />
+        </Pressable>
+      </View>
+        {renderNetwork(status, tx_hash)}
+        {renderNetworkFee(status, tx_hash)}
+      </>
+      )
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [notification],
+  );
+
+  const renderNotificationDetails = useCallback(
+    (notification) => {
+      switch (notification.type) {
+        case TRIGGER_TYPES.ERC721_SENT:
+        case TRIGGER_TYPES.ERC721_RECEIVED:
+        case TRIGGER_TYPES.ERC1155_SENT:
+        case TRIGGER_TYPES.ERC1155_RECEIVED:
+          return renderNFT(notificationDetails);
+        case TRIGGER_TYPES.LIDO_STAKE_COMPLETED:
+        case TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED:
+        case TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED:
+        case TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED:
+        case TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED:
+          return renderStake(notificationDetails);
+        case TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN:
+          return renderStakeReadyToBeWithdrawn(notificationDetails);
+        case TRIGGER_TYPES.METAMASK_SWAP_COMPLETED:
+          return renderSwap(notificationDetails);
+        case TRIGGER_TYPES.ERC20_SENT:
+        case TRIGGER_TYPES.ERC20_RECEIVED:
+          return renderERC20(notificationDetails);
+        default:
+          return renderETH(notificationDetails);
+      }
+},[]);
+
+  const isMainnet = isMainnetByChainId(notification.chain_id);
+  const isLineaMainnet = isLineaMainnetByChainId(notification.chain_id);
+
+  const NetworkBadgeSource = (chainId: Hex) => {
+    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+
+    if (isMainnet) return images.ETHEREUM;
+
+    if (isLineaMainnet) return images['LINEA-MAINNET'];
+
+    return notification.data.token.symbol
+      ? images[notification.data.token.symbol]
+      : undefined;
+  };
+
+
 
   // const fetchNetworkFees = useCallback(async () => {
   //   try {
@@ -371,23 +445,8 @@ const TXDetails: React.FC<Props> = ({
   // );
 
   return (
-    <View style={styles.renderFCMContainer}>
-      {notification.type.includes('721') && renderNFT()}
-      {renderAddress({
-        key: 'from',
-        address: notification.data.from,
-        actionType: notification.type,
-      })}
-      {renderAddress({
-        key: 'to',
-        address: notification.data.to,
-        actionType: notification.type,
-      })}
-      {/* {renderStatus(transaction.status as TxStatus)} */}
-      {/* {transaction?.asset?.isNFT && renderCollection(transaction.asset)} */}
-      {/* {notification?.asset && renderAsset()} */}
-      {/* {renderNetwork()} */}
-      {/* {renderNetworkFee()} */}
+    <View style={styles.renderContainer}>
+      {renderNotificationDetails(notification)}
       {!isCollapsed && (
         <GasDetails
           sheetRef={sheetRef}
@@ -403,7 +462,7 @@ const TXDetails: React.FC<Props> = ({
         // eslint-disable-next-line no-console
         onPress={() => console.log('View on etherscan')}
         endIconName={IconName.Arrow2Upright}
-      />
+      /> */}
     </View>
   );
 };

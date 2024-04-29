@@ -19,6 +19,7 @@ import { formatAddress } from '../../../util/address';
 import { STORAGE_IDS } from '../settings/storage/constants';
 import Device from '../../../util/device';
 import { store } from '../../../store';
+import { renderFromWei } from '../../../util/number';
 import { updateNotificationStatus } from '../../../actions/notification';
 interface ViewOnEtherscanProps {
   navigation: any;
@@ -36,16 +37,19 @@ interface ViewOnEtherscanProps {
 
 interface NotificationRowProps {
   row: {
-    createdAt: string;
     title: string;
+    createdAt: string;
 
-    avatarBadge?: IconName;
-    imageUri?: string;
-    asset?: {
-      symbol?: string;
-      name?: string;
+    badgeIcon?: IconName;
+    imageUrl?: string;
+    description?: {
+      asset?: {
+        symbol?: string;
+        name?: string;
+      };
+      text?: string;
     };
-    value?: string;
+    value: string;
   };
   details: Record<string, any>;
 }
@@ -170,155 +174,6 @@ export function formatNotificationTitle(rawTitle: string): string {
   return words.join('_');
 }
 
-export function getRowDetails(
-  notification: Notification,
-): NotificationRowProps | null {
-  if (!notification.data) {
-    return null;
-  }
-
-  if (notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT) {
-    switch (notification.data.kind) {
-      case 'lido_stake_completed':
-      case 'lido_withdrawal_completed':
-      case 'rocketpool_stake_completed':
-      case 'rocketpool_unstake_completed':
-      case 'lido_withdrawal_requested':
-        return {
-          row: {
-            avatarBadge: getNotificationBadge(notification.type),
-            createdAt: formatDate(notification.createdAt),
-            imageUri: notification.data.stake_out.image,
-            asset: {
-              symbol: notification.data.stake_out.symbol,
-              name: notification.data.stake_out.name,
-            },
-            title: strings(formatNotificationTitle(notification.data.kind)),
-            value: `${notification.data.stake_out.amount} ${notification.data.stake_out.symbol}`,
-          },
-          details: {},
-        };
-      case 'lido_stake_ready_to_be_withdrawn':
-        return {
-          row: {
-            avatarBadge: getNotificationBadge(notification.type),
-            createdAt: formatDate(notification.createdAt),
-            imageUri: notification.data.staked_eth.image,
-            asset: {
-              symbol: notification.data.staked_eth.symbol,
-              name: notification.data.staked_eth.name,
-            },
-            title: strings(formatNotificationTitle(notification.data.kind)),
-            value: `${notification.data.staked_eth.amount} ${notification.data.staked_eth.symbol}`,
-          },
-          details: {},
-        };
-      case 'metamask_swap_completed':
-        return {
-          row: {
-            avatarBadge: getNotificationBadge(notification.type),
-            createdAt: formatDate(notification.createdAt),
-            imageUri: notification.data.token_out.image,
-            asset: {
-              symbol: notification.data.token_out.symbol,
-              name: notification.data.token_out.name,
-            },
-            title: strings(formatNotificationTitle(notification.data.kind), {
-              from: notification.data.token_in.symbol,
-            }),
-            value: `${notification.data.token_out.amount} ${notification.data.token_out.symbol}`,
-          },
-          details: {},
-        };
-      case 'eth_sent':
-      case 'eth_received':
-        return {
-          row: {
-            avatarBadge: getNotificationBadge(notification.type),
-            createdAt: formatDate(notification.createdAt),
-            title: strings(formatNotificationTitle(notification.data.kind), {
-              address: formatAddress(
-                notification.data.kind.includes('sent')
-                  ? notification.data.to
-                  : notification.data.from,
-                'short',
-              ),
-            }),
-            value: `${notification.data.amount.eth} ETH`,
-          },
-          details: {},
-        };
-      case 'erc20_sent':
-      case 'erc20_received':
-        return {
-          row: {
-            avatarBadge: getNotificationBadge(notification.type),
-            createdAt: formatDate(notification.createdAt),
-            imageUri: notification.data.token.image,
-            asset: {
-              symbol: notification.data.token.symbol,
-              name: notification.data.token.name,
-            },
-            title: strings(formatNotificationTitle(notification.data.kind), {
-              address: formatAddress(
-                notification.data.kind.includes('sent')
-                  ? notification.data.to
-                  : notification.data.from,
-                'short',
-              ),
-            }),
-            value: `${notification.data.token.amount} ${notification.data.token.symbol}`,
-          },
-          details: {},
-        };
-      case 'erc721_sent':
-      case 'erc721_received':
-      case 'erc1155_sent':
-      case 'erc1155_received':
-        return {
-          row: {
-            avatarBadge: getNotificationBadge(notification.type),
-            createdAt: formatDate(notification.createdAt),
-            imageUri: notification.data?.nft?.image,
-            asset: {
-              symbol: notification.data?.nft?.collection.symbol,
-              name: notification.data?.nft?.collection.name,
-            },
-            title: strings(formatNotificationTitle(notification.data.kind), {
-              address: formatAddress(
-                notification.data.kind.includes('sent')
-                  ? notification.data.to
-                  : notification.data.from,
-                'short',
-              ),
-            }),
-            value: `#${notification.data?.nft?.token_id}`,
-          },
-          details: {},
-        };
-
-      default:
-        return { row: {} as any, details: {} as any };
-    }
-  }
-
-  return {
-    row: {
-      title: notification.data.title,
-      asset: { name: notification.data.shortDescription },
-      createdAt: formatDate(notification.createdAt),
-    },
-    details: {},
-  };
-}
-
-export enum AvatarType {
-  ADDRESS = 'address',
-  ASSET = 'asset',
-  NETWORK = 'network',
-  TXSTATUS = 'txstatus',
-}
-
 export enum TxStatus {
   UNAPPROVED = 'unapproved',
   SUBMITTED = 'submitted',
@@ -329,6 +184,266 @@ export enum TxStatus {
   APPROVED = 'approved',
   FAILED = 'failed',
   REJECTED = 'rejected',
+}
+
+export function getRowDetails(
+  notification: Notification,
+): NotificationRowProps {
+  switch (notification.type) {
+    case TRIGGER_TYPES.LIDO_STAKE_COMPLETED:
+    case TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED:
+    case TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED:
+    case TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED:
+    case TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          title: strings(
+            `notifications.${formatNotificationTitle(notification.type)}`,
+          ),
+          description: {
+            asset: {
+              symbol: notification.data.stake_out.symbol,
+              name: notification.data.stake_out.name,
+            },
+          },
+          createdAt: formatDate(notification.createdAt),
+          imageUrl:
+            notification.data.stake_out.image ||
+            notification.data.stake_in.image, //using the stake_in image as a fallback,
+          value: `${renderFromWei(notification.data.stake_out.amount)} ${
+            notification.data.stake_out.symbol
+          }`,
+        },
+        details: {
+          stake_in: notification.data.stake_in,
+          stake_out: notification.data.stake_out,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          network: getNetwork(notification.chain_id),
+          networkFee: {
+            gas_price: notification.data?.network_fee.gas_price,
+            native_token_price_in_usd:
+              notification.data?.network_fee.native_token_price_in_usd,
+            details: {},
+          },
+        },
+      };
+    case TRIGGER_TYPES.LIDO_STAKE_READY_TO_BE_WITHDRAWN:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          title: strings(
+            `notifications.${formatNotificationTitle(notification.type)}`,
+          ),
+          description: {
+            asset: {
+              symbol: notification.data.staked_eth.symbol,
+              name: notification.data.staked_eth.name,
+            },
+          },
+          createdAt: formatDate(notification.createdAt),
+          imageUrl: notification.data.staked_eth.image,
+          value: `${notification.data.staked_eth.amount} ${notification.data.staked_eth.symbol}`,
+        },
+        details: {
+          request_id: notification.data.request_id,
+          staked_eth: notification.data.staked_eth,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          network: getNetwork(notification.chain_id),
+        },
+      };
+    case TRIGGER_TYPES.METAMASK_SWAP_COMPLETED:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          title: strings('notifications.swap_completed', {
+            from: notification.data.token_in.symbol,
+            to: notification.data.token_out.symbol,
+          }),
+          description: {
+            asset: {
+              symbol: notification.data.token_out.symbol,
+              name: notification.data.token_out.name,
+            },
+          },
+          createdAt: formatDate(notification.createdAt),
+          imageUrl:
+            notification.data.token_out.image ||
+            notification.data.token_in.image, //using the token_in image as a fallback,
+          value: `${renderFromWei(notification.data.token_out.amount)} ${
+            notification.data.token_out.symbol
+          }`,
+        },
+        details: {
+          rate: notification.data.rate,
+          token_in: notification.data.token_in,
+          token_out: notification.data.token_out,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          network: getNetwork(notification.chain_id),
+          networkFee: {
+            gas_price: notification.data?.network_fee.gas_price,
+            native_token_price_in_usd:
+              notification.data?.network_fee.native_token_price_in_usd,
+            details: {},
+          },
+        },
+      };
+    case TRIGGER_TYPES.ETH_SENT:
+    case TRIGGER_TYPES.ETH_RECEIVED:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          createdAt: formatDate(notification.createdAt),
+          title: strings(
+            `notifications.${formatNotificationTitle(notification.type)}`,
+            {
+              address: formatAddress(
+                notification.type.includes('sent')
+                  ? notification.data.to
+                  : notification.data.from,
+                'short',
+              ),
+            },
+          ),
+          description: {
+            asset: {
+              symbol: 'ETH',
+              name: 'Ethereum',
+            },
+          },
+          value: `${notification.data.amount.eth} ETH`,
+        },
+        details: {
+          amount: notification.data.amount,
+          from: notification.data.from,
+          to: notification.data.to,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          network: getNetwork(notification.chain_id),
+          networkFee: {
+            gas_price: notification.data?.network_fee.gas_price,
+            native_token_price_in_usd:
+              notification.data?.network_fee.native_token_price_in_usd,
+            details: {},
+          },
+        },
+      };
+    case TRIGGER_TYPES.ERC20_SENT:
+    case TRIGGER_TYPES.ERC20_RECEIVED:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          title: strings(
+            `notifications.${formatNotificationTitle(notification.type)}`,
+            {
+              address: formatAddress(
+                notification.data.kind.includes('sent')
+                  ? notification.data.to
+                  : notification.data.from,
+                'short',
+              ),
+            },
+          ),
+          description: {
+            asset: {
+              symbol: notification.data.token.symbol,
+              name: notification.data.token.name,
+            },
+          },
+          createdAt: formatDate(notification.createdAt),
+          imageUrl: notification.data.token.image,
+          value: `${renderFromWei(notification.data.token.amount)} ${
+            notification.data.token.symbol
+          }`,
+        },
+        details: {
+          token: notification.data.token,
+          from: notification.data.from,
+          to: notification.data.to,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          network: getNetwork(notification.chain_id),
+          networkFee: {
+            gas_price: notification.data?.network_fee.gas_price,
+            native_token_price_in_usd:
+              notification.data?.network_fee.native_token_price_in_usd,
+            details: {},
+          },
+        },
+      };
+    case TRIGGER_TYPES.ERC721_SENT:
+    case TRIGGER_TYPES.ERC721_RECEIVED:
+    case TRIGGER_TYPES.ERC1155_SENT:
+    case TRIGGER_TYPES.ERC1155_RECEIVED:
+      return {
+        row: {
+          badgeIcon: getNotificationBadge(notification.type),
+          title: strings(`notifications.${notification.type}`, {
+            address: formatAddress(
+              notification.type.includes('sent')
+                ? notification.data.to
+                : notification.data.from,
+              'short',
+            ),
+          }),
+          description: {
+            asset: {
+              symbol: notification.data?.nft?.collection.symbol,
+              name: notification.data?.nft?.collection.name,
+            },
+          },
+          createdAt: formatDate(notification.createdAt),
+          imageUrl: notification.data?.nft?.image,
+          value: `#${notification.data?.nft?.token_id}`,
+        },
+        details: {
+          nft: {
+            name: notification.data?.nft?.name,
+            image: notification.data?.nft?.image,
+          },
+          from: notification.data.from,
+          to: notification.data.to,
+          tx_hash: notification.tx_hash,
+          status: notification.tx_hash
+            ? TxStatus.CONFIRMED
+            : TxStatus.UNAPPROVED,
+          collection: notification.data?.nft?.collection,
+          network: getNetwork(notification.chain_id),
+          networkFee: {
+            gas_price: notification.data?.network_fee.gas_price,
+            native_token_price_in_usd:
+              notification.data?.network_fee.native_token_price_in_usd,
+            details: {},
+          },
+        },
+      };
+
+    default:
+      return {
+        row: {
+          title: notification.data.title,
+          description: { text: notification.data.shortDescription },
+          createdAt: formatDate(notification.createdAt),
+          value: '',
+        },
+        details: {},
+      };
+  }
+}
+
+export enum AvatarType {
+  ADDRESS = 'address',
+  ASSET = 'asset',
+  NETWORK = 'network',
+  TXSTATUS = 'txstatus',
 }
 
 export const returnAvatarProps = (status: TxStatus, theme: Theme) => {

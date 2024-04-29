@@ -35,6 +35,7 @@ export const createStyles = ({ colors }: Theme) =>
       width: 12,
       height: 12,
       borderRadius: 6,
+      alignSelf: 'center',
     },
     copyIconDefault: {
       color: colors.text.alternative,
@@ -66,7 +67,7 @@ export const createStyles = ({ colors }: Theme) =>
       ...fontStyles.normal,
       textAlign: 'center',
     },
-    renderFCMContainer: {
+    renderContainer: {
       alignItems: 'flex-start',
       flex: 1,
     },
@@ -95,6 +96,7 @@ export const createStyles = ({ colors }: Theme) =>
       alignContent: 'center',
       borderRadius: 4,
       overflow: 'hidden',
+      alignSelf: 'center',
     },
     ctaBtn: {
       bottom: 0,
