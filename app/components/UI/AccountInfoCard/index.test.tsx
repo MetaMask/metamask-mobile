@@ -1,7 +1,7 @@
 import React from 'react';
 import AccountInfoCard from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('../../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -23,7 +23,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {

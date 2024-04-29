@@ -2,7 +2,7 @@ import React from 'react';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ApproveTransactionHeader from '.';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { APPROVE_TRANSACTION_ORIGIN_PILL } from './ApproveTransactionHeader.constants';
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -22,7 +22,7 @@ const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {

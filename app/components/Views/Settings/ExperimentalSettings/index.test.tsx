@@ -4,7 +4,7 @@ import configureMockStore from 'redux-mock-store';
 
 import { render } from '@testing-library/react-native';
 
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { mockTheme, ThemeContext } from '../../../../util/theme';
 import ExperimentalSettings from './';
 
@@ -15,7 +15,7 @@ const initialState = {
     securityAlertsEnabled: true,
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 

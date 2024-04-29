@@ -12,7 +12,7 @@ import {
   WALLET_SWAP,
 } from './WalletActions.constants';
 import Engine from '../../../core/Engine';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockEngine = Engine;
 
@@ -30,7 +30,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
         providerConfig: { type: 'mainnet', chainId: '0x1', ticker: 'ETH' },
       },
@@ -106,7 +106,7 @@ describe('WalletActions', () => {
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             providerConfig: {
               type: 'mainnet',

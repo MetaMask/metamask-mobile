@@ -2,7 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { AUTO_LOCK_SECTION } from './Sections/AutoLock/constants';
 import {
   BATCH_BALANCE_REQUESTS_SECTION,
@@ -29,7 +29,7 @@ const initialState = {
   settings: { lockTime: 1000 },
   user: { passwordSet: true },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
   security: {
     allowLoginWithRememberMe: true,

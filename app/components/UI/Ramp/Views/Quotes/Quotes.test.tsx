@@ -23,7 +23,7 @@ import { RampSDK } from '../../sdk';
 import useQuotes from '../../hooks/useQuotes';
 
 import Routes from '../../../../../constants/navigation/Routes';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RampType } from '../../types';
 
 function render(Component: React.ComponentType) {
@@ -35,7 +35,7 @@ function render(Component: React.ComponentType) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState,
         },
       },
     },

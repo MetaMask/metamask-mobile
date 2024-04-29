@@ -6,7 +6,7 @@ import { initialState as initialInpageProvider } from '../../core/redux/slices/i
 import initialBackgroundState from './initial-background-state.json';
 
 // Cast because TypeScript is incorrectly inferring the type of this JSON object
-const backgroundState: EngineState = initialBackgroundState as any;
+export const backgroundState: EngineState = initialBackgroundState as any;
 
 const initialRootState: RootState = {
   collectibles: undefined,

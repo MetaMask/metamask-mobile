@@ -12,7 +12,7 @@ import {
   TRANSACTION_AMOUNT_CONVERSION_VALUE,
   TRANSACTION_AMOUNT_INPUT,
 } from '../../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
@@ -81,7 +81,7 @@ const RECEIVER_ACCOUNT = '0x2a';
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
         network: '1',
         providerConfig: {

@@ -9,7 +9,7 @@ import { strings } from '../../../../../locales/i18n';
 import { Store, AnyAction } from 'redux';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
 const mockStore = configureMockStore();
 let initialState: any;
@@ -21,7 +21,7 @@ beforeEach(() => {
   initialState = {
     settings: { showHexData: true },
     engine: {
-      backgroundState: initialBackgroundState,
+      backgroundState,
     },
   };
   store = mockStore(initialState);

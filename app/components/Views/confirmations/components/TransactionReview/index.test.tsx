@@ -8,7 +8,7 @@ import * as TransactionUtils from '../../../../../util/transactions';
 // eslint-disable-next-line import/no-namespace
 import * as BlockaidUtils from '../../../../../util/blockaid';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import { TESTID_ACCORDION_CONTENT } from '../../../../../component-library/components/Accordions/Accordion/Accordion.constants';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../BlockaidBanner/BlockaidBanner.constants';
@@ -68,7 +68,7 @@ jest.mock('react-native-gzip', () => ({
 const mockState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {

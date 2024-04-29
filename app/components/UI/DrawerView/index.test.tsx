@@ -2,7 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import DrawerView from './';
 
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import Engine from '../../../core/Engine';
 
 const mockedEngine = Engine;
@@ -10,7 +10,7 @@ const mockedEngine = Engine;
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       PreferencesController: {
         selectedAddress: '0x',
         identities: {

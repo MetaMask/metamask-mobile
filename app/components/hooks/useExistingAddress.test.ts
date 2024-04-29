@@ -1,12 +1,12 @@
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import useExistingAddress from './useExistingAddress';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { backgroundState } from '../../util/test/initial-root-state';
 
 const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       PreferencesController: {
         selectedAddress: '0x0',
         identities: {

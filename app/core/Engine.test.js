@@ -1,5 +1,5 @@
 import Engine from './Engine';
-import initialState from '../util/test/initial-background-state.json';
+import initialState, { backgroundState } from '../util/test/initial-root-state';
 
 jest.unmock('./Engine');
 
@@ -41,12 +41,12 @@ describe('Engine', () => {
   // Use this to keep the unit test initial background state fixture up-to-date
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
-    let backgroundState = engine.datamodel.state;
+    let initialBackgroundState = engine.datamodel.state;
 
-    backgroundState = {
-      ...backgroundState,
+    initialBackgroundState = {
+      ...initialBackgroundState,
       KeyringController: {
-        ...backgroundState.KeyringController,
+        ...initialBackgroundState.KeyringController,
         vault: {
           cipher: 'mock-cipher',
           iv: 'mock-iv',
@@ -55,7 +55,7 @@ describe('Engine', () => {
       },
     };
 
-    expect(backgroundState).toStrictEqual(initialState);
+    expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {

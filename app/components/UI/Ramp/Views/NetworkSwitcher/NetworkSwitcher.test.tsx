@@ -8,7 +8,7 @@ import useFetchRampNetworks from '../../hooks/useFetchRampNetworks';
 import useRampNetworksDetail from '../../hooks/useRampNetworksDetail';
 import { RampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Engine from '../../../../../core/Engine';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 
@@ -76,9 +76,9 @@ function render(Component: React.ComponentType, chainId?: string) {
       state: {
         engine: {
           backgroundState: {
-            ...initialBackgroundState,
+            ...backgroundState,
             NetworkController: {
-              ...initialBackgroundState.NetworkController,
+              ...backgroundState.NetworkController,
               providerConfig: {
                 chainId: chainId ?? '0x38',
                 ticker: 'BNB',

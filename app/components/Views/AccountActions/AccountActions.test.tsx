@@ -14,7 +14,7 @@ import {
   SHOW_PRIVATE_KEY,
   VIEW_ETHERSCAN,
 } from './AccountActions.constants';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockEngine = Engine;
 
@@ -22,7 +22,7 @@ const initialState = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       PreferencesController: {
         selectedAddress: '0xe7E125654064EEa56229f273dA586F10DF96B0a1',
         identities: {

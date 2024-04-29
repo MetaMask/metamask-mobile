@@ -6,7 +6,7 @@ import {
 } from '../../../../../constants/on-ramp';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { fireEvent, screen } from '@testing-library/react-native';
 
 type DeepPartial<BaseType> = {
@@ -110,7 +110,7 @@ function render(Component: React.ReactElement, orders = testOrders) {
     state: {
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             selectedAddress: '0x0',
             identities: {

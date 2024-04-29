@@ -5,7 +5,7 @@ import { ParamListBase, TabNavigationState } from '@react-navigation/native';
 
 // External dependencies
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
 // Internal dependencies
 import TabBar from './TabBar';
@@ -22,7 +22,7 @@ const mockInitialState = {
     step: 1,
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 

@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 import Approve from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -16,7 +16,7 @@ const initialState = {
     tabs: [{ id: 1592878266671, url: 'https://metamask.github.io/test-dapp/' }],
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 const store = mockStore(initialState);

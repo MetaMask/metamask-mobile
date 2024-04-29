@@ -6,14 +6,14 @@ import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import { Asset } from './useAddressBalance.types';
 import useAddressBalance from './useAddressBalance';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import backgroundState from '../../../util/test/initial-root-state';
 
 const mockStore = configureMockStore();
 const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0x0': {

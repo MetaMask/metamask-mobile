@@ -1,7 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountOverview from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 import Engine from '../../../core/Engine';
 
@@ -28,7 +28,7 @@ const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       PreferencesController: {
         selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
       },

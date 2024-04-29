@@ -9,7 +9,7 @@ import { createAccountSelectorNavDetails } from '../../../components/Views/Accou
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { Account } from '../../hooks/useAccounts';
 import { KeyringTypes } from '@metamask/keyring-controller';
 
@@ -41,7 +41,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
     },
   },
 };

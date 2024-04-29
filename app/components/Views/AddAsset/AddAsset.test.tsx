@@ -1,6 +1,6 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import AddAsset from './AddAsset';
 import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
 
@@ -42,7 +42,7 @@ jest.mock('react-native-scrollable-tab-view', () => {
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import AccountApproval from '.';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
 jest.mock('../../../core/Engine', () => ({
@@ -20,9 +20,7 @@ jest.mock('../../../core/Engine', () => ({
 
 const mockInitialState = {
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-    },
+    backgroundState,
   },
 };
 

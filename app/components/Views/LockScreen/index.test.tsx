@@ -1,5 +1,5 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import LockScreen from './';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -7,7 +7,7 @@ const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       PreferencesController: {
         state: {
           securityAlertsEnabled: true,

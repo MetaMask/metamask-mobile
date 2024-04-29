@@ -3,7 +3,7 @@ import { shallow } from 'enzyme';
 import CollectibleContracts from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
 // eslint-disable-next-line import/no-namespace
@@ -46,7 +46,7 @@ const initialState = {
     favorites: {},
   },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 const store = mockStore(initialState);
@@ -70,7 +70,7 @@ describe('CollectibleContracts', () => {
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             network: '1',
             providerConfig: {
@@ -196,7 +196,7 @@ describe('CollectibleContracts', () => {
       },
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
             network: '1',
             providerConfig: {

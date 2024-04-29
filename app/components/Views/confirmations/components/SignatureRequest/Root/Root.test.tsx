@@ -2,7 +2,7 @@ import React from 'react';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react-native';
-import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
@@ -67,7 +67,7 @@ const initialState = {
   signatureRequest: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {

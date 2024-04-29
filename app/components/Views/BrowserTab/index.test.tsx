@@ -3,12 +3,12 @@ import { shallow } from 'enzyme';
 import { BrowserTab } from './';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockInitialState = {
   browser: { activeTab: '' },
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
   transaction: {
     selectedAsset: '',

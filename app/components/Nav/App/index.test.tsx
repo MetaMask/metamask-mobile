@@ -1,5 +1,5 @@
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import App from './';
 import { MetaMetrics } from '../../../core/Analytics';
 import { waitFor } from '@testing-library/react-native';
@@ -9,7 +9,7 @@ const initialState = {
     loggedIn: true,
   },
   engine: {
-    ...initialBackgroundState,
+    backgroundState,
   },
 };
 

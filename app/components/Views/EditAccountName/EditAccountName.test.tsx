@@ -5,7 +5,7 @@ import { fireEvent } from '@testing-library/react-native';
 // Internal dependencies
 import EditAccountName from './EditAccountName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockPreferencesSetAccountLabel = jest.fn();
 const mockEngineSetAccountLabel = jest.fn();
@@ -33,7 +33,7 @@ const mockInitialState = {
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: {
         internalAccounts: {
           accounts: {
