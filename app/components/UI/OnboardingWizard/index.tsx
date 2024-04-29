@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import DefaultPreference from 'react-native-default-preference';
 import Modal from 'react-native-modal';
 import type { Theme } from '@metamask/design-tokens';
-
+import { DrawerContext } from '../../../components/Nav/Main/MainNavigator';
 import { colors as importedColors } from '../../../styles/common';
 
 import Step1 from './Step1';
@@ -21,7 +21,6 @@ import {
   MetaMetricsEvents,
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../core/Analytics';
-import { DrawerContext } from '../../Nav/Main/MainNavigator';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import AsyncStorageWrapper from '../../../store/async-storage-wrapper';
@@ -73,14 +72,14 @@ const createStyles = ({ colors, typography }: Theme) =>
 
 interface OnboardingWizardProps {
   navigation: any;
-  coachmarkRef: any;
+  coachmarkRef: React.RefObject<any>;
 }
 
 const OnboardingWizard = ({
   navigation,
   coachmarkRef,
 }: OnboardingWizardProps) => {
-  const { drawerRef } = useContext(DrawerContext) as any;
+  const { drawerRef } = useContext(DrawerContext);
   const theme = useTheme();
   const dispatch = useDispatch();
   const { trackEvent } = useMetrics();
@@ -97,7 +96,7 @@ const OnboardingWizard = ({
    */
   const closeOnboardingWizard = async () => {
     await DefaultPreference.set(ONBOARDING_WIZARD, EXPLORED);
-    setOnboardingWizardStep?.(0);
+    dispatch(setOnboardingWizardStep(0));
     drawerRef?.current?.dismissDrawer?.();
     trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
       tutorial_step_count: step,
