@@ -8,9 +8,8 @@ const PopularList = [
   {
     chainId: toHex('43114'),
     nickname: 'Avalanche Mainnet C-Chain',
-    rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
+    rpcUrl: `https://avalanche-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'AVAX',
-    warning: true,
     rpcPrefs: {
       blockExplorerUrl: 'https://snowtrace.io',
       imageUrl: 'AVAX',
@@ -30,7 +29,7 @@ const PopularList = [
   },
   {
     chainId: toHex('56'),
-    nickname: 'BNB Smart Chain',
+    nickname: 'BNB Chain',
     rpcUrl: 'https://bsc-dataseed1.binance.org',
     ticker: 'BNB',
     warning: true,
@@ -41,27 +40,15 @@ const PopularList = [
     },
   },
   {
-    chainId: toHex('250'),
-    nickname: 'Fantom Opera',
-    rpcUrl: 'https://rpc.ftm.tools/',
-    ticker: 'FTM',
+    chainId: toHex('8453'),
+    nickname: 'Base Mainnet',
+    rpcUrl: `https://mainnet.base.org`,
+    ticker: 'ETH',
     warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://ftmscan.com',
-      imageUrl: 'FTM',
-      imageSource: require('../../images/fantom.png'),
-    },
-  },
-  {
-    chainId: toHex('1666600000'),
-    nickname: 'Harmony Mainnet Shard 0',
-    rpcUrl: 'https://api.harmony.one/',
-    ticker: 'ONE',
-    warning: true,
-    rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.harmony.one',
-      imageUrl: 'ONE',
-      imageSource: require('../../images/harmony.png'),
+      blockExplorerUrl: 'https://basescan.org',
+      imageUrl: 'BASE',
+      imageSource: require('../../images/base.png'),
     },
   },
   {
@@ -76,6 +63,17 @@ const PopularList = [
     },
   },
   {
+    chainId: toHex('11297108109'),
+    nickname: 'Palm',
+    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
+    ticker: 'PALM',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://explorer.palm.io',
+      imageUrl: 'PALM',
+      imageSource: require('../../images/palm.png'),
+    },
+  },
+  {
     chainId: toHex('137'),
     nickname: 'Polygon Mainnet',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
@@ -87,14 +85,15 @@ const PopularList = [
     },
   },
   {
-    chainId: toHex('11297108109'),
-    nickname: 'Palm',
-    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
-    ticker: 'PALM',
+    chainId: toHex('324'),
+    nickname: 'zkSync Era Mainnet',
+    rpcUrl: `https://mainnet.era.zksync.io`,
+    ticker: 'ETH',
+    warning: true,
     rpcPrefs: {
-      blockExplorerUrl: 'https://explorer.palm.io',
-      imageUrl: 'PALM',
-      imageSource: require('../../images/palm.png'),
+      blockExplorerUrl: 'https://explorer.zksync.io/',
+      imageUrl: 'ZK_SYNC',
+      imageSource: require('../../images/zk-sync.png'),
     },
   },
 ];

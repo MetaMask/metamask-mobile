@@ -94,6 +94,24 @@
     "your_wallet": "您的钱包已成功删除",
     "delete_current": "删除当前钱包"
   },
+  "onboarding_success": {
+    "title": "Congratulations!",
+    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
+    "description_bold": "Settings > Security & Privacy.",
+    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
+    "learn_more": "Learn more",
+    "learn_how": "Learn how",
+    "leave_hint": "Leave yourself a hint?",
+    "default_settings": "Default settings",
+    "manage_default_settings": "Manage default settings",
+    "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
+    "no_srp_title": "Reminder set!",
+    "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
+    "import_title": "Your Wallet is ready",
+    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
+    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
+    "done": "Done"
+  },
   "onboarding_carousel": {
     "title1": "欢迎使用 MetaMask",
     "title2": "管理您的数字资产",
@@ -160,14 +178,18 @@
       "content1": "编辑您的账户名称，在 Etherscan 上查看交易，分享您的公钥，以及通过点击此图标查看您的私钥"
     },
     "step4": {
+      "title": "通知",
+      "content1": "随时了解您的钱包动态"
+    },
+    "step5": {
       "title": "使用您的钱包",
       "content1": "通过点击此图标购买、发送、兑换和接收资产"
     },
-    "step5": {
-      "title": "探索 web3",
+    "step6": {
+      "title": "探索 Web3",
       "content1": "通过点击此图标打开浏览器"
     },
-    "step6": {
+    "step7": {
       "title": "使用该浏览器",
       "content1": "通过关键字搜索网站或者输入 URL。祝您玩得开心！ "
     }
@@ -351,12 +373,17 @@
     "no_collectibles": "您没有任何收藏品！",
     "no_available_tokens": "没有看到您的代币？",
     "add_tokens": "导入代币",
+    "are_you_sure_exit": "您确定要退出吗？",
+    "search_information_not_saved": "您的搜索信息将不会保存。",
+    "import_token": "您想导入此代币吗？",
     "tokens_detected_in_account": "在此账户中找到{{tokenCount}}个新的{{tokensLabel}}",
     "token_toast": {
       "tokens_imported_title": "已导入的代币",
       "tokens_imported_desc": "已成功导入{{tokenSymbols}}",
       "token_imported_title": "已导入的代币",
       "token_imported_desc": "已成功导入{{tokenSymbol}}",
+      "token_imported_desc_1": "您已导入一个代币。",
+      "tokens_import_success_multiple": "您已导入 {{tokensNumber}} 个代币。",
       "tokens_hidden_title": "正在隐藏代币",
       "tokens_hidden_desc": "正在隐藏在您的钱包中检测到的代币",
       "token_hidden_title": "正在隐藏代币",
@@ -376,6 +403,8 @@
     "nfts_autodetection_desc": "允许 MetaMask 自动检测 OpenSea 的 NFT，并显示在您的 MetaMask 钱包里。",
     "network_details_check": "网络详情检查",
     "network_with_chain_id": "网络及其链 ID",
+    "chain_list_returned_different_ticker_symbol": "此代币符号与输入的网络名称或链 ID 不匹配。许多热门代币使用类似的符号，骗子可能会使用这些符号来欺骗您，让您向他们发送更有价值的代币作为回报。在您继续之前请先验证所有信息。",
+    "suggested_token_symbol": "建议的股票代码：",
     "potential_scam": "这可能是欺诈",
     "network_not_matching": "此网络与其关联的链 ID 或名称不匹配。很多热门代币均使用该名称，",
     "target_scam_network": "这使其成为欺诈目标。骗子可能会诱骗您将更有价值的货币转给他们作为回报。在继续之前请先验证所有信息。",
@@ -415,7 +444,11 @@
     "nfts_autodetect_cta": "在设置中打开“自动检测NFT”",
     "turn_on_network_check_cta": "开启网络详情检查",
     "display_nft_media_cta_new_1": "要查看NFT，请在此打开“显示NFT媒体”",
-    "display_nft_media_cta_new_2": "设置>安全和隐私。"
+    "display_nft_media_cta_new_2": "设置>安全和隐私。",
+    "banner": {
+      "title": "Basic functionality is off",
+      "link": "Turn on basic functionality"
+    }
   },
   "asset_details": {
     "token": "代币",
@@ -499,12 +532,14 @@
   "token": {
     "token_symbol": "代币符号",
     "token_address": "代币地址",
-    "token_decimal": "通证小数位",
+    "token_decimal": "代币小数位",
     "search_tokens_placeholder": "搜索代币",
     "address_cant_be_empty": "代币地址不能为空。",
     "address_must_be_valid": "代币地址必须是有效地址。",
     "symbol_cant_be_empty": "代币符号不能为空。",
+    "symbol_length": "符号不得超过 11 个字符",
     "decimals_cant_be_empty": "代币小数位数不能为空。",
+    "decimals_is_required": "需要小数位。请在下方查找：",
     "no_tokens_found": "我们无法找到具有该名称的任何代币。",
     "select_token": "选择代币",
     "address_must_be_smart_contract": "检测到个人地址。输入代币合约地址。"
@@ -532,7 +567,8 @@
     "collectible_asset_contract": "资产合约",
     "share_check_out_nft": "看看我的 NFT！",
     "share_via": "通过以下方式分享：",
-    "untitled_collection": "无标题收藏"
+    "untitled_collection": "无标题收藏",
+    "collection": "收藏品"
   },
   "transfer": {
     "title": "转账",
@@ -541,10 +577,10 @@
   },
   "accounts": {
     "create_new_account": "创建新账户",
-    "qr_hardware": "QR 硬件",
     "import_account": "导入账户",
     "connect_hardware": "连接硬件钱包",
     "imported": "已导入",
+    "qr_hardware": "QR 硬件",
     "remove_account_title": "删除账户",
     "remove_account_message": "是否确实想要删除此账户？",
     "no": "否",
@@ -673,6 +709,12 @@
     "nft_opensea_desc": "显示 NFT 媒体和数据可能会将您的 IP 地址暴露给集中式服务器。使用 OpenSea 的 API 来获取 NFT 数据。NFT 自动检测依赖于 OpenSea 的 API，当它关闭时将不可用。启用 NFT 自动检测会使您暴露在任何人向您钱包发送的虚假 NFT 中，并可能使攻击者从您的以太坊地址中知道您的 IP 地址。",
     "nft_autodetect_mode": "自动检测 NFT",
     "nft_autodetect_desc": "显示 NFT 媒体和数据可能会将您的 IP 地址暴露给集中式服务器。第三方 API（如 OpenSea）被用来检测您钱包中的 NFT。这将使您的账户地址暴露在这些服务中。如果您不希望应用程序从这些服务中获取数据，请禁用该功能。",
+    "show_fiat_on_testnets": "Show conversion on test networks",
+    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
+    "show_fiat_on_testnets_modal_title": "Be careful",
+    "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
+    "show_fiat_on_testnets_modal_learn_more": "Learn more.",
+    "show_fiat_on_testnets_modal_button": "Continue",
     "show_hex_data": "显示十六进制数据",
     "show_hex_data_desc": "选择此项可在发送屏幕上显示十六进制数据字段。",
     "toggleEthSignBannerDescription": "您面临网络钓鱼攻击的风险。通过关闭 eth_sign 保护自己。",
@@ -703,6 +745,26 @@
     "general_desc": "货币转换、主要货币、语言和搜索引擎",
     "advanced_title": "高级",
     "advanced_desc": "访问开发者功能、重置账户、设置测试网、状态日志、IPFS 网关和自定义 RPC",
+    "notifications_title": "通知",
+    "notifications_desc": "管理您的通知",
+    "allow_notifications": "允许通知",
+    "allow_notifications_desc": "通过通知随时了解您的钱包动态。为了使用通知，我们使用配置文件在您的不同设备上同步一些设置。了解我们如何在使用此功能时保护您的隐私。",
+    "notifications_opts": {
+      "customize_session_title": "自定义您的通知",
+      "customize_session_desc": "开启您想要接收的通知类型：",
+      "account_session_title": "账户活动",
+      "account_session_desc": "选择您想要接收通知的账户：",
+      "assets_sent_title": "已发送资产",
+      "assets_sent_desc": "资金和 NFT",
+      "assets_received_title": "已接收资产",
+      "assets_received_desc": "资金和 NFT",
+      "defi_title": "去中心化金融",
+      "defi_desc": "质押、兑换和跨链桥",
+      "snaps_title": "Snap",
+      "snaps_desc": "新功能和更新",
+      "products_announcements_title": "产品公告",
+      "products_announcements_desc": "新产品和功能"
+    },
     "contacts_title": "联系方式",
     "contacts_desc": "添加、编辑、删除和管理您的账户",
     "security_title": "安全和隐私",
@@ -765,6 +827,7 @@
     "ses_heading": "代码锁定",
     "ses_description": "这是一项测试功能，可以阻止未经许可对应用程序的 JavaScript 代码进行任何更改。",
     "ses_link": "了解详情",
+    "general_heading": "General",
     "privacy_heading": "隐私",
     "failed_to_fetch_chain_id": "无法获取链 ID。您的 RPC URL 正确吗？",
     "endpoint_returned_different_chain_id": "该端点返回了一个不同的链 ID：%{chainIdReturned}",
@@ -890,9 +953,12 @@
     "token_nft_ens_subheading": "代币、NFT 和 ENS（Ethereum 域名服务）自动检测",
     "security_check_subheading": "安全检查",
     "symbol_required": "需要符号。",
-    "blockaid": "Blockaid",
+    "blockaid_desc": "隐私保护 - 不会与第三方共享任何数据。适用于 Arbitrum、Avalanche、BNB Chain、以太坊主网、Optimism、Polygon、Sepolia 和 Base。",
     "security_alerts": "安全提醒",
-    "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。"
+    "security_alerts_desc": "此功能通过本地审查您的交易和签名请求来提醒您注意恶意活动。在批准任何请求之前，请务必自行进行审慎调查。无法保证此功能能够检测到所有恶意活动。启用此功能即表示您同意提供商的使用条款。",
+    "smart_transactions_opt_in_heading": "智能交易",
+    "smart_transactions_opt_in_desc": "开启智能交易，以实现更加安全可靠的交易，并在 ETH 主网上调整费用。",
+    "smart_transactions_learn_more": "了解更多。"
   },
   "sdk": {
     "disconnect_title": "要断开所有网站的连接吗?",
@@ -1119,6 +1185,7 @@
     "confirm": "确认"
   },
   "transaction": {
+    "transaction_id": "交易 ID",
     "alert": "警报",
     "amount": "数额",
     "next": "下一步",
@@ -1291,6 +1358,7 @@
     "contract": "合约 ({{address}})",
     "contract_name": "合约名称：",
     "contract_address": "合约地址：",
+    "invalid_contract_address": " 合约地址无效。请输入新地址",
     "contract_allowance": "限额：",
     "data": "数据",
     "function_approve": "功能：批准",
@@ -1399,8 +1467,12 @@
     "to": "至",
     "details": "详细信息",
     "amount": "数额",
+    "gas_used": "已使用燃料（单位）",
     "gas_limit": "燃料限额（单位）",
     "gas_price": "燃料价格 (GWEI)",
+    "base_fee": "基础费用（GWEI）",
+    "priority_fee": "优先费用（GWEI）",
+    "max_fee": "每单位燃料的最大费用",
     "total": "总计",
     "view_on": "在以下位置查看：",
     "view_on_etherscan": "在 Etherscan 上查看",
@@ -1422,7 +1494,26 @@
     "sign_title_device": "通过您的Keystone",
     "sign_description_1": "您在使用Keystone签署后，",
     "sign_description_2": "点击‘’获取签名‘’",
-    "sign_get_signature": "获取签名"
+    "sign_get_signature": "获取签名",
+    "network_fee": "网络费"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "正在提交您的交易",
+    "status_submitting_description": "预计完成时间 {{timeLeft}}",
+    "status_success_header": "您的交易已完成",
+    "status_submitting_past_estimated_deadline_header": "抱歉让您久等",
+    "status_submitting_past_estimated_deadline_description": "如果您的交易在 {{timeLeft}} 内未完成，则会取消，您无需支付燃料费。",
+    "status_cancelled_header": "您的交易已取消",
+    "status_cancelled_description": "您的交易无法完成，因此已取消，以避免您支付不必要的燃料费。",
+    "status_failed_header": "您的交易失败",
+    "status_failed_description": "市场的突然变化可导致失败。如果问题仍然存在，请联系 MetaMask 客户支持团队。",
+    "view_transaction": "查看交易",
+    "view_activity": "查看活动",
+    "return_to_dapp": "返回 {{dappName}}",
+    "try_again": "再试一次",
+    "create_new": "创建新 {{txType}}",
+    "swap": "兑换",
+    "send": "发送"
   },
   "address_book": {
     "recents": "最近",
@@ -1771,6 +1862,16 @@
     "back_to_safety": "返回以确保安全"
   },
   "notifications": {
+    "stake_completed": "质押已完成",
+    "withdrawal_completed": "提取已完成",
+    "unstake_completed": "取消质押已完成",
+    "withdrawal_requested": "已请求提取",
+    "stake_ready_to_be_withdrawn": "已准备好提取质押",
+    "swap_completed": "已用 {{from}} 兑换 {{to}}",
+    "sent": "已发送至 {{address}}",
+    "received": "已从 {{address}} 收到",
+    "sent_nft": "已发送 NFT 至 {{address}}",
+    "received_nft": "已从 {{address}} 收到 NFT",
     "pending_title": "已提交交易",
     "pending_deposit_title": "保证经进行中！",
     "pending_withdrawal_title": "提取进行中！",
@@ -1786,6 +1887,9 @@
     "pending_deposit_message": "正在等待保证金完成",
     "pending_withdrawal_message": "正在等待提取完成",
     "error_message": "点按以查看此交易",
+    "error_retrieving_fcm_token": "获取和保存 FCM 代币时出错",
+    "error_fcm_not_found": "getFCMToken：未找到 FCM 代币",
+    "error_checking_permission": "检查用户是否具备推送通知许可时出错",
     "success_message": "点按以查看此交易",
     "speedup_message": "正在尝试加快交易",
     "success_deposit_message": "您的资金已可以使用",
@@ -1805,7 +1909,30 @@
     "wc_signed_failed_title": "此签署请求失败",
     "wc_sent_tx_rejected_title": "您已拒绝交易请求",
     "approved_tx_rejected_title": "您拒绝授予权限",
-    "wc_description": "请检查应用程序"
+    "wc_description": "请检查应用程序",
+    "wallet": "钱包",
+    "web3": "Web3",
+    "empty": {
+      "title": "此处无内容",
+      "message": "当您的钱包有活动时，您可以在此处找到通知。"
+    },
+    "list": {
+      "0": "所有",
+      "1": "钱包",
+      "2": "公告"
+    },
+    "address_copied_to_clipboard": "地址已复制到剪贴板",
+    "transaction_id_copied_to_clipboard": "交易 ID 已复制到剪贴板",
+    "activation_card": {
+      "title": "开启通知",
+      "description_1": "通过通知随时了解您的钱包动态。",
+      "description_2": "要使用此功能，我们将为您的账户生成一个匿名 ID。它仅用于同步您在 MetaMask 中的数据，不会链接到您的活动或其他标识符，从而保护您的隐私。",
+      "learn_more": "了解我们如何在使用此功能时保护您的隐私。",
+      "manage_preferences_1": "您可以随时通过以下方式关闭通知：",
+      "manage_preferences_2": "设置 > 通知。",
+      "cancel": "取消",
+      "cta": "开启"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "保护您的钱包",
@@ -2406,12 +2533,28 @@
       "title": "安全警报助您确保安全",
       "description_1": "通过由 Blockaid 提供的安全提醒避免受到已知欺诈，同时保护您的隐私。目前所有 MetaMask 用户默认启用此功能。",
       "description_2": "在批准请求之前，必须自行作出审慎调查。",
+      "description_3": "适用于 Arbitrum、Avalanche、BNB Chain、以太坊主网、Linea、Optimism、Polygon、Sepolia 和 Base。",
       "got_it": "知道了"
     },
     "sell": {
       "title": "兑现变得容易",
       "description": "直接在 MetaMask 卖出您的加密货币！我们将帮助您从值得信赖的提供商处获取报价，以便您每次都能够以便捷、快速、安全的方式卖出您的加密货币。",
       "action_text": "试试看吧"
+    },
+    "stx": {
+      "header": "智能交易简介",
+      "description_1": "解锁最安全、最可靠、最简便的交易体验 - 以更智能的方式体验 Web3。",
+      "description_2": "由于交易失败和抢先交易，每月会损失数百万美元。智能交易可以解决这一问题。",
+      "description_3": "目前，仅 ETH 主网支持智能交易。您可以随时在设置中关闭此功能。",
+      "secondary_button": "暂时不",
+      "primary_button": "启用智能交易",
+      "learn_more": "了解更多。",
+      "benefit_1_1": "失败率降低 82%",
+      "benefit_1_2": "交易",
+      "benefit_2_1": "交易",
+      "benefit_2_2": "保护",
+      "benefit_3_1": "实时",
+      "benefit_3_2": "更新"
     }
   },
   "invalid_network": {
@@ -2717,8 +2860,10 @@
     "bluetooth_off_message": "请打开您的设备的蓝牙",
     "bluetooth_access_blocked": "Ledger需要蓝牙接入，才能与移动设备配对。",
     "bluetooth_access_blocked_message": "如果您想使用蓝牙对Ledger设备进行配对，请在设置中启用蓝牙，然后重试。",
-    "location_access_blocked": "Ledger需要位置访问权限，才能与移动设备配对。",
+    "location_access_blocked": "MetaMask 需要位置访问许可才能与您的 Ledger 配对。",
     "location_access_blocked_message": "如果您想使用蓝牙对Ledger设备进行配对，请在设置中启用位置访问权限，然后重试。",
+    "nearbyDevices_access_blocked": "MetaMask 需要附近设备许可才能与您的 Ledger 配对。",
+    "nearbyDevices_access_blocked_message": "如果您想使用蓝牙对 Ledger 设备进行配对，则需要在设置中启用附近设备访问权限，然后重试。",
     "bluetooth_scanning_error": "扫描设备时出错",
     "bluetooth_scanning_error_message": "请确保设备已解锁，并且以太坊应用程序正在运行",
     "bluetooth_connection_failed": "蓝牙连接失败",
@@ -2738,10 +2883,12 @@
     "connect_ledger": "连接Ledger",
     "looking_for_device": "正在查找设备",
     "ledger_reminder_message": "请确保您的Ledger Nano X：",
-    "ledger_reminder_message_step_one": "1. 已解锁",
-    "ledger_reminder_message_step_two": "2. 已安装以太坊应用程序",
-    "ledger_reminder_message_step_three": "3. 已启用蓝牙",
-    "ledger_reminder_message_step_four": "4. 已启用位置",
+    "ledger_reminder_message_step_one": "1. 解锁您的 Ledger Nano X",
+    "ledger_reminder_message_step_two": "2. 安装并打开以太坊应用程序",
+    "ledger_reminder_message_step_three": "3. 启用蓝牙",
+    "ledger_reminder_message_step_four": "4. 使用下述精确定位后，定位已启用：",
+    "ledger_reminder_message_step_four_Androidv12plus": "4. 附近设备已启用",
+    "ledger_reminder_message_step_five": "5. 必须关闭请勿打扰",
     "available_devices": "可用设备",
     "retry": "重试",
     "continue": "继续",
@@ -2824,5 +2971,33 @@
     "okay_action": "确定",
     "error_title": "安装失败",
     "error_description": "{{snap}}安装失败。"
+  },
+  "stake": {
+    "stake": "质押"
+  },
+  "default_settings": {
+    "title": "Your Wallet is ready",
+    "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
+    "learn_more_about_privacy": "Learn more about privacy best practices.",
+    "privacy_policy": "Privacy policy",
+    "default_settings": "Default Settings",
+    "done": "Done",
+    "basic_functionality": "Basic functionality",
+    "manage_networks": "Manage networks",
+    "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
+    "manage_networks_body2": " to learn more about how Infura handles data.",
+    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
+    "sheet": {
+      "title_off": "Turn off basic functionality",
+      "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
+      "title_on": "Turn on basic functionality",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
+      "checkbox_label": "I understand and want to continue",
+      "buttons": {
+        "cancel": "Cancel",
+        "turn_on": "Turn on",
+        "turn_off": "Turn off"
+      }
+    }
   }
 }
