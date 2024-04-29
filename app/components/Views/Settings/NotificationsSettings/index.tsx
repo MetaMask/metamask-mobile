@@ -58,7 +58,7 @@ const SessionHeader = ({ title, description, styles }: SessionHeaderProps) => (
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const notificationsSettingsState = useSelector(
-    (state: any) => state.notification?.notificationsSettings,
+    (state: any) => state.notification.notificationsSettings,
   );
 
   const dispatch = useDispatch();
@@ -89,10 +89,11 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const styles = createStyles(colors);
 
   useEffect(() => {
-    mmStorage.saveLocal(
-      STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-      JSON.stringify(notificationsSettingsState),
-    );
+    notificationsSettingsState &&
+      mmStorage.saveLocal(
+        STORAGE_IDS.NOTIFICATIONS_SETTINGS,
+        JSON.stringify(notificationsSettingsState),
+      );
   }, [notificationsSettingsState]);
 
   useEffect(
