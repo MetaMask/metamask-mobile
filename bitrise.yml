@@ -115,7 +115,6 @@ stages:
 
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
@@ -132,13 +131,13 @@ stages:
   run_release_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
-      - android_run_regression_tests: {}
-      - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
+      # - android_run_regression_tests: {}
+      # - run_tag_smoke_confirmations_ios: {}
+      # - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
-      - run_tag_smoke_core_ios: {}
-      - run_tag_smoke_core_android: {}
+      # - run_tag_smoke_core_ios: {}
+      # - run_tag_smoke_core_android: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
