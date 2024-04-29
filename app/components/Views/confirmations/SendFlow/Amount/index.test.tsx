@@ -151,9 +151,12 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           CurrencyRateController: {
-            conversionRate: 1,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
+            currencyRates: {
+              ETH: {
+                conversionRate: 1,
+              },
+            },
           },
           AccountTrackerController: {
             accounts: {
@@ -194,9 +197,12 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           CurrencyRateController: {
-            conversionRate: 1,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
+            currencyRates: {
+              ETH: {
+                conversionRate: 1,
+              },
+            },
           },
           AccountTrackerController: {
             accounts: {
@@ -253,9 +259,12 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           CurrencyRateController: {
-            conversionRate: 1,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
+            currencyRates: {
+              ETH: {
+                conversionRate: 1,
+              },
+            },
           },
           AccountTrackerController: {
             accounts: {
@@ -315,9 +324,12 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           CurrencyRateController: {
-            conversionRate: 3000,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
+            currencyRates: {
+              ETH: {
+                conversionRate: 3000,
+              },
+            },
           },
         },
       },
@@ -362,10 +374,13 @@ describe('Amount', () => {
             },
           },
           CurrencyRateController: {
-            conversionRate: 3000,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
-            usdConversionRate: 3000,
+            currencyRates: {
+              ETH: {
+                conversionRate: 3000,
+                usdConversionRate: 3000,
+              },
+            },
           },
         },
       },
@@ -405,10 +420,13 @@ describe('Amount', () => {
           ...initialState.engine.backgroundState,
           CurrencyRateController: {
             ...initialState.engine.backgroundState.CurrencyRateController,
-            conversionRate: 3000,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
-            usdConversionRate: 3000,
+            currencyRates: {
+              ETH: {
+                conversionRate: 3000,
+                usdConversionRate: 3000,
+              },
+            },
           },
         },
       },
@@ -456,10 +474,13 @@ describe('Amount', () => {
             },
           },
           CurrencyRateController: {
-            conversionRate: 3000,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
-            usdConversionRate: 3000,
+            currencyRates: {
+              ETH: {
+                conversionRate: 3000,
+                usdConversionRate: 3000,
+              },
+            },
           },
         },
       },

@@ -166,7 +166,7 @@ const NetworkModals = (props: NetworkProps) => {
   const switchNetwork = () => {
     const { NetworkController, CurrencyRateController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
-    CurrencyRateController.setNativeCurrency(ticker);
+    CurrencyRateController.updateExchangeRate(ticker);
     !isprivateConnection(url.hostname) && url.set('protocol', 'https:');
     NetworkController.upsertNetworkConfiguration(
       {
