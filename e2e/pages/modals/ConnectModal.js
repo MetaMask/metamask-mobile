@@ -4,6 +4,7 @@ import {
 } from '../../selectors/Modals/ConnectAccountModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
 class ConnectModal {
   get container() {
@@ -11,7 +12,7 @@ class ConnectModal {
   }
 
   get connectButton() {
-    return Matchers.getElementByID(ConnectAccountModalSelectorsIDs.CONTAINER);
+    return Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
   }
 
   get connectAccountsButton() {
