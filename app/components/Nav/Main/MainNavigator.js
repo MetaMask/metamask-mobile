@@ -706,7 +706,7 @@ const MainNavigator = () => (
     />
     <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
     <Stack.Screen name="OfflineModeView" component={OfflineModeView} />
-    <Stack.Screen name="NotificationsView" component={NotificationsModeView} />
+    <Stack.Screen name={Routes.NOTIFICATIONS.VIEW} component={NotificationsModeView} />
     <Stack.Screen name={Routes.QR_SCANNER} component={QrScanner} />
     <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
     <Stack.Screen name={Routes.RAMP.BUY}>
