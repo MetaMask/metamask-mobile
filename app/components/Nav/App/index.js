@@ -463,6 +463,7 @@ const App = ({ userLoggedIn }) => {
         }
       }
     }
+
     initSDKConnect().catch((err) => {
       Logger.error(err, 'Error initializing SDKConnect');
     });
@@ -708,7 +709,10 @@ const App = ({ userLoggedIn }) => {
 
   const LedgerConnectFlow = () => (
     <Stack.Navigator initialRouteName={Routes.HW.LEDGER_CONNECT}>
-      <Stack.Screen name={Routes.HW.LEDGER_CONNECT} component={LedgerConnect} />
+      <Stack.Screen
+        name={Routes.HW.LEDGER_CONNECT}
+        component={LedgerSelectAccount}
+      />
     </Stack.Navigator>
   );
 

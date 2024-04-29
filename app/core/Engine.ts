@@ -125,7 +125,7 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, DERIVATION_PARAMS } from './Encryptor';
+import { Encryptor, LEGACY_DERIVATION_PARAMS } from './Encryptor';
 import {
   isMainnetByChainId,
   getDecimalChainId,
@@ -195,7 +195,7 @@ import {
 const NON_EMPTY = 'NON_EMPTY';
 
 const encryptor = new Encryptor({
-  derivationParams: DERIVATION_PARAMS,
+  derivationParams: LEGACY_DERIVATION_PARAMS,
 });
 let currentChainId: any;
 
@@ -210,6 +210,7 @@ interface TestOrigin {
   type: `${PhishingController['name']}:testOrigin`;
   handler: PhishingController['test'];
 }
+
 type PhishingControllerActions = MaybeUpdateState | TestOrigin;
 
 type SnapsGlobalActions =
@@ -348,6 +349,7 @@ class Engine {
    * Object that runs and manages the execution of Snaps
    */
   snapExecutionService: WebViewExecutionService;
+
   ///: END:ONLY_INCLUDE_IF
 
   /**
@@ -430,7 +432,6 @@ class Engine {
           listener,
         ),
       chainId: networkController.state.providerConfig.chainId,
-      //@ts-expect-error This will be fixed when assets-controller is on v16
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
     });
@@ -444,14 +445,20 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        getNetworkClientById:
+          networkController.getNetworkClientById.bind(networkController),
         // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted<
           'NftController',
-          'ApprovalController:addRequest',
+          | 'ApprovalController:addRequest'
+          | 'NetworkController:getNetworkClientById',
           never
         >({
           name: 'NftController',
-          allowedActions: [`${approvalController.name}:addRequest`],
+          allowedActions: [
+            `${approvalController.name}:addRequest`,
+            `${networkController.name}:getNetworkClientById`,
+          ],
         }),
         chainId: networkController.state.providerConfig.chainId,
 
@@ -521,7 +528,6 @@ class Engine {
           AppConstants.TOKEN_LIST_STATE_CHANGE_EVENT,
           listener,
         ),
-      //@ts-expect-error This will be fixed when assets-controller is on v16
       getNetworkClientById:
         networkController.getNetworkClientById.bind(networkController),
       chainId: networkController.state.providerConfig.chainId,
@@ -558,21 +564,24 @@ class Engine {
         'NetworkController:stateChange'
       >({
         name: 'TokenListController',
-        allowedEvents: ['NetworkController:stateChange'],
+        allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
     const currencyRateController = new CurrencyRateController({
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
       messenger: this.controllerMessenger.getRestricted<
         'CurrencyRateController',
-        never,
+        'NetworkController:getNetworkClientById',
         never
       >({
         name: 'CurrencyRateController',
+        allowedActions: [`${networkController.name}:getNetworkClientById`],
       }),
       state: initialState.CurrencyRateController,
     });
-    currencyRateController.start();
+    currencyRateController.startPollingByNetworkClientId(
+      networkController.state.selectedNetworkClientId,
+    );
 
     const gasFeeController = new GasFeeController({
       // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
@@ -584,10 +593,10 @@ class Engine {
       >({
         name: 'GasFeeController',
         allowedActions: [
-          'NetworkController:getNetworkClientById',
-          'NetworkController:getEIP1559Compatibility',
+          `${networkController.name}:getNetworkClientById`,
+          `${networkController.name}:getEIP1559Compatibility`,
         ],
-        allowedEvents: ['NetworkController:stateChange'],
+        allowedEvents: [`${networkController.name}:stateChange`],
       }),
       getProvider: () =>
         // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`

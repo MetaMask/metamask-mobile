@@ -3949,8 +3949,8 @@
     "@metamask/utils" "^8.2.0"
 
 "@metamask/eth-ledger-bridge-keyring@file:./package.tgz":
-  version "3.0.1"
-  resolved "file:./package.tgz#52c609bfa8718a106159fa0d077e9c236e784d68588426ca43bcb0f7292da962dfadf66f061cdd6c198803a580ef6680f4f2d7d622989c936917c686a402c09c"
+  version "3.0.0"
+  resolved "file:./package.tgz#590a1b7e720327c6293b485209a2de0505573dd36c538a958b8bc77b2a8c433652652617d54844f08e81863ecfbdb30c4bfcb156e22e49a56539f679afa15eec"
   dependencies:
     "@ethereumjs/rlp" "^4.0.0"
     "@ethereumjs/tx" "^4.2.0"
