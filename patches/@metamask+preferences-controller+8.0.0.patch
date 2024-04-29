@@ -144,23 +144,3 @@ index f8d26cb..dade0b8 100644
      LINEA_MAINNET: '0xe708',
      MOONBEAM: '0x504',
      MOONBEAM_TESTNET: '0x507',
-diff --git a/node_modules/@metamask/preferences-controller/dist/index.d.ts b/node_modules/@metamask/preferences-controller/dist/index.d.ts
-index b9e4e01..e5b8ffe 100644
---- a/node_modules/@metamask/preferences-controller/dist/index.d.ts
-+++ b/node_modules/@metamask/preferences-controller/dist/index.d.ts
-@@ -1,2 +1,3 @@
- export * from './PreferencesController';
-+export * from './constants';
- //# sourceMappingURL=index.d.ts.map
-\ No newline at end of file
-diff --git a/node_modules/@metamask/preferences-controller/dist/index.js b/node_modules/@metamask/preferences-controller/dist/index.js
-index e953704..4410655 100644
---- a/node_modules/@metamask/preferences-controller/dist/index.js
-+++ b/node_modules/@metamask/preferences-controller/dist/index.js
-@@ -15,4 +15,5 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
- };
- Object.defineProperty(exports, "__esModule", { value: true });
- __exportStar(require("./PreferencesController"), exports);
-+__exportStar(require("./constants"), exports);
- //# sourceMappingURL=index.js.map
-\ No newline at end of file

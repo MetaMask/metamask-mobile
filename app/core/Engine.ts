@@ -432,15 +432,16 @@ class Engine {
     const assetsContractController = new AssetsContractController({
       onPreferencesStateChange: (listener) =>
         this.controllerMessenger.subscribe(
-          `AccountsController:selectedAccountChange`,
-          (newlySelectedInternalAccount) => {
-            const prevState = preferencesController.state;
+          //@ts-expect-error assets-controllers need to be bump to v^26
+          //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+          `${preferencesController.name}:stateChange`,
+          (preferencesControllerState: PreferencesState) => {
             //@ts-expect-error assets-controllers need to be bump to v^26
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
-              ...prevState,
+              ...preferencesControllerState,
               selectedAddress: toChecksumHexAddress(
-                newlySelectedInternalAccount.address,
+                preferencesControllerState.selectedAddress,
               ),
             });
           },
@@ -459,15 +460,16 @@ class Engine {
       {
         onPreferencesStateChange: (listener) =>
           this.controllerMessenger.subscribe(
-            `AccountsController:selectedAccountChange`,
-            (newlySelectedInternalAccount) => {
-              const prevState = preferencesController.state;
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+            `${preferencesController.name}:stateChange`,
+            (preferencesControllerState: PreferencesState) => {
               //@ts-expect-error assets-controllers need to be bump to v^26
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
-                ...prevState,
+                ...preferencesControllerState,
                 selectedAddress: toChecksumHexAddress(
-                  newlySelectedInternalAccount.address,
+                  preferencesControllerState.selectedAddress,
                 ),
               });
             },
@@ -547,18 +549,18 @@ class Engine {
     });
 
     const tokensController = new TokensController({
-      // TODO: The tokens controller currently does not support internalAccounts. This is done to match the behavior of the previous tokens controller subscription.
       onPreferencesStateChange: (listener) =>
         this.controllerMessenger.subscribe(
-          `AccountsController:selectedAccountChange`,
-          (newlySelectedInternalAccount) => {
-            const prevState = preferencesController.state;
+          //@ts-expect-error assets-controllers need to be bump to v^26
+          //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+          `${preferencesController.name}:stateChange`,
+          (preferencesControllerState: PreferencesState) => {
             //@ts-expect-error assets-controllers need to be bump to v^26
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
-              ...prevState,
+              ...preferencesControllerState,
               selectedAddress: toChecksumHexAddress(
-                newlySelectedInternalAccount.address,
+                preferencesControllerState.selectedAddress,
               ),
             });
           },
@@ -799,15 +801,16 @@ class Engine {
     const accountTrackerController = new AccountTrackerController({
       onPreferencesStateChange: (listener) =>
         this.controllerMessenger.subscribe(
-          `AccountsController:selectedAccountChange`,
-          (newlySelectedInternalAccount) => {
-            const prevState = preferencesController.state;
+          //@ts-expect-error assets-controllers need to be bump to v^26
+          //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+          `${preferencesController.name}:stateChange`,
+          (preferencesControllerState: PreferencesState) => {
             //@ts-expect-error assets-controllers need to be bump to v^26
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
-              ...prevState,
+              ...preferencesControllerState,
               selectedAddress: toChecksumHexAddress(
-                newlySelectedInternalAccount.address,
+                preferencesControllerState.selectedAddress,
               ),
             });
           },
@@ -1040,15 +1043,16 @@ class Engine {
       new TokenDetectionController({
         onPreferencesStateChange: (listener) =>
           this.controllerMessenger.subscribe(
-            `AccountsController:selectedAccountChange`,
-            (newlySelectedInternalAccount) => {
-              const prevState = preferencesController.state;
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+            `${preferencesController.name}:stateChange`,
+            (preferencesControllerState: PreferencesState) => {
               //@ts-expect-error assets-controllers need to be bump to v^26
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
-                ...prevState,
+                ...preferencesControllerState,
                 selectedAddress: toChecksumHexAddress(
-                  newlySelectedInternalAccount.address,
+                  preferencesControllerState.selectedAddress,
                 ),
               });
             },
@@ -1092,15 +1096,16 @@ class Engine {
         onNftsStateChange: (listener) => nftController.subscribe(listener),
         onPreferencesStateChange: (listener) =>
           this.controllerMessenger.subscribe(
-            `AccountsController:selectedAccountChange`,
-            (newlySelectedInternalAccount) => {
-              const prevState = preferencesController.state;
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+            `${preferencesController.name}:stateChange`,
+            (preferencesControllerState: PreferencesState) => {
               //@ts-expect-error assets-controllers need to be bump to v^26
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
-                ...prevState,
+                ...preferencesControllerState,
                 selectedAddress: toChecksumHexAddress(
-                  newlySelectedInternalAccount.address,
+                  preferencesControllerState.selectedAddress,
                 ),
               });
             },
@@ -1140,15 +1145,16 @@ class Engine {
           ),
         onPreferencesStateChange: (listener) =>
           this.controllerMessenger.subscribe(
-            `AccountsController:selectedAccountChange`,
-            (newlySelectedInternalAccount) => {
-              const prevState = preferencesController.state;
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+            `${preferencesController.name}:stateChange`,
+            (preferencesControllerState: PreferencesState) => {
               //@ts-expect-error assets-controllers need to be bump to v^26
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
-                ...prevState,
+                ...preferencesControllerState,
                 selectedAddress: toChecksumHexAddress(
-                  newlySelectedInternalAccount.address,
+                  preferencesControllerState.selectedAddress,
                 ),
               });
             },
@@ -1295,13 +1301,14 @@ class Engine {
           }),
           onPreferencesChange: (listener) =>
             this.controllerMessenger.subscribe(
-              `AccountsController:selectedAccountChange`,
-              (newlySelectedInternalAccount) => {
-                const prevState = preferencesController.state;
+              //@ts-expect-error assets-controllers need to be bump to v^26
+              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+              `${preferencesController.name}:stateChange`,
+              (preferencesControllerState: PreferencesState) => {
                 listener({
-                  ...prevState,
+                  ...preferencesControllerState,
                   selectedAddress: toChecksumHexAddress(
-                    newlySelectedInternalAccount.address,
+                    preferencesControllerState.selectedAddress,
                   ),
                 });
               },
