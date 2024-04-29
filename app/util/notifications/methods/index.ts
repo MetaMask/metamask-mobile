@@ -418,7 +418,6 @@ export const notificationSettings = {
 
 export const requestPushNotificationsPermission = async () => {
   let permissionStatus;
-
   interface NotificationEnabledState {
     isEnabled: true;
     notificationsOpts: {
@@ -515,6 +514,7 @@ export const requestPushNotificationsPermission = async () => {
         { cancelable: false },
       );
     }
+
     return permissionStatus;
   } catch (e: any) {
     Logger.error(e, strings('notifications.error_checking_permission'));
