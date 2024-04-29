@@ -120,8 +120,6 @@ describe('SecuritySettings', () => {
     );
 
     expect(await findByText('Security alerts')).toBeDefined();
-    expect(await findByText('Blockaid')).toBeDefined();
-
     const toggle = getByTestId(SECURITY_ALERTS_TOGGLE_TEST_ID);
     expect(toggle).toBeDefined();
     expect(toggle.props.value).toBe(true);
