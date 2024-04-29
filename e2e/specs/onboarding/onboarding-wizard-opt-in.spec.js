@@ -67,9 +67,11 @@ describe(
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
       try {
-        await OnboardingWizardModal.isVisible();
+        await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
         await OnboardingWizardModal.tapNoThanksButton();
-        await OnboardingWizardModal.isNotVisible();
+        await Assertions.checkIfNotVisible(
+          OnboardingWizardModal.stepOneContainer,
+        );
       } catch {
         //
       }
@@ -87,7 +89,9 @@ describe(
     });
 
     it('should dismiss the protect your wallet modal', async () => {
-      await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
+      await Assertions.checkIfVisible(
+        ProtectYourWalletModal.collapseWalletModal,
+      );
       await TestHelpers.delay(1000);
       await ProtectYourWalletModal.tapRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
@@ -123,9 +127,11 @@ describe(
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
       try {
-        await OnboardingWizardModal.isVisible();
+        await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
         await OnboardingWizardModal.tapNoThanksButton();
-        await OnboardingWizardModal.isNotVisible();
+        await Assertions.checkIfNotVisible(
+          OnboardingWizardModal.stepOneContainer,
+        );
       } catch {
         //
       }
