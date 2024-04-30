@@ -369,7 +369,7 @@ class Engine {
       // preferencesState is typed as any because if not will give an ts error on every assets-controllers using this function
       // because assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
       // and because of that preferencesState would be two different objects
-      listener: (preferencesState: any) => void,
+      listener: (preferencesState: PreferencesState) => void,
     ) => {
       const eventName = `PreferencesController:stateChange`;
 
@@ -445,6 +445,8 @@ class Engine {
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
+      //@ts-expect-error assets-controllers need to be bump to v^26
+      //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
       onPreferencesStateChange,
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
@@ -458,6 +460,8 @@ class Engine {
 
     const nftController = new NftController(
       {
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
         onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -534,6 +538,8 @@ class Engine {
     });
 
     const tokensController = new TokensController({
+      //@ts-expect-error assets-controllers need to be bump to v^26
+      //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
       onPreferencesStateChange,
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
@@ -769,6 +775,8 @@ class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     const accountTrackerController = new AccountTrackerController({
+      //@ts-expect-error assets-controllers need to be bump to v^26
+      //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
       onPreferencesStateChange,
       getIdentities: () => preferencesController.state.identities,
       getSelectedAddress: () => accountsController.getSelectedAccount().address,
@@ -996,6 +1004,8 @@ class Engine {
       tokensController,
       tokenListController,
       new TokenDetectionController({
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
         onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -1034,6 +1044,8 @@ class Engine {
       }),
       new NftDetectionController({
         onNftsStateChange: (listener) => nftController.subscribe(listener),
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
         onPreferencesStateChange,
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -1068,6 +1080,8 @@ class Engine {
             AppConstants.NETWORK_STATE_CHANGE_EVENT,
             listener,
           ),
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
         onPreferencesStateChange,
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
