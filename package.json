@@ -511,7 +511,7 @@
   },
   "engines": {
     "node": "~18.18.2",
-    "yarn": "^1.22.0"
+    "yarn": "^1.22.22"
   },
   "lavamoat": {
     "allowScripts": {
@@ -553,5 +553,6 @@
       "@metamask/sdk-communication-layer>bufferutil": false,
       "@metamask/sdk-communication-layer>utf-8-validate": false
     }
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }
