@@ -435,13 +435,9 @@ class Engine {
       onPreferencesStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           `${preferencesController.name}:stateChange`,
-          (preferencesControllerState: PreferencesState) => {
-            //@ts-expect-error assets-controllers need to be bump to v^26
-            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
-            listener({
-              ...preferencesControllerState,
-            });
-          },
+          //@ts-expect-error assets-controllers need to be bump to v^26
+          //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+          listener,
         ),
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
@@ -458,13 +454,9 @@ class Engine {
         onPreferencesStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             `${preferencesController.name}:stateChange`,
-            (preferencesControllerState: PreferencesState) => {
-              //@ts-expect-error assets-controllers need to be bump to v^26
-              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
-              listener({
-                ...preferencesControllerState,
-              });
-            },
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+            listener,
           ),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -544,13 +536,9 @@ class Engine {
       onPreferencesStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           `${preferencesController.name}:stateChange`,
-          (preferencesControllerState: PreferencesState) => {
-            //@ts-expect-error assets-controllers need to be bump to v^26
-            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
-            listener({
-              ...preferencesControllerState,
-            });
-          },
+          //@ts-expect-error assets-controllers need to be bump to v^26
+          //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+          listener,
         ),
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
@@ -789,13 +777,9 @@ class Engine {
       onPreferencesStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           `${preferencesController.name}:stateChange`,
-          (preferencesControllerState: PreferencesState) => {
-            //@ts-expect-error assets-controllers need to be bump to v^26
-            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
-            listener({
-              ...preferencesControllerState,
-            });
-          },
+          //@ts-expect-error assets-controllers need to be bump to v^26
+          //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+          listener,
         ),
       getIdentities: () => preferencesController.state.identities,
       getSelectedAddress: () => accountsController.getSelectedAccount().address,
@@ -1026,13 +1010,9 @@ class Engine {
         onPreferencesStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             `${preferencesController.name}:stateChange`,
-            (preferencesControllerState: PreferencesState) => {
-              //@ts-expect-error assets-controllers need to be bump to v^26
-              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
-              listener({
-                ...preferencesControllerState,
-              });
-            },
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+            listener,
           ),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -1074,13 +1054,9 @@ class Engine {
         onPreferencesStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             `${preferencesController.name}:stateChange`,
-            (preferencesControllerState: PreferencesState) => {
-              //@ts-expect-error assets-controllers need to be bump to v^26
-              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
-              listener({
-                ...preferencesControllerState,
-              });
-            },
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+            listener,
           ),
         onNetworkStateChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -1118,13 +1094,9 @@ class Engine {
         onPreferencesStateChange: (listener) =>
           this.controllerMessenger.subscribe(
             `${preferencesController.name}:stateChange`,
-            (preferencesControllerState: PreferencesState) => {
-              //@ts-expect-error assets-controllers need to be bump to v^26
-              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
-              listener({
-                ...preferencesControllerState,
-              });
-            },
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
+            listener,
           ),
         chainId: networkController.state.providerConfig.chainId,
         ticker: networkController.state.providerConfig.ticker,
@@ -1269,11 +1241,7 @@ class Engine {
           onPreferencesChange: (listener) =>
             this.controllerMessenger.subscribe(
               `${preferencesController.name}:stateChange`,
-              (preferencesControllerState: PreferencesState) => {
-                listener({
-                  ...preferencesControllerState,
-                });
-              },
+              listener,
             ),
           provider: networkController.getProviderAndBlockTracker()
             .provider as any,
