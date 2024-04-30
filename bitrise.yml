@@ -1347,7 +1347,7 @@ app:
       IOS_APP_LINK: ''
     - opts:
         is_expand: false
-      NODE_VERSION: 18.18.2
+      NODE_VERSION: 18.20.2
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.22
