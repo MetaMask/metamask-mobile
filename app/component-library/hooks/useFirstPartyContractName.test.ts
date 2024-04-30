@@ -4,8 +4,6 @@ import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 import { useFirstPartyContractName } from './useFirstPartyContractName';
 
 jest.mock('react-redux', () => ({
-  // TODO: Replace `any` with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSelector: (selector: any) => selector(),
 }));
 
@@ -24,7 +22,6 @@ describe('useFirstPartyContractName', () => {
   const selectChainIdMock = jest.mocked(selectChainId);
   beforeEach(() => {
     jest.resetAllMocks();
-
     selectChainIdMock.mockReturnValue(CHAIN_IDS.MAINNET);
   });
 

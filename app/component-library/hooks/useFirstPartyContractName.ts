@@ -2,6 +2,7 @@ import { NameType } from '@metamask/name-controller';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../selectors/networkController';
 import { FIRST_PARTY_CONTRACT_NAMES } from '../../constants/first-party-contracts';
+import { type Hex } from '@metamask/utils';
 
 export type UseFirstPartyContractNameRequest = {
   value: string;
@@ -12,7 +13,7 @@ export type UseFirstPartyContractNameRequest = {
 export function useFirstPartyContractNames(
   requests: UseFirstPartyContractNameRequest[],
 ): (string | null)[] {
-const currentChainId = useSelector(selectChainId);
+  const currentChainId = useSelector(selectChainId);
 
   return requests.map(({ type, value, variation }) => {
     if (type !== NameType.ETHEREUM_ADDRESS) {
@@ -25,7 +26,7 @@ const currentChainId = useSelector(selectChainId);
     return (
       Object.keys(FIRST_PARTY_CONTRACT_NAMES).find(
         (name) =>
-          FIRST_PARTY_CONTRACT_NAMES[name]?.[chainId]?.toLowerCase() ===
+          FIRST_PARTY_CONTRACT_NAMES[name]?.[chainId as Hex]?.toLowerCase() ===
           normalizedValue,
       ) ?? null
     );
