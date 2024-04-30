@@ -440,7 +440,6 @@ class Engine {
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...preferencesControllerState,
-              selectedAddress: preferencesControllerState.selectedAddress,
             });
           },
         ),
@@ -464,7 +463,6 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
-                selectedAddress: preferencesControllerState.selectedAddress,
               });
             },
           ),
@@ -551,7 +549,6 @@ class Engine {
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...preferencesControllerState,
-              selectedAddress: preferencesControllerState.selectedAddress,
             });
           },
         ),
@@ -797,7 +794,6 @@ class Engine {
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...preferencesControllerState,
-              selectedAddress: preferencesControllerState.selectedAddress,
             });
           },
         ),
@@ -1035,7 +1031,6 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
-                selectedAddress: preferencesControllerState.selectedAddress,
               });
             },
           ),
@@ -1084,7 +1079,6 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
-                selectedAddress: preferencesControllerState.selectedAddress,
               });
             },
           ),
@@ -1129,7 +1123,6 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
-                selectedAddress: preferencesControllerState.selectedAddress,
               });
             },
           ),
@@ -1279,7 +1272,6 @@ class Engine {
               (preferencesControllerState: PreferencesState) => {
                 listener({
                   ...preferencesControllerState,
-                  selectedAddress: preferencesControllerState.selectedAddress,
                 });
               },
             ),
