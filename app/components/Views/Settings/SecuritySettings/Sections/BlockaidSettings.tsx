@@ -1,5 +1,4 @@
 import React from 'react';
-import Device from '../../../../../util/device';
 import Text, {
   TextVariant,
   TextColor,
@@ -37,30 +36,9 @@ const BlockaidSettings = () => {
 
   return (
     <>
-      {Device.isAndroid() && (
-        <Text
-          color={TextColor.Default}
-          variant={TextVariant.HeadingLG}
-          style={styles.heading}
-        >
-          {strings('app_settings.security_heading')}
-        </Text>
-      )}
-      <View style={styles.setting}>
+      <View style={styles.marginedSwitchElement}>
         <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
           {strings('app_settings.security_alerts')}
-        </Text>
-        <Text
-          color={TextColor.Alternative}
-          variant={TextVariant.BodyMD}
-          style={styles.desc}
-        >
-          {strings('app_settings.security_alerts_desc')}
-        </Text>
-      </View>
-      <View style={styles.switchElement}>
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
-          {strings('app_settings.blockaid')}
         </Text>
         <Switch
           value={securityAlertsEnabled}

@@ -55,7 +55,6 @@ import {
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../../../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../../../../selectors/tokenRatesController';
 import { createBrowserNavDetails } from '../../../../Browser';
@@ -204,7 +203,6 @@ class TransactionReviewInformation extends PureComponent {
      * Set proposed nonce (from network)
      */
     setProposedNonce: PropTypes.func,
-    nativeCurrency: PropTypes.string,
     gasEstimateType: PropTypes.string,
     EIP1559GasData: PropTypes.object,
     origin: PropTypes.string,
@@ -382,7 +380,6 @@ class TransactionReviewInformation extends PureComponent {
   }) => {
     const {
       transaction: { value, selectedAsset, assetType },
-      nativeCurrency,
       currentCurrency,
       conversionRate,
       contractExchangeRates,
@@ -403,7 +400,7 @@ class TransactionReviewInformation extends PureComponent {
           totalMaxConversion,
         } = calculateAmountsEIP1559({
           value: value && BNToHex(value),
-          nativeCurrency,
+          nativeCurrency: ticker,
           currentCurrency,
           conversionRate,
           gasFeeMinConversion,
@@ -418,7 +415,7 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMaxNative,
           renderableTotalMaxConversion,
         ] = calculateEthEIP1559({
-          nativeCurrency: this.isTestNetwork() ? ticker : nativeCurrency,
+          nativeCurrency: ticker,
           currentCurrency,
           totalMinNative,
           totalMinConversion,
@@ -441,7 +438,7 @@ class TransactionReviewInformation extends PureComponent {
           totalMaxConversion,
         } = calculateAmountsEIP1559({
           value: '0x0',
-          nativeCurrency,
+          nativeCurrency: ticker,
           currentCurrency,
           conversionRate,
           gasFeeMinConversion,
@@ -464,7 +461,7 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMaxConversion,
         ] = calculateERC20EIP1559({
           currentCurrency,
-          nativeCurrency,
+          nativeCurrency: ticker,
           conversionRate,
           exchangeRate,
           tokenAmount,
@@ -489,7 +486,7 @@ class TransactionReviewInformation extends PureComponent {
           totalMaxConversion,
         } = calculateAmountsEIP1559({
           value: '0x0',
-          nativeCurrency,
+          nativeCurrency: ticker,
           currentCurrency,
           conversionRate,
           gasFeeMinConversion,
@@ -504,7 +501,7 @@ class TransactionReviewInformation extends PureComponent {
           renderableTotalMaxNative,
           renderableTotalMaxConversion,
         ] = calculateEthEIP1559({
-          nativeCurrency: this.isTestNetwork() ? ticker : nativeCurrency,
+          nativeCurrency: ticker,
           currentCurrency,
           totalMinNative,
           totalMinConversion,
@@ -740,7 +737,6 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  nativeCurrency: selectNativeCurrency(state),
   contractExchangeRates: selectContractExchangeRates(state),
   transaction: getNormalizedTxState(state),
   ticker: selectTicker(state),
