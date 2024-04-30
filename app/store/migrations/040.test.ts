@@ -63,14 +63,14 @@ describe('Migration #40', () => {
   const invalidStates = [
     {
       state: null,
-      errorMessage: "Migration 40: Invalid root state: 'object'",
+      errorMessage: "Migration 40: Invalid state error: 'object'",
       scenario: 'state is invalid',
     },
     {
       state: merge({}, initialRootState, {
         engine: null,
       }),
-      errorMessage: "Migration 40: Invalid root engine state: 'object'",
+      errorMessage: "Migration 40: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -80,7 +80,7 @@ describe('Migration #40', () => {
         },
       }),
       errorMessage:
-        "Migration 40: Invalid root engine backgroundState: 'object'",
+        "Migration 40: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {

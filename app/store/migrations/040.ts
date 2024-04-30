@@ -1,30 +1,9 @@
 import { isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
+import { ensureValidState } from './util';
 
 export default function migrate(state: unknown) {
-  if (!isObject(state)) {
-    captureException(
-      new Error(`Migration 40: Invalid root state: '${typeof state}'`),
-    );
-    return state;
-  }
-
-  if (!isObject(state.engine)) {
-    captureException(
-      new Error(
-        `Migration 40: Invalid root engine state: '${typeof state.engine}'`,
-      ),
-    );
-    return state;
-  }
-
-  if (!isObject(state.engine.backgroundState)) {
-    captureException(
-      new Error(
-        `Migration 40: Invalid root engine backgroundState: '${typeof state
-          .engine.backgroundState}'`,
-      ),
-    );
+  if (!ensureValidState(state, 40)) {
     return state;
   }
 
