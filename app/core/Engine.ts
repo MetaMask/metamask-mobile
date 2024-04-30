@@ -1399,7 +1399,7 @@ class Engine {
     } = this.context;
     const { selectedAddress } = PreferencesController.state;
     const { currentCurrency } = CurrencyRateController.state;
-    const { chainId } = NetworkController.state.providerConfig;
+    const {chainId, ticker } = NetworkController.state.providerConfig;
     const {
       settings: { showFiatOnTestnets },
     } = store.getState();
@@ -1409,10 +1409,10 @@ class Engine {
     }
 
     const conversionRate =
-      CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
+      CurrencyRateController.state?.currencyRates?.[ticker]
         ?.conversionRate === null
         ? 0
-        : CurrencyRateController.state?.currencyRates?.[networkProvider?.ticker]
+        : CurrencyRateController.state?.currencyRates?.[ticker]
             ?.conversionRate;
     const { accountsByChainId } = AccountTrackerController.state;
 
