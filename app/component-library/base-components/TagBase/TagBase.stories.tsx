@@ -32,19 +32,21 @@ const TagBaseMeta = {
         min: 0,
       },
     },
-    showSampleStartAccessory: {
-      control: {
-        type: 'boolean',
-      },
-    },
     includesBorder: {
       control: {
         type: 'boolean',
       },
     },
-    showSampleEndAccessory: {
+    startAccessory: {
       control: {
         type: 'boolean',
+        description: 'Show startAccessory',
+      },
+    },
+    endAccessory: {
+      control: {
+        type: 'boolean',
+        description: 'Show endAccessory',
       },
     },
   },
@@ -57,17 +59,17 @@ export const TagBase = {
     shape: SAMPLE_TAGBASE_PROPS.shape,
     gap: SAMPLE_TAGBASE_PROPS.gap,
     severity: SAMPLE_TAGBASE_PROPS.severity,
-    showSampleStartAccessory: false,
-    showSampleEndAccessory: false,
+    startAccessory: false,
+    endAccessory: false,
     includesBorder: false,
   },
   render: (args: any) => (
     <TagBaseComponent
       startAccessory={
-        args.showSampleStartAccessory && SAMPLE_TAGBASE_PROPS.startAccessory
+        args.startAccessory && SAMPLE_TAGBASE_PROPS.startAccessory
       }
       endAccessory={
-        args.showSampleEndAccessory && SAMPLE_TAGBASE_PROPS.endAccessory
+        args.endAccessory && SAMPLE_TAGBASE_PROPS.endAccessory
       }
       shape={args.shape}
       severity={args.severity}
