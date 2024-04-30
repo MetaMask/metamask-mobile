@@ -53,6 +53,14 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
     }
   >
     <Badge
+      imageSource={
+        Object {
+          "default": Object {
+            "uri": "MockImage",
+          },
+        }
+      }
+      name="Ethereum"
       variant="network"
     />
   </View>
