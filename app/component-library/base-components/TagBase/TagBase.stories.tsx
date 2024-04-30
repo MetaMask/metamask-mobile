@@ -68,9 +68,7 @@ export const TagBase = {
       startAccessory={
         args.startAccessory && SAMPLE_TAGBASE_PROPS.startAccessory
       }
-      endAccessory={
-        args.endAccessory && SAMPLE_TAGBASE_PROPS.endAccessory
-      }
+      endAccessory={args.endAccessory && SAMPLE_TAGBASE_PROPS.endAccessory}
       shape={args.shape}
       severity={args.severity}
       gap={args.gap}
