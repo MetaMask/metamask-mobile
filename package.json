@@ -341,9 +341,9 @@
   "devDependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.1",
-    "@babel/core": "^7.23.2",
-    "@babel/preset-env": "^7.23.2",
-    "@babel/runtime": "^7.23.2",
+    "@babel/core": "^7.24.5",
+    "@babel/preset-env": "^7.24.5",
+    "@babel/runtime": "^7.24.5",
     "@cucumber/message-streams": "^4.0.1",
     "@cucumber/messages": "^22.0.0",
     "@ethersproject/contracts": "^5.7.0",
