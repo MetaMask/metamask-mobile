@@ -15,6 +15,7 @@ import {
   TRIGGER_TYPES,
   mmStorage,
 } from '../../../util/notifications';
+import images from '../../../images/image-icons';
 import { formatAddress } from '../../../util/address';
 import { STORAGE_IDS } from '../settings/storage/constants';
 import Device from '../../../util/device';
@@ -216,12 +217,17 @@ export function getRowDetails(
           }`,
         },
         details: {
+          badgeIcon: getNotificationBadge(notification.type),
           stake_in: notification.data.stake_in,
           stake_out: notification.data.stake_out,
+          tx_hash: notification.tx_hash,
           status: notification.tx_hash
             ? TxStatus.CONFIRMED
             : TxStatus.UNAPPROVED,
-          network: getNetwork(notification.chain_id),
+          network: {
+            name: getNetwork(notification.chain_id),
+            image: notification.data.stake_in.image,
+          },
           networkFee: {
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
@@ -248,12 +254,18 @@ export function getRowDetails(
           value: `${notification.data.staked_eth.amount} ${notification.data.staked_eth.symbol}`,
         },
         details: {
+          type: notification.type,
+          badgeIcon: getNotificationBadge(notification.type),
           request_id: notification.data.request_id,
           staked_eth: notification.data.staked_eth,
+          tx_hash: notification.tx_hash,
           status: notification.tx_hash
             ? TxStatus.CONFIRMED
             : TxStatus.UNAPPROVED,
-          network: getNetwork(notification.chain_id),
+          network: {
+            name: getNetwork(notification.chain_id),
+            image: notification.data.staked_eth.image,
+          },
         },
       };
     case TRIGGER_TYPES.METAMASK_SWAP_COMPLETED:
@@ -279,13 +291,19 @@ export function getRowDetails(
           }`,
         },
         details: {
+          type: notification.type,
+          badgeIcon: getNotificationBadge(notification.type),
           rate: notification.data.rate,
           token_in: notification.data.token_in,
           token_out: notification.data.token_out,
+          tx_hash: notification.tx_hash,
           status: notification.tx_hash
             ? TxStatus.CONFIRMED
             : TxStatus.UNAPPROVED,
-          network: getNetwork(notification.chain_id),
+          network: {
+            name: getNetwork(notification.chain_id),
+            image: notification.data.token_in.image,
+          },
           networkFee: {
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
@@ -320,18 +338,31 @@ export function getRowDetails(
           value: `${notification.data.amount.eth} ETH`,
         },
         details: {
+          type: notification.type,
+          badgeIcon: getNotificationBadge(notification.type),
           amount: notification.data.amount,
           from: notification.data.from,
           to: notification.data.to,
+          tx_hash: notification.tx_hash,
           status: notification.tx_hash
             ? TxStatus.CONFIRMED
             : TxStatus.UNAPPROVED,
-          network: getNetwork(notification.chain_id),
+          network: {
+            name: getNetwork(notification.chain_id),
+            image: images.ETHEREUM,
+          },
           networkFee: {
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
               notification.data?.network_fee.native_token_price_in_usd,
             details: {},
+          },
+          token: {
+            name: 'Ethereum',
+            symbol: 'ETH',
+            image: images.ETHEREUM,
+            amount: notification.data.amount.eth,
+            address: '0xdb24b8170fc863c77f50a2b25297f642c5fe5010',
           },
         },
       };
@@ -364,13 +395,19 @@ export function getRowDetails(
           }`,
         },
         details: {
+          type: notification.type,
+          badgeIcon: getNotificationBadge(notification.type),
           token: notification.data.token,
           from: notification.data.from,
           to: notification.data.to,
+          tx_hash: notification.tx_hash,
           status: notification.tx_hash
             ? TxStatus.CONFIRMED
             : TxStatus.UNAPPROVED,
-          network: getNetwork(notification.chain_id),
+          network: {
+            name: getNetwork(notification.chain_id),
+            image: notification.data.token.image,
+          },
           networkFee: {
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:
@@ -405,6 +442,8 @@ export function getRowDetails(
           value: `#${notification.data?.nft?.token_id}`,
         },
         details: {
+          type: notification.type,
+          badgeIcon: getNotificationBadge(notification.type),
           nft: {
             name: notification.data?.nft?.name,
             image: notification.data?.nft?.image,
@@ -416,7 +455,10 @@ export function getRowDetails(
             ? TxStatus.CONFIRMED
             : TxStatus.UNAPPROVED,
           collection: notification.data?.nft?.collection,
-          network: getNetwork(notification.chain_id),
+          network: {
+            name: getNetwork(notification.chain_id),
+            image: notification.data.nft?.image,
+          },
           networkFee: {
             gas_price: notification.data?.network_fee.gas_price,
             native_token_price_in_usd:

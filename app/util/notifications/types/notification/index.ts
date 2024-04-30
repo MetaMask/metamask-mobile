@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import type { FeatureAnnouncementRawNotification } from '../featureAnnouncement';
 import type { HalRawNotification } from '../halNotification';
 import type { Compute } from '../type-utils';
+import { TRIGGER_TYPES } from '../../constants';
 
 /**
  * The shape of a "generic" notification.
@@ -111,3 +112,16 @@ export interface MarketingNotificationData {
   route?: string;
   routeProps?: string;
 }
+
+export const STAKING_PROVIDER_MAP: Record<
+  | 'lido_stake_completed'
+  | 'rocketpool_stake_completed'
+  | 'rocketpool_unstake_completed'
+  | 'lido_withdrawal_completed',
+  string
+> = {
+  [TRIGGER_TYPES.LIDO_STAKE_COMPLETED]: 'Lido-staked ETH',
+  [TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED]: 'Lido-staked ETH',
+  [TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED]: 'Rocket Pool-staked ETH',
+  [TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED]: 'Rocket Pool-staked ETH',
+};
