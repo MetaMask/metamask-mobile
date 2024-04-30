@@ -27,7 +27,11 @@ const mockInitialState = {
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
-        conversionRate: 1,
+        currencyRates: {
+          ETH: {
+            conversionRate: 1,
+          },
+        },
       },
       PreferencesController: {
         identities: {

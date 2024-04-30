@@ -117,13 +117,14 @@ class FixtureBuilder {
               preventPollingOnNetworkRestart: false,
             },
             CurrencyRateController: {
-              conversionDate: 1684232383.997,
-              conversionRate: 1815.41,
-              nativeCurrency: 'ETH',
               currentCurrency: 'usd',
-              pendingCurrentCurrency: null,
-              pendingNativeCurrency: null,
-              usdConversionRate: 1815.41,
+              currencyRates: {
+                ETH: {
+                  conversionDate: 1684232383.997,
+                  conversionRate: 1815.41,
+                  usdConversionRate: 1815.41,
+                },
+              },
             },
             KeyringController: {
               vault:
@@ -389,6 +390,7 @@ class FixtureBuilder {
           lockTime: 30000,
           useBlockieIcon: true,
           hideZeroBalanceTokens: false,
+          basicFunctionalityEnabled: true,
         },
         alert: {
           isVisible: false,

@@ -1,20 +1,17 @@
 import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import { View, StyleSheet } from 'react-native';
-import { connect } from 'react-redux';
-import DefaultPreference from 'react-native-default-preference';
-import Modal from 'react-native-modal';
 import { colors as importedColors } from '../../../styles/common';
-
+import { connect } from 'react-redux';
 import Step1 from './Step1';
 import Step2 from './Step2';
 import Step3 from './Step3';
 import Step4 from './Step4';
 import Step5 from './Step5';
 import Step6 from './Step6';
-import Step7 from './Step7';
 import setOnboardingWizardStep from '../../../actions/wizard';
-import Routes from '../../../constants/navigation/Routes';
+import DefaultPreference from 'react-native-default-preference';
+import Modal from 'react-native-modal';
 import { ONBOARDING_WIZARD, EXPLORED } from '../../../constants/storage';
 import {
   MetaMetricsEvents,
@@ -82,8 +79,6 @@ const OnboardingWizard = (props) => {
   const theme = useTheme();
   const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
-  // eslint-disable-next-line no-console
-  console.log('OnboardingWizard', step);
 
   /**
    * Close onboarding wizard setting step to 0 and closing drawer
@@ -126,7 +121,6 @@ const OnboardingWizard = (props) => {
         />
       ),
       6: <Step6 navigation={navigation} onClose={closeOnboardingWizard} />,
-      7: <Step7 navigation={navigation} onClose={closeOnboardingWizard} />,
     };
     return steps[step];
   };
@@ -134,13 +128,13 @@ const OnboardingWizard = (props) => {
   const getBackButtonBehavior = () => {
     if (step === 1) {
       return closeOnboardingWizard();
-    } else if (step === 6) {
-      setOnboardingWizardStep(5);
-      navigation.navigate(Routes.WALLET.HOME);
+    } else if (step === 5) {
+      setOnboardingWizardStep(4);
+      navigation.navigate('WalletView');
       drawerRef?.current?.dismissDrawer?.();
-    } else if (step === 7) {
+    } else if (step === 6) {
       drawerRef?.current?.showDrawer?.();
-      setOnboardingWizardStep(6);
+      setOnboardingWizardStep(5);
     }
     return setOnboardingWizardStep(step - 1);
   };
