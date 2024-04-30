@@ -1408,6 +1408,9 @@
     "remove_bookmark_title": "Remove favorite",
     "remove_bookmark_msg": "Do you really want to remove this site from your favorites?",
     "yes": "Yes",
+    "undefined_account": "Undefined account",
+    "close_tab": "Close tab",
+    "switch_tab": "Switch tab", 
     "protocol_alert_options": {
       "ignore": "Ignore",
       "allow": "Allow"
