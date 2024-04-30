@@ -16,7 +16,6 @@ import styleSheet from './TagBase.styles';
 import { TagBaseProps } from './TagBase.types';
 import {
   DEFAULT_TAGBASE_SHAPE,
-  DEFAULT_TAGBASE_TEXTVARIANT,
   DEFAULT_TAGBASE_GAP,
   TAGBASE_TESTID,
   TAGBASE_TEXT_TESTID,
@@ -59,12 +58,7 @@ const TagBase: React.FC<TagBaseProps> = ({
       )}
       <ListItemColumn widthType={WidthType.Fill}>
         {typeof children === 'string' ? (
-          <Text
-            variant={DEFAULT_TAGBASE_TEXTVARIANT}
-            style={styles.text}
-            testID={TAGBASE_TEXT_TESTID}
-            {...textProps}
-          >
+          <Text style={styles.text} testID={TAGBASE_TEXT_TESTID} {...textProps}>
             {children}
           </Text>
         ) : (

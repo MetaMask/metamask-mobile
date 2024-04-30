@@ -3,7 +3,6 @@
 import React from 'react';
 
 // External dependencies
-import { TextVariant } from '../../components/Texts/Text';
 import Icon from '../../components/Icons/Icon';
 import { SAMPLE_ICON_PROPS } from '../../components/Icons/Icon/Icon.constants';
 import { SAMPLE_TEXT_PROPS } from '../../components/Texts/Text/Text.constants';
@@ -14,7 +13,6 @@ import { TagShape, TagSeverity, TagBaseProps } from './TagBase.types';
 // Defaults
 export const DEFAULT_TAGBASE_SHAPE = TagShape.Pill;
 export const DEFAULT_TAGBASE_SEVERITY = TagSeverity.Default;
-export const DEFAULT_TAGBASE_TEXTVARIANT = TextVariant.BodyXS;
 export const DEFAULT_TAGBASE_GAP = 8;
 
 // // Test IDs

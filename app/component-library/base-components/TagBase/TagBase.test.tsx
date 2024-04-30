@@ -10,7 +10,6 @@ import { mockTheme } from '../../../util/theme';
 // Internal dependencies
 import TagBase from './TagBase';
 import {
-  DEFAULT_TAGBASE_TEXTVARIANT,
   SAMPLE_TAGBASE_PROPS,
   TAGBASE_TESTID,
   TAGBASE_TEXT_TESTID,
@@ -43,16 +42,6 @@ describe('TagBase', () => {
     const { getByText } = render(<TagBase>{testText}</TagBase>);
 
     expect(getByText(testText)).toBeDefined();
-  });
-
-  it('should render children with the right text variant if typeof children === string', () => {
-    const testText = 'TagBase';
-
-    const { getByText } = render(<TagBase>{testText}</TagBase>);
-
-    expect(getByText(testText).props.style.fontSize).toBe(
-      mockTheme.typography[DEFAULT_TAGBASE_TEXTVARIANT].fontSize,
-    );
   });
 
   it('should render the correct default shape on default', () => {
