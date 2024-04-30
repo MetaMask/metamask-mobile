@@ -46,19 +46,11 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await loginToApp();
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
-        await TestDApp.tapButtonWithContract({
-          buttonId: WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID,
+
+        await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
-
-        // await TestDApp.tapApproveButton();
-
-        // // Approve ERC20 tokens
-        // await TestDApp.tapButtonWithContract({
-        //   buttonId: WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID,
-        //   contractAddress: hstAddress,
-        // });
-        // await TestDApp.tapApproveButton();
+        await TestDApp.tapApproveButton();
 
         //Input custom token amount
         await ContractApprovalModal.clearInput();

@@ -44,14 +44,14 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
-        await TestDApp.tapButtonWithContract({
-          buttonId: WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID,
-          contractAddress: nftsAddress,
+        await TestDApp.navigateToTestDappWithContract({
+          contractAddress: hstAddress,
         });
         await TestHelpers.delay(3000);
+
         // Transfer ERC20 tokens
-        // await TestDApp.tapERC20TransferButton();
-        // await TestHelpers.delay(3000);
+        await TestDApp.tapERC20TransferButton();
+        await TestHelpers.delay(3000);
 
         // Tap confirm button
         await TestDApp.tapConfirmButton();
