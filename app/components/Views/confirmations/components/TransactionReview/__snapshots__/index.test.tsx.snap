@@ -208,7 +208,8 @@ Array [
                       "aspectRatio": 1,
                       "height": "50%",
                       "justifyContent": "center",
-                      "minHeight": 16,
+                      "maxHeight": 24,
+                      "minHeight": 8,
                       "opacity": 0,
                     }
                   }
@@ -219,10 +220,19 @@ Array [
                       Object {
                         "alignItems": "center",
                         "backgroundColor": "#FFFFFF",
+                        "borderColor": "#FFFFFF",
                         "borderRadius": 16,
+                        "borderWidth": 2,
                         "height": 32,
                         "justifyContent": "center",
                         "overflow": "hidden",
+                        "shadowColor": "#0000001A",
+                        "shadowOffset": Object {
+                          "height": 2,
+                          "width": 0,
+                        },
+                        "shadowOpacity": 1,
+                        "shadowRadius": 4,
                         "transform": Array [
                           Object {
                             "scale": 1,
