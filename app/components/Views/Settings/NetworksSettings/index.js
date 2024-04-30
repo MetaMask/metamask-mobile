@@ -170,7 +170,6 @@ class NetworksSettings extends PureComponent {
     const { navigation } = this.props;
     navigation.navigate(Routes.ADD_NETWORK, {
       network: networkTypeOrRpcUrl,
-      isEdit: true,
     });
   };
 
