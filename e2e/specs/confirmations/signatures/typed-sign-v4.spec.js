@@ -1,9 +1,9 @@
 'use strict';
-import Browser from '../../../pages/Browser/Browser';
+import Browser from '../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../pages/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
 import SigningModal from '../../../pages/modals/SigningModal';
-import { TestDApp } from '../../../pages/Browser/TestDApp';
+import TestDApp from '../../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
@@ -36,18 +36,14 @@ describe(SmokeConfirmations('Typed Sign V4'), () => {
 
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
+        await TestDApp.tapTypedV4SignButton();
+        await SigningModal.isTypedRequestVisible();
+        await SigningModal.tapCancelButton();
+        await SigningModal.isNotVisible();
+        await TestDApp.tapTypedV4SignButton();
 
-        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapTypedV4SignButton();
-          await SigningModal.isTypedRequestVisible();
-          await SigningModal.tapCancelButton();
-          await SigningModal.isNotVisible();
-
-          await TestDApp.tapTypedV4SignButton();
-
-          await SigningModal.tapSignButton();
-          await SigningModal.isNotVisible();
-        });
+        await SigningModal.tapSignButton();
+        await SigningModal.isNotVisible();
       },
     );
   });

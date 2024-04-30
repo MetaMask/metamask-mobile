@@ -7,8 +7,10 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
+import Browser from '../../pages/Browser/BrowserView';
+
 import TabBarComponent from '../../pages/TabBarComponent';
-import { TestDApp } from '../../pages/Browser/TestDApp';
+import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import enContent from '../../../locales/languages/en.json';
 import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
@@ -44,12 +46,19 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await loginToApp();
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
-
-        // Approve ERC20 tokens
         await TestDApp.tapButtonWithContract({
           buttonId: WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID,
           contractAddress: hstAddress,
         });
+
+        // await TestDApp.tapApproveButton();
+
+        // // Approve ERC20 tokens
+        // await TestDApp.tapButtonWithContract({
+        //   buttonId: WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID,
+        //   contractAddress: hstAddress,
+        // });
+        // await TestDApp.tapApproveButton();
 
         //Input custom token amount
         await ContractApprovalModal.clearInput();

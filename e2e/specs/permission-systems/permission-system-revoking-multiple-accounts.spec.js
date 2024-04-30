@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import Browser from '../../pages/Browser/Browser';
+import Browser from '../../pages/Browser/BrowserView';
 import AccountListView from '../../pages/AccountListView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';

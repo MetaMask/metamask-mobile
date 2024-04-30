@@ -102,7 +102,15 @@ class Matchers {
   static async getElementByXPath(xpath) {
     return web.element(by.web.xpath(xpath));
   }
-
+  /**
+   * Get element by href.
+   *
+   * @param {string} xpath - XPath expression to locate the element
+   * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
+   */
+  static async getElementByHref(url) {
+    return web.element(by.web.href(url));
+  }
   /**
    * Get element by ID.
    *

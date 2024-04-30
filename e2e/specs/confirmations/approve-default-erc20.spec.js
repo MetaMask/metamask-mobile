@@ -7,15 +7,17 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
+import Browser from '../../pages/Browser/BrowserView';
+
 import TabBarComponent from '../../pages/TabBarComponent';
-import { TestDApp } from '../../pages/Browser/TestDApp';
+import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import enContent from '../../../locales/languages/en.json';
 import { ContractApprovalModalSelectorsIDs } from '../../selectors/Modals/ContractApprovalModal.selectors';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
-const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 const EXPECTED_TOKEN_AMOUNT = '7';
+const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
@@ -44,12 +46,13 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await loginToApp();
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
-
-        // Approve ERC20 tokens
+        await Browser.navigateToTestDApp();
         await TestDApp.tapButtonWithContract({
           buttonId: WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID,
           contractAddress: hstAddress,
         });
+        // Approve ERC20 tokens
+        // await TestDApp.tapApproveButton();
 
         // Assert the default token amount is shown
         await TestHelpers.checkIfExists(

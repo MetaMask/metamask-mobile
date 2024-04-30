@@ -1,9 +1,9 @@
 'use strict';
-import Browser from '../../../pages/Browser/Browser';
+import Browser from '../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../pages/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
 import SigningModal from '../../../pages/modals/SigningModal';
-import { TestDApp } from '../../../pages/Browser/TestDApp';
+import TestDApp from '../../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
@@ -42,18 +42,17 @@ describe(SmokeConfirmations('Eth Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        await TestHelpers.retry(MAX_ATTEMPTS, async () => {
-          await TestDApp.tapEthSignButton();
-          await SigningModal.isEthRequestVisible();
-          await SigningModal.tapCancelButton();
+        await TestDApp.tapEthSignButton();
 
-          await SigningModal.isNotVisible();
+        await SigningModal.isEthRequestVisible();
+        await SigningModal.tapCancelButton();
+        await SigningModal.isNotVisible();
 
-          await TestDApp.tapEthSignButton();
-          await SigningModal.isEthRequestVisible();
-          await SigningModal.tapSignButton();
-          await SigningModal.isNotVisible();
-        });
+        await TestDApp.tapEthSignButton();
+
+        await SigningModal.isEthRequestVisible();
+        await SigningModal.tapSignButton();
+        await SigningModal.isNotVisible();
       },
     );
   });
