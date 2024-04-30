@@ -24,7 +24,6 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
         "padding": 0,
       }
     }
-    testID="cellmultiselect"
   >
     <TouchableOpacity
       disabled={false}

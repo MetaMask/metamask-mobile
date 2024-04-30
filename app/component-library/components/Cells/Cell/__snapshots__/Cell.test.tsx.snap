@@ -267,7 +267,6 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
         "padding": 0,
       }
     }
-    testID="cellmultiselect"
   >
     <TouchableOpacity
       disabled={false}
