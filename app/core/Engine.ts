@@ -55,6 +55,7 @@ import {
 } from '@metamask/phishing-controller';
 import {
   PreferencesController,
+  PreferencesControllerActions,
   PreferencesControllerEvents,
   PreferencesState,
 } from '@metamask/preferences-controller';
@@ -234,7 +235,8 @@ type GlobalActions =
   | SnapsGlobalActions
   ///: END:ONLY_INCLUDE_IF
   | KeyringControllerActions
-  | AccountsControllerActions;
+  | AccountsControllerActions
+  | PreferencesControllerActions;
 type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
@@ -434,6 +436,8 @@ class Engine {
         this.controllerMessenger.subscribe(
           `${preferencesController.name}:stateChange`,
           (preferencesControllerState: PreferencesState) => {
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...preferencesControllerState,
               selectedAddress: preferencesControllerState.selectedAddress,
@@ -456,6 +460,8 @@ class Engine {
           this.controllerMessenger.subscribe(
             `${preferencesController.name}:stateChange`,
             (preferencesControllerState: PreferencesState) => {
+              //@ts-expect-error assets-controllers need to be bump to v^26
+              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
                 selectedAddress: preferencesControllerState.selectedAddress,
@@ -541,6 +547,8 @@ class Engine {
         this.controllerMessenger.subscribe(
           `${preferencesController.name}:stateChange`,
           (preferencesControllerState: PreferencesState) => {
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...preferencesControllerState,
               selectedAddress: preferencesControllerState.selectedAddress,
@@ -785,6 +793,8 @@ class Engine {
         this.controllerMessenger.subscribe(
           `${preferencesController.name}:stateChange`,
           (preferencesControllerState: PreferencesState) => {
+            //@ts-expect-error assets-controllers need to be bump to v^26
+            //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...preferencesControllerState,
               selectedAddress: preferencesControllerState.selectedAddress,
@@ -1021,6 +1031,8 @@ class Engine {
           this.controllerMessenger.subscribe(
             `${preferencesController.name}:stateChange`,
             (preferencesControllerState: PreferencesState) => {
+              //@ts-expect-error assets-controllers need to be bump to v^26
+              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
                 selectedAddress: preferencesControllerState.selectedAddress,
@@ -1054,6 +1066,8 @@ class Engine {
         getTokensState: () => tokensController.state,
         getTokenListState: () => tokenListController.state,
         getNetworkState: () => networkController.state,
+        //@ts-expect-error assets-controllers need to be bump to v^26
+        //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
         getPreferencesState: () => preferencesController.state,
         getBalancesInSingleCall:
           assetsContractController.getBalancesInSingleCall.bind(
@@ -1066,6 +1080,8 @@ class Engine {
           this.controllerMessenger.subscribe(
             `${preferencesController.name}:stateChange`,
             (preferencesControllerState: PreferencesState) => {
+              //@ts-expect-error assets-controllers need to be bump to v^26
+              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
                 selectedAddress: preferencesControllerState.selectedAddress,
@@ -1109,6 +1125,8 @@ class Engine {
           this.controllerMessenger.subscribe(
             `${preferencesController.name}:stateChange`,
             (preferencesControllerState: PreferencesState) => {
+              //@ts-expect-error assets-controllers need to be bump to v^26
+              //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
                 selectedAddress: preferencesControllerState.selectedAddress,
