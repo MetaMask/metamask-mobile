@@ -384,7 +384,6 @@ export const notificationSettings = {
 
 export const requestPushNotificationsPermission = async () => {
   let permissionStatus;
-
   interface NotificationEnabledState {
     isEnabled: true;
     notificationsOpts: {
@@ -427,64 +426,61 @@ export const requestPushNotificationsPermission = async () => {
   try {
     permissionStatus = await notifee.requestPermission();
 
-    if (!promptCount || !permissionStatus) {
-      if (
-        permissionStatus.authorizationStatus < AuthorizationStatus.AUTHORIZED
-      ) {
-        const times = promptCount + 1 || 1;
+    if (permissionStatus.authorizationStatus < AuthorizationStatus.AUTHORIZED) {
+      const times = promptCount + 1 || 1;
 
-        Alert.alert(
-          strings('notifications.prompt_title'),
-          strings('notifications.prompt_desc'),
-          [
-            {
-              text: strings('notifications.prompt_cancel'),
-              onPress: () => {
-                store.dispatch(
-                  updateNotificationStatus(notificationDisabledState),
-                );
-                mmStorage.saveLocal(
-                  STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
-                  times,
-                );
-                mmStorage.saveLocal(
-                  STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_TIME,
-                  Date.now().toString(),
-                );
+      Alert.alert(
+        strings('notifications.prompt_title'),
+        strings('notifications.prompt_desc'),
+        [
+          {
+            text: strings('notifications.prompt_cancel'),
+            onPress: () => {
+              store.dispatch(
+                updateNotificationStatus(notificationDisabledState),
+              );
+              mmStorage.saveLocal(
+                STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT,
+                times,
+              );
+              mmStorage.saveLocal(
+                STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_TIME,
+                Date.now().toString(),
+              );
 
-                mmStorage.saveLocal(
-                  STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-                  JSON.stringify(notificationDisabledState),
-                );
-              },
-              style: 'default',
+              mmStorage.saveLocal(
+                STORAGE_IDS.NOTIFICATIONS_SETTINGS,
+                JSON.stringify(notificationDisabledState),
+              );
             },
-            {
-              text: strings('notifications.prompt_ok'),
-              onPress: async () => {
-                if (Device.isIos()) {
-                  permissionStatus = await notifee.requestPermission({
-                    provisional: true,
-                  });
-                } else {
-                  permissionStatus = await notifee.requestPermission();
-                }
-                store.dispatch(
-                  updateNotificationStatus(notificationEnabledState),
-                );
+            style: 'default',
+          },
+          {
+            text: strings('notifications.prompt_ok'),
+            onPress: async () => {
+              if (Device.isIos()) {
+                permissionStatus = await notifee.requestPermission({
+                  provisional: true,
+                });
+              } else {
+                permissionStatus = await notifee.requestPermission();
+              }
+              store.dispatch(
+                updateNotificationStatus(notificationEnabledState),
+              );
 
-                mmStorage.saveLocal(
-                  STORAGE_IDS.NOTIFICATIONS_SETTINGS,
-                  JSON.stringify(notificationEnabledState),
-                );
-                // await saveFCMToken();
-              },
+              mmStorage.saveLocal(
+                STORAGE_IDS.NOTIFICATIONS_SETTINGS,
+                JSON.stringify(notificationEnabledState),
+              );
+              // await saveFCMToken();
             },
-          ],
-          { cancelable: false },
-        );
-      }
+          },
+        ],
+        { cancelable: false },
+      );
     }
+
     return permissionStatus;
   } catch (e: any) {
     Logger.error(e, strings('notifications.error_checking_permission'));

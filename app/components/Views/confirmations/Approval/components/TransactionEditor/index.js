@@ -45,7 +45,6 @@ import {
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../../../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
@@ -976,7 +975,6 @@ const mapStateToProps = (state) => ({
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  nativeCurrency: selectNativeCurrency(state),
   primaryCurrency: state.settings.primaryCurrency,
   chainId: selectChainId(state),
 });
