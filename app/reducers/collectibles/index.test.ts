@@ -2,6 +2,7 @@ import { ChainId } from '@metamask/controller-utils';
 import reducer, {
   ADD_FAVORITE_COLLECTIBLE,
   REMOVE_FAVORITE_COLLECTIBLE,
+  mapCollectibleContractsSelector,
 } from './index';
 
 const emptyAction = { type: null };
@@ -13,7 +14,7 @@ const collectibleB2 = { tokenId: '102', address: '0xB' };
 const selectedAddressA = '0x0A';
 const selectedAddressB = '0x0B';
 
-describe('swaps reducer', () => {
+describe('collectibles reducer', () => {
   it('should add favorite', () => {
     const initalState = reducer(undefined, emptyAction);
     const firstState = reducer(initalState, {
@@ -146,5 +147,39 @@ describe('swaps reducer', () => {
         },
       },
     });
+  });
+});
+
+describe('mapCollectibleContractsSelector', () => {
+  it('transforms an array of collectible contracts into a map with lowercase addresses', () => {
+    const mockState = {
+      collectibleContracts: [
+        { address: '0xABC123', name: 'Contract A' },
+        { address: '0xDEF456', name: 'Contract B' },
+      ],
+    };
+
+    const result = mapCollectibleContractsSelector.resultFunc(
+      mockState.collectibleContracts,
+    );
+
+    const expectedResult = {
+      '0xabc123': { address: '0xABC123', name: 'Contract A' },
+      '0xdef456': { address: '0xDEF456', name: 'Contract B' },
+    };
+
+    expect(result).toEqual(expectedResult);
+  });
+
+  it('handles empty collectible contracts array', () => {
+    const mockState = {
+      collectibleContracts: [],
+    };
+
+    const result = mapCollectibleContractsSelector.resultFunc(
+      mockState.collectibleContracts,
+    );
+
+    expect(result).toEqual({});
   });
 });
