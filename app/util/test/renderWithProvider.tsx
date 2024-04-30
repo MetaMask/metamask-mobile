@@ -15,9 +15,10 @@ import {
 import { mockTheme, ThemeContext } from '../theme';
 import { Theme } from '../theme/models';
 import configureStore from './configureStore';
+import { RootState } from '../../reducers';
 
 interface ProviderValues {
-  state?: Record<any, any>;
+  state?: RootState;
   theme?: Theme;
 }
 
