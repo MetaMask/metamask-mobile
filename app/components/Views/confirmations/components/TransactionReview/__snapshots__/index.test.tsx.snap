@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionReview should match snapshot 1`] = `
-Array [
+[
   <View
     collapsable={false}
     style={Object {}}
@@ -73,7 +73,7 @@ Array [
                 >
                   <View
                     style={
-                      Array [
+                      [
                         Object {
                           "overflow": "hidden",
                         },
@@ -93,7 +93,7 @@ Array [
                       focusable={false}
                       height={32}
                       style={
-                        Array [
+                        [
                           Object {
                             "backgroundColor": "transparent",
                             "borderWidth": 0,
@@ -112,7 +112,7 @@ Array [
                           fill={4294711651}
                           height={32}
                           matrix={
-                            Array [
+                            [
                               0.46329603511986217,
                               0.8862035792312145,
                               -0.8862035792312145,
@@ -122,7 +122,7 @@ Array [
                             ]
                           }
                           propList={
-                            Array [
+                            [
                               "fill",
                             ]
                           }
@@ -134,7 +134,7 @@ Array [
                           fill={4280576225}
                           height={32}
                           matrix={
-                            Array [
+                            [
                               -0.5778576243835052,
                               0.8161375900801603,
                               -0.8161375900801603,
@@ -144,7 +144,7 @@ Array [
                             ]
                           }
                           propList={
-                            Array [
+                            [
                               "fill",
                             ]
                           }
@@ -156,7 +156,7 @@ Array [
                           fill={4278407261}
                           height={32}
                           matrix={
-                            Array [
+                            [
                               0.7046342099635947,
                               -0.7095707365365209,
                               0.7095707365365209,
@@ -166,7 +166,7 @@ Array [
                             ]
                           }
                           propList={
-                            Array [
+                            [
                               "fill",
                             ]
                           }
@@ -189,7 +189,7 @@ Array [
                     "position": "absolute",
                     "right": 0,
                     "top": 0,
-                    "transform": Array [
+                    "transform": [
                       Object {
                         "translateX": 0,
                       },
@@ -233,7 +233,7 @@ Array [
                         },
                         "shadowOpacity": 1,
                         "shadowRadius": 4,
-                        "transform": Array [
+                        "transform": [
                           Object {
                             "scale": 1,
                           },
@@ -362,7 +362,7 @@ Array [
             }
           }
           style={
-            Array [
+            [
               Object {
                 "flex": 1,
               },
@@ -507,7 +507,7 @@ Array [
                           </View>
                           <View
                             style={
-                              Array [
+                              [
                                 Object {
                                   "borderColor": "#BBC0C5",
                                   "borderRadius": 8,
@@ -549,7 +549,7 @@ Array [
                                     }
                                   }
                                   style={
-                                    Array [
+                                    [
                                       Object {
                                         "borderRadius": 15,
                                         "height": 30,
@@ -574,7 +574,7 @@ Array [
                                 >
                                   <View
                                     style={
-                                      Array [
+                                      [
                                         Object {
                                           "borderRadius": 15,
                                           "height": 30,
@@ -594,7 +594,7 @@ Array [
                             </View>
                             <View
                               style={
-                                Array [
+                                [
                                   Object {
                                     "flex": 1,
                                   },
@@ -651,7 +651,7 @@ Array [
                         </View>
                         <View
                           style={
-                            Array [
+                            [
                               Object {
                                 "flexDirection": "column",
                                 "marginHorizontal": 8,
@@ -690,7 +690,7 @@ Array [
                           </View>
                           <View
                             style={
-                              Array [
+                              [
                                 Object {
                                   "borderRadius": 8,
                                   "borderWidth": 1,
@@ -733,7 +733,7 @@ Array [
                                     }
                                   }
                                   style={
-                                    Array [
+                                    [
                                       Object {
                                         "borderRadius": 15,
                                         "height": 30,
@@ -758,7 +758,7 @@ Array [
                                 >
                                   <View
                                     style={
-                                      Array [
+                                      [
                                         Object {
                                           "borderRadius": 15,
                                           "height": 30,
@@ -784,7 +784,7 @@ Array [
                               >
                                 <View
                                   style={
-                                    Array [
+                                    [
                                       Object {
                                         "alignItems": "flex-start",
                                         "flexDirection": "column",
@@ -855,7 +855,7 @@ Array [
                                       <Text
                                         allowFontScaling={false}
                                         style={
-                                          Array [
+                                          [
                                             Object {
                                               "color": "#1C8234",
                                               "fontSize": 15,
@@ -899,7 +899,7 @@ Array [
                         scrollTo={null}
                         statusBarTranslucent={false}
                         supportedOrientations={
-                          Array [
+                          [
                             "portrait",
                             "landscape",
                           ]
@@ -919,7 +919,7 @@ Array [
                     >
                       <View
                         style={
-                          Array [
+                          [
                             Object {
                               "borderColor": "#D6D9DC",
                               "borderRadius": 8,
@@ -936,7 +936,7 @@ Array [
                       >
                         <View
                           style={
-                            Array [
+                            [
                               Object {
                                 "flexDirection": "row",
                                 "justifyContent": "space-between",
@@ -970,7 +970,7 @@ Array [
                             >
                               <Text
                                 style={
-                                  Array [
+                                  [
                                     Object {
                                       "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -1032,7 +1032,7 @@ Array [
                                   <Text
                                     allowFontScaling={false}
                                     style={
-                                      Array [
+                                      [
                                         Object {
                                           "color": undefined,
                                           "fontSize": 13,
@@ -1056,7 +1056,7 @@ Array [
                             </View>
                             <View
                               style={
-                                Array [
+                                [
                                   Object {
                                     "flex": 1,
                                     "flexDirection": "row",
@@ -1077,7 +1077,7 @@ Array [
                                 >
                                   <View
                                     style={
-                                      Array [
+                                      [
                                         Object {
                                           "borderRadius": 4,
                                           "height": 10,
@@ -1097,7 +1097,7 @@ Array [
                         </View>
                         <View
                           style={
-                            Array [
+                            [
                               Object {
                                 "flexDirection": "row",
                                 "justifyContent": "space-between",
@@ -1121,7 +1121,7 @@ Array [
                           >
                             <View
                               style={
-                                Array [
+                                [
                                   false,
                                 ]
                               }
@@ -1138,7 +1138,7 @@ Array [
                                 >
                                   <View
                                     style={
-                                      Array [
+                                      [
                                         Object {
                                           "borderRadius": 4,
                                           "height": 10,
@@ -1156,7 +1156,7 @@ Array [
                             </View>
                             <View
                               style={
-                                Array [
+                                [
                                   Object {
                                     "flex": 1,
                                     "flexDirection": "row",
@@ -1177,7 +1177,7 @@ Array [
                                 >
                                   <View
                                     style={
-                                      Array [
+                                      [
                                         Object {
                                           "borderRadius": 4,
                                           "height": 10,
@@ -1198,7 +1198,7 @@ Array [
                         <View>
                           <View
                             style={
-                              Array [
+                              [
                                 Object {
                                   "borderBottomColor": "#D6D9DC",
                                   "borderBottomWidth": 1,
@@ -1217,7 +1217,7 @@ Array [
                           >
                             <View
                               style={
-                                Array [
+                                [
                                   Object {
                                     "flexDirection": "row",
                                     "justifyContent": "space-between",
@@ -1231,7 +1231,7 @@ Array [
                             >
                               <Text
                                 style={
-                                  Array [
+                                  [
                                     Object {
                                       "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
@@ -1277,7 +1277,7 @@ Array [
                               </Text>
                               <View
                                 style={
-                                  Array [
+                                  [
                                     Object {
                                       "flex": 1,
                                       "flexDirection": "row",
@@ -1298,7 +1298,7 @@ Array [
                                   >
                                     <View
                                       style={
-                                        Array [
+                                        [
                                           Object {
                                             "borderRadius": 4,
                                             "height": 10,
@@ -1318,7 +1318,7 @@ Array [
                           </View>
                           <View
                             style={
-                              Array [
+                              [
                                 Object {
                                   "flexDirection": "row",
                                   "justifyContent": "space-between",
@@ -1332,7 +1332,7 @@ Array [
                           >
                             <View
                               style={
-                                Array [
+                                [
                                   Object {
                                     "flex": 1,
                                     "flexDirection": "row",
@@ -1353,7 +1353,7 @@ Array [
                                 >
                                   <View
                                     style={
-                                      Array [
+                                      [
                                         Object {
                                           "borderRadius": 4,
                                           "height": 10,
@@ -1390,7 +1390,7 @@ Array [
                           scrollTo={null}
                           statusBarTranslucent={false}
                           supportedOrientations={
-                            Array [
+                            [
                               "portrait",
                               "landscape",
                             ]
@@ -1419,7 +1419,7 @@ Array [
                           scrollTo={null}
                           statusBarTranslucent={false}
                           supportedOrientations={
-                            Array [
+                            [
                               "portrait",
                               "landscape",
                             ]
@@ -1448,7 +1448,7 @@ Array [
                           scrollTo={null}
                           statusBarTranslucent={false}
                           supportedOrientations={
-                            Array [
+                            [
                               "portrait",
                               "landscape",
                             ]
@@ -1512,8 +1512,8 @@ Array [
                 activeOpacity={0.2}
                 disabled={false}
                 style={
-                  Array [
-                    Array [
+                  [
+                    [
                       Object {
                         "borderRadius": 100,
                         "justifyContent": "center",
@@ -1524,7 +1524,7 @@ Array [
                         "borderColor": "#535A61",
                         "borderWidth": 1,
                       },
-                      Array [
+                      [
                         Object {
                           "flex": 1,
                         },
@@ -1540,7 +1540,7 @@ Array [
               >
                 <Text
                   style={
-                    Array [
+                    [
                       Object {
                         "color": "#007aff",
                         "fontSize": 17,
@@ -1548,7 +1548,7 @@ Array [
                         "textAlign": "center",
                       },
                       null,
-                      Array [
+                      [
                         Object {
                           "fontFamily": "EuclidCircularB-Bold",
                           "fontSize": 14,
@@ -1573,8 +1573,8 @@ Array [
                 activeOpacity={0.2}
                 disabled={false}
                 style={
-                  Array [
-                    Array [
+                  [
+                    [
                       Object {
                         "borderRadius": 100,
                         "justifyContent": "center",
@@ -1584,7 +1584,7 @@ Array [
                         "backgroundColor": "#0376C9",
                         "minHeight": 50,
                       },
-                      Array [
+                      [
                         Object {
                           "flex": 1,
                         },
@@ -1602,7 +1602,7 @@ Array [
               >
                 <Text
                   style={
-                    Array [
+                    [
                       Object {
                         "color": "#007aff",
                         "fontSize": 17,
@@ -1610,7 +1610,7 @@ Array [
                         "textAlign": "center",
                       },
                       null,
-                      Array [
+                      [
                         Object {
                           "fontFamily": "EuclidCircularB-Bold",
                           "fontSize": 14,
@@ -1647,7 +1647,7 @@ Array [
   >
     <View
       style={
-        Array [
+        [
           Object {
             "paddingBottom": 48,
             "paddingHorizontal": 24,
@@ -1676,7 +1676,7 @@ Array [
           <Text
             allowFontScaling={false}
             style={
-              Array [
+              [
                 Object {
                   "color": "#24272A",
                   "fontSize": 24,
@@ -1710,7 +1710,7 @@ Array [
         <Text
           allowFontScaling={false}
           style={
-            Array [
+            [
               Object {
                 "color": "#FFFFFF",
                 "fontSize": 24,
@@ -1755,7 +1755,7 @@ Array [
       >
         <Text
           style={
-            Array [
+            [
               Object {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
@@ -1832,7 +1832,7 @@ Array [
         scrollTo={null}
         statusBarTranslucent={false}
         supportedOrientations={
-          Array [
+          [
             "portrait",
             "landscape",
           ]

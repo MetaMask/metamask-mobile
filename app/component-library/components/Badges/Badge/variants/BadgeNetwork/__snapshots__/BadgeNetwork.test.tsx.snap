@@ -37,7 +37,7 @@ exports[`BadgeNetwork - snapshots should render badge network correctly 1`] = `
         },
         "shadowOpacity": 1,
         "shadowRadius": 4,
-        "transform": Array [
+        "transform": [
           Object {
             "scale": 1,
           },

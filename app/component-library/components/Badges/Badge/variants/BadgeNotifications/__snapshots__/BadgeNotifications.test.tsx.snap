@@ -4,7 +4,7 @@ exports[`BadgeNotifications - snapshots should render badge notifications correc
 <View
   onLayout={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "aspectRatio": 1,
       "backgroundColor": "#0376C9",
@@ -24,7 +24,7 @@ exports[`BadgeNotifications - snapshots should render badge notifications correc
     height={10}
     name="Send2"
     style={
-      Object {
+      {
         "height": 10,
         "width": 10,
       }

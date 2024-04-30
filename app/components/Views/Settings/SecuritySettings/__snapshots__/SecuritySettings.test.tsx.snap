@@ -22,7 +22,7 @@ exports[`SecuritySettings should render correctly 1`] = `
     >
       <View
         style={
-          Array [
+          [
             Object {
               "marginTop": 32,
             },
@@ -51,7 +51,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Array [
+          [
             Object {
               "marginTop": 30,
             },
@@ -410,7 +410,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   <Text
                     allowFontScaling={false}
                     style={
-                      Array [
+                      [
                         Object {
                           "color": "#24272A",
                           "fontSize": 24,
@@ -453,7 +453,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 scrollTo={null}
                 statusBarTranslucent={false}
                 supportedOrientations={
-                  Array [
+                  [
                     "portrait",
                     "landscape",
                   ]
@@ -515,12 +515,12 @@ exports[`SecuritySettings should render correctly 1`] = `
                 onStartShouldSetResponder={[Function]}
                 onTintColor="#0376C9"
                 style={
-                  Array [
+                  [
                     Object {
                       "height": 31,
                       "width": 51,
                     },
-                    Array [
+                    [
                       Object {
                         "alignSelf": "flex-start",
                       },
@@ -667,12 +667,12 @@ exports[`SecuritySettings should render correctly 1`] = `
           onStartShouldSetResponder={[Function]}
           onTintColor="#0376C9"
           style={
-            Array [
+            [
               Object {
                 "height": 31,
                 "width": 51,
               },
-              Array [
+              [
                 Object {
                   "alignSelf": "flex-end",
                 },
@@ -707,7 +707,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </Text>
       <View
         style={
-          Array [
+          [
             Object {
               "marginTop": 32,
             },
@@ -788,7 +788,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
+                [
                   Object {
                     "height": 31,
                     "width": 51,
@@ -926,7 +926,7 @@ exports[`SecuritySettings should render correctly 1`] = `
       </View>
       <View
         style={
-          Array [
+          [
             Object {
               "marginTop": 32,
             },
@@ -1031,7 +1031,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           scrollTo={null}
           statusBarTranslucent={false}
           supportedOrientations={
-            Array [
+            [
               "portrait",
               "landscape",
             ]
@@ -1239,7 +1239,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         scrollTo={null}
         statusBarTranslucent={false}
         supportedOrientations={
-          Array [
+          [
             "portrait",
             "landscape",
           ]
@@ -1311,12 +1311,12 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
+                [
                   Object {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
+                  [
                     Object {
                       "alignSelf": "flex-start",
                     },
@@ -1431,12 +1431,12 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
+                [
                   Object {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
+                  [
                     Object {
                       "alignSelf": "flex-start",
                     },
@@ -1637,12 +1637,12 @@ exports[`SecuritySettings should render correctly 1`] = `
                   onStartShouldSetResponder={[Function]}
                   onTintColor="#0376C9"
                   style={
-                    Array [
+                    [
                       Object {
                         "height": 31,
                         "width": 51,
                       },
-                      Array [
+                      [
                         Object {
                           "alignSelf": "flex-start",
                         },
@@ -1778,12 +1778,12 @@ exports[`SecuritySettings should render correctly 1`] = `
                   onStartShouldSetResponder={[Function]}
                   onTintColor="#0376C9"
                   style={
-                    Array [
+                    [
                       Object {
                         "height": 31,
                         "width": 51,
                       },
-                      Array [
+                      [
                         Object {
                           "alignSelf": "flex-start",
                         },
@@ -1822,7 +1822,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         scrollTo={null}
         statusBarTranslucent={false}
         supportedOrientations={
-          Array [
+          [
             "portrait",
             "landscape",
           ]
@@ -1894,12 +1894,12 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
+                [
                   Object {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
+                  [
                     Object {
                       "alignSelf": "flex-start",
                     },
@@ -1980,12 +1980,12 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
+                [
                   Object {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
+                  [
                     Object {
                       "alignSelf": "flex-start",
                     },
@@ -2065,12 +2065,12 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
+                [
                   Object {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
+                  [
                     Object {
                       "alignSelf": "flex-start",
                     },
@@ -2206,12 +2206,12 @@ exports[`SecuritySettings should render correctly 1`] = `
                 onStartShouldSetResponder={[Function]}
                 onTintColor="#0376C9"
                 style={
-                  Array [
+                  [
                     Object {
                       "height": 31,
                       "width": 51,
                     },
-                    Array [
+                    [
                       Object {
                         "alignSelf": "flex-start",
                       },
@@ -2308,12 +2308,12 @@ exports[`SecuritySettings should render correctly 1`] = `
               onStartShouldSetResponder={[Function]}
               onTintColor="#0376C9"
               style={
-                Array [
+                [
                   Object {
                     "height": 31,
                     "width": 51,
                   },
-                  Array [
+                  [
                     Object {
                       "alignSelf": "flex-start",
                     },
@@ -2532,7 +2532,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         scrollTo={null}
         statusBarTranslucent={false}
         supportedOrientations={
-          Array [
+          [
             "portrait",
             "landscape",
           ]
@@ -2650,7 +2650,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         scrollTo={null}
         statusBarTranslucent={false}
         supportedOrientations={
-          Array [
+          [
             "portrait",
             "landscape",
           ]

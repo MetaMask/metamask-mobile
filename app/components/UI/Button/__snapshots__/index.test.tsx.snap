@@ -4,8 +4,8 @@ exports[`Button should render correctly 1`] = `
 <TouchableOpacity
   delayPressIn={50}
   style={
-    Array [
-      Object {
+    [
+      {
         "alignItems": "center",
         "backgroundColor": "#0376C9",
         "borderRadius": 4,

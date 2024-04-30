@@ -282,7 +282,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         onGestureHandlerStateChange={[Function]}
         onLayout={[Function]}
         style={
-          Array [
+          [
             Object {
               "borderColor": "#BBC0C5",
               "borderRadius": 10,
@@ -419,12 +419,12 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             </Text>
             <View
               style={
-                Array [
+                [
                   Object {
                     "marginLeft": 4,
                   },
                   Object {
-                    "transform": Array [
+                    "transform": [
                       Object {
                         "rotate": "0deg",
                       },

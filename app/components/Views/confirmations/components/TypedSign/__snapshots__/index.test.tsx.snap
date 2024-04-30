@@ -3,7 +3,7 @@
 exports[`TypedSign onConfirm signs message 1`] = `
 <View
   style={
-    Array [
+    [
       Object {
         "backgroundColor": "#FFFFFF",
         "borderTopLeftRadius": 20,
@@ -58,7 +58,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
       scrollToPosition={[Function]}
       showsVerticalScrollIndicator={true}
       style={
-        Array [
+        [
           Object {
             "flex": 1,
           },
@@ -276,7 +276,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                               "position": "absolute",
                               "right": 0,
                               "top": 0,
-                              "transform": Array [
+                              "transform": [
                                 Object {
                                   "translateX": 0,
                                 },
@@ -320,7 +320,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                                   },
                                   "shadowOpacity": 1,
                                   "shadowRadius": 4,
-                                  "transform": Array [
+                                  "transform": [
                                     Object {
                                       "scale": 1,
                                     },
@@ -449,7 +449,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
               <View>
                 <View
                   style={
-                    Array [
+                    [
                       Object {
                         "alignContent": "center",
                         "backgroundColor": "#FFFFFF",
@@ -469,7 +469,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                 >
                   <Text
                     style={
-                      Array [
+                      [
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
@@ -541,8 +541,8 @@ exports[`TypedSign onConfirm signs message 1`] = `
             disabled={false}
             onPress={[Function]}
             style={
-              Array [
-                Array [
+              [
+                [
                   Object {
                     "borderRadius": 100,
                     "justifyContent": "center",
@@ -553,7 +553,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                     "borderColor": "#0376C9",
                     "borderWidth": 1,
                   },
-                  Array [
+                  [
                     Object {
                       "flex": 1,
                     },
@@ -569,7 +569,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
           >
             <Text
               style={
-                Array [
+                [
                   Object {
                     "color": "#007aff",
                     "fontSize": 17,
@@ -577,7 +577,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                     "textAlign": "center",
                   },
                   null,
-                  Array [
+                  [
                     Object {
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
@@ -603,8 +603,8 @@ exports[`TypedSign onConfirm signs message 1`] = `
             disabled={false}
             onPress={[Function]}
             style={
-              Array [
-                Array [
+              [
+                [
                   Object {
                     "borderRadius": 100,
                     "justifyContent": "center",
@@ -615,7 +615,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                     "borderColor": "#0376C9",
                     "borderWidth": 1,
                   },
-                  Array [
+                  [
                     Object {
                       "flex": 1,
                     },
@@ -633,7 +633,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
           >
             <Text
               style={
-                Array [
+                [
                   Object {
                     "color": "#007aff",
                     "fontSize": 17,
@@ -641,7 +641,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                     "textAlign": "center",
                   },
                   null,
-                  Array [
+                  [
                     Object {
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
@@ -670,7 +670,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
 exports[`TypedSign onReject rejects message 1`] = `
 <View
   style={
-    Array [
+    [
       Object {
         "backgroundColor": "#FFFFFF",
         "borderTopLeftRadius": 20,
@@ -725,7 +725,7 @@ exports[`TypedSign onReject rejects message 1`] = `
       scrollToPosition={[Function]}
       showsVerticalScrollIndicator={true}
       style={
-        Array [
+        [
           Object {
             "flex": 1,
           },
@@ -943,7 +943,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                               "position": "absolute",
                               "right": 0,
                               "top": 0,
-                              "transform": Array [
+                              "transform": [
                                 Object {
                                   "translateX": 0,
                                 },
@@ -987,7 +987,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                                   },
                                   "shadowOpacity": 1,
                                   "shadowRadius": 4,
-                                  "transform": Array [
+                                  "transform": [
                                     Object {
                                       "scale": 1,
                                     },
@@ -1116,7 +1116,7 @@ exports[`TypedSign onReject rejects message 1`] = `
               <View>
                 <View
                   style={
-                    Array [
+                    [
                       Object {
                         "alignContent": "center",
                         "backgroundColor": "#FFFFFF",
@@ -1136,7 +1136,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                 >
                   <Text
                     style={
-                      Array [
+                      [
                         Object {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
@@ -1208,8 +1208,8 @@ exports[`TypedSign onReject rejects message 1`] = `
             disabled={false}
             onPress={[Function]}
             style={
-              Array [
-                Array [
+              [
+                [
                   Object {
                     "borderRadius": 100,
                     "justifyContent": "center",
@@ -1220,7 +1220,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                     "borderColor": "#0376C9",
                     "borderWidth": 1,
                   },
-                  Array [
+                  [
                     Object {
                       "flex": 1,
                     },
@@ -1236,7 +1236,7 @@ exports[`TypedSign onReject rejects message 1`] = `
           >
             <Text
               style={
-                Array [
+                [
                   Object {
                     "color": "#007aff",
                     "fontSize": 17,
@@ -1244,7 +1244,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                     "textAlign": "center",
                   },
                   null,
-                  Array [
+                  [
                     Object {
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
@@ -1270,8 +1270,8 @@ exports[`TypedSign onReject rejects message 1`] = `
             disabled={false}
             onPress={[Function]}
             style={
-              Array [
-                Array [
+              [
+                [
                   Object {
                     "borderRadius": 100,
                     "justifyContent": "center",
@@ -1282,7 +1282,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                     "borderColor": "#0376C9",
                     "borderWidth": 1,
                   },
-                  Array [
+                  [
                     Object {
                       "flex": 1,
                     },
@@ -1300,7 +1300,7 @@ exports[`TypedSign onReject rejects message 1`] = `
           >
             <Text
               style={
-                Array [
+                [
                   Object {
                     "color": "#007aff",
                     "fontSize": 17,
@@ -1308,7 +1308,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                     "textAlign": "center",
                   },
                   null,
-                  Array [
+                  [
                     Object {
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,

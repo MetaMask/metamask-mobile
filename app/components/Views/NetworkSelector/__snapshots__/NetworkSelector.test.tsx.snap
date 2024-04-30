@@ -11,7 +11,7 @@ exports[`Network Selector renders correctly 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
+      [
         Object {
           "flex": 1,
         },
@@ -183,7 +183,7 @@ exports[`Network Selector renders correctly 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
+            [
               Object {
                 "overflow": undefined,
               },
@@ -241,7 +241,7 @@ exports[`Network Selector renders correctly 1`] = `
               style={
                 Object {
                   "flex": 1,
-                  "transform": Array [
+                  "transform": [
                     Object {
                       "translateX": 0,
                     },
@@ -275,12 +275,12 @@ exports[`Network Selector renders correctly 1`] = `
               />
               <View
                 style={
-                  Array [
+                  [
                     Object {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
+                    [
                       Object {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
@@ -307,7 +307,7 @@ exports[`Network Selector renders correctly 1`] = `
                     <View
                       onLayout={[Function]}
                       style={
-                        Array [
+                        [
                           Object {
                             "bottom": 0,
                             "justifyContent": "flex-end",
@@ -324,7 +324,7 @@ exports[`Network Selector renders correctly 1`] = `
                     >
                       <View
                         style={
-                          Array [
+                          [
                             Object {
                               "backgroundColor": "#00000099",
                               "bottom": 0,
@@ -351,7 +351,7 @@ exports[`Network Selector renders correctly 1`] = `
                       <View
                         onLayout={[Function]}
                         style={
-                          Array [
+                          [
                             Object {
                               "bottom": 0,
                               "left": 0,
@@ -370,7 +370,7 @@ exports[`Network Selector renders correctly 1`] = `
                           onGestureHandlerStateChange={[Function]}
                           onLayout={[Function]}
                           style={
-                            Array [
+                            [
                               Object {
                                 "backgroundColor": "#FFFFFF",
                                 "borderColor": "#D6D9DC",
@@ -389,7 +389,7 @@ exports[`Network Selector renders correctly 1`] = `
                                 "shadowRadius": 40,
                               },
                               Object {
-                                "transform": Array [
+                                "transform": [
                                   Object {
                                     "translateY": 1334,
                                   },
@@ -1103,7 +1103,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   onStartShouldSetResponder={[Function]}
                                   onTintColor="#0376C9"
                                   style={
-                                    Array [
+                                    [
                                       Object {
                                         "height": 31,
                                         "width": 51,

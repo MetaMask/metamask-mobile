@@ -129,7 +129,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             >
               <View
                 style={
-                  Array [
+                  [
                     Object {
                       "overflow": "hidden",
                     },
@@ -149,7 +149,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                   focusable={false}
                   height={32}
                   style={
-                    Array [
+                    [
                       Object {
                         "backgroundColor": "transparent",
                         "borderWidth": 0,
@@ -168,7 +168,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       fill={4294711651}
                       height={32}
                       matrix={
-                        Array [
+                        [
                           0.46329603511986217,
                           0.8862035792312145,
                           -0.8862035792312145,
@@ -178,7 +178,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -190,7 +190,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       fill={4280576225}
                       height={32}
                       matrix={
-                        Array [
+                        [
                           -0.5778576243835052,
                           0.8161375900801603,
                           -0.8161375900801603,
@@ -200,7 +200,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -212,7 +212,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       fill={4278407261}
                       height={32}
                       matrix={
-                        Array [
+                        [
                           0.7046342099635947,
                           -0.7095707365365209,
                           0.7095707365365209,
@@ -222,7 +222,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -245,7 +245,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                 "position": "absolute",
                 "right": 0,
                 "top": 0,
-                "transform": Array [
+                "transform": [
                   Object {
                     "translateX": 0,
                   },
@@ -289,7 +289,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                     },
                     "shadowOpacity": 1,
                     "shadowRadius": 4,
-                    "transform": Array [
+                    "transform": [
                       Object {
                         "scale": 1,
                       },
@@ -467,7 +467,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             >
               <View
                 style={
-                  Array [
+                  [
                     Object {
                       "overflow": "hidden",
                     },
@@ -487,7 +487,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                   focusable={false}
                   height={32}
                   style={
-                    Array [
+                    [
                       Object {
                         "backgroundColor": "transparent",
                         "borderWidth": 0,
@@ -506,7 +506,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       fill={4294711651}
                       height={32}
                       matrix={
-                        Array [
+                        [
                           0.46329603511986217,
                           0.8862035792312145,
                           -0.8862035792312145,
@@ -516,7 +516,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -528,7 +528,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       fill={4280576225}
                       height={32}
                       matrix={
-                        Array [
+                        [
                           -0.5778576243835052,
                           0.8161375900801603,
                           -0.8161375900801603,
@@ -538,7 +538,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -550,7 +550,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       fill={4278407261}
                       height={32}
                       matrix={
-                        Array [
+                        [
                           0.7046342099635947,
                           -0.7095707365365209,
                           0.7095707365365209,
@@ -560,7 +560,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                         ]
                       }
                       propList={
-                        Array [
+                        [
                           "fill",
                         ]
                       }
@@ -583,7 +583,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                 "position": "absolute",
                 "right": 0,
                 "top": 0,
-                "transform": Array [
+                "transform": [
                   Object {
                     "translateX": 0,
                   },
@@ -627,7 +627,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                     },
                     "shadowOpacity": 1,
                     "shadowRadius": 4,
-                    "transform": Array [
+                    "transform": [
                       Object {
                         "scale": 1,
                       },
