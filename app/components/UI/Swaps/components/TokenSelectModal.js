@@ -184,10 +184,12 @@ function TokenSelectModal({
   const filteredInitialTokens = useMemo(
     () =>
       initialTokens?.length > 0
-        ? initialTokens.filter(
-            (token) =>
-              !excludedAddresses.includes(token.address?.toLowerCase()),
-          )
+        ? initialTokens
+            .filter((token) => token !== undefined)
+            .filter(
+              (token) =>
+                !excludedAddresses.includes(token?.address?.toLowerCase()),
+            )
         : filteredTokens,
     [excludedAddresses, filteredTokens, initialTokens],
   );

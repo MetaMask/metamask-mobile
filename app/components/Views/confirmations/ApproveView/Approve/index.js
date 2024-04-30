@@ -75,6 +75,8 @@ import { updateTransaction } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { getIsSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-tx';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -171,6 +173,10 @@ class Approve extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Indicates if a transaction is going to be routed through smart tx
+     */
+    isSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -500,7 +506,13 @@ class Approve extends PureComponent {
   onConfirm = async () => {
     const { TransactionController, KeyringController, ApprovalController } =
       Engine.context;
-    const { transactions, gasEstimateType, metrics, chainId } = this.props;
+    const {
+      transactions,
+      gasEstimateType,
+      isSmartTransaction,
+      metrics,
+      chainId,
+    } = this.props;
     const {
       legacyGasTransaction,
       transactionConfirmed,
@@ -573,16 +585,27 @@ class Approve extends PureComponent {
         this.props.hideModal();
         return;
       }
-      await ApprovalController.accept(transaction.id, undefined, {
-        waitForResult: true,
-      });
+
+      if (isSmartTransaction) {
+        await ApprovalController.accept(transaction.id, undefined, {
+          waitForResult: false,
+        });
+        this.props.hideModal();
+      } else {
+        await ApprovalController.accept(transaction.id, undefined, {
+          waitForResult: true,
+        });
+      }
 
       metrics.trackEvent(
         MetaMetricsEvents.APPROVAL_COMPLETED,
         this.getAnalyticsParams(),
       );
     } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      if (
+        !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !error?.message.startsWith(STX_NO_HASH_ERROR)
+      ) {
         Alert.alert(
           strings('transactions.transaction_error'),
           error && error.message,
@@ -763,6 +786,7 @@ class Approve extends PureComponent {
     }
 
     if (!transaction.id) return null;
+
     return (
       <Modal
         isVisible={this.props.modalVisible}
@@ -911,6 +935,7 @@ const mapStateToProps = (state) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
+  isSmartTransaction: getIsSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -317,7 +317,7 @@ class TransactionElement extends PureComponent {
       selectedAddress,
       isQRHardwareAccount,
       isLedgerAccount,
-      tx: { time, status },
+      tx: { time, status, isSmartTransaction },
     } = this.props;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
@@ -359,7 +359,7 @@ class TransactionElement extends PureComponent {
               </ListItem.Amounts>
             )}
           </ListItem.Content>
-          {renderNormalActions && (
+          {renderNormalActions && !isSmartTransaction && (
             <ListItem.Actions>
               {this.renderSpeedUpButton()}
               {this.renderCancelButton()}

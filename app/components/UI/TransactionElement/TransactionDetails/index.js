@@ -40,6 +40,7 @@ import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectSelectedAddress } from '../../../../selectors/preferencesController';
 import { regex } from '../../../../../app/util/regex';
+import { getIsSmartTransaction } from '../../../../selectors/smartTransactionsController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -123,6 +124,11 @@ class TransactionDetails extends PureComponent {
     swapsTransactions: PropTypes.object,
     swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
+
+    /**
+     * Boolean that indicates if the transaction is a smart transaction
+     */
+    isSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -300,6 +306,7 @@ class TransactionDetails extends PureComponent {
     const {
       chainId,
       transactionObject: { status, time, txParams },
+      isSmartTransaction,
     } = this.props;
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
@@ -315,7 +322,7 @@ class TransactionDetails extends PureComponent {
               {strings('transactions.status')}
             </DetailsModal.SectionTitle>
             <StatusText status={status} />
-            {!!renderTxActions && (
+            {!!renderTxActions && !isSmartTransaction && (
               <View style={styles.transactionActionsContainer}>
                 {this.renderSpeedUpButton()}
                 {this.renderCancelButton()}
@@ -425,6 +432,7 @@ const mapStateToProps = (state) => ({
   swapsTransactions:
     state.engine.backgroundState.TransactionController.swapsTransactions || {},
   swapsTokens: state.engine.backgroundState.SwapsController.tokens,
+  isSmartTransaction: getIsSmartTransaction(state),
 });
 
 TransactionDetails.contextType = ThemeContext;

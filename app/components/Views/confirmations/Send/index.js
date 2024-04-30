@@ -63,6 +63,8 @@ import {
 } from '../../../../selectors/preferencesController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { getIsSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-tx';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -155,6 +157,10 @@ class Send extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Boolean that represents whether the transaction is a smart transaction
+     */
+    isSmartTransaction: PropTypes.bool,
   };
 
   state = {
@@ -614,7 +620,10 @@ class Send extends PureComponent {
         this.removeNft();
       });
     } catch (error) {
-      if (!error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
+      if (
+        !error?.message.startsWith(KEYSTONE_TX_CANCELED) &&
+        !error?.message.startsWith(STX_NO_HASH_ERROR)
+      ) {
         Alert.alert(
           strings('transactions.transaction_error'),
           error && error.message,
@@ -689,6 +698,7 @@ class Send extends PureComponent {
       networkType,
       transaction,
       transaction: { selectedAsset, assetType },
+      isSmartTransaction,
     } = this.props;
 
     return {
@@ -700,6 +710,7 @@ class Send extends PureComponent {
         'ETH',
       assetType,
       ...getBlockaidTransactionMetricsParams(transaction),
+      is_smart_transaction: isSmartTransaction,
     };
   };
 
@@ -776,6 +787,7 @@ const mapStateToProps = (state) => ({
   selectedAddress: selectSelectedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
   tokenList: selectTokenList(state),
+  isSmartTransaction: getIsSmartTransaction(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
