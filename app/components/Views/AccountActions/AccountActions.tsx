@@ -1,6 +1,6 @@
 // Third party dependencies.
-import React, { useMemo, useRef } from 'react';
-import { Platform, View } from 'react-native';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { Alert, Platform, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
@@ -37,11 +37,17 @@ import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   EDIT_ACCOUNT,
+  REMOVE_HARDWARE_ACCOUNT,
   SHARE_ADDRESS,
   SHOW_PRIVATE_KEY,
   VIEW_ETHERSCAN,
 } from './AccountActions.constants';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { getKeyringByAddress, isHardwareAccount } from '../../../util/address';
+import { removeAccountsFromPermissions } from '../../../core/Permissions';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { forgetLedger } from '../../../core/Ledger/Ledger';
+import Engine from '../../../core/Engine';
 
 const AccountActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -49,6 +55,11 @@ const AccountActions = () => {
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
   const { trackEvent } = useMetrics();
+
+  const Controller = useMemo(() => {
+    const { KeyringController, PreferencesController } = Engine.context as any;
+    return { KeyringController, PreferencesController };
+  }, []);
 
   const providerConfig = useSelector(selectProviderConfig);
 
@@ -126,6 +137,74 @@ const AccountActions = () => {
     });
   };
 
+  const removeHardwareAccount = useCallback(() => {
+    Alert.alert(
+      strings('accounts.remove_account_title'),
+      strings('accounts.remove_account_alert_description'),
+      [
+        {
+          text: strings('accounts.remove_account_alert_cancel_btn'),
+          onPress: () => false,
+          style: 'cancel',
+        },
+        {
+          text: strings('accounts.remove_account_alert_remove_btn'),
+          onPress: async () => {
+            const kr = getKeyringByAddress(selectedAddress);
+            let requestForgetDevice = false;
+
+            await Controller.KeyringController.removeAccount(selectedAddress);
+            await removeAccountsFromPermissions([selectedAddress]);
+            const newAccounts =
+              await Controller.KeyringController.getAccounts();
+            Controller.PreferencesController.updateIdentities(newAccounts);
+
+            // setSelectedAddress to the initial account
+            Engine.setSelectedAddress(newAccounts[0]);
+
+            const { keyrings } = Controller.KeyringController.state;
+
+            const updatedKeyring = keyrings.find(
+              (keyring: { type: any }) => keyring.type === kr.type,
+            );
+
+            if (updatedKeyring) {
+              if (updatedKeyring.accounts.length === 0) {
+                requestForgetDevice = true;
+              }
+            } else {
+              requestForgetDevice = true;
+            }
+            if (requestForgetDevice) {
+              switch (kr.type) {
+                case ExtendedKeyringTypes.ledger:
+                  await forgetLedger();
+                  trackEvent(
+                    MetaMetricsEvents.LEDGER_HARDWARE_WALLET_FORGOTTEN,
+                    {
+                      device_type: 'Ledger',
+                    },
+                  );
+                  break;
+                case ExtendedKeyringTypes.qr:
+                  await Controller.KeyringController.forgetQRDevice();
+                  // there is not a MetaMetricsEvent for this action??
+                  break;
+                default:
+                  break;
+              }
+            }
+          },
+        },
+      ],
+    );
+  }, [
+    Controller.KeyringController,
+    Controller.PreferencesController,
+    selectedAddress,
+    trackEvent,
+  ]);
+
   const goToEditAccountName = () => {
     navigate('EditAccountName');
   };
@@ -168,6 +247,14 @@ const AccountActions = () => {
           onPress={goToExportPrivateKey}
           {...generateTestId(Platform, SHOW_PRIVATE_KEY)}
         />
+        {isHardwareAccount(selectedAddress) && (
+          <AccountAction
+            actionTitle={strings('accounts.remove_hardware_account')}
+            iconName={IconName.Danger}
+            onPress={removeHardwareAccount}
+            {...generateTestId(Platform, REMOVE_HARDWARE_ACCOUNT)}
+          />
+        )}
       </View>
     </BottomSheet>
   );
