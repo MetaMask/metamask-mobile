@@ -45,7 +45,7 @@ exports[`TabThumbnail should render correctly 1`] = `
     <View
       style={
         Object {
-          "alignItems": "flex-start",
+          "alignItems": "center",
           "backgroundColor": "#FFFFFF",
           "flexDirection": "row",
           "justifyContent": "flex-start",
@@ -129,44 +129,28 @@ exports[`TabThumbnail should render correctly 1`] = `
       <TouchableOpacity
         accessibilityLabel="Close tab"
         accessible={true}
-        onPress={[Function]}
-        style={
+        hitSlop={
           Object {
-            "backgroundColor": "transparent",
-            "height": 24,
-            "marginRight": -5,
-            "width": 30,
+            "bottom": 10,
+            "left": 10,
+            "right": 10,
+            "top": 10,
           }
         }
+        onPress={[Function]}
       >
-        <Text
-          allowFontScaling={false}
+        <SvgMock
+          color="#24272A"
+          height={20}
+          name="Close"
           style={
-            Array [
-              Object {
-                "color": undefined,
-                "fontSize": 12,
-              },
-              Object {
-                "color": "#24272A",
-                "fontSize": 32,
-                "marginTop": -7,
-                "paddingHorizontal": 10,
-                "paddingTop": 3,
-                "position": "absolute",
-                "right": 0,
-              },
-              Object {
-                "fontFamily": "Ionicons",
-                "fontStyle": "normal",
-                "fontWeight": "normal",
-              },
-              Object {},
-            ]
+            Object {
+              "height": 20,
+              "width": 20,
+            }
           }
-        >
-          
-        </Text>
+          width={20}
+        />
       </TouchableOpacity>
     </View>
     <View
@@ -188,14 +172,12 @@ exports[`TabThumbnail should render correctly 1`] = `
         style={
           Object {
             "bottom": 0,
-            "height": null,
             "left": 0,
             "paddingTop": 1079,
             "position": "absolute",
             "resizeMode": "cover",
             "right": 0,
             "top": 0,
-            "width": null,
           }
         }
       />

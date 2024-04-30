@@ -1,7 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
-import TabThumbnail from './';
+import TabThumbnail from './TabThumbnail';
 
 const mockInitialState = {
   wizard: {

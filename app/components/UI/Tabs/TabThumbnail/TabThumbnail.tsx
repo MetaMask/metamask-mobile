@@ -1,8 +1,6 @@
-import PropTypes from 'prop-types';
 import React, { useContext, useMemo } from 'react';
 import { Image, TouchableOpacity, View } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
-import IonIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
@@ -11,6 +9,11 @@ import Avatar, {
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -19,7 +22,8 @@ import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import WebsiteIcon from '../../WebsiteIcon';
-import createStyles from './TabThumbnailStyles';
+import createStyles from './TabThumbnail.styles';
+import { TabThumbnailProps } from './types';
 import useNetworkInfo from './useNetworkInfo';
 import useSelectedAccount from './useSelectedAccount';
 const METAMASK_FOX = require('../../../../images/fox.png'); // eslint-disable-line import/no-commonjs
@@ -31,10 +35,15 @@ const { HOMEPAGE_URL } = AppConstants;
  * The thumbnail displays the favicon and title of the website, as well as
  * a close button to close the tab.
  */
-const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
+const TabThumbnail = ({
+  isActiveTab,
+  tab,
+  onClose,
+  onSwitch,
+}: TabThumbnailProps) => {
   const { colors } = useContext(ThemeContext) || mockTheme;
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const Container = Device.isAndroid() ? View : ElevatedView;
+  const Container: React.ElementType = Device.isAndroid() ? View : ElevatedView;
   const hostname = getHost(tab.url);
   const isHomepage = hostname === getHost(HOMEPAGE_URL);
   const selectedAccount = useSelectedAccount();
@@ -58,11 +67,7 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
                 url={tab.url}
               />
             ) : (
-              <Image
-                style={styles.tabFavicon}
-                title={tab.url}
-                source={METAMASK_FOX}
-              />
+              <Image style={styles.tabFavicon} source={METAMASK_FOX} />
             )}
             <Text style={styles.tabSiteName} numberOfLines={1}>
               {isHomepage ? strings('browser.new_tab') : hostname}
@@ -72,9 +77,13 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
             accessible
             accessibilityLabel="Close tab"
             onPress={() => onClose(tab)}
-            style={styles.closeTabButton}
+            hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
           >
-            <IonIcon name="ios-close" style={styles.closeTabIcon} />
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Md}
+              color={IconColor.Default}
+            />
           </TouchableOpacity>
         </View>
         <View style={styles.tab}>
@@ -113,38 +122,6 @@ const TabThumbnail = ({ isActiveTab, tab, onClose, onSwitch }) => {
       </TouchableOpacity>
     </Container>
   );
-};
-
-TabThumbnail.propTypes = {
-  /**
-   * The tab object containing information about the tab.
-   */
-  tab: PropTypes.shape({
-    /**
-     * The URL of the tab.
-     */
-    url: PropTypes.string.isRequired,
-    /**
-     * The id of the tab.
-     */
-    id: PropTypes.number.isRequired,
-    /**
-     * The image URL for the tab's thumbnail.
-     */
-    image: PropTypes.string.isRequired,
-  }).isRequired,
-  /**
-   * Indicates whether the tab is currently active.
-   */
-  isActiveTab: PropTypes.bool.isRequired,
-  /**
-   * The function to be called when the tab is closed.
-   */
-  onClose: PropTypes.func.isRequired,
-  /**
-   * The function to be called when the tab is switched.
-   */
-  onSwitch: PropTypes.func.isRequired,
 };
 
 export default TabThumbnail;

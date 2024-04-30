@@ -4,6 +4,7 @@ import {
   colors as importedColors,
 } from '../../../../styles/common';
 import Device from '../../../../util/device';
+import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
 
 const margin = 15;
 const width = Dimensions.get('window').width - margin * 2;
@@ -16,7 +17,7 @@ if (Device.isAndroid()) {
   paddingTop -= 10;
 }
 
-const createStyles = (colors) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     tabFavicon: {
       alignSelf: 'flex-start',
@@ -36,7 +37,7 @@ const createStyles = (colors) =>
     },
     tabHeader: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       justifyContent: 'flex-start',
       backgroundColor: colors.background.default,
       paddingVertical: 8,
@@ -66,8 +67,8 @@ const createStyles = (colors) =>
     tabImage: {
       ...StyleSheet.absoluteFillObject,
       paddingTop,
-      width: null,
-      height: null,
+      // width: null,
+      // height: null,
       resizeMode: 'cover',
     },
     activeTab: {
@@ -93,7 +94,7 @@ const createStyles = (colors) =>
       backgroundColor: importedColors.transparent,
       width: Device.isIos() ? 30 : 35,
       height: 24,
-      marginRight: -5,
+      // marginRight: -5,
     },
     footerContainer: {
       flexDirection: 'row',
