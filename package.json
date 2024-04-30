@@ -138,7 +138,7 @@
     "@metamask/accounts-controller": "^10.0.0",
     "@metamask/address-book-controller": "^3.0.0",
     "@metamask/approval-controller": "3.5.0",
-    "@metamask/assets-controllers": "^18.0.0",
+    "@metamask/assets-controllers": "^26.0.0",
     "@metamask/base-controller": "^4.1.1",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",
