@@ -7,7 +7,6 @@ import { selectAccounts } from '../../selectors/accountTrackerController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../selectors/currencyRateController';
 import { selectTicker } from '../../selectors/networkController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
@@ -53,7 +52,6 @@ export const useDataStore = () => {
     contractExchangeRates,
     conversionRate,
     currentCurrency,
-    nativeCurrency,
     accounts,
     contractBalances,
     ticker,
@@ -67,7 +65,6 @@ export const useDataStore = () => {
       selectContractExchangeRates(state),
       selectConversionRate(state),
       selectCurrentCurrency(state),
-      selectNativeCurrency(state),
       selectAccounts(state),
       selectContractBalances(state),
       selectTicker(state),
@@ -85,7 +82,6 @@ export const useDataStore = () => {
     contractExchangeRates,
     conversionRate,
     currentCurrency,
-    nativeCurrency,
     accounts,
     contractBalances,
     selectedAsset,
@@ -203,7 +199,6 @@ export const useGasTransaction = ({
     contractExchangeRates,
     conversionRate,
     currentCurrency,
-    nativeCurrency,
     ticker,
   } = useDataStore();
 
@@ -271,7 +266,7 @@ export const useGasTransaction = ({
     contractExchangeRates,
     conversionRate,
     currentCurrency,
-    nativeCurrency,
+    nativeCurrency: ticker,
     suggestedGasLimit,
     onlyGas,
   });

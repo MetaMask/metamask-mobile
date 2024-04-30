@@ -24,6 +24,10 @@ jobs:
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> "$GITHUB_OUTPUT"
         id: extract_current_branch
       
+      - name: Modified branch name
+        run: echo "modified_branch_name="${{ steps.extract_current_branch.outputs.branch }} | sed 's#/#-#g'"" >> "$GITHUB_OUTPUT"
+        id: extract_modified_branch_name
+      
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -32,7 +36,7 @@ jobs:
       - name: Crowdin push main as baseline
         uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
         with:
-          crowdin_branch_name: ${{ steps.extract_current_branch.outputs.branch }}
+          crowdin_branch_name: ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }}
           upload_sources: true
           upload_translations_args: --import-eq-suggestions --auto-approve-imported --verbose
           upload_translations: true
@@ -44,7 +48,7 @@ jobs:
       - name: Crowdin sources push
         uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
         with:
-          crowdin_branch_name: ${{ steps.extract_current_branch.outputs.branch }}
+          crowdin_branch_name: ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }}
           upload_sources: true
           upload_sources_args: --auto-update --verbose
           upload_translations: false

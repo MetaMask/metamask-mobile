@@ -32,7 +32,7 @@ function handleClientsReady({
         updateOriginatorInfos,
         approveHost,
         onError: (error) => {
-          Logger.error(error, '');
+          Logger.error(error as Error, '');
 
           instance.setLoading(false);
 
