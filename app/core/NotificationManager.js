@@ -252,7 +252,7 @@ class NotificationManager {
         type: 'speedup',
         transaction: {
           id: transactionMeta.id,
-          nonce: `${hexToBN(transactionMeta.transaction.nonce).toString()}`,
+          nonce: `${hexToBN(transactionMeta.txParams.nonce).toString()}`,
         },
       });
     }, 2000);

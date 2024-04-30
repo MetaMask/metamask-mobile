@@ -337,6 +337,10 @@ export async function isCollectibleAddress(address, tokenId) {
  * @returns {string} - Corresponding transaction action key
  */
 export async function getTransactionActionKey(transaction, chainId) {
+  // This condition is needed until the transaction reducer be refactored
+  if (!transaction.txParams) {
+    transaction.txParams = transaction.transaction;
+  }
   const { txParams: { data, to } = {} } = transaction;
   if (!to) return CONTRACT_METHOD_DEPLOY;
   if (to === getSwapsContractAddress(chainId))
