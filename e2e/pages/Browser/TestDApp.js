@@ -107,6 +107,13 @@ class TestDApp {
     await Gestures.tapWebElement(elementId);
   }
 
+  async scrollToButtonWithParameter(buttonId, parameterName, parameterValue) {
+    await Browser.tapUrlInputBox();
+    await Browser.navigateToURL(
+      `${TEST_DAPP_LOCAL_URL}?scrollTo=${buttonId}&${parameterName}=${parameterValue}`,
+    );
+  }
+
   async scrollToButton(buttonId) {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
@@ -115,18 +122,10 @@ class TestDApp {
     await TestHelpers.delay(3000);
   }
 
-  async scrollToButtonWithParameter(buttonId, parameterName, parameterValue) {
-    await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(
-      `${TEST_DAPP_LOCAL_URL}?scrollTo=${buttonId}&${parameterName}=${parameterValue}`,
-    );
-    await TestHelpers.delay(3000);
-  }
-
   async navigateToTestDappWithContract({ contractAddress }) {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
-      `${TEST_DAPP_LOCAL_URL}?contract=${contractAddress}`,
+      `${TEST_DAPP_LOCAL_URL}?scrollTo=''&contract=${contractAddress}`,
     );
   }
 

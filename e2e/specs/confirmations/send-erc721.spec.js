@@ -45,14 +45,13 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
 
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-        await TestDApp.tapButtonWithContract({
-          buttonId: WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
+        await TestDApp.navigateToTestDappWithContract({
           contractAddress: nftsAddress,
         });
         // Transfer NFT
-        // await TestDApp.tapNFTTransferButton();
-        // await TestHelpers.delay(3000);
+
+        await TestDApp.tapNFTTransferButton();
+        await TestHelpers.delay(3000);
 
         await TestDApp.tapConfirmButton();
 
