@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import { CurrencyRateState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
-import { selectChainId } from './networkController';
+import { selectChainId, selectTicker } from './networkController';
 import { isTestNet } from '../../app/util/networks';
 
 const selectCurrencyRateControllerState = (state: RootState) =>
@@ -10,21 +10,23 @@ const selectCurrencyRateControllerState = (state: RootState) =>
 export const selectConversionRate = createSelector(
   selectCurrencyRateControllerState,
   selectChainId,
+  selectTicker,
   (state: any) => state.settings.showFiatOnTestnets,
-  (currencyRateControllerState, chainId, showFiatOnTestnets) =>
+  (
+    currencyRateControllerState: CurrencyRateState,
+    chainId,
+    ticker: string,
+    showFiatOnTestnets,
+  ) =>
     isTestNet(chainId) && !showFiatOnTestnets
       ? undefined
-      : currencyRateControllerState?.conversionRate,
+      : currencyRateControllerState?.currencyRates?.[ticker]?.conversionRate,
 );
 
 export const selectCurrentCurrency = createSelector(
   selectCurrencyRateControllerState,
+  selectTicker,
+
   (currencyRateControllerState: CurrencyRateState) =>
     currencyRateControllerState?.currentCurrency,
-);
-
-export const selectNativeCurrency = createSelector(
-  selectCurrencyRateControllerState,
-  (currencyRateControllerState: CurrencyRateState) =>
-    currencyRateControllerState?.nativeCurrency,
 );

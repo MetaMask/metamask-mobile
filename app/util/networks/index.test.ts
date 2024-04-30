@@ -30,7 +30,7 @@ jest.mock('./../../core/Engine', () => ({
   },
   context: {
     CurrencyRateController: {
-      setNativeCurrency: () => jest.fn(),
+      updateExchangeRate: () => jest.fn(),
       setLocked: () => jest.fn(),
     },
     NetworkController: {
