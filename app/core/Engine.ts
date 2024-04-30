@@ -187,7 +187,6 @@ import {
   networkIdUpdated,
   networkIdWillUpdate,
 } from '../core/redux/slices/inpageProvider';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -439,9 +438,7 @@ class Engine {
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...preferencesControllerState,
-              selectedAddress: toChecksumHexAddress(
-                preferencesControllerState.selectedAddress,
-              ),
+              selectedAddress: preferencesControllerState.selectedAddress,
             });
           },
         ),
@@ -467,9 +464,7 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
-                selectedAddress: toChecksumHexAddress(
-                  preferencesControllerState.selectedAddress,
-                ),
+                selectedAddress: preferencesControllerState.selectedAddress,
               });
             },
           ),
@@ -558,9 +553,7 @@ class Engine {
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...preferencesControllerState,
-              selectedAddress: toChecksumHexAddress(
-                preferencesControllerState.selectedAddress,
-              ),
+              selectedAddress: preferencesControllerState.selectedAddress,
             });
           },
         ),
@@ -808,9 +801,7 @@ class Engine {
             //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
             listener({
               ...preferencesControllerState,
-              selectedAddress: toChecksumHexAddress(
-                preferencesControllerState.selectedAddress,
-              ),
+              selectedAddress: preferencesControllerState.selectedAddress,
             });
           },
         ),
@@ -1050,9 +1041,7 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
-                selectedAddress: toChecksumHexAddress(
-                  preferencesControllerState.selectedAddress,
-                ),
+                selectedAddress: preferencesControllerState.selectedAddress,
               });
             },
           ),
@@ -1103,9 +1092,7 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
-                selectedAddress: toChecksumHexAddress(
-                  preferencesControllerState.selectedAddress,
-                ),
+                selectedAddress: preferencesControllerState.selectedAddress,
               });
             },
           ),
@@ -1152,9 +1139,7 @@ class Engine {
               //assets-controllers preferences controller version is misaligned with the app repo (v8 != v4)
               listener({
                 ...preferencesControllerState,
-                selectedAddress: toChecksumHexAddress(
-                  preferencesControllerState.selectedAddress,
-                ),
+                selectedAddress: preferencesControllerState.selectedAddress,
               });
             },
           ),
@@ -1306,9 +1291,7 @@ class Engine {
               (preferencesControllerState: PreferencesState) => {
                 listener({
                   ...preferencesControllerState,
-                  selectedAddress: toChecksumHexAddress(
-                    preferencesControllerState.selectedAddress,
-                  ),
+                  selectedAddress: preferencesControllerState.selectedAddress,
                 });
               },
             ),
