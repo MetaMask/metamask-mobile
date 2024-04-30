@@ -1,14 +1,15 @@
 import { NameType } from '@metamask/name-controller';
 import { useSelector } from 'react-redux';
-import { selectChainId } from '../../selectors/networkController';
-import { FIRST_PARTY_CONTRACT_NAMES } from '../../constants/first-party-contracts';
 import { type Hex } from '@metamask/utils';
+import { selectChainId } from '../../selectors/networkController';
+import FIRST_PARTY_CONTRACT_NAMES from '../../constants/first-party-contracts';
 
-export type UseFirstPartyContractNameRequest = {
+
+export interface UseFirstPartyContractNameRequest {
   value: string;
   type: NameType;
   variation?: string;
-};
+}
 
 export function useFirstPartyContractNames(
   requests: UseFirstPartyContractNameRequest[],

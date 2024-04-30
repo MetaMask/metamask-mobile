@@ -4,7 +4,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
 /**
  * A map of first-party contract names to their addresses on various chains.
  */
-export const FIRST_PARTY_CONTRACT_NAMES: Record<string, Record<Hex, Hex>> = {
+const FIRST_PARTY_CONTRACT_NAMES: Record<string, Record<Hex, Hex>> = {
   'MetaMask Validator Staking': {
     [CHAIN_IDS.MAINNET]: '0xDc71aFFC862fceB6aD32BE58E098423A7727bEbd',
   },
@@ -38,3 +38,5 @@ export const FIRST_PARTY_CONTRACT_NAMES: Record<string, Record<Hex, Hex>> = {
     // [CHAIN_IDS.ZKSYNC_ERA]: '0xf504c1fe13d14DF615E66dcd0ABF39e60c697f34',
   },
 };
+
+export default FIRST_PARTY_CONTRACT_NAMES;
