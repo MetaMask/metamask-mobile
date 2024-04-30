@@ -8,7 +8,9 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import TabBarComponent from '../../pages/TabBarComponent';
-import { TestDApp } from '../../pages/Browser/TestDApp';
+import Browser from '../../pages/Browser/BrowserView';
+
+import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import enContent from '../../../locales/languages/en.json';
 
@@ -42,13 +44,14 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
-
-        // Transfer ERC20 tokens
         await TestDApp.tapButtonWithContract({
           buttonId: WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID,
-          contractAddress: hstAddress,
+          contractAddress: nftsAddress,
         });
         await TestHelpers.delay(3000);
+        // Transfer ERC20 tokens
+        // await TestDApp.tapERC20TransferButton();
+        // await TestHelpers.delay(3000);
 
         // Tap confirm button
         await TestDApp.tapConfirmButton();

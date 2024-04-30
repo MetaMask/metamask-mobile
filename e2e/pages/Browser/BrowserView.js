@@ -1,5 +1,5 @@
 import TestHelpers from '../../helpers';
-import { TEST_DAPP_LOCAL_URL } from './TestDApp';
+import { TEST_DAPP_LOCAL_URL } from '../Browser/TestDApp';
 
 import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 import {
@@ -30,11 +30,6 @@ class Browser {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.HOME_BUTTON);
   }
 
-  // get browserScreenID() {
-  //   return device.getPlatform() === 'ios'
-  //     ? Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID)
-  //     : Matchers.getElementByID(BrowserViewSelectorsIDs.ANDROID_CONTAINER);
-  // }
   get browserScreenID() {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
   }
@@ -133,8 +128,9 @@ class Browser {
     await Gestures.waitAndTap(this.returnHomeButton);
   }
 
-  async tapReturnHomeButton() {
-    await Gestures.waitAndTap(this.returnHomeButton);
+  async tapDappInFavorites(dappURL) {
+    const element = Matchers.getElementByHref(dappURL);
+    await Gestures.waitAndTap(element);
   }
 
   async navigateToURL(url) {
@@ -150,16 +146,6 @@ class Browser {
     await this.tapUrlInputBox();
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
   }
-
-  // async isVisible() {
-  //   await TestHelpers.checkIfVisible(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
-  // }
-
-  // async isNotVisible() {
-  //   await TestHelpers.checkIfNotVisible(
-  //     BrowserViewSelectorsIDs.BROWSER_SCREEN_ID,
-  //   );
-  // }
 
   async isAddBookmarkScreenVisible() {
     await TestHelpers.checkIfVisible(AddBookmarkViewSelectorsIDs.CONTAINER);
@@ -183,13 +169,6 @@ class Browser {
       CommonSelectorsText.TOAST_REVOKE_ACCOUNTS,
     );
   }
-
-  // async isURLBarTextTestDapp() {
-  //   await TestHelpers.checkIfElementWithTextIsVisible(
-  //     BrowserViewSelectorsText.METAMASK_TEST_DAPP_URL,
-  //     0,
-  //   );
-  // }
 }
 
 export default new Browser();

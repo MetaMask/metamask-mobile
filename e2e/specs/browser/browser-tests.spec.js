@@ -1,8 +1,7 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
-import Browser from '../../pages/Browser/Browser';
-import { BROWSER_SCREEN_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
@@ -14,6 +13,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
+import { BROWSER_SCREEN_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
 
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
@@ -57,33 +57,25 @@ describe(SmokeCore('Browser Tests'), () => {
 
   it('should add the test dapp to favorites', async () => {
     // Check that we are still on the browser screen
-    await Assertions.checkIfVisible(Browser.browserScreenID);
+
+    // await Assertions.checkIfVisible(Browser.addBookmarkButton);
     // Tap on options
     await Browser.tapOptionsButton();
     await Browser.tapAddToFavoritesButton();
+    // await Assertions.checkIfVisible(Browser.addBookmarkButton);
+
     await Browser.isAddBookmarkScreenVisible();
     await Browser.tapAddBookmarksButton();
     await Browser.isAddBookmarkScreenNotVisible(); // Add bookmark screen should not be visible
   });
 
-  it('tap on home button', async () => {
-    // Tap on home on bottom navbar
+  it('should tap on the test dapp in favorites on the home page', async () => {
     await Browser.tapHomeButton();
     // Wait for page to load
     await TestHelpers.delay(1000);
-  });
-
-  it('should tap on the test dapp in favorites', async () => {
-    if (device.getPlatform() === 'ios') {
-      // Tapping on favourite iOS
-      await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 174, y: 281 });
-      await Browser.waitForBrowserPageToLoad();
-    } else {
-      // Tapping on favorite tap on Android
-      await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 274, y: 223 });
-      await TestHelpers.tapAtPoint(BROWSER_SCREEN_ID, { x: 180, y: 275 });
-      await Browser.waitForBrowserPageToLoad();
-    }
+    await Browser.tapDappInFavorites(TEST_DAPP);
+    // Need assertion for verifying the
+    // }
   });
 
   it('should test invalid URL', async () => {

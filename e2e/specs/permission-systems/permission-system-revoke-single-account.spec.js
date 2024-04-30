@@ -1,7 +1,7 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
-import Browser from '../../pages/Browser/Browser';
+import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import NetworkListModal from '../../pages/modals/NetworkListModal';
 import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';

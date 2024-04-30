@@ -3,8 +3,10 @@
 import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
+import Browser from '../../pages/Browser/BrowserView';
+
 import TabBarComponent from '../../pages/TabBarComponent';
-import { TestDApp } from '../../pages/Browser/TestDApp';
+import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
@@ -43,16 +45,14 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
 
         // Navigate to the browser screen
         await TabBarComponent.tapBrowser();
-
-        // Navigate to the ERC721 url
-        await TestDApp.navigateToTestDappWithContract(nftsAddress);
-
-        // Transfer NFT
+        await Browser.navigateToTestDApp();
         await TestDApp.tapButtonWithContract({
           buttonId: WEBVIEW_TEST_DAPP_TRANSFER_FROM_BUTTON_ID,
           contractAddress: nftsAddress,
         });
-        await TestHelpers.delay(3000);
+        // Transfer NFT
+        // await TestDApp.tapNFTTransferButton();
+        // await TestHelpers.delay(3000);
 
         await TestDApp.tapConfirmButton();
 
