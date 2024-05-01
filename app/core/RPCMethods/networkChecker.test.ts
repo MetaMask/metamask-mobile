@@ -276,4 +276,37 @@ describe('checkSafeNetwork', () => {
       },
     ]);
   });
+
+  it('should not throw an error if nickname is undefined for findPopularNetworkName', async () => {
+    mockedAxios.get.mockImplementation(() =>
+      Promise.resolve({
+        data: [
+          {
+            chainId: '10',
+            rpc: ['https://optimism-mainnet.infura.io/v3/1234'],
+            name: 'Optimism',
+            nativeCurrency: {
+              symbol: 'ETH',
+              decimals: 18,
+            },
+          },
+        ],
+      }),
+    );
+
+    const result = await checkSafeNetwork(
+      '10',
+      'https://optimism-mainnet.infura.io/v3/1234',
+      undefined as any,
+      'ETH',
+    );
+    expect(result).toEqual([
+      {
+        alertError:
+          "It looks like this network's display name doesn't match its chain ID.",
+        alertSeverity: BannerAlertSeverity.Warning,
+        alertOrigin: 'chain_name',
+      },
+    ]);
+  });
 });
