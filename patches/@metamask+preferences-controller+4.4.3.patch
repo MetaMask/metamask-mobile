@@ -56,13 +56,14 @@ index 323a8e8..0c5ed1b 100644
  //# sourceMappingURL=PreferencesController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-index 1a98ab0..6f8c16e 100644
+index 1a98ab0..fc7ac7d 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.js
-@@ -3,6 +3,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
+@@ -3,6 +3,31 @@ Object.defineProperty(exports, "__esModule", { value: true });
  exports.PreferencesController = void 0;
  const base_controller_1 = require("@metamask/base-controller");
  const controller_utils_1 = require("@metamask/controller-utils");
++const { deprecate } = require("util");
 +
 +const ETHERSCAN_SUPPORTED_CHAIN_IDS = {
 +                MAINNET: '0x1',
@@ -90,7 +91,7 @@ index 1a98ab0..6f8c16e 100644
  /**
   * Controller that stores shared settings and exposes convenience methods
   */
-@@ -27,7 +51,8 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -27,7 +52,8 @@ class PreferencesController extends base_controller_1.BaseController {
              selectedAddress: '',
              useTokenDetection: true,
              useNftDetection: false,
@@ -100,7 +101,7 @@ index 1a98ab0..6f8c16e 100644
              securityAlertsEnabled: false,
              isMultiAccountBalancesEnabled: true,
              disabledRpcMethodPreferences: {
-@@ -35,6 +60,28 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -35,6 +61,28 @@ class PreferencesController extends base_controller_1.BaseController {
              },
              showTestNetworks: false,
              isIpfsGatewayEnabled: true,
@@ -129,7 +130,25 @@ index 1a98ab0..6f8c16e 100644
          };
          this.initialize();
      }
-@@ -185,22 +232,33 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -81,6 +129,7 @@ class PreferencesController extends base_controller_1.BaseController {
+      *
+      * @param address - Address of the identity to associate.
+      * @param label - New label to assign.
++     * @deprecated use Engine.setAccountLabel instead.
+      */
+     setAccountLabel(address, label) {
+         address = (0, controller_utils_1.toChecksumHexAddress)(address);
+@@ -160,6 +209,9 @@ class PreferencesController extends base_controller_1.BaseController {
+      *
+      * @param selectedAddress - Ethereum address.
+      */
++    /**
++    * @deprecated use Engine.setSelectedAddress instead.
++    */
+     setSelectedAddress(selectedAddress) {
+         this.update({ selectedAddress: (0, controller_utils_1.toChecksumHexAddress)(selectedAddress) });
+     }
+@@ -185,22 +237,33 @@ class PreferencesController extends base_controller_1.BaseController {
       * @param useNftDetection - Boolean indicating user preference on NFT detection.
       */
      setUseNftDetection(useNftDetection) {
@@ -170,7 +189,7 @@ index 1a98ab0..6f8c16e 100644
      /**
       * Toggle the security alert enabled setting.
       *
-@@ -244,7 +302,25 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -244,7 +307,25 @@ class PreferencesController extends base_controller_1.BaseController {
      setIsIpfsGatewayEnabled(isIpfsGatewayEnabled) {
          this.update({ isIpfsGatewayEnabled });
      }
