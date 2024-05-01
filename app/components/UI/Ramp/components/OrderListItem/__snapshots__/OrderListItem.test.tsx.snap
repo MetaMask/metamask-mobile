@@ -3,8 +3,8 @@
 exports[`OrderListItem should render correctly 1`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "padding": 15,
       },
       undefined,
@@ -13,8 +13,8 @@ exports[`OrderListItem should render correctly 1`] = `
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
@@ -44,8 +44,8 @@ exports[`OrderListItem should render correctly 1`] = `
         undefined,
         undefined,
         undefined,
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
@@ -61,8 +61,8 @@ exports[`OrderListItem should render correctly 1`] = `
   </Text>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "alignItems": "center",
           "flexDirection": "row",
         },
@@ -72,8 +72,8 @@ exports[`OrderListItem should render correctly 1`] = `
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
@@ -85,14 +85,14 @@ exports[`OrderListItem should render correctly 1`] = `
       <Image
         resizeMode="stretch"
         source={
-          Object {
-            "default": Object {
+          {
+            "default": {
               "uri": "MockImage",
             },
           }
         }
         style={
-          Object {
+          {
             "height": 28,
             "width": 28,
           }
@@ -101,8 +101,8 @@ exports[`OrderListItem should render correctly 1`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "flex": 1,
           },
           undefined,
@@ -111,8 +111,8 @@ exports[`OrderListItem should render correctly 1`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -142,8 +142,8 @@ exports[`OrderListItem should render correctly 1`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -160,7 +160,7 @@ exports[`OrderListItem should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#1C8234",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
@@ -175,8 +175,8 @@ exports[`OrderListItem should render correctly 1`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "flex-end",
             "flex": 0.6,
           },
@@ -186,8 +186,8 @@ exports[`OrderListItem should render correctly 1`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -217,8 +217,8 @@ exports[`OrderListItem should render correctly 1`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -233,8 +233,8 @@ exports[`OrderListItem should render correctly 1`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -264,8 +264,8 @@ exports[`OrderListItem should render correctly 1`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#535A61",
                 "fontSize": 12,
                 "textTransform": "uppercase",
@@ -285,8 +285,8 @@ exports[`OrderListItem should render correctly 1`] = `
 exports[`OrderListItem should render correctly 2`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "padding": 15,
       },
       undefined,
@@ -295,8 +295,8 @@ exports[`OrderListItem should render correctly 2`] = `
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
@@ -326,8 +326,8 @@ exports[`OrderListItem should render correctly 2`] = `
         undefined,
         undefined,
         undefined,
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
@@ -343,8 +343,8 @@ exports[`OrderListItem should render correctly 2`] = `
   </Text>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "alignItems": "center",
           "flexDirection": "row",
         },
@@ -354,8 +354,8 @@ exports[`OrderListItem should render correctly 2`] = `
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
@@ -367,14 +367,14 @@ exports[`OrderListItem should render correctly 2`] = `
       <Image
         resizeMode="stretch"
         source={
-          Object {
-            "default": Object {
+          {
+            "default": {
               "uri": "MockImage",
             },
           }
         }
         style={
-          Object {
+          {
             "height": 28,
             "width": 28,
           }
@@ -383,8 +383,8 @@ exports[`OrderListItem should render correctly 2`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "flex": 1,
           },
           undefined,
@@ -393,8 +393,8 @@ exports[`OrderListItem should render correctly 2`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -424,8 +424,8 @@ exports[`OrderListItem should render correctly 2`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -442,7 +442,7 @@ exports[`OrderListItem should render correctly 2`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#D73847",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
@@ -457,8 +457,8 @@ exports[`OrderListItem should render correctly 2`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "flex-end",
             "flex": 0.6,
           },
@@ -468,8 +468,8 @@ exports[`OrderListItem should render correctly 2`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -499,8 +499,8 @@ exports[`OrderListItem should render correctly 2`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -515,8 +515,8 @@ exports[`OrderListItem should render correctly 2`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -546,8 +546,8 @@ exports[`OrderListItem should render correctly 2`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#535A61",
                 "fontSize": 12,
                 "textTransform": "uppercase",
@@ -567,8 +567,8 @@ exports[`OrderListItem should render correctly 2`] = `
 exports[`OrderListItem should render correctly 3`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "padding": 15,
       },
       undefined,
@@ -577,8 +577,8 @@ exports[`OrderListItem should render correctly 3`] = `
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
@@ -608,8 +608,8 @@ exports[`OrderListItem should render correctly 3`] = `
         undefined,
         undefined,
         undefined,
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
@@ -625,8 +625,8 @@ exports[`OrderListItem should render correctly 3`] = `
   </Text>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "alignItems": "center",
           "flexDirection": "row",
         },
@@ -636,8 +636,8 @@ exports[`OrderListItem should render correctly 3`] = `
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
@@ -649,14 +649,14 @@ exports[`OrderListItem should render correctly 3`] = `
       <Image
         resizeMode="stretch"
         source={
-          Object {
-            "default": Object {
+          {
+            "default": {
               "uri": "MockImage",
             },
           }
         }
         style={
-          Object {
+          {
             "height": 28,
             "width": 28,
           }
@@ -665,8 +665,8 @@ exports[`OrderListItem should render correctly 3`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "flex": 1,
           },
           undefined,
@@ -675,8 +675,8 @@ exports[`OrderListItem should render correctly 3`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -706,8 +706,8 @@ exports[`OrderListItem should render correctly 3`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -724,7 +724,7 @@ exports[`OrderListItem should render correctly 3`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
@@ -739,8 +739,8 @@ exports[`OrderListItem should render correctly 3`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "flex-end",
             "flex": 0.6,
           },
@@ -750,8 +750,8 @@ exports[`OrderListItem should render correctly 3`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -781,8 +781,8 @@ exports[`OrderListItem should render correctly 3`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -797,8 +797,8 @@ exports[`OrderListItem should render correctly 3`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -828,8 +828,8 @@ exports[`OrderListItem should render correctly 3`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#535A61",
                 "fontSize": 12,
                 "textTransform": "uppercase",
@@ -849,8 +849,8 @@ exports[`OrderListItem should render correctly 3`] = `
 exports[`OrderListItem should render correctly 4`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "padding": 15,
       },
       undefined,
@@ -859,8 +859,8 @@ exports[`OrderListItem should render correctly 4`] = `
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
@@ -890,8 +890,8 @@ exports[`OrderListItem should render correctly 4`] = `
         undefined,
         undefined,
         undefined,
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
@@ -907,8 +907,8 @@ exports[`OrderListItem should render correctly 4`] = `
   </Text>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "alignItems": "center",
           "flexDirection": "row",
         },
@@ -918,8 +918,8 @@ exports[`OrderListItem should render correctly 4`] = `
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
@@ -931,14 +931,14 @@ exports[`OrderListItem should render correctly 4`] = `
       <Image
         resizeMode="stretch"
         source={
-          Object {
-            "default": Object {
+          {
+            "default": {
               "uri": "MockImage",
             },
           }
         }
         style={
-          Object {
+          {
             "height": 28,
             "width": 28,
           }
@@ -947,8 +947,8 @@ exports[`OrderListItem should render correctly 4`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "flex": 1,
           },
           undefined,
@@ -957,8 +957,8 @@ exports[`OrderListItem should render correctly 4`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -988,8 +988,8 @@ exports[`OrderListItem should render correctly 4`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -1006,7 +1006,7 @@ exports[`OrderListItem should render correctly 4`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
@@ -1021,8 +1021,8 @@ exports[`OrderListItem should render correctly 4`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "flex-end",
             "flex": 0.6,
           },
@@ -1032,8 +1032,8 @@ exports[`OrderListItem should render correctly 4`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -1063,8 +1063,8 @@ exports[`OrderListItem should render correctly 4`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -1079,8 +1079,8 @@ exports[`OrderListItem should render correctly 4`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -1110,8 +1110,8 @@ exports[`OrderListItem should render correctly 4`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#535A61",
                 "fontSize": 12,
                 "textTransform": "uppercase",
@@ -1131,8 +1131,8 @@ exports[`OrderListItem should render correctly 4`] = `
 exports[`OrderListItem should render correctly 5`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "padding": 15,
       },
       undefined,
@@ -1141,8 +1141,8 @@ exports[`OrderListItem should render correctly 5`] = `
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
@@ -1172,8 +1172,8 @@ exports[`OrderListItem should render correctly 5`] = `
         undefined,
         undefined,
         undefined,
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
@@ -1189,8 +1189,8 @@ exports[`OrderListItem should render correctly 5`] = `
   </Text>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "alignItems": "center",
           "flexDirection": "row",
         },
@@ -1200,8 +1200,8 @@ exports[`OrderListItem should render correctly 5`] = `
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
@@ -1213,14 +1213,14 @@ exports[`OrderListItem should render correctly 5`] = `
       <Image
         resizeMode="stretch"
         source={
-          Object {
-            "default": Object {
+          {
+            "default": {
               "uri": "MockImage",
             },
           }
         }
         style={
-          Object {
+          {
             "height": 28,
             "width": 28,
           }
@@ -1229,8 +1229,8 @@ exports[`OrderListItem should render correctly 5`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "flex": 1,
           },
           undefined,
@@ -1239,8 +1239,8 @@ exports[`OrderListItem should render correctly 5`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -1270,8 +1270,8 @@ exports[`OrderListItem should render correctly 5`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -1288,7 +1288,7 @@ exports[`OrderListItem should render correctly 5`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#D73847",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
@@ -1303,8 +1303,8 @@ exports[`OrderListItem should render correctly 5`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "flex-end",
             "flex": 0.6,
           },
@@ -1314,8 +1314,8 @@ exports[`OrderListItem should render correctly 5`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -1345,8 +1345,8 @@ exports[`OrderListItem should render correctly 5`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -1361,8 +1361,8 @@ exports[`OrderListItem should render correctly 5`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -1392,8 +1392,8 @@ exports[`OrderListItem should render correctly 5`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#535A61",
                 "fontSize": 12,
                 "textTransform": "uppercase",
@@ -1413,8 +1413,8 @@ exports[`OrderListItem should render correctly 5`] = `
 exports[`OrderListItem should render correctly 6`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "padding": 15,
       },
       undefined,
@@ -1423,8 +1423,8 @@ exports[`OrderListItem should render correctly 6`] = `
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
@@ -1454,8 +1454,8 @@ exports[`OrderListItem should render correctly 6`] = `
         undefined,
         undefined,
         undefined,
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
@@ -1471,8 +1471,8 @@ exports[`OrderListItem should render correctly 6`] = `
   </Text>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "alignItems": "center",
           "flexDirection": "row",
         },
@@ -1482,8 +1482,8 @@ exports[`OrderListItem should render correctly 6`] = `
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
@@ -1495,14 +1495,14 @@ exports[`OrderListItem should render correctly 6`] = `
       <Image
         resizeMode="stretch"
         source={
-          Object {
-            "default": Object {
+          {
+            "default": {
               "uri": "MockImage",
             },
           }
         }
         style={
-          Object {
+          {
             "height": 28,
             "width": 28,
           }
@@ -1511,8 +1511,8 @@ exports[`OrderListItem should render correctly 6`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "flex": 1,
           },
           undefined,
@@ -1521,8 +1521,8 @@ exports[`OrderListItem should render correctly 6`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -1552,8 +1552,8 @@ exports[`OrderListItem should render correctly 6`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -1570,7 +1570,7 @@ exports[`OrderListItem should render correctly 6`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#0376C9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
@@ -1585,8 +1585,8 @@ exports[`OrderListItem should render correctly 6`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "flex-end",
             "flex": 0.6,
           },
@@ -1596,8 +1596,8 @@ exports[`OrderListItem should render correctly 6`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -1627,8 +1627,8 @@ exports[`OrderListItem should render correctly 6`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -1643,8 +1643,8 @@ exports[`OrderListItem should render correctly 6`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -1674,8 +1674,8 @@ exports[`OrderListItem should render correctly 6`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#535A61",
                 "fontSize": 12,
                 "textTransform": "uppercase",
@@ -1695,8 +1695,8 @@ exports[`OrderListItem should render correctly 6`] = `
 exports[`OrderListItem should render correctly 7`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "padding": 15,
       },
       undefined,
@@ -1705,8 +1705,8 @@ exports[`OrderListItem should render correctly 7`] = `
 >
   <Text
     style={
-      Array [
-        Object {
+      [
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
@@ -1736,8 +1736,8 @@ exports[`OrderListItem should render correctly 7`] = `
         undefined,
         undefined,
         undefined,
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
@@ -1753,8 +1753,8 @@ exports[`OrderListItem should render correctly 7`] = `
   </Text>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "alignItems": "center",
           "flexDirection": "row",
         },
@@ -1764,8 +1764,8 @@ exports[`OrderListItem should render correctly 7`] = `
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
@@ -1777,14 +1777,14 @@ exports[`OrderListItem should render correctly 7`] = `
       <Image
         resizeMode="stretch"
         source={
-          Object {
-            "default": Object {
+          {
+            "default": {
               "uri": "MockImage",
             },
           }
         }
         style={
-          Object {
+          {
             "height": 28,
             "width": 28,
           }
@@ -1793,8 +1793,8 @@ exports[`OrderListItem should render correctly 7`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "flex": 1,
           },
           undefined,
@@ -1803,8 +1803,8 @@ exports[`OrderListItem should render correctly 7`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -1834,8 +1834,8 @@ exports[`OrderListItem should render correctly 7`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -1852,7 +1852,7 @@ exports[`OrderListItem should render correctly 7`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#0376C9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
@@ -1867,8 +1867,8 @@ exports[`OrderListItem should render correctly 7`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "flex-end",
             "flex": 0.6,
           },
@@ -1878,8 +1878,8 @@ exports[`OrderListItem should render correctly 7`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -1909,8 +1909,8 @@ exports[`OrderListItem should render correctly 7`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -1925,8 +1925,8 @@ exports[`OrderListItem should render correctly 7`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -1956,8 +1956,8 @@ exports[`OrderListItem should render correctly 7`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#535A61",
                 "fontSize": 12,
                 "textTransform": "uppercase",
@@ -1977,8 +1977,8 @@ exports[`OrderListItem should render correctly 7`] = `
 exports[`OrderListItem should render correctly 8`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "padding": 15,
       },
       undefined,
@@ -1987,8 +1987,8 @@ exports[`OrderListItem should render correctly 8`] = `
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "alignItems": "center",
           "flexDirection": "row",
         },
@@ -1998,8 +1998,8 @@ exports[`OrderListItem should render correctly 8`] = `
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "marginRight": 15,
@@ -2011,14 +2011,14 @@ exports[`OrderListItem should render correctly 8`] = `
       <Image
         resizeMode="stretch"
         source={
-          Object {
-            "default": Object {
+          {
+            "default": {
               "uri": "MockImage",
             },
           }
         }
         style={
-          Object {
+          {
             "height": 28,
             "width": 28,
           }
@@ -2027,8 +2027,8 @@ exports[`OrderListItem should render correctly 8`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "flex": 1,
           },
           undefined,
@@ -2037,8 +2037,8 @@ exports[`OrderListItem should render correctly 8`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -2068,8 +2068,8 @@ exports[`OrderListItem should render correctly 8`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -2086,7 +2086,7 @@ exports[`OrderListItem should render correctly 8`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#0376C9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 12,
@@ -2101,8 +2101,8 @@ exports[`OrderListItem should render correctly 8`] = `
     </View>
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "flex-end",
             "flex": 0.6,
           },
@@ -2112,8 +2112,8 @@ exports[`OrderListItem should render correctly 8`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -2143,8 +2143,8 @@ exports[`OrderListItem should render correctly 8`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 15,
               },
@@ -2159,8 +2159,8 @@ exports[`OrderListItem should render correctly 8`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -2190,8 +2190,8 @@ exports[`OrderListItem should render correctly 8`] = `
             undefined,
             undefined,
             undefined,
-            Array [
-              Object {
+            [
+              {
                 "color": "#535A61",
                 "fontSize": 12,
                 "textTransform": "uppercase",
