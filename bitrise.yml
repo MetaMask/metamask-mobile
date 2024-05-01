@@ -52,7 +52,6 @@ pipelines:
     stages:
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
-      - notify: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
