@@ -95,22 +95,22 @@
     "delete_current": "現在のウォレットを削除しています"
   },
   "onboarding_success": {
-    "title": "Congratulations!",
-    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
-    "description_bold": "Settings > Security & Privacy.",
-    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
-    "learn_more": "Learn more",
-    "learn_how": "Learn how",
-    "leave_hint": "Leave yourself a hint?",
-    "default_settings": "Default settings",
-    "manage_default_settings": "Manage default settings",
-    "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
-    "no_srp_title": "Reminder set!",
-    "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
-    "import_title": "Your Wallet is ready",
-    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
-    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
-    "done": "Done"
+    "title": "",
+    "description": "",
+    "description_bold": "",
+    "description_continued": "",
+    "learn_more": "",
+    "learn_how": "",
+    "leave_hint": "",
+    "default_settings": "",
+    "manage_default_settings": "",
+    "default_settings_footer": "",
+    "no_srp_title": "",
+    "no_srp_description": "",
+    "import_title": "",
+    "import_description": "",
+    "import_description2": "",
+    "done": ""
   },
   "onboarding_carousel": {
     "title1": "MetaMaskへようこそ",
@@ -178,16 +178,16 @@
       "content1": "このアイコンをタップすると、アカウント名の編集、Etherscanでのトランザクションの表示、公開鍵の共有、秘密鍵の表示が行えます。"
     },
     "step4": {
-      "title": "通知",
-      "content1": "ウォレットで何が起きているか、常に把握しましょう"
+      "title": "ウォレットの使用",
+      "content1": "このアイコンをタップすると、資産の購入、送金、スワップ、受取が行えます。"
     },
     "step5": {
-      "title": "ウォレットの使用",
-      "content1": "このアイコンをタップすると、資産の購入、送金、スワップ、受取が行えます"
-    },
-    "step6": {
       "title": "Web3の閲覧",
       "content1": "このアイコンをタップしてブラウザを開きます"
+    },
+    "step6": {
+      "title": "ブラウザの使用",
+      "content1": "キーワードでサイトを検索するか、URLを入力します。楽しく閲覧しましょう！"
     },
     "step7": {
       "title": "ブラウザの使用",
@@ -373,17 +373,17 @@
     "no_collectibles": "NFTが見当たりませんか？",
     "no_available_tokens": "トークンが見当たりませんか？",
     "add_tokens": "トークンをインポート",
-    "are_you_sure_exit": "終了してよろしいですか？",
-    "search_information_not_saved": "検索情報は保存されません。",
-    "import_token": "このトークンをインポートしますか？",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "このアカウントに{{tokenCount}}件の新しい{{tokensLabel}}が見つかりました",
     "token_toast": {
       "tokens_imported_title": "トークンをインポートしました",
       "tokens_imported_desc": "{{tokenSymbols}}がインポートされました",
       "token_imported_title": "トークンをインポートしました",
       "token_imported_desc": "{{tokenSymbol}}がインポートされました",
-      "token_imported_desc_1": "トークンをインポートしました。",
-      "tokens_import_success_multiple": "{{tokensNumber}}種類のトークンをインポートしました。",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "トークンの非表示",
       "tokens_hidden_desc": "検出されたトークンをウォレットから非表示にしています",
       "token_hidden_title": "トークンの非表示",
@@ -446,8 +446,8 @@
     "display_nft_media_cta_new_1": "NFTを表示するには、次の場所で「NFTメディアを表示」を有効にしてください",
     "display_nft_media_cta_new_2": "「設定」>「セキュリティとプライバシー」。",
     "banner": {
-      "title": "Basic functionality is off",
-      "link": "Turn on basic functionality"
+      "title": "",
+      "link": ""
     }
   },
   "asset_details": {
@@ -472,8 +472,8 @@
   "add_asset": {
     "title": "トークンをインポート",
     "title_nft": "NFTをインポート",
-    "search_token": "検索",
-    "custom_token": "カスタムトークン",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "キャンセル",
       "add_token": "インポート"
@@ -530,16 +530,16 @@
     "resultPageErrorDefaultMessage": "操作に失敗しました。"
   },
   "token": {
-    "token_symbol": "トークンシンボル",
+    "token_symbol": "Token symbol",
     "token_address": "トークンアドレス",
-    "token_decimal": "トークンの小数桁数",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "トークンを検索",
     "address_cant_be_empty": "トークンアドレスは必須入力項目です。",
     "address_must_be_valid": "トークンアドレスは有効なアドレスである必要があります。",
     "symbol_cant_be_empty": "トークンシンボルは必須入力項目です。",
-    "symbol_length": "シンボルは11文字以下でなければなりません",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "トークンの小数点以下は必須入力項目です。",
-    "decimals_is_required": "小数点以下の桁数が必要です。確認はこちら:",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "その名前のトークンは見つかりませんでした。",
     "select_token": "トークンを選択",
     "address_must_be_smart_contract": "パーソナルアドレスが検出されました。トークンのコントラクトアドレスを入力してください。"
@@ -709,12 +709,12 @@
     "nft_opensea_desc": "NFTのメディアとデータを表示すると、IPアドレスが中央サーバーに公開される可能性があります。OpenSeaのAPIを使用してNFTデータを取得してください。NFTの自動検出機能はOpenSeaのAPIを使用するため、この機能がオフの場合利用できません。NFTの自動検出を有効にすると、他のユーザーからウォレットに偽のNFTが送られる可能性があり、攻撃者にイーサリアムアドレスからIPアドレスをつきとめられる場合があります。",
     "nft_autodetect_mode": "NFTを自動検出",
     "nft_autodetect_desc": "NFTのメディアとデータを表示すると、IPアドレスが中央サーバーに公開される可能性があります。ウォレットのNFTを検出するには、サードパーティー API (OpenSea など) が使用されます。これによりこれらのサービスにアカウントのアドレスが公開されます。アプリがこれらのサービスからデータを取得しないようにするには、この機能を無効のままにしてください。",
-    "show_fiat_on_testnets": "Show conversion on test networks",
-    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
-    "show_fiat_on_testnets_modal_title": "Be careful",
-    "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
-    "show_fiat_on_testnets_modal_learn_more": "Learn more.",
-    "show_fiat_on_testnets_modal_button": "Continue",
+    "show_fiat_on_testnets": "",
+    "show_fiat_on_testnets_desc": "",
+    "show_fiat_on_testnets_modal_title": "",
+    "show_fiat_on_testnets_modal_description": "",
+    "show_fiat_on_testnets_modal_learn_more": "",
+    "show_fiat_on_testnets_modal_button": "",
     "show_hex_data": "16進データを表示",
     "show_hex_data_desc": "送信画面に16進データフィールドを表示するにはこれを選択します。",
     "toggleEthSignBannerDescription": "フィッシング攻撃のリスクがあります。eth_signを無効にして自分の身を守ってください。",
@@ -827,7 +827,7 @@
     "ses_heading": "コードロックダウン",
     "ses_description": "これは、アプリのJavaScriptコードを許可なく変更できないようにするテスト機能です。",
     "ses_link": "詳細",
-    "general_heading": "General",
+    "general_heading": "",
     "privacy_heading": "プライバシー",
     "failed_to_fetch_chain_id": "チェーンIDを取得できませんでした。正しいRPC URLか確認してください。",
     "endpoint_returned_different_chain_id": "エンドポイントが異なるIDを返しました: %{chainIdReturned}",
@@ -886,8 +886,13 @@
       "sdk_activation_keys": "SDKのアクティベーションキー",
       "activation_keys_description": "アクティベーションキーを使うと、特定の機能やプロバイダーが使用できるようになります。",
       "add_activation_key": "アクティベーションキーを追加",
+      "edit_activation_key": "アクティベーションキーを編集",
       "paste_or_type_activation_key": "アクティベーションキーを貼り付けるか、入力してください",
+      "add_label": "このキーにラベルを追加",
+      "label": "ラベル",
+      "key": "キー",
       "add": "追加",
+      "update": "更新",
       "cancel": "キャンセル"
     },
     "request_feature": "機能のリクエスト",
@@ -1358,7 +1363,7 @@
     "contract": "コントラクト ({{address}})",
     "contract_name": "コントラクト名:",
     "contract_address": "コントラクトアドレス:",
-    "invalid_contract_address": "コントラクトアドレスが無効です。新しいアドレスを入力してください",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "許容額:",
     "data": "データ",
     "function_approve": "関数: 承認",
@@ -1402,6 +1407,9 @@
     "remove_bookmark_title": "お気に入りを削除",
     "remove_bookmark_msg": "このサイトをお気に入りから削除してよろしいですか？",
     "yes": "はい",
+    "undefined_account": "",
+    "close_tab": "",
+    "switch_tab": "",
     "protocol_alert_options": {
       "ignore": "無視",
       "allow": "許可する"
@@ -1887,9 +1895,9 @@
     "pending_deposit_message": "入金の完了待ち",
     "pending_withdrawal_message": "出金の完了待ち",
     "error_message": "このトランザクションを表示するにはタップしてください",
-    "error_retrieving_fcm_token": "FCMトークンの取得および保存中にエラーが発生しました",
-    "error_fcm_not_found": "getFCMToken: FCMトークンが見つかりませんでした",
-    "error_checking_permission": "ユーザーにプッシュ通知のアクセス許可があるか確認中にエラーが発生しました",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "このトランザクションを表示するにはタップしてください",
     "speedup_message": "トランザクションの高速化を試みています",
     "success_deposit_message": "資金の使用準備ができました",
@@ -2070,7 +2078,7 @@
     "limited_time": "期間限定",
     "supported_countries": "対応している国",
     "no_countries_result": "「{{searchString}}」と一致する対応国がありません",
-    "wyre_loading_rates": " ",
+    "wyre_loading_rates": "",
     "fast_no_registration": "迅速 - 登録不要",
     "debit_credit_card_required": "デビットカードまたはクレジットカード。Apple Cashには対応していません。",
     "select_card_country": "(お住まいの国ではなく) カードが登録されている国を選択してください。",
@@ -2973,30 +2981,30 @@
     "error_description": "{{snap}}のインストールに失敗しました。"
   },
   "stake": {
-    "stake": "ステーク"
+    "stake": "Stake"
   },
   "default_settings": {
-    "title": "Your Wallet is ready",
-    "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
-    "learn_more_about_privacy": "Learn more about privacy best practices.",
-    "privacy_policy": "Privacy policy",
-    "default_settings": "Default Settings",
-    "done": "Done",
-    "basic_functionality": "Basic functionality",
-    "manage_networks": "Manage networks",
-    "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
-    "manage_networks_body2": " to learn more about how Infura handles data.",
-    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
+    "title": "",
+    "description": "",
+    "learn_more_about_privacy": "",
+    "privacy_policy": "",
+    "default_settings": "",
+    "done": "",
+    "basic_functionality": "",
+    "manage_networks": "",
+    "manage_networks_body": "",
+    "manage_networks_body2": "",
+    "functionality_body": "",
     "sheet": {
-      "title_off": "Turn off basic functionality",
-      "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
-      "title_on": "Turn on basic functionality",
-      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
-      "checkbox_label": "I understand and want to continue",
+      "title_off": "",
+      "description_off": "",
+      "title_on": "",
+      "description_on": "",
+      "checkbox_label": "",
       "buttons": {
-        "cancel": "Cancel",
-        "turn_on": "Turn on",
-        "turn_off": "Turn off"
+        "cancel": "",
+        "turn_on": "",
+        "turn_off": ""
       }
     }
   }
