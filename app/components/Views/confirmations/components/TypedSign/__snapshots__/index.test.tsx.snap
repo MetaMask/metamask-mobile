@@ -510,7 +510,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                 </Text>
                 <View
                   onLayout={[Function]}
-                  style={Array []}
+                  style={[]}
                 />
               </View>
               <View
@@ -1177,7 +1177,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                 </Text>
                 <View
                   onLayout={[Function]}
-                  style={Array []}
+                  style={[]}
                 />
               </View>
               <View
