@@ -166,28 +166,32 @@ const OnboardingSuccess = ({
     );
   };
 
-  const renderFooter = () => (
-    <View style={styles.footer}>
-      <TouchableOpacity
-        style={styles.linkWrapper}
-        onPress={goToDefaultSettings}
-      >
-        <View style={styles.iconWrapper}>
-          <Icon
-            name={IconName.Setting}
-            size={IconSize.Sm}
-            color={IconColor.Info}
-          />
-        </View>
-        <Text color={TextColor.Info}>
-          {strings('onboarding_success.manage_default_settings')}
+  const renderFooter = () => {
+    const paddingTop = backedUpSRP ? 30 : noSRP ? 0 : 10;
+    return (
+      <View style={styles.footer}>
+        <TouchableOpacity
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={[styles.linkWrapper, { paddingTop }]}
+          onPress={goToDefaultSettings}
+        >
+          <View style={styles.iconWrapper}>
+            <Icon
+              name={IconName.Setting}
+              size={IconSize.Sm}
+              color={IconColor.Info}
+            />
+          </View>
+          <Text color={TextColor.Info}>
+            {strings('onboarding_success.manage_default_settings')}
+          </Text>
+        </TouchableOpacity>
+        <Text style={styles.footerText}>
+          {strings('onboarding_success.default_settings_footer')}
         </Text>
-      </TouchableOpacity>
-      <Text style={styles.footerText}>
-        {strings('onboarding_success.default_settings_footer')}
-      </Text>
-    </View>
-  );
+      </View>
+    );
+  };
 
   return (
     <View
