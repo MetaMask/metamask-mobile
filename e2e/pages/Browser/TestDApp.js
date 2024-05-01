@@ -133,6 +133,7 @@ class TestDApp {
     await Browser.navigateToURL(
       `${TEST_DAPP_LOCAL_URL}?scrollTo=''&contract=${contractAddress}`,
     );
+    await TestHelpers.delay(3000); // should have a better assertion that waits until the webpage loads
   }
 
   async tapButtonWithContract({ buttonId, contractAddress }) {
