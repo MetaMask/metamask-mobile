@@ -55,7 +55,7 @@ jobs:
         with:
           crowdin_branch_name: ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }}
           upload_sources: true
-          upload_translations: false
+          upload_translations: true
           download_translations: true
           skip_untranslated_strings: true
           export_only_approved: true
