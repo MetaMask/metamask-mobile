@@ -3,7 +3,7 @@
 exports[`Name unknown address should render snapshot correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "center",
       "backgroundColor": "#F2F4F6",
@@ -21,7 +21,7 @@ exports[`Name unknown address should render snapshot correctly 1`] = `
     height={20}
     name="Question"
     style={
-      Object {
+      {
         "height": 20,
         "width": 20,
       }
@@ -33,7 +33,7 @@ exports[`Name unknown address should render snapshot correctly 1`] = `
     ellipsizeMode="middle"
     numberOfLines={1}
     style={
-      Object {
+      {
         "color": "#24272A",
         "flexShrink": 1,
         "fontFamily": "Euclid Circular B",

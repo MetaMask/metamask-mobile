@@ -9,7 +9,7 @@ exports[`ButtonIcon should render correctly 1`] = `
   onPressIn={[Function]}
   onPressOut={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "borderRadius": 8,
       "height": 24,
@@ -24,7 +24,7 @@ exports[`ButtonIcon should render correctly 1`] = `
     height={16}
     name="AddSquare"
     style={
-      Object {
+      {
         "height": 16,
         "width": 16,
       }
