@@ -106,7 +106,7 @@ Optional prop to configure the vertical alignment between items inside the ListI
 
 // Configuring different severities/colors
 <TagBase severity={TagSeverity.Default}>SAMPLE TAGBASE TEXT</TagBase>;
-<TagBase severity={TagSeverity.Alternative}>SAMPLE TAGBASE TEXT</TagBase>;
+<TagBase severity={TagSeverity.Neutral}>SAMPLE TAGBASE TEXT</TagBase>;
 <TagBase severity={TagSeverity.Success}>SAMPLE TAGBASE TEXT</TagBase>;
 <TagBase severity={TagSeverity.Info}>SAMPLE TAGBASE TEXT</TagBase>;
 <TagBase severity={TagSeverity.Danger}>SAMPLE TAGBASE TEXT</TagBase>;

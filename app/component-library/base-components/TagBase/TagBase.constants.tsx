@@ -6,6 +6,7 @@ import React from 'react';
 import Icon from '../../components/Icons/Icon';
 import { SAMPLE_ICON_PROPS } from '../../components/Icons/Icon/Icon.constants';
 import { SAMPLE_TEXT_PROPS } from '../../components/Texts/Text/Text.constants';
+import { TextVariant } from '../../components/Texts/Text';
 
 // Internal dependencies
 import { TagShape, TagSeverity, TagBaseProps } from './TagBase.types';
@@ -14,8 +15,9 @@ import { TagShape, TagSeverity, TagBaseProps } from './TagBase.types';
 export const DEFAULT_TAGBASE_SHAPE = TagShape.Pill;
 export const DEFAULT_TAGBASE_SEVERITY = TagSeverity.Default;
 export const DEFAULT_TAGBASE_GAP = 8;
+export const DEFAULT_TAGBASE_TEXTVARIANT = TextVariant.BodySM;
 
-// // Test IDs
+// Test IDs
 export const TAGBASE_TESTID = 'tagbase';
 export const TAGBASE_TEXT_TESTID = 'tagbase-text';
 

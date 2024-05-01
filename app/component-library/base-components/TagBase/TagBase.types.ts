@@ -15,7 +15,7 @@ export enum TagShape {
  */
 export enum TagSeverity {
   Default = 'Default',
-  Alternative = 'Alternative',
+  Neutral = 'Neutral',
   Success = 'Success',
   Info = 'Info',
   Danger = 'Danger',

@@ -18,17 +18,10 @@ import { TagShape, TagSeverity } from './TagBase.types';
 const styleSheet = (params: { theme: Theme; vars: any }) => {
   const { theme, vars } = params;
   const { style, shape, containerSize, severity, includesBorder } = vars;
-  let borderRadius: number;
-
-  if (shape === TagShape.Rectangle) {
-    borderRadius = 4;
-  } else {
-    borderRadius = containerSize ? containerSize.height / 2 : 999;
-  }
 
   let backgroundColor, textColor, borderColor;
   switch (severity) {
-    case TagSeverity.Alternative:
+    case TagSeverity.Neutral:
       backgroundColor = theme.colors.background.alternative;
       textColor = theme.colors.text.alternative;
       borderColor = theme.colors.border.default;
@@ -64,9 +57,14 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   return StyleSheet.create({
     base: Object.assign(
       {
-        borderRadius,
+        borderRadius:
+          shape === TagShape.Rectangle
+            ? 4
+            : containerSize
+            ? containerSize.height / 2
+            : 999,
         paddingHorizontal: 8,
-        paddingVertical: 0,
+        paddingVertical: 4,
         backgroundColor,
         color: textColor,
         borderColor,

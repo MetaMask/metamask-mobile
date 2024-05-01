@@ -90,11 +90,11 @@ describe('TagBase', () => {
     );
   });
 
-  it('should render the correct alternative color when given', () => {
+  it('should render the correct neutral color when given', () => {
     const testText = 'TagBase';
 
     const { getByTestId } = render(
-      <TagBase severity={TagSeverity.Alternative}>{testText}</TagBase>,
+      <TagBase severity={TagSeverity.Neutral}>{testText}</TagBase>,
     );
 
     expect(getByTestId(TAGBASE_TESTID).props.style.backgroundColor).toBe(
