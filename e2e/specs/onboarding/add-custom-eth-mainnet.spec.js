@@ -15,6 +15,11 @@ import NetworksView from '../../pages/Settings/NetworksView';
 import Accounts from '../../../wdio/helpers/Accounts';
 import { DEFAULT_MAINNET_CUSTOM_NAME } from '../../../app/constants/network';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import TabBarComponent from '../../pages/TabBarComponent';
+import SettingsView from '../../pages/Settings/SettingsView';
+import NetworkListModal from '../../pages/modals/NetworkListModal';
+import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
+import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 
 const validAccount = Accounts.getValidAccount();
 
@@ -31,7 +36,9 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
 
   it('should not edit default network with invalid RPC', async () => {
     await MetaMetricsOptIn.tapEditDefaultNetworkHere();
-    await DefaultNetworkView.typeRpcURL('https//rpc.mevblocker.io');
+    await DefaultNetworkView.typeRpcURL(
+      CustomNetworks.EthereumMainCustom.providerConfig.rpcUrlInvalid,
+    );
     await Assertions.checkIfVisible(NetworksView.rpcWarningBanner);
   });
 
@@ -58,5 +65,42 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
     await OnboardingSuccessView.tapDone();
     await EnableAutomaticSecurityChecksView.tapNoThanks();
     await WalletView.isNetworkNameVisible(DEFAULT_MAINNET_CUSTOM_NAME);
+  });
+
+  it('should navigate to Settings > Networks', async () => {
+    await OnboardingWizardModal.tapNoThanksButton();
+    await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
+    await ProtectYourWalletModal.tapRemindMeLaterButton();
+    await SkipAccountSecurityModal.tapIUnderstandCheckBox();
+    await SkipAccountSecurityModal.tapSkipButton();
+    await TabBarComponent.tapSettings();
+    await SettingsView.scrollToContactSupportButton();
+    await SettingsView.tapNetworks();
+    await Assertions.checkIfVisible(NetworksView.networkContainer);
+  });
+
+  it('should edit custom default mainnet and land on Wallet view', async () => {
+    await NetworksView.tapNetworkByName(
+      CustomNetworks.EthereumMainCustom.providerConfig.nickname,
+    );
+    await NetworksView.clearRpcInputBox();
+    await NetworksView.typeInRpcUrl(
+      CustomNetworks.EthereumMainCustom.providerConfig.rpcUrlAlt,
+    );
+    await NetworksView.tapSave();
+    await WalletView.isConnectedNetwork(
+      CustomNetworks.EthereumMainCustom.providerConfig.nickname,
+    );
+  });
+
+  it('should show Ethereum Main Custom on added network list', async () => {
+    await WalletView.tapNetworksButtonOnNavBar();
+    await NetworkListModal.changeNetworkTo(
+      CustomNetworks.EthereumMainCustom.providerConfig.nickname,
+      true, //setting this made this step work for iOS
+    );
+    await WalletView.isConnectedNetwork(
+      CustomNetworks.EthereumMainCustom.providerConfig.nickname,
+    );
   });
 });

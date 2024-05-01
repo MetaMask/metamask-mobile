@@ -102,6 +102,10 @@ class NetworkView {
     return Matchers.getElementByText(NetworkViewSelectorsText.REMOVE_NETWORK);
   }
 
+  get saveButton() {
+    return Matchers.getElementByText(NetworkViewSelectorsText.SAVE_BUTTON);
+  }
+
   async getnetworkName(networkName) {
     return Matchers.getElementByText(networkName);
   }
@@ -170,6 +174,16 @@ class NetworkView {
   async swipeToRPCTitleAndDismissKeyboard() {
     // Because in bitrise the keyboard is blocking the "Add" CTA
     await Gestures.waitAndTap(this.blockExplorer);
+  }
+
+  async tapRemoveNetwork(networkName) {
+    const network = Matchers.getElementByText(networkName);
+    await Gestures.tapAndLongPress(network);
+    await Gestures.waitAndTap(this.removeNetwork);
+  }
+
+  async tapSave() {
+    await Gestures.waitAndTap(this.saveButton);
   }
 }
 
