@@ -84,6 +84,10 @@ class Browser {
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
+  async getFavoritesURL(url) {
+    return Matchers.getElementByHref(url);
+  }
+
   async tapUrlInputBox() {
     await Gestures.waitAndTap(this.addressBar);
   }
@@ -129,8 +133,8 @@ class Browser {
   }
 
   async tapDappInFavorites(dappURL) {
-    const element = await Matchers.getElementByHref(dappURL);
-    await Gestures.waitAndTap(element);
+    const elem = Matchers.getElementByHref(dappURL);
+    await Gestures.tap(elem);
   }
 
   async navigateToURL(url) {
