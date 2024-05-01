@@ -218,11 +218,13 @@ Array [
                   <View
                     style={
                       Object {
+                        "alignItems": "center",
                         "backgroundColor": "#FFFFFF",
                         "borderColor": "#FFFFFF",
                         "borderRadius": 16,
                         "borderWidth": 2,
                         "height": 32,
+                        "justifyContent": "center",
                         "overflow": "hidden",
                         "shadowColor": "#0000001A",
                         "shadowOffset": Object {
@@ -250,9 +252,8 @@ Array [
                       }
                       style={
                         Object {
-                          "flex": 1,
-                          "height": undefined,
-                          "width": undefined,
+                          "height": 32,
+                          "width": 32,
                         }
                       }
                       testID="network-avatar-image"

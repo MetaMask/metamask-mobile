@@ -561,9 +561,11 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -579,9 +581,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -714,9 +715,11 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -732,9 +735,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -1458,9 +1460,11 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -1476,9 +1480,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -1611,9 +1614,11 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -1631,9 +1636,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -2313,9 +2317,11 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -2331,9 +2337,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -2466,9 +2471,11 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -2484,9 +2491,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -2619,9 +2625,11 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -2637,9 +2645,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -2772,9 +2779,11 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -2792,9 +2801,8 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -3474,9 +3482,11 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -3492,9 +3502,8 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -3627,9 +3636,11 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -3645,9 +3656,8 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -3780,9 +3790,11 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -3798,9 +3810,8 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -3933,9 +3944,11 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -3953,9 +3966,8 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -4635,9 +4647,11 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -4653,9 +4667,8 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -4788,9 +4801,11 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -4806,9 +4821,8 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -4941,9 +4955,11 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -4959,9 +4975,8 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"
@@ -5094,9 +5109,11 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                       <View
                                         style={
                                           Object {
+                                            "alignItems": "center",
                                             "backgroundColor": "#FFFFFF",
                                             "borderRadius": 12,
                                             "height": 24,
+                                            "justifyContent": "center",
                                             "overflow": "hidden",
                                             "width": 24,
                                           }
@@ -5114,9 +5131,8 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           }
                                           style={
                                             Object {
-                                              "flex": 1,
-                                              "height": undefined,
-                                              "width": undefined,
+                                              "height": 24,
+                                              "width": 24,
                                             }
                                           }
                                           testID="network-avatar-image"

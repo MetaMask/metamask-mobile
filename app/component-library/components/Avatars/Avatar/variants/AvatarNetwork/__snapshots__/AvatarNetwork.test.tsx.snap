@@ -3,7 +3,12 @@
 exports[`AvatarNetwork should render correctly 1`] = `
 <AvatarBase
   size="32"
-  style={Object {}}
+  style={
+    Object {
+      "alignItems": "center",
+      "justifyContent": "center",
+    }
+  }
 >
   <Image
     onError={[Function]}
@@ -15,9 +20,8 @@ exports[`AvatarNetwork should render correctly 1`] = `
     }
     style={
       Object {
-        "flex": 1,
-        "height": undefined,
-        "width": undefined,
+        "height": 32,
+        "width": 32,
       }
     }
     testID="network-avatar-image"
