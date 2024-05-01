@@ -1,6 +1,8 @@
+/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 // Third party dependencies
 import React from 'react';
+import { View } from 'react-native';
 
 // Internal dependencies
 import { default as TagBaseComponent } from './TagBase';
@@ -64,17 +66,23 @@ export const TagBase = {
     includesBorder: false,
   },
   render: (args: any) => (
-    <TagBaseComponent
-      startAccessory={
-        args.startAccessory && SAMPLE_TAGBASE_PROPS.startAccessory
-      }
-      endAccessory={args.endAccessory && SAMPLE_TAGBASE_PROPS.endAccessory}
-      shape={args.shape}
-      severity={args.severity}
-      gap={args.gap}
-      includesBorder={args.includesBorder}
+    <View
+      style={{
+        padding: 12,
+      }}
     >
-      {args.children}
-    </TagBaseComponent>
+      <TagBaseComponent
+        startAccessory={
+          args.startAccessory && SAMPLE_TAGBASE_PROPS.startAccessory
+        }
+        endAccessory={args.endAccessory && SAMPLE_TAGBASE_PROPS.endAccessory}
+        shape={args.shape}
+        severity={args.severity}
+        gap={args.gap}
+        includesBorder={args.includesBorder}
+      >
+        {args.children}
+      </TagBaseComponent>
+    </View>
   ),
 };
