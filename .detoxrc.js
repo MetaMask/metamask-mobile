@@ -56,7 +56,7 @@ module.exports = {
     'ios.simulator': {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 15 Pro',
+        type: 'iPhone 13 Pro',
       },
     },
     'android.bitrise.emulator': {

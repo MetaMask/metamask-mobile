@@ -75,66 +75,33 @@ class TestDApp {
   }
 
   async tapApproveButton() {
-    await web
-      .element(
-        by.web.cssSelector(TestDappSelectorsWebIDs.APPROVE_TOKENS_BUTTON_ID),
-      )
-      .tap();
-    // await this.tapButton(this.ApproveButton);
+    await this.tapButton(this.ApproveButton);
   }
 
   async tapEthSignButton() {
-    await web
-      .element(by.web.cssSelector(TestDappSelectorsWebIDs.ETH_SIGN))
-      .tap();
-
-    // await this.tapButton(this.ethSignButton);
+    await this.tapButton(this.ethSignButton);
   }
 
   async tapPersonalSignButton() {
-    await web
-      .element(by.web.cssSelector(TestDappSelectorsWebIDs.PERSONAL_SIGN))
-      .tap();
-    // await this.tapButton(this.personalSignButton);
+    await this.tapButton(this.personalSignButton);
   }
 
   async tapTypedSignButton() {
-    await web
-      .element(by.web.cssSelector(TestDappSelectorsWebIDs.SIGN_TYPE_DATA))
-      .tap();
-    // await this.tapButton(this.signTypedDataButton);
+    await this.tapButton(this.signTypedDataButton);
   }
 
   async tapTypedV3SignButton() {
-    await web
-      .element(by.web.cssSelector(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3))
-      .tap();
-    // await this.tapButton(this.signTypedDataV3Button);
+    await this.tapButton(this.signTypedDataV3Button);
   }
 
   async tapTypedV4SignButton() {
-    await web
-      .element(by.web.cssSelector(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4))
-      .tap();
-    // await this.tapButton(this.signTypedDataV4Button);
+    await this.tapButton(this.signTypedDataV4Button);
   }
   async tapERC20TransferButton() {
-    await web
-      .element(
-        by.web.cssSelector(
-          TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
-        ),
-      )
-      .tap();
-    // await this.tapButton(this.erc20TransferTokensButton);
+    await this.tapButton(this.erc20TransferTokensButton);
   }
   async tapNFTTransferButton() {
-    await web
-      .element(
-        by.web.cssSelector(TestDappSelectorsWebIDs.NFT_TRANSFER_FROM_BUTTON_ID),
-      )
-      .tap();
-    // await this.tapButton(this.nftTransferFromTokensButton);
+    await this.tapButton(this.nftTransferFromTokensButton);
   }
 
   async tapConfirmButton() {
