@@ -96,7 +96,7 @@ const TabThumbnail = ({
               <BadgeWrapper
                 badgeElement={
                   <Badge
-                    size={AvatarSize.Sm}
+                    size={AvatarSize.Xs}
                     variant={BadgeVariant.Network}
                     imageSource={networkImageSource}
                     name={networkName}
