@@ -150,23 +150,27 @@ const patchModulesTask = {
         await $`./scripts/build-inpage-bridge.sh`;
       }
     },
+    {
+      title: 'Patch npm packages',
+      task: async () => {
+        await $`yarn patch-package`;
+      }
+    },
     // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
     {
       title: 'React Native nodeify',
       task: async () => {
-        await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
+        await $`node_modules/.bin/rn-nodeify --install --yarn crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
+        const diffResult = await $`git diff --exit-code -w package.json yarn.lock`;
+        if (diffResult.exitCode !== 0) {
+          throw new Error($`Dirty package state after rn-nodeify. Any necessary devDependencies should be added. (exitCode: ${diffResult.exitCode})`);
+        }
       }
     },
     {
       title: 'Jetify',
       task: async () => {
         await $`yarn jetify`;
-      }
-    },
-    {
-      title: 'Patch npm packages',
-      task: async () => {
-        await $`yarn patch-package`;
       }
     },
     {

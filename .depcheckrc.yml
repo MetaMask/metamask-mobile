@@ -25,7 +25,6 @@ ignores:
   - '@wdio/local-runner'
   - '@wdio/spec-reporter'
   - 'appium'
-  - 'assert'
   - 'babel-core'
   - 'babel-loader'
   - 'chromedriver'
@@ -41,7 +40,22 @@ ignores:
   - 'prettier-plugin-gherkin'
   - 'react-native-svg-asset-plugin'
   - 'regenerator-runtime'
+
+  # rn-nodeify provides runtime polyfills through associated packages
   - 'rn-nodeify'
+  - 'assert'
+  - 'browserify-zlib'
+  - 'console-browserify'
+  - 'dns.js'
+  - 'domain-browser'
+  - 'path-browserify'
+  - 'process'
+  - 'querystring-es3'
+  - 'react-native-udp'
+  - 'string_decoder'
+  - 'timers-browserify'
+  - 'tty-browserify'
+  - 'util'
 
   ## Unused devDependencies to investigate
   - '@ethersproject/abi'
