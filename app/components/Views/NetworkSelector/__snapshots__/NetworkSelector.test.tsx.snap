@@ -505,9 +505,11 @@ exports[`Network Selector renders correctly 1`] = `
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "marginRight": 16,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -525,9 +527,8 @@ exports[`Network Selector renders correctly 1`] = `
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -624,9 +625,11 @@ exports[`Network Selector renders correctly 1`] = `
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "marginRight": 16,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -644,9 +647,8 @@ exports[`Network Selector renders correctly 1`] = `
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -718,9 +720,11 @@ exports[`Network Selector renders correctly 1`] = `
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "marginRight": 16,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -740,9 +744,8 @@ exports[`Network Selector renders correctly 1`] = `
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -814,9 +817,11 @@ exports[`Network Selector renders correctly 1`] = `
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "marginRight": 16,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -836,9 +841,8 @@ exports[`Network Selector renders correctly 1`] = `
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -910,9 +914,11 @@ exports[`Network Selector renders correctly 1`] = `
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "marginRight": 16,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -932,9 +938,8 @@ exports[`Network Selector renders correctly 1`] = `
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
