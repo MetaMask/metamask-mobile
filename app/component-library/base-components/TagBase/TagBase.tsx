@@ -7,9 +7,6 @@ import React from 'react';
 import { useComponentSize, useStyles } from '../../hooks';
 import Text from '../../components/Texts/Text';
 import ListItem from '../../components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../components/List/ListItemColumn';
 
 // Internal dependencies.
 import styleSheet from './TagBase.styles';
@@ -51,25 +48,15 @@ const TagBase: React.FC<TagBaseProps> = ({
       testID={TAGBASE_TESTID}
       {...props}
     >
-      {startAccessory && (
-        <ListItemColumn widthType={WidthType.Auto}>
-          {startAccessory}
-        </ListItemColumn>
+      {startAccessory && startAccessory}
+      {typeof children === 'string' ? (
+        <Text style={styles.text} testID={TAGBASE_TEXT_TESTID} {...textProps}>
+          {children}
+        </Text>
+      ) : (
+        children
       )}
-      <ListItemColumn widthType={WidthType.Fill}>
-        {typeof children === 'string' ? (
-          <Text style={styles.text} testID={TAGBASE_TEXT_TESTID} {...textProps}>
-            {children}
-          </Text>
-        ) : (
-          children
-        )}
-      </ListItemColumn>
-      {endAccessory && (
-        <ListItemColumn widthType={WidthType.Auto}>
-          {endAccessory}
-        </ListItemColumn>
-      )}
+      {endAccessory && endAccessory}
     </ListItem>
   );
 };

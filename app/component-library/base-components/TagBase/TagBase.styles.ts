@@ -57,6 +57,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   return StyleSheet.create({
     base: Object.assign(
       {
+        alignSelf: 'flex-start',
         borderRadius:
           shape === TagShape.Rectangle
             ? 4
