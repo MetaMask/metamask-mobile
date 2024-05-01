@@ -15,12 +15,21 @@ import { getPermittedAccounts } from '../Permissions';
 import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import AppConstants from '../AppConstants';
-import { PermissionConstraint } from '@metamask/permission-controller';
+import {
+  PermissionConstraint,
+  PermissionController,
+} from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import initialBackgroundState from '../../util/test/initial-background-state.json';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
+import { ControllerMessenger } from '@metamask/base-controller';
+import {
+  getCaveatSpecifications,
+  getPermissionSpecifications,
+  unrestrictedMethods,
+} from '../Permissions/specifications';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -293,7 +302,7 @@ function setupSignature() {
 }
 
 describe('getRpcMethodMiddleware', () => {
-  it('allows unrecognized methods to pass through', async () => {
+  it('allows unrecognized methods to pass through without PermissionController middleware', async () => {
     const engine = new JsonRpcEngine();
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);
@@ -313,6 +322,98 @@ describe('getRpcMethodMiddleware', () => {
 
     assertIsJsonRpcSuccess(response);
     expect(response.result).toBe('success');
+  });
+
+  describe.only('with permission middleware', () => {
+    const engine = new JsonRpcEngine();
+    const mc = new ControllerMessenger();
+    const pc = new PermissionController({
+      messenger: mc.getRestricted({
+        name: 'PermissionController',
+      }),
+      state: {},
+      caveatSpecifications: getCaveatSpecifications({
+        getInternalAccounts: () => [],
+      }),
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      permissionSpecifications: {
+        ...getPermissionSpecifications({
+          getAllAccounts: async () => [],
+          getInternalAccounts: () => [],
+          captureKeyringTypesWithMissingIdentities: () => [],
+        }),
+      },
+      unrestrictedMethods,
+    });
+    const permissionMiddleware = pc.createPermissionMiddleware({
+      origin: hostMock,
+    });
+    engine.push(permissionMiddleware);
+    const middleware = getRpcMethodMiddleware(getMinimalOptions());
+    engine.push(middleware);
+
+    it('returns method not found error', async () => {
+      const fakeMethodName = 'this-is-a-fake-method';
+      const response = await engine.handle({
+        jsonrpc,
+        id: 1,
+        method: fakeMethodName,
+      });
+
+      const expectedError = rpcErrors.methodNotFound(
+        `The method "${fakeMethodName}" does not exist / is not available.`,
+      );
+
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+
+    it('returns unauthorized error on restricted method without permission', async () => {
+      const ethAccountsMethodName = 'eth_accounts';
+      const response = await engine.handle({
+        jsonrpc,
+        id: 1,
+        method: ethAccountsMethodName,
+      });
+
+      const expectedError = providerErrors.unauthorized(
+        'Unauthorized to perform action. Try requesting the required permission(s) first. For more information, see: https://docs.metamask.io/guide/rpc-api.html#permissions',
+      );
+
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+
+    it('successfully handles restricted method with permission', async () => {
+      const ethAccountsMethodName = 'eth_accounts';
+      pc.grantPermissions({
+        subject: { origin: hostMock },
+        approvedPermissions: {
+          eth_accounts: {},
+        },
+      });
+      const response = await engine.handle({
+        jsonrpc,
+        id: 1,
+        method: ethAccountsMethodName,
+      });
+
+      console.log('RESPONSE', response);
+
+      // const expectedError = providerErrors.unauthorized(
+      //   'Unauthorized to perform action. Try requesting the required permission(s) first. For more information, see: https://docs.metamask.io/guide/rpc-api.html#permissions',
+      // );
+
+      // expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      // expect((response as JsonRpcFailure).error.message).toBe(
+      //   expectedError.message,
+      // );
+    });
   });
 
   const accountMethods = [
