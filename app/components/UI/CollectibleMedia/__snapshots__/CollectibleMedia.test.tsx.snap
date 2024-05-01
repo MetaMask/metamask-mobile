@@ -3,7 +3,7 @@
 exports[`CollectibleMedia should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#red",
       "borderRadius": 12,
       "flex": 0,
@@ -19,13 +19,13 @@ exports[`CollectibleMedia should render correctly 1`] = `
       onLoadEnd={[Function]}
       resizeMode="contain"
       source={
-        Object {
+        {
           "uri": "IMAGE",
         }
       }
       style={
-        Array [
-          Object {
+        [
+          {
             "borderRadius": 12,
           },
           undefined,
@@ -40,7 +40,7 @@ exports[`CollectibleMedia should render correctly 1`] = `
     <View
       collapsable={false}
       style={
-        Object {
+        {
           "bottom": 0,
           "left": 0,
           "opacity": 1,
@@ -52,11 +52,11 @@ exports[`CollectibleMedia should render correctly 1`] = `
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "borderRadius": 12,
             },
-            Object {
+            {
               "backgroundColor": "#eee",
             },
             undefined,

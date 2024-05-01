@@ -3,7 +3,7 @@
 exports[`HintModal should render correctly 1`] = `
 <ActionModal
   actionContainerStyle={
-    Object {
+    {
       "borderTopWidth": 0,
     }
   }
@@ -23,7 +23,7 @@ exports[`HintModal should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "flex": 1,
         "flexDirection": "column",
         "margin": 24,
@@ -32,7 +32,7 @@ exports[`HintModal should render correctly 1`] = `
   >
     <TouchableOpacity
       hitSlop={
-        Object {
+        {
           "bottom": 10,
           "left": 10,
           "right": 10,
@@ -41,7 +41,7 @@ exports[`HintModal should render correctly 1`] = `
       }
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "flex-end",
         }
       }
@@ -51,7 +51,7 @@ exports[`HintModal should render correctly 1`] = `
         name="times"
         size={12}
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontSize": 16,
           }
@@ -63,7 +63,7 @@ exports[`HintModal should render correctly 1`] = `
       name="alert-triangle"
       size={38}
       style={
-        Object {
+        {
           "alignSelf": "center",
           "color": "#D73847",
         }
@@ -72,7 +72,7 @@ exports[`HintModal should render correctly 1`] = `
     />
     <Text
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 24,
@@ -87,7 +87,7 @@ exports[`HintModal should render correctly 1`] = `
     </Text>
     <View
       style={
-        Object {
+        {
           "alignItems": "flex-start",
           "flexDirection": "row",
         }
@@ -98,7 +98,7 @@ exports[`HintModal should render correctly 1`] = `
         boxType="square"
         onValueChange={[Function]}
         style={
-          Object {
+          {
             "height": 18,
             "marginRight": 12,
             "marginTop": 3,
@@ -107,7 +107,7 @@ exports[`HintModal should render correctly 1`] = `
         }
         testID="skip-backup-check"
         tintColors={
-          Object {
+          {
             "false": "#BBC0C5",
             "true": "#0376C9",
           }
@@ -117,7 +117,7 @@ exports[`HintModal should render correctly 1`] = `
       <Text
         onPress={[Function]}
         style={
-          Object {
+          {
             "color": "#24272A",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",

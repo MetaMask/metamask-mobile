@@ -3,8 +3,8 @@
 exports[`CustomInput should render correctly 1`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "backgroundColor": "#FFFFFF",
         "borderRadius": 8,
         "flexDirection": "row",
@@ -18,7 +18,7 @@ exports[`CustomInput should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "flexDirection": "row",
@@ -31,8 +31,8 @@ exports[`CustomInput should render correctly 1`] = `
       onChangeText={[Function]}
       placeholder="Enter a number here"
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "flexGrow": 1,
             "fontFamily": "Euclid Circular B",
@@ -54,7 +54,7 @@ exports[`CustomInput should render correctly 1`] = `
   <Text
     onPress={[Function]}
     style={
-      Object {
+      {
         "color": "#535A61",
       }
     }
