@@ -17,7 +17,7 @@ exports[`TagBase should render TagBase 1`] = `
       "flexDirection": "row",
       "padding": 16,
       "paddingHorizontal": 8,
-      "paddingVertical": 4,
+      "paddingVertical": 2,
     }
   }
   testID="tagbase"
@@ -38,7 +38,7 @@ exports[`TagBase should render TagBase 1`] = `
     accessible={false}
     style={
       Object {
-        "width": 8,
+        "width": 4,
       }
     }
     testID="listitem-gap"
@@ -63,7 +63,7 @@ exports[`TagBase should render TagBase 1`] = `
     accessible={false}
     style={
       Object {
-        "width": 8,
+        "width": 4,
       }
     }
     testID="listitem-gap"

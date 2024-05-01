@@ -65,7 +65,7 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
             ? containerSize.height / 2
             : 999,
         paddingHorizontal: 8,
-        paddingVertical: 4,
+        paddingVertical: 2,
         backgroundColor,
         color: textColor,
         borderColor,

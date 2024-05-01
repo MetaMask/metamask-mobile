@@ -14,8 +14,8 @@ import { TagShape, TagSeverity, TagBaseProps } from './TagBase.types';
 // Defaults
 export const DEFAULT_TAGBASE_SHAPE = TagShape.Pill;
 export const DEFAULT_TAGBASE_SEVERITY = TagSeverity.Default;
-export const DEFAULT_TAGBASE_GAP = 8;
-export const DEFAULT_TAGBASE_TEXTVARIANT = TextVariant.BodySM;
+export const DEFAULT_TAGBASE_GAP = 4;
+export const DEFAULT_TAGBASE_TEXTVARIANT = TextVariant.BodySMMedium;
 
 // Test IDs
 export const TAGBASE_TESTID = 'tagbase';
