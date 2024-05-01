@@ -54,13 +54,14 @@
   },
 
   "CurrencyRateController": {
-    "conversionDate": 0,
-    "conversionRate": 0,
     "currentCurrency": "usd",
-    "nativeCurrency": "ETH",
-    "pendingCurrentCurrency": null,
-    "pendingNativeCurrency": null,
-    "usdConversionRate": null
+    "currencyRates": {
+      "ETH":{
+        "conversionDate":0,
+        "conversionRate": 0,
+        "usdConversionRate": null
+      }
+    }
   },
   "NetworkController": {
     "networkConfigurations": {},

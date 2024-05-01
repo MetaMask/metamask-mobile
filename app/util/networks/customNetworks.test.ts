@@ -9,6 +9,7 @@ describe('popularNetwork', () => {
       'BNB Chain': toHex('56'),
       'Base Mainnet': toHex('8453'),
       Optimism: toHex('10'),
+      Palm: toHex('11297108109'),
       'Polygon Mainnet': toHex('137'),
       'zkSync Era Mainnet': toHex('324'),
     };

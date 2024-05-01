@@ -122,8 +122,6 @@
     "react-native-ble-plx": "3.1.2",
     "**/babel-runtime/regenerator-runtime": "^0.13.8",
     "@metamask/transaction-controller/@metamask/controller-utils": "^5.0.0",
-    "@spruceid/siwe-parser": "2.1.0",
-    "apg-js": "4.2.0",
     "yargs-parser": "~21.1.1",
     "web3-provider-engine": "^16.0.8"
   },
@@ -141,7 +139,7 @@
     "@metamask/accounts-controller": "^10.0.0",
     "@metamask/address-book-controller": "^3.0.0",
     "@metamask/approval-controller": "3.5.0",
-    "@metamask/assets-controllers": "^14.0.0",
+    "@metamask/assets-controllers": "^18.0.0",
     "@metamask/base-controller": "^4.1.1",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/contract-metadata": "^2.1.0",
@@ -251,7 +249,7 @@
     "prop-types": "15.7.2",
     "pump": "3.0.0",
     "punycode": "^2.1.1",
-    "qs": "6.7.3",
+    "qs": "6.12.1",
     "query-string": "^6.12.1",
     "randomfill": "^1.0.4",
     "react": "18.2.0",
@@ -383,7 +381,7 @@
     "@types/jest": "^28.1.8",
     "@types/lodash": "^4.14.184",
     "@types/node": "^17.0.21",
-    "@types/qs": "^6.9.7",
+    "@types/qs": "^6.9.15",
     "@types/react": "^17.0.11",
     "@types/react-native": "^0.64.10",
     "@types/react-native-actionsheet": "^2.4.3",
@@ -514,7 +512,7 @@
   },
   "engines": {
     "node": "~18.18.2",
-    "yarn": "^1.22.0"
+    "yarn": "^1.22.22"
   },
   "lavamoat": {
     "allowScripts": {
@@ -556,5 +554,6 @@
       "@metamask/sdk-communication-layer>bufferutil": false,
       "@metamask/sdk-communication-layer>utf-8-validate": false
     }
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }
