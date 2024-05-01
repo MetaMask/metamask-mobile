@@ -237,9 +237,7 @@ exports[`Tabs should render correctly 1`] = `
                 }
               }
             >
-              undefined account
-               - 
-              Ethereum Main Network
+              Undefined account - Ethereum Main Network
             </Text>
           </View>
         </TouchableOpacity>
