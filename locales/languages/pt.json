@@ -95,22 +95,22 @@
     "delete_current": "Excluindo carteira atual"
   },
   "onboarding_success": {
-    "title": "Congratulations!",
-    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
-    "description_bold": "Settings > Security & Privacy.",
-    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
-    "learn_more": "Learn more",
-    "learn_how": "Learn how",
-    "leave_hint": "Leave yourself a hint?",
-    "default_settings": "Default settings",
-    "manage_default_settings": "Manage default settings",
-    "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
-    "no_srp_title": "Reminder set!",
-    "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
-    "import_title": "Your Wallet is ready",
-    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
-    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
-    "done": "Done"
+    "title": "",
+    "description": "",
+    "description_bold": "",
+    "description_continued": "",
+    "learn_more": "",
+    "learn_how": "",
+    "leave_hint": "",
+    "default_settings": "",
+    "manage_default_settings": "",
+    "default_settings_footer": "",
+    "no_srp_title": "",
+    "no_srp_description": "",
+    "import_title": "",
+    "import_description": "",
+    "import_description2": "",
+    "done": ""
   },
   "onboarding_carousel": {
     "title1": "Boas-vindas à MetaMask",
@@ -178,16 +178,16 @@
       "content1": "Edite o nome da sua conta, veja transações no Etherscan, compartilhe sua chave pública e veja sua chave privada tocando neste ícone"
     },
     "step4": {
-      "title": "Notificações",
-      "content1": "Fique por dentro do que acontece na sua carteira"
-    },
-    "step5": {
       "title": "Usando sua carteira",
       "content1": "Compre, venda, troque e receba ativos tocando neste ícone"
     },
-    "step6": {
+    "step5": {
       "title": "Explorando a Web3",
       "content1": "Abra o navegador tocando neste ícone"
+    },
+    "step6": {
+      "title": "Usando o navegador",
+      "content1": "Pesquise sites por palavra-chave ou insira um URL. Divirta-se! "
     },
     "step7": {
       "title": "Usando o navegador",
@@ -373,17 +373,17 @@
     "no_collectibles": "Não está vendo seu NFT?",
     "no_available_tokens": "Não está vendo seu token?",
     "add_tokens": "Importar tokens",
-    "are_you_sure_exit": "Tem certeza de que deseja sair?",
-    "search_information_not_saved": "As informações da sua pesquisa não serão salvas.",
-    "import_token": "Deseja importar este token?",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} novo(s) {{tokensLabel}} encontrado(s) nesta conta",
     "token_toast": {
       "tokens_imported_title": "Tokens importados",
       "tokens_imported_desc": "Importou com sucesso {{tokenSymbols}}",
       "token_imported_title": "Token importado",
       "token_imported_desc": "Importou com sucesso {{tokenSymbol}}",
-      "token_imported_desc_1": "Você importou um token.",
-      "tokens_import_success_multiple": "Você importou {{tokensNumber}} tokens.",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Ocultando tokens",
       "tokens_hidden_desc": "Ocultando tokens detectados em sua carteira",
       "token_hidden_title": "Ocultando token",
@@ -446,8 +446,8 @@
     "display_nft_media_cta_new_1": "Para ver um NFT, ative Exibir mídias de NFTs em",
     "display_nft_media_cta_new_2": "Configurações > Segurança e Privacidade.",
     "banner": {
-      "title": "Basic functionality is off",
-      "link": "Turn on basic functionality"
+      "title": "",
+      "link": ""
     }
   },
   "asset_details": {
@@ -472,8 +472,8 @@
   "add_asset": {
     "title": "Importar tokens",
     "title_nft": "Importar NFT",
-    "search_token": "Pesquisar",
-    "custom_token": "Token personalizado",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "CANCELAR",
       "add_token": "IMPORTAR"
@@ -530,16 +530,16 @@
     "resultPageErrorDefaultMessage": "Falha na operação."
   },
   "token": {
-    "token_symbol": "Símbolo do token",
+    "token_symbol": "Token symbol",
     "token_address": "Endereço do token",
-    "token_decimal": "Decimal do token",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Pesquisar tokens",
     "address_cant_be_empty": "O endereço do token não pode ficar em branco.",
     "address_must_be_valid": "O endereço do token deve ser um endereço válido.",
     "symbol_cant_be_empty": "O símbolo do token não pode ficar em branco.",
-    "symbol_length": "O símbolo deve ter até 11 caracteres",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Os números decimais do token não podem ficar em branco.",
-    "decimals_is_required": "O decimal é obrigatório. Encontre-o em:",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "Não encontramos nenhum token com esse nome.",
     "select_token": "Selecionar token",
     "address_must_be_smart_contract": "Endereço pessoal detectado. Insira o endereço do contrato do token."
@@ -709,12 +709,12 @@
     "nft_opensea_desc": "Exibir mídias e dados de NFTs pode expor seu endereço IP a servidores centralizados. Use a API da OpenSea para buscar os dados de NFTs. A detecção automática de NFTs depende da API da OpenSea e não estará disponível quando essa funcionalidade estiver desativada. Habilitar a detecção automática de NFTs pode expor você ao envio de NFTs falsos à sua carteira por qualquer pessoa e pode permitir que um invasor descubra seu endereço IP através do seu endereço Ethereum.",
     "nft_autodetect_mode": "Detectar NFTs automaticamente",
     "nft_autodetect_desc": "Exibir mídias e dados de NFTs pode expor seu endereço IP a servidores centralizados. APIs de terceiros (como a OpenSea) são usadas para detectar NFTs na sua carteira. Essa funcionalidade expõe o endereço da sua conta com esses serviços. Deixe essa opção desativada caso não queira que o aplicativo extraia dados desses serviços.",
-    "show_fiat_on_testnets": "Show conversion on test networks",
-    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
-    "show_fiat_on_testnets_modal_title": "Be careful",
-    "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
-    "show_fiat_on_testnets_modal_learn_more": "Learn more.",
-    "show_fiat_on_testnets_modal_button": "Continue",
+    "show_fiat_on_testnets": "",
+    "show_fiat_on_testnets_desc": "",
+    "show_fiat_on_testnets_modal_title": "",
+    "show_fiat_on_testnets_modal_description": "",
+    "show_fiat_on_testnets_modal_learn_more": "",
+    "show_fiat_on_testnets_modal_button": "",
     "show_hex_data": "Exibir dados hexa",
     "show_hex_data_desc": "Selecione essa opção para exibir o campo de dados hexa na tela de envio.",
     "toggleEthSignBannerDescription": "Você está vulnerável a ataques de phishing. Proteja-se desativando eth_sign.",
@@ -827,7 +827,7 @@
     "ses_heading": "Bloqueio de código",
     "ses_description": "Trata-se de um recurso experimental que bloqueia qualquer alteração no código JavaScript do app feita sem permissão.",
     "ses_link": "Saiba mais",
-    "general_heading": "General",
+    "general_heading": "",
     "privacy_heading": "Privacidade",
     "failed_to_fetch_chain_id": "Não foi possível buscar o ID da cadeia. Seu URL da RPC está correto?",
     "endpoint_returned_different_chain_id": "O terminal retornou um ID de cadeia diferente: %{chainIdReturned}",
@@ -886,8 +886,13 @@
       "sdk_activation_keys": "Chaves de ativação do SDK",
       "activation_keys_description": "As chaves de ativação habilitam recursos ou provedores específicos.",
       "add_activation_key": "Adicionar chave de ativação",
+      "edit_activation_key": "Editar chave de ativação",
       "paste_or_type_activation_key": "Cole ou digite uma chave de ativação",
+      "add_label": "Adicionar um rótulo a esta chave",
+      "label": "Rótulo",
+      "key": "Chave",
       "add": "Adicionar",
+      "update": "Atualizar",
       "cancel": "Cancelar"
     },
     "request_feature": "Solicitar um recurso",
@@ -1358,7 +1363,7 @@
     "contract": "Contrato ({{address}})",
     "contract_name": "Nome do contrato:",
     "contract_address": "Endereço do contrato:",
-    "invalid_contract_address": " O endereço do contrato é inválido. Insira um novo endereço",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Limite de gasto:",
     "data": "Dados",
     "function_approve": "Função: aprovar",
@@ -1402,6 +1407,9 @@
     "remove_bookmark_title": "Remover dos favoritos",
     "remove_bookmark_msg": "Tem certeza de que deseja remover este site dos favoritos?",
     "yes": "Sim",
+    "undefined_account": "",
+    "close_tab": "",
+    "switch_tab": "",
     "protocol_alert_options": {
       "ignore": "Ignorar",
       "allow": "Permitir"
@@ -1887,9 +1895,9 @@
     "pending_deposit_message": "Aguardando conclusão do depósito",
     "pending_withdrawal_message": "Aguardando conclusão da retirada",
     "error_message": "Toque para ver essa transação",
-    "error_retrieving_fcm_token": "Erro ao obter e salvar o token do FCM",
-    "error_fcm_not_found": "getFCMToken: nenhum token do FCM encontrado",
-    "error_checking_permission": "Erro ao verificar se o usuário tem permissão para notificações push",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Toque para ver essa transação",
     "speedup_message": "Tentando acelerar a transação",
     "success_deposit_message": "Seus fundos estão prontos para uso",
@@ -2070,7 +2078,7 @@
     "limited_time": "tempo limitado",
     "supported_countries": "Países habilitados",
     "no_countries_result": "Nenhum país habilitado corresponde a “{{searchString}}”",
-    "wyre_loading_rates": " ",
+    "wyre_loading_rates": "",
     "fast_no_registration": "Rápido - Não é necessário registro",
     "debit_credit_card_required": "Cartões de débito ou crédito. Apple Cash não é aceito.",
     "select_card_country": "Selecione o país onde seu cartão está registrado (não onde você está localizado).",
@@ -2976,27 +2984,27 @@
     "stake": "Stake"
   },
   "default_settings": {
-    "title": "Your Wallet is ready",
-    "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
-    "learn_more_about_privacy": "Learn more about privacy best practices.",
-    "privacy_policy": "Privacy policy",
-    "default_settings": "Default Settings",
-    "done": "Done",
-    "basic_functionality": "Basic functionality",
-    "manage_networks": "Manage networks",
-    "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
-    "manage_networks_body2": " to learn more about how Infura handles data.",
-    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
+    "title": "",
+    "description": "",
+    "learn_more_about_privacy": "",
+    "privacy_policy": "",
+    "default_settings": "",
+    "done": "",
+    "basic_functionality": "",
+    "manage_networks": "",
+    "manage_networks_body": "",
+    "manage_networks_body2": "",
+    "functionality_body": "",
     "sheet": {
-      "title_off": "Turn off basic functionality",
-      "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
-      "title_on": "Turn on basic functionality",
-      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
-      "checkbox_label": "I understand and want to continue",
+      "title_off": "",
+      "description_off": "",
+      "title_on": "",
+      "description_on": "",
+      "checkbox_label": "",
       "buttons": {
-        "cancel": "Cancel",
-        "turn_on": "Turn on",
-        "turn_off": "Turn off"
+        "cancel": "",
+        "turn_on": "",
+        "turn_off": ""
       }
     }
   }

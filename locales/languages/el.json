@@ -95,22 +95,22 @@
     "delete_current": "Διαγραφή τρέχοντος πορτοφολιού"
   },
   "onboarding_success": {
-    "title": "Congratulations!",
-    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
-    "description_bold": "Settings > Security & Privacy.",
-    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
-    "learn_more": "Learn more",
-    "learn_how": "Learn how",
-    "leave_hint": "Leave yourself a hint?",
-    "default_settings": "Default settings",
-    "manage_default_settings": "Manage default settings",
-    "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
-    "no_srp_title": "Reminder set!",
-    "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
-    "import_title": "Your Wallet is ready",
-    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
-    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
-    "done": "Done"
+    "title": "",
+    "description": "",
+    "description_bold": "",
+    "description_continued": "",
+    "learn_more": "",
+    "learn_how": "",
+    "leave_hint": "",
+    "default_settings": "",
+    "manage_default_settings": "",
+    "default_settings_footer": "",
+    "no_srp_title": "",
+    "no_srp_description": "",
+    "import_title": "",
+    "import_description": "",
+    "import_description2": "",
+    "done": ""
   },
   "onboarding_carousel": {
     "title1": "Καλώς ορίσατε στο MetaMask",
@@ -178,16 +178,16 @@
       "content1": "Επεξεργαστείτε το όνομα του λογαριασμού σας, δείτε τις συναλλαγές στο Etherscan, κοινοποιήστε το δημόσιο κλειδί σας και δείτε το ιδιωτικό σας κλειδί πατώντας αυτό το εικονίδιο"
     },
     "step4": {
-      "title": "Ειδοποιήσεις",
-      "content1": "Μείνετε ενήμεροι για ό,τι συμβαίνει στο πορτοφόλι σας"
+      "title": "Χρησιμοποιώντας το πορτοφόλι σας",
+      "content1": "Αγοράστε, στείλτε, ανταλλάξτε και λάβετε περιουσιακά στοιχεία πατώντας αυτό το εικονίδιο"
     },
     "step5": {
-      "title": "Χρησιμοποιώντας το πορτοφόλι σας",
-      "content1": "Αγοράστε, στείλτε, ανταλλάξτε και λάβετε περιουσιακά στοιχεία πατώντας αυτό το εικονίδιο."
-    },
-    "step6": {
       "title": "Εξερευνώντας το web3",
       "content1": "Ανοίξτε το πρόγραμμα περιήγησης πατώντας αυτό το εικονίδιο"
+    },
+    "step6": {
+      "title": "Χρησιμοποιώντας το πρόγραμμα περιήγησης",
+      "content1": "Αναζητήστε ιστότοπους με λέξεις-κλειδιά ή εισαγάγετε μια διεύθυνση URL. Καλή διασκέδαση! "
     },
     "step7": {
       "title": "Χρησιμοποιώντας το πρόγραμμα περιήγησης",
@@ -373,17 +373,17 @@
     "no_collectibles": "Δεν βλέπετε τα NFT σας;",
     "no_available_tokens": "Δεν βλέπετε το token σας;",
     "add_tokens": "Εισαγωγή tokens",
-    "are_you_sure_exit": "Είστε σίγουροι ότι θέλετε να αποχωρήσετε;",
-    "search_information_not_saved": "Οι πληροφορίες αναζήτησής σας δεν θα αποθηκευτούν.",
-    "import_token": "Θέλετε να εισαγάγετε αυτό το token;",
+    "are_you_sure_exit": "Are you sure you want to exit?",
+    "search_information_not_saved": "Your search information will not be saved.",
+    "import_token": "Would you like to import this token?",
     "tokens_detected_in_account": "{{tokenCount}} νέο {{tokensLabel}} βρέθηκε σε αυτόν τον λογαριασμό",
     "token_toast": {
       "tokens_imported_title": "Tokens που έχουν εισαχθεί",
       "tokens_imported_desc": "Εισάχθηκαν επιτυχώς {{tokenSymbols}}",
       "token_imported_title": "Token που έχει εισαχθεί",
       "token_imported_desc": "Εισάχθηκαν επιτυχώς {{tokenSymbol}}",
-      "token_imported_desc_1": "Έχετε εισάγει ένα token.",
-      "tokens_import_success_multiple": "Έχετε εισάγει {{tokensNumber}} tokens.",
+      "token_imported_desc_1": "You’ve imported a token.",
+      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
       "tokens_hidden_title": "Απόκρυψη των Tokens",
       "tokens_hidden_desc": "Απόκρυψη εντοπισμένων tokens από το πορτοφόλι σας",
       "token_hidden_title": "Απόκρυψη Token",
@@ -446,8 +446,8 @@
     "display_nft_media_cta_new_1": "Για να δείτε ένα NFT, ενεργοποιήστε την επιλογή «Προβολή μέσων NFT» στο",
     "display_nft_media_cta_new_2": "Ρυθμίσεις > Ασφάλεια και απόρρητο.",
     "banner": {
-      "title": "Basic functionality is off",
-      "link": "Turn on basic functionality"
+      "title": "",
+      "link": ""
     }
   },
   "asset_details": {
@@ -472,8 +472,8 @@
   "add_asset": {
     "title": "Εισαγωγή tokens",
     "title_nft": "Εισαγωγή NFT",
-    "search_token": "Αναζήτηση",
-    "custom_token": "Προσαρμοσμένο token",
+    "search_token": "Search",
+    "custom_token": "Custom token",
     "tokens": {
       "cancel_add_token": "AΚΥΡΟ",
       "add_token": "ΕΙΣΑΓΩΓΉ"
@@ -530,16 +530,16 @@
     "resultPageErrorDefaultMessage": "Η λειτουργία απέτυχε."
   },
   "token": {
-    "token_symbol": "Σύμβολο token",
+    "token_symbol": "Token symbol",
     "token_address": "Διεύθυνση Token",
-    "token_decimal": "Δεκαδικά ψηφία του token",
+    "token_decimal": "Token decimal",
     "search_tokens_placeholder": "Αναζήτηση Token",
     "address_cant_be_empty": "Η διεύθυνση του token δεν μπορεί να είναι κενή.",
     "address_must_be_valid": "Η διεύθυνση του token πρέπει να είναι μια έγκυρη διεύθυνση.",
     "symbol_cant_be_empty": "Το σύμβολο του token δεν μπορεί να είναι κενό.",
-    "symbol_length": "Το σύμβολο πρέπει να αποτελείται από 11 ή λιγότερους χαρακτήρες",
+    "symbol_length": "Symbol must be 11 characters or fewer",
     "decimals_cant_be_empty": "Τα δεκαδικά ψηφία του token δεν μπορεί να είναι κενά.",
-    "decimals_is_required": "Απαιτείται δεκαδικός αριθμός. Βρείτε τον στο:",
+    "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "Δεν μπορέσαμε να βρούμε κανένα token με αυτό το όνομα.",
     "select_token": "Επιλέξτε Token",
     "address_must_be_smart_contract": "Εντοπίστηκε προσωπική διεύθυνση. Εισαγάγετε τη διεύθυνση συμβολαίου του token."
@@ -709,12 +709,12 @@
     "nft_opensea_desc": "Η προβολή των μέσων και δεδομένων NFT μπορεί να εκθέσει την διεύθυνση IP σας σε κεντρικούς διακομιστές. Χρησιμοποιήστε το API του OpenSea για λήψη δεδομένων NFT. Ο αυτόματος εντοπισμός NFT βασίζεται στο API του OpenSea και δεν θα είναι διαθέσιμος όταν αυτό είναι απενεργοποιημένο. Η ενεργοποίηση της αυτόματης ανίχνευσης NFT μπορεί να σας εκθέσει σε ψεύτικα NFT που στέλνονται στο πορτοφόλι σας από οποιονδήποτε και μπορεί να επιτρέψει σε κάποιον εισβολέα να μάθει τη διεύθυνση IP σας από τη διεύθυνση Ethereum.",
     "nft_autodetect_mode": "Αυτόματος εντοπισμός NFT",
     "nft_autodetect_desc": "Η προβολή των μέσων και δεδομένων NFT ίσως εκθέσει την διεύθυνση IP σας σε κεντρικούς διακομιστές. Τα API τρίτων (όπως το OpenSea) χρησιμοποιούνται για να εντοπίζουν NFT στο πορτοφόλι σας. Αυτό εκθέτει τον λογαριασμό σας σε αυτές τις υπηρεσίες. Αφήστε το αυτό απενεργοποιημένο εάν δεν θέλετε η εφαρμογή να αντλεί δεδομένα από αυτές τις υπηρεσίες.",
-    "show_fiat_on_testnets": "Show conversion on test networks",
-    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
-    "show_fiat_on_testnets_modal_title": "Be careful",
-    "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
-    "show_fiat_on_testnets_modal_learn_more": "Learn more.",
-    "show_fiat_on_testnets_modal_button": "Continue",
+    "show_fiat_on_testnets": "",
+    "show_fiat_on_testnets_desc": "",
+    "show_fiat_on_testnets_modal_title": "",
+    "show_fiat_on_testnets_modal_description": "",
+    "show_fiat_on_testnets_modal_learn_more": "",
+    "show_fiat_on_testnets_modal_button": "",
     "show_hex_data": "Προβολή Δεκαεξαδικών Δεδομένων",
     "show_hex_data_desc": "Επιλέξτε αυτό για να προβάλλετε το πεδίο δεκαεξαδικών δεδομένων στην οθόνη αποστολής.",
     "toggleEthSignBannerDescription": "Κινδυνεύετε από επιθέσεις phishing. Προστατευτείτε απενεργοποιώντας το eth_sign.",
@@ -827,7 +827,7 @@
     "ses_heading": "Κλείδωμα κωδικού",
     "ses_description": "Πρόκειται για μια δοκιμαστική λειτουργία που εμποδίζει οποιαδήποτε αλλαγή στον κώδικα JavaScript της εφαρμογής χωρίς άδεια.",
     "ses_link": "Μάθετε περισσότερα",
-    "general_heading": "General",
+    "general_heading": "",
     "privacy_heading": "Απόρρητο",
     "failed_to_fetch_chain_id": "Δεν ήταν δυνατή η λήψη του αναγνωριστικού αλυσίδας. Είναι σωστή η διευθύνση URL του RPC;",
     "endpoint_returned_different_chain_id": "Το τελικό σημείο επέστρεψε ένα διαφορετικό αναγνωριστικό αλυσίδας: %{chainIdReturned}",
@@ -886,8 +886,13 @@
       "sdk_activation_keys": "Κλειδιά Ενεργοποίησης SDK",
       "activation_keys_description": "Τα Κλειδιά Ενεργοποίησης θα ενεργοποιήσουν συγκεκριμένες λειτουργίες ή παρόχους.",
       "add_activation_key": "Προσθήκη Κλειδιού Ενεργοποίησης",
+      "edit_activation_key": "Επεξεργασία του κλειδιού ενεργοποίησης",
       "paste_or_type_activation_key": "Επικολλήστε ή πληκτρολογήστε ένα Κλειδί Ενεργοποίησης",
+      "add_label": "Προσθέστε μια ετικέτα σε αυτό το κλειδί",
+      "label": "Ετικέτα",
+      "key": "Κλειδί",
       "add": "Προσθήκη",
+      "update": "Ενημέρωση",
       "cancel": "Ακύρωση"
     },
     "request_feature": "Ζητήστε μια λειτουργία",
@@ -1358,7 +1363,7 @@
     "contract": "Συμβόλαιο ({{address}})",
     "contract_name": "Όνομα συμβολαίου:",
     "contract_address": "Διεύθυνση συμβολαίου:",
-    "invalid_contract_address": " Η διεύθυνση του συμβολαίου δεν είναι έγκυρη. Εισάγετε μια νέα",
+    "invalid_contract_address": " Contract address is invalid. Enter a new one",
     "contract_allowance": "Περιθώριο:",
     "data": "Δεδομένα",
     "function_approve": "Λειτουργία: Έγκριση",
@@ -1402,6 +1407,9 @@
     "remove_bookmark_title": "Αφαίρεση αγαπημένου",
     "remove_bookmark_msg": "Θέλετε πραγματικά να αφαιρέσετε αυτή την ιστοσελίδα από τα αγαπημένα σας;",
     "yes": "Ναι",
+    "undefined_account": "",
+    "close_tab": "",
+    "switch_tab": "",
     "protocol_alert_options": {
       "ignore": "Παράβλεψη",
       "allow": "Αποδοχή"
@@ -1887,9 +1895,9 @@
     "pending_deposit_message": "Αναμονή για την ολοκλήρωση της κατάθεσης",
     "pending_withdrawal_message": "Αναμονή για την ολοκλήρωση της ανάληψης",
     "error_message": "Πατήστε για να δείτε τη συναλλαγή",
-    "error_retrieving_fcm_token": "Σφάλμα κατά τη λήψη και αποθήκευση του token FCM",
-    "error_fcm_not_found": "getFCMToken: Δεν βρέθηκε token FCM",
-    "error_checking_permission": "Σφάλμα ελέγχου εάν ένας χρήστης έχει άδεια για ειδοποιήσεις ώθησης",
+    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
+    "error_fcm_not_found": "getFCMToken: No FCM token found",
+    "error_checking_permission": "Error checking if a user has push notifications permission",
     "success_message": "Πατήστε για να δείτε τη συναλλαγή",
     "speedup_message": "Προσπάθεια για επιτάχυνση της συναλλαγής",
     "success_deposit_message": "Τα χρήματά σας είναι έτοιμα για χρήση",
@@ -2070,7 +2078,7 @@
     "limited_time": "περιορισμένο χρονικό διάστημα",
     "supported_countries": "Υποστηριζόμενες χώρες",
     "no_countries_result": "Καμία υποστηριζόμενη χώρα δεν ταιριάζει με το “{{searchString}}”",
-    "wyre_loading_rates": " ",
+    "wyre_loading_rates": "",
     "fast_no_registration": "Γρήγορα - Δεν απαιτείται εγγραφή",
     "debit_credit_card_required": "Χρεωστικές ή Πιστωτικές κάρτες. Το Apple Cash δεν υποστηρίζεται.",
     "select_card_country": "Επιλέξτε τη χώρα στην οποία είναι καταχωρημένη η κάρτα σας (όχι τη χώρα στην οποία βρίσκεστε).",
@@ -2976,27 +2984,27 @@
     "stake": "Stake"
   },
   "default_settings": {
-    "title": "Your Wallet is ready",
-    "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
-    "learn_more_about_privacy": "Learn more about privacy best practices.",
-    "privacy_policy": "Privacy policy",
-    "default_settings": "Default Settings",
-    "done": "Done",
-    "basic_functionality": "Basic functionality",
-    "manage_networks": "Manage networks",
-    "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
-    "manage_networks_body2": " to learn more about how Infura handles data.",
-    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
+    "title": "",
+    "description": "",
+    "learn_more_about_privacy": "",
+    "privacy_policy": "",
+    "default_settings": "",
+    "done": "",
+    "basic_functionality": "",
+    "manage_networks": "",
+    "manage_networks_body": "",
+    "manage_networks_body2": "",
+    "functionality_body": "",
     "sheet": {
-      "title_off": "Turn off basic functionality",
-      "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
-      "title_on": "Turn on basic functionality",
-      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
-      "checkbox_label": "I understand and want to continue",
+      "title_off": "",
+      "description_off": "",
+      "title_on": "",
+      "description_on": "",
+      "checkbox_label": "",
       "buttons": {
-        "cancel": "Cancel",
-        "turn_on": "Turn on",
-        "turn_off": "Turn off"
+        "cancel": "",
+        "turn_on": "",
+        "turn_off": ""
       }
     }
   }
