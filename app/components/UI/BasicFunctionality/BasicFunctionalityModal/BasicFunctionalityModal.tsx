@@ -78,7 +78,7 @@ const BasicFunctionalityModal = () => {
             accessibilityRole={'button'}
             accessible
             label={strings('default_settings.sheet.buttons.cancel')}
-            onPress={closeBottomSheet}
+            onPress={handleCancel}
           />
           <View style={styles.spacer} />
           <Button
