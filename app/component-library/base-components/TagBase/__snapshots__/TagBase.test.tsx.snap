@@ -6,7 +6,7 @@ exports[`TagBase should render TagBase 1`] = `
   accessible={true}
   onLayout={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "flex-start",
       "backgroundColor": "#FFFFFF",
@@ -27,7 +27,7 @@ exports[`TagBase should render TagBase 1`] = `
     height={20}
     name="Add"
     style={
-      Object {
+      {
         "height": 20,
         "width": 20,
       }
@@ -37,7 +37,7 @@ exports[`TagBase should render TagBase 1`] = `
   <View
     accessible={false}
     style={
-      Object {
+      {
         "width": 4,
       }
     }
@@ -46,7 +46,7 @@ exports[`TagBase should render TagBase 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      Object {
+      {
         "color": "#24272A",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
@@ -62,7 +62,7 @@ exports[`TagBase should render TagBase 1`] = `
   <View
     accessible={false}
     style={
-      Object {
+      {
         "width": 4,
       }
     }
@@ -73,7 +73,7 @@ exports[`TagBase should render TagBase 1`] = `
     height={20}
     name="Add"
     style={
-      Object {
+      {
         "height": 20,
         "width": 20,
       }
