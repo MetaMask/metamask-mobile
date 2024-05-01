@@ -18,9 +18,11 @@ exports[`PickerNetwork renders correctly 1`] = `
   <View
     style={
       Object {
+        "alignItems": "center",
         "backgroundColor": "#FFFFFF",
         "borderRadius": 8,
         "height": 16,
+        "justifyContent": "center",
         "overflow": "hidden",
         "width": 16,
       }
@@ -36,9 +38,8 @@ exports[`PickerNetwork renders correctly 1`] = `
       }
       style={
         Object {
-          "flex": 1,
-          "height": undefined,
-          "width": undefined,
+          "height": 16,
+          "width": 16,
         }
       }
       testID="network-avatar-image"
