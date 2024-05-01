@@ -625,11 +625,13 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
                                           "shadowColor": "#0000001A",
                                           "shadowOffset": Object {
@@ -657,9 +659,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -944,11 +945,13 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
                                           "shadowColor": "#0000001A",
                                           "shadowOffset": Object {
@@ -976,9 +979,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -1797,11 +1799,13 @@ exports[`Tokens should render correctly 1`] = `
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
                                           "shadowColor": "#0000001A",
                                           "shadowOffset": Object {
@@ -1829,9 +1833,8 @@ exports[`Tokens should render correctly 1`] = `
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -2116,11 +2119,13 @@ exports[`Tokens should render correctly 1`] = `
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
                                           "shadowColor": "#0000001A",
                                           "shadowOffset": Object {
@@ -2148,9 +2153,8 @@ exports[`Tokens should render correctly 1`] = `
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -2977,11 +2981,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
                                           "shadowColor": "#0000001A",
                                           "shadowOffset": Object {
@@ -3009,9 +3015,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -3296,11 +3301,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
                                           "shadowColor": "#0000001A",
                                           "shadowOffset": Object {
@@ -3328,9 +3335,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -3534,11 +3540,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     <View
                                       style={
                                         Object {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
                                           "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
                                           "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
                                           "shadowColor": "#0000001A",
                                           "shadowOffset": Object {
@@ -3566,9 +3574,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         }
                                         style={
                                           Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
