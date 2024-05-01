@@ -24,36 +24,42 @@ class TestDApp {
   }
 
   get DappConnectButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.CONNECT_BUTTON);
+    return Matchers.getElementByCSSSelector(
+      TestDappSelectorsWebIDs.CONNECT_BUTTON,
+    );
   }
 
   get ApproveButton() {
-    return Matchers.getElementByWebID(
+    return Matchers.getElementByCSSSelector(
       TestDappSelectorsWebIDs.APPROVE_TOKENS_BUTTON_ID,
     );
   }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get erc20TransferTokensButton() {
-    return Matchers.getElementByWebID(
+    return Matchers.getElementByCSSSelector(
       TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
     );
   }
   get ethSignButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.ETH_SIGN);
+    return Matchers.getElementByCSSSelector(TestDappSelectorsWebIDs.ETH_SIGN);
   }
   get personalSignButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.PERSONAL_SIGN);
+    return Matchers.getElementByCSSSelector(
+      TestDappSelectorsWebIDs.PERSONAL_SIGN,
+    );
   }
   get signTypedDataButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.SIGN_TYPE_DATA);
+    return Matchers.getElementByCSSSelector(
+      TestDappSelectorsWebIDs.SIGN_TYPE_DATA,
+    );
   }
   get signTypedDataV3Button() {
-    return Matchers.getElementByWebID(
+    return Matchers.getElementByCSSSelector(
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3,
     );
   }
   get signTypedDataV4Button() {
-    return Matchers.getElementByWebID(
+    return Matchers.getElementByCSSSelector(
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4,
     );
   }
