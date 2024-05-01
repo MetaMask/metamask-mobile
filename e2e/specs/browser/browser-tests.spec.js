@@ -13,7 +13,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { BROWSER_SCREEN_ID } from '../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
+import AddBookmarkView from '../../pages/Browser/AddBookmarkView';
 
 const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
 const INVALID_URL = 'https://quackquakc.easq';
@@ -58,15 +58,14 @@ describe(SmokeCore('Browser Tests'), () => {
   it('should add the test dapp to favorites', async () => {
     // Check that we are still on the browser screen
 
-    // await Assertions.checkIfVisible(Browser.addBookmarkButton);
     // Tap on options
     await Browser.tapOptionsButton();
     await Browser.tapAddToFavoritesButton();
-    // await Assertions.checkIfVisible(Browser.addBookmarkButton);
 
-    await Browser.isAddBookmarkScreenVisible();
-    await Browser.tapAddBookmarksButton();
-    await Browser.isAddBookmarkScreenNotVisible(); // Add bookmark screen should not be visible
+    await Assertions.checkIfVisible(await AddBookmarkView.container);
+
+    await AddBookmarkView.tapAddBookmarksButton();
+    await Assertions.checkIfNotVisible(await AddBookmarkView.container);
   });
 
   it('should tap on the test dapp in favorites on the home page', async () => {
