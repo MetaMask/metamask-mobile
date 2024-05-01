@@ -129,7 +129,7 @@ class Browser {
   }
 
   async tapDappInFavorites(dappURL) {
-    const element = Matchers.getElementByHref(dappURL);
+    const element = await Matchers.getElementByHref(dappURL);
     await Gestures.waitAndTap(element);
   }
 
