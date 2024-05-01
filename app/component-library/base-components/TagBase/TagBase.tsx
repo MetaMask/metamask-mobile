@@ -48,7 +48,7 @@ const TagBase: React.FC<TagBaseProps> = ({
       testID={TAGBASE_TESTID}
       {...props}
     >
-      {startAccessory && startAccessory}
+      {startAccessory}
       {typeof children === 'string' ? (
         <Text style={styles.text} testID={TAGBASE_TEXT_TESTID} {...textProps}>
           {children}
@@ -56,7 +56,7 @@ const TagBase: React.FC<TagBaseProps> = ({
       ) : (
         children
       )}
-      {endAccessory && endAccessory}
+      {endAccessory}
     </ListItem>
   );
 };
