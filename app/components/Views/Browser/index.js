@@ -101,14 +101,19 @@ const Browser = (props) => {
   };
 
   useEffect(
-    () =>
-      navigation.setOptions(
-        getBrowserViewNavbarOptions(
+    () => {
+      const options = {
+        ...getBrowserViewNavbarOptions(
           route,
           colors,
           handleRightTopButtonAnalyticsEvent,
         ),
-      ),
+        headerShown: !(route.params?.showTabs ?? false),
+      };
+
+      return navigation.setOptions(options);
+    },
+
     /* eslint-disable-next-line */
     [navigation, route, colors],
   );

@@ -81,6 +81,7 @@ const createStyles = (colors, shadows) =>
     },
     tabsView: {
       flex: 1,
+      paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
       backgroundColor: colors.background.default,
       position: 'absolute',
       top: 0,
