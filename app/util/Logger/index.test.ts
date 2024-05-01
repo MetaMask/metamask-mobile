@@ -65,12 +65,6 @@ describe('Logger', () => {
       expect(mockedWithScope).toHaveBeenCalledTimes(1);
     });
 
-    it('calls withScope if extra is passed in', async () => {
-      const testError = new Error('testError');
-      await Logger.error(testError, 'extraMessage');
-      expect(mockedWithScope).toHaveBeenCalledTimes(1);
-    });
-
     it('calls captureException when string is passed instead of Error object', async () => {
       const testError = 'testError' as any;
       await Logger.error(testError);

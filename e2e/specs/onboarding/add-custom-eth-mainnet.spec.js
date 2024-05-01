@@ -6,6 +6,7 @@ import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import DefaultNetworkView from '../../pages/Onboarding/DefaultNetworkView';
 import TermsOfUseModal from '../../pages/modals/TermsOfUseModal';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
+import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import WalletView from '../../pages/WalletView';
@@ -54,6 +55,7 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
     await ProtectYourWalletView.tapOnRemindMeLaterButton();
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
     await SkipAccountSecurityModal.tapSkipButton();
+    await OnboardingSuccessView.tapDone();
     await EnableAutomaticSecurityChecksView.tapNoThanks();
     await WalletView.isNetworkNameVisible(DEFAULT_MAINNET_CUSTOM_NAME);
   });

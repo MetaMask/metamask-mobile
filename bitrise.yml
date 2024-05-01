@@ -200,15 +200,15 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                echo "Node and Yarn being installed"
+                echo "Node $NODE_VERSION being installed with asdf"
                 asdf list all nodejs
                 asdf install nodejs "$NODE_VERSION"
                 asdf global nodejs "$NODE_VERSION"
-                asdf plugin add yarn
-                asdf list all yarn
-                asdf install yarn "$YARN_VERSION"
-                asdf global yarn "$YARN_VERSION"
-          title: Install node and yarn
+                echo "Corepack being installed with npm"
+                npm i -g "corepack@$COREPACK_VERSION"
+                echo "Corepack enabling $YARN_VERSION"
+                corepack enable
+          title: Install node, yarn and corepack
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -1289,6 +1289,9 @@ app:
   envs:
     - opts:
         is_expand: false
+      MM_NOTIFICATIONS_UI_ENABLED: false
+    - opts:
+        is_expand: false
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
@@ -1319,16 +1322,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.20.0
+      VERSION_NAME: 7.21.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1308
+      VERSION_NUMBER: 1317
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.20.0
+      FLASK_VERSION_NAME: 7.21.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1308
+      FLASK_VERSION_NUMBER: 1317
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1343,7 +1346,10 @@ app:
       NODE_VERSION: 18.18.2
     - opts:
         is_expand: false
-      YARN_VERSION: 1.22.19
+      YARN_VERSION: 1.22.22
+    - opts:
+        is_expand: false
+      COREPACK_VERSION: 0.28.0
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
