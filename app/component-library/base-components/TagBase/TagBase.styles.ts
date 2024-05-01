@@ -54,16 +54,16 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
       break;
   }
 
+  let borderRadius = 4;
+  if (shape === TagShape.Pill) {
+    borderRadius = containerSize ? containerSize.height / 2 : 999;
+  }
+
   return StyleSheet.create({
     base: Object.assign(
       {
         alignSelf: 'flex-start',
-        borderRadius:
-          shape === TagShape.Rectangle
-            ? 4
-            : containerSize
-            ? containerSize.height / 2
-            : 999,
+        borderRadius,
         paddingHorizontal: 8,
         paddingVertical: 2,
         backgroundColor,
