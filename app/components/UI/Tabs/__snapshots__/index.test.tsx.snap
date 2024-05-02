@@ -70,7 +70,7 @@ exports[`Tabs should render correctly 1`] = `
           <View
             style={
               {
-                "alignItems": "flex-start",
+                "alignItems": "center",
                 "backgroundColor": "#FFFFFF",
                 "flexDirection": "row",
                 "justifyContent": "flex-start",
@@ -152,13 +152,14 @@ exports[`Tabs should render correctly 1`] = `
               </Text>
             </View>
             <TouchableOpacity
-              onPress={[Function]}
-              style={
+              accessibilityLabel="Close tab"
+              accessible={true}
+              hitSlop={
                 {
-                  "backgroundColor": "transparent",
-                  "height": 24,
-                  "marginRight": -5,
-                  "width": 30,
+                  "bottom": 10,
+                  "left": 10,
+                  "right": 10,
+                  "top": 10,
                 }
               }
               onPress={[Function]}
@@ -168,27 +169,10 @@ exports[`Tabs should render correctly 1`] = `
                 height={20}
                 name="Close"
                 style={
-                  [
-                    {
-                      "color": undefined,
-                      "fontSize": 12,
-                    },
-                    {
-                      "color": "#24272A",
-                      "fontSize": 32,
-                      "marginTop": -7,
-                      "paddingHorizontal": 10,
-                      "paddingTop": 3,
-                      "position": "absolute",
-                      "right": 0,
-                    },
-                    {
-                      "fontFamily": "Ionicons",
-                      "fontStyle": "normal",
-                      "fontWeight": "normal",
-                    },
-                    {},
-                  ]
+                  {
+                    "height": 20,
+                    "width": 20,
+                  }
                 }
                 width={20}
               />
@@ -225,7 +209,7 @@ exports[`Tabs should render correctly 1`] = `
           </View>
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "backgroundColor": "#FFFFFF",
                 "borderTopColor": "#BBC0C5",
@@ -242,7 +226,7 @@ exports[`Tabs should render correctly 1`] = `
               ellipsizeMode="tail"
               numberOfLines={1}
               style={
-                Object {
+                {
                   "color": "#24272A",
                   "flex": 1,
                   "fontFamily": "Euclid Circular B",
