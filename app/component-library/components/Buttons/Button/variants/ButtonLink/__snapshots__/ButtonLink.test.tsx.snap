@@ -9,7 +9,7 @@ exports[`Link should render correctly 1`] = `
     onPressIn={[Function]}
     onPressOut={[Function]}
     style={
-      Object {
+      {
         "backgroundColor": "transparent",
       }
     }
