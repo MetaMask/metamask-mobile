@@ -336,16 +336,14 @@ class Tabs extends PureComponent {
 
     return (
       <SafeAreaInsetsContext.Consumer>
-        {(insets) => {
-          return (
-            <View style={{ ...styles.tabsView, paddingTop: insets.top }}>
-              {tabs.length === 0
-                ? this.renderNoTabs()
-                : this.renderTabs(tabs, activeTab)}
-              {this.renderTabActions()}
-            </View>
-          );
-        }}
+        {(insets) => (
+          <View style={{ ...styles.tabsView, paddingTop: insets.top }}>
+            {tabs.length === 0
+              ? this.renderNoTabs()
+              : this.renderTabs(tabs, activeTab)}
+            {this.renderTabActions()}
+          </View>
+        )}
       </SafeAreaInsetsContext.Consumer>
     );
   }
