@@ -19,7 +19,10 @@ import Icon, {
   IconColor,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { MetaMetricsEvents, useMetrics } from '../../../components/hooks/useMetrics';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
@@ -137,7 +140,7 @@ function CollectibleContractElement({
     );
     trackEvent(MetaMetricsEvents.COLLECTIBLE_REMOVED, {
       chain_id: getDecimalChainId(chainId),
-    })
+    });
     Alert.alert(
       strings('wallet.collectible_removed_title'),
       strings('wallet.collectible_removed_desc'),

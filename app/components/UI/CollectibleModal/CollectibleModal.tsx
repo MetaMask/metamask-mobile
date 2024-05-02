@@ -66,12 +66,10 @@ const CollectibleModal = () => {
     handleUpdateCollectible();
   }, [handleUpdateCollectible]);
 
-
   useEffect(() => {
-    trackEvent(
-      MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED,
-      { chain_id: getDecimalChainId(chainId) },
-    );
+    trackEvent(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED, {
+      chain_id: getDecimalChainId(chainId),
+    });
   }, [chainId]);
 
   const onSend = useCallback(async () => {
