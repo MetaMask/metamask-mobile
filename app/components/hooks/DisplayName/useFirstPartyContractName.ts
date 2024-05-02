@@ -5,8 +5,7 @@ import FIRST_PARTY_CONTRACT_NAMES from '../../../constants/first-party-contracts
 
 export interface UseFirstPartyContractNameRequest {
   value: string;
-  type: NameType;
-  variation?: string;
+  chainId: Hex;
 }
 
 export function useFirstPartyContractNames(
@@ -14,18 +13,14 @@ export function useFirstPartyContractNames(
 ): (string | null)[] {
   const currentChainId = useSelector(selectChainId);
 
-  return requests.map(({ type, value, variation }) => {
-    if (type !== NameType.ETHEREUM_ADDRESS) {
-      return null;
-    }
-
-    const chainId = variation ?? currentChainId;
-    const normalizedValue = value.toLowerCase();
+  return requests.map((request) => {
+    const chainId = request.chainId ?? currentChainId;
+    const normalizedValue = request.value.toLowerCase();
 
     return (
       Object.keys(FIRST_PARTY_CONTRACT_NAMES).find(
         (name) =>
-          FIRST_PARTY_CONTRACT_NAMES[name]?.[chainId as Hex]?.toLowerCase() ===
+          FIRST_PARTY_CONTRACT_NAMES[name]?.[chainId]?.toLowerCase() ===
           normalizedValue,
       ) ?? null
     );
@@ -33,9 +28,8 @@ export function useFirstPartyContractNames(
 }
 
 export function useFirstPartyContractName(
+  chainId: Hex,
   value: string,
-  type: NameType,
-  variation?: string,
 ): string | null {
-  return useFirstPartyContractNames([{ value, type, variation }])[0];
+  return useFirstPartyContractNames([{ chainId, value }])[0];
 }

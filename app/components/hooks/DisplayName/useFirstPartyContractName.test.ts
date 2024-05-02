@@ -1,4 +1,3 @@
-import { NameType } from '@metamask/name-controller';
 import { selectChainId } from '../../../selectors/networkController';
 import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import { useFirstPartyContractName } from './useFirstPartyContractName';
@@ -7,15 +6,13 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: any) => selector(),
 }));
 
-jest.mock('../../selectors/networkController', () => ({
-  selectChainIdId: jest.fn(),
+jest.mock('../../../selectors/networkController', () => ({
+  selectChainId: jest.fn(),
 }));
 
 const BRIDGE_NAME_MOCK = 'MetaMask Bridge';
 const BRIDGE_MAINNET_ADDRESS_MOCK =
   '0x0439e60F02a8900a951603950d8D4527f400C3f1';
-const BRIDGE_OPTIMISM_ADDRESS_MOCK =
-  '0xB90357f2b86dbfD59c3502215d4060f71DF8ca0e';
 const UNKNOWN_ADDRESS_MOCK = '0xabc123';
 
 describe('useFirstPartyContractName', () => {
@@ -27,8 +24,8 @@ describe('useFirstPartyContractName', () => {
 
   it('returns null if no name found', () => {
     const name = useFirstPartyContractName(
+      NETWORKS_CHAIN_ID.MAINNET,
       UNKNOWN_ADDRESS_MOCK,
-      NameType.ETHEREUM_ADDRESS,
     );
 
     expect(name).toBe(null);
@@ -36,37 +33,16 @@ describe('useFirstPartyContractName', () => {
 
   it('returns name if found', () => {
     const name = useFirstPartyContractName(
+      NETWORKS_CHAIN_ID.MAINNET,
       BRIDGE_MAINNET_ADDRESS_MOCK,
-      NameType.ETHEREUM_ADDRESS,
     );
     expect(name).toBe(BRIDGE_NAME_MOCK);
-  });
-
-  it('uses variation if specified', () => {
-    const name = useFirstPartyContractName(
-      BRIDGE_OPTIMISM_ADDRESS_MOCK,
-      NameType.ETHEREUM_ADDRESS,
-      NETWORKS_CHAIN_ID.OPTIMISM,
-    );
-
-    expect(name).toBe(BRIDGE_NAME_MOCK);
-  });
-
-  it('returns null if type is not address', () => {
-    const alternateType = 'alternateType' as NameType;
-
-    const name = useFirstPartyContractName(
-      BRIDGE_MAINNET_ADDRESS_MOCK,
-      alternateType,
-    );
-
-    expect(name).toBe(null);
   });
 
   it('normalizes addresses to lowercase', () => {
     const name = useFirstPartyContractName(
+      NETWORKS_CHAIN_ID.MAINNET,
       BRIDGE_MAINNET_ADDRESS_MOCK.toUpperCase(),
-      NameType.ETHEREUM_ADDRESS,
     );
 
     expect(name).toBe(BRIDGE_NAME_MOCK);
