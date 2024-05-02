@@ -1404,7 +1404,7 @@
     "yes": "Yes",
     "undefined_account": "Undefined account",
     "close_tab": "Close tab",
-    "switch_tab": "Switch tab", 
+    "switch_tab": "Switch tab",
     "protocol_alert_options": {
       "ignore": "Ignore",
       "allow": "Allow"
@@ -1470,6 +1470,10 @@
     "to": "To",
     "details": "Details",
     "amount": "Amount",
+    "fee": {
+      "transaction_fee_in_ether": "Transaction Fee",
+      "transaction_fee_in_usd": "Transaction Fee (USD)"
+    },
     "gas_used": "Gas Used (Units)",
     "gas_limit": "Gas Limit (Units)",
     "gas_price": "Gas Price (GWEI)",

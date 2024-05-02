@@ -1,4 +1,5 @@
 import { Alert } from 'react-native';
+import { utils as ethersUtils } from 'ethers';
 import notifee, { AuthorizationStatus } from '@notifee/react-native';
 import { getBlockExplorerTxUrl } from '../../../util/networks';
 import {
@@ -11,10 +12,12 @@ import { Theme } from '../../../util/theme/models';
 import {
   ChainId,
   HalRawNotification,
+  HalRawNotificationsWithNetworkFields,
   Notification,
   TRIGGER_TYPES,
   mmStorage,
 } from '../../../util/notifications';
+import { formatAmount } from 'app/components/UI/Ramp/utils';
 import images from '../../../images/image-icons';
 import { formatAddress } from '../../../util/address';
 import { STORAGE_IDS } from '../settings/storage/constants';
@@ -22,6 +25,8 @@ import Device from '../../../util/device';
 import { store } from '../../../store';
 import { renderFromWei } from '../../../util/number';
 import { updateNotificationStatus } from '../../../actions/notification';
+import Engine from '../../../core/Engine';
+import { query } from '@metamask/controller-utils';
 interface ViewOnEtherscanProps {
   navigation: any;
   transactionObject: {
@@ -641,5 +646,100 @@ export const requestPushNotificationsPermission = async () => {
     return permissionStatus;
   } catch (e: any) {
     Logger.error(e, strings('notifications.error_checking_permission'));
+  }
+};
+
+export function hasNetworkFeeFields(
+  notification: HalRawNotification,
+): notification is HalRawNotificationsWithNetworkFields {
+  return 'network_fee' in notification.data;
+}
+
+export const fetchTxReceipt = async (transactionHash: string) => {
+  const { TransactionController } = Engine.context;
+  return {
+    receipt: await TransactionController.getTxReceipt(transactionHash),
+    tx: await TransactionController.getTx(transactionHash),
+  };
+};
+
+const fetchTxDetails = async (transactionHash: string) => {
+  const { TransactionController } = Engine.context;
+  const receipt = await query(
+    TransactionController.ethQuery,
+    'getTransactionReceipt',
+    [transactionHash],
+  );
+  const transaction = await query(
+    TransactionController.ethQuery,
+    'getTransactionByHash',
+    [transactionHash],
+  );
+
+  const block = await query(TransactionController.ethQuery, 'getBlockByHash', [
+    transactionHash,
+  ]);
+  return {
+    receipt,
+    transaction,
+    block,
+  };
+};
+
+export const getNetworkFees = async (notification: HalRawNotification) => {
+  if (!hasNetworkFeeFields(notification)) {
+    throw new Error('Invalid notification type');
+  }
+
+  try {
+    const { receipt, transaction, block } = await fetchTxDetails(
+      notification.tx_hash,
+    );
+    const calculateUsdAmount = (value: string, decimalPlaces = 4) =>
+      formatAmount(
+        (parseFloat(value) *
+          parseFloat(
+            notification.data?.network_fee.native_token_price_in_usd,
+          )) /
+          decimalPlaces,
+      );
+
+    const transactionFeeInEth = ethersUtils.formatUnits(
+      receipt.gasUsed.mul(receipt.effectiveGasPrice)._hex,
+    );
+    const transactionFeeInUsd = calculateUsdAmount(transactionFeeInEth);
+
+    const gasLimit = transaction.gasLimit.toNumber();
+    const gasUsed = receipt.gasUsed.toNumber();
+
+    const baseFee = block.baseFeePerGas
+      ? ethersUtils.formatUnits(block.baseFeePerGas._hex, 'gwei')
+      : null;
+    const priorityFee = block.baseFeePerGas
+      ? ethersUtils.formatUnits(
+          receipt.effectiveGasPrice.sub(block.baseFeePerGas)._hex,
+          'gwei',
+        )
+      : null;
+
+    const maxFeePerGas = transaction.maxFeePerGas
+      ? ethersUtils.formatUnits(transaction.maxFeePerGas._hex, 'gwei')
+      : null;
+
+    return {
+      transactionFeeInEth,
+      transactionFeeInUsd,
+      gasLimit,
+      gasUsed,
+      baseFee,
+      priorityFee,
+      maxFeePerGas,
+    };
+  } catch (error) {
+    console.error(
+      `Failed to get transaction network fees for ${notification.tx_hash}`,
+      error,
+    );
+    throw error;
   }
 };
