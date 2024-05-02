@@ -2,7 +2,6 @@ import { ChainId } from '@metamask/controller-utils';
 import reducer, {
   ADD_FAVORITE_COLLECTIBLE,
   REMOVE_FAVORITE_COLLECTIBLE,
-  mapCollectibleContractsSelector,
 } from './index';
 
 const emptyAction = { type: null };
