@@ -3,7 +3,7 @@
 exports[`PhishingModal should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "justifyContent": "center",
       "paddingHorizontal": 20,
     }
@@ -12,14 +12,14 @@ exports[`PhishingModal should render correctly 1`] = `
   <Image
     resizeMethod="auto"
     source={
-      Object {
-        "default": Object {
+      {
+        "default": {
           "uri": "MockImage",
         },
       }
     }
     style={
-      Object {
+      {
         "alignSelf": "center",
         "height": 48,
         "marginBottom": -15,
@@ -30,7 +30,7 @@ exports[`PhishingModal should render correctly 1`] = `
   />
   <View
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "borderRadius": 4,
         "height": 495,
@@ -39,7 +39,7 @@ exports[`PhishingModal should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "backgroundColor": "#FFFFFF",
           "flexDirection": "row",
@@ -51,21 +51,21 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         allowFontScaling={false}
         style={
-          Array [
-            Object {
+          [
+            {
               "color": undefined,
               "fontSize": 15,
             },
-            Object {
+            {
               "color": "#D73847",
               "marginRight": 10,
             },
-            Object {
+            {
               "fontFamily": "FontAwesome",
               "fontStyle": "normal",
               "fontWeight": "normal",
             },
-            Object {},
+            {},
           ]
         }
       >
@@ -73,7 +73,7 @@ exports[`PhishingModal should render correctly 1`] = `
       </Text>
       <Text
         style={
-          Object {
+          {
             "color": "#D73847",
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
@@ -86,12 +86,12 @@ exports[`PhishingModal should render correctly 1`] = `
     </View>
     <RCTScrollView
       contentContainerStyle={
-        Object {
+        {
           "paddingBottom": 20,
         }
       }
       style={
-        Object {
+        {
           "backgroundColor": "#F2F4F6",
           "paddingHorizontal": 20,
           "paddingTop": 20,
@@ -101,7 +101,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <View>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 11,
@@ -112,7 +112,7 @@ exports[`PhishingModal should render correctly 1`] = `
         >
           <Text
             style={
-              Object {
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontWeight": "600",
               }
@@ -122,7 +122,7 @@ exports[`PhishingModal should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 11,
@@ -134,7 +134,7 @@ exports[`PhishingModal should render correctly 1`] = `
           There are many reasons sites can appear on our warning list, and our warning list compiles from other widely used industry lists. Such reasons can include known fraud or security risks, such as domains that test positive on the 
           <Text
             style={
-              Object {
+              {
                 "textDecorationColor": "#24272A",
                 "textDecorationLine": "underline",
               }
@@ -147,7 +147,7 @@ exports[`PhishingModal should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 11,
@@ -159,7 +159,7 @@ exports[`PhishingModal should render correctly 1`] = `
           To read more about this site 
           <Text
             style={
-              Object {
+              {
                 "textDecorationColor": "#24272A",
                 "textDecorationLine": "underline",
               }
@@ -170,7 +170,7 @@ exports[`PhishingModal should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 11,
@@ -182,7 +182,7 @@ exports[`PhishingModal should render correctly 1`] = `
           Note that this warning list is compiled on a voluntary basis. This list may be inaccurate or incomplete. Just because a domain does not appear on this list is not an implicit guarantee of that domain's safety. As always, your transactions are your own responsibility. If you wish to interact with any domain on our warning list, you can do so by 
           <Text
             style={
-              Object {
+              {
                 "textDecorationColor": "#24272A",
                 "textDecorationLine": "underline",
               }
@@ -193,7 +193,7 @@ exports[`PhishingModal should render correctly 1`] = `
         </Text>
         <Text
           style={
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 11,
@@ -205,7 +205,7 @@ exports[`PhishingModal should render correctly 1`] = `
           There are many reasons sites can appear on our warning list, and our warning list compiles from other widely used industry lists. Such reasons can include known fraud or security risks, such as domains that test positive on the 
           <Text
             style={
-              Object {
+              {
                 "textDecorationColor": "#24272A",
                 "textDecorationLine": "underline",
               }
@@ -219,7 +219,7 @@ exports[`PhishingModal should render correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "alignItems": "flex-end",
         "marginTop": 10,
       }
@@ -230,19 +230,19 @@ exports[`PhishingModal should render correctly 1`] = `
       accessible={true}
       activeOpacity={0.2}
       style={
-        Array [
-          Array [
-            Object {
+        [
+          [
+            {
               "borderRadius": 100,
               "justifyContent": "center",
               "padding": 15,
             },
-            Object {
+            {
               "backgroundColor": "#FFFFFF",
               "borderColor": "#535A61",
               "borderWidth": 1,
             },
-            Object {
+            {
               "borderWidth": 0,
               "padding": 10,
             },
@@ -253,25 +253,25 @@ exports[`PhishingModal should render correctly 1`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#007aff",
               "fontSize": 17,
               "fontWeight": "500",
               "textAlign": "center",
             },
             null,
-            Array [
-              Object {
+            [
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",
               },
-              Object {
+              {
                 "color": "#535A61",
               },
-              Object {
+              {
                 "color": "#D73847",
                 "fontSize": 12,
               },

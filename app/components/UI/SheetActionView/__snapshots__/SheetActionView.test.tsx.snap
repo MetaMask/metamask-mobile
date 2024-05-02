@@ -3,7 +3,7 @@
 exports[`SheetActionView should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flexDirection": "row",
       "padding": 16,
     }
@@ -17,7 +17,7 @@ exports[`SheetActionView should render correctly 1`] = `
     onPressIn={[Function]}
     onPressOut={[Function]}
     style={
-      Object {
+      {
         "alignItems": "center",
         "alignSelf": "flex-start",
         "backgroundColor": "transparent",
@@ -37,7 +37,7 @@ exports[`SheetActionView should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#0376C9",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -58,7 +58,7 @@ exports[`SheetActionView should render correctly 1`] = `
     onPressIn={[Function]}
     onPressOut={[Function]}
     style={
-      Object {
+      {
         "alignItems": "center",
         "alignSelf": "flex-start",
         "backgroundColor": "#0376C9",
@@ -76,7 +76,7 @@ exports[`SheetActionView should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#FFFFFF",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
