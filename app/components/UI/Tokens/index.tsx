@@ -97,7 +97,7 @@ import { selectDetectedTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import useIsOriginalNativeTokenSymbol from '../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
+import useIsOriginalNativeTokenSymbol from '../../UI/Ramp/hooks/useIsOriginalNativeTokenSymbol';
 import ButtonIcon, {
   ButtonIconVariants,
 } from '../../../../app/component-library/components/Buttons/ButtonIcon';
@@ -162,6 +162,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const goToNetworkEdit = () => {
     navigation.navigate(Routes.ADD_NETWORK, {
       network: rpcUrl,
+      isEdit: true,
     });
 
     setShowScamWarningModal(false);

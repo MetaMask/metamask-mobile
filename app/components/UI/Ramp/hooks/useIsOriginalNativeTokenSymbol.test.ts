@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import useIsOriginalNativeTokenSymbol from './useIsOriginalNativeTokenSymbol';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import initialBackgroundState from '../../../../util/test/initial-background-state.json';
 import axios from 'axios';
 
 jest.mock('react-redux', () => ({
