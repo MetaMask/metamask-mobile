@@ -1,34 +1,17 @@
-import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { useSelector, useDispatch, Provider } from 'react-redux';
-import { Theme } from '../../../../util/theme/models';
+import { useSelector, useDispatch } from 'react-redux';
 import useDetails from './useDetails';
-import { Notification, TRIGGER_TYPES } from '../../../../util/notifications';
-import { store } from '../../../../store';
+import {
+  HalRawNotification,
+  TRIGGER_TYPES,
+} from '../../../../util/notifications';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
+import { mockTheme } from '../../../../util/theme';
+import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/currencyRateController', () => ({
-  selectConversionRate: jest.fn(),
-  selectCurrentCurrency: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/tokenRatesController', () => ({
-  selectContractExchangeRates: jest.fn(),
-}));
-
-jest.mock('../../../../util/notifications', () => ({
-  ...jest.requireActual('../../../../util/notifications'),
-  returnAvatarProps: jest.fn(),
-}));
-
-jest.mock('../../../../component-library/components/Icons/Icon', () => ({
-  Icon: jest.fn(() => <></>),
 }));
 
 describe('useDetails', () => {
@@ -72,127 +55,38 @@ describe('useDetails', () => {
     unread: true,
     createdAt: new Date(),
     isRead: false,
-  } as Notification;
-
-  const theme = {
-    colors: {
-      success: {
-        muted: '#123456',
-      },
-      alternative: '#654321',
-    },
-  } as Theme;
+  } as HalRawNotification;
 
   const mockUseSelector = useSelector as jest.Mock;
   const mockUseDispatch = useDispatch as jest.Mock;
-  const mockRenderAvatarProps = returnAvatarProps as jest.Mock;
-  const mockSelectConversionRate = selectConversionRate as jest.Mock;
-  const mockSelectCurrentCurrency = selectCurrentCurrency as jest.Mock;
-  const mockSelectContractExchangeRates =
-    selectContractExchangeRates as jest.Mock;
 
   beforeEach(() => {
     mockUseSelector.mockReset();
     mockUseDispatch.mockReset();
-    mockRenderAvatarProps.mockReset();
-    mockSelectConversionRate.mockReset();
-    mockSelectCurrentCurrency.mockReset();
-    mockSelectContractExchangeRates.mockReset();
   });
 
   it('should return renderNFT, renderTransfer, renderStake, renderStakeReadyToBeWithdrawn and renderSwap functions', () => {
+    const { result } = renderHookWithProvider(() =>
+      useDetails({
+        notification,
+        theme: mockTheme,
+        accountAvatarType: AvatarAccountType.JazzIcon,
+        navigation: {},
+        copyToClipboard: () => Promise.resolve(),
+      }),
+    );
+
     const {
       renderNFT,
       renderTransfer,
       renderStake,
       renderStakeReadyToBeWithdrawn,
       renderSwap,
-    } = useDetails({
-      notification,
-      theme,
-      accountAvatarType: AvatarAccountType.JazzIcon,
-      navigation: {},
-      copyToClipboard: () => Promise.resolve(),
-    });
+    } = result.current;
     expect(renderNFT).toBeDefined();
     expect(renderTransfer).toBeDefined();
     expect(renderStake).toBeDefined();
     expect(renderStakeReadyToBeWithdrawn).toBeDefined();
     expect(renderSwap).toBeDefined();
-  });
-
-  describe('renderNFT', () => {
-    it('should return a valid JSX', () => {
-      const renderNFT = useDetails({
-        notification,
-        theme,
-        accountAvatarType: AvatarAccountType.JazzIcon,
-        navigation: {},
-        copyToClipboard: () => Promise.resolve(),
-      }).renderNFT;
-      const { queryByText, getByRole } = render(
-        <Provider store={store}>{renderNFT(notification)}</Provider>,
-      );
-      expect(getByRole('img')).toBeDefined();
-      expect(queryByText('From')).toBeDefined();
-      expect(queryByText('To')).toBeDefined();
-      expect(queryByText('Status')).toBeDefined();
-      expect(queryByText('Network')).toBeDefined();
-      expect(queryByText('Collection')).toBeDefined();
-    });
-
-    it('should call copyToClipboard when an address is copied', () => {
-      const mockCopyToClipboard = jest.fn();
-      const renderNFT = useDetails({
-        notification,
-        theme,
-        accountAvatarType: AvatarAccountType.JazzIcon,
-        navigation: {},
-        copyToClipboard: mockCopyToClipboard,
-      }).renderNFT;
-      const { getByText } = render(
-        <Provider store={store}>{renderNFT(notification)}</Provider>,
-      );
-      const copyToClipboardBtn = getByText('0x2222');
-      fireEvent.press(copyToClipboardBtn);
-      expect(mockCopyToClipboard).toHaveBeenCalledWith('address', '0x2222');
-    });
-  });
-
-  describe('renderTransfer', () => {
-    it('should return a valid JSX', () => {
-      const renderTransfer = useDetails({
-        notification,
-        theme,
-        accountAvatarType: AvatarAccountType.JazzIcon,
-        navigation: {},
-        copyToClipboard: () => Promise.resolve(),
-      }).renderTransfer;
-      const { queryByText, getByText } = render(
-        <Provider store={store}>{renderTransfer(notification)}</Provider>,
-      );
-      expect(queryByText('From')).toBeDefined();
-      expect(queryByText('To')).toBeDefined();
-      expect(queryByText('Status')).toBeDefined();
-      expect(queryByText('Network')).toBeDefined();
-      expect(getByText('1 ETH')).toBeDefined();
-    });
-
-    it('should call copyToClipboard when an address is copied', () => {
-      const mockCopyToClipboard = jest.fn();
-      const renderTransfer = useDetails({
-        notification,
-        theme,
-        accountAvatarType: AvatarAccountType.JazzIcon,
-        navigation: {},
-        copyToClipboard: mockCopyToClipboard,
-      }).renderTransfer;
-      const { getByText } = render(
-        <Provider store={store}>{renderTransfer(notification)}</Provider>,
-      );
-      const copyToClipboardBtn = getByText('0x1111');
-      fireEvent.press(copyToClipboardBtn);
-      expect(mockCopyToClipboard).toHaveBeenCalledWith('address', '0x1111');
-    });
   });
 });

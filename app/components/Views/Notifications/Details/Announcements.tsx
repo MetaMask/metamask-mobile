@@ -11,7 +11,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 
 import { FeatureAnnouncementRawNotification } from '../../../../util/notifications';
-import { IconName } from 'app/component-library/components/Icons/Icon';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 const renderAnnouncementsDetails = (
   notification: FeatureAnnouncementRawNotification,

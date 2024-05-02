@@ -6,6 +6,7 @@ import { strings } from '../../../../../locales/i18n';
 import {
   getRowDetails,
   HalRawNotification,
+  HalRawNotificationsWithNetworkFields,
   Notification,
   TRIGGER_TYPES,
 } from '../../../../util/notifications';
@@ -104,7 +105,7 @@ const TXDetails = ({
       {!isCollapsed && (
         <NetworkFee
           sheetRef={sheetRef}
-          transaction={notification}
+          notification={notification as HalRawNotificationsWithNetworkFields}
           styles={styles}
           onClosed={() => setIsCollapsed(true)}
         />

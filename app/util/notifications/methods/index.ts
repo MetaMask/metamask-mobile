@@ -17,7 +17,7 @@ import {
   TRIGGER_TYPES,
   mmStorage,
 } from '../../../util/notifications';
-import { formatAmount } from 'app/components/UI/Ramp/utils';
+import { formatAmount } from '../../../components/UI/Ramp/utils';
 import images from '../../../images/image-icons';
 import { formatAddress } from '../../../util/address';
 import { STORAGE_IDS } from '../settings/storage/constants';

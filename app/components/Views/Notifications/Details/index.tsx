@@ -2,12 +2,10 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { capitalize } from 'lodash';
-import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
-  Notification,
   TRIGGER_TYPES,
   formatDate,
   formatNotificationTitle,
@@ -34,20 +32,16 @@ import renderTXDetails from './TX';
 import Header from './Header';
 
 interface Props {
-  route: {
-    params: {
-      notification: Notification;
-    };
-  };
+  navigation: any;
+  route: any;
 }
 
-const NotificationsDetails = (props: Props) => {
-  const { notification } = props.route.params;
+const NotificationsDetails = ({ navigation, route }: Props) => {
+  const { notification } = route.params;
 
   const dispatch = useDispatch();
   const theme = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation();
 
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon

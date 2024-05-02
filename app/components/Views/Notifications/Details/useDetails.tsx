@@ -373,7 +373,6 @@ const useDetails = ({
         notificationDetails as Record<string, any>;
 
       const unstakingInProgress =
-        type.indexOf(TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED) > -1 ||
         type.indexOf(TRIGGER_TYPES.LIDO_WITHDRAWAL_REQUESTED) > -1;
 
       if (unstakingInProgress) {
