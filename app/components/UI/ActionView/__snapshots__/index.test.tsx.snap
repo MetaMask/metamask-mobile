@@ -3,7 +3,7 @@
 exports[`ActionView should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -11,7 +11,7 @@ exports[`ActionView should render correctly 1`] = `
   <RCTScrollView
     automaticallyAdjustContentInsets={false}
     contentInset={
-      Object {
+      {
         "bottom": 0,
       }
     }
@@ -29,7 +29,7 @@ exports[`ActionView should render correctly 1`] = `
     onScroll={[Function]}
     resetKeyboardSpace={[Function]}
     resetScrollToCoords={
-      Object {
+      {
         "x": 0,
         "y": 0,
       }
@@ -42,8 +42,8 @@ exports[`ActionView should render correctly 1`] = `
     scrollToPosition={[Function]}
     showsVerticalScrollIndicator={true}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -55,7 +55,7 @@ exports[`ActionView should render correctly 1`] = `
     <View>
       <View
         accessibilityState={
-          Object {
+          {
             "busy": undefined,
             "checked": undefined,
             "disabled": undefined,
@@ -79,7 +79,7 @@ exports[`ActionView should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "flex": 0,
             "flexDirection": "row",
             "paddingHorizontal": 24,
@@ -93,23 +93,23 @@ exports[`ActionView should render correctly 1`] = `
           activeOpacity={0.2}
           disabled={false}
           style={
-            Array [
-              Array [
-                Object {
+            [
+              [
+                {
                   "borderRadius": 100,
                   "justifyContent": "center",
                   "padding": 15,
                 },
-                Object {
+                {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#535A61",
                   "borderWidth": 1,
                 },
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
-                  Object {
+                  {
                     "marginRight": 8,
                   },
                 ],
@@ -121,22 +121,22 @@ exports[`ActionView should render correctly 1`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#007aff",
                   "fontSize": 17,
                   "fontWeight": "500",
                   "textAlign": "center",
                 },
                 null,
-                Array [
-                  Object {
+                [
+                  {
                     "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
                   },
-                  Object {
+                  {
                     "color": "#535A61",
                   },
                   undefined,
@@ -154,27 +154,27 @@ exports[`ActionView should render correctly 1`] = `
           activeOpacity={0.2}
           disabled={false}
           style={
-            Array [
-              Array [
-                Object {
+            [
+              [
+                {
                   "borderRadius": 100,
                   "justifyContent": "center",
                   "padding": 15,
                 },
-                Object {
+                {
                   "backgroundColor": "#FFFFFF",
                   "borderColor": "#0376C9",
                   "borderWidth": 1,
                 },
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
-                  Object {
+                  {
                     "marginLeft": 8,
                   },
-                  Object {},
-                  Object {},
+                  {},
+                  {},
                 ],
               ],
               null,
@@ -184,22 +184,22 @@ exports[`ActionView should render correctly 1`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#007aff",
                   "fontSize": 17,
                   "fontWeight": "500",
                   "textAlign": "center",
                 },
                 null,
-                Array [
-                  Object {
+                [
+                  {
                     "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
                   },
-                  Object {
+                  {
                     "color": "#0376C9",
                   },
                   undefined,
