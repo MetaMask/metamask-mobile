@@ -4,7 +4,7 @@ exports[`RadioButton should render correctly 1`] = `
 <TouchableOpacity
   disabled={false}
   style={
-    Object {
+    {
       "alignItems": "center",
       "flexDirection": "row",
       "height": 24,
@@ -15,7 +15,7 @@ exports[`RadioButton should render correctly 1`] = `
   <View
     accessibilityRole="radio"
     style={
-      Object {
+      {
         "alignItems": "center",
         "backgroundColor": "#FFFFFF",
         "borderColor": "#BBC0C5",
