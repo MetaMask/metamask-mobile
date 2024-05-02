@@ -8,7 +8,7 @@ exports[`Tabs should render correctly 1`] = `
       "bottom": 0,
       "flex": 1,
       "left": 0,
-      "paddingTop": 50,
+      "paddingTop": 1,
       "position": "absolute",
       "right": 0,
       "top": 0,
