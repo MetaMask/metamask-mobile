@@ -2,13 +2,13 @@ import TestHelpers from '../../helpers';
 import { getLocalTestDappPort } from '../../fixtures/utils';
 
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
+import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 
 import enContent from '../../../locales/languages/en.json';
 
 import Browser from '../Browser/BrowserView';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 
 export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
@@ -24,42 +24,59 @@ class TestDApp {
   }
 
   get DappConnectButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.CONNECT_BUTTON);
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.CONNECT_BUTTON,
+    );
   }
 
   get ApproveButton() {
     return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.APPROVE_TOKENS_BUTTON_ID,
     );
   }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get erc20TransferTokensButton() {
     return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
     );
   }
   get ethSignButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.ETH_SIGN);
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ETH_SIGN,
+    );
   }
   get personalSignButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.PERSONAL_SIGN);
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.PERSONAL_SIGN,
+    );
   }
   get signTypedDataButton() {
-    return Matchers.getElementByWebID(TestDappSelectorsWebIDs.SIGN_TYPE_DATA);
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SIGN_TYPE_DATA,
+    );
   }
   get signTypedDataV3Button() {
     return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3,
     );
   }
   get signTypedDataV4Button() {
     return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4,
     );
   }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get nftTransferFromTokensButton() {
     return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.NFT_TRANSFER_FROM_BUTTON_ID,
     );
   }
@@ -69,90 +86,90 @@ class TestDApp {
   }
 
   async tapApproveButton() {
-    const myWebView = web(by.id('browser-webview'));
-    const innerElement = myWebView.element(
-      by.web.id(TestDappSelectorsWebIDs.APPROVE_TOKENS_BUTTON_ID),
-    );
-    await Gestures.scrollToWebViewPort(innerElement);
-    await Gestures.tapWebElement(innerElement);
-    // await this.tapButton(this.ApproveButton);
+    // const myWebView = web(by.id('browser-webview'));
+
+    // const innerElement = myWebView.element(
+    //   by.web.id(TestDappSelectorsWebIDs.APPROVE_TOKENS_BUTTON_ID),
+    // );
+    // await Gestures.scrollToWebViewPort(innerElement);
+    // await Gestures.tapWebElement(innerElement);
+    await this.tapButton(this.ApproveButton);
   }
 
   async tapEthSignButton() {
-    const myWebView = web(by.id('browser-webview'));
-    const innerElement = myWebView.element(
-      by.web.id(TestDappSelectorsWebIDs.ETH_SIGN),
-    );
-    await Gestures.scrollToWebViewPort(innerElement);
-    await Gestures.tapWebElement(innerElement);
+    // const myWebView = web(by.id('browser-webview'));
+    // const innerElement = myWebView.element(
+    //   by.web.id(TestDappSelectorsWebIDs.ETH_SIGN),
+    // );
+    // await Gestures.scrollToWebViewPort(innerElement);
+    // await Gestures.tapWebElement(innerElement);
 
-    // await this.tapButton(this.ethSignButton);
+    await this.tapButton(this.ethSignButton);
   }
 
   async tapPersonalSignButton() {
-    const myWebView = web(by.id('browser-webview'));
-    const innerElement = myWebView.element(
-      by.web.id(TestDappSelectorsWebIDs.PERSONAL_SIGN),
-    );
-    await Gestures.scrollToWebViewPort(innerElement);
-    await Gestures.tapWebElement(innerElement);
+    // const myWebView = web(by.id('browser-webview'));
+    // const innerElement = myWebView.element(
+    //   by.web.id(TestDappSelectorsWebIDs.PERSONAL_SIGN),
+    // );
+    // await Gestures.scrollToWebViewPort(innerElement);
+    // await Gestures.tapWebElement(innerElement);
 
-    // await this.tapButton(this.personalSignButton);
+    await this.tapButton(this.personalSignButton);
   }
 
   async tapTypedSignButton() {
-    const myWebView = web(by.id('browser-webview'));
-    const innerElement = myWebView.element(
-      by.web.id(TestDappSelectorsWebIDs.SIGN_TYPE_DATA),
-    );
-    await Gestures.scrollToWebViewPort(innerElement);
-    await Gestures.tapWebElement(innerElement);
+    // const myWebView = web(by.id('browser-webview'));
+    // const innerElement = myWebView.element(
+    //   by.web.id(TestDappSelectorsWebIDs.SIGN_TYPE_DATA),
+    // );
+    // await Gestures.scrollToWebViewPort(innerElement);
+    // await Gestures.tapWebElement(innerElement);
 
-    // await this.tapButton(this.signTypedDataButton);
+    await this.tapButton(this.signTypedDataButton);
   }
 
   async tapTypedV3SignButton() {
-    const myWebView = web(by.id('browser-webview'));
-    const innerElement = myWebView.element(
-      by.web.id(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3),
-    );
-    await Gestures.scrollToWebViewPort(innerElement);
-    await Gestures.tapWebElement(innerElement);
+    // const myWebView = web(by.id('browser-webview'));
+    // const innerElement = myWebView.element(
+    //   by.web.id(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3),
+    // );
+    // await Gestures.scrollToWebViewPort(innerElement);
+    // await Gestures.tapWebElement(innerElement);
 
-    // await this.tapButton(this.signTypedDataV3Button);
+    await this.tapButton(this.signTypedDataV3Button);
   }
 
   async tapTypedV4SignButton() {
-    const myWebView = web(by.id('browser-webview'));
-    const innerElement = myWebView.element(
-      by.web.id(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4),
-    );
-    await Gestures.scrollToWebViewPort(innerElement);
-    await Gestures.tapWebElement(innerElement);
-
+    // const myWebView = web(by.id('browser-webview'));
+    // const innerElement = myWebView.element(
+    //   by.web.id(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4),
+    // );
+    // await Gestures.scrollToWebViewPort(innerElement);
+    // await Gestures.tapWebElement(innerElement);
     // await this.tapButton(this.signTypedDataV4Button);
   }
   async tapERC20TransferButton() {
-    const myWebView = web(by.id('browser-webview'));
-    const innerElement = myWebView.element(
-      by.web.id(
-        TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
-      ),
-    );
-    await Gestures.scrollToWebViewPort(innerElement);
-    await Gestures.tapWebElement(innerElement);
+    // const myWebView = web(by.id('browser-webview'));
+    // const innerElement = myWebView.element(
+    //   by.web.id(
+    //     TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
+    //   ),
+    // );
+    // await Gestures.scrollToWebViewPort(innerElement);
+    // await Gestures.tapWebElement(innerElement);
 
-    // await this.tapButton(this.erc20TransferTokensButton);
+    await this.tapButton(this.erc20TransferTokensButton);
   }
   async tapNFTTransferButton() {
-    const myWebView = web(by.id('browser-webview'));
-    const innerElement = myWebView.element(
-      by.web.id(TestDappSelectorsWebIDs.NFT_TRANSFER_FROM_BUTTON_ID),
-    );
-    await Gestures.scrollToWebViewPort(innerElement);
-    await Gestures.tapWebElement(innerElement);
+    // const myWebView = web(by.id('browser-webview'));
+    // const innerElement = myWebView.element(
+    //   by.web.id(TestDappSelectorsWebIDs.NFT_TRANSFER_FROM_BUTTON_ID),
+    // );
+    // await Gestures.scrollToWebViewPort(innerElement);
+    // await Gestures.tapWebElement(innerElement);
 
-    // await this.tapButton(this.nftTransferFromTokensButton);
+    await this.tapButton(this.nftTransferFromTokensButton);
   }
 
   async tapConfirmButton() {
@@ -193,12 +210,12 @@ class TestDApp {
       'contract',
       contractAddress,
     );
-    if (device.getPlatform() === 'android') {
-      await TestHelpers.tapAtPoint(this.androidContainer, BUTTON_RELATIVE_PONT);
-    } else {
-      await TestHelpers.delay(5000);
-      await TestHelpers.tapAtPoint(this.androidContainer, BUTTON_RELATIVE_PONT);
-    }
+    // if (device.getPlatform() === 'android') {
+    //   await TestHelpers.tapAtPoint(this.androidContainer, BUTTON_RELATIVE_PONT);
+    // } else {
+    //   await TestHelpers.delay(5000);
+    //   await TestHelpers.tapAtPoint(this.androidContainer, BUTTON_RELATIVE_PONT);
+    // }
   }
 }
 

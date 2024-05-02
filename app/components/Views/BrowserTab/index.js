@@ -1520,7 +1520,7 @@ export const BrowserTab = (props) => {
                 javascriptEnabled
                 allowsInlineMediaPlayback
                 useWebkit
-                testID={BrowserViewSelectorsIDs.ANDROID_CONTAINER}
+                testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
                 onFileDownload={handleOnFileDownload}
               />

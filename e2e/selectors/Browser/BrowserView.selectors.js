@@ -1,7 +1,7 @@
 import enContent from '../../../locales/languages/en.json';
 
 export const BrowserViewSelectorsIDs = {
-  ANDROID_CONTAINER: 'browser-webview',
+  BROWSER_WEBVIEW_ID: 'browser-webview',
   AVATAR_IMAGE: 'network-avatar-image',
   DAPP_EIP1559_BUTTON: 'sendEIP1559Button',
   DAPP_CONNECT_BUTTON: 'connectButton',
