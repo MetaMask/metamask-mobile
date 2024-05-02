@@ -883,7 +883,6 @@ export const BrowserTab = (props) => {
       return false;
     }
 
-    // TODO: add logging for untrusted protocol being used
     // Sentry
     //
     const alertMsg = getAlertMessage(protocol, strings);
