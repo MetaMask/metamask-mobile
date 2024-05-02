@@ -883,7 +883,6 @@ export const BrowserTab = (props) => {
       return false;
     }
 
-    //
     const alertMsg = getAlertMessage(protocol, strings);
 
     // Pop up an alert dialog box to prompt the user for permission
