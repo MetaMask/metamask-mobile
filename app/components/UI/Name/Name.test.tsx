@@ -45,18 +45,8 @@ describe('Name', () => {
           />
         </Provider>,
       );
-      expect(wrapper.getByText(UNKNOWN_ADDRESS_CHECKSUMMED)).toBeTruthy();
-    });
 
-    it('should render snapshot correctly', () => {
-      const wrapper = render(
-        <Provider store={store}>
-          <Name
-            type={NameType.EthereumAddress}
-            value={UNKNOWN_ADDRESS_NOT_CHECKSUMMED}
-          />
-        </Provider>,
-      );
+      expect(wrapper.getByText(UNKNOWN_ADDRESS_CHECKSUMMED)).toBeTruthy();
       expect(wrapper).toMatchSnapshot();
     });
   });
