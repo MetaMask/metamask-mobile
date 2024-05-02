@@ -380,7 +380,7 @@
     "@types/is-url": "^1.2.30",
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.14.184",
-    "@types/node": "^17.0.21",
+    "@types/node": "^20.12.8",
     "@types/qs": "^6.9.15",
     "@types/react": "^17.0.11",
     "@types/react-native": "^0.64.10",
@@ -511,7 +511,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^18.20.2",
+    "node": "^20.12.2",
     "yarn": "^1.22.22"
   },
   "lavamoat": {
