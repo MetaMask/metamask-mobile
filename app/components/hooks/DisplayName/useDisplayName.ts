@@ -1,7 +1,5 @@
-import { useSelector } from 'react-redux';
-import { NftContract } from '@metamask/assets-controllers';
 import { NameType } from '../../UI/Name/Name.types';
-import { mapCollectibleContractsSelector } from '../../../reducers/collectibles';
+import useWatchedNFTName from './useWatchedNFTName';
 
 /**
  * Indicate the source and nature of a display name for a given address.
@@ -52,10 +50,7 @@ const useDisplayName: (type: NameType, value: string) => DisplayName = (
 ) => {
   const normalizedValue = value.toLowerCase();
 
-  const watchedNftNames: Record<string, NftContract> = useSelector(
-    mapCollectibleContractsSelector,
-  );
-  const watchedNftName = watchedNftNames[normalizedValue]?.name;
+  const watchedNftName = useWatchedNFTName(normalizedValue);
 
   if (watchedNftName) {
     return {
