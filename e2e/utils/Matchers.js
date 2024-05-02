@@ -111,15 +111,15 @@ class Matchers {
   static async getElementByHref(url) {
     return web.element(by.web.href(url)).atIndex(0);
   }
-  /**
-   * Get element by ID.
-   *
-   * @param {string} id - id expression to locate the element
-   * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
-   */
-  static async getElementByWebID(id) {
-    return web.element(by.web.id(id));
-  }
+  // /**
+  //  * Get element by ID.
+  //  *
+  //  * @param {string} id - id expression to locate the element
+  //  * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
+  //  */
+  // static async getElementByWebID(id) {
+  //   return web.element(by.web.id(id));
+  // }
 
   /**
  * Creates a Detox matcher for identifying an element by its ID.
