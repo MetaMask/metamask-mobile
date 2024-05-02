@@ -4,7 +4,7 @@ exports[`FadeOutOverlay should render correctly 1`] = `
 <View
   collapsable={false}
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "bottom": 0,
       "left": 0,

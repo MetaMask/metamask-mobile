@@ -31,7 +31,7 @@ jest.mock('../../../core/Engine', () => ({
       },
       setShowTestNetworks: jest.fn(),
     },
-    CurrencyRateController: { setNativeCurrency: jest.fn() },
+    CurrencyRateController: { updateExchangeRate: jest.fn() },
   },
 }));
 
@@ -97,6 +97,11 @@ const initialState = {
       CurrencyRateController: {
         conversionRate: 5,
         currentCurrency: 'usd',
+        currencyRates: {
+          ETH: {
+            conversionRate: 5,
+          },
+        },
       },
       PreferencesController: {
         showTestNetworks: false,

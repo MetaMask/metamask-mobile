@@ -3,7 +3,7 @@
 exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
 <RCTSafeAreaView
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
@@ -13,7 +13,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "marginTop": 35,
@@ -22,7 +22,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
         }
@@ -32,12 +32,12 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
       <Image
         resizeMode="contain"
         source={
-          Object {
+          {
             "uri": "MockImage",
           }
         }
         style={
-          Object {
+          {
             "height": 54,
             "overflow": "visible",
           }
@@ -45,7 +45,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
       />
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "marginHorizontal": "auto",
@@ -55,8 +55,8 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
       >
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -65,7 +65,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               },
               undefined,
               undefined,
-              Object {
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontWeight": "600",
               },
@@ -80,7 +80,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "fontSize": 16,
               },
               undefined,
@@ -91,7 +91,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "fontSize": 22,
               },
             ]
@@ -101,7 +101,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "marginLeft": 20,
             }
           }
@@ -111,15 +111,15 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "marginTop": 30,
           }
         }
       >
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -157,8 +157,8 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
         </Text>
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -188,7 +188,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "paddingLeft": 7,
               },
             ]
@@ -198,8 +198,8 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
         </Text>
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -229,7 +229,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "paddingLeft": 7,
               },
             ]
@@ -239,8 +239,8 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
         </Text>
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -270,7 +270,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "paddingLeft": 7,
               },
             ]
@@ -280,8 +280,8 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
         </Text>
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -311,7 +311,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "paddingLeft": 7,
               },
             ]
@@ -326,8 +326,8 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
         <Text
           numerOfLines={2}
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -336,7 +336,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               },
               undefined,
               undefined,
-              Object {
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontWeight": "600",
               },
@@ -356,13 +356,13 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "color": "#0376C9",
               },
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "flex": 1,
                 "flexWrap": "wrap",
                 "marginLeft": 20,
