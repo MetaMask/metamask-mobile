@@ -42,13 +42,6 @@ export interface AuthData {
   availableBiometryType?: BIOMETRY_TYPE;
 }
 
-const initializeEncryptionLibSetting = async () => {
-  const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-  if (!encryptionLib) {
-    await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-  }
-};
-
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
   private store: Store | undefined = undefined;
@@ -358,7 +351,6 @@ class AuthenticationService {
       await this.storePassword(password, authData?.currentAuthType);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
-      await initializeEncryptionLibSetting();
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
@@ -390,7 +382,6 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       await AsyncStorage.setItem(EXISTING_USER, TRUE);
       await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
-      await initializeEncryptionLibSetting();
       this.dispatchLogin();
       this.authData = authData;
     } catch (e: any) {
