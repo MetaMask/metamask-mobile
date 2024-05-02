@@ -5,7 +5,7 @@ exports[`Accordion - Snapshot should render a proper expanded state 1`] = `
   <AccordionHeader
     isExpanded={true}
     onPress={[Function]}
-    style={Object {}}
+    style={{}}
     testID="accordion"
     title="Sample Accordion Header Title"
   />
@@ -22,7 +22,7 @@ exports[`Accordion - Snapshot should render default settings correctly 1`] = `
   <AccordionHeader
     isExpanded={false}
     onPress={[Function]}
-    style={Object {}}
+    style={{}}
     testID="accordion"
     title="Sample Accordion Header Title"
   />

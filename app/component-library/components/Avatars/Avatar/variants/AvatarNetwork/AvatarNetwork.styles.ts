@@ -25,20 +25,21 @@ const styleSheet = (params: {
   const baseStyle: ViewStyle = showFallback
     ? {
         backgroundColor: theme.colors.background.alternative,
-        justifyContent: 'center',
-        alignItems: 'center',
         borderWidth: 1,
       }
     : {};
   return StyleSheet.create({
-    base: Object.assign(baseStyle, style) as ViewStyle,
+    base: Object.assign(
+      { justifyContent: 'center', alignItems: 'center' },
+      baseStyle,
+      style,
+    ) as ViewStyle,
     label:
       // Temporarily lower font size in XS size to prevent cut off
       size === AvatarSize.Xs ? { lineHeight: undefined, fontSize: 10 } : {},
     image: {
-      flex: 1,
-      height: undefined,
-      width: undefined,
+      height: Number(size),
+      width: Number(size),
     },
   });
 };
