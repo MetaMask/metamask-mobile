@@ -50,8 +50,8 @@ describe(
           await Browser.navigateToTestDApp();
           await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
           await Assertions.checkIfVisible(ConnectedAccountsModal.title);
-          await NetworkListModal.isNotVisible();
           await ConnectedAccountsModal.scrollToBottomOfModal();
+          await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
 
           //go to settings then security & privacy
           await TabBarComponent.tapSettings();
@@ -97,7 +97,7 @@ describe(
           await Browser.isVisible();
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
-          await NetworkListModal.isVisible();
+          await Assertions.checkIfVisible(NetworkListModal.testNetToggle);
         },
       );
     });

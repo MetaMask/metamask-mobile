@@ -7,7 +7,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
       <Text
         color="Muted"
         style={
-          Object {
+          {
             "textAlign": "center",
           }
         }
@@ -23,7 +23,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
     >
       <Row
         style={
-          Object {
+          {
             "alignItems": "center",
             "columnGap": 8,
             "flexDirection": "row",
@@ -51,21 +51,21 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
     </ScrollView>
   }
   data={
-    Array [
-      Object {
+    [
+      {
         "account": "0x0",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -75,20 +75,20 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         "provider": "AGGREGATOR",
         "state": "COMPLETED",
       },
-      Object {
+      {
         "account": "0x0",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -98,17 +98,17 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         "provider": "AGGREGATOR",
         "state": "PENDING",
       },
-      Object {
+      {
         "account": "0x0",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -133,8 +133,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   scrollEventThrottle={50}
-  stickyHeaderIndices={Array []}
-  viewabilityConfigCallbackPairs={Array []}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
 >
   <View>
     <View
@@ -149,13 +149,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         <View>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "marginVertical": 8,
                 },
                 undefined,
                 undefined,
-                Object {
+                {
                   "alignItems": "center",
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -173,7 +173,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -191,7 +191,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -212,7 +212,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "#0376C9",
@@ -230,7 +230,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#FFFFFF",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -251,7 +251,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -269,7 +269,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -297,7 +297,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -306,8 +306,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -316,8 +316,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -347,8 +347,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 undefined,
                 undefined,
                 undefined,
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
@@ -364,8 +364,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
           </Text>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -375,8 +375,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -388,14 +388,14 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -404,8 +404,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -414,8 +414,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -445,8 +445,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -463,7 +463,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#1C8234",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -478,8 +478,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -489,8 +489,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -520,8 +520,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -536,8 +536,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -567,8 +567,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -596,7 +596,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -605,8 +605,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -615,8 +615,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -646,8 +646,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 undefined,
                 undefined,
                 undefined,
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
@@ -663,8 +663,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
           </Text>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -674,8 +674,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -687,14 +687,14 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -703,8 +703,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -713,8 +713,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -744,8 +744,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -762,7 +762,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -777,8 +777,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -788,8 +788,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -819,8 +819,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -835,8 +835,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -866,8 +866,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -895,7 +895,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -904,8 +904,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -914,8 +914,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         >
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -925,8 +925,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -938,14 +938,14 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -954,8 +954,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -964,8 +964,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -995,8 +995,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -1013,7 +1013,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -1028,8 +1028,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -1039,8 +1039,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -1070,8 +1070,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -1086,8 +1086,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -1117,8 +1117,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -1146,7 +1146,7 @@ exports[`OrdersList renders correctly 1`] = `
       <Text
         color="Muted"
         style={
-          Object {
+          {
             "textAlign": "center",
           }
         }
@@ -1160,7 +1160,7 @@ exports[`OrdersList renders correctly 1`] = `
     >
       <Row
         style={
-          Object {
+          {
             "alignItems": "center",
             "columnGap": 8,
             "flexDirection": "row",
@@ -1188,21 +1188,21 @@ exports[`OrdersList renders correctly 1`] = `
     </ScrollView>
   }
   data={
-    Array [
-      Object {
+    [
+      {
         "account": "0x0",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -1212,20 +1212,20 @@ exports[`OrdersList renders correctly 1`] = `
         "provider": "AGGREGATOR",
         "state": "COMPLETED",
       },
-      Object {
+      {
         "account": "0x0",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -1235,20 +1235,20 @@ exports[`OrdersList renders correctly 1`] = `
         "provider": "AGGREGATOR",
         "state": "PENDING",
       },
-      Object {
+      {
         "account": "0x0",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -1258,17 +1258,17 @@ exports[`OrdersList renders correctly 1`] = `
         "provider": "AGGREGATOR",
         "state": "PENDING",
       },
-      Object {
+      {
         "account": "0x0",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -1293,8 +1293,8 @@ exports[`OrdersList renders correctly 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   scrollEventThrottle={50}
-  stickyHeaderIndices={Array []}
-  viewabilityConfigCallbackPairs={Array []}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
 >
   <View>
     <View
@@ -1309,13 +1309,13 @@ exports[`OrdersList renders correctly 1`] = `
         <View>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "marginVertical": 8,
                 },
                 undefined,
                 undefined,
-                Object {
+                {
                   "alignItems": "center",
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -1333,7 +1333,7 @@ exports[`OrdersList renders correctly 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "#0376C9",
@@ -1351,7 +1351,7 @@ exports[`OrdersList renders correctly 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#FFFFFF",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -1372,7 +1372,7 @@ exports[`OrdersList renders correctly 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -1390,7 +1390,7 @@ exports[`OrdersList renders correctly 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -1411,7 +1411,7 @@ exports[`OrdersList renders correctly 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -1429,7 +1429,7 @@ exports[`OrdersList renders correctly 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -1457,7 +1457,7 @@ exports[`OrdersList renders correctly 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -1466,8 +1466,8 @@ exports[`OrdersList renders correctly 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -1476,8 +1476,8 @@ exports[`OrdersList renders correctly 1`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -1507,8 +1507,8 @@ exports[`OrdersList renders correctly 1`] = `
                 undefined,
                 undefined,
                 undefined,
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
@@ -1524,8 +1524,8 @@ exports[`OrdersList renders correctly 1`] = `
           </Text>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -1535,8 +1535,8 @@ exports[`OrdersList renders correctly 1`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -1548,14 +1548,14 @@ exports[`OrdersList renders correctly 1`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -1564,8 +1564,8 @@ exports[`OrdersList renders correctly 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -1574,8 +1574,8 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -1605,8 +1605,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -1623,7 +1623,7 @@ exports[`OrdersList renders correctly 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#1C8234",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -1638,8 +1638,8 @@ exports[`OrdersList renders correctly 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -1649,8 +1649,8 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -1680,8 +1680,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -1696,8 +1696,8 @@ exports[`OrdersList renders correctly 1`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -1727,8 +1727,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -1756,7 +1756,7 @@ exports[`OrdersList renders correctly 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -1765,8 +1765,8 @@ exports[`OrdersList renders correctly 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -1775,8 +1775,8 @@ exports[`OrdersList renders correctly 1`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -1806,8 +1806,8 @@ exports[`OrdersList renders correctly 1`] = `
                 undefined,
                 undefined,
                 undefined,
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
@@ -1823,8 +1823,8 @@ exports[`OrdersList renders correctly 1`] = `
           </Text>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -1834,8 +1834,8 @@ exports[`OrdersList renders correctly 1`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -1847,14 +1847,14 @@ exports[`OrdersList renders correctly 1`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -1863,8 +1863,8 @@ exports[`OrdersList renders correctly 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -1873,8 +1873,8 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -1904,8 +1904,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -1922,7 +1922,7 @@ exports[`OrdersList renders correctly 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -1937,8 +1937,8 @@ exports[`OrdersList renders correctly 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -1948,8 +1948,8 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -1979,8 +1979,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -1995,8 +1995,8 @@ exports[`OrdersList renders correctly 1`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -2026,8 +2026,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -2055,7 +2055,7 @@ exports[`OrdersList renders correctly 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -2064,8 +2064,8 @@ exports[`OrdersList renders correctly 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -2074,8 +2074,8 @@ exports[`OrdersList renders correctly 1`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -2105,8 +2105,8 @@ exports[`OrdersList renders correctly 1`] = `
                 undefined,
                 undefined,
                 undefined,
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
@@ -2122,8 +2122,8 @@ exports[`OrdersList renders correctly 1`] = `
           </Text>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -2133,8 +2133,8 @@ exports[`OrdersList renders correctly 1`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -2146,14 +2146,14 @@ exports[`OrdersList renders correctly 1`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -2162,8 +2162,8 @@ exports[`OrdersList renders correctly 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -2172,8 +2172,8 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -2203,8 +2203,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -2221,7 +2221,7 @@ exports[`OrdersList renders correctly 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -2236,8 +2236,8 @@ exports[`OrdersList renders correctly 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -2247,8 +2247,8 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -2278,8 +2278,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -2294,8 +2294,8 @@ exports[`OrdersList renders correctly 1`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -2325,8 +2325,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -2354,7 +2354,7 @@ exports[`OrdersList renders correctly 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -2363,8 +2363,8 @@ exports[`OrdersList renders correctly 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -2373,8 +2373,8 @@ exports[`OrdersList renders correctly 1`] = `
         >
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -2384,8 +2384,8 @@ exports[`OrdersList renders correctly 1`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -2397,14 +2397,14 @@ exports[`OrdersList renders correctly 1`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -2413,8 +2413,8 @@ exports[`OrdersList renders correctly 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -2423,8 +2423,8 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -2454,8 +2454,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -2472,7 +2472,7 @@ exports[`OrdersList renders correctly 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -2487,8 +2487,8 @@ exports[`OrdersList renders correctly 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -2498,8 +2498,8 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -2529,8 +2529,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -2545,8 +2545,8 @@ exports[`OrdersList renders correctly 1`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -2576,8 +2576,8 @@ exports[`OrdersList renders correctly 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -2605,7 +2605,7 @@ exports[`OrdersList renders empty buy message 1`] = `
       <Text
         color="Muted"
         style={
-          Object {
+          {
             "textAlign": "center",
           }
         }
@@ -2621,7 +2621,7 @@ exports[`OrdersList renders empty buy message 1`] = `
     >
       <Row
         style={
-          Object {
+          {
             "alignItems": "center",
             "columnGap": 8,
             "flexDirection": "row",
@@ -2648,7 +2648,7 @@ exports[`OrdersList renders empty buy message 1`] = `
       </Row>
     </ScrollView>
   }
-  data={Array []}
+  data={[]}
   getItem={[Function]}
   getItemCount={[Function]}
   keyExtractor={[Function]}
@@ -2662,8 +2662,8 @@ exports[`OrdersList renders empty buy message 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   scrollEventThrottle={50}
-  stickyHeaderIndices={Array []}
-  viewabilityConfigCallbackPairs={Array []}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
 >
   <View>
     <View
@@ -2678,13 +2678,13 @@ exports[`OrdersList renders empty buy message 1`] = `
         <View>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "marginVertical": 8,
                 },
                 undefined,
                 undefined,
-                Object {
+                {
                   "alignItems": "center",
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -2702,7 +2702,7 @@ exports[`OrdersList renders empty buy message 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -2720,7 +2720,7 @@ exports[`OrdersList renders empty buy message 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -2741,7 +2741,7 @@ exports[`OrdersList renders empty buy message 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "#0376C9",
@@ -2759,7 +2759,7 @@ exports[`OrdersList renders empty buy message 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#FFFFFF",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -2780,7 +2780,7 @@ exports[`OrdersList renders empty buy message 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -2798,7 +2798,7 @@ exports[`OrdersList renders empty buy message 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -2818,8 +2818,8 @@ exports[`OrdersList renders empty buy message 1`] = `
     <View
       onLayout={[Function]}
       style={
-        Array [
-          Object {
+        [
+          {
             "marginVertical": 8,
           },
           undefined,
@@ -2831,7 +2831,7 @@ exports[`OrdersList renders empty buy message 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#BBC0C5",
             "fontFamily": "Euclid Circular B",
             "fontSize": 18,
@@ -2856,7 +2856,7 @@ exports[`OrdersList renders empty sell message 1`] = `
       <Text
         color="Muted"
         style={
-          Object {
+          {
             "textAlign": "center",
           }
         }
@@ -2872,7 +2872,7 @@ exports[`OrdersList renders empty sell message 1`] = `
     >
       <Row
         style={
-          Object {
+          {
             "alignItems": "center",
             "columnGap": 8,
             "flexDirection": "row",
@@ -2899,7 +2899,7 @@ exports[`OrdersList renders empty sell message 1`] = `
       </Row>
     </ScrollView>
   }
-  data={Array []}
+  data={[]}
   getItem={[Function]}
   getItemCount={[Function]}
   keyExtractor={[Function]}
@@ -2913,8 +2913,8 @@ exports[`OrdersList renders empty sell message 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   scrollEventThrottle={50}
-  stickyHeaderIndices={Array []}
-  viewabilityConfigCallbackPairs={Array []}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
 >
   <View>
     <View
@@ -2929,13 +2929,13 @@ exports[`OrdersList renders empty sell message 1`] = `
         <View>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "marginVertical": 8,
                 },
                 undefined,
                 undefined,
-                Object {
+                {
                   "alignItems": "center",
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -2953,7 +2953,7 @@ exports[`OrdersList renders empty sell message 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -2971,7 +2971,7 @@ exports[`OrdersList renders empty sell message 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -2992,7 +2992,7 @@ exports[`OrdersList renders empty sell message 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -3010,7 +3010,7 @@ exports[`OrdersList renders empty sell message 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -3031,7 +3031,7 @@ exports[`OrdersList renders empty sell message 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "#0376C9",
@@ -3049,7 +3049,7 @@ exports[`OrdersList renders empty sell message 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#FFFFFF",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -3069,8 +3069,8 @@ exports[`OrdersList renders empty sell message 1`] = `
     <View
       onLayout={[Function]}
       style={
-        Array [
-          Object {
+        [
+          {
             "marginVertical": 8,
           },
           undefined,
@@ -3082,7 +3082,7 @@ exports[`OrdersList renders empty sell message 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#BBC0C5",
             "fontFamily": "Euclid Circular B",
             "fontSize": 18,
@@ -3107,7 +3107,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
       <Text
         color="Muted"
         style={
-          Object {
+          {
             "textAlign": "center",
           }
         }
@@ -3123,7 +3123,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
     >
       <Row
         style={
-          Object {
+          {
             "alignItems": "center",
             "columnGap": 8,
             "flexDirection": "row",
@@ -3151,21 +3151,21 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
     </ScrollView>
   }
   data={
-    Array [
-      Object {
+    [
+      {
         "account": "0x0",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -3190,8 +3190,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
   removeClippedSubviews={false}
   renderItem={[Function]}
   scrollEventThrottle={50}
-  stickyHeaderIndices={Array []}
-  viewabilityConfigCallbackPairs={Array []}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
 >
   <View>
     <View
@@ -3206,13 +3206,13 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         <View>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "marginVertical": 8,
                 },
                 undefined,
                 undefined,
-                Object {
+                {
                   "alignItems": "center",
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -3230,7 +3230,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -3248,7 +3248,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -3269,7 +3269,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -3287,7 +3287,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -3308,7 +3308,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "#0376C9",
@@ -3326,7 +3326,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#FFFFFF",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -3354,7 +3354,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -3363,8 +3363,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -3373,8 +3373,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -3404,8 +3404,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 undefined,
                 undefined,
                 undefined,
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
@@ -3421,8 +3421,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
           </Text>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -3432,8 +3432,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -3445,14 +3445,14 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -3461,8 +3461,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -3471,8 +3471,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -3502,8 +3502,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -3520,7 +3520,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -3535,8 +3535,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -3546,8 +3546,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -3577,8 +3577,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -3593,8 +3593,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -3624,8 +3624,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -3653,7 +3653,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
       <Text
         color="Muted"
         style={
-          Object {
+          {
             "textAlign": "center",
           }
         }
@@ -3669,7 +3669,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
     >
       <Row
         style={
-          Object {
+          {
             "alignItems": "center",
             "columnGap": 8,
             "flexDirection": "row",
@@ -3697,21 +3697,21 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
     </ScrollView>
   }
   data={
-    Array [
-      Object {
+    [
+      {
         "account": "0x0",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -3736,8 +3736,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   scrollEventThrottle={50}
-  stickyHeaderIndices={Array []}
-  viewabilityConfigCallbackPairs={Array []}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
 >
   <View>
     <View
@@ -3752,13 +3752,13 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         <View>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "marginVertical": 8,
                 },
                 undefined,
                 undefined,
-                Object {
+                {
                   "alignItems": "center",
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -3776,7 +3776,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -3794,7 +3794,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -3815,7 +3815,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -3833,7 +3833,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -3854,7 +3854,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "#0376C9",
@@ -3872,7 +3872,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#FFFFFF",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -3900,7 +3900,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -3909,8 +3909,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -3919,8 +3919,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -3950,8 +3950,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 undefined,
                 undefined,
                 undefined,
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
@@ -3967,8 +3967,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
           </Text>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -3978,8 +3978,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -3991,14 +3991,14 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -4007,8 +4007,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -4017,8 +4017,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -4048,8 +4048,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -4066,7 +4066,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -4081,8 +4081,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -4092,8 +4092,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -4123,8 +4123,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -4139,8 +4139,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -4170,8 +4170,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -4199,7 +4199,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
       <Text
         color="Muted"
         style={
-          Object {
+          {
             "textAlign": "center",
           }
         }
@@ -4213,7 +4213,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
     >
       <Row
         style={
-          Object {
+          {
             "alignItems": "center",
             "columnGap": 8,
             "flexDirection": "row",
@@ -4241,21 +4241,21 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
     </ScrollView>
   }
   data={
-    Array [
-      Object {
+    [
+      {
         "account": "0x0",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -4265,20 +4265,20 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "provider": "AGGREGATOR",
         "state": "COMPLETED",
       },
-      Object {
+      {
         "account": "0x0",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -4288,20 +4288,20 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "provider": "AGGREGATOR",
         "state": "PENDING",
       },
-      Object {
+      {
         "account": "0x0",
         "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -4311,17 +4311,17 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         "provider": "AGGREGATOR",
         "state": "PENDING",
       },
-      Object {
+      {
         "account": "0x0",
         "cryptocurrency": "ETH",
         "currency": "USD",
-        "data": Object {
-          "cryptoCurrency": Object {
+        "data": {
+          "cryptoCurrency": {
             "decimals": 18,
             "name": "Ethereum",
             "symbol": "ETH",
           },
-          "provider": Object {
+          "provider": {
             "name": "Test Provider",
           },
         },
@@ -4346,8 +4346,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   scrollEventThrottle={50}
-  stickyHeaderIndices={Array []}
-  viewabilityConfigCallbackPairs={Array []}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
 >
   <View>
     <View
@@ -4362,13 +4362,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         <View>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "marginVertical": 8,
                 },
                 undefined,
                 undefined,
-                Object {
+                {
                   "alignItems": "center",
                   "columnGap": 8,
                   "flexDirection": "row",
@@ -4386,7 +4386,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "#0376C9",
@@ -4404,7 +4404,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#FFFFFF",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -4425,7 +4425,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -4443,7 +4443,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -4464,7 +4464,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
@@ -4482,7 +4482,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
@@ -4510,7 +4510,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -4519,8 +4519,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -4529,8 +4529,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -4560,8 +4560,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 undefined,
                 undefined,
                 undefined,
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
@@ -4577,8 +4577,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
           </Text>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -4588,8 +4588,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -4601,14 +4601,14 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -4617,8 +4617,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -4627,8 +4627,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -4658,8 +4658,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -4676,7 +4676,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#1C8234",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -4691,8 +4691,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -4702,8 +4702,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -4733,8 +4733,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -4749,8 +4749,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -4780,8 +4780,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -4809,7 +4809,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -4818,8 +4818,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -4828,8 +4828,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -4859,8 +4859,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 undefined,
                 undefined,
                 undefined,
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
@@ -4876,8 +4876,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
           </Text>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -4887,8 +4887,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -4900,14 +4900,14 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -4916,8 +4916,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -4926,8 +4926,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -4957,8 +4957,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -4975,7 +4975,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -4990,8 +4990,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -5001,8 +5001,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -5032,8 +5032,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -5048,8 +5048,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -5079,8 +5079,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -5108,7 +5108,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -5117,8 +5117,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -5127,8 +5127,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -5158,8 +5158,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 undefined,
                 undefined,
                 undefined,
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 12,
@@ -5175,8 +5175,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
           </Text>
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -5186,8 +5186,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -5199,14 +5199,14 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -5215,8 +5215,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -5225,8 +5225,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -5256,8 +5256,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -5274,7 +5274,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -5289,8 +5289,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -5300,8 +5300,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -5331,8 +5331,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -5347,8 +5347,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -5378,8 +5378,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",
@@ -5407,7 +5407,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         activeOpacity={1}
         onPress={[Function]}
         style={
-          Object {
+          {
             "borderBottomWidth": 0.5,
             "borderColor": "#D6D9DC",
           }
@@ -5416,8 +5416,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
       >
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "padding": 15,
               },
               undefined,
@@ -5426,8 +5426,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         >
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -5437,8 +5437,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
           >
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "marginRight": 15,
@@ -5450,14 +5450,14 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               <Image
                 resizeMode="stretch"
                 source={
-                  Object {
-                    "default": Object {
+                  {
+                    "default": {
                       "uri": "MockImage",
                     },
                   }
                 }
                 style={
-                  Object {
+                  {
                     "height": 28,
                     "width": 28,
                   }
@@ -5466,8 +5466,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -5476,8 +5476,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -5507,8 +5507,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -5525,7 +5525,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
+                  {
                     "color": "#0376C9",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 12,
@@ -5540,8 +5540,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             </View>
             <View
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "alignItems": "flex-end",
                     "flex": 0.6,
                   },
@@ -5551,8 +5551,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -5582,8 +5582,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#24272A",
                         "fontSize": 15,
                       },
@@ -5598,8 +5598,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               </Text>
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
@@ -5629,8 +5629,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                     undefined,
                     undefined,
                     undefined,
-                    Array [
-                      Object {
+                    [
+                      {
                         "color": "#535A61",
                         "fontSize": 12,
                         "textTransform": "uppercase",

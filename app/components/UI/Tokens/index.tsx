@@ -42,6 +42,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
@@ -97,7 +98,7 @@ import { selectDetectedTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import useIsOriginalNativeTokenSymbol from '../../UI/Ramp/hooks/useIsOriginalNativeTokenSymbol';
+import useIsOriginalNativeTokenSymbol from '../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import ButtonIcon, {
   ButtonIconVariants,
 } from '../../../../app/component-library/components/Buttons/ButtonIcon';
@@ -126,6 +127,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { type, rpcUrl } = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
+  const networkClientId = useSelector(selectNetworkClientId);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const primaryCurrency = useSelector(
@@ -161,7 +163,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const goToNetworkEdit = () => {
     navigation.navigate(Routes.ADD_NETWORK, {
       network: rpcUrl,
-      isEdit: true,
     });
 
     setShowScamWarningModal(false);
@@ -563,7 +564,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const actions = [
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
-        CurrencyRateController.start(),
+        CurrencyRateController.startPollingByNetworkClientId(networkClientId),
         TokenRatesController.updateExchangeRates(),
       ];
       await Promise.all(actions).catch((error) => {
@@ -583,6 +584,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     } else {
       total = balance?.tokenFiat ?? 0;
     }
+
     const fiatBalance = `${renderFiat(total, currentCurrency)}`;
 
     const onOpenPortfolio = () => {

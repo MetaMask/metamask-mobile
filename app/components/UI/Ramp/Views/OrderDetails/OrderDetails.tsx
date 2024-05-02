@@ -25,10 +25,6 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
-import {
-  selectNetworkConfigurations,
-  selectProviderConfig,
-} from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import ErrorView from '../../components/ErrorView';
@@ -49,8 +45,6 @@ export const createOrderDetailsNavDetails =
 
 const OrderDetails = () => {
   const trackEvent = useAnalytics();
-  const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const params = useParams<OrderDetailsParams>();
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
@@ -248,11 +242,7 @@ const OrderDetails = () => {
       >
         <ScreenLayout.Body>
           <ScreenLayout.Content>
-            <OrderDetail
-              order={order}
-              providerConfig={providerConfig}
-              networkConfigurations={networkConfigurations}
-            />
+            <OrderDetail order={order} />
           </ScreenLayout.Content>
         </ScreenLayout.Body>
         <ScreenLayout.Footer>

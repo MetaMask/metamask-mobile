@@ -78,41 +78,41 @@ describe(SmokeCore('Start Exploring'), () => {
   it('should go through the onboarding wizard flow', async () => {
     // Check that Take the tour CTA is visible and tap it
     await TestHelpers.delay(3000);
-    await OnboardingWizardModal.isVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
     await OnboardingWizardModal.tapTakeTourButton();
-    await OnboardingWizardModal.isYourAccountsTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepTwoContainer);
     await OnboardingWizardModal.tapGotItButton();
     // Ensure step 3 is shown correctly
-    await OnboardingWizardModal.isEditAccountNameTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepThreeContainer);
     // await WalletView.editAccountName(ACCOUNT);
     await OnboardingWizardModal.tapGotItButton();
     await WalletView.isAccountNameCorrect(ACCOUNT);
     // Ensure step 4 is shown correctly
-    await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
     await OnboardingWizardModal.tapGotItButton();
     // Ensure step 5 is shown correctly
-    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
     // Tap on Back
     await OnboardingWizardModal.tapBackButton();
     // Ensure step 4 is shown correctly
-    await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
     await OnboardingWizardModal.tapGotItButton();
     // Ensure step 5 is shown correctly
-    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
     await OnboardingWizardModal.tapGotItButton();
     // Ensure step 6 is shown correctly
-    await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepSixContainer);
     await OnboardingWizardModal.tapBackButton();
     // Ensure step 5 is shown correctly
-    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
     await OnboardingWizardModal.tapBackButton();
     // Ensure step 4 is shown correctly
-    await OnboardingWizardModal.isMainNavigationTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
     await OnboardingWizardModal.tapGotItButton();
-    await OnboardingWizardModal.isExploreTheBrowserTutorialStepVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
     await OnboardingWizardModal.tapGotItButton();
     // Ensure step 6 is shown correctly
-    await OnboardingWizardModal.isBrowserSearchStepTutorialVisible();
+    await Assertions.checkIfVisible(OnboardingWizardModal.stepSixContainer);
     await OnboardingWizardModal.tapGotItButton();
     // Check that we are on the Browser page
     // dealing with flakiness on bitrise.
