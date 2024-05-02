@@ -1,35 +1,28 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OnboardingWizard should render correctly 1`] = `
-<ContextProvider
-  value={
-    {
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
-    }
+<Modal
+  animationType="none"
+  deviceHeight={null}
+  deviceWidth={null}
+  hardwareAccelerated={false}
+  hideModalContentWhileAnimating={false}
+  onBackdropPress={[Function]}
+  onModalHide={[Function]}
+  onModalWillHide={[Function]}
+  onModalWillShow={[Function]}
+  onRequestClose={[Function]}
+  panResponderThreshold={4}
+  scrollHorizontal={false}
+  scrollOffset={0}
+  scrollOffsetMax={0}
+  scrollTo={null}
+  statusBarTranslucent={false}
+  supportedOrientations={
+    [
+      "portrait",
+      "landscape",
+    ]
   }
   swipeThreshold={100}
   transparent={true}
@@ -37,7 +30,7 @@ exports[`OnboardingWizard should render correctly 1`] = `
 >
   <View
     accessibilityState={
-      Object {
+      {
         "busy": undefined,
         "checked": undefined,
         "disabled": undefined,
@@ -57,7 +50,7 @@ exports[`OnboardingWizard should render correctly 1`] = `
     onResponderTerminationRequest={[Function]}
     onStartShouldSetResponder={[Function]}
     style={
-      Object {
+      {
         "backgroundColor": "black",
         "bottom": 0,
         "height": 1334,
@@ -88,7 +81,7 @@ exports[`OnboardingWizard should render correctly 1`] = `
     scrollTo={null}
     statusBarTranslucent={false}
     style={
-      Object {
+      {
         "backgroundColor": "transparent",
         "bottom": 0,
         "flex": 1,
@@ -99,15 +92,15 @@ exports[`OnboardingWizard should render correctly 1`] = `
         "position": "absolute",
         "right": 0,
         "top": 0,
-        "transform": Array [
-          Object {
+        "transform": [
+          {
             "translateY": 0,
           },
         ],
       }
     }
     supportedOrientations={
-      Array [
+      [
         "portrait",
         "landscape",
       ]
@@ -116,7 +109,7 @@ exports[`OnboardingWizard should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "backgroundColor": "transparent",
           "flex": 1,
         }

@@ -3,21 +3,21 @@
 exports[`Step7 should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "left": 0,
           "marginHorizontal": 16,
           "position": "absolute",
           "right": 0,
         },
-        Object {
+        {
           "top": 320,
         },
       ]
@@ -26,14 +26,14 @@ exports[`Step7 should render correctly 1`] = `
     <View
       collapsable={false}
       style={
-        Object {
+        {
           "opacity": 0,
         }
       }
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "bottom": -2,
             "marginBottom": 10,
@@ -42,7 +42,7 @@ exports[`Step7 should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "backgroundColor": "transparent",
               "borderBottomColor": "#0376C9",
               "borderBottomWidth": 12,
@@ -60,19 +60,19 @@ exports[`Step7 should render correctly 1`] = `
       </View>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "backgroundColor": "#0376C9",
               "borderRadius": 8,
               "padding": 20,
             },
-            Object {},
+            {},
           ]
         }
       >
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "flexDirection": "row",
               "justifyContent": "space-between",
@@ -87,7 +87,7 @@ exports[`Step7 should render correctly 1`] = `
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "borderRadius": 8,
                 "height": 16,
@@ -103,7 +103,7 @@ exports[`Step7 should render correctly 1`] = `
               height={20}
               name="Arrow2Left"
               style={
-                Object {
+                {
                   "height": 20,
                   "width": 20,
                 }
@@ -113,7 +113,7 @@ exports[`Step7 should render correctly 1`] = `
           </TouchableOpacity>
           <Text
             style={
-              Object {
+              {
                 "alignSelf": "center",
                 "color": "#FFFFFF",
                 "fontFamily": "EuclidCircularB-Bold",
@@ -132,7 +132,7 @@ exports[`Step7 should render correctly 1`] = `
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "borderRadius": 8,
                 "height": 16,
@@ -147,7 +147,7 @@ exports[`Step7 should render correctly 1`] = `
               height={20}
               name="Close"
               style={
-                Object {
+                {
                   "height": 20,
                   "width": 20,
                 }
@@ -158,14 +158,14 @@ exports[`Step7 should render correctly 1`] = `
         </View>
         <View
           style={
-            Object {
+            {
               "marginTop": 20,
             }
           }
         >
           <Text
             style={
-              Object {
+              {
                 "color": "#FFFFFF",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
@@ -181,7 +181,7 @@ exports[`Step7 should render correctly 1`] = `
         </View>
         <View
           style={
-            Object {
+            {
               "flexDirection": "row",
               "justifyContent": "space-between",
             }
@@ -189,7 +189,7 @@ exports[`Step7 should render correctly 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "alignSelf": "center",
                 "flexDirection": "row",
               }
@@ -197,7 +197,7 @@ exports[`Step7 should render correctly 1`] = `
           >
             <Text
               style={
-                Object {
+                {
                   "color": "#FFFFFF",
                 }
               }
@@ -212,23 +212,23 @@ exports[`Step7 should render correctly 1`] = `
             activeOpacity={0.2}
             onPress={[Function]}
             style={
-              Array [
-                Array [
-                  Object {
+              [
+                [
+                  {
                     "borderRadius": 100,
                     "justifyContent": "center",
                     "padding": 15,
                   },
-                  Object {
+                  {
                     "backgroundColor": "#FFFFFF",
                   },
-                  Array [
-                    Object {
+                  [
+                    {
                       "height": 45,
                       "padding": 5,
                       "width": 75,
                     },
-                    Object {
+                    {
                       "right": 0,
                     },
                   ],
@@ -240,22 +240,22 @@ exports[`Step7 should render correctly 1`] = `
           >
             <Text
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "color": "#007aff",
                     "fontSize": 17,
                     "fontWeight": "500",
                     "textAlign": "center",
                   },
                   null,
-                  Array [
-                    Object {
+                  [
+                    {
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",
                     },
-                    Object {
+                    {
                       "color": "#0376C9",
                     },
                     undefined,
