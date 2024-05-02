@@ -2,7 +2,10 @@
 
 // External dependencies.
 import { AvatarSize } from '../../../../Avatars/Avatar';
-import { SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL } from '../../../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import {
+  SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL,
+  SAMPLE_AVATARNETWORK_NAME,
+} from '../../../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
 
 // Internal dependencies.
 import { BadgeNetworkProps } from './BadgeNetwork.types';
@@ -14,7 +17,7 @@ export const BADGE_NETWORK_TEST_ID = 'badge-network';
 export const DEFAULT_BADGENETWORK_NETWORKICON_SIZE = AvatarSize.Md;
 
 // Samples
-const SAMPLE_BADGENETWORK_NAME = 'Ethereum';
+const SAMPLE_BADGENETWORK_NAME = SAMPLE_AVATARNETWORK_NAME;
 const SAMPLE_BADGENETWORK_IMAGESOURCE = SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL;
 export const SAMPLE_BADGENETWORK_PROPS: BadgeNetworkProps = {
   name: SAMPLE_BADGENETWORK_NAME,

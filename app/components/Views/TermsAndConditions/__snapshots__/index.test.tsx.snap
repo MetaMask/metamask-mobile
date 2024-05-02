@@ -7,7 +7,7 @@ exports[`TermsAndConditions should render correctly 1`] = `
 >
   <Text
     style={
-      Object {
+      {
         "color": "#535A61",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 10,
@@ -19,7 +19,7 @@ exports[`TermsAndConditions should render correctly 1`] = `
     By proceeding, you agree to these 
     <Text
       style={
-        Object {
+        {
           "textDecorationLine": "underline",
         }
       }

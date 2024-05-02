@@ -3,14 +3,14 @@
 exports[`SelectComponent should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
 >
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
@@ -20,7 +20,7 @@ exports[`SelectComponent should render correctly 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "flexDirection": "row",
           }
         }
@@ -28,7 +28,7 @@ exports[`SelectComponent should render correctly 1`] = `
         <Text
           numberOfLines={1}
           style={
-            Object {
+            {
               "alignSelf": "flex-start",
               "color": "#24272A",
               "flex": 1,
@@ -44,24 +44,24 @@ exports[`SelectComponent should render correctly 1`] = `
         <Text
           allowFontScaling={false}
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontSize": 24,
               },
-              Object {
+              {
                 "height": 25,
                 "justifyContent": "flex-end",
                 "marginRight": 10,
                 "marginTop": 7,
                 "textAlign": "right",
               },
-              Object {
+              {
                 "fontFamily": "Material Icons",
                 "fontStyle": "normal",
                 "fontWeight": "normal",
               },
-              Object {},
+              {},
             ]
           }
         >
@@ -87,7 +87,7 @@ exports[`SelectComponent should render correctly 1`] = `
       scrollTo={null}
       statusBarTranslucent={false}
       supportedOrientations={
-        Array [
+        [
           "portrait",
           "landscape",
         ]
