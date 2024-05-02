@@ -1,6 +1,6 @@
 import { NameType } from '@metamask/name-controller';
-import { selectChainId } from '../../selectors/networkController';
-import { CHAIN_IDS } from '@metamask/transaction-controller/dist/constants';
+import { selectChainId } from '../../../selectors/networkController';
+import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import { useFirstPartyContractName } from './useFirstPartyContractName';
 
 jest.mock('react-redux', () => ({
@@ -22,7 +22,7 @@ describe('useFirstPartyContractName', () => {
   const selectChainIdMock = jest.mocked(selectChainId);
   beforeEach(() => {
     jest.resetAllMocks();
-    selectChainIdMock.mockReturnValue(CHAIN_IDS.MAINNET);
+    selectChainIdMock.mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
   });
 
   it('returns null if no name found', () => {
@@ -46,7 +46,7 @@ describe('useFirstPartyContractName', () => {
     const name = useFirstPartyContractName(
       BRIDGE_OPTIMISM_ADDRESS_MOCK,
       NameType.ETHEREUM_ADDRESS,
-      CHAIN_IDS.OPTIMISM,
+      NETWORKS_CHAIN_ID.OPTIMISM,
     );
 
     expect(name).toBe(BRIDGE_NAME_MOCK);
