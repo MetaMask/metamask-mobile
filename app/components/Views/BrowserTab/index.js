@@ -1487,6 +1487,18 @@ export const BrowserTab = (props) => {
     </View>
   );
 
+  /*
+   * Wait DOM Content to  fully load if documentElement is null.
+   * Otherwise just run the web3 provider
+   */
+  const loadJSSafely = `if (!document.documentElement) {
+    window.self.document.addEventListener("DOMContentLoaded", function() {
+      ${entryScriptWeb3}
+    });
+  } else {
+    ${entryScriptWeb3}
+  }`;
+
   /**
    * Main render
    */
@@ -1507,7 +1519,9 @@ export const BrowserTab = (props) => {
                   <WebviewError error={error} returnHome={returnHome} />
                 )}
                 source={{ uri: initialUrl }}
-                injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+                injectedJavaScriptBeforeContentLoaded={
+                  Device.isAndroid() ? loadJSSafely : entryScriptWeb3
+                }
                 style={styles.webview}
                 onLoadStart={onLoadStart}
                 onLoad={onLoad}
