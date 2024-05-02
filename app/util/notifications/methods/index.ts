@@ -528,14 +528,6 @@ export const returnAvatarProps = (status: TxStatus, theme: Theme) => {
   }
 };
 
-export const networkFeeDetails = {
-  'transactions.gas_limit': 'gas',
-  'transactions.gas_used': 'gasUsed',
-  'transactions.base_fee': 'estimatedBaseFee',
-  'transactions.priority_fee': 'maxPriorityFeePerGas',
-  'transactions.max_fee': 'maxPriorityFeePerGas',
-};
-
 export const notificationSettings = {
   assetsReceived: false,
   assetsSent: false,

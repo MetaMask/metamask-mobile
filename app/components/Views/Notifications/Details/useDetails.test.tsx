@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector, useDispatch, Provider } from 'react-redux';
 import { Theme } from '../../../../util/theme/models';
-import { createStyles } from './styles';
 import useDetails from './useDetails';
 import { Notification, TRIGGER_TYPES } from '../../../../util/notifications';
 import { store } from '../../../../store';
@@ -83,8 +82,6 @@ describe('useDetails', () => {
       alternative: '#654321',
     },
   } as Theme;
-
-  const styles = createStyles(theme);
 
   const mockUseSelector = useSelector as jest.Mock;
   const mockUseDispatch = useDispatch as jest.Mock;
