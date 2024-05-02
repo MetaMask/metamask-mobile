@@ -3,7 +3,7 @@
 exports[`UrlAutocomplete should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
       "paddingVertical": 15,
@@ -12,7 +12,7 @@ exports[`UrlAutocomplete should render correctly 1`] = `
 >
   <View
     accessibilityState={
-      Object {
+      {
         "busy": undefined,
         "checked": undefined,
         "disabled": undefined,
@@ -30,7 +30,7 @@ exports[`UrlAutocomplete should render correctly 1`] = `
     onResponderTerminationRequest={[Function]}
     onStartShouldSetResponder={[Function]}
     style={
-      Object {
+      {
         "flex": 1,
       }
     }

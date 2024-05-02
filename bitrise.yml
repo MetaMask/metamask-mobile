@@ -530,6 +530,7 @@ workflows:
             - key: apk-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
+          timeout: 1200
           run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
@@ -599,6 +600,7 @@ workflows:
       - wait-for-android-emulator@1: {}
       - script@1:
           title: Run detox test
+          timeout: 1200
           is_always_run: false
           inputs:
             - content: |-
@@ -705,6 +707,7 @@ workflows:
             - key: ipa-cache-{{ .CommitHash }}
       - script@1:
           title: Run detox build
+          timeout: 1200
           run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
           is_always_run: false
           inputs:
@@ -770,6 +773,7 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
+          timeout: 1200
           inputs:
             - content: |-
                 #!/usr/bin/env bash
