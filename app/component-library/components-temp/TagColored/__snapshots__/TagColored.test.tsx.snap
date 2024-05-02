@@ -3,7 +3,7 @@
 exports[`TagColored should render TagColored 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "alignSelf": "flex-start",
       "backgroundColor": "#F2F4F6",
@@ -18,7 +18,7 @@ exports[`TagColored should render TagColored 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      Object {
+      {
         "color": "#535A61",
         "fontFamily": "Euclid Circular B",
         "fontSize": 10,
