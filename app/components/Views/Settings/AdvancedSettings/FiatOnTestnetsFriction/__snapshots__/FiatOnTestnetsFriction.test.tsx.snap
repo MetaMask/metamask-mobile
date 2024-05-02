@@ -4,8 +4,8 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
 <View
   onLayout={[Function]}
   style={
-    Array [
-      Object {
+    [
+      {
         "bottom": 0,
         "justifyContent": "flex-end",
         "left": 0,
@@ -13,7 +13,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
         "right": 0,
         "top": 0,
       },
-      Object {
+      {
         "paddingBottom": 0,
       },
     ]
@@ -21,8 +21,8 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "backgroundColor": "#00000099",
           "bottom": 0,
           "left": 0,
@@ -30,7 +30,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
           "right": 0,
           "top": 0,
         },
-        Object {
+        {
           "opacity": 0,
         },
       ]
@@ -39,7 +39,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -48,14 +48,14 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
   <View
     onLayout={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "bottom": 0,
           "left": 0,
           "position": "absolute",
           "right": 0,
         },
-        Object {
+        {
           "paddingBottom": 0,
         },
       ]
@@ -67,8 +67,8 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
       onGestureHandlerStateChange={[Function]}
       onLayout={[Function]}
       style={
-        Array [
-          Object {
+        [
+          {
             "backgroundColor": "#FFFFFF",
             "borderColor": "#D6D9DC",
             "borderTopLeftRadius": 8,
@@ -78,16 +78,16 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             "overflow": "hidden",
             "paddingBottom": undefined,
             "shadowColor": "#0000001A",
-            "shadowOffset": Object {
+            "shadowOffset": {
               "height": 2,
               "width": 0,
             },
             "shadowOpacity": 1,
             "shadowRadius": 40,
           },
-          Object {
-            "transform": Array [
-              Object {
+          {
+            "transform": [
+              {
                 "translateY": 1334,
               },
             ],
@@ -97,7 +97,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "alignSelf": "stretch",
             "padding": 4,
@@ -106,7 +106,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "backgroundColor": "#D6D9DC",
               "borderRadius": 2,
               "height": 4,
@@ -117,7 +117,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "alignSelf": "center",
             "padding": 16,
@@ -129,7 +129,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
           height={32}
           name="Danger"
           style={
-            Object {
+            {
               "height": 32,
               "width": 32,
             }
@@ -138,8 +138,8 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
         />
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -169,7 +169,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 18,
                 "fontWeight": "700",
@@ -183,8 +183,8 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
         </Text>
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -214,7 +214,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "marginTop": 16,
               },
             ]
@@ -222,8 +222,8 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -265,8 +265,8 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             accessible={true}
             onPress={[Function]}
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#24272A",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 30,
@@ -283,7 +283,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 undefined,
                 undefined,
                 undefined,
-                Object {
+                {
                   "color": "#24272A",
                 },
                 undefined,
@@ -294,12 +294,12 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 undefined,
                 undefined,
                 undefined,
-                Object {
+                {
                   "color": "#0376C9",
                 },
                 undefined,
                 undefined,
-                Object {
+                {
                   "marginVertical": 0,
                 },
                 undefined,
@@ -311,7 +311,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "flexDirection": "row",
               "gap": 16,
               "justifyContent": "space-evenly",
@@ -327,7 +327,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
@@ -347,7 +347,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
@@ -368,7 +368,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "#0376C9",
@@ -386,7 +386,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#FFFFFF",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,
