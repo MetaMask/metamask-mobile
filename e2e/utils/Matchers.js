@@ -80,7 +80,7 @@ class Matchers {
    * @return {Promise<Detox.IndexableWebElement>} Resolves to the located element
    */
   static async getElementByWebID(webID) {
-    return web.element(by.web.id(webID));
+    return web.element(by.web.id(webID)).atIndex(0);
   }
 
   /**
@@ -109,7 +109,7 @@ class Matchers {
    * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
    */
   static async getElementByHref(url) {
-    return web.element(by.web.href(url));
+    return web.element(by.web.href(url)).atIndex(0);
   }
   /**
    * Get element by ID.
