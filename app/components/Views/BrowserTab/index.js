@@ -1492,9 +1492,7 @@ export const BrowserTab = (props) => {
    * Otherwise just run the web3 provider
    */
   const loadJSSafely = `if (!document.documentElement) {
-    window.self.document.addEventListener("DOMContentLoaded", function() {
-      ${entryScriptWeb3}
-    });
+    window.location.reload();
   } else {
     ${entryScriptWeb3}
   }`;
