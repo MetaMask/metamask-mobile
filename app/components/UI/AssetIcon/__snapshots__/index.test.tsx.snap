@@ -3,7 +3,7 @@
 exports[`AssetIcon should render correctly 1`] = `
 <View
   placeholderStyle={
-    Object {
+    {
       "backgroundColor": "#F2F4F6",
     }
   }
@@ -14,18 +14,18 @@ exports[`AssetIcon should render correctly 1`] = `
     onError={[Function]}
     onLoadEnd={[Function]}
     placeholderStyle={
-      Object {
+      {
         "backgroundColor": "#F2F4F6",
       }
     }
     source={
-      Object {
+      {
         "uri": "https://s3.amazonaws.com/airswap-token-images/WBTC.png",
       }
     }
     style={
-      Array [
-        Object {
+      [
+        {
           "borderRadius": 25,
           "height": 50,
           "overflow": "hidden",
@@ -38,7 +38,7 @@ exports[`AssetIcon should render correctly 1`] = `
   <View
     collapsable={false}
     style={
-      Object {
+      {
         "bottom": 0,
         "left": 0,
         "opacity": 1,
@@ -50,17 +50,17 @@ exports[`AssetIcon should render correctly 1`] = `
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "borderRadius": 25,
             "height": 50,
             "overflow": "hidden",
             "width": 50,
           },
-          Object {
+          {
             "backgroundColor": "#eee",
           },
-          Object {
+          {
             "backgroundColor": "#F2F4F6",
           },
         ]
