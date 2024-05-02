@@ -30,7 +30,7 @@ describe(SmokeCore('Fiat On Testnets Setting'), () => {
 
         // Switch to Sepolia
         await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.changeNetwork(SEPOLIA);
+        await NetworkListModal.changeNetworkTo(SEPOLIA);
         await NetworkEducationModal.tapGotItButton();
 
         // Verify no fiat values displayed
