@@ -60,15 +60,15 @@ const TabThumbnail = ({
       >
         <View style={styles.tabHeader}>
           <View style={styles.titleButton}>
-            {!isHomepage ? (
+            {isHomepage ? (
+              <Image style={styles.tabFavicon} source={METAMASK_FOX} />
+            ) : (
               <WebsiteIcon
                 transparent
                 style={styles.tabFavicon}
                 title={hostname}
                 url={tab.url}
               />
-            ) : (
-              <Image style={styles.tabFavicon} source={METAMASK_FOX} />
             )}
             <Text style={styles.tabSiteName} numberOfLines={1}>
               {isHomepage ? strings('browser.new_tab') : hostname}
