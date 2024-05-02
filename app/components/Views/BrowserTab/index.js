@@ -882,6 +882,9 @@ export const BrowserTab = (props) => {
       return false;
     }
 
+    // TODO: add logging for untrusted protocol being used
+    // Sentry
+    //
     const alertMsg = getAlertMessage(protocol, strings);
 
     // Pop up an alert dialog box to prompt the user for permission
