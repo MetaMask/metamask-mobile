@@ -359,7 +359,7 @@
     "@metamask/test-dapp": "^8.0.0",
     "@react-native-community/datetimepicker": "^7.5.0",
     "@react-native-community/eslint-config": "^2.0.0",
-    "@react-native-community/slider": "^4.4.3",
+    "@react-native-community/slider": "^4.5.2",
     "@rpii/wdio-html-reporter": "^7.7.1",
     "@storybook/addon-actions": "^7.5.1",
     "@storybook/addon-controls": "^7.5.1",
