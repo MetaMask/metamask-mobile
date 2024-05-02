@@ -5,7 +5,7 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
   collapsable={false}
   forwardedRef={[Function]}
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
@@ -18,7 +18,7 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      Object {
+      {
         "color": "#24272A",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
@@ -34,7 +34,7 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
     collapsable={false}
     forwardedRef={[Function]}
     style={
-      Object {
+      {
         "flex": 0,
         "justifyContent": "center",
         "paddingVertical": 16,
@@ -43,7 +43,7 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "backgroundColor": "#FFFFFF",
           "flexDirection": "row",
           "paddingHorizontal": 8,
@@ -60,7 +60,7 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
-          Object {
+          {
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "#0376C9",
@@ -78,7 +78,7 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#FFFFFF",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -99,7 +99,7 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
-          Object {
+          {
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
@@ -121,7 +121,7 @@ exports[`TemplateConfirmation renders content and actions 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#0376C9",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -144,7 +144,7 @@ exports[`TemplateConfirmation renders content without actions 1`] = `
   collapsable={false}
   forwardedRef={[Function]}
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
@@ -157,7 +157,7 @@ exports[`TemplateConfirmation renders content without actions 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      Object {
+      {
         "color": "#24272A",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,

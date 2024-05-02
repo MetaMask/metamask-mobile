@@ -3,7 +3,7 @@
 exports[`PickComponent should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
       "flexDirection": "row",
     }
@@ -11,7 +11,7 @@ exports[`PickComponent should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
@@ -24,7 +24,7 @@ exports[`PickComponent should render correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }

@@ -3,9 +3,9 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
+import { AvatarSize } from '../../../../Avatars/Avatar';
 
 // Internal dependencies.
-import { DEFAULT_BADGENETWORK_NETWORKICON_SIZE } from './BadgeNetwork.constants';
 import { BadgeNetworkStyleSheetVars } from './BadgeNetwork.types';
 
 /**
@@ -20,31 +20,59 @@ const styleSheet = (params: {
   theme: Theme;
   vars: BadgeNetworkStyleSheetVars;
 }) => {
-  const { vars } = params;
-  const { style, containerSize } = vars;
+  const { theme, vars } = params;
+  const { style, containerSize, size } = vars;
+  /**
+   * Design Requirements:
+   * - The Network Badge needs to be 1/2 the height of its content, up to 1/2 the height
+   * of the largest AvatarSize.
+   * - It needs to have a 1px stroke on a 16px badge.
+   * (Current) Solution:
+   * - Use invisible base wrapper and set height to 50% to get the 1/2 height measurement.
+   * - Scale content to a scale ratio based on the container size's height.
+   * - Set borderWidth to scale with given Network Icon size (always given with default).
+   */
+  const badgeToContentScaleRatio = 0.5;
+  const borderWidthRatio = 1 / 16;
+  const borderWidth = Number(size) * borderWidthRatio;
+  const currentAvatarSizes = Object.values(AvatarSize).map((avatarSize) =>
+    Number(avatarSize),
+  );
+  const currentSmallestAvatarSize = Math.min(...currentAvatarSizes);
+  const currentLargestAvatarSize = Math.max(...currentAvatarSizes);
   let scaleRatio = 1;
   let opacity = 0;
+
   if (containerSize) {
-    scaleRatio =
-      containerSize.height / Number(DEFAULT_BADGENETWORK_NETWORKICON_SIZE);
+    scaleRatio = containerSize.height / Number(size);
+    // This is so that the BadgeNetwork won't be visible until a containerSize is known
     opacity = 1;
   }
 
   return StyleSheet.create({
-    base: Object.assign(
+    base: {
+      minHeight: currentSmallestAvatarSize * badgeToContentScaleRatio,
+      maxHeight: currentLargestAvatarSize * badgeToContentScaleRatio,
+      height: `${(badgeToContentScaleRatio * 100).toString()}%`,
+      aspectRatio: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      opacity,
+    },
+    networkIcon: Object.assign(
       {
-        height: '50%',
-        aspectRatio: 1,
-        minHeight: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-        opacity,
+        /**
+         * This is to make sure scale the Network Icon.
+         * If the BadgeNetwork needs to have style changes specifically with dimensions,
+         * set transform to [{scale: 1}] first
+         */
+        transform: [{ scale: scaleRatio }],
+        borderWidth,
+        borderColor: theme.colors.background.default,
+        ...theme.shadows.size.xs,
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    networkIcon: {
-      transform: [{ scale: scaleRatio }],
-    },
   });
 };
 

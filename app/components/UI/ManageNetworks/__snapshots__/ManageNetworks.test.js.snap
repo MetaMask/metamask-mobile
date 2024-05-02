@@ -3,14 +3,14 @@
 exports[`ManageNetworks should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "marginVertical": 16,
     }
   }
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flexDirection": "row",
         "justifyContent": "space-between",
@@ -20,7 +20,7 @@ exports[`ManageNetworks should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
@@ -36,7 +36,7 @@ exports[`ManageNetworks should render correctly 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      Object {
+      {
         "color": "#535A61",
         "fontFamily": "Euclid Circular B",
         "fontSize": 14,
@@ -53,7 +53,7 @@ exports[`ManageNetworks should render correctly 1`] = `
       accessibilityRole="text"
       onPress={[Function]}
       style={
-        Object {
+        {
           "color": "#0376C9",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -70,7 +70,7 @@ exports[`ManageNetworks should render correctly 1`] = `
   <TouchableOpacity
     onPress={[Function]}
     style={
-      Object {
+      {
         "alignItems": "center",
         "alignSelf": "flex-start",
         "backgroundColor": "#F2F4F6",
@@ -85,7 +85,7 @@ exports[`ManageNetworks should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "backgroundColor": "#F2F4F6",
           "borderRadius": 8,
@@ -100,7 +100,7 @@ exports[`ManageNetworks should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 10,
@@ -117,7 +117,7 @@ exports[`ManageNetworks should render correctly 1`] = `
       accessibilityRole="text"
       numberOfLines={1}
       style={
-        Object {
+        {
           "color": "#24272A",
           "flexShrink": 1,
           "fontFamily": "Euclid Circular B",
@@ -137,7 +137,7 @@ exports[`ManageNetworks should render correctly 1`] = `
       height={12}
       name="ArrowDown"
       style={
-        Object {
+        {
           "height": 12,
           "width": 12,
         }
