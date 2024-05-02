@@ -5,10 +5,10 @@ import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
-
 import { addTransaction } from '../../../../../util/transaction-controller';
-
 import SendTransaction from './SendTransaction';
+import APP_CONSTANTS from '../../../../../core/AppConstants';
+const { ACH_LIGHT, ACH_DARK } = APP_CONSTANTS.URLS.ICONS;
 
 type DeepPartial<BaseType> = {
   [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
@@ -51,12 +51,8 @@ const mockOrder = {
         },
       ],
       logo: {
-        light: [
-          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
-        ],
-        dark: [
-          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
-        ],
+        light: [ACH_LIGHT],
+        dark: [ACH_DARK],
       },
       delay: [0, 0],
       amountTier: [3, 3],
@@ -157,12 +153,8 @@ const mockOrder2 = {
         },
       ],
       logo: {
-        light: [
-          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
-        ],
-        dark: [
-          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
-        ],
+        light: [ACH_LIGHT],
+        dark: [ACH_DARK],
       },
       delay: [0, 0],
       amountTier: [3, 3],
@@ -243,12 +235,8 @@ const mockOrder3 = {
         },
       ],
       logo: {
-        light: [
-          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
-        ],
-        dark: [
-          'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
-        ],
+        light: [ACH_LIGHT],
+        dark: [ACH_DARK],
       },
       delay: [0, 0],
       amountTier: [3, 3],

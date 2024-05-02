@@ -96,6 +96,10 @@ export default {
       VISA_LIGHT:
         'https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png',
       VISA_DARK: 'https://on-ramp.dev-api.cx.metamask.io/assets/Visa@3x.png',
+      ACH_LIGHT:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
+      ACH_DARK:
+        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
     },
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
     PRIVACY_POLICY: 'https://consensys.io/privacy-policy',

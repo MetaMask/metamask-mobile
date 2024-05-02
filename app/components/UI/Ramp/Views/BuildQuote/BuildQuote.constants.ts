@@ -6,8 +6,14 @@ import {
 } from '@consensys/on-ramp-sdk';
 import APP_CONSTANTS from '../../../../../core/AppConstants';
 
-const { MASTERCARD_LIGHT, MASTERCARD_DARK, VISA_LIGHT, VISA_DARK } =
-  APP_CONSTANTS.URLS.ICONS;
+const {
+  MASTERCARD_LIGHT,
+  MASTERCARD_DARK,
+  VISA_LIGHT,
+  VISA_DARK,
+  ACH_LIGHT,
+  ACH_DARK,
+} = APP_CONSTANTS.URLS.ICONS;
 
 export const mockCryptoCurrenciesData = [
   {
@@ -106,12 +112,8 @@ export const mockPaymentMethods = [
       },
     ],
     logo: {
-      light: [
-        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer-regular@3x.png',
-      ],
-      dark: [
-        'https://on-ramp.dev-api.cx.metamask.io/assets/ACHBankTransfer@3x.png',
-      ],
+      light: [ACH_LIGHT],
+      dark: [ACH_DARK],
     },
     delay: [0, 0],
     amountTier: [3, 3],
