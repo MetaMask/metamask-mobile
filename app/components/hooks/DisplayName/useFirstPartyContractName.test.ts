@@ -24,8 +24,8 @@ describe('useFirstPartyContractName', () => {
 
   it('returns null if no name found', () => {
     const name = useFirstPartyContractName(
-      NETWORKS_CHAIN_ID.MAINNET,
       UNKNOWN_ADDRESS_MOCK,
+      NETWORKS_CHAIN_ID.MAINNET,
     );
 
     expect(name).toBe(null);
@@ -33,16 +33,16 @@ describe('useFirstPartyContractName', () => {
 
   it('returns name if found', () => {
     const name = useFirstPartyContractName(
-      NETWORKS_CHAIN_ID.MAINNET,
       BRIDGE_MAINNET_ADDRESS_MOCK,
+      NETWORKS_CHAIN_ID.MAINNET,
     );
     expect(name).toBe(BRIDGE_NAME_MOCK);
   });
 
   it('normalizes addresses to lowercase', () => {
     const name = useFirstPartyContractName(
-      NETWORKS_CHAIN_ID.MAINNET,
       BRIDGE_MAINNET_ADDRESS_MOCK.toUpperCase(),
+      NETWORKS_CHAIN_ID.MAINNET,
     );
 
     expect(name).toBe(BRIDGE_NAME_MOCK);

@@ -4,8 +4,8 @@ import { selectChainId } from '../../../selectors/networkController';
 import FIRST_PARTY_CONTRACT_NAMES from '../../../constants/first-party-contracts';
 
 export interface UseFirstPartyContractNameRequest {
+  chainId?: Hex;
   value: string;
-  chainId: Hex;
 }
 
 export function useFirstPartyContractNames(
@@ -28,8 +28,8 @@ export function useFirstPartyContractNames(
 }
 
 export function useFirstPartyContractName(
-  chainId: Hex,
   value: string,
+  chainId?: Hex,
 ): string | null {
-  return useFirstPartyContractNames([{ chainId, value }])[0];
+  return useFirstPartyContractNames([{ value, chainId }])[0];
 }
