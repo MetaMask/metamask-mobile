@@ -111,11 +111,7 @@ export class BackgroundBridge extends EventEmitter {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-
-    Engine.controllerMessenger.subscribe(
-      'PreferencesController:stateChange',
-      this.sendStateUpdate,
-    );
+    Engine.context.PreferencesController.subscribe(this.sendStateUpdate);
 
     Engine.controllerMessenger.subscribe(
       'KeyringController:lock',
@@ -329,10 +325,7 @@ export class BackgroundBridge extends EventEmitter {
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       this.sendStateUpdate,
     );
-    Engine.controllerMessenger.unsubscribe(
-      'PreferencesController:stateChange',
-      this.sendStateUpdate,
-    );
+    Engine.context.PreferencesController.unsubscribe(this.sendStateUpdate);
     this.port.emit('disconnect', { name: this.port.name, data: null });
   };
 
