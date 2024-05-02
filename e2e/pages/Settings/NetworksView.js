@@ -6,7 +6,7 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
 class NetworkView {
-  get networkContainer() {
+  get   networkContainer() {
     return Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_CONTAINER);
   }
 
