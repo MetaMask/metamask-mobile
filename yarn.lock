@@ -2271,14 +2271,6 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@exodus/react-native-payments@git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5":
-  version "1.5.0"
-  resolved "git+https://github.com/MetaMask/react-native-payments.git#dbc8cbbed570892d2fea5e3d183bf243e062c1e5"
-  dependencies:
-    es6-error "^4.0.2"
-    uuid "3.3.2"
-    validator "^7.0.0"
-
 "@expo/config-plugins@^7.2.5":
   version "7.2.5"
   resolved "https://registry.yarnpkg.com/@expo/config-plugins/-/config-plugins-7.2.5.tgz#b15f22878975fdc4ddcfa8cdc971937ddc4c0249"
@@ -4416,6 +4408,15 @@
   integrity sha512-LFQb3uCcTT384c8CiBOgIu0XK45fmJ3ei81K4+GQPTV4xacfbj+EYztBq0ASe8uEcjXVOPM8UQ58TeEvFfcEJw==
   dependencies:
     prop-types "^15.5.10"
+
+"@metamask/react-native-payments@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-payments/-/react-native-payments-2.0.0.tgz#64d48028a8c0de1bf5332b01c3ddd5ca61c8fbdb"
+  integrity sha512-XUdZsD+RpNGwUPpwdgcVqe+ugRqhpvEU9ihL9n3VbWN7g6p3RdK0JuQ9g19WA7xcU1l2Rg9dCxkMytNin+uOSA==
+  dependencies:
+    es6-error "^4.0.2"
+    uuid "3.3.2"
+    validator "^7.0.0"
 
 "@metamask/react-native-splash-screen@^3.2.0":
   version "3.2.0"
