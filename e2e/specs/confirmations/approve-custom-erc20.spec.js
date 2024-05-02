@@ -7,7 +7,6 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import Browser from '../../pages/Browser/BrowserView';
 
 import TabBarComponent from '../../pages/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
@@ -17,7 +16,6 @@ import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
 import Assertions from '../../utils/Assertions';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
-const WEBVIEW_TEST_DAPP_APPROVE_TOKENS_BUTTON_ID = 'approveTokens';
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {

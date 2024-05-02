@@ -80,7 +80,7 @@ class Gestures {
    *
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to clear
    * @param {number} timeout - Timeout for waiting (default: 8000ms)
- 
+
   */
   static async clearField(elementID, timeout = 2500) {
     const element = await elementID;

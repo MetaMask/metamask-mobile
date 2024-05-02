@@ -11,7 +11,6 @@ import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
 export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
-const BUTTON_RELATIVE_PONT = { x: 200, y: 5 };
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 
 class TestDApp {
@@ -141,13 +140,9 @@ class TestDApp {
   }
 
   async tapTypedV4SignButton() {
-    // const myWebView = web(by.id('browser-webview'));
-    // const innerElement = myWebView.element(
-    //   by.web.id(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4),
-    // );
-    // await Gestures.scrollToWebViewPort(innerElement);
-    // await Gestures.tapWebElement(innerElement);
-    // await this.tapButton(this.signTypedDataV4Button);
+    // await Gestures.scrollToWebViewPort(this.signTypedDataV4Button);
+    // await Gestures.tapWebElement(this.signTypedDataV4Button);
+    await this.tapButton(this.signTypedDataV4Button);
   }
   async tapERC20TransferButton() {
     // const myWebView = web(by.id('browser-webview'));
@@ -202,20 +197,6 @@ class TestDApp {
       `${TEST_DAPP_LOCAL_URL}?scrollTo=''&contract=${contractAddress}`,
     );
     await TestHelpers.delay(3000); // should have a better assertion that waits until the webpage loads
-  }
-
-  async tapButtonWithContract({ buttonId, contractAddress }) {
-    await this.scrollToButtonWithParameter(
-      buttonId,
-      'contract',
-      contractAddress,
-    );
-    // if (device.getPlatform() === 'android') {
-    //   await TestHelpers.tapAtPoint(this.androidContainer, BUTTON_RELATIVE_PONT);
-    // } else {
-    //   await TestHelpers.delay(5000);
-    //   await TestHelpers.tapAtPoint(this.androidContainer, BUTTON_RELATIVE_PONT);
-    // }
   }
 }
 

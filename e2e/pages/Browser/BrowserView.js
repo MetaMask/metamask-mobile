@@ -133,20 +133,34 @@ class Browser {
   }
 
   async tapDappInFavorites(dappURL) {
-    const myWebView = web(by.id('browser-webview'));
+    const myWebView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
     const innerElement = myWebView.element(by.web.href(dappURL));
-    const tab = myWebView
-      .element(by.web.cssSelector('.tab-list-item'))
-      .atIndex(1)
-      .tap();
+    // const tab = myWebView
+    //   .element(by.web.cssSelector('.tab-list-item'))
+    //   .atIndex(1)
+    //   .tap();
 
-    // const elem = Matchers.getElementByHref(dappURL);
-    await myWebView
-      .element(by.web.cssSelector('.tab-list-item'))
-      .atIndex(1)
-      .tap();
+    // // const elem = Matchers.getElementByHref(dappURL);
+    // await myWebView
+    //   .element(by.web.cssSelector('.tab-list-item'))
+    //   .atIndex(1)
+    //   .tap();
 
-    await Gestures.tap(innerElement);
+    if (device.getPlatform() === 'ios') {
+      // Tapping on favourite iOS
+      await Gestures.tap(innerElement);
+    } else {
+      // Tapping on favorite tap on Android
+      await TestHelpers.tapAtPoint(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID, {
+        x: 274,
+        y: 223,
+      });
+      await TestHelpers.tapAtPoint(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID, {
+        x: 180,
+        y: 275,
+      });
+      // await Browser.waitForBrowserPageToLoad();
+    }
   }
 
   async navigateToURL(url) {

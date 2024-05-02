@@ -82,24 +82,24 @@ class Matchers {
    */
   static async getElementByWebID(webviewID, innerID) {
     const myWebView = web(by.id(webviewID));
-    return myWebView.element(by.web.id(innerID)).atIndex(0);
+    return myWebView.element(by.web.id(innerID));
   }
 
   /**
    * Get element by CSS selector.
-   * @param {string} webID - The web ID of the browser webview
+   * @param {string} webviewID - The web ID of the browser webview
    * @param {string} selector - CSS selector to locate the element
    * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
    */
 
-  static async getElementByWebID(webviewID, selector) {
+  static async getElementByCSS(webviewID, selector) {
     const myWebView = web(by.id(webviewID));
     return myWebView.element(by.web.cssSelector(selector)).atIndex(0);
   }
 
   /**
    * Get element by XPath.
-   * @param {string} webID - The web ID of the browser webview
+   * @param {string} webviewID - The web ID of the browser webview
    * @param {string} xpath - XPath expression to locate the element
    * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
    */
@@ -109,7 +109,7 @@ class Matchers {
   }
   /**
    * Get element by href.
-   * @param {string} webID - The web ID of the browser webview
+   * @param {string} webviewID - The web ID of the browser webview
    * @param {string} xpath - XPath expression to locate the element
    * @return {Promise<Detox.IndexableWebElement>} - Resolves to the located element
    */

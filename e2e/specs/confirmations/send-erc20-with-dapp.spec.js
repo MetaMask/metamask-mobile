@@ -8,7 +8,6 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import TabBarComponent from '../../pages/TabBarComponent';
-import Browser from '../../pages/Browser/BrowserView';
 
 import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
@@ -16,7 +15,6 @@ import enContent from '../../../locales/languages/en.json';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const SENT_TOKENS_MESSAGE_TEXT = enContent.transactions.sent_tokens;
-const WEBVIEW_TEST_DAPP_TRANSFER_TOKENS_BUTTON_ID = 'transferTokens';
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {

@@ -6,7 +6,7 @@ import ConnectModal from '../../pages/modals/ConnectModal';
 import NetworkApprovalModal from '../../pages/modals/NetworkApprovalModal';
 import NetworkAddedModal from '../../pages/modals/NetworkAddedModal';
 
-import Browser from '../../pages/Browser';
+import Browser from '../../pages/Browser/BrowserView';
 import NetworkView from '../../pages/Settings/NetworksView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import LoginView from '../../pages/LoginView';
