@@ -3,8 +3,8 @@
 exports[`WatchAssetRequest should render correctly 1`] = `
 <ContextProvider
   value={
-    Object {
-      "store": Object {
+    {
+      "store": {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -14,12 +14,12 @@ exports[`WatchAssetRequest should render correctly 1`] = `
       },
       "subscription": Subscription {
         "handleChangeWrapper": [Function],
-        "listeners": Object {
+        "listeners": {
           "notify": [Function],
         },
         "onStateChange": [Function],
         "parentSub": undefined,
-        "store": Object {
+        "store": {
           "clearActions": [Function],
           "dispatch": [Function],
           "getActions": [Function],
@@ -34,8 +34,8 @@ exports[`WatchAssetRequest should render correctly 1`] = `
 >
   <WatchAssetRequest
     suggestedAssetMeta={
-      Object {
-        "asset": Object {
+      {
+        "asset": {
           "address": "0x2",
           "decimals": 0,
           "symbol": "TKN",
