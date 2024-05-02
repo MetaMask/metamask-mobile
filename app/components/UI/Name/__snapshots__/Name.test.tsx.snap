@@ -95,7 +95,7 @@ exports[`Name recognized address should return name 1`] = `
 </View>
 `;
 
-exports[`Name unknown address should render snapshot correctly 1`] = `
+exports[`Name unknown address displays checksummed address 1`] = `
 <View
   style={
     Object {
