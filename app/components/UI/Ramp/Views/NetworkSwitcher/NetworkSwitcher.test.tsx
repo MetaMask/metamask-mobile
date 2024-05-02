@@ -369,7 +369,7 @@ describe('NetworkSwitcher View', () => {
       [
         [
           "GetStarted",
-          Object {
+          {
             "chainId": undefined,
           },
         ],

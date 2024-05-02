@@ -152,15 +152,15 @@ describe('useIntentAmount', () => {
     );
     expect(mockSetAmount).toHaveBeenCalledWith('100.12345678');
     expect(mockSetAmountNumber.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           100.12345678,
         ],
       ]
     `);
     expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "254c8454e",
         ],
       ]
@@ -189,15 +189,15 @@ describe('useIntentAmount', () => {
     );
     expect(mockSetAmount).toHaveBeenCalledWith('100.1234');
     expect(mockSetAmountNumber.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           100.1234,
         ],
       ]
     `);
     expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "f4712",
         ],
       ]
@@ -226,15 +226,15 @@ describe('useIntentAmount', () => {
     );
     expect(mockSetAmount).toHaveBeenCalledWith('100');
     expect(mockSetAmountNumber.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           100,
         ],
       ]
     `);
     expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "64",
         ],
       ]
@@ -264,15 +264,15 @@ describe('useIntentAmount', () => {
     );
     expect(mockSetAmount).toHaveBeenCalledWith('100.123');
     expect(mockSetAmountNumber.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           100.123,
         ],
       ]
     `);
     expect(mockSetAmountBNMinimalUnit.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "1871b",
         ],
       ]
