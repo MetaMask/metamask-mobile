@@ -3,7 +3,7 @@
 exports[`TransactionApproval renders QR signing modal if signing QR object 1`] = `
 <QRSigningModal
   QRState={
-    Object {
+    {
       "test": "value",
     }
   }

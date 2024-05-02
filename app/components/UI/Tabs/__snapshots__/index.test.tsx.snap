@@ -3,7 +3,7 @@
 exports[`Tabs should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "bottom": 0,
       "flex": 1,
@@ -17,13 +17,13 @@ exports[`Tabs should render correctly 1`] = `
 >
   <RCTScrollView
     contentContainerStyle={
-      Object {
+      {
         "backgroundColor": "transparent",
         "padding": 15,
       }
     }
     style={
-      Object {
+      {
         "backgroundColor": "#F2F4F6",
         "flex": 1,
       }
@@ -32,15 +32,15 @@ exports[`Tabs should render correctly 1`] = `
     <View>
       <View
         style={
-          Array [
-            Object {
-              "shadowOffset": Object {
+          [
+            {
+              "shadowOffset": {
                 "height": 4.8,
               },
               "shadowOpacity": 0.192,
               "shadowRadius": 4.32,
             },
-            Object {
+            {
               "backgroundColor": "transparent",
               "overflow": "hidden",
             },
@@ -50,8 +50,8 @@ exports[`Tabs should render correctly 1`] = `
         <TouchableOpacity
           onPress={[Function]}
           style={
-            Array [
-              Object {
+            [
+              {
                 "borderColor": "#BBC0C5",
                 "borderRadius": 10,
                 "borderWidth": 1,
@@ -68,7 +68,7 @@ exports[`Tabs should render correctly 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "alignItems": "flex-start",
                 "backgroundColor": "#FFFFFF",
                 "flexDirection": "row",
@@ -80,7 +80,7 @@ exports[`Tabs should render correctly 1`] = `
           >
             <View
               style={
-                Object {
+                {
                   "backgroundColor": "transparent",
                   "flex": 1,
                   "flexDirection": "row",
@@ -91,8 +91,8 @@ exports[`Tabs should render correctly 1`] = `
               <View>
                 <View
                   style={
-                    Array [
-                      Object {
+                    [
+                      {
                         "alignContent": "center",
                         "backgroundColor": "#FFFFFF",
                         "borderRadius": 27,
@@ -100,7 +100,7 @@ exports[`Tabs should render correctly 1`] = `
                         "justifyContent": "center",
                         "width": 54,
                       },
-                      Object {
+                      {
                         "alignSelf": "flex-start",
                         "height": 22,
                         "marginLeft": 2,
@@ -113,8 +113,8 @@ exports[`Tabs should render correctly 1`] = `
                 >
                   <Text
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "color": "#24272A",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 24,
@@ -133,7 +133,7 @@ exports[`Tabs should render correctly 1`] = `
               <Text
                 numberOfLines={1}
                 style={
-                  Object {
+                  {
                     "color": "#24272A",
                     "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 18,
@@ -150,7 +150,7 @@ exports[`Tabs should render correctly 1`] = `
             <TouchableOpacity
               onPress={[Function]}
               style={
-                Object {
+                {
                   "backgroundColor": "transparent",
                   "height": 24,
                   "marginRight": -5,
@@ -161,12 +161,12 @@ exports[`Tabs should render correctly 1`] = `
               <Text
                 allowFontScaling={false}
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": undefined,
                       "fontSize": 12,
                     },
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontSize": 32,
                       "marginTop": -7,
@@ -175,12 +175,12 @@ exports[`Tabs should render correctly 1`] = `
                       "position": "absolute",
                       "right": 0,
                     },
-                    Object {
+                    {
                       "fontFamily": "Ionicons",
                       "fontStyle": "normal",
                       "fontWeight": "normal",
                     },
-                    Object {},
+                    {},
                   ]
                 }
               >
@@ -190,7 +190,7 @@ exports[`Tabs should render correctly 1`] = `
           </View>
           <View
             style={
-              Object {
+              {
                 "alignItems": "flex-start",
                 "backgroundColor": "#FFFFFF",
                 "flex": 1,
@@ -200,12 +200,12 @@ exports[`Tabs should render correctly 1`] = `
           >
             <Image
               source={
-                Object {
+                {
                   "uri": "",
                 }
               }
               style={
-                Object {
+                {
                   "bottom": 0,
                   "height": null,
                   "left": 0,
@@ -225,14 +225,14 @@ exports[`Tabs should render correctly 1`] = `
   </RCTScrollView>
   <View
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "flexDirection": "row",
         "height": 50,
         "paddingHorizontal": 20,
         "paddingTop": 17,
         "shadowColor": "#0000001A",
-        "shadowOffset": Object {
+        "shadowOffset": {
           "height": 2,
           "width": 0,
         },
@@ -243,14 +243,14 @@ exports[`Tabs should render correctly 1`] = `
   >
     <TouchableOpacity
       style={
-        Array [
-          Object {
+        [
+          {
             "alignContent": "center",
             "alignSelf": "flex-start",
             "flex": 1,
             "justifyContent": "center",
           },
-          Object {
+          {
             "justifyContent": "center",
           },
         ]
@@ -259,8 +259,8 @@ exports[`Tabs should render correctly 1`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#0376C9",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
@@ -275,7 +275,7 @@ exports[`Tabs should render correctly 1`] = `
     </TouchableOpacity>
     <View
       style={
-        Object {
+        {
           "alignContent": "center",
           "alignSelf": "flex-start",
           "flex": 1,
@@ -286,7 +286,7 @@ exports[`Tabs should render correctly 1`] = `
       <TouchableOpacity
         onPress={[Function]}
         style={
-          Object {
+          {
             "alignContent": "flex-start",
             "alignSelf": "center",
             "backgroundColor": "#0376C9",
@@ -302,12 +302,12 @@ exports[`Tabs should render correctly 1`] = `
         <Text
           allowFontScaling={false}
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": undefined,
                 "fontSize": 15,
               },
-              Object {
+              {
                 "alignContent": "center",
                 "color": "#FFFFFF",
                 "fontSize": 24,
@@ -315,12 +315,12 @@ exports[`Tabs should render correctly 1`] = `
                 "marginTop": 3,
                 "textAlign": "center",
               },
-              Object {
+              {
                 "fontFamily": "Material Design Icons",
                 "fontStyle": "normal",
                 "fontWeight": "normal",
               },
-              Object {},
+              {},
             ]
           }
         >
@@ -330,14 +330,14 @@ exports[`Tabs should render correctly 1`] = `
     </View>
     <TouchableOpacity
       style={
-        Array [
-          Object {
+        [
+          {
             "alignContent": "center",
             "alignSelf": "flex-start",
             "flex": 1,
             "justifyContent": "center",
           },
-          Object {
+          {
             "alignItems": "flex-end",
             "justifyContent": "center",
           },
@@ -347,14 +347,14 @@ exports[`Tabs should render correctly 1`] = `
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#0376C9",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
             },
-            Object {
+            {
               "fontFamily": "EuclidCircularB-Bold",
               "fontWeight": "600",
             },
