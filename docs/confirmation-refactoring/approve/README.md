@@ -16,8 +16,8 @@ This is a well defined component. The components also includes 3 small child com
 Following are the improveement areas:
 
 1. The file path can be improved to `/Views/Approve` as it is the only component in `/Views/ApproveView` folder.
-2. The component has few methods are are quite generic and should be fully or partially converted to reusable functions in utils or hooks:
-   - For gas polling its proposed to create re-usable hook [here](https://github.com/MetaMask/metamask-mobile/pull/6003/files#diff-7c74af67b37335b69af34b0dc466c46bc3a08e37832414f7eba12984bcbf5abfR119), the hook can be used in this component also.
+2. The component has few methods are quite generic and should be fully or partially converted to reusable functions in utils or hooks:
+   - For gas polling it's proposed to create re-usable hook [here](https://github.com/MetaMask/metamask-mobile/pull/6003/files#diff-7c74af67b37335b69af34b0dc466c46bc3a08e37832414f7eba12984bcbf5abfR119), the hook can be used in this component also.
    - Function [validateGas](https://github.com/MetaMask/metamask-mobile/blob/a803bec1d941f92062349f1edb619f447819f932/app/components/Views/ApproveView/Approve/index.js#L326)
    - Function [prepareTransaction](https://github.com/MetaMask/metamask-mobile/blob/a803bec1d941f92062349f1edb619f447819f932/app/components/Views/ApproveView/Approve/index.js#L350)
 3. Nested ternary conditions like used [here](https://github.com/MetaMask/metamask-mobile/blob/a803bec1d941f92062349f1edb619f447819f932/app/components/Views/ApproveView/Approve/index.js#L625) are avoidable.
