@@ -70,6 +70,8 @@ const CollectibleModal = () => {
     trackEvent(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED, {
       chain_id: getDecimalChainId(chainId),
     });
+    // If `trackEvent` is added as a dependency, it fires twice
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chainId]);
 
   const onSend = useCallback(async () => {
