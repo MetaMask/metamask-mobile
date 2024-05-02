@@ -365,7 +365,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       const { KeyringController } = Engine.context;
       try {
         setIsLoading(true);
-        const { addedAccountAddress } = await KeyringController.addNewAccount();
+        const addedAccountAddress = await KeyringController.addNewAccount();
         const checksummedAddress = safeToChecksumAddress(
           addedAccountAddress,
         ) as string;

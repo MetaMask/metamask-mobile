@@ -228,6 +228,7 @@ type GlobalActions =
   | GetCurrencyRateState
   | GetGasFeeState
   | GetTokenListState
+  | KeyringControllerActions
   | NetworkControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
@@ -242,6 +243,7 @@ type GlobalEvents =
   | ApprovalControllerEvents
   | CurrencyRateStateChange
   | GasFeeStateChange
+  | KeyringControllerEvents
   | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
@@ -695,6 +697,7 @@ class Engine {
         preferencesController,
       ),
       encryptor,
+      // @ts-expect-error TODO: Update `base-controller` package so that these types are aligned
       messenger: this.controllerMessenger.getRestricted<
         'KeyringController',
         never,
@@ -1272,6 +1275,7 @@ class Engine {
     for (const controller of controllers) {
       if (
         hasProperty(initialState, controller.name) &&
+        hasProperty(controller, 'subscribe') &&
         controller.subscribe !== undefined
       ) {
         // The following type error can be addressed by passing initial state into controller constructors instead
