@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Name unknown address should render snapshot correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "center",
+      "backgroundColor": "#F2F4F6",
+      "borderRadius": 99,
+      "flexDirection": "row",
+      "gap": 5,
+      "paddingLeft": 8,
+      "paddingRight": 8,
+      "paddingVertical": 4,
+    }
+  }
+>
+  <SvgMock
+    color="#24272A"
+    height={20}
+    name="Question"
+    style={
+      {
+        "height": 20,
+        "width": 20,
+      }
+    }
+    width={20}
+  />
+  <Text
+    accessibilityRole="text"
+    ellipsizeMode="middle"
+    numberOfLines={1}
+    style={
+      {
+        "color": "#24272A",
+        "flexShrink": 1,
+        "fontFamily": "Euclid Circular B",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    0x299007B3F9E23B8d432D5f545F8a4a2B3E9A5B4e
+  </Text>
+</View>
+`;

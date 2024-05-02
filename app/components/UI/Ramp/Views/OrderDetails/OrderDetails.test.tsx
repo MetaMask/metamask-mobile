@@ -198,6 +198,10 @@ describe('OrderDetails', () => {
     const completedOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
+      data: {
+        ...mockOrder.data,
+        statusDescription: 'Your ETH is now available in your account',
+      },
     };
     render(OrderDetails, [completedOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -207,6 +211,11 @@ describe('OrderDetails', () => {
     const cancelledOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.CANCELLED,
+      data: {
+        ...mockOrder.data,
+        statusDescription:
+          'Something went wrong, and Test Provider was unable to complete your order. Please try again or with another provider.',
+      },
     };
     render(OrderDetails, [cancelledOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -216,6 +225,11 @@ describe('OrderDetails', () => {
     const failedOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.FAILED,
+      data: {
+        ...mockOrder.data,
+        statusDescription:
+          'Something went wrong, and Test Provider was unable to complete your order. Please try again or with another provider.',
+      },
     };
     render(OrderDetails, [failedOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -224,9 +238,9 @@ describe('OrderDetails', () => {
   it('sends analytics events when an order is loaded', () => {
     render(OrderDetails);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "ONRAMP_PURCHASE_DETAILS_VIEWED",
-        Object {
+        {
           "chain_id_destination": "1",
           "currency_destination": "ETH",
           "currency_source": "USD",
@@ -246,9 +260,9 @@ describe('OrderDetails', () => {
 
     render(OrderDetails, [testOrder]);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "OFFRAMP_PURCHASE_DETAILS_VIEWED",
-        Object {
+        {
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -365,6 +379,11 @@ describe('OrderDetails', () => {
       orderType: OrderOrderTypeEnum.Sell,
       state: FIAT_ORDER_STATES.CREATED,
       sellTxHash: undefined,
+      data: {
+        ...mockOrder.data,
+        statusDescription:
+          "To continue your order, you'll need to select the button at the bottom of this page.",
+      },
     };
     await waitFor(() => render(OrderDetails, [createdOrder]));
     expect(screen.toJSON()).toMatchSnapshot();
@@ -424,6 +443,7 @@ describe('OrderDetails', () => {
       state: FIAT_ORDER_STATES.COMPLETED,
       data: {
         ...mockOrder.data,
+        statusDescription: 'Your ETH is now available in your account',
         provider: {
           name: 'Test Provider',
           links: [

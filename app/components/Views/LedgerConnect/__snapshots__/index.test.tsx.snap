@@ -3,7 +3,7 @@
 exports[`LedgerConnect render matches latest snapshot 1`] = `
 <RCTSafeAreaView
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "flex": 1,
@@ -13,7 +13,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "marginLeft": 3.5000000000000004,
         "marginRight": 3.5000000000000004,
       }
@@ -22,12 +22,12 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     <Image
       resizeMode="contain"
       source={
-        Object {
+        {
           "uri": "MockImage",
         }
       }
       style={
-        Object {
+        {
           "height": 68,
           "width": 68,
         }
@@ -35,8 +35,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     />
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -45,7 +45,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -69,7 +69,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 24,
             "fontWeight": "400",
@@ -81,7 +81,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     </Text>
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "marginTop": 4,
         }
@@ -89,12 +89,12 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     >
       <Image
         source={
-          Object {
+          {
             "uri": "MockImage",
           }
         }
         style={
-          Object {
+          {
             "height": 64,
             "overflow": "visible",
             "resizeMode": "contain",
@@ -105,22 +105,22 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "marginTop": 2.5,
         }
       }
     >
       <View
         style={
-          Object {
+          {
             "flexDirection": "row",
           }
         }
       >
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#24272A",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
@@ -129,7 +129,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
               },
               undefined,
               undefined,
-              Object {
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontWeight": "600",
               },
@@ -153,7 +153,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "fontSize": 18,
               },
             ]
@@ -164,8 +164,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       </View>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -195,7 +195,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "marginTop": 1,
             },
           ]
@@ -205,8 +205,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -236,7 +236,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "paddingLeft": 7,
             },
           ]
@@ -246,8 +246,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -277,7 +277,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "paddingLeft": 7,
             },
           ]
@@ -287,8 +287,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -318,7 +318,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "paddingLeft": 7,
             },
           ]
@@ -328,8 +328,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -359,7 +359,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "paddingLeft": 7,
             },
           ]
@@ -369,8 +369,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -400,7 +400,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "paddingLeft": 7,
             },
           ]
@@ -411,8 +411,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       <Text
         onPress={[Function]}
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
@@ -421,7 +421,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             },
             undefined,
             undefined,
-            Object {
+            {
               "fontFamily": "EuclidCircularB-Bold",
               "fontWeight": "600",
             },
@@ -436,20 +436,20 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "fontSize": 16,
             },
             undefined,
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "color": "#0376C9",
             },
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "marginTop": 1.25,
             },
           ]
@@ -460,7 +460,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "flex": 1,
           "marginTop": 1.25,
         }
@@ -468,7 +468,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "flex": 1,
           }
@@ -476,7 +476,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "borderColor": "#BBC0C5",
               "borderRadius": 5,
               "borderWidth": 2,
@@ -487,14 +487,14 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
           >
             <View
               style={
-                Object {
+                {
                   "flex": 1,
                 }
               }
@@ -504,7 +504,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
@@ -512,7 +512,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                   <Text
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "alignSelf": "flex-start",
                         "color": "#24272A",
                         "flex": 1,
@@ -530,24 +530,24 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                   <Text
                     allowFontScaling={false}
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "color": "#24272A",
                           "fontSize": 24,
                         },
-                        Object {
+                        {
                           "height": 25,
                           "justifyContent": "flex-end",
                           "marginRight": 10,
                           "marginTop": 7,
                           "textAlign": "right",
                         },
-                        Object {
+                        {
                           "fontFamily": "Material Icons",
                           "fontStyle": "normal",
                           "fontWeight": "normal",
                         },
-                        Object {},
+                        {},
                       ]
                     }
                   >
@@ -573,7 +573,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
                 scrollTo={null}
                 statusBarTranslucent={false}
                 supportedOrientations={
-                  Array [
+                  [
                     "portrait",
                     "landscape",
                   ]
@@ -588,7 +588,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "bottom": 1.25,
             "display": "flex",
             "left": 0,
@@ -604,14 +604,14 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           disabled={false}
           onPress={[Function]}
           style={
-            Array [
-              Array [
-                Object {
+            [
+              [
+                {
                   "borderRadius": 100,
                   "justifyContent": "center",
                   "padding": 15,
                 },
-                Object {
+                {
                   "backgroundColor": "#0376C9",
                   "minHeight": 50,
                 },
@@ -624,22 +624,22 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#007aff",
                   "fontSize": 17,
                   "fontWeight": "500",
                   "textAlign": "center",
                 },
                 null,
-                Array [
-                  Object {
+                [
+                  {
                     "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
                   },
-                  Object {
+                  {
                     "color": "#FFFFFF",
                   },
                   undefined,
