@@ -3657,16 +3657,6 @@
     "@metamask/utils" "^8.3.0"
     nanoid "^3.1.31"
 
-"@metamask/approval-controller@^6.0.1":
-  version "6.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-6.0.1.tgz#fa33d27ef95f7bd2a2e45be213b0c4b7dcd5fcc4"
-  integrity sha512-AcSTKPgv5Cu7r0ZlmJefbzuAf138lPqH1fsOsAyKnZSqKhY1E0Ow7Jzjb9VdvK3vcDQu2e4B/1xHZLxDuujKKA==
-  dependencies:
-    "@metamask/base-controller" "^5.0.1"
-    "@metamask/rpc-errors" "^6.2.1"
-    "@metamask/utils" "^8.3.0"
-    nanoid "^3.1.31"
-
 "@metamask/assets-controllers@^18.0.0":
   version "18.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-18.0.0.tgz#fba11363782f0feb62062e1c9375b1971d7fc94a"
