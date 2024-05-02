@@ -69,7 +69,15 @@ class TestDApp {
   }
 
   async tapApproveButton() {
-    const myWebView = web(by.id('browser-webview'));
+    const myWebView =
+      device.getPlatform() === 'android'
+        ? web(by.id('browser-webview')).element(
+            by.web.id(TestDappSelectorsWebIDs.APPROVE_TOKENS_BUTTON_ID),
+          )
+        : web(by.id('browser-screen')).element(
+            by.id(TestDappSelectorsWebIDs.APPROVE_TOKENS_BUTTON_ID),
+          );
+
     const innerElement = myWebView.element(
       by.web.id(TestDappSelectorsWebIDs.APPROVE_TOKENS_BUTTON_ID),
     );
