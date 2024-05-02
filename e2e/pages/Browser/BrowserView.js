@@ -133,8 +133,10 @@ class Browser {
   }
 
   async tapDappInFavorites(dappURL) {
-    const elem = Matchers.getElementByHref(dappURL);
-    await Gestures.tap(elem);
+    const myWebView = web(by.id('browser-webview'));
+    const innerElement = myWebView.element(by.web.href(dappURL));
+    // const elem = Matchers.getElementByHref(dappURL);
+    await Gestures.tap(innerElement);
   }
 
   async navigateToURL(url) {
