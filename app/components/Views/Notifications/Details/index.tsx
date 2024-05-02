@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 /* eslint-disable react/display-name */
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
@@ -49,6 +48,7 @@ const NotificationsDetails = (props: Props) => {
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
+
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies

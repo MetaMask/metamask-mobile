@@ -1,11 +1,11 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
 
 import { strings } from '../../../../../locales/i18n';
 
 import {
   getRowDetails,
+  HalRawNotification,
   Notification,
   TRIGGER_TYPES,
 } from '../../../../util/notifications';
@@ -18,12 +18,12 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 import { Theme } from '../../../../util/theme/models';
 import useDetails from './useDetails';
-import GasDetails from './Gas';
-import { createStyles } from './styles';
+import NetworkFee from './NetworkFee';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
+import { View } from 'react-native';
 
 interface TXDetailsProps {
-  notification: Notification;
+  notification: HalRawNotification;
   styles: any;
   theme: Theme;
   accountAvatarType?: AvatarAccountType;
@@ -33,16 +33,17 @@ interface TXDetailsProps {
 
 const TXDetails = ({
   notification,
+  styles,
   theme,
   accountAvatarType,
   navigation,
   copyToClipboard,
 }: TXDetailsProps) => {
-  const [isCollapsed, setIsCollapsed] = useState(true);
   const [notificationDetails, setNotificationDetails] =
     useState<Record<string, any>>();
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+
   const sheetRef = useRef<BottomSheetRef>(null);
-  const styles = createStyles(theme);
 
   const {
     renderNFT,
@@ -59,7 +60,9 @@ const TXDetails = ({
   });
 
   useEffect(() => {
-    setNotificationDetails(getRowDetails(notification)?.details || {});
+    setNotificationDetails(
+      getRowDetails(notification as Notification)?.details || {},
+    );
   }, [notification]);
 
   const renderNotificationDetails = useCallback(() => {
@@ -95,74 +98,11 @@ const TXDetails = ({
     renderTransfer,
   ]);
 
-  // const fetchNetworkFees = useCallback(async () => {
-  //   try {
-  //     const networkFees = await getNetworkFees(notification)
-  //     if (networkFees) {
-  //       setNetworkFees({
-  //         transactionFee: {
-  //           transactionFeeInEther: networkFees.transactionFeeInEth,
-  //           transactionFeeInUsd: networkFees.transactionFeeInUsd,
-  //         },
-  //         gasLimitUnits: networkFees.gasLimit,
-  //         gasUsedUnits: networkFees.gasUsed,
-  //         baseFee: networkFees.baseFee,
-  //         priorityFee: networkFees.priorityFee,
-  //         maxFeePerGas: networkFees.maxFeePerGas,
-  //       })
-  //     }
-  //   } catch (err) {
-  //     setNetworkFeesError(true)
-  //   }
-  // }, [notification])
-
-  // const renderNetworkFee = useCallback(
-  //   () => (
-  //     <View style={styles.row}>
-  //       <AvatarIcon
-  //         size={AvatarSize.Md}
-  //         name={IconName.Gas}
-  //         iconColor={IconColor.Info}
-  //         style={styles.badgeWrapper}
-  //       />
-  //       <View style={styles.boxLeft}>
-  //         <Text variant={TextVariant.BodyLGMedium}>
-  //           {strings('transactions.network_fee')}
-  //         </Text>
-
-  //         <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-  //           {notification.data?.network_fee.gas_price}
-  //         </Text>
-  //       </View>
-  //       <Pressable
-  //         style={styles.rightSection}
-  //         hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
-  //         onPress={() => {
-  //           setIsCollapsed(!isCollapsed);
-  //           sheetRef.current?.onOpenBottomSheet();
-  //         }}
-  //       >
-  //         <Text variant={TextVariant.BodyMD} style={styles.copyTextBtn}>
-  //           {strings('transactions.details')}
-  //         </Text>
-  //         <Icon
-  //           color={IconColor.Primary}
-  //           style={styles.copyIconRight}
-  //           name={IconName.ArrowDown}
-  //           size={IconSize.Md}
-  //         />
-  //       </Pressable>
-  //     </View>
-  //   ),
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   [notification],
-  // );
-
   return (
     <View style={styles.renderContainer}>
       {renderNotificationDetails()}
       {!isCollapsed && (
-        <GasDetails
+        <NetworkFee
           sheetRef={sheetRef}
           transaction={notification}
           styles={styles}

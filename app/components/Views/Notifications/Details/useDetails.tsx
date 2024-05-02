@@ -31,7 +31,7 @@ import {
   TRIGGER_TYPES,
   TxStatus,
   returnAvatarProps,
-  Notification,
+  HalRawNotification,
   STAKING_PROVIDER_MAP,
 } from '../../../../util/notifications';
 
@@ -45,7 +45,7 @@ import { Theme } from '../../../../util/theme/models';
 import NotificationBadge from './Badge';
 
 interface useDetailsProps {
-  notification: Notification;
+  notification: HalRawNotification;
   theme: Theme;
   accountAvatarType?: AvatarAccountType;
   navigation: any;

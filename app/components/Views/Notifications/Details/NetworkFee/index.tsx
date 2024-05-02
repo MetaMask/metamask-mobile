@@ -10,7 +10,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 
-import { networkFeeDetails } from '../../utils';
+import { networkFeeDetails } from '../../../utils';
 
 const GasDetails = ({
   sheetRef,

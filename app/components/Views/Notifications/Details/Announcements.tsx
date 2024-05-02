@@ -19,8 +19,9 @@ const renderAnnouncementsDetails = (
   navigation: any,
 ) => {
   const handleCTAPress = () => {
-    // TODO: Handle CTAs with external links only. For now, we aren't handleing deeplinks.
+    // TODO: Currently handling CTAs with external links only. For now, we aren't handleing deeplinks.
     const { link } = notification.data;
+    if (!link) return;
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
