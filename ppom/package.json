@@ -18,9 +18,9 @@
   },
   "scripts": {
     "lint": "eslint '**/*.{js,ts,tsx}'",
-    "build-html": "webpack --mode production --config ./webpack.config.html.js",
-    "build-html-js": "webpack --mode production --config ./webpack.config.html-js.js",
-    "build-version": "webpack --mode production --config ./webpack.config.version.js",
+    "build-html": "webpack --config ./webpack.config.html.js",
+    "build-html-js": "webpack --config ./webpack.config.html-js.js",
+    "build-version": "webpack --config ./webpack.config.version.js",
     "build": "yarn clean && yarn build-html && yarn build-html-js && yarn build-version",
     "clean": "rm -rf ../app/lib/ppom/ppom.html.js && rm -rf ./dist"
   }

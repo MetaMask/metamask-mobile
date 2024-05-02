@@ -3,14 +3,14 @@
 exports[`GasEducationCarousel should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
 >
   <View
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "flex": 1,
       }
@@ -19,7 +19,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
     <View
       accessibilityIgnoresInvertColors={true}
       style={
-        Object {
+        {
           "borderTopWidth": 0,
           "bottom": 0,
           "flex": 1,
@@ -36,15 +36,15 @@ exports[`GasEducationCarousel should render correctly 1`] = `
         resizeMode="stretch"
         source={null}
         style={
-          Array [
-            Object {
+          [
+            {
               "bottom": 0,
               "left": 0,
               "position": "absolute",
               "right": 0,
               "top": 0,
             },
-            Object {
+            {
               "height": null,
               "width": null,
             },
@@ -54,12 +54,12 @@ exports[`GasEducationCarousel should render correctly 1`] = `
       />
       <RCTScrollView
         contentContainerStyle={
-          Object {
+          {
             "flexGrow": 1,
           }
         }
         style={
-          Object {
+          {
             "flex": 1,
           }
         }
@@ -67,7 +67,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
         <View>
           <View
             style={
-              Object {
+              {
                 "flex": 1,
                 "paddingVertical": 30,
               }
@@ -76,8 +76,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
             <View
               onLayout={[Function]}
               style={
-                Array [
-                  Object {
+                [
+                  {
                     "flex": 1,
                   },
                   undefined,
@@ -90,7 +90,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                 goToPage={[Function]}
                 scrollValue={0}
                 tabs={
-                  Array [
+                  [
                     undefined,
                     undefined,
                     undefined,
@@ -102,7 +102,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                 automaticallyAdjustContentInsets={false}
                 collapsable={false}
                 contentOffset={
-                  Object {
+                  {
                     "x": 0,
                   }
                 }
@@ -118,26 +118,26 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                 scrollEventThrottle={16}
                 scrollsToTop={false}
                 showsHorizontalScrollIndicator={false}
-                style={Object {}}
+                style={{}}
               >
                 <View>
                   <View
                     style={
-                      Object {
+                      {
                         "width": 750,
                       }
                     }
                   >
                     <View
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Object {
+                          {
                             "flexDirection": "row",
                             "justifyContent": "center",
                           }
@@ -146,16 +146,16 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                         <Image
                           resizeMethod="auto"
                           source={
-                            Object {
-                              "default": Object {
+                            {
+                              "default": {
                                 "uri": "MockImage",
                               },
                             }
                           }
                           style={
-                            Array [
-                              Object {},
-                              Object {
+                            [
+                              {},
+                              {
                                 "height": 458.33333333333337,
                                 "width": 550,
                               },
@@ -165,22 +165,22 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                       </View>
                       <View
                         style={
-                          Object {
+                          {
                             "flex": 1,
                           }
                         }
                       >
                         <View
                           style={
-                            Object {
+                            {
                               "margin": 32,
                             }
                           }
                         >
                           <Text
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
@@ -189,19 +189,19 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 },
                                 undefined,
                                 undefined,
-                                Object {
+                                {
                                   "fontFamily": "EuclidCircularB-Bold",
                                   "fontWeight": "600",
                                 },
                                 undefined,
-                                Object {
+                                {
                                   "color": "#24272A",
                                 },
                                 undefined,
                                 undefined,
                                 undefined,
                                 undefined,
-                                Object {
+                                {
                                   "color": "#24272A",
                                 },
                                 undefined,
@@ -216,10 +216,10 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                Object {
+                                {
                                   "marginVertical": 0,
                                 },
-                                Object {
+                                {
                                   "fontSize": 24,
                                   "justifyContent": "center",
                                   "marginBottom": 14,
@@ -232,8 +232,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                           </Text>
                           <Text
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
@@ -246,7 +246,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                Object {
+                                {
                                   "color": "#535A61",
                                 },
                                 undefined,
@@ -264,10 +264,10 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                Object {
+                                {
                                   "marginVertical": 0,
                                 },
-                                Object {
+                                {
                                   "fontSize": 14,
                                   "justifyContent": "center",
                                   "lineHeight": 20,
@@ -281,8 +281,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                           </Text>
                           <Text
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "color": "#24272A",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 30,
@@ -295,7 +295,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                Object {
+                                {
                                   "color": "#535A61",
                                 },
                                 undefined,
@@ -313,10 +313,10 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 undefined,
-                                Object {
+                                {
                                   "marginVertical": 0,
                                 },
-                                Object {
+                                {
                                   "fontSize": 14,
                                   "justifyContent": "center",
                                   "lineHeight": 20,
@@ -330,8 +330,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                              
                             <Text
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 30,
@@ -340,7 +340,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                   },
                                   undefined,
                                   undefined,
-                                  Object {
+                                  {
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontWeight": "600",
                                   },
@@ -377,7 +377,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                   </View>
                   <View
                     style={
-                      Object {
+                      {
                         "width": 750,
                       }
                     }
@@ -386,7 +386,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                   </View>
                   <View
                     style={
-                      Object {
+                      {
                         "width": 750,
                       }
                     }
@@ -398,7 +398,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
             </View>
             <View
               style={
-                Object {
+                {
                   "alignSelf": "center",
                   "flexDirection": "row",
                   "marginVertical": 36,
@@ -407,8 +407,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
             >
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "backgroundColor": "#24272A",
                       "borderRadius": 4,
                       "height": 8,
@@ -416,7 +416,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                       "opacity": 0.4,
                       "width": 8,
                     },
-                    Object {
+                    {
                       "opacity": 1,
                     },
                   ]
@@ -424,8 +424,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "backgroundColor": "#24272A",
                       "borderRadius": 4,
                       "height": 8,
@@ -439,8 +439,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "backgroundColor": "#24272A",
                       "borderRadius": 4,
                       "height": 8,
@@ -461,7 +461,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
   <View
     collapsable={false}
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "bottom": 0,
         "left": 0,
