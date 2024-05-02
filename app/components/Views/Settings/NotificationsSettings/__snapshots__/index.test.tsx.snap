@@ -3,7 +3,7 @@
 exports[`NotificationsSettings should render correctly 1`] = `
 <RCTScrollView
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
       "padding": 24,
@@ -14,7 +14,7 @@ exports[`NotificationsSettings should render correctly 1`] = `
   <View>
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "display": "flex",
           "flexDirection": "row",
@@ -26,7 +26,7 @@ exports[`NotificationsSettings should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
@@ -45,16 +45,16 @@ exports[`NotificationsSettings should render correctly 1`] = `
         onStartShouldSetResponder={[Function]}
         onTintColor="#0376C9"
         style={
-          Array [
-            Object {
+          [
+            {
               "height": 31,
               "width": 51,
             },
-            Array [
-              Object {
+            [
+              {
                 "alignSelf": "flex-end",
               },
-              Object {
+              {
                 "backgroundColor": "#D6D9DC",
                 "borderRadius": 16,
               },
@@ -68,7 +68,7 @@ exports[`NotificationsSettings should render correctly 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "marginVertical": 16,
         }
       }
@@ -76,7 +76,7 @@ exports[`NotificationsSettings should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,

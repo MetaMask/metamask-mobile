@@ -3,8 +3,8 @@
 exports[`Badge should render badge network given the badge network variant 1`] = `
 <BadgeNetwork
   imageSource={
-    Object {
-      "default": Object {
+    {
+      "default": {
         "uri": "MockImage",
       },
     }
