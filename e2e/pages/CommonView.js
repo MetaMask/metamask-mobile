@@ -1,7 +1,7 @@
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 import { CommonSelectorsIDs } from '../selectors/Common.selectors';
-import { CommonSelectorsText } from '../../selectors/Common.selectors';
+// import { CommonSelectorsText } from '../../selectors/Common.selectors';
 
 class CommonView {
   get okAlertByText() {
@@ -27,9 +27,9 @@ class CommonView {
     await Gestures.waitAndTap(this.okAlertByText);
   }
 
-  async accountNameInToast(accountName) {
-    const connectedAccountMessage = `${accountName} ${CommonSelectorsText.TOAST_CONNECTED_ACCOUNTS}`;
-  } // Circle back here
+  //   async accountNameInToast(accountName) {
+  //     const connectedAccountMessage = `${accountName} ${CommonSelectorsText.TOAST_CONNECTED_ACCOUNTS}`;
+  //   } // Circle back here
 }
 
 export default new CommonView();
