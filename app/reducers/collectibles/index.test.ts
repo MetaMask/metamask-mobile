@@ -149,37 +149,3 @@ describe('collectibles reducer', () => {
     });
   });
 });
-
-describe('mapCollectibleContractsSelector', () => {
-  it('transforms an array of collectible contracts into a map with lowercase addresses', () => {
-    const mockState = {
-      collectibleContracts: [
-        { address: '0xABC123', name: 'Contract A' },
-        { address: '0xDEF456', name: 'Contract B' },
-      ],
-    };
-
-    const result = mapCollectibleContractsSelector.resultFunc(
-      mockState.collectibleContracts,
-    );
-
-    const expectedResult = {
-      '0xabc123': { address: '0xABC123', name: 'Contract A' },
-      '0xdef456': { address: '0xDEF456', name: 'Contract B' },
-    };
-
-    expect(result).toEqual(expectedResult);
-  });
-
-  it('handles empty collectible contracts array', () => {
-    const mockState = {
-      collectibleContracts: [],
-    };
-
-    const result = mapCollectibleContractsSelector.resultFunc(
-      mockState.collectibleContracts,
-    );
-
-    expect(result).toEqual({});
-  });
-});

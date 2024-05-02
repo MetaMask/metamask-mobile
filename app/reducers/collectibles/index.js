@@ -17,18 +17,6 @@ export const collectibleContractsSelector = createSelector(
     allNftContracts[address]?.[chainId] || [],
 );
 
-export const mapCollectibleContractsSelector = createSelector(
-  collectibleContractsSelector,
-  (collectibleContracts) =>
-    collectibleContracts.reduce(
-      (allNftContracts, nftContract) => ({
-        ...allNftContracts,
-        [nftContract.address.toLowerCase()]: nftContract,
-      }),
-      {},
-    ),
-);
-
 export const collectiblesSelector = createSelector(
   selectSelectedAddress,
   selectChainId,
