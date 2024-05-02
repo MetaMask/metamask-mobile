@@ -883,7 +883,6 @@ export const BrowserTab = (props) => {
       return false;
     }
 
-    // Sentry
     //
     const alertMsg = getAlertMessage(protocol, strings);
 
