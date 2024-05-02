@@ -199,10 +199,10 @@ describe('OrdersList', () => {
     fireEvent.press(screen.getByRole('button', { name: /Sold ETH/ }));
     expect(mockNavigate).toHaveBeenCalled();
     expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "OrderDetails",
-          Object {
+          {
             "orderId": "test-order-2",
           },
         ],
