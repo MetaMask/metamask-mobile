@@ -4,6 +4,10 @@ import {
   FiatCurrency,
   Payment,
 } from '@consensys/on-ramp-sdk';
+import APP_CONSTANTS from '../../../../../core/AppConstants';
+
+const { MASTERCARD_LIGHT, MASTERCARD_DARK, VISA_LIGHT, VISA_DARK } =
+  APP_CONSTANTS.URLS.ICONS;
 
 export const mockCryptoCurrenciesData = [
   {
@@ -60,14 +64,8 @@ export const mockPaymentMethods = [
       },
     ],
     logo: {
-      light: [
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png',
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png',
-      ],
-      dark: [
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard@3x.png',
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa@3x.png',
-      ],
+      light: [MASTERCARD_LIGHT, VISA_LIGHT],
+      dark: [MASTERCARD_DARK, VISA_DARK],
     },
     disclaimer:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua',
@@ -87,14 +85,8 @@ export const mockPaymentMethods = [
       },
     ],
     logo: {
-      light: [
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png',
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png',
-      ],
-      dark: [
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa@3x.png',
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard@3x.png',
-      ],
+      light: [VISA_LIGHT, MASTERCARD_LIGHT],
+      dark: [VISA_DARK, MASTERCARD_DARK],
     },
     disclaimer: 'Apple credit is not supported.',
     delay: [0, 0],

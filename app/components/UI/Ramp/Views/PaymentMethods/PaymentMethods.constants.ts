@@ -1,6 +1,9 @@
 /* eslint-disable import/prefer-default-export */
 
 import { Payment } from '@consensys/on-ramp-sdk';
+import APP_CONSTANTS from '../../../../../core/AppConstants';
+const { MASTERCARD_LIGHT, MASTERCARD_DARK, VISA_LIGHT, VISA_DARK } =
+  APP_CONSTANTS.URLS.ICONS;
 
 export const mockPaymentMethods = [
   {
@@ -39,14 +42,8 @@ export const mockPaymentMethods = [
       },
     ],
     logo: {
-      light: [
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png',
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png',
-      ],
-      dark: [
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa@3x.png',
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard@3x.png',
-      ],
+      light: [VISA_LIGHT, MASTERCARD_LIGHT],
+      dark: [VISA_DARK, MASTERCARD_DARK],
     },
     disclaimer: 'Apple Cash is not supported.',
     delay: [0, 0],
@@ -66,14 +63,8 @@ export const mockPaymentMethods = [
       },
     ],
     logo: {
-      light: [
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa-regular@3x.png',
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard-regular@3x.png',
-      ],
-      dark: [
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Visa@3x.png',
-        'https://on-ramp.dev-api.cx.metamask.io/assets/Mastercard@3x.png',
-      ],
+      light: [VISA_LIGHT, MASTERCARD_LIGHT],
+      dark: [VISA_DARK, MASTERCARD_DARK],
     },
     disclaimer:
       "Credit card purchases may incur your bank's cash advance fees, subject to your bank's policies.",
