@@ -35,7 +35,7 @@ class Browser {
   }
 
   get androidBrowserWebViewID() {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.ANDROID_CONTAINER);
+    return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
   }
 
   get addressBar() {
@@ -135,7 +135,17 @@ class Browser {
   async tapDappInFavorites(dappURL) {
     const myWebView = web(by.id('browser-webview'));
     const innerElement = myWebView.element(by.web.href(dappURL));
+    const tab = myWebView
+      .element(by.web.cssSelector('.tab-list-item'))
+      .atIndex(1)
+      .tap();
+
     // const elem = Matchers.getElementByHref(dappURL);
+    await myWebView
+      .element(by.web.cssSelector('.tab-list-item'))
+      .atIndex(1)
+      .tap();
+
     await Gestures.tap(innerElement);
   }
 
