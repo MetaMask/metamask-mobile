@@ -26,6 +26,9 @@ import {
 
 const THUMB_VERTICAL_MARGIN = 15;
 const NAVBAR_SIZE = Device.isIphoneX() ? 88 : 64;
+const PADDING_TOP_DEFAULT = 27;
+const PADDING_TOP_ANDROID = 10;
+const PADDING_TOP_IPHONE_X = 50;
 const THUMB_HEIGHT =
   Dimensions.get('window').height / (Device.isIphone5S() ? 4 : 5) +
   THUMB_VERTICAL_MARGIN;
@@ -81,7 +84,11 @@ const createStyles = (colors, shadows) =>
     },
     tabsView: {
       flex: 1,
-      paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
+      paddingTop: Device.isAndroid()
+        ? PADDING_TOP_ANDROID
+        : Device.isIphoneX()
+        ? PADDING_TOP_IPHONE_X
+        : PADDING_TOP_DEFAULT,
       backgroundColor: colors.background.default,
       position: 'absolute',
       top: 0,
