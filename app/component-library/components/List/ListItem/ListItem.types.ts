@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { ViewStyle } from 'react-native';
+import { ViewStyle, ViewProps } from 'react-native';
 
 /**
  * Vertical Alignment Options.
@@ -13,7 +13,7 @@ export enum VerticalAlignment {
 /**
  * ListItem component props.
  */
-export interface ListItemProps {
+export interface ListItemProps extends ViewProps {
   /**
    * Content to wrap to display.
    */
