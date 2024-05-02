@@ -228,7 +228,7 @@
     "ethjs-ens": "2.0.1",
     "ethjs-query": "0.3.8",
     "ethjs-unit": "0.1.6",
-    "eventemitter2": "^6.4.5",
+    "eventemitter2": "^6.4.9",
     "events": "3.0.0",
     "fuse.js": "3.4.4",
     "https-browserify": "0.0.1",
