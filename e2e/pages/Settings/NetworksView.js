@@ -183,6 +183,10 @@ class NetworkView {
   }
 
   async tapSave() {
+    if (device.getPlatform() === 'ios') {
+      // attempt to dismiss keypad
+      await Gestures.tapAtPoint(this.networkContainer, { x: 20, y: 20 });
+    }
     await Gestures.waitAndTap(this.saveButton);
   }
 }
