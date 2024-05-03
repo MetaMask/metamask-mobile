@@ -31,6 +31,7 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     NftController: {
       addNft: jest.fn(),
+      updateNftMetadata: jest.fn(),
       checkAndUpdateAllNftsOwnershipStatus: jest.fn(),
     },
     NftDetectionController: {
@@ -219,6 +220,7 @@ describe('CollectibleContracts', () => {
           },
           NftController: {
             addNft: jest.fn(),
+            updateNftMetadata: jest.fn(),
             allNfts: {
               [CURRENT_ACCOUNT]: {
                 '1': [],
@@ -241,8 +243,8 @@ describe('CollectibleContracts', () => {
     const spyOnContracts = jest
       .spyOn(allSelectors, 'collectibleContractsSelector')
       .mockReturnValue(collectibleData);
-    const spyOnAddNft = jest
-      .spyOn(Engine.context.NftController, 'addNft')
+    const spyOnUpdateNftMetadata = jest
+      .spyOn(Engine.context.NftController, 'updateNftMetadata')
       .mockImplementation(async () => undefined);
 
     const { getByTestId } = renderWithProvider(<CollectibleContracts />, {
@@ -256,7 +258,7 @@ describe('CollectibleContracts', () => {
     });
 
     await waitFor(() => {
-      expect(spyOnAddNft).toHaveBeenCalled();
+      expect(spyOnUpdateNftMetadata).toHaveBeenCalled();
       const nftImageAfter = queryByTestId('nft-image');
       expect(nftImageAfter.props.source.uri).toEqual(
         nftItemDataUpdated[0].image,
@@ -265,6 +267,6 @@ describe('CollectibleContracts', () => {
 
     spyOnCollectibles.mockRestore();
     spyOnContracts.mockRestore();
-    spyOnAddNft.mockRestore();
+    spyOnUpdateNftMetadata.mockRestore();
   });
 });

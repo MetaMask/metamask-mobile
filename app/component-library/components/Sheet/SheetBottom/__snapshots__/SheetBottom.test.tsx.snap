@@ -5,7 +5,7 @@ exports[`SheetBottom should render correctly on android: android 1`] = `
   behavior="height"
   keyboardVerticalOffset={8}
   style={
-    Object {
+    {
       "bottom": 0,
       "justifyContent": "flex-end",
       "left": 0,
@@ -17,8 +17,8 @@ exports[`SheetBottom should render correctly on android: android 1`] = `
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "backgroundColor": "#00000099",
           "bottom": 0,
           "left": 0,
@@ -26,7 +26,7 @@ exports[`SheetBottom should render correctly on android: android 1`] = `
           "right": 0,
           "top": 0,
         },
-        Object {
+        {
           "opacity": undefined,
         },
       ]
@@ -36,7 +36,7 @@ exports[`SheetBottom should render correctly on android: android 1`] = `
       disabled={false}
       onPress={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -49,8 +49,8 @@ exports[`SheetBottom should render correctly on android: android 1`] = `
     <View
       onLayout={[Function]}
       style={
-        Array [
-          Object {
+        [
+          {
             "backgroundColor": "#FFFFFF",
             "borderTopLeftRadius": 16,
             "borderTopRightRadius": 16,
@@ -58,9 +58,9 @@ exports[`SheetBottom should render correctly on android: android 1`] = `
             "overflow": "hidden",
             "paddingBottom": 3,
           },
-          Object {
-            "transform": Array [
-              Object {
+          {
+            "transform": [
+              {
                 "translateY": 1334,
               },
             ],
@@ -70,7 +70,7 @@ exports[`SheetBottom should render correctly on android: android 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignSelf": "center",
             "backgroundColor": "#D6D9DC",
             "borderRadius": 2,
@@ -91,7 +91,7 @@ exports[`SheetBottom should render correctly on ios: ios 1`] = `
   behavior="padding"
   keyboardVerticalOffset={-3}
   style={
-    Object {
+    {
       "bottom": 0,
       "justifyContent": "flex-end",
       "left": 0,
@@ -103,8 +103,8 @@ exports[`SheetBottom should render correctly on ios: ios 1`] = `
 >
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "backgroundColor": "#00000099",
           "bottom": 0,
           "left": 0,
@@ -112,7 +112,7 @@ exports[`SheetBottom should render correctly on ios: ios 1`] = `
           "right": 0,
           "top": 0,
         },
-        Object {
+        {
           "opacity": undefined,
         },
       ]
@@ -122,7 +122,7 @@ exports[`SheetBottom should render correctly on ios: ios 1`] = `
       disabled={false}
       onPress={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -135,8 +135,8 @@ exports[`SheetBottom should render correctly on ios: ios 1`] = `
     <View
       onLayout={[Function]}
       style={
-        Array [
-          Object {
+        [
+          {
             "backgroundColor": "#FFFFFF",
             "borderTopLeftRadius": 16,
             "borderTopRightRadius": 16,
@@ -144,9 +144,9 @@ exports[`SheetBottom should render correctly on ios: ios 1`] = `
             "overflow": "hidden",
             "paddingBottom": 3,
           },
-          Object {
-            "transform": Array [
-              Object {
+          {
+            "transform": [
+              {
                 "translateY": 1334,
               },
             ],
@@ -156,7 +156,7 @@ exports[`SheetBottom should render correctly on ios: ios 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignSelf": "center",
             "backgroundColor": "#D6D9DC",
             "borderRadius": 2,

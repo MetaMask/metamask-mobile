@@ -9,6 +9,8 @@ import {
   getBlockExplorerAddressUrl,
   getBlockExplorerTxUrl,
   getNetworkNonce,
+  convertNetworkId,
+  deprecatedGetNetworkId,
 } from '.';
 import {
   MAINNET,
@@ -20,11 +22,15 @@ import {
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { getNonceLock } from '../../util/transaction-controller';
+import Engine from './../../core/Engine';
 
 jest.mock('./../../core/Engine', () => ({
+  controllerMessenger: {
+    call: jest.fn(),
+  },
   context: {
     CurrencyRateController: {
-      setNativeCurrency: () => jest.fn(),
+      updateExchangeRate: () => jest.fn(),
       setLocked: () => jest.fn(),
     },
     NetworkController: {
@@ -53,7 +59,6 @@ describe('network-utils', () => {
     it('should get all networks', () => {
       expect(allNetworks.includes(MAINNET)).toEqual(true);
       expect(allNetworks.includes(SEPOLIA)).toEqual(true);
-      expect(allNetworks.includes(LINEA_GOERLI)).toEqual(true);
       expect(allNetworks.includes(LINEA_SEPOLIA)).toEqual(true);
       expect(allNetworks.includes(LINEA_MAINNET)).toEqual(true);
     });
@@ -337,6 +342,74 @@ describe('network-utils', () => {
       await getNetworkNonce({ from: fromMock });
 
       expect(releaseLockMock).toHaveBeenCalledTimes(1);
+    });
+  });
+  describe('convertNetworkId', () => {
+    it('converts a number to a string', () => {
+      expect(convertNetworkId(1)).toEqual('1');
+    });
+
+    it('converts a hexadecimal string to a decimal string', () => {
+      // Assuming convertHexToDecimal works correctly for '0x1' and returns 1
+      expect(convertNetworkId('0x1')).toEqual('1');
+    });
+
+    it('returns the same string if it is numeric', () => {
+      expect(convertNetworkId('123')).toEqual('123');
+    });
+
+    it('throws for non-numeric, non-hexadecimal strings', () => {
+      expect(() => convertNetworkId('abc')).toThrow(
+        "Cannot parse as a valid network ID: 'abc'",
+      );
+    });
+
+    it('throws for NaN values', () => {
+      expect(() => convertNetworkId(NaN)).toThrow(
+        "Cannot parse as a valid network ID: 'NaN'",
+      );
+    });
+  });
+
+  describe('deprecatedGetNetworkId', () => {
+    const mockSendAsync = jest.fn();
+
+    beforeEach(() => {
+      // Reset mocks before each test
+      jest.clearAllMocks();
+      // Setup default behavior for mocked functions
+      Engine.controllerMessenger.call.mockReturnValue({
+        sendAsync: mockSendAsync,
+      });
+    });
+
+    it('resolves with the correct network ID', async () => {
+      // Mock sendAsync to call the callback with null error and a result
+      mockSendAsync.mockImplementation((_, callback) => {
+        callback(null, '1');
+      });
+
+      await expect(deprecatedGetNetworkId()).resolves.toEqual('1');
+    });
+
+    it('rejects when sendAsync encounters an error', async () => {
+      // Mock sendAsync to call the callback with an error
+      mockSendAsync.mockImplementation((_, callback) => {
+        callback(new Error('Failed to fetch network ID'), null);
+      });
+
+      await expect(deprecatedGetNetworkId()).rejects.toThrow(
+        'Failed to fetch network ID',
+      );
+    });
+
+    it('throws when provider is not initialized', async () => {
+      // Mock the call method to return undefined, simulating an uninitialized provider
+      Engine.controllerMessenger.call.mockReturnValueOnce(undefined);
+
+      await expect(deprecatedGetNetworkId()).rejects.toThrow(
+        'Provider has not been initialized',
+      );
     });
   });
 });

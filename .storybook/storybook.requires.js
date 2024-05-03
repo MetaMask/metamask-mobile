@@ -18,6 +18,13 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
+    directory: "./app/component-library/base-components",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/base-components(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
     directory: "./app/component-library/components-temp/TagColored",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
@@ -57,6 +64,7 @@ const getStories = () => {
     "./app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories.tsx"),
     "./app/component-library/components/Badges/Badge/Badge.stories.tsx": require("../app/component-library/components/Badges/Badge/Badge.stories.tsx"),
     "./app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories.tsx": require("../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories.tsx"),
+    "./app/component-library/components/Badges/Badge/variants/BadgeNotifications/BadgeNotifications.stories.tsx": require("../app/component-library/components/Badges/Badge/variants/BadgeNotifications/BadgeNotifications.stories.tsx"),
     "./app/component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.stories.tsx": require("../app/component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.stories.tsx"),
     "./app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories.tsx": require("../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories.tsx"),
     "./app/component-library/components/Banners/Banner/Banner.stories.tsx": require("../app/component-library/components/Banners/Banner/Banner.stories.tsx"),
@@ -104,7 +112,9 @@ const getStories = () => {
     "./app/component-library/components/Texts/Text/Text.stories.tsx": require("../app/component-library/components/Texts/Text/Text.stories.tsx"),
     "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
     "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
+    "./app/component-library/base-components/TagBase/TagBase.stories.tsx": require("../app/component-library/base-components/TagBase/TagBase.stories.tsx"),
     "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
+    "./app/components/UI/Name/Name.stories.tsx": require("../app/components/UI/Name/Name.stories.tsx"),
   };
 };
 

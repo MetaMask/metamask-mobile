@@ -3,8 +3,8 @@
 exports[`AssetOverview should render correctly 1`] = `
 <ContextProvider
   value={
-    Object {
-      "store": Object {
+    {
+      "store": {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -14,12 +14,12 @@ exports[`AssetOverview should render correctly 1`] = `
       },
       "subscription": Subscription {
         "handleChangeWrapper": [Function],
-        "listeners": Object {
+        "listeners": {
           "notify": [Function],
         },
         "onStateChange": [Function],
         "parentSub": undefined,
-        "store": Object {
+        "store": {
           "clearActions": [Function],
           "dispatch": [Function],
           "getActions": [Function],
@@ -34,7 +34,7 @@ exports[`AssetOverview should render correctly 1`] = `
 >
   <AssetOverview
     asset={
-      Object {
+      {
         "address": "0x0000000000000000000000000000000000000000",
         "balance": 4,
         "balanceError": false,
@@ -47,7 +47,7 @@ exports[`AssetOverview should render correctly 1`] = `
       }
     }
     navigation={
-      Object {
+      {
         "navigate": [MockFunction],
       }
     }
