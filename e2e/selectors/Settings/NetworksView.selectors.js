@@ -22,6 +22,7 @@ export const NetworksViewSelectorsIDs = {
 
 export const NetworkViewSelectorsText = {
   BLOCK_EXPLORER: enContent.app_settings.network_block_explorer_label,
+  CHAIN_ID_LABEL: enContent.app_settings.network_chain_id_label,
   REMOVE_NETWORK: enContent.app_settings.remove_network,
   CUSTOM_NETWORK_TAB: enContent.app_settings.custom_network_name,
   POPULAR_NETWORK_TAB: enContent.app_settings.popular,
