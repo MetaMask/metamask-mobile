@@ -47,7 +47,7 @@ import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
-import SearchApi from 'react-native-search-api';
+import SearchApi from '@metamask/react-native-search-api';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
