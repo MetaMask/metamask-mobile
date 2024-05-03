@@ -3,6 +3,7 @@ import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { store as importedStore } from '../../store';
+import Logger from '../../util/Logger';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
@@ -107,6 +108,9 @@ class EngineService {
     }
 
     engine?.datamodel?.subscribe?.(() => {
+      if (engine.context.KeyringController.vault) {
+        Logger.message('keyringController missing for INIT_BG_STATE_KEY');
+      }
       if (!this.engineInitialized) {
         store.dispatch({ type: INIT_BG_STATE_KEY });
         this.engineInitialized = true;
@@ -116,6 +120,9 @@ class EngineService {
     controllers.forEach((controller) => {
       const { name, key = undefined } = controller;
       const update_bg_state_cb = () => {
+        if (engine.context.KeyringController.vault) {
+          Logger.message('keyringController missing for UPDATE_BG_STATE_KEY');
+        }
         store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
       };
       if (key) {
