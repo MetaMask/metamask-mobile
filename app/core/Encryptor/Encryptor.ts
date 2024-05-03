@@ -72,7 +72,6 @@ class Encryptor implements GenericEncryptor {
    */
   private generateSalt = (saltBytesCount = SALT_BYTES_COUNT) => {
     const salt = new Uint8Array(saltBytesCount);
-    // @ts-expect-error - globalThis is not recognized by TypeScript
     global.crypto.getRandomValues(salt);
     return salt;
   };
