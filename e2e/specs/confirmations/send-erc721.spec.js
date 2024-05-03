@@ -13,6 +13,8 @@ import {
 } from '../../fixtures/fixture-helper';
 import enContent from '../../../locales/languages/en.json';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+import Assertions from '../../utils/Assertions';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -57,8 +59,8 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
         await TabBarComponent.tapActivity();
 
         // Assert collectible is sent
-        await TestHelpers.checkIfElementByTextIsVisible(
-          SENT_COLLECTIBLE_MESSAGE_TEXT,
+        await Assertions.checkIfTextIsDisplayed(
+          ActivitiesViewSelectorsText.SENT_COLLECTIBLE_MESSAGE_TEXT,
         );
       },
     );

@@ -7,14 +7,14 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import TabBarComponent from '../../pages/TabBarComponent';
-
-import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import enContent from '../../../locales/languages/en.json';
+import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+
+import TabBarComponent from '../../pages/TabBarComponent';
+import TestDApp from '../../pages/Browser/TestDApp';
+import Assertions from '../../utils/Assertions';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
-const SENT_TOKENS_MESSAGE_TEXT = enContent.transactions.sent_tokens;
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
@@ -58,8 +58,8 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TabBarComponent.tapActivity();
 
         // Assert "Sent Tokens" transaction is displayed
-        await TestHelpers.checkIfElementByTextIsVisible(
-          SENT_TOKENS_MESSAGE_TEXT,
+        await Assertions.checkIfTextIsDisplayed(
+          ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT,
         );
       },
     );

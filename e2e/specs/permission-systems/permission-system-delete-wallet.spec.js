@@ -70,8 +70,8 @@ describe(
           await DeleteWalletModal.tapDeleteMyWalletButton();
           await TestHelpers.delay(2000);
           await Assertions.checkIfVisible(OnboardingView.container);
-          await Assertions.checkIfVisible(CommonView.toast);
-          await Assertions.checkIfNotVisible(CommonView.toast);
+          await Assertions.checkIfVisible(await CommonView.toast);
+          await Assertions.checkIfNotVisible(await CommonView.toast);
           await OnboardingView.tapCreateWallet();
 
           //Create new wallet

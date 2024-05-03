@@ -177,14 +177,6 @@ class Browser {
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
   }
 
-  async isAddBookmarkScreenVisible() {
-    await TestHelpers.checkIfVisible(AddBookmarkViewSelectorsIDs.CONTAINER);
-  }
-
-  async isAddBookmarkScreenNotVisible() {
-    await TestHelpers.checkIfNotVisible(AddBookmarkViewSelectorsIDs.CONTAINER);
-  }
-
   async isAccountToastVisible(accountName) {
     const connectedAccountMessage = `${accountName} ${CommonSelectorsText.TOAST_CONNECTED_ACCOUNTS}`;
     await TestHelpers.checkIfElementHasString(

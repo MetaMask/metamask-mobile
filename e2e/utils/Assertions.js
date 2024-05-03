@@ -49,7 +49,7 @@ class Assertions {
   }
 
   /**
-   * Check if text is not visible.
+   * Check if text is visible.
    * @param {string} text - The text to check if displayed.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */

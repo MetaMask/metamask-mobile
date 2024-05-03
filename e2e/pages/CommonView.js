@@ -21,6 +21,11 @@ class CommonView {
   get errorMessage() {
     return Matchers.getElementByID(CommonSelectorsIDs.ERROR_MESSAGE);
   }
+
+  get disconnectedAccountsText() {
+    return Matchers.getElementByText(CommonSelectorsText.TOAST_REVOKE_ACCOUNTS);
+  }
+
   async tapBackButton() {
     await Gestures.waitAndTap(this.backButton);
   }
