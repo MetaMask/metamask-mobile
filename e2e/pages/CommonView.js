@@ -33,10 +33,6 @@ class CommonView {
   async tapOkAlert() {
     await Gestures.waitAndTap(this.okAlertByText);
   }
-
-  async accountNameInToast(accountName) {
-    const connectedAccountMessage = `${accountName} ${CommonSelectorsText.TOAST_CONNECTED_ACCOUNTS}`;
-  } // Circle back here
 }
 
 export default new CommonView();

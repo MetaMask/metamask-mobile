@@ -11,14 +11,12 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import enContent from '../../../locales/languages/en.json';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 import Assertions from '../../utils/Assertions';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
-  const SENT_COLLECTIBLE_MESSAGE_TEXT = enContent.transactions.sent_collectible;
 
   beforeAll(async () => {
     jest.setTimeout(150000);

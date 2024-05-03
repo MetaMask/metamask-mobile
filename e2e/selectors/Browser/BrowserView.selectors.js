@@ -1,5 +1,4 @@
 import enContent from '../../../locales/languages/en.json';
-import ExternalSites from '../../resources/externalsites.json';
 
 export const BrowserViewSelectorsIDs = {
   BROWSER_WEBVIEW_ID: 'browser-webview',
