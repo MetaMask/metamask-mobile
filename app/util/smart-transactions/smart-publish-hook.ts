@@ -24,6 +24,31 @@ import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 
 export declare type Hex = `0x${string}`;
 
+export interface SubmitSmartTransactionRequest {
+  transactionMeta: TransactionMeta;
+  smartTransactionsController: SmartTransactionsController;
+  transactionController: TransactionController;
+  isSmartTransaction: boolean;
+  approvalController: ApprovalController;
+  featureFlags: {
+    mobile_active: boolean;
+    extension_active: boolean;
+    fallback_to_v1: boolean;
+    fallbackToV1: boolean;
+    mobileActive: boolean;
+    extensionActive: boolean;
+    mobileActiveIOS: boolean;
+    mobileActiveAndroid: boolean;
+    smartTransactions:
+      | {
+          expectedDeadline: number;
+          maxDeadline: number;
+          returnTxHashAsap: boolean;
+        }
+      | Record<string, never>;
+  };
+}
+
 const LOG_PREFIX = 'STX publishHook';
 // It has to be 21000 for cancel transactions, otherwise the API would reject it.
 const CANCEL_GAS = 21000;
@@ -398,31 +423,6 @@ class SmartTransactionHook {
       throw error;
     }
   }
-}
-
-export interface SubmitSmartTransactionRequest {
-  transactionMeta: TransactionMeta;
-  smartTransactionsController: SmartTransactionsController;
-  transactionController: TransactionController;
-  isSmartTransaction: boolean;
-  approvalController: ApprovalController;
-  featureFlags: {
-    mobile_active: boolean;
-    extension_active: boolean;
-    fallback_to_v1: boolean;
-    fallbackToV1: boolean;
-    mobileActive: boolean;
-    extensionActive: boolean;
-    mobileActiveIOS: boolean;
-    mobileActiveAndroid: boolean;
-    smartTransactions:
-      | {
-          expectedDeadline: number;
-          maxDeadline: number;
-          returnTxHashAsap: boolean;
-        }
-      | Record<string, never>;
-  };
 }
 
 export const submitSmartTransactionHook = (
