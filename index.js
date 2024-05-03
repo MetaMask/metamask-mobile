@@ -83,15 +83,15 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 
 notifee.onBackgroundEvent(async ({ type, detail }) => {
   const { notification, pressAction } = detail;
-  if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
-    notifee.decrementBadgeCount(1).then(async () => {
+
+  // Disable badge count https://notifee.app/react-native/docs/ios/badges#removing-the-badge-count
+  notifee.setBadgeCount(0).then(async () => {
+    if (type === EventType.ACTION_PRESS && pressAction.id === 'mark-as-read') {
       await notifee.cancelNotification(notification.id);
-    });
-  } else {
-    notifee.incrementBadgeCount(1).then(() => {
+    } else {
       NotificationManager.onMessageReceived(notification);
-    });
-  }
+    }
+  });
 });
 
 /* Uncomment and comment regular registration below */
