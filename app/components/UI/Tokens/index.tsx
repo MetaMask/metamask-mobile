@@ -104,6 +104,7 @@ import ButtonIcon, {
 import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
 import { isPortfolioUrl } from '../../../../app/util/url';
+import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -429,6 +430,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         onLongPress={asset.isETH ? null : showRemoveMenu}
         asset={asset}
         balance={secondaryBalance}
+        mainBalance={mainBalance}
       >
         <BadgeWrapper
           badgeElement={
@@ -465,13 +467,15 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             {asset.isETH && isMainnet && renderStakeButton(asset)}
           </View>
 
-          <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
+          {/* TODO HERE ------- */}
+          {/* <Text variant={TextVariant.BodyMD} style={styles.balanceFiat}>
             {mainBalance === TOKEN_BALANCE_LOADING ? (
               <SkeletonText thin style={styles.skeleton} />
             ) : (
               mainBalance
             )}
-          </Text>
+          </Text> */}
+          <PercentageChange value={2} />
         </View>
 
         {renderScamWarningIcon(asset)}
@@ -614,12 +618,15 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     return (
       <View style={styles.networth}>
-        <Text
-          style={styles.fiatBalance}
-          {...generateTestId(Platform, TOTAL_BALANCE_TEXT)}
-        >
-          {fiatBalance}
-        </Text>
+        <View>
+          <Text
+            style={styles.fiatBalance}
+            {...generateTestId(Platform, TOTAL_BALANCE_TEXT)}
+          >
+            {fiatBalance}
+          </Text>
+          <PercentageChange value={2} />
+        </View>
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Md}
