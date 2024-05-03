@@ -30,6 +30,7 @@ import {
   getPermissionSpecifications,
   unrestrictedMethods,
 } from '../Permissions/specifications';
+import { EthAccountType, EthMethod } from '@metamask/keyring-api';
 
 jest.mock('../Engine', () => ({
   context: {
@@ -324,31 +325,59 @@ describe('getRpcMethodMiddleware', () => {
     expect(response.result).toBe('success');
   });
 
-  describe.only('with permission middleware', () => {
+  describe.only('with permission middleware before', () => {
     const engine = new JsonRpcEngine();
-    const mc = new ControllerMessenger();
-    const pc = new PermissionController({
-      messenger: mc.getRestricted({
+    const controllerMessenger = new ControllerMessenger();
+    const baseEoaAccount = {
+      type: EthAccountType.Eoa,
+      options: {},
+      methods: [
+        EthMethod.PersonalSign,
+        EthMethod.Sign,
+        EthMethod.SignTransaction,
+        EthMethod.SignTypedDataV1,
+        EthMethod.SignTypedDataV3,
+        EthMethod.SignTypedDataV4,
+      ],
+    };
+    const mockGetInternalAccounts = jest.fn().mockImplementationOnce(() => [
+      {
+        address: '0x1',
+        id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
+        metadata: {
+          name: 'Test Account 1',
+          lastSelected: 1,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+        ...baseEoaAccount,
+      },
+    ]);
+    const permissionController = new PermissionController({
+      messenger: controllerMessenger.getRestricted({
         name: 'PermissionController',
       }),
-      state: {},
       caveatSpecifications: getCaveatSpecifications({
-        getInternalAccounts: () => [],
+        getInternalAccounts: mockGetInternalAccounts,
       }),
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
         ...getPermissionSpecifications({
-          getAllAccounts: async () => [],
-          getInternalAccounts: () => [],
-          captureKeyringTypesWithMissingIdentities: () => [],
+          getAllAccounts: jest.fn().mockImplementation(async () => ['0x1']),
+          getInternalAccounts: mockGetInternalAccounts,
+          captureKeyringTypesWithMissingIdentities: jest
+            .fn()
+            .mockImplementation(() => []),
         }),
       },
       unrestrictedMethods,
     });
-    const permissionMiddleware = pc.createPermissionMiddleware({
-      origin: hostMock,
-    });
+    const permissionMiddleware =
+      permissionController.createPermissionMiddleware({
+        origin: hostMock,
+      });
+    // @ts-expect-error JsonRpcId (number | string | void) doesn't match PS middleware's id, which is (string | number | null)
     engine.push(permissionMiddleware);
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);
@@ -389,12 +418,15 @@ describe('getRpcMethodMiddleware', () => {
       );
     });
 
-    it('successfully handles restricted method with permission', async () => {
+    it('handles restricted method with permission', async () => {
       const ethAccountsMethodName = 'eth_accounts';
-      pc.grantPermissions({
+      permissionController.grantPermissions({
         subject: { origin: hostMock },
         approvedPermissions: {
           eth_accounts: {},
+        },
+        requestData: {
+          approvedAccounts: ['0x1'],
         },
       });
       const response = await engine.handle({
@@ -403,16 +435,10 @@ describe('getRpcMethodMiddleware', () => {
         method: ethAccountsMethodName,
       });
 
-      console.log('RESPONSE', response);
-
-      // const expectedError = providerErrors.unauthorized(
-      //   'Unauthorized to perform action. Try requesting the required permission(s) first. For more information, see: https://docs.metamask.io/guide/rpc-api.html#permissions',
-      // );
-
-      // expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
-      // expect((response as JsonRpcFailure).error.message).toBe(
-      //   expectedError.message,
-      // );
+      expect((response as JsonRpcFailure).error).toBeUndefined();
+      expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
+        '0x1',
+      ]);
     });
   });
 
