@@ -93,6 +93,7 @@ export async function withFixtures(options, testSuite) {
     restartDevice = false,
     ganacheOptions,
     smartContract,
+    disableGanache,
     dapp,
     dappOptions,
     dappPath = undefined,
@@ -100,14 +101,17 @@ export async function withFixtures(options, testSuite) {
   } = options;
 
   const fixtureServer = new FixtureServer();
-  const ganacheServer = new Ganache();
+  let ganacheServer;
+  if (!disableGanache) {
+    ganacheServer = new Ganache();
+  }
   const dappBasePort = getLocalTestDappPort();
   let numberOfDapps = dapp ? 1 : 0;
   const dappServer = [];
 
   try {
     let contractRegistry;
-    if (ganacheOptions) {
+    if (ganacheOptions && !disableGanache) {
       await ganacheServer.start(ganacheOptions);
 
       if (smartContract) {
@@ -169,7 +173,7 @@ export async function withFixtures(options, testSuite) {
     console.error(error);
     throw error;
   } finally {
-    if (ganacheOptions) {
+    if (ganacheOptions && !disableGanache) {
       await ganacheServer.quit();
     }
     if (dapp) {

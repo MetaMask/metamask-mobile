@@ -11,7 +11,10 @@ import Browser from '../../pages/Browser';
 const mockServer = require('@open-rpc/mock-server/build/index').default;
 import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
@@ -31,6 +34,32 @@ describe(SmokeCore(''), () => {
 
   it('', async () => {
     const port = 8545;
+    const chainId = 1337;
+
+    const openrpcDocument = await parseOpenRPCDocument(
+      'https://metamask.github.io/api-specs/latest/openrpc.json',
+    );
+
+    const signTypedData4 = openrpcDocument.methods.find(
+      (m) => m.name === 'eth_signTypedData_v4',
+    );
+
+    // just update address for signTypedData
+    signTypedData4.examples[0].params[0].value =
+      '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
+
+    signTypedData4.examples[0].params[1].value.domain.chainId = 1337;
+
+    const transaction =
+      openrpcDocument.components?.schemas?.TransactionInfo?.allOf?.[0];
+
+    if (transaction) {
+      delete transaction.unevaluatedProperties;
+    }
+
+    const server = mockServer(port, openrpcDocument);
+    server.start();
+
     let pollBool;
 
     class ConfirmationsRejectRule {
@@ -167,6 +196,14 @@ describe(SmokeCore(''), () => {
           pollBool = true;
         }
 
+        if (call.methodName === 'wallet_watchAsset') {
+          pollBool = false;
+          await TestHelpers.delay(5000);
+          const cancelButton = await Matchers.getElementByText('CANCEL');
+          await Gestures.tap(cancelButton);
+          pollBool = true;
+        }
+
         /**
          *
          * Screen shot code section
@@ -202,29 +239,12 @@ describe(SmokeCore(''), () => {
     await withFixtures(
       {
         dapp: true,
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        ganacheOptions: defaultGanacheOptions,
+        disableGanache: true,
         restartDevice: true,
       },
       async () => {
-        const openrpcDocument = await parseOpenRPCDocument(
-          'https://metamask.github.io/api-specs/latest/openrpc.json',
-        );
-
-        const signTypedData4 = openrpcDocument.methods.find(
-          (m) => m.name === 'eth_signTypedData_v4',
-        );
-
-        // just update address for signTypedData
-        signTypedData4.examples[0].params[0].value =
-          '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
-
-        const transaction =
-          openrpcDocument.components?.schemas?.TransactionInfo?.allOf?.[0];
-
-        if (transaction) {
-          delete transaction.unevaluatedProperties;
-        }
-
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Browser.isVisible();
@@ -281,9 +301,6 @@ describe(SmokeCore(''), () => {
         };
 
         const transport = await createDriverTransport(webElement);
-
-        const server = mockServer(port, openrpcDocument);
-        server.start();
 
         const methodsWithConfirmations = [
           'wallet_requestPermissions',
