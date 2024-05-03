@@ -155,7 +155,7 @@
     "@metamask/permission-controller": "7.1.0",
     "@metamask/phishing-controller": "^8.0.0",
     "@metamask/post-message-stream": "8.0.0",
-    "@metamask/ppom-validator": "0.29.0",
+    "@metamask/ppom-validator": "0.30.0",
     "@metamask/preferences-controller": "^8.0.0",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-animated-fox": "^2.1.0",
