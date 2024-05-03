@@ -120,7 +120,7 @@ import { selectTransactionGasFeeEstimates } from '../../../../../selectors/confi
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { getIsSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-tx';
+import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';

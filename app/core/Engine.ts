@@ -195,7 +195,7 @@ import { NETWORKS_CHAIN_ID } from '../../app/constants/network';
 import { getIsSmartTransaction } from '../selectors/smartTransactionsController';
 import { getSwapsChainFeatureFlags } from '../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
-import { submitSmartTransactionHook } from '../util/smart-transactions/smart-tx';
+import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
 
 const NON_EMPTY = 'NON_EMPTY';
 

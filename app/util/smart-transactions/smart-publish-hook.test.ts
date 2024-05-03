@@ -13,7 +13,7 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import {
   SubmitSmartTransactionRequest,
   submitSmartTransactionHook,
-} from './smart-tx';
+} from './smart-publish-hook';
 import { ChainId } from '@metamask/controller-utils';
 import { ApprovalController } from '@metamask/approval-controller';
 

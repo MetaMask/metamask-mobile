@@ -64,7 +64,7 @@ import {
 import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { getIsSmartTransaction } from '../../../../selectors/smartTransactionsController';
-import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-tx';
+import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 
 const REVIEW = 'review';
 const EDIT = 'edit';

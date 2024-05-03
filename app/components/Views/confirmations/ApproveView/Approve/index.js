@@ -76,7 +76,7 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { getIsSmartTransaction } from '../../../../../selectors/smartTransactionsController';
-import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-tx';
+import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 
 const EDIT = 'edit';
 const REVIEW = 'review';

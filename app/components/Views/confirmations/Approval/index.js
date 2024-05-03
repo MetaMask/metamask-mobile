@@ -50,7 +50,7 @@ import { getDecimalChainId } from '../../../../util/networks';
 
 import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
-import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-tx';
+import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 
 const REVIEW = 'review';
 const EDIT = 'edit';

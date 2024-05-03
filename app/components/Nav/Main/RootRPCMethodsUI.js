@@ -64,7 +64,7 @@ import { createLedgerTransactionModalNavDetails } from '../../UI/LedgerModals/Le
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getIsSmartTransaction } from '../../../selectors/smartTransactionsController';
-import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-tx';
+import { STX_NO_HASH_ERROR } from '../../../util/smart-transactions/smart-publish-hook';
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
