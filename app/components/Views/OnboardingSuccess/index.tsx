@@ -167,12 +167,11 @@ const OnboardingSuccess = ({
   };
 
   const renderFooter = () => {
-    const paddingTop = backedUpSRP ? 30 : noSRP ? 0 : 10;
+    const linkStyle = { paddingTop: backedUpSRP ? 20 : 10 };
     return (
       <View style={styles.footer}>
         <TouchableOpacity
-          // eslint-disable-next-line react-native/no-inline-styles
-          style={[styles.linkWrapper, { paddingTop }]}
+          style={[styles.linkWrapper, linkStyle]}
           onPress={goToDefaultSettings}
         >
           <View style={styles.iconWrapper}>
