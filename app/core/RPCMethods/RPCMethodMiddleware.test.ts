@@ -325,7 +325,7 @@ describe('getRpcMethodMiddleware', () => {
     expect(response.result).toBe('success');
   });
 
-  describe.only('with permission middleware before', () => {
+  describe('with permission middleware before', () => {
     const engine = new JsonRpcEngine();
     const controllerMessenger = new ControllerMessenger();
     const baseEoaAccount = {
