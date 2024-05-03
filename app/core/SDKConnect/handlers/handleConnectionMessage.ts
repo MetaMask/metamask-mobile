@@ -14,6 +14,7 @@ import DevLogger from '../utils/DevLogger';
 import {
   waitForConnectionReadiness,
   waitForKeychainUnlocked,
+  waitForUserLoggedIn,
 } from '../utils/wait.util';
 import checkPermissions from './checkPermissions';
 import handleCustomRpcCalls from './handleCustomRpcCalls';
@@ -95,6 +96,7 @@ export const handleConnectionMessage = async ({
     keyringController,
     context: 'connection::on_message',
   });
+  await waitForUserLoggedIn({ context: 'connection::on_message' });
 
   const preferencesController = (
     engine.context as {
