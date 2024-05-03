@@ -4,6 +4,7 @@ import { TEST_DAPP_LOCAL_URL } from '../Browser/TestDApp';
 import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
+  BrowserViewSelectorsXPaths,
 } from '../../selectors/Browser/BrowserView.selectors';
 import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
@@ -61,6 +62,20 @@ class Browser {
       BrowserViewSelectorsText.ADD_FAVORITES_BUTTON,
     );
   }
+  get HomePageFavourtiesTab() {
+    return Matchers.getElementByXPath(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      BrowserViewSelectorsXPaths.FAVORITE_TAB,
+    );
+  }
+
+  get TestDappURLInFavourtiesTab() {
+    return Matchers.getElementByXPath(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      BrowserViewSelectorsXPaths.TEST_DAPP,
+    );
+  }
+
   get multiTabButton() {
     return Matchers.getElementByID(
       BrowserViewSelectorsIDs.MULTI_TAB_ADD_BUTTON,
@@ -130,35 +145,9 @@ class Browser {
     await Gestures.waitAndTap(this.returnHomeButton);
   }
 
-  async tapDappInFavorites(dappURL) {
-    const myWebView = web(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID));
-    const innerElement = myWebView.element(by.web.href(dappURL));
-    // const tab = myWebView
-    //   .element(by.web.cssSelector('.tab-list-item'))
-    //   .atIndex(1)
-    //   .tap();
-
-    // // const elem = Matchers.getElementByHref(dappURL);
-    // await myWebView
-    //   .element(by.web.cssSelector('.tab-list-item'))
-    //   .atIndex(1)
-    //   .tap();
-
-    if (device.getPlatform() === 'ios') {
-      // Tapping on favourite iOS
-      await Gestures.tap(innerElement);
-    } else {
-      // Tapping on favorite tap on Android
-      await TestHelpers.tapAtPoint(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID, {
-        x: 274,
-        y: 223,
-      });
-      await TestHelpers.tapAtPoint(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID, {
-        x: 180,
-        y: 275,
-      });
-      // await Browser.waitForBrowserPageToLoad();
-    }
+  async tapDappInFavorites() {
+    await Gestures.tapWebElement(await this.HomePageFavourtiesTab);
+    await Gestures.tapWebElement(await this.TestDappURLInFavourtiesTab);
   }
 
   async navigateToURL(url) {

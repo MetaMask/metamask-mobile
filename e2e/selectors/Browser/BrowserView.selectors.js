@@ -1,4 +1,5 @@
 import enContent from '../../../locales/languages/en.json';
+import ExternalSites from '../../resources/externalsites.json';
 
 export const BrowserViewSelectorsIDs = {
   BROWSER_WEBVIEW_ID: 'browser-webview',
@@ -25,4 +26,8 @@ export const BrowserViewSelectorsText = {
   CONFIRM_BUTTON: enContent.confirmation_modal.confirm_cta,
   RETURN_HOME: enContent.webview_error.return_home,
   METAMASK_TEST_DAPP_URL: 'metamask.github.io',
+};
+export const BrowserViewSelectorsXPaths = {
+  FAVORITE_TAB: `//div[@id='root']/div[@class='App']//ol//li[contains(text(), 'Favorites')]`,
+  TEST_DAPP: `//div[@id='root']/div[@class='App']//p[contains(text(), 'metamask.github.io/test-dapp/')]`,
 };

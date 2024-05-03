@@ -42,7 +42,7 @@ describe(SmokeCore('Browser Tests'), () => {
     await TabBarComponent.tapBrowser();
     // Check that we are on the browser screen
 
-    await Assertions.checkIfVisible(Browser.browserScreenID);
+    await Assertions.checkIfVisible(await Browser.browserScreenID);
   });
 
   it('should connect to the test dapp', async () => {
@@ -70,7 +70,7 @@ describe(SmokeCore('Browser Tests'), () => {
     await Browser.tapHomeButton();
     // Wait for page to load
     await TestHelpers.delay(1000);
-    await Browser.tapDappInFavorites(ExternalSites.TEST_DAPP);
+    await Browser.tapDappInFavorites();
     // Need assertion for verifying the
     // }
   });
