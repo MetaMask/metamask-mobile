@@ -78,102 +78,102 @@ export const handleConnectionReady = async ({
   }
 
   try {
-    if (connection.protocolVersion < 2) {
-      // TODO following logic blocks should be simplified (too many conditions)
-      // Should be done in a separate PR to avoid breaking changes and separate SDKConnect / Connection logic in different files.
-      if (
-        connection.initialConnection &&
-        connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
-      ) {
-        // Ask for authorisation?
+    // if (connection.protocolVersion < 2) {
+    // TODO following logic blocks should be simplified (too many conditions)
+    // Should be done in a separate PR to avoid breaking changes and separate SDKConnect / Connection logic in different files.
+    if (
+      connection.initialConnection &&
+      connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
+    ) {
+      // Ask for authorisation?
+      // Always need to re-approve connection first.
+      // await checkPermissions({
+      //   connection,
+      //   engine,
+      //   lastAuthorized: connection.lastAuthorized,
+      // });
+      connection.sendAuthorized(true);
+    } else if (
+      !connection.initialConnection &&
+      connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
+    ) {
+      const currentTime = Date.now();
+      const OTPExpirationDuration =
+        Number(process.env.OTP_EXPIRATION_DURATION_IN_MS) || HOUR_IN_MS;
+      const channelWasActiveRecently =
+        !!connection.lastAuthorized &&
+        currentTime - connection.lastAuthorized < OTPExpirationDuration;
+      if (channelWasActiveRecently) {
+        connection.approvalPromise = undefined;
+        // Prevent auto approval if metamask is killed and restarted
+        disapprove(connection.channelId);
         // Always need to re-approve connection first.
-        // await checkPermissions({
-        //   connection,
-        //   engine,
-        //   lastAuthorized: connection.lastAuthorized,
-        // });
-        connection.sendAuthorized(true);
-      } else if (
-        !connection.initialConnection &&
-        connection.origin === AppConstants.DEEPLINKS.ORIGIN_QR_CODE
-      ) {
-        const currentTime = Date.now();
-        const OTPExpirationDuration =
-          Number(process.env.OTP_EXPIRATION_DURATION_IN_MS) || HOUR_IN_MS;
-        const channelWasActiveRecently =
-          !!connection.lastAuthorized &&
-          currentTime - connection.lastAuthorized < OTPExpirationDuration;
-        if (channelWasActiveRecently) {
-          connection.approvalPromise = undefined;
-          // Prevent auto approval if metamask is killed and restarted
-          disapprove(connection.channelId);
-          // Always need to re-approve connection first.
-          await checkPermissions({
-            connection,
-            engine,
-            lastAuthorized: connection.lastAuthorized,
-          });
-          connection.sendAuthorized(true);
-        } else {
-          if (approvalController.get(connection.channelId)) {
-            DevLogger.log(`SDKConnect::CLIENTS_READY reject previous approval`);
-            // cleaning previous pending approval
-            approvalController.reject(
-              connection.channelId,
-              providerErrors.userRejectedRequest(),
-            );
-          }
-          connection.approvalPromise = undefined;
-          if (!connection.otps) {
-            connection.otps = generateOTP();
-          }
-          const msg = {
-            type: MessageType.OTP,
-            otpAnswer: connection.otps?.[0],
-          };
-          handleSendMessage({
-            msg,
-            connection,
-          }).catch((err) => {
-            Logger.log(err, `SDKConnect:: Connection failed to send otp`);
-          });
-          // Prevent auto approval if metamask is killed and restarted
-          disapprove(connection.channelId);
-          // Always need to re-approve connection first.
-          await checkPermissions({
-            connection,
-            engine,
-          });
-          connection.sendAuthorized(true);
-          connection.lastAuthorized = Date.now();
-        }
-      } else if (
-        !connection.initialConnection &&
-        (connection.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK ||
-          connection.trigger === 'deeplink')
-      ) {
-        // Deeplink channels are automatically approved on re-connection.
-        const hostname =
-          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + connection.channelId;
-        approveHost({
-          host: hostname,
-          hostname,
-          context: 'clients_ready',
+        await checkPermissions({
+          connection,
+          engine,
+          lastAuthorized: connection.lastAuthorized,
         });
-        connection.remote
-          .sendMessage({ type: 'authorized' as MessageType })
-          .catch((err: Error) => {
-            Logger.log(err, `Connection failed to send 'authorized`);
-          });
-      } else if (
-        connection.initialConnection &&
-        connection.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
-      ) {
-        // Should ask for confirmation to reconnect?
-        await checkPermissions({ connection, engine });
         connection.sendAuthorized(true);
+      } else {
+        if (approvalController.get(connection.channelId)) {
+          DevLogger.log(`SDKConnect::CLIENTS_READY reject previous approval`);
+          // cleaning previous pending approval
+          approvalController.reject(
+            connection.channelId,
+            providerErrors.userRejectedRequest(),
+          );
+        }
+        connection.approvalPromise = undefined;
+        if (!connection.otps) {
+          connection.otps = generateOTP();
+        }
+        const msg = {
+          type: MessageType.OTP,
+          otpAnswer: connection.otps?.[0],
+        };
+        handleSendMessage({
+          msg,
+          connection,
+        }).catch((err) => {
+          Logger.log(err, `SDKConnect:: Connection failed to send otp`);
+        });
+        // Prevent auto approval if metamask is killed and restarted
+        disapprove(connection.channelId);
+        // Always need to re-approve connection first.
+        await checkPermissions({
+          connection,
+          engine,
+        });
+        connection.sendAuthorized(true);
+        connection.lastAuthorized = Date.now();
       }
+    } else if (
+      !connection.initialConnection &&
+      (connection.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK ||
+        connection.trigger === 'deeplink')
+    ) {
+      // Deeplink channels are automatically approved on re-connection.
+      const hostname =
+        AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + connection.channelId;
+      approveHost({
+        host: hostname,
+        hostname,
+        context: 'clients_ready',
+      });
+      connection.remote
+        .sendMessage({ type: 'authorized' as MessageType })
+        .catch((err: Error) => {
+          Logger.log(err, `Connection failed to send 'authorized`);
+        });
+    } else if (
+      connection.initialConnection &&
+      connection.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+    ) {
+      // Should ask for confirmation to reconnect?
+      await checkPermissions({ connection, engine });
+      connection.sendAuthorized(true);
     }
+    // }
 
     DevLogger.log(`SDKConnect::CLIENTS_READY setup bridge`);
     connection.backgroundBridge = setupBridge({
