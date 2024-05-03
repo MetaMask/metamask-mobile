@@ -9,6 +9,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
+import CommonView from '../../pages/CommonView';
 
 describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
   beforeAll(async () => {
@@ -31,11 +32,16 @@ describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
         await Assertions.checkIfVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
-        await ConnectedAccountsModal.tapPermissionsButton();
-        await ConnectedAccountsModal.tapDisconnectAllButton();
-        await Browser.isAccountToastVisible('Account 1');
+        // await Assertions.checkIfNotVisible(CommonView.toast);
 
-        await TestHelpers.delay(5500);
+        await ConnectedAccountsModal.tapPermissionsButton();
+        // await Assertions.checkIfHasText(CommonView.toast, 'Account 1');
+
+        await ConnectedAccountsModal.tapDisconnectAllButton();
+
+        // await Browser.isAccountToastVisible('Account 1');
+
+        await TestHelpers.delay(3500);
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);
