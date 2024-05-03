@@ -219,6 +219,9 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const cancelPermissionRequest = useCallback(
     (requestId) => {
+      DevLogger.log(
+        `AccountConnect::cancelPermissionRequest requestId=${requestId} channelIdOrHostname=${channelIdOrHostname} accountsLength=${accountsLength}`,
+      );
       Engine.context.PermissionController.rejectPermissionsRequest(requestId);
       if (channelIdOrHostname && accountsLength === 0) {
         // Remove Potential SDK connection

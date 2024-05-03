@@ -12,6 +12,7 @@ import {
   waitForCondition,
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
+import Routes from '../../../constants/navigation/Routes';
 
 // TODO: should be more generic and be used in wallet connect and android service as well
 export const checkPermissions = async ({
@@ -80,11 +81,11 @@ export const checkPermissions = async ({
       `checkPermissions keychain unlocked -- route=${currentRouteName}`,
     );
     //FIXME Issue with KeyringController not being ready that thinks keychain is unlocked while the current route is still loading.
-    if (currentRouteName === 'LockScreen') {
+    if (currentRouteName === Routes.LOCK_SCREEN) {
       await waitForCondition({
         fn: () => {
           const activeRoute = connection.navigation?.getCurrentRoute()?.name;
-          return activeRoute !== 'LockScreen';
+          return activeRoute !== Routes.LOCK_SCREEN;
         },
         waitTime: 1000,
         context: 'checkPermissions',
