@@ -723,7 +723,7 @@ DEPENDENCIES:
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
-  - RCTSearchApi (from `../node_modules/react-native-search-api`)
+  - RCTSearchApi (from `../node_modules/@metamask/react-native-search-api`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
   - React (from `../node_modules/react-native/`)
   - React-callinvoker (from `../node_modules/react-native/ReactCommon/callinvoker`)
@@ -866,7 +866,7 @@ EXTERNAL SOURCES:
   RCTRequired:
     :path: "../node_modules/react-native/Libraries/RCTRequired"
   RCTSearchApi:
-    :path: "../node_modules/react-native-search-api"
+    :path: "../node_modules/@metamask/react-native-search-api"
   RCTTypeSafety:
     :path: "../node_modules/react-native/Libraries/TypeSafety"
   React:
