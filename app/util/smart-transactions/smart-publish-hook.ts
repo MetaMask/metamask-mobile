@@ -31,10 +31,10 @@ export const STX_NO_HASH_ERROR =
   'Smart Transaction does not have a transaction hash, there was a problem';
 
 class SmartTransactionHook {
-  approvalFlowEnded: boolean;
-  approvalFlowId: string;
-  chainId: Hex;
-  featureFlags: {
+  #approvalFlowEnded: boolean;
+  #approvalFlowId: string;
+  #chainId: Hex;
+  #featureFlags: {
     extensionActive: boolean;
     mobileActive: boolean;
     smartTransactions: {
@@ -43,23 +43,23 @@ class SmartTransactionHook {
       returnTxHashAsap?: boolean;
     };
   };
-  isSmartTransaction: boolean;
-  smartTransactionsController: SmartTransactionsController;
-  transactionController: TransactionController;
-  approvalController: ApprovalController;
-  transactionMeta: TransactionMeta;
-  transaction: Transaction;
+  #isSmartTransaction: boolean;
+  #smartTransactionsController: SmartTransactionsController;
+  #transactionController: TransactionController;
+  #approvalController: ApprovalController;
+  #transactionMeta: TransactionMeta;
+  #transaction: Transaction;
 
-  isDapp: boolean;
-  isSend: boolean;
-  isInSwapFlow: boolean;
-  isSwapApproveTx: boolean;
-  isSwapTransaction: boolean;
-  isNativeTokenTransferred: boolean;
+  #isDapp: boolean;
+  #isSend: boolean;
+  #isInSwapFlow: boolean;
+  #isSwapApproveTx: boolean;
+  #isSwapTransaction: boolean;
+  #isNativeTokenTransferred: boolean;
 
-  shouldStartFlow: boolean;
-  shouldUpdateFlow: boolean;
-  shouldEndFlow: boolean;
+  #shouldStartFlow: boolean;
+  #shouldUpdateFlow: boolean;
+  #shouldEndFlow: boolean;
 
   constructor(request: SubmitSmartTransactionRequest) {
     const {
@@ -70,16 +70,16 @@ class SmartTransactionHook {
       approvalController,
       featureFlags,
     } = request;
-    this.approvalFlowId = '';
-    this.approvalFlowEnded = false;
-    this.transactionMeta = transactionMeta;
-    this.smartTransactionsController = smartTransactionsController;
-    this.transactionController = transactionController;
-    this.approvalController = approvalController;
-    this.isSmartTransaction = isSmartTransaction;
-    this.featureFlags = featureFlags;
-    this.chainId = transactionMeta.chainId;
-    this.transaction = transactionMeta.transaction;
+    this.#approvalFlowId = '';
+    this.#approvalFlowEnded = false;
+    this.#transactionMeta = transactionMeta;
+    this.#smartTransactionsController = smartTransactionsController;
+    this.#transactionController = transactionController;
+    this.#approvalController = approvalController;
+    this.#isSmartTransaction = isSmartTransaction;
+    this.#featureFlags = featureFlags;
+    this.#chainId = transactionMeta.chainId;
+    this.#transaction = transactionMeta.transaction;
 
     const {
       isDapp,
@@ -88,16 +88,16 @@ class SmartTransactionHook {
       isSwapApproveTx,
       isSwapTransaction,
       isNativeTokenTransferred,
-    } = getTransactionType(this.transactionMeta, this.chainId);
-    this.isDapp = isDapp;
-    this.isSend = isSend;
-    this.isInSwapFlow = isInSwapFlow;
-    this.isSwapApproveTx = isSwapApproveTx;
-    this.isSwapTransaction = isSwapTransaction;
-    this.isNativeTokenTransferred = isNativeTokenTransferred;
+    } = getTransactionType(this.#transactionMeta, this.#chainId);
+    this.#isDapp = isDapp;
+    this.#isSend = isSend;
+    this.#isInSwapFlow = isInSwapFlow;
+    this.#isSwapApproveTx = isSwapApproveTx;
+    this.#isSwapTransaction = isSwapTransaction;
+    this.#isNativeTokenTransferred = isNativeTokenTransferred;
 
     const pendingApprovalsForSwapApproveTxs = Object.values(
-      this.approvalController.state.pendingApprovals,
+      this.#approvalController.state.pendingApprovals,
     ).filter(
       ({ origin: pendingApprovalOrigin, type, requestState }) =>
         // MM_FOX_CODE is the origin for MM Swaps
@@ -108,37 +108,37 @@ class SmartTransactionHook {
     );
     const pendingApprovalsForSwapApproveTx =
       pendingApprovalsForSwapApproveTxs[0];
-    if (pendingApprovalsForSwapApproveTx && this.isSwapTransaction) {
-      this.approvalFlowId = pendingApprovalsForSwapApproveTx.id;
+    if (pendingApprovalsForSwapApproveTx && this.#isSwapTransaction) {
+      this.#approvalFlowId = pendingApprovalsForSwapApproveTx.id;
     }
 
-    this.shouldStartFlow = getShouldStartFlow(
-      this.isDapp,
-      this.isSend,
-      this.isSwapApproveTx,
+    this.#shouldStartFlow = getShouldStartFlow(
+      this.#isDapp,
+      this.#isSend,
+      this.#isSwapApproveTx,
       Boolean(pendingApprovalsForSwapApproveTx),
     );
-    this.shouldUpdateFlow = getShouldUpdateFlow(
-      this.isDapp,
-      this.isSend,
-      this.isSwapTransaction,
+    this.#shouldUpdateFlow = getShouldUpdateFlow(
+      this.#isDapp,
+      this.#isSend,
+      this.#isSwapTransaction,
     );
-    this.shouldEndFlow = getShouldEndFlow(
-      this.isDapp,
-      this.isSend,
-      this.isSwapTransaction,
+    this.#shouldEndFlow = getShouldEndFlow(
+      this.#isDapp,
+      this.#isSend,
+      this.#isSwapTransaction,
     );
   }
 
-  applyFeeToTransaction(fee: Fee, isCancel: boolean): Transaction {
+  #applyFeeToTransaction = (fee: Fee, isCancel: boolean): Transaction => {
     const unsignedTransactionWithFees = {
-      ...this.transaction,
+      ...this.#transaction,
       maxFeePerGas: `0x${decimalToHex(fee.maxFeePerGas)}`,
       maxPriorityFeePerGas: `0x${decimalToHex(fee.maxPriorityFeePerGas)}`,
       gas: isCancel
         ? `0x${decimalToHex(CANCEL_GAS)}`
-        : this.transaction.gas?.toString(),
-      value: this.transaction.value,
+        : this.#transaction.gas?.toString(),
+      value: this.#transaction.value,
     };
     if (isCancel) {
       unsignedTransactionWithFees.to = unsignedTransactionWithFees.from;
@@ -146,58 +146,58 @@ class SmartTransactionHook {
     }
 
     return unsignedTransactionWithFees;
-  }
+  };
 
-  async createSignedTransactions(
+  #createSignedTransactions = async (
     fees: Fee[],
     isCancel: boolean,
-  ): Promise<string[]> {
+  ): Promise<string[]> => {
     const unsignedTransactions = fees.map((fee) =>
-      this.applyFeeToTransaction(fee, isCancel),
+      this.#applyFeeToTransaction(fee, isCancel),
     );
     const transactionsWithChainId = unsignedTransactions.map((tx) => ({
       ...tx,
-      chainId: tx.chainId || this.chainId,
+      chainId: tx.chainId || this.#chainId,
     }));
-    return (await this.transactionController.approveTransactionsWithSameNonce(
+    return (await this.#transactionController.approveTransactionsWithSameNonce(
       transactionsWithChainId,
       { hasNonce: true },
     )) as string[];
-  }
+  };
 
-  async signAndSubmitTransactions({
+  #signAndSubmitTransactions = async ({
     getFeesResponse,
   }: {
     getFeesResponse: Fees;
-  }) {
-    const signedTransactions = await this.createSignedTransactions(
+  }) => {
+    const signedTransactions = await this.#createSignedTransactions(
       getFeesResponse.tradeTxFees?.fees ?? [],
       false,
     );
-    const signedCanceledTransactions = await this.createSignedTransactions(
+    const signedCanceledTransactions = await this.#createSignedTransactions(
       getFeesResponse.tradeTxFees?.cancelFees || [],
       true,
     );
-    return await this.smartTransactionsController.submitSignedTransactions({
+    return await this.#smartTransactionsController.submitSignedTransactions({
       signedTransactions,
       signedCanceledTransactions,
-      transaction: this.transaction,
-      transactionMeta: this.transactionMeta,
+      transaction: this.#transaction,
+      transactionMeta: this.#transactionMeta,
     });
-  }
+  };
 
-  addApprovalRequest({ uuid }: { uuid: string }) {
+  #addApprovalRequest = ({ uuid }: { uuid: string }) => {
     const onApproveOrRejectWrapper = () => {
-      this.onApproveOrReject();
+      this.#onApproveOrReject();
     };
 
-    if (!this.transactionMeta.origin) throw new Error('Origin is required');
+    if (!this.#transactionMeta.origin) throw new Error('Origin is required');
 
     // Do not await on this, since it will not progress any further if so
-    this.approvalController
+    this.#approvalController
       .addAndShowApprovalRequest({
-        id: this.approvalFlowId,
-        origin: this.transactionMeta.origin,
+        id: this.#approvalFlowId,
+        origin: this.#transactionMeta.origin,
         type: ApprovalTypes.SMART_TRANSACTION_STATUS,
         // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
         // can also be read from approvalController.state.pendingApprovals[approvalId].requestState
@@ -207,53 +207,57 @@ class SmartTransactionHook {
             creationTime: Date.now(),
             uuid,
           },
-          isDapp: this.isDapp,
-          isInSwapFlow: this.isInSwapFlow,
-          isSwapApproveTx: this.isSwapApproveTx,
-          isSwapTransaction: this.isSwapTransaction,
+          isDapp: this.#isDapp,
+          isInSwapFlow: this.#isInSwapFlow,
+          isSwapApproveTx: this.#isSwapApproveTx,
+          isSwapTransaction: this.#isSwapTransaction,
         },
       })
       .then(onApproveOrRejectWrapper, onApproveOrRejectWrapper);
-    Logger.log(LOG_PREFIX, 'Added approval', this.approvalFlowId);
-  }
+    Logger.log(LOG_PREFIX, 'Added approval', this.#approvalFlowId);
+  };
 
-  async updateApprovalRequest({
+  #updateApprovalRequest = async ({
     smartTransaction,
   }: {
     smartTransaction: SmartTransaction;
-  }) {
-    await this.approvalController.updateRequestState({
-      id: this.approvalFlowId,
+  }) => {
+    await this.#approvalController.updateRequestState({
+      id: this.#approvalFlowId,
       requestState: {
         smartTransaction: smartTransaction as any,
-        isDapp: this.isDapp,
-        isInSwapFlow: this.isInSwapFlow,
-        isSwapApproveTx: this.isSwapApproveTx,
-        isSwapTransaction: this.isSwapTransaction,
+        isDapp: this.#isDapp,
+        isInSwapFlow: this.#isInSwapFlow,
+        isSwapApproveTx: this.#isSwapApproveTx,
+        isSwapTransaction: this.#isSwapTransaction,
       },
     });
-  }
+  };
 
-  async addListenerToUpdateStatusPage({ uuid }: { uuid: string }) {
-    this.smartTransactionsController.eventEmitter.on(
+  #addListenerToUpdateStatusPage = async ({ uuid }: { uuid: string }) => {
+    this.#smartTransactionsController.eventEmitter.on(
       `${uuid}:smartTransaction`,
       async (smartTransaction: SmartTransaction) => {
         const { status } = smartTransaction;
         if (!status || status === SmartTransactionStatuses.PENDING) {
           return;
         }
-        if (this.shouldUpdateFlow && !this.approvalFlowEnded) {
-          await this.updateApprovalRequest({
+        if (this.#shouldUpdateFlow && !this.#approvalFlowEnded) {
+          await this.#updateApprovalRequest({
             smartTransaction,
           });
         }
       },
     );
-  }
+  };
 
-  waitForTransactionHash({ uuid }: { uuid: string }): Promise<string | null> {
-    return new Promise((resolve) => {
-      this.smartTransactionsController.eventEmitter.on(
+  #waitForTransactionHash = ({
+    uuid,
+  }: {
+    uuid: string;
+  }): Promise<string | null> =>
+    new Promise((resolve) => {
+      this.#smartTransactionsController.eventEmitter.on(
         `${uuid}:smartTransaction`,
         async (smartTransaction: SmartTransaction) => {
           const { status, statusMetadata } = smartTransaction;
@@ -275,70 +279,69 @@ class SmartTransactionHook {
         },
       );
     });
-  }
 
-  onApproveOrReject() {
-    if (this.approvalFlowEnded) {
+  #onApproveOrReject = () => {
+    if (this.#approvalFlowEnded) {
       return;
     }
-    this.approvalFlowEnded = true;
+    this.#approvalFlowEnded = true;
 
     // This removes the loading spinner, does not close modal
-    if (this.shouldEndFlow && this.approvalFlowId) {
+    if (this.#shouldEndFlow && this.#approvalFlowId) {
       try {
-        this.approvalController.endFlow({
-          id: this.approvalFlowId,
+        this.#approvalController.endFlow({
+          id: this.#approvalFlowId,
         });
-        Logger.log(LOG_PREFIX, 'Ended approval flow id', this.approvalFlowId);
+        Logger.log(LOG_PREFIX, 'Ended approval flow id', this.#approvalFlowId);
       } catch (e) {
         Logger.log(LOG_PREFIX, 'End approval flow error', e);
       }
     }
-  }
+  };
 
-  updateSwapsTransactions(id: string) {
+  #updateSwapsTransactions = (id: string) => {
     // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
     const newSwapsTransactions =
       // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
-      this.transactionController.state.swapsTransactions || {};
+      this.#transactionController.state.swapsTransactions || {};
 
-    newSwapsTransactions[id] = newSwapsTransactions[this.transactionMeta.id];
-    this.transactionController.update({
+    newSwapsTransactions[id] = newSwapsTransactions[this.#transactionMeta.id];
+    this.#transactionController.update({
       // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
       swapsTransactions: newSwapsTransactions,
     });
-  }
+  };
 
   async submit() {
     // Will cause TransactionController to publish to the RPC provider as normal.
     const useRegularTransactionSubmit = { transactionHash: undefined };
-    if (!this.isSmartTransaction) {
+    if (!this.#isSmartTransaction) {
       return useRegularTransactionSubmit;
     }
 
-    Logger.log(LOG_PREFIX, 'Started submit hook', this.transactionMeta.id);
+    Logger.log(LOG_PREFIX, 'Started submit hook', this.#transactionMeta.id);
 
-    if (this.shouldStartFlow) {
-      const { id } = this.approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
-      this.approvalFlowId = id;
+    if (this.#shouldStartFlow) {
+      const { id } = this.#approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
+      this.#approvalFlowId = id;
 
-      Logger.log(LOG_PREFIX, 'Started approval flow id', this.approvalFlowId);
+      Logger.log(LOG_PREFIX, 'Started approval flow id', this.#approvalFlowId);
     }
 
     // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
     let getFeesResponse: Fees;
     try {
-      getFeesResponse = await this.smartTransactionsController.getFees(
-        { ...this.transaction, chainId: this.chainId },
+      getFeesResponse = await this.#smartTransactionsController.getFees(
+        { ...this.#transaction, chainId: this.#chainId },
         undefined,
       );
     } catch (error) {
-      this.onApproveOrReject();
+      this.#onApproveOrReject();
       return useRegularTransactionSubmit;
     }
 
     try {
-      const submitTransactionResponse = await this.signAndSubmitTransactions({
+      const submitTransactionResponse = await this.#signAndSubmitTransactions({
         getFeesResponse,
       });
       const uuid = submitTransactionResponse?.uuid;
@@ -347,30 +350,30 @@ class SmartTransactionHook {
       }
 
       // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
-      if (this.isSwapTransaction) {
-        this.updateSwapsTransactions(uuid);
+      if (this.#isSwapTransaction) {
+        this.#updateSwapsTransactions(uuid);
       }
 
-      if (this.shouldStartFlow) {
-        this.addApprovalRequest({
+      if (this.#shouldStartFlow) {
+        this.#addApprovalRequest({
           uuid,
         });
       }
 
-      if (this.shouldUpdateFlow) {
-        this.addListenerToUpdateStatusPage({
+      if (this.#shouldUpdateFlow) {
+        this.#addListenerToUpdateStatusPage({
           uuid,
         });
       }
 
       let transactionHash: string | undefined | null;
       const returnTxHashAsap =
-        this.featureFlags?.smartTransactions?.returnTxHashAsap;
+        this.#featureFlags?.smartTransactions?.returnTxHashAsap;
 
       if (returnTxHashAsap && submitTransactionResponse?.txHash) {
         transactionHash = submitTransactionResponse.txHash;
       } else {
-        transactionHash = await this.waitForTransactionHash({
+        transactionHash = await this.#waitForTransactionHash({
           uuid,
         });
       }
@@ -378,12 +381,12 @@ class SmartTransactionHook {
         throw new Error(STX_NO_HASH_ERROR);
       }
 
-      if (transactionHash && this.isSwapTransaction) {
+      if (transactionHash && this.#isSwapTransaction) {
         // The original STX gets replaced by another tx, which has a different tx.id, so we need to associate the TxController.state.swapsTransactions somehow
-        this.updateSwapsTransactions(transactionHash);
+        this.#updateSwapsTransactions(transactionHash);
       }
 
-      this.onApproveOrReject();
+      this.#onApproveOrReject();
 
       return { transactionHash };
     } catch (error: any) {
@@ -391,7 +394,7 @@ class SmartTransactionHook {
         error,
         `${LOG_PREFIX} Error in smart transaction publish hook`,
       );
-      this.onApproveOrReject();
+      this.#onApproveOrReject();
       throw error;
     }
   }
