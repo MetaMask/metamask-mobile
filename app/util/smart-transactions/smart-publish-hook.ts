@@ -303,13 +303,15 @@ class SmartTransactionHook {
       this.#onApproveOrReject();
     };
 
-    if (!this.#transactionMeta.origin) throw new Error('Origin is required');
+    const origin = this.#transactionMeta.origin;
+
+    if (!origin) throw new Error('Origin is required');
 
     // Do not await on this, since it will not progress any further if so
     this.#approvalController
       .addAndShowApprovalRequest({
         id: this.#approvalFlowId,
-        origin: this.#transactionMeta.origin,
+        origin,
         type: ApprovalTypes.SMART_TRANSACTION_STATUS,
         // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
         // can also be read from approvalController.state.pendingApprovals[approvalId].requestState
