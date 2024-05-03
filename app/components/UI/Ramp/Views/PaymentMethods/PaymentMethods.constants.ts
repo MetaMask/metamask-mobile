@@ -11,6 +11,11 @@ const {
   ACH_DARK,
 } = APP_CONSTANTS.URLS.ICONS;
 
+const CREDIT_CARD_LOGOS = {
+  light: [VISA_LIGHT, MASTERCARD_LIGHT],
+  dark: [VISA_DARK, MASTERCARD_DARK],
+};
+
 export const mockPaymentMethods = [
   {
     id: '/payments/instant-bank-transfer',
@@ -43,10 +48,7 @@ export const mockPaymentMethods = [
         name: 'apple',
       },
     ],
-    logo: {
-      light: [VISA_LIGHT, MASTERCARD_LIGHT],
-      dark: [VISA_DARK, MASTERCARD_DARK],
-    },
+    logo: CREDIT_CARD_LOGOS,
     disclaimer: 'Apple Cash is not supported.',
     delay: [0, 0],
     amountTier: [1, 3],
@@ -64,10 +66,7 @@ export const mockPaymentMethods = [
         name: 'card',
       },
     ],
-    logo: {
-      light: [VISA_LIGHT, MASTERCARD_LIGHT],
-      dark: [VISA_DARK, MASTERCARD_DARK],
-    },
+    logo: CREDIT_CARD_LOGOS,
     disclaimer:
       "Credit card purchases may incur your bank's cash advance fees, subject to your bank's policies.",
     delay: [5, 10],
