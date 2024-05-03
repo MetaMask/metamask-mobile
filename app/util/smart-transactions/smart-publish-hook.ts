@@ -10,7 +10,7 @@ import {
   getShouldEndFlow,
   getShouldStartFlow,
   getShouldUpdateFlow,
-  getTxType,
+  getTransactionType,
 } from './index';
 import Logger from '../Logger';
 import {
@@ -88,7 +88,7 @@ class SmartTransactionHook {
       isSwapApproveTx,
       isSwapTransaction,
       isNativeTokenTransferred,
-    } = getTxType(this.transactionMeta, this.chainId);
+    } = getTransactionType(this.transactionMeta, this.chainId);
     this.isDapp = isDapp;
     this.isSend = isSend;
     this.isInSwapFlow = isInSwapFlow;

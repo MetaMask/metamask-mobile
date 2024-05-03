@@ -2,11 +2,11 @@ import {
   getShouldEndFlow,
   getShouldStartFlow,
   getShouldUpdateFlow,
-  getTxType,
+  getTransactionType,
 } from './index';
 
 describe('Smart Transactions utils', () => {
-  describe('getTxType', () => {
+  describe('getTransactionType', () => {
     it('returns correct type type for Send transaction for ETH sends', () => {
       const txMeta = {
         chainId: '0x1',
@@ -33,7 +33,7 @@ describe('Smart Transactions utils', () => {
         verifiedOnBlockchain: false,
       };
       const chainId = '0x1';
-      const res = getTxType(txMeta, chainId);
+      const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
         isDapp: false,
         isSend: true,
@@ -70,7 +70,7 @@ describe('Smart Transactions utils', () => {
         verifiedOnBlockchain: false,
       };
       const chainId = '0x1';
-      const res = getTxType(txMeta, chainId);
+      const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
         isDapp: false,
         isSend: true,
@@ -106,7 +106,7 @@ describe('Smart Transactions utils', () => {
         verifiedOnBlockchain: false,
       };
       const chainId = '0x1';
-      const res = getTxType(txMeta, chainId);
+      const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
         isDapp: true,
         isSend: false,
@@ -142,7 +142,7 @@ describe('Smart Transactions utils', () => {
         verifiedOnBlockchain: false,
       };
       const chainId = '0x1';
-      const res = getTxType(txMeta, chainId);
+      const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
         isDapp: true,
         isSend: false,
@@ -179,7 +179,7 @@ describe('Smart Transactions utils', () => {
         verifiedOnBlockchain: false,
       };
       const chainId = '0x1';
-      const res = getTxType(txMeta, chainId);
+      const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
         isDapp: false,
         isSend: false,
@@ -216,7 +216,7 @@ describe('Smart Transactions utils', () => {
         verifiedOnBlockchain: false,
       };
       const chainId = '0x1';
-      const res = getTxType(txMeta, chainId);
+      const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
         isDapp: false,
         isSend: false,
@@ -253,7 +253,7 @@ describe('Smart Transactions utils', () => {
         verifiedOnBlockchain: false,
       };
       const chainId = '0x1';
-      const res = getTxType(txMeta, chainId);
+      const res = getTransactionType(txMeta, chainId);
       expect(res).toEqual({
         isDapp: false,
         isSend: false,

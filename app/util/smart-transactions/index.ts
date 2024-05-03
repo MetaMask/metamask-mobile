@@ -8,7 +8,10 @@ import {
   getIsNativeTokenTransferred,
 } from '../transactions';
 
-export const getTxType = (transactionMeta: TransactionMeta, chainId: Hex) => {
+export const getTransactionType = (
+  transactionMeta: TransactionMeta,
+  chainId: Hex,
+) => {
   // Determine tx type
   // If it isn't a dapp tx, check if it's MM Swaps or Send
   // process.env.MM_FOX_CODE is from MM Swaps
