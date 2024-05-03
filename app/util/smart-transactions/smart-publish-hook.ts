@@ -11,7 +11,7 @@ import {
   getShouldStartFlow,
   getShouldUpdateFlow,
   getTxType,
-} from './utils';
+} from './index';
 import Logger from '../Logger';
 import {
   Fee,
