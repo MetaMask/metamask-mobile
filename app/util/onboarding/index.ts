@@ -51,9 +51,7 @@ export const shouldShowSmartTransactionsOptInModal = async (
     '>=',
   );
 
-  if (!versionCorrect) return false;
-
-  return true;
+  return versionCorrect;
 };
 
 /**
