@@ -873,6 +873,7 @@ export const BrowserTab = (props) => {
     // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
     if (protocolAllowList.includes(protocol)) return true;
+    Logger.message(`Protocol not allowed ${protocol}`);
 
     // If it is a trusted deeplink protocol, do not show the
     // warning alert. Allow the OS to deeplink the URL
@@ -882,6 +883,9 @@ export const BrowserTab = (props) => {
       return false;
     }
 
+    // TODO: add logging for untrusted protocol being used
+    // Sentry
+    //
     const alertMsg = getAlertMessage(protocol, strings);
 
     // Pop up an alert dialog box to prompt the user for permission

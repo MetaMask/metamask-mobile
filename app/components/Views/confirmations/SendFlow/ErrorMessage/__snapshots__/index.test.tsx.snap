@@ -3,8 +3,8 @@
 exports[`ErrorMessage should render correctly 1`] = `
 <View
   style={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 8,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -12,7 +12,7 @@ exports[`ErrorMessage should render correctly 1`] = `
         "paddingVertical": 8,
       },
       undefined,
-      Object {
+      {
         "backgroundColor": "#D7384719",
         "borderColor": "#D73847",
       },
@@ -23,8 +23,8 @@ exports[`ErrorMessage should render correctly 1`] = `
   <View>
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#24272A",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
@@ -44,7 +44,7 @@ exports[`ErrorMessage should render correctly 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "fontSize": 12,
           },
           undefined,
@@ -56,14 +56,14 @@ exports[`ErrorMessage should render correctly 1`] = `
           undefined,
           undefined,
           undefined,
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "flex": 1,
               "fontSize": 14,
               "lineHeight": 17,
             },
-            Object {
+            {
               "flex": 0,
             },
           ],

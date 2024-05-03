@@ -3,14 +3,14 @@
 exports[`SimpleWebview should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
 >
   <WebView
     source={
-      Object {
+      {
         "uri": "https://etherscan.io",
       }
     }
