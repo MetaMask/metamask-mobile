@@ -77,9 +77,7 @@ async function handleAppState({
           );
           for (const id in instance.state.connected) {
             try {
-              if (!instance.state.connected[id].remote.hasRelayPersistence()) {
-                await instance.resume({ channelId: id });
-              }
+              await instance.resume({ channelId: id });
             } catch (err) {
               // Ignore error, just log it.
               Logger.log(
