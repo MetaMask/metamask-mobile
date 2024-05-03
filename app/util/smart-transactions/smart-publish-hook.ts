@@ -155,6 +155,93 @@ class SmartTransactionHook {
     );
   }
 
+  async submit() {
+    // Will cause TransactionController to publish to the RPC provider as normal.
+    const useRegularTransactionSubmit = { transactionHash: undefined };
+    if (!this.#isSmartTransaction) {
+      return useRegularTransactionSubmit;
+    }
+
+    Logger.log(LOG_PREFIX, 'Started submit hook', this.#transactionMeta.id);
+
+    if (this.#shouldStartFlow) {
+      const { id } = this.#approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
+      this.#approvalFlowId = id;
+
+      Logger.log(LOG_PREFIX, 'Started approval flow id', this.#approvalFlowId);
+    }
+
+    // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
+    let getFeesResponse: Fees;
+    try {
+      getFeesResponse = await this.#smartTransactionsController.getFees(
+        { ...this.#transaction, chainId: this.#chainId },
+        undefined,
+      );
+    } catch (error) {
+      this.#onApproveOrReject();
+      return useRegularTransactionSubmit;
+    }
+
+    try {
+      const submitTransactionResponse = await this.#signAndSubmitTransactions({
+        getFeesResponse,
+      });
+      const uuid = submitTransactionResponse?.uuid;
+      if (!uuid) {
+        throw new Error('No smart transaction UUID');
+      }
+
+      // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
+      if (this.#isSwapTransaction) {
+        this.#updateSwapsTransactions(uuid);
+      }
+
+      if (this.#shouldStartFlow) {
+        this.#addApprovalRequest({
+          uuid,
+        });
+      }
+
+      if (this.#shouldUpdateFlow) {
+        this.#addListenerToUpdateStatusPage({
+          uuid,
+        });
+      }
+
+      let transactionHash: string | undefined | null;
+      const returnTxHashAsap =
+        this.#featureFlags?.smartTransactions?.returnTxHashAsap;
+
+      if (returnTxHashAsap && submitTransactionResponse?.txHash) {
+        transactionHash = submitTransactionResponse.txHash;
+      } else {
+        transactionHash = await this.#waitForTransactionHash({
+          uuid,
+        });
+      }
+      if (transactionHash === null) {
+        throw new Error(STX_NO_HASH_ERROR);
+      }
+
+      if (transactionHash && this.#isSwapTransaction) {
+        // The original STX gets replaced by another tx, which has a different tx.id, so we need to associate the TxController.state.swapsTransactions somehow
+        this.#updateSwapsTransactions(transactionHash);
+      }
+
+      this.#onApproveOrReject();
+
+      return { transactionHash };
+    } catch (error: any) {
+      Logger.error(
+        error,
+        `${LOG_PREFIX} Error in smart transaction publish hook`,
+      );
+      this.#onApproveOrReject();
+      throw error;
+    }
+  }
+
   #applyFeeToTransaction = (fee: Fee, isCancel: boolean): Transaction => {
     const unsignedTransactionWithFees = {
       ...this.#transaction,
@@ -336,93 +423,6 @@ class SmartTransactionHook {
       swapsTransactions: newSwapsTransactions,
     });
   };
-
-  async submit() {
-    // Will cause TransactionController to publish to the RPC provider as normal.
-    const useRegularTransactionSubmit = { transactionHash: undefined };
-    if (!this.#isSmartTransaction) {
-      return useRegularTransactionSubmit;
-    }
-
-    Logger.log(LOG_PREFIX, 'Started submit hook', this.#transactionMeta.id);
-
-    if (this.#shouldStartFlow) {
-      const { id } = this.#approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
-      this.#approvalFlowId = id;
-
-      Logger.log(LOG_PREFIX, 'Started approval flow id', this.#approvalFlowId);
-    }
-
-    // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
-    let getFeesResponse: Fees;
-    try {
-      getFeesResponse = await this.#smartTransactionsController.getFees(
-        { ...this.#transaction, chainId: this.#chainId },
-        undefined,
-      );
-    } catch (error) {
-      this.#onApproveOrReject();
-      return useRegularTransactionSubmit;
-    }
-
-    try {
-      const submitTransactionResponse = await this.#signAndSubmitTransactions({
-        getFeesResponse,
-      });
-      const uuid = submitTransactionResponse?.uuid;
-      if (!uuid) {
-        throw new Error('No smart transaction UUID');
-      }
-
-      // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
-      if (this.#isSwapTransaction) {
-        this.#updateSwapsTransactions(uuid);
-      }
-
-      if (this.#shouldStartFlow) {
-        this.#addApprovalRequest({
-          uuid,
-        });
-      }
-
-      if (this.#shouldUpdateFlow) {
-        this.#addListenerToUpdateStatusPage({
-          uuid,
-        });
-      }
-
-      let transactionHash: string | undefined | null;
-      const returnTxHashAsap =
-        this.#featureFlags?.smartTransactions?.returnTxHashAsap;
-
-      if (returnTxHashAsap && submitTransactionResponse?.txHash) {
-        transactionHash = submitTransactionResponse.txHash;
-      } else {
-        transactionHash = await this.#waitForTransactionHash({
-          uuid,
-        });
-      }
-      if (transactionHash === null) {
-        throw new Error(STX_NO_HASH_ERROR);
-      }
-
-      if (transactionHash && this.#isSwapTransaction) {
-        // The original STX gets replaced by another tx, which has a different tx.id, so we need to associate the TxController.state.swapsTransactions somehow
-        this.#updateSwapsTransactions(transactionHash);
-      }
-
-      this.#onApproveOrReject();
-
-      return { transactionHash };
-    } catch (error: any) {
-      Logger.error(
-        error,
-        `${LOG_PREFIX} Error in smart transaction publish hook`,
-      );
-      this.#onApproveOrReject();
-      throw error;
-    }
-  }
 }
 
 export const submitSmartTransactionHook = (
