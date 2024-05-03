@@ -252,9 +252,9 @@ describe('Quotes', () => {
       jest.clearAllTimers();
     });
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "ONRAMP_QUOTES_EXPANDED",
-        Object {
+        {
           "amount": 50,
           "chain_id_destination": "1",
           "currency_destination": "ETH",
@@ -262,7 +262,7 @@ describe('Quotes', () => {
           "payment_method_id": "/payment-methods/test-payment-method",
           "previously_used_count": 0,
           "provider_onramp_first": "Banxa (Staging)",
-          "provider_onramp_list": Array [
+          "provider_onramp_list": [
             "Banxa (Staging)",
             "MoonPay (Staging)",
             "Transak (Staging)",
@@ -334,9 +334,9 @@ describe('Quotes', () => {
       url: 'https://test-url.on-ramp.metamask',
     });
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "ONRAMP_PROVIDER_SELECTED",
-        Object {
+        {
           "chain_id_destination": "1",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
@@ -363,9 +363,9 @@ describe('Quotes', () => {
     await simulateQuoteSelection(ProviderBuyFeatureBrowserEnum.AppBrowser);
 
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "OFFRAMP_PROVIDER_SELECTED",
-        Object {
+        {
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -397,9 +397,9 @@ describe('Quotes', () => {
     );
 
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "ONRAMP_PROVIDER_SELECTED",
-        Object {
+        {
           "chain_id_destination": "1",
           "crypto_out": 0.0162,
           "currency_destination": "ETH",
@@ -426,9 +426,9 @@ describe('Quotes', () => {
     await simulateQuoteSelection(ProviderBuyFeatureBrowserEnum.InAppOsBrowser);
 
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "OFFRAMP_PROVIDER_SELECTED",
-        Object {
+        {
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -525,10 +525,10 @@ describe('Quotes', () => {
       jest.clearAllTimers();
     });
     expect(mockTrackEvent.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "ONRAMP_QUOTES_RECEIVED",
-          Object {
+          {
             "amount": 50,
             "average_crypto_out": 0.016671,
             "average_gas_fee": 1.32,
@@ -541,7 +541,7 @@ describe('Quotes', () => {
             "payment_method_id": "/payment-methods/test-payment-method",
             "provider_onramp_first": "Banxa (Staging)",
             "provider_onramp_last": "MoonPay (Staging)",
-            "provider_onramp_list": Array [
+            "provider_onramp_list": [
               "Banxa (Staging)",
               "MoonPay (Staging)",
             ],
@@ -549,9 +549,9 @@ describe('Quotes', () => {
             "results_count": 2,
           },
         ],
-        Array [
+        [
           "ONRAMP_QUOTE_ERROR",
-          Object {
+          {
             "amount": 50,
             "chain_id_destination": "1",
             "currency_destination": "ETH",
@@ -578,10 +578,10 @@ describe('Quotes', () => {
       jest.clearAllTimers();
     });
     expect(mockTrackEvent.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
+      [
+        [
           "OFFRAMP_QUOTES_RECEIVED",
-          Object {
+          {
             "amount": 50,
             "average_fiat_out": 0.016671,
             "average_gas_fee": 1.32,
@@ -594,7 +594,7 @@ describe('Quotes', () => {
             "payment_method_id": "/payment-methods/test-payment-method",
             "provider_offramp_first": "Banxa (Staging)",
             "provider_offramp_last": "MoonPay (Staging)",
-            "provider_offramp_list": Array [
+            "provider_offramp_list": [
               "Banxa (Staging)",
               "MoonPay (Staging)",
             ],
@@ -602,9 +602,9 @@ describe('Quotes', () => {
             "results_count": 2,
           },
         ],
-        Array [
+        [
           "OFFRAMP_QUOTE_ERROR",
-          Object {
+          {
             "amount": 50,
             "chain_id_source": "1",
             "currency_destination": "USD",

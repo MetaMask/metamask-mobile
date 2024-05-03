@@ -27,7 +27,7 @@ jest.mock('../Engine', () => ({
       upsertNetworkConfiguration: jest.fn(),
     },
     CurrencyRateController: {
-      setNativeCurrency: jest.fn(),
+      updateExchangeRate: jest.fn(),
     },
     ApprovalController: {
       clear: jest.fn(),
