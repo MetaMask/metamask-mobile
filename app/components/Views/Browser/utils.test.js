@@ -1,4 +1,4 @@
-import { setNavOptions } from './utils';
+import setNavOptions from './utils';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 jest.mock('../../UI/Navbar');
 
