@@ -76,8 +76,8 @@ class Matchers {
   /**
    * Get element by web ID.
    *
-   * * @param {string} innerID - The web ID of the inner element to locate within the webview
-   *  @param {string} webID - The web ID of the browser webview
+   * * @param {string} webviewID - The web ID of the inner element to locate within the webview
+   *  @param {string} innerID - The web ID of the browser webview
    * @return {Promise<Detox.IndexableWebElement>} Resolves to the located element
    */
   static async getElementByWebID(webviewID, innerID) {

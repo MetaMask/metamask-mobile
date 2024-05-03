@@ -11,9 +11,9 @@ import {
 import TabBarComponent from '../../pages/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import enContent from '../../../locales/languages/en.json';
 import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
 import Assertions from '../../utils/Assertions';
+import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -59,7 +59,6 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
           ContractApprovalModal.approveTokenAmount,
           '2',
         );
-
         // Tap next button
         await ContractApprovalModal.tapNextButton();
 
@@ -68,10 +67,9 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
-
         // Assert erc20 is approved
-        await TestHelpers.checkIfElementByTextIsVisible(
-          enContent.transaction.confirmed,
+        await Assertions.checkIfTextIsDisplayed(
+          ActivitiesViewSelectorsText.CONFRIM_TEXT,
         );
       },
     );

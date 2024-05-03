@@ -1,12 +1,10 @@
 import TestHelpers from '../../helpers';
 import { TEST_DAPP_LOCAL_URL } from '../Browser/TestDApp';
 
-import { NOTIFICATION_TITLE } from '../../../wdio/screen-objects/testIDs/Components/Notification.testIds';
 import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
 } from '../../selectors/Browser/BrowserView.selectors';
-import { CommonSelectorsText } from '../../selectors/Common.selectors';
 import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
 
@@ -175,21 +173,6 @@ class Browser {
   async navigateToTestDApp() {
     await this.tapUrlInputBox();
     await this.navigateToURL(TEST_DAPP_LOCAL_URL);
-  }
-
-  async isAccountToastVisible(accountName) {
-    const connectedAccountMessage = `${accountName} ${CommonSelectorsText.TOAST_CONNECTED_ACCOUNTS}`;
-    await TestHelpers.checkIfElementHasString(
-      NOTIFICATION_TITLE,
-      connectedAccountMessage,
-    );
-  }
-
-  async isRevokeAllAccountToastVisible() {
-    await TestHelpers.checkIfElementHasString(
-      NOTIFICATION_TITLE,
-      CommonSelectorsText.TOAST_REVOKE_ACCOUNTS,
-    );
   }
 }
 

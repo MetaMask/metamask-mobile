@@ -8,11 +8,14 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 
+import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import { ContractApprovalModalSelectorsText } from '../../selectors/Modals/ContractApprovalModal.selectors';
+import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+
+import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
+import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import enContent from '../../../locales/languages/en.json';
-import { ContractApprovalModalSelectorsIDs } from '../../selectors/Modals/ContractApprovalModal.selectors';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const EXPECTED_TOKEN_AMOUNT = '7';
@@ -50,34 +53,41 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TestDApp.tapApproveButton();
 
         // Assert the default token amount is shown
-        await TestHelpers.checkIfExists(
-          ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
+        // await TestHelpers.checkIfExists(
+        //   ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
+        // );
+        await Assertions.checkIfVisible(
+          ContractApprovalModal.approveTokenAmount,
         );
 
-        await expect(
-          element(
-            by.id(ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT),
-          ),
-        ).toHaveText(EXPECTED_TOKEN_AMOUNT);
-
+        // await expect(
+        //   element(
+        //     by.id(ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT),
+        //   ),
+        // ).toHaveText(EXPECTED_TOKEN_AMOUNT);
+        await Assertions.checkIfElementToHaveText(
+          ContractApprovalModal.approveTokenAmount,
+          EXPECTED_TOKEN_AMOUNT,
+        );
         // Tap next button
-        await TestHelpers.checkIfElementWithTextIsVisible(
-          enContent.transaction.next,
+        await Assertions.checkIfTextIsDisplayed(
+          ContractApprovalModalSelectorsText.NEXT,
         );
-        await TestHelpers.tapByText(enContent.transaction.next);
+        await ContractApprovalModal.tapNextButton();
 
-        // Tap approve button
-        await TestHelpers.checkIfElementWithTextIsVisible(
-          enContent.transactions.tx_review_approve,
+        await Assertions.checkIfTextIsDisplayed(
+          ContractApprovalModalSelectorsText.APPROVE,
         );
-        await TestHelpers.tapByText(enContent.transactions.tx_review_approve);
+        // Tap approve button
+        await ContractApprovalModal.tapApproveButton();
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
 
         // Assert erc20 is approved
-        await TestHelpers.checkIfElementByTextIsVisible(
-          enContent.transaction.confirmed,
+
+        await Assertions.checkIfTextIsDisplayed(
+          ActivitiesViewSelectorsText.CONFRIM_TEXT,
         );
       },
     );

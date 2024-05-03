@@ -1,23 +1,21 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
-import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
+import FixtureServer from '../../fixtures/fixture-server';
+import Assertions from '../../utils/Assertions';
+import ExternalSites from '../../resources/externalsites.json';
+import Browser from '../../pages/Browser/BrowserView';
+import TabBarComponent from '../../pages/TabBarComponent';
 import AddBookmarkView from '../../pages/Browser/AddBookmarkView';
 
-const PHISHING_SITE = 'http://www.empowr.com/FanFeed/Home.aspx';
-const INVALID_URL = 'https://quackquakc.easq';
-const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 const fixtureServer = new FixtureServer();
 
 describe(SmokeCore('Browser Tests'), () => {
@@ -51,7 +49,7 @@ describe(SmokeCore('Browser Tests'), () => {
     await TestHelpers.delay(3000);
     // Tap on search in bottom navbar
     await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(TEST_DAPP);
+    await Browser.navigateToURL(ExternalSites.TEST_DAPP);
     await Browser.waitForBrowserPageToLoad();
   });
 
@@ -72,7 +70,7 @@ describe(SmokeCore('Browser Tests'), () => {
     await Browser.tapHomeButton();
     // Wait for page to load
     await TestHelpers.delay(1000);
-    await Browser.tapDappInFavorites(TEST_DAPP);
+    await Browser.tapDappInFavorites(ExternalSites.TEST_DAPP);
     // Need assertion for verifying the
     // }
   });
@@ -81,7 +79,7 @@ describe(SmokeCore('Browser Tests'), () => {
     await TestHelpers.delay(2000);
     await Browser.tapBottomSearchBar();
     // Clear text & Navigate to URL
-    await Browser.navigateToURL(INVALID_URL);
+    await Browser.navigateToURL(ExternalSites.INVALID_URL);
     await Browser.waitForBrowserPageToLoad();
     await Browser.tapReturnHomeButton();
     // Check that we are on the browser screen
@@ -91,9 +89,9 @@ describe(SmokeCore('Browser Tests'), () => {
   it('should test phishing sites', async () => {
     await Browser.tapBottomSearchBar();
     // Clear text & Navigate to URL
-    await Browser.navigateToURL(PHISHING_SITE);
+    await Browser.navigateToURL(ExternalSites.PHISHING_SITE);
     await Browser.waitForBrowserPageToLoad();
-    await Assertions.checkIfVisible(Browser.backToSafetyButton);
+    await Assertions.checkIfVisible(await Browser.backToSafetyButton);
 
     await Browser.tapBackToSafetyButton();
     // Check that we are on the browser screen
