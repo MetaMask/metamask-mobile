@@ -599,6 +599,15 @@ export class WC2Manager {
     // Keep at the beginning to prevent double instance from react strict double rendering
     this._initialized = true;
 
+    // Wait for keychain to be unlocked before initializing WalletConnect
+    const keyringController = (
+      Engine.context as { KeyringController: KeyringController }
+    ).KeyringController;
+    await waitForKeychainUnlocked({
+      keyringController,
+      context: 'WalletConnectV2::init',
+    });
+
     let core;
     const chainId = parseInt(selectChainId(store.getState()), 16);
 
