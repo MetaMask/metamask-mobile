@@ -209,20 +209,10 @@ class SmartTransactionHook {
         });
       }
 
-      let transactionHash: string | undefined | null;
-      const returnTxHashAsap =
-        this.#featureFlags?.smartTransactions?.returnTxHashAsap;
-
-      if (returnTxHashAsap && submitTransactionResponse?.txHash) {
-        transactionHash = submitTransactionResponse.txHash;
-      } else {
-        transactionHash = await this.#waitForTransactionHash({
-          uuid,
-        });
-      }
-      if (transactionHash === null) {
-        throw new Error(STX_NO_HASH_ERROR);
-      }
+      const transactionHash = await this.#getTransactionHash(
+        submitTransactionResponse,
+        uuid,
+      );
 
       if (transactionHash && this.#isSwapTransaction) {
         // The original STX gets replaced by another tx, which has a different tx.id, so we need to associate the TxController.state.swapsTransactions somehow
@@ -241,6 +231,28 @@ class SmartTransactionHook {
       throw error;
     }
   }
+
+  #getTransactionHash = async (
+    submitTransactionResponse: any,
+    uuid: string,
+  ) => {
+    let transactionHash: string | undefined | null;
+    const returnTxHashAsap =
+      this.#featureFlags?.smartTransactions?.returnTxHashAsap;
+
+    if (returnTxHashAsap && submitTransactionResponse?.txHash) {
+      transactionHash = submitTransactionResponse.txHash;
+    } else {
+      transactionHash = await this.#waitForTransactionHash({
+        uuid,
+      });
+    }
+    if (transactionHash === null) {
+      throw new Error(STX_NO_HASH_ERROR);
+    }
+
+    return transactionHash;
+  };
 
   #applyFeeToTransaction = (fee: Fee, isCancel: boolean): Transaction => {
     const unsignedTransactionWithFees = {
