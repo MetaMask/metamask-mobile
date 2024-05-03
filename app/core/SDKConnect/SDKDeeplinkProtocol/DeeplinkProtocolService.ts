@@ -556,12 +556,8 @@ export default class DeeplinkProtocolService {
       this.currentClientId ?? '',
     );
 
-    const connectedAddresses = (
-      permissions?.eth_accounts?.caveats?.[0]?.value as {
-        address: string;
-        lastUsed: number;
-      }[]
-    )?.map((caveat) => caveat.address);
+    const connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
+      ?.value as string[];
 
     DevLogger.log(
       `DeeplinkProtocolService::clients_connected connectedAddresses`,
