@@ -115,10 +115,15 @@ exports[`OnboardingSuccess should render correctly 1`] = `
       <TouchableOpacity
         onPress={[Function]}
         style={
-          Object {
-            "alignItems": "center",
-            "flexDirection": "row",
-          }
+          Array [
+            Object {
+              "alignItems": "center",
+              "flexDirection": "row",
+            },
+            Object {
+              "paddingTop": 10,
+            },
+          ]
         }
       >
         <View
