@@ -66,6 +66,7 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
     await SkipAccountSecurityModal.tapSkipButton();
     await OnboardingSuccessView.tapDone();
     await EnableAutomaticSecurityChecksView.tapNoThanks();
+    await OnboardingWizardModal.tapNoThanksButton();
     await WalletView.isNetworkNameVisible(DEFAULT_MAINNET_CUSTOM_NAME);
   });
 
@@ -81,7 +82,6 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
   });
 
   it('should navigate to Settings > Networks', async () => {
-    await OnboardingWizardModal.tapNoThanksButton();
     await Assertions.checkIfVisible(ProtectYourWalletModal.collapseWalletModal);
     await ProtectYourWalletModal.tapRemindMeLaterButton();
     await SkipAccountSecurityModal.tapIUnderstandCheckBox();
