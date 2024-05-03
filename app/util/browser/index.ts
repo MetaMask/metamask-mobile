@@ -106,6 +106,7 @@ export const trustedProtocolToDeeplink = [
   'metamask:',
   'ethereum:',
   'dapp:',
+  'market:',
 ];
 
 /**

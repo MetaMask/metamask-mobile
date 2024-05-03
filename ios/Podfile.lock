@@ -587,7 +587,7 @@ PODS:
     - React-jsi (= 0.71.15)
     - React-logger (= 0.71.15)
     - React-perflogger (= 0.71.15)
-  - ReactNativePayments (1.5.0):
+  - ReactNativePayments (2.0.0):
     - React
   - rn-fetch-blob (0.12.0):
     - React-Core
@@ -776,7 +776,7 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - "ReactNativePayments (from `../node_modules/@exodus/react-native-payments/lib/ios/`)"
+  - "ReactNativePayments (from `../node_modules/@metamask/react-native-payments/lib/ios/`)"
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
@@ -968,7 +968,7 @@ EXTERNAL SOURCES:
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativePayments:
-    :path: "../node_modules/@exodus/react-native-payments/lib/ios/"
+    :path: "../node_modules/@metamask/react-native-payments/lib/ios/"
   rn-fetch-blob:
     :path: "../node_modules/rn-fetch-blob"
   RNCAsyncStorage:
@@ -1118,7 +1118,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: a97783e3645ddf852e34da2e015656e309f3a083
   React-runtimeexecutor: 8f2ddd9db7874ec7de84f5c55d73aeaaf82908e2
   ReactCommon: 4a6ace8e5bd40d585223775ba56d002173e72fb2
-  ReactNativePayments: a4e3ac915256a4e759c8a04338b558494a63a0f5
+  ReactNativePayments: db62ee22a825e9e9c3e19c276d8d020881dd0630
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
   RNCAsyncStorage: 826b603ae9c0f88b5ac4e956801f755109fa4d5c
   RNCCheckbox: ed1b4ca295475b41e7251ebae046360a703b6eb5
@@ -1152,6 +1152,6 @@ SPEC CHECKSUMS:
   Yoga: 68c9c592c3e80ec37ff28db20eedb13d84aae5df
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 6c1ebc1c49e824e5d559b52f89962406257a7f5c
+PODFILE CHECKSUM: b041bcd5cf0f3b6d41c16392ee13a01dd5e6052a
 
 COCOAPODS: 1.12.1
