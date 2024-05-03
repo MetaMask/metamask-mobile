@@ -3,7 +3,7 @@ import bip32 from './preinstalled/bip32';
 
 const { name, manifestJson, icon, bundleJs } = bip32;
 
-const PREINSTALLED_SNAPS = Object([
+const PREINSTALLED_SNAPS = Object.freeze([
   getPreinstalledSnap(name, JSON.stringify(manifestJson), [
     {
       path: 'images/icon.svg',
