@@ -3,7 +3,7 @@
 exports[`Scan render matches latest snapshot 1`] = `
 <View
   style={
-    Object {
+    {
       "alignItems": "center",
       "flex": 1,
     }
