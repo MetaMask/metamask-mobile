@@ -1,19 +1,8 @@
-import getPreinstalledSnap from '../../util/snaps/getPreinstalledSnap';
-import bip32 from './preinstalled/bip32';
+import type { PreinstalledSnap } from '@metamask/snaps-controllers';
+import MessageSigningSnap from '@metamask/message-signing-snap/dist/preinstalled-snap.json';
 
-const { name, manifestJson, icon, bundleJs } = bip32;
-
-const PREINSTALLED_SNAPS = Object.freeze([
-  getPreinstalledSnap(name, JSON.stringify(manifestJson), [
-    {
-      path: 'images/icon.svg',
-      value: icon,
-    },
-    {
-      path: 'dist/bundle.js',
-      value: JSON.stringify(bundleJs),
-    },
-  ]),
+const PREINSTALLED_SNAPS: readonly PreinstalledSnap[] = Object.freeze([
+  MessageSigningSnap as PreinstalledSnap,
 ]);
 
 export default PREINSTALLED_SNAPS;
