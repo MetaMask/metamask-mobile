@@ -4,7 +4,6 @@ import {
 } from '../../selectors/Settings/NetworksView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import TestHelpers from '../../helpers';
 
 class NetworkView {
   get networkContainer() {
@@ -181,18 +180,11 @@ class NetworkView {
     await Gestures.waitAndTap(this.chainIdLabel);
   }
 
-  async tapRemoveNetwork(networkName) {
-    const network = Matchers.getElementByText(networkName);
-    await Gestures.tapAndLongPress(network);
-    await Gestures.waitAndTap(this.removeNetwork);
-  }
-
   async tapSave() {
     device.getPlatform() === 'ios'
       ? await (async () => {
           //swipe to dismiss iOS keypad
           await Gestures.swipe(this.chainIDInput, 'up', 'fast', 0.3);
-          await TestHelpers.delay(1000);
           await Gestures.doubleTap(this.saveButton);
         })()
       : await Gestures.waitAndTap(this.saveButton);
