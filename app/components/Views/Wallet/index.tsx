@@ -173,7 +173,7 @@ const Wallet = ({
         },
       ],
       closeButtonOptions: {
-        label: 'Accept',
+        label: 'Close',
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
           currentToast?.closeToast();
