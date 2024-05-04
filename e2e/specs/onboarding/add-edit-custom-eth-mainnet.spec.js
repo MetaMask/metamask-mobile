@@ -52,7 +52,7 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
     await Assertions.checkIfVisible(MetaMetricsOptIn.container);
   });
 
-  it('should show custom default ETH Mainnet as active', async () => {
+  it('should complete creating wallet', async () => {
     await MetaMetricsOptIn.tapAgreeButton();
     await TermsOfUseModal.tapScrollEndButton();
     await TermsOfUseModal.tapAgreeCheckBox();
@@ -67,6 +67,9 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
     await OnboardingSuccessView.tapDone();
     await EnableAutomaticSecurityChecksView.tapNoThanks();
     await OnboardingWizardModal.tapNoThanksButton();
+  });
+
+  it('should show custom default ETH Mainnet as active', async () => {
     await WalletView.isNetworkNameVisible(DEFAULT_MAINNET_CUSTOM_NAME);
   });
 
