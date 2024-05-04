@@ -4,6 +4,7 @@ import {
 } from '../../selectors/Settings/NetworksView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import TestHelpers from '../../helpers';
 
 class NetworkView {
   get networkContainer() {
@@ -183,11 +184,14 @@ class NetworkView {
   }
 
   async tapSave() {
-    if (device.getPlatform() === 'ios') {
-      // attempt to dismiss keypad
-      await Gestures.swipe(this.chainIDInput, 'up', 'fast', 0.3);
-    }
-    await Gestures.waitAndTap(this.saveButton);
+    device.getPlatform() === 'ios'
+      ? await (async () => {
+          //swipe to dismiss iOS keypad
+          await Gestures.swipe(this.chainIDInput, 'up', 'fast', 0.3);
+          await TestHelpers.delay(1000);
+          await Gestures.doubleTap(this.saveButton);
+        })()
+      : await Gestures.waitAndTap(this.saveButton);
   }
 }
 
