@@ -1,5 +1,5 @@
 import enContent from '../../../locales/languages/en.json';
-
+import ExternalSites from '../../resources/externalsites.json';
 export const BrowserViewSelectorsIDs = {
   BROWSER_WEBVIEW_ID: 'browser-webview',
   AVATAR_IMAGE: 'network-avatar-image',
@@ -28,5 +28,6 @@ export const BrowserViewSelectorsText = {
 };
 export const BrowserViewSelectorsXPaths = {
   FAVORITE_TAB: `//div[@id='root']/div[@class='App']//ol//li[contains(text(), 'Favorites')]`,
-  TEST_DAPP: `//div[@id='root']/div[@class='App']//p[contains(text(), 'metamask.github.io/test-dapp/')]`,
+  TEST_DAPP_TEXT: `//div[@id='root']/div[@class='App']//p[contains(text(), 'metamask.github.io/test-dapp/')]`,
+  TEST_DAPP_LINK: `//a[contains(@href, '${ExternalSites.TEST_DAPP}')]`,
 };

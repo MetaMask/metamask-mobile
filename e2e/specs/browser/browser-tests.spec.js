@@ -71,7 +71,7 @@ describe(SmokeCore('Browser Tests'), () => {
     // Wait for page to load
     await TestHelpers.delay(1000);
     await Browser.tapDappInFavorites();
-    // Need assertion for verifying the
+    await Assertions.checkIfTextIsDisplayed('metamask.github.io');
     // }
   });
 

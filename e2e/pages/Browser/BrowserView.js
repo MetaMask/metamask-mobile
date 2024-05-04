@@ -70,10 +70,15 @@ class Browser {
   }
 
   get TestDappURLInFavourtiesTab() {
-    return Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      BrowserViewSelectorsXPaths.TEST_DAPP,
-    );
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByXPath(
+          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+          BrowserViewSelectorsXPaths.TEST_DAPP_LINK,
+        )
+      : Matchers.getElementByXPath(
+          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+          BrowserViewSelectorsXPaths.TEST_DAPP_TEXT,
+        );
   }
 
   get multiTabButton() {
@@ -146,8 +151,12 @@ class Browser {
   }
 
   async tapDappInFavorites() {
-    await Gestures.tapWebElement(await this.HomePageFavourtiesTab);
-    await Gestures.tapWebElement(await this.TestDappURLInFavourtiesTab);
+    if (device.getPlatform() === 'ios') {
+      await Gestures.tapWebElement(await this.TestDappURLInFavourtiesTab);
+    } else {
+      await Gestures.tapWebElement(await this.HomePageFavourtiesTab);
+      await Gestures.tapWebElement(await this.TestDappURLInFavourtiesTab);
+    }
   }
 
   async navigateToURL(url) {
