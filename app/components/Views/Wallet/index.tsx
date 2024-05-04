@@ -186,19 +186,19 @@ const Wallet = ({
       variant: ToastVariants.Plain,
       labelOptions: [
         {
-          label: 'We’ve updated our privacy policy',
+          label: strings(`privacy_policy.toast_message`),
           isBold: false,
         },
       ],
       closeButtonOptions: {
-        label: 'Accept',
+        label: strings(`privacy_policy.toast_action_button`),
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
           currentToast?.closeToast();
         },
       },
       linkButtonOptions: {
-        label: 'Read more',
+        label: strings(`privacy_policy.toast_read_more`),
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
           currentToast?.closeToast();

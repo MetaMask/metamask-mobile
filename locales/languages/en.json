@@ -517,7 +517,10 @@
     "action_description_5": "sell data. Ever!",
     "action_description_never": "Never",
     "cta_no_thanks": "No thanks",
-    "cta_i_agree": "I agree"
+    "cta_i_agree": "I agree",
+    "toast_message": "We’ve updated our privacy policy",
+    "toast_action_button": "Close",
+    "toast_read_more": "Read more"
   },
   "template_confirmation": {
     "ok": "OK",
