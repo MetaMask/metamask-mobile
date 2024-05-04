@@ -1,7 +1,7 @@
-diff --git a/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js b/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js
+diff --git a/node_modules/@metamask/react-native-actionsheet/lib/ActionSheetCustom.js b/node_modules/@metamask/react-native-actionsheet/lib/ActionSheetCustom.js
 index 7446a82..71a0fca 100644
---- a/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js
-+++ b/node_modules/react-native-actionsheet/lib/ActionSheetCustom.js
+--- a/node_modules/@metamask/react-native-actionsheet/lib/ActionSheetCustom.js
++++ b/node_modules/@metamask/react-native-actionsheet/lib/ActionSheetCustom.js
 @@ -1,7 +1,7 @@
  import React from 'react'
 -import { Text, View, Dimensions, Modal, TouchableHighlight, Animated, ScrollView, Easing } from 'react-native'
@@ -71,10 +71,10 @@ index 7446a82..71a0fca 100644
      )
    }
  
-diff --git a/node_modules/react-native-actionsheet/lib/options.js b/node_modules/react-native-actionsheet/lib/options.js
+diff --git a/node_modules/@metamask/react-native-actionsheet/lib/options.js b/node_modules/@metamask/react-native-actionsheet/lib/options.js
 index 7f7d230..1e01339 100644
---- a/node_modules/react-native-actionsheet/lib/options.js
-+++ b/node_modules/react-native-actionsheet/lib/options.js
+--- a/node_modules/@metamask/react-native-actionsheet/lib/options.js
++++ b/node_modules/@metamask/react-native-actionsheet/lib/options.js
 @@ -48,5 +48,11 @@ export default [
     * @example
     *   (buttonIndex) => if (buttonIndex === 1) { // do something }
@@ -88,10 +88,10 @@ index 7f7d230..1e01339 100644
 +	 */
 +	'theme',
  ]
-diff --git a/node_modules/react-native-actionsheet/lib/styles.js b/node_modules/react-native-actionsheet/lib/styles.js
+diff --git a/node_modules/@metamask/react-native-actionsheet/lib/styles.js b/node_modules/@metamask/react-native-actionsheet/lib/styles.js
 index 52ae1b2..e0a18bf 100644
---- a/node_modules/react-native-actionsheet/lib/styles.js
-+++ b/node_modules/react-native-actionsheet/lib/styles.js
+--- a/node_modules/@metamask/react-native-actionsheet/lib/styles.js
++++ b/node_modules/@metamask/react-native-actionsheet/lib/styles.js
 @@ -1,62 +1,70 @@
  import { StyleSheet } from 'react-native'
  export const hairlineWidth = StyleSheet.hairlineWidth
