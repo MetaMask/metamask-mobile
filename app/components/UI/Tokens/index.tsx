@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
-import ActionSheet from 'react-native-actionsheet';
+import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import {
   renderFromTokenMinimalUnit,
@@ -42,6 +42,7 @@ import {
 } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
@@ -96,12 +97,13 @@ import { selectDetectedTokens } from '../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import useIsOriginalNativeTokenSymbol from '../../UI/Ramp/hooks/useIsOriginalNativeTokenSymbol';
+import useIsOriginalNativeTokenSymbol from '../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import ButtonIcon, {
   ButtonIconVariants,
 } from '../../../../app/component-library/components/Buttons/ButtonIcon';
 import Box from '../../UI/Ramp/components/Box';
 import SheetHeader from '../../../../app/component-library/components/Sheet/SheetHeader';
+import { isPortfolioUrl } from '../../../../app/util/url';
 
 const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { colors } = useTheme();
@@ -124,6 +126,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { type, rpcUrl } = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectTicker);
+  const networkClientId = useSelector(selectNetworkClientId);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const primaryCurrency = useSelector(
@@ -159,7 +162,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const goToNetworkEdit = () => {
     navigation.navigate(Routes.ADD_NETWORK, {
       network: rpcUrl,
-      isEdit: true,
     });
 
     setShowScamWarningModal(false);
@@ -220,16 +222,15 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const renderStakeButton = (asset: TokenI) => {
     const onStakeButtonPress = () => {
-      const STAKE_URL = `${AppConstants.PORTFOLIO_URL}/stake`;
       const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.includes(STAKE_URL),
+        tab.url.includes(AppConstants.STAKE.URL),
       );
       let existingTabId;
       let newTabUrl;
       if (existingStakeTab) {
         existingTabId = existingStakeTab.id;
       } else {
-        newTabUrl = `${STAKE_URL}?metamaskEntry=mobile`;
+        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
       }
       const params = {
         ...(newTabUrl && { newTabUrl }),
@@ -245,7 +246,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         location: 'Home Screen',
         text: 'Stake',
         token_symbol: asset.symbol,
-        url: STAKE_URL,
+        url: AppConstants.STAKE.URL,
       });
     };
 
@@ -562,7 +563,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const actions = [
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
-        CurrencyRateController.start(),
+        CurrencyRateController.startPollingByNetworkClientId(networkClientId),
         TokenRatesController.updateExchangeRates(),
       ];
       await Promise.all(actions).catch((error) => {
@@ -582,6 +583,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     } else {
       total = balance?.tokenFiat ?? 0;
     }
+
     const fiatBalance = `${renderFiat(total, currentCurrency)}`;
 
     const onOpenPortfolio = () => {

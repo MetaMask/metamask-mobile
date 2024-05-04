@@ -24,6 +24,9 @@ export default {
     ACTIVE: true,
     URL: `${PORTFOLIO_URL}/bridge`,
   },
+  STAKE: {
+    URL: `${PORTFOLIO_URL}/stake`,
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -86,7 +89,7 @@ export default {
   MAX_SAFE_CHAIN_ID: 4503599627370476,
   URLS: {
     TERMS_AND_CONDITIONS: 'https://legal.consensys.io/metamask/terms-of-use/',
-    PRIVACY_POLICY: 'https://legal.consensys.io/metamask/privacy-policy/',
+    PRIVACY_POLICY: 'https://consensys.io/privacy-policy',
     DATA_RETENTION_UPDATE:
       'https://consensys.net/blog/news/consensys-data-retention-update/',
     CONNECTIVITY_ISSUES:
@@ -100,6 +103,12 @@ export default {
       'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172',
     WHAT_IS_ETH_SIGN_AND_WHY_IS_IT_A_RISK:
       'https://support.metamask.io/hc/articles/14764161421467',
+    WHAT_IS_SRP:
+      'https://community.metamask.io/t/what-is-a-secret-recovery-phrase-and-how-to-keep-your-crypto-wallet-secure/3440',
+    PRIVACY_POLICY_2024: 'https://consensys.io/privacy-policy',
+    PRIVACY_BEST_PRACTICES:
+      'https://support.metamask.io/privacy-and-security/privacy-best-practices',
+    SMART_TXS: 'https://support.metamask.io/hc/en-us/articles/9184393821211',
   },
   ERRORS: {
     INFURA_BLOCKED_MESSAGE:
@@ -171,4 +180,13 @@ export default {
   FAVICON_CACHE_MAX_SIZE: 100,
   PPOM_INITIALISATION_STATE_CHANGE_EVENT:
     'PPOMController:initialisationStateChangeEvent',
+  BASIC_FUNCTIONALITY_BLOCK_LIST: [
+    'token-api',
+    'gas-api',
+    'price-api',
+    'phishing-detection',
+    'infura.io',
+    'static.metafi',
+    'config-api.metamask.io/featureFlags',
+  ],
 } as const;

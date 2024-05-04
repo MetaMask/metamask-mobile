@@ -4,7 +4,7 @@ exports[`AvatarIcon should render correctly 1`] = `
 <AvatarBase
   size="32"
   style={
-    Object {
+    {
       "alignItems": "center",
       "backgroundColor": "#FFFFFF",
       "justifyContent": "center",

@@ -587,7 +587,7 @@ PODS:
     - React-jsi (= 0.71.15)
     - React-logger (= 0.71.15)
     - React-perflogger (= 0.71.15)
-  - ReactNativePayments (1.5.0):
+  - ReactNativePayments (2.0.0):
     - React
   - rn-fetch-blob (0.12.0):
     - React-Core
@@ -758,7 +758,7 @@ DEPENDENCIES:
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
-  - react-native-splash-screen (from `../node_modules/react-native-splash-screen`)
+  - "react-native-splash-screen (from `../node_modules/@metamask/react-native-splash-screen`)"
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -776,7 +776,7 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - "ReactNativePayments (from `../node_modules/@exodus/react-native-payments/lib/ios/`)"
+  - "ReactNativePayments (from `../node_modules/@metamask/react-native-payments/lib/ios/`)"
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
@@ -932,7 +932,7 @@ EXTERNAL SOURCES:
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
   react-native-splash-screen:
-    :path: "../node_modules/react-native-splash-screen"
+    :path: "../node_modules/@metamask/react-native-splash-screen"
   react-native-video:
     :path: "../node_modules/react-native-video"
   react-native-view-shot:
@@ -968,7 +968,7 @@ EXTERNAL SOURCES:
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativePayments:
-    :path: "../node_modules/@exodus/react-native-payments/lib/ios/"
+    :path: "../node_modules/@metamask/react-native-payments/lib/ios/"
   rn-fetch-blob:
     :path: "../node_modules/rn-fetch-blob"
   RNCAsyncStorage:
@@ -1100,7 +1100,7 @@ SPEC CHECKSUMS:
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
   react-native-safe-area-context: 9e40fb181dac02619414ba1294d6c2a807056ab9
   react-native-slider: 1cdd6ba29675df21f30544253bf7351d3c2d68c4
-  react-native-splash-screen: 200d11d188e2e78cea3ad319964f6142b6384865
+  react-native-splash-screen: 49a7160705f32169d27ab8dff9dda53331592412
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
   react-native-view-shot: 4475fde003fe8a210053d1f98fb9e06c1d834e1c
   react-native-webview: 133a6a5149f963259646e710b4545c67ef35d7c9
@@ -1118,7 +1118,7 @@ SPEC CHECKSUMS:
   React-RCTVibration: a97783e3645ddf852e34da2e015656e309f3a083
   React-runtimeexecutor: 8f2ddd9db7874ec7de84f5c55d73aeaaf82908e2
   ReactCommon: 4a6ace8e5bd40d585223775ba56d002173e72fb2
-  ReactNativePayments: a4e3ac915256a4e759c8a04338b558494a63a0f5
+  ReactNativePayments: db62ee22a825e9e9c3e19c276d8d020881dd0630
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
   RNCAsyncStorage: 826b603ae9c0f88b5ac4e956801f755109fa4d5c
   RNCCheckbox: ed1b4ca295475b41e7251ebae046360a703b6eb5

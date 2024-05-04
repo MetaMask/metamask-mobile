@@ -76,7 +76,11 @@ const initialState = {
       },
       CurrencyRateController: {
         currentCurrency: 'USD',
-        conversionRate: 1,
+        currencyRates: {
+          ETH: {
+            conversionRate: 1,
+          },
+        },
       },
       TokenBalancesController: {
         contractBalances: {
@@ -189,6 +193,18 @@ describe('Tokens', () => {
 
     expect(getByTestId(PORTFOLIO_BUTTON)).toBeDefined();
   });
+  it('navigates to Portfolio url when portfolio button is pressed', () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.press(getByTestId(PORTFOLIO_BUTTON));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      params: {
+        newTabUrl: `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`,
+        timestamp: 123,
+      },
+      screen: Routes.BROWSER.VIEW,
+    });
+  });
   it('should display unable to find conversion rate', async () => {
     const state = {
       engine: {
@@ -213,7 +229,11 @@ describe('Tokens', () => {
           },
           CurrencyRateController: {
             currentCurrency: 'USD',
-            conversionRate: 1,
+            currencyRates: {
+              ETH: {
+                conversionRate: 1,
+              },
+            },
           },
           TokenBalancesController: {
             contractBalances: {
@@ -240,7 +260,7 @@ describe('Tokens', () => {
     fireEvent.press(getByTestId(STAKE_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
       params: {
-        newTabUrl: `${AppConstants.PORTFOLIO_URL}/stake?metamaskEntry=mobile`,
+        newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
         timestamp: 123,
       },
       screen: Routes.BROWSER.VIEW,

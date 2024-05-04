@@ -3,7 +3,7 @@
 exports[`OfflineMode should render correctly 1`] = `
 <RCTSafeAreaView
   style={
-    Object {
+    {
       "backgroundColor": "#FFFFFF",
       "flex": 1,
     }
@@ -11,14 +11,14 @@ exports[`OfflineMode should render correctly 1`] = `
 >
   <Image
     source={
-      Object {
-        "default": Object {
+      {
+        "default": {
           "uri": "MockImage",
         },
       }
     }
     style={
-      Object {
+      {
         "alignSelf": "center",
         "height": 200,
         "marginTop": 60,
@@ -28,7 +28,7 @@ exports[`OfflineMode should render correctly 1`] = `
   />
   <View
     style={
-      Object {
+      {
         "flex": 1,
         "justifyContent": "center",
         "marginHorizontal": 18,
@@ -38,26 +38,26 @@ exports[`OfflineMode should render correctly 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
     >
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
             },
-            Object {
+            {
               "textAlign": "center",
             },
             undefined,
-            Object {
+            {
               "fontFamily": "EuclidCircularB-Bold",
               "fontWeight": "600",
             },
@@ -81,7 +81,7 @@ exports[`OfflineMode should render correctly 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
@@ -95,15 +95,15 @@ exports[`OfflineMode should render correctly 1`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
+          [
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
             },
-            Object {
+            {
               "textAlign": "center",
             },
             undefined,
@@ -128,7 +128,7 @@ exports[`OfflineMode should render correctly 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "color": "#24272A",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
@@ -142,7 +142,7 @@ exports[`OfflineMode should render correctly 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "marginHorizontal": 18,
         }
       }
@@ -153,14 +153,14 @@ exports[`OfflineMode should render correctly 1`] = `
         activeOpacity={0.2}
         onPress={[Function]}
         style={
-          Array [
-            Array [
-              Object {
+          [
+            [
+              {
                 "borderRadius": 100,
                 "justifyContent": "center",
                 "padding": 15,
               },
-              Object {
+              {
                 "backgroundColor": "#0376C9",
               },
               undefined,
@@ -171,22 +171,22 @@ exports[`OfflineMode should render correctly 1`] = `
       >
         <Text
           style={
-            Array [
-              Object {
+            [
+              {
                 "color": "#007aff",
                 "fontSize": 17,
                 "fontWeight": "500",
                 "textAlign": "center",
               },
               null,
-              Array [
-                Object {
+              [
+                {
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 14,
                   "fontWeight": "600",
                   "textAlign": "center",
                 },
-                Object {
+                {
                   "color": "#FFFFFF",
                 },
                 undefined,

@@ -195,7 +195,7 @@ const tasks = new Listr([
 ],
   {
     exitOnError: true,
-    concurrent: true,
+    concurrent: false,
   });
 
 await tasks.run();

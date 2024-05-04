@@ -94,6 +94,24 @@
     "your_wallet": "Cüzdanınız başarılı bir şekilde silindi",
     "delete_current": "Geçerli cüzdan siliniyor"
   },
+  "onboarding_success": {
+    "title": "Congratulations!",
+    "description": "Your wallet is protected and ready to use. You can find your Secret Recovery Phrase in ",
+    "description_bold": "Settings > Security & Privacy.",
+    "description_continued": "Keep a reminder of your Secret Recovery Phrase somewhere safe. If you lose it, no one can help you get it back. Even worse, you won’t be able access to your wallet ever again.",
+    "learn_more": "Learn more",
+    "learn_how": "Learn how",
+    "leave_hint": "Leave yourself a hint?",
+    "default_settings": "Default settings",
+    "manage_default_settings": "Manage default settings",
+    "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
+    "no_srp_title": "Reminder set!",
+    "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
+    "import_title": "Your Wallet is ready",
+    "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
+    "import_description2": "to keep this set of words safe so you can always access your funds.\n",
+    "done": "Done"
+  },
   "onboarding_carousel": {
     "title1": "MetaMask'e Hoş Geldiniz",
     "title2": "Dijital varlıklarını yönet",
@@ -160,16 +178,20 @@
       "content1": "Bu simgeye dokunarak Etherscan üzerinde hesap adınızı düzenleyin, işlemleri görüntüleyin, genel anahtarınızı paylaşın ve özel anahtarınızı görün"
     },
     "step4": {
+      "title": "Bildirimler",
+      "content1": "Cüzdanınızda neler olduğundan haberdar olun"
+    },
+    "step5": {
       "title": "Cüzdanınızın kullanımı",
       "content1": "Bu simgeye dokunarak varlık satın alın, gönderin, swap işlemi gerçekleştirin ve varlık alın"
     },
-    "step5": {
-      "title": "web3 keşfi",
+    "step6": {
+      "title": "Web3'ü keşfedin",
       "content1": "Bu simgeye dokunarak tarayıcıyı açın"
     },
-    "step6": {
+    "step7": {
       "title": "Tarayıcının kullanımı",
-      "content1": "Anahtar sözcükle siteleri arayın veya bir URL adresi girin. İyi eğlenceler! "
+      "content1": "Anahtar kelime kullanarak siteleri arayın veya bir URL adresi girin. İyi eğlenceler! "
     }
   },
   "create_wallet": {
@@ -351,17 +373,17 @@
     "no_collectibles": "NFT'nizi görmüyor musunuz?",
     "no_available_tokens": "Tokeninizi görmüyor musunuz?",
     "add_tokens": "Tokenleri içe aktar",
-    "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
-    "import_token": "Would you like to import this token?",
+    "are_you_sure_exit": "Çıkmak istediğinizden emin misiniz?",
+    "search_information_not_saved": "Arama bilgileriniz kaydedilmeyecek.",
+    "import_token": "Bu token'i içe aktarmak ister misiniz?",
     "tokens_detected_in_account": "Bu hesapta {{tokenCount}} yeni {{tokensLabel}} bulundu",
     "token_toast": {
       "tokens_imported_title": "İçe Aktarılan Tokenler",
       "tokens_imported_desc": "Başarılı bir şekilde içe aktarıldı: {{tokenSymbols}}",
       "token_imported_title": "İçe Aktarılan Token",
       "token_imported_desc": "Başarılı bir şekilde içe aktarıldı: {{tokenSymbol}}",
-      "token_imported_desc_1": "You’ve imported a token.",
-      "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
+      "token_imported_desc_1": "Bir token'i içe aktardınız.",
+      "tokens_import_success_multiple": "{{tokensNumber}} token'i içe aktardınız.",
       "tokens_hidden_title": "Tokenler Gizleniyor",
       "tokens_hidden_desc": "Algılanan tokenler cüzdanınızdan gizleniyor",
       "token_hidden_title": "Token Gizleniyor",
@@ -422,7 +444,11 @@
     "nfts_autodetect_cta": "Ayarlar kısmında NFT'leri Otomatik Algıla seçeneğini açın",
     "turn_on_network_check_cta": "Ağ bilgileri kontrolünü aç",
     "display_nft_media_cta_new_1": "Bir NFT'yi görmek için NFT medyasını göster seçeneğini açın",
-    "display_nft_media_cta_new_2": "Ayarlar > Güvenlik ve Gizlilik."
+    "display_nft_media_cta_new_2": "Ayarlar > Güvenlik ve Gizlilik.",
+    "banner": {
+      "title": "Basic functionality is off",
+      "link": "Turn on basic functionality"
+    }
   },
   "asset_details": {
     "token": "Token",
@@ -446,8 +472,8 @@
   "add_asset": {
     "title": "Tokenleri içe aktar",
     "title_nft": "NFT'yi içe aktar",
-    "search_token": "Search",
-    "custom_token": "Custom token",
+    "search_token": "Ara",
+    "custom_token": "Özel Token",
     "tokens": {
       "cancel_add_token": "İPTAL",
       "add_token": "İÇE AKTAR"
@@ -504,16 +530,16 @@
     "resultPageErrorDefaultMessage": "İşlem başarısız oldu."
   },
   "token": {
-    "token_symbol": "Token symbol",
+    "token_symbol": "Token Sembolü",
     "token_address": "Token Adresi",
-    "token_decimal": "Token decimal",
+    "token_decimal": "Token ondalığı",
     "search_tokens_placeholder": "Token Ara",
     "address_cant_be_empty": "Token adresi boş olamaz.",
     "address_must_be_valid": "Token adresi geçerli bir adres olmalıdır.",
     "symbol_cant_be_empty": "Token sembolü boş olamaz.",
-    "symbol_length": "Symbol must be 11 characters or fewer",
+    "symbol_length": "Sembol en fazla 11 karakter olmalıdır",
     "decimals_cant_be_empty": "Token ondalıkları boş olamaz.",
-    "decimals_is_required": "Decimal is required. Find it on:",
+    "decimals_is_required": "Ondalık gereklidir. Şurada bulabilirsiniz:",
     "no_tokens_found": "Bu isimde token bulamadık.",
     "select_token": "Token Seç",
     "address_must_be_smart_contract": "Kişisel adres algılandı. Token sözleşme adresini girin."
@@ -541,7 +567,8 @@
     "collectible_asset_contract": "Varlık sözleşmesi",
     "share_check_out_nft": "NFT'mi incele!",
     "share_via": "Şununla paylaşıldı:",
-    "untitled_collection": "Adsız Koleksiyon"
+    "untitled_collection": "Adsız Koleksiyon",
+    "collection": "Koleksiyon"
   },
   "transfer": {
     "title": "Transfer Et",
@@ -682,6 +709,12 @@
     "nft_opensea_desc": "NFT medya ve verilerinin görüntülenmesi IP adresini merkezi olan sunuculara ifşa edebilir. NFT verilerini almak için OpenSea'nin API'sini kullanın. NFT otomatik algılama OpenSea'nin API'sine güvenilir ve kapatıldığında kullanılamaz. NFT otomatik algılamanın etkinleştirilmesi cüzdanınıza herkes tarafından sahte NFT'lerin gönderilmesine maruz bırakabilir ve bir saldırganın sizin Ethereum adresinizden IP adresinizi öğrenmesine izin verebilir.",
     "nft_autodetect_mode": "NFT'leri otomatik algıla",
     "nft_autodetect_desc": "NFT medya ve verilerinin gösterimi IP adresinizi merkezi sunuculara ifşa edebilir. Cüzdanınızdaki NFT'leri algılamak için üçüncü taraf API'ler (OpenSea gibi) kullanılır. Bu da, hesap adresinizi bu hizmetlere maruz bırakır. Uygulamanın bu hizmetlerden veri çekmesini istemiyorsanız bunu devre dışı bırakın.",
+    "show_fiat_on_testnets": "Show conversion on test networks",
+    "show_fiat_on_testnets_desc": "Select this to show fiat conversion on test networks",
+    "show_fiat_on_testnets_modal_title": "Be careful",
+    "show_fiat_on_testnets_modal_description": "If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.",
+    "show_fiat_on_testnets_modal_learn_more": "Learn more.",
+    "show_fiat_on_testnets_modal_button": "Continue",
     "show_hex_data": "On Altılı Verileri Göster",
     "show_hex_data_desc": "Gönderim ekranında on altılı veri alanını göstermek için bunu seçin.",
     "toggleEthSignBannerDescription": "Kimlik avı saldırıları bakımından risk altındasınız. Kendinizi korumak için eth_sign özelliğini kapatın.",
@@ -712,6 +745,26 @@
     "general_desc": "Para birimi dönüştürme, birincil para birimi, dil ve arama motoru",
     "advanced_title": "Gelişmiş",
     "advanced_desc": "Erişim geliştirici özellikleri, hesabı sıfırla, kurulum test ağları, durum günlükleri, IPFS ağ geçidi ve özel RPC",
+    "notifications_title": "Bildirimler",
+    "notifications_desc": "Bildirimlerinizi yönetin",
+    "allow_notifications": "Bildirimlere izin ver",
+    "allow_notifications_desc": "Bildirimler ile cüzdanınızda neler olduğundan haberdar olun. Bildirimleri kullanmak için cihazlarınızdaki bazı ayarları senkronize etmek amacıyla bir profil kullanıyoruz. Bu özelliği kullanırken gizliliğinizi nasıl koruduğumuzu öğrenin.",
+    "notifications_opts": {
+      "customize_session_title": "Bildirimlerinizi özelleştirin",
+      "customize_session_desc": "Almak istediğiniz bildirim türlerini açın:",
+      "account_session_title": "Hesap aktivitesi",
+      "account_session_desc": "Hakkında bildirim almak istediğiniz hesapları seçin:",
+      "assets_sent_title": "Gönderilen Varlıklar",
+      "assets_sent_desc": "Fonlar ve NFT",
+      "assets_received_title": "Alınan Varlıklar",
+      "assets_received_desc": "Fonlar ve NFT",
+      "defi_title": "DeFi",
+      "defi_desc": "Stake, swap ve köprü",
+      "snaps_title": "Snap'ler",
+      "snaps_desc": "Yeni özellikler ve güncellemeler",
+      "products_announcements_title": "Ürün duyuruları",
+      "products_announcements_desc": "Yeni ürünler ve özellikler"
+    },
     "contacts_title": "Kişiler",
     "contacts_desc": "Hesap ekle, düzenle, kaldır ve hesaplarını yönet",
     "security_title": "Güvenlik ve Gizlilik",
@@ -774,6 +827,7 @@
     "ses_heading": "Kod Kilitlendi",
     "ses_description": "Bu, uygulamanın JavaScript kodunda izinsiz yapılan değişikliklerin engellenmesini sağlayan test edilen bir özelliktir.",
     "ses_link": "Daha fazla bilgi",
+    "general_heading": "General",
     "privacy_heading": "Gizlilik",
     "failed_to_fetch_chain_id": "Zincir kimliği alınamadı. RPC URL adresiniz doğru mu?",
     "endpoint_returned_different_chain_id": "Uç nokta farklı bir zincir kimliği getirdi: %{chainIdReturned}",
@@ -899,10 +953,12 @@
     "token_nft_ens_subheading": "Token, NFT ve ENS otomatik algılama",
     "security_check_subheading": "Güvenlik kontrolleri",
     "symbol_required": "Sembol gerekli.",
-    "blockaid": "Blockaid",
-    "blockaid_desc": "Gizlilik koruması - Hiçbir veri üçüncü taraflarla paylaşılmaz. Arbitrum, Avalanche, BNB chain, Ethereum Ana Ağı, Optimism, Polygon ve Sepolia için sunulur.",
+    "blockaid_desc": "Gizlilik koruması - Hiçbir veri üçüncü taraflarla paylaşılmaz. Arbitrum, Avalanche, BNB chain, Ethereum Ana Ağı, Optimism, Polygon, Sepolia ve Base için sunulur.",
     "security_alerts": "Güvenlik uyarıları",
-    "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel olarak incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı aktivitelere karşı sizi uyarır. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır. Bu özelliği etkinleştirerek sağlayıcının kullanım koşullarını kabul etmiş olursunuz."
+    "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel olarak incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı aktivitelere karşı sizi uyarır. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır. Bu özelliği etkinleştirerek sağlayıcının kullanım koşullarını kabul etmiş olursunuz.",
+    "smart_transactions_opt_in_heading": "Akıllı İşlemler",
+    "smart_transactions_opt_in_desc": "Daha güvenilir ve güvenli işlemler ile ETH Ana Ağı üzerinde ayarlanabilir ücretler için Akıllı İşlemleri açın.",
+    "smart_transactions_learn_more": "Daha fazla bilgi edinin."
   },
   "sdk": {
     "disconnect_title": "Tüm sitelerin bağlantısı kesilsin mi?",
@@ -1129,6 +1185,7 @@
     "confirm": "Onayla"
   },
   "transaction": {
+    "transaction_id": "İşlem Numarası",
     "alert": "UYARI",
     "amount": "Tutar",
     "next": "Sonraki",
@@ -1301,7 +1358,7 @@
     "contract": "Sözleşme ({{address}})",
     "contract_name": "Sözleşme adı:",
     "contract_address": "Sözleşme adresi:",
-    "invalid_contract_address": " Contract address is invalid. Enter a new one",
+    "invalid_contract_address": " Sözleşme adresi geçersiz. Yeni bir adres girin",
     "contract_allowance": "Ödenek:",
     "data": "Veriler",
     "function_approve": "Fonksiyon: Onayla",
@@ -1410,8 +1467,12 @@
     "to": "Kime",
     "details": "Ayrıntılar",
     "amount": "Tutar",
+    "gas_used": "Kullanılan Gaz (Birim)",
     "gas_limit": "Gaz Limiti (Birimler)",
     "gas_price": "Gaz Fiyatı (GWEI)",
+    "base_fee": "Baz Ücreti (GEWI)",
+    "priority_fee": "Öncelik Ücreti (GWEI)",
+    "max_fee": "Gaz Başına Maks. Ücret",
     "total": "Toplam",
     "view_on": "ŞURADA GÖRÜNTÜLE:",
     "view_on_etherscan": "Etherscan üzerinde görüntüle",
@@ -1433,7 +1494,26 @@
     "sign_title_device": "Kilidiniz ile",
     "sign_description_1": "Kilit Taşı ile imzaladıktan sonra,",
     "sign_description_2": "İmzayı Al tuşuna tıklayın",
-    "sign_get_signature": "İmza Al"
+    "sign_get_signature": "İmza Al",
+    "network_fee": "Ağ Ücreti"
+  },
+  "smart_transactions": {
+    "status_submitting_header": "İşleminiz gönderiliyor",
+    "status_submitting_description": "Tahmini tamamlanma {{timeLeft}}",
+    "status_success_header": "İşleminiz tamamlandı",
+    "status_submitting_past_estimated_deadline_header": "Beklediğiniz için özür dileriz",
+    "status_submitting_past_estimated_deadline_description": "İşleminiz {{timeLeft}} içinde sonuçlanmazsa iptal edilir ve sizden gaz ücreti alınmaz.",
+    "status_cancelled_header": "İşleminiz iptal edildi",
+    "status_cancelled_description": "İşleminiz tamamlanamadığından gereksiz gaz ücreti ödemenizi önlemek amacıyla iptal edildi.",
+    "status_failed_header": "İşleminiz başarısız oldu",
+    "status_failed_description": "Ani piyasa değişimleri başarısızlıklara sebep olabilir. Sorun devam ederse MetaMask müşteri destek bölümüne ulaşın.",
+    "view_transaction": "İşlemi görüntüle",
+    "view_activity": "Aktiviteyi görüntüle",
+    "return_to_dapp": "{{dappName}} uygulamasına geri dön",
+    "try_again": "Tekrar deneyin",
+    "create_new": "Yeni {{txType}} oluştur",
+    "swap": "swap",
+    "send": "gönder"
   },
   "address_book": {
     "recents": "Yakın Zamanda Gerçekleşenler",
@@ -1782,6 +1862,16 @@
     "back_to_safety": "Güvenliğe geri dön"
   },
   "notifications": {
+    "stake_completed": "Stake tamamlandı",
+    "withdrawal_completed": "Para çekme işlemi tamamlandı",
+    "unstake_completed": "Unstake tamamlandı",
+    "withdrawal_requested": "Para çekme talep edildi",
+    "stake_ready_to_be_withdrawn": "Stake çekilmeye hazır",
+    "swap_completed": "{{from}} - {{to}} swap işlemi gerçekleştirildi",
+    "sent": "Alıcı: {{address}}",
+    "received": "Gönderen: {{address}}",
+    "sent_nft": "NFT alıcısı: {{address}}",
+    "received_nft": "NFT gönderen: {{address}}",
     "pending_title": "İşlem gönderildi",
     "pending_deposit_title": "Para yatırma işlemi sürüyor!",
     "pending_withdrawal_title": "Para çekme işlemi sürüyor!",
@@ -1797,9 +1887,9 @@
     "pending_deposit_message": "Yatırma işleminin tamamlanması bekleniyor",
     "pending_withdrawal_message": "Çekme işleminin tamamlanması bekleniyor",
     "error_message": "Bu işlemi görüntülemek için dokunun",
-    "error_retrieving_fcm_token": "Error while getting and saving FCM token",
-    "error_fcm_not_found": "getFCMToken: No FCM token found",
-    "error_checking_permission": "Error checking if a user has push notifications permission",
+    "error_retrieving_fcm_token": "FCM token'i alınırken ve kaydedilirken hata oldu",
+    "error_fcm_not_found": "getFCMToken: FCM token'i bulunamadı",
+    "error_checking_permission": "Kullanıcının anlık bildirimler izni olup olmadığı kontrol edilirken hata oluştu",
     "success_message": "Bu işlemi görüntülemek için dokunun",
     "speedup_message": "İşlem hızlandırılmaya çalışılıyor",
     "success_deposit_message": "Paranız kullanıma hazır",
@@ -1819,7 +1909,30 @@
     "wc_signed_failed_title": "Bu imza talebi başarısız oldu",
     "wc_sent_tx_rejected_title": "İşlem talebini reddettin",
     "approved_tx_rejected_title": "İzin vermeyi reddettiniz",
-    "wc_description": "Lütfen uygulamayı kontrol edin"
+    "wc_description": "Lütfen uygulamayı kontrol edin",
+    "wallet": "Cüzdan",
+    "web3": "Web3",
+    "empty": {
+      "title": "Burada gösterilecek bir şey yok",
+      "message": "Burası cüzdanınızda aktivite olduğunda bildirimleri bulabileceğiniz yerdir. "
+    },
+    "list": {
+      "0": "Tümü",
+      "1": "Cüzdan",
+      "2": "Duyurular"
+    },
+    "address_copied_to_clipboard": "Adres hafıza panosuna kopyalandı",
+    "transaction_id_copied_to_clipboard": "İşlem numarası hafıza panosuna kopyalandı",
+    "activation_card": {
+      "title": "Bildirimleri aç",
+      "description_1": "Bildirimler ile cüzdanınızda neler olduğundan haberdar olun. ",
+      "description_2": "Bu özelliği kullanmak üzere hesabınız için anonim bir kimlik oluşturacağız. Bu kimlik sadece MetaMask'teki verilerinizi senkronize etmek için kullanılır ve aktivitelerinizi veya diğer tanımlayıcıları bağlamayarak gizliliğinizi korur.",
+      "learn_more": "Bu özelliği kullanırken gizliliğinizi nasıl koruduğumuzu öğrenin. ",
+      "manage_preferences_1": "Bildirimleri dilediğiniz zaman şurada kapatabilirsiniz: ",
+      "manage_preferences_2": "Ayarlar > Bildirimler.",
+      "cancel": "İptal",
+      "cta": "Aç"
+    }
   },
   "protect_your_wallet_modal": {
     "title": "Cüzdanınızı koruyun",
@@ -2420,13 +2533,28 @@
       "title": "Güvenlik uyarıları ile güvende kalın",
       "description_1": "Blockaid tarafından desteklenen güvenlik uyarıları ile gizliliğinizi korumaya devam ederken bilinen dolandırıcılıklardan güvenli bir şekilde uzakta kalın. Bu özellik şu anda tüm MetaMask kullanıcıları için varsayılan olarak açıktır.",
       "description_2": "Talepleri onaylamadan önce kendiniz her zaman gerekli özeni gösterin.",
-      "description_3": "Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon ve Sepolia için sunulur.",
+      "description_3": "Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Linea, Optimism, Polygon, Sepolia ve Base için sunulur.",
       "got_it": "Anladım"
     },
     "sell": {
       "title": "Paraya çevirmek artık kolay",
       "description": "Kriptonuzu doğrudan MetaMask'ta satın! Kriptonuzu her defasında erişilebilir, hızlı ve güvenli bir şekilde satabilmeniz için güvenilir sağlayıcılardan teklifleri bulmanıza yardımcı olacağız.",
       "action_text": "Deneyin"
+    },
+    "stx": {
+      "header": "Akıllı İşlemler Tanıtımı",
+      "description_1": "En emniyetli, en güvenilir ve en kolay işlem deneyimini açın: Web3'te gezinmenin daha akıllı bir yolu.",
+      "description_2": "Başarısız işlemler ve arkadan çalıştırma nedeniyle her ay milyonlarca dolar kaybediliyor. Akıllı işlemler bu sorunu çözüyor.",
+      "description_3": "Şu anda, Akıllı İşlemler sadece ETH Ana Ağı üzerinde kullanılabilir. Dilediğiniz zaman ayarlar kısmında kapatabilirsiniz.",
+      "secondary_button": "Şimdi değil",
+      "primary_button": "Akıllı İşlemleri Etkinleştir",
+      "learn_more": "Daha fazla bilgi edinin.",
+      "benefit_1_1": "%82 oranında daha az başarısız",
+      "benefit_1_2": "işlem",
+      "benefit_2_1": "İşlem",
+      "benefit_2_2": "koruma",
+      "benefit_3_1": "Gerçek zamanlı",
+      "benefit_3_2": "güncellemeler"
     }
   },
   "invalid_network": {
@@ -2845,6 +2973,31 @@
     "error_description": "{{snap}} yüklemesi başarısız oldu."
   },
   "stake": {
-    "stake": "Stake"
+    "stake": "Pay"
+  },
+  "default_settings": {
+    "title": "Your Wallet is ready",
+    "description": "MetaMask uses default settings to best balance safety and ease of use. Change these settings to further increase your privacy.",
+    "learn_more_about_privacy": "Learn more about privacy best practices.",
+    "privacy_policy": "Privacy policy",
+    "default_settings": "Default Settings",
+    "done": "Done",
+    "basic_functionality": "Basic functionality",
+    "manage_networks": "Manage networks",
+    "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
+    "manage_networks_body2": " to learn more about how Infura handles data.",
+    "functionality_body": "Includes token data and value, optimal gas settings, security updates, and more. Using these services shares your IP address with MetaMask, just like when you visit a website.",
+    "sheet": {
+      "title_off": "Turn off basic functionality",
+      "description_off": "This means you won't fully optimize your time on MetaMask. Basic features (like token details, optimal gas settings, and others) won't be available to you.",
+      "title_on": "Turn on basic functionality",
+      "description_on": "To optimize your time on MetaMask, you’ll need to turn on this feature. Basic functions (like token details, optimal gas settings, and others) are important to the web3 experience.",
+      "checkbox_label": "I understand and want to continue",
+      "buttons": {
+        "cancel": "Cancel",
+        "turn_on": "Turn on",
+        "turn_off": "Turn off"
+      }
+    }
   }
 }
