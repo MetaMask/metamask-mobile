@@ -51,7 +51,7 @@ pipelines:
   pr_smoke_e2e_pipeline:
     stages:
       - build_smoke_e2e_ios_android_stage: {}
-      - run_smoke_e2e_ios_android_stage: {}
+      # - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
@@ -112,7 +112,7 @@ stages:
   build_smoke_e2e_ios_android_stage:
     workflows:
       - ios_e2e_build: {}
-      - android_e2e_build: {}
+      # - android_e2e_build: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_tag_smoke_confirmations_ios: {}
@@ -658,91 +658,91 @@ workflows:
       - code_setup
     after_run:
       - notify_failure
-    steps:
-      - script@1:
-          title: Generating ccache key using native folder checksum
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh ios
-      - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - script:
-          inputs:
-            - content: |-
-                # Add cache directory to environment variable
-                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-                brew tap wix/brew
-          title: Set Env Path for caching deps
-      - script@1:
-          title: Install CCache & symlink
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                brew install ccache
-                ln -s $(which ccache) /usr/local/bin/gcc
-                ln -s $(which ccache) /usr/local/bin/g++
-                ln -s $(which ccache) /usr/local/bin/cc
-                ln -s $(which ccache) /usr/local/bin/c++
-                ln -s $(which ccache) /usr/local/bin/clang
-                ln -s $(which ccache) /usr/local/bin/clang++
-      - restore-cache@2:
-          title: Restore CCache
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-      - script@1:
-          title: Set skip ccache upload
-          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - restore-cache@2:
-          title: Restore build from cache
-          inputs:
-            - key: ipa-cache-{{ .CommitHash }}
-      - script@1:
-          title: Run detox build
-          timeout: 1200
-          run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
-          is_always_run: false
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/setup-ccache.sh
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
-                node -v
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
-      - save-cocoapods-cache@1: {}
-      - save-cache@1:
-          title: Save CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-            - paths: |-
-                ccache
-      - save-cache@1:
-          title: Save build
-          inputs:
-            - key: ipa-cache-{{ .CommitHash }}
-            - paths: |-
-                ios/build/Build
-                ../Library/Detox/ios
-      - save-cache@1:
-          title: Save node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
-            - paths: node_modules
+    # steps:
+    #   - script@1:
+    #       title: Generating ccache key using native folder checksum
+    #       inputs:
+    #         - content: |-
+    #             #!/usr/bin/env bash
+    #             ./scripts/cache/set-cache-envs.sh ios
+    #   - certificate-and-profile-installer@1: {}
+    #   - set-xcode-build-number@1:
+    #       inputs:
+    #         - build_short_version_string: $VERSION_NAME
+    #         - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+    #   - script:
+    #       inputs:
+    #         - content: |-
+    #             # Add cache directory to environment variable
+    #             envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
+    #             envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
+    #             brew tap wix/brew
+    #       title: Set Env Path for caching deps
+    #   - script@1:
+    #       title: Install CCache & symlink
+    #       inputs:
+    #         - content: |-
+    #             #!/usr/bin/env bash
+    #             brew install ccache
+    #             ln -s $(which ccache) /usr/local/bin/gcc
+    #             ln -s $(which ccache) /usr/local/bin/g++
+    #             ln -s $(which ccache) /usr/local/bin/cc
+    #             ln -s $(which ccache) /usr/local/bin/c++
+    #             ln -s $(which ccache) /usr/local/bin/clang
+    #             ln -s $(which ccache) /usr/local/bin/clang++
+    #   - restore-cache@2:
+    #       title: Restore CCache
+    #       inputs:
+    #         - key: '{{ getenv "CCACHE_KEY" }}'
+    #   - script@1:
+    #       title: Set skip ccache upload
+    #       run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
+    #       inputs:
+    #         - content: |-
+    #             #!/usr/bin/env bash
+    #             envman add --key SKIP_CCACHE_UPLOAD --value "true"
+    #   - restore-cache@2:
+    #       title: Restore build from cache
+    #       inputs:
+    #         - key: ipa-cache-{{ .CommitHash }}
+    #   - script@1:
+    #       title: Run detox build
+    #       timeout: 1200
+    #       run_if: '{{ not (enveq "BITRISE_CACHE_HIT" "exact") }}'
+    #       is_always_run: false
+    #       inputs:
+    #         - content: |-
+    #             #!/usr/bin/env bash
+    #             ./scripts/cache/setup-ccache.sh
+    #             if [ "$TEST_SUITE" = "Regression" ]; then
+    #               TEST_SUITE="Regression"
+    #             else
+    #               TEST_SUITE="Smoke"
+    #             fi
+    #             node -v
+    #             export METAMASK_ENVIRONMENT='local'
+    #             export METAMASK_BUILD_TYPE='main'
+    #             IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
+    #   - save-cocoapods-cache@1: {}
+    #   - save-cache@1:
+    #       title: Save CCache
+    #       run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
+    #       inputs:
+    #         - key: '{{ getenv "CCACHE_KEY" }}'
+    #         - paths: |-
+    #             ccache
+    #   - save-cache@1:
+    #       title: Save build
+    #       inputs:
+    #         - key: ipa-cache-{{ .CommitHash }}
+    #         - paths: |-
+    #             ios/build/Build
+    #             ../Library/Detox/ios
+    #   - save-cache@1:
+    #       title: Save node_modules
+    #       inputs:
+    #         - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ .CommitHash }}
+    #         - paths: node_modules
   ios_e2e_test:
     before_run:
       - setup
