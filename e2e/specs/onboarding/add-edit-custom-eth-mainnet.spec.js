@@ -13,7 +13,6 @@ import WalletView from '../../pages/WalletView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import NetworksView from '../../pages/Settings/NetworksView';
 import Accounts from '../../../wdio/helpers/Accounts';
-import { DEFAULT_MAINNET_CUSTOM_NAME } from '../../../app/constants/network';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import TabBarComponent from '../../pages/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -70,7 +69,9 @@ describe(Regression('Add custom default ETH Mainnet'), () => {
   });
 
   it('should show custom default ETH Mainnet as active', async () => {
-    await WalletView.isNetworkNameVisible(DEFAULT_MAINNET_CUSTOM_NAME);
+    await WalletView.isNetworkNameVisible(
+      CustomNetworks.EthereumMainCustom.providerConfig.nickname,
+    );
   });
 
   it('should tap to close the whats new modal if displayed', async () => {
