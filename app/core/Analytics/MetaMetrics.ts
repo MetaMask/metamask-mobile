@@ -35,6 +35,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import preProcessAnalyticsEvent from '../../util/events/preProcessAnalyticsEvent';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -585,6 +586,41 @@ class MetaMetrics implements IMetaMetrics {
     return Promise.resolve();
   };
 
+  handleEvent = (
+    event: IMetaMetricsEvent,
+    params: JsonMap,
+    saveDataRecording: boolean,
+    anon?: boolean,
+  ) => {
+    if (!params || Object.keys(params).length === 0) {
+      this.#trackEvent(
+        event?.category,
+        { anonymous: anon || false, ...event?.properties },
+        saveDataRecording,
+      );
+    }
+    const [userParams, anonymousParams] = preProcessAnalyticsEvent(params);
+
+    // Log all non-anonymous properties
+    if (Object.keys(userParams).length) {
+      this.#trackEvent(
+        event?.category,
+        { anonymous: false, ...event?.properties, ...userParams },
+        saveDataRecording,
+      );
+    }
+
+    // Log all anonymous properties
+    if (Object.keys(anonymousParams).length) {
+      this.#trackEvent(
+        event.category,
+        { anonymous: true, ...anonymousParams },
+        saveDataRecording,
+      );
+      this.#trackEvent(event.category, { anonymous: true }, saveDataRecording);
+    }
+  };
+
   /**
    * Track an anonymous event
    *
@@ -603,12 +639,7 @@ class MetaMetrics implements IMetaMetrics {
     saveDataRecording = true,
   ): void {
     if (this.enabled) {
-      this.#trackEvent(
-        event.category,
-        { anonymous: true, ...properties },
-        saveDataRecording,
-      );
-      this.#trackEvent(event.category, { anonymous: true }, saveDataRecording);
+      this.handleEvent(event, properties, saveDataRecording, true);
     }
   }
 
@@ -625,12 +656,7 @@ class MetaMetrics implements IMetaMetrics {
     saveDataRecording = true,
   ): void => {
     if (this.enabled) {
-      this.#trackEvent(
-        // NOTE: we use optional event to avoid undefined error in case of legacy untyped call form JS
-        event?.category,
-        { anonymous: false, ...event?.properties, ...properties },
-        saveDataRecording,
-      );
+      this.handleEvent(event, properties, saveDataRecording);
     }
   };
 

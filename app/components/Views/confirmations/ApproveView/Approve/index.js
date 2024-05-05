@@ -60,7 +60,6 @@ import {
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
 import {
@@ -69,7 +68,7 @@ import {
 } from '../../../../../selectors/accountTrackerController';
 import ShowBlockExplorer from '../../components/ApproveTransactionReview/ShowBlockExplorer';
 import createStyles from './styles';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 import { getLedgerKeyring } from '../../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { updateTransaction } from '../../../../../util/transaction-controller';
@@ -337,7 +336,7 @@ class Approve extends PureComponent {
       if (!approved)
         Engine.rejectPendingApproval(
           transaction.id,
-          ethErrors.provider.userRejectedRequest(),
+          providerErrors.userRejectedRequest(),
           {
             ignoreMissing: true,
             logErrors: false,
@@ -351,7 +350,7 @@ class Approve extends PureComponent {
       const { transaction } = this.props;
       Engine.rejectPendingApproval(
         transaction?.id,
-        ethErrors.provider.userRejectedRequest(),
+        providerErrors.userRejectedRequest(),
         {
           ignoreMissing: true,
           logErrors: false,
@@ -594,7 +593,7 @@ class Approve extends PureComponent {
     const { metrics, hideModal } = this.props;
     Engine.rejectPendingApproval(
       this.props.transaction.id,
-      ethErrors.provider.userRejectedRequest(),
+      providerErrors.userRejectedRequest(),
       {
         ignoreMissing: true,
         logErrors: false,
@@ -899,7 +898,6 @@ const mapStateToProps = (state) => ({
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  nativeCurrency: selectNativeCurrency(state),
   showCustomNonce: state.settings.showCustomNonce,
   addressBook: state.engine.backgroundState.AddressBookController.addressBook,
   providerType: selectProviderType(state),

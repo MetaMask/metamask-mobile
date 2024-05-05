@@ -6,6 +6,7 @@ import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
+import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import WalletView from '../../pages/WalletView';
 import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -52,6 +53,7 @@ describe(
       await ProtectYourWalletView.tapOnRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
+      await OnboardingSuccessView.tapDone();
       await WalletView.isVisible();
     });
 
@@ -65,9 +67,11 @@ describe(
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
       try {
-        await OnboardingWizardModal.isVisible();
+        await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
         await OnboardingWizardModal.tapNoThanksButton();
-        await OnboardingWizardModal.isNotVisible();
+        await Assertions.checkIfNotVisible(
+          OnboardingWizardModal.stepOneContainer,
+        );
       } catch {
         //
       }
@@ -85,7 +89,9 @@ describe(
     });
 
     it('should dismiss the protect your wallet modal', async () => {
-      await ProtectYourWalletModal.isCollapsedBackUpYourWalletModalVisible();
+      await Assertions.checkIfVisible(
+        ProtectYourWalletModal.collapseWalletModal,
+      );
       await TestHelpers.delay(1000);
       await ProtectYourWalletModal.tapRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
@@ -121,9 +127,11 @@ describe(
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
       try {
-        await OnboardingWizardModal.isVisible();
+        await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
         await OnboardingWizardModal.tapNoThanksButton();
-        await OnboardingWizardModal.isNotVisible();
+        await Assertions.checkIfNotVisible(
+          OnboardingWizardModal.stepOneContainer,
+        );
       } catch {
         //
       }

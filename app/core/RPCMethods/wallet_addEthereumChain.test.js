@@ -1,5 +1,5 @@
 import { InteractionManager } from 'react-native';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 import wallet_addEthereumChain from './wallet_addEthereumChain';
 import Engine from '../Engine';
 
@@ -27,7 +27,7 @@ jest.mock('../Engine', () => ({
       upsertNetworkConfiguration: jest.fn(),
     },
     CurrencyRateController: {
-      setNativeCurrency: jest.fn(),
+      updateExchangeRate: jest.fn(),
     },
     ApprovalController: {
       clear: jest.fn(),
@@ -284,7 +284,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
           ...otherOptions,
           requestUserApproval: jest.fn(() => Promise.reject()),
         }),
-      ).rejects.toThrow(ethErrors.provider.userRejectedRequest());
+      ).rejects.toThrow(providerErrors.userRejectedRequest());
 
       expect(otherOptions.startApprovalFlow).toBeCalledTimes(1);
       expect(otherOptions.endApprovalFlow).toBeCalledTimes(1);

@@ -3,7 +3,7 @@
 exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -11,8 +11,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -23,7 +23,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -39,7 +39,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -53,12 +53,12 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "rgb(255, 255, 255)",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -72,7 +72,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -84,7 +84,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -92,7 +92,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -104,7 +104,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 16,
                   "opacity": 1,
                 }
@@ -117,7 +117,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
-                  Object {
+                  {
                     "color": "rgb(28, 28, 30)",
                     "fontSize": 17,
                     "fontWeight": "600",
@@ -134,7 +134,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -144,7 +144,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -153,7 +153,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -165,7 +165,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -183,11 +183,11 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -197,10 +197,10 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -209,9 +209,9 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -228,7 +228,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -239,13 +239,13 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -256,13 +256,13 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -275,13 +275,13 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -291,7 +291,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -299,14 +299,14 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <View
                       style={
-                        Object {
+                        {
                           "backgroundColor": "#FFFFFF",
                           "flex": 1,
                         }
@@ -318,7 +318,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                         ListHeaderComponent={
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "flexDirection": "row",
                                 "justifyContent": "space-between",
@@ -329,7 +329,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                           >
                             <Text
                               style={
-                                Object {
+                                {
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 32,
                                   "fontWeight": "500",
@@ -346,7 +346,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               onPress={[Function]}
                               size="40"
                               style={
-                                Object {
+                                {
                                   "marginVertical": 5,
                                 }
                               }
@@ -357,8 +357,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                           </View>
                         }
                         data={
-                          Array [
-                            Object {
+                          [
+                            {
                               "address": "0x0",
                               "balanceFiat": "< $0.01",
                               "decimals": 18,
@@ -367,7 +367,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "name": "Ethereum",
                               "symbol": "ETH",
                             },
-                            Object {
+                            {
                               "address": "0x01",
                               "balanceFiat": "$0",
                               "decimals": 18,
@@ -390,7 +390,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                         refreshControl={
                           <RefreshControlMock
                             colors={
-                              Array [
+                              [
                                 "#0376C9",
                               ]
                             }
@@ -402,8 +402,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                         removeClippedSubviews={false}
                         renderItem={[Function]}
                         scrollEventThrottle={50}
-                        stickyHeaderIndices={Array []}
-                        viewabilityConfigCallbackPairs={Array []}
+                        stickyHeaderIndices={[]}
+                        viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
                         <View>
@@ -412,7 +412,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "space-between",
@@ -424,7 +424,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 32,
@@ -445,7 +445,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
                                     "backgroundColor": "transparent",
@@ -465,7 +465,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#0376C9",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
@@ -482,7 +482,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   height={16}
                                   name="Export"
                                   style={
-                                    Object {
+                                    {
                                       "height": 16,
                                       "marginLeft": 8,
                                       "width": 16,
@@ -502,7 +502,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               onLongPress={[Function]}
                               onPress={[Function]}
                               style={
-                                Object {
+                                {
                                   "alignItems": "flex-start",
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -515,7 +515,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               <View
                                 onLayout={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignSelf": "flex-start",
                                     "position": "relative",
                                   }
@@ -531,13 +531,13 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       onError={[Function]}
                                       onLoadEnd={[Function]}
                                       source={
-                                        Object {
+                                        {
                                           "uri": undefined,
                                         }
                                       }
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "borderRadius": 12,
                                             "height": 24,
                                             "width": 24,
@@ -545,7 +545,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                           undefined,
                                           undefined,
                                           undefined,
-                                          Object {
+                                          {
                                             "borderRadius": 16,
                                             "height": 32,
                                             "overflow": "hidden",
@@ -557,7 +557,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     <View
                                       collapsable={false}
                                       style={
-                                        Object {
+                                        {
                                           "bottom": 0,
                                           "left": 0,
                                           "opacity": 1,
@@ -569,14 +569,14 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                     >
                                       <View
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "borderRadius": 16,
                                               "height": 32,
                                               "overflow": "hidden",
                                               "width": 32,
                                             },
-                                            Object {
+                                            {
                                               "backgroundColor": "#eee",
                                             },
                                             undefined,
@@ -588,7 +588,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 </View>
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
                                       "height": 0,
@@ -596,11 +596,11 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "position": "absolute",
                                       "right": 0,
                                       "top": 0,
-                                      "transform": Array [
-                                        Object {
+                                      "transform": [
+                                        {
                                           "translateX": 0,
                                         },
-                                        Object {
+                                        {
                                           "translateY": -0,
                                         },
                                       ],
@@ -610,12 +610,13 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   <View
                                     onLayout={[Function]}
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -623,13 +624,24 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
+                                          "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
+                                          "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "transform": Array [
-                                            Object {
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
                                               "scale": 1,
                                             },
                                           ],
@@ -641,15 +653,14 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
+                                          {
                                             "uri": "MockImage",
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -660,32 +671,121 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "flex": 1,
                                     "justifyContent": "center",
                                     "marginLeft": 20,
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                    {
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  Ethereum
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Ethereum
+                                  </Text>
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
+                                    }
+                                    testID="stake-button"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                       • 
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Stake 
+                                      </Text>
+                                    </Text>
+                                    <SvgMock
+                                      color="#0376C9"
+                                      height={16}
+                                      name="Plant"
+                                      style={
+                                        {
+                                          "height": 16,
+                                          "width": 16,
+                                        }
+                                      }
+                                      width={16}
+                                    />
+                                  </View>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#535A61",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
@@ -718,7 +818,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 scrollTo={null}
                                 statusBarTranslucent={false}
                                 supportedOrientations={
-                                  Array [
+                                  [
                                     "portrait",
                                     "landscape",
                                   ]
@@ -731,7 +831,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
@@ -754,7 +854,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               onLongPress={[Function]}
                               onPress={[Function]}
                               style={
-                                Object {
+                                {
                                   "alignItems": "flex-start",
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -767,7 +867,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               <View
                                 onLayout={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignSelf": "flex-start",
                                     "position": "relative",
                                   }
@@ -777,7 +877,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 <View>
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "backgroundColor": "#FFFFFF",
                                         "borderRadius": 16,
                                         "height": 32,
@@ -791,12 +891,12 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       onError={[Function]}
                                       resizeMode="contain"
                                       source={
-                                        Object {
+                                        {
                                           "uri": undefined,
                                         }
                                       }
                                       style={
-                                        Object {
+                                        {
                                           "flex": 1,
                                           "height": undefined,
                                           "width": undefined,
@@ -808,7 +908,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 </View>
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
                                       "height": 0,
@@ -816,11 +916,11 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "position": "absolute",
                                       "right": 0,
                                       "top": 0,
-                                      "transform": Array [
-                                        Object {
+                                      "transform": [
+                                        {
                                           "translateX": 0,
                                         },
-                                        Object {
+                                        {
                                           "translateY": -0,
                                         },
                                       ],
@@ -830,12 +930,13 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   <View
                                     onLayout={[Function]}
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -843,13 +944,24 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
+                                          "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
+                                          "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "transform": Array [
-                                            Object {
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
                                               "scale": 1,
                                             },
                                           ],
@@ -861,15 +973,14 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
+                                          {
                                             "uri": "MockImage",
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -880,32 +991,40 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "flex": 1,
                                     "justifyContent": "center",
                                     "marginLeft": 20,
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                    {
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  Bat
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Bat
+                                  </Text>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#535A61",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
@@ -938,7 +1057,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 scrollTo={null}
                                 statusBarTranslucent={false}
                                 supportedOrientations={
-                                  Array [
+                                  [
                                     "portrait",
                                     "landscape",
                                   ]
@@ -951,7 +1070,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
@@ -970,7 +1089,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flex": 1,
                                   "marginTop": 9,
@@ -982,7 +1101,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "justifyContent": "center",
@@ -993,7 +1112,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#24272A",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
@@ -1007,7 +1126,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
+                                      {
                                         "color": "#535A61",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
@@ -1024,7 +1143,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
+                                      {
                                         "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
@@ -1058,7 +1177,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
 exports[`Tokens should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -1066,8 +1185,8 @@ exports[`Tokens should render correctly 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -1078,7 +1197,7 @@ exports[`Tokens should render correctly 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -1094,7 +1213,7 @@ exports[`Tokens should render correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -1108,12 +1227,12 @@ exports[`Tokens should render correctly 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "rgb(255, 255, 255)",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -1127,7 +1246,7 @@ exports[`Tokens should render correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -1139,7 +1258,7 @@ exports[`Tokens should render correctly 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -1147,7 +1266,7 @@ exports[`Tokens should render correctly 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -1159,7 +1278,7 @@ exports[`Tokens should render correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 16,
                   "opacity": 1,
                 }
@@ -1172,7 +1291,7 @@ exports[`Tokens should render correctly 1`] = `
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
-                  Object {
+                  {
                     "color": "rgb(28, 28, 30)",
                     "fontSize": 17,
                     "fontWeight": "600",
@@ -1189,7 +1308,7 @@ exports[`Tokens should render correctly 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -1199,7 +1318,7 @@ exports[`Tokens should render correctly 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -1208,7 +1327,7 @@ exports[`Tokens should render correctly 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -1220,7 +1339,7 @@ exports[`Tokens should render correctly 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -1238,11 +1357,11 @@ exports[`Tokens should render correctly 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -1252,10 +1371,10 @@ exports[`Tokens should render correctly 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1264,9 +1383,9 @@ exports[`Tokens should render correctly 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1283,7 +1402,7 @@ exports[`Tokens should render correctly 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -1294,13 +1413,13 @@ exports[`Tokens should render correctly 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -1311,13 +1430,13 @@ exports[`Tokens should render correctly 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -1330,13 +1449,13 @@ exports[`Tokens should render correctly 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -1346,7 +1465,7 @@ exports[`Tokens should render correctly 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -1354,14 +1473,14 @@ exports[`Tokens should render correctly 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <View
                       style={
-                        Object {
+                        {
                           "backgroundColor": "#FFFFFF",
                           "flex": 1,
                         }
@@ -1373,7 +1492,7 @@ exports[`Tokens should render correctly 1`] = `
                         ListHeaderComponent={
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "flexDirection": "row",
                                 "justifyContent": "space-between",
@@ -1384,7 +1503,7 @@ exports[`Tokens should render correctly 1`] = `
                           >
                             <Text
                               style={
-                                Object {
+                                {
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 32,
                                   "fontWeight": "500",
@@ -1401,7 +1520,7 @@ exports[`Tokens should render correctly 1`] = `
                               onPress={[Function]}
                               size="40"
                               style={
-                                Object {
+                                {
                                   "marginVertical": 5,
                                 }
                               }
@@ -1412,8 +1531,8 @@ exports[`Tokens should render correctly 1`] = `
                           </View>
                         }
                         data={
-                          Array [
-                            Object {
+                          [
+                            {
                               "address": "0x0",
                               "balanceFiat": "< $0.01",
                               "decimals": 18,
@@ -1422,7 +1541,7 @@ exports[`Tokens should render correctly 1`] = `
                               "name": "Ethereum",
                               "symbol": "ETH",
                             },
-                            Object {
+                            {
                               "address": "0x01",
                               "balanceFiat": "$0",
                               "decimals": 18,
@@ -1445,7 +1564,7 @@ exports[`Tokens should render correctly 1`] = `
                         refreshControl={
                           <RefreshControlMock
                             colors={
-                              Array [
+                              [
                                 "#0376C9",
                               ]
                             }
@@ -1457,8 +1576,8 @@ exports[`Tokens should render correctly 1`] = `
                         removeClippedSubviews={false}
                         renderItem={[Function]}
                         scrollEventThrottle={50}
-                        stickyHeaderIndices={Array []}
-                        viewabilityConfigCallbackPairs={Array []}
+                        stickyHeaderIndices={[]}
+                        viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
                         <View>
@@ -1467,7 +1586,7 @@ exports[`Tokens should render correctly 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "space-between",
@@ -1479,7 +1598,7 @@ exports[`Tokens should render correctly 1`] = `
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 32,
@@ -1500,7 +1619,7 @@ exports[`Tokens should render correctly 1`] = `
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
                                     "backgroundColor": "transparent",
@@ -1520,7 +1639,7 @@ exports[`Tokens should render correctly 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#0376C9",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
@@ -1537,7 +1656,7 @@ exports[`Tokens should render correctly 1`] = `
                                   height={16}
                                   name="Export"
                                   style={
-                                    Object {
+                                    {
                                       "height": 16,
                                       "marginLeft": 8,
                                       "width": 16,
@@ -1557,7 +1676,7 @@ exports[`Tokens should render correctly 1`] = `
                               onLongPress={[Function]}
                               onPress={[Function]}
                               style={
-                                Object {
+                                {
                                   "alignItems": "flex-start",
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -1570,7 +1689,7 @@ exports[`Tokens should render correctly 1`] = `
                               <View
                                 onLayout={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignSelf": "flex-start",
                                     "position": "relative",
                                   }
@@ -1586,13 +1705,13 @@ exports[`Tokens should render correctly 1`] = `
                                       onError={[Function]}
                                       onLoadEnd={[Function]}
                                       source={
-                                        Object {
+                                        {
                                           "uri": undefined,
                                         }
                                       }
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "borderRadius": 12,
                                             "height": 24,
                                             "width": 24,
@@ -1600,7 +1719,7 @@ exports[`Tokens should render correctly 1`] = `
                                           undefined,
                                           undefined,
                                           undefined,
-                                          Object {
+                                          {
                                             "borderRadius": 16,
                                             "height": 32,
                                             "overflow": "hidden",
@@ -1612,7 +1731,7 @@ exports[`Tokens should render correctly 1`] = `
                                     <View
                                       collapsable={false}
                                       style={
-                                        Object {
+                                        {
                                           "bottom": 0,
                                           "left": 0,
                                           "opacity": 1,
@@ -1624,14 +1743,14 @@ exports[`Tokens should render correctly 1`] = `
                                     >
                                       <View
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "borderRadius": 16,
                                               "height": 32,
                                               "overflow": "hidden",
                                               "width": 32,
                                             },
-                                            Object {
+                                            {
                                               "backgroundColor": "#eee",
                                             },
                                             undefined,
@@ -1643,7 +1762,7 @@ exports[`Tokens should render correctly 1`] = `
                                 </View>
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
                                       "height": 0,
@@ -1651,11 +1770,11 @@ exports[`Tokens should render correctly 1`] = `
                                       "position": "absolute",
                                       "right": 0,
                                       "top": 0,
-                                      "transform": Array [
-                                        Object {
+                                      "transform": [
+                                        {
                                           "translateX": 0,
                                         },
-                                        Object {
+                                        {
                                           "translateY": -0,
                                         },
                                       ],
@@ -1665,12 +1784,13 @@ exports[`Tokens should render correctly 1`] = `
                                   <View
                                     onLayout={[Function]}
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -1678,13 +1798,24 @@ exports[`Tokens should render correctly 1`] = `
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
+                                          "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
+                                          "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "transform": Array [
-                                            Object {
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
                                               "scale": 1,
                                             },
                                           ],
@@ -1696,15 +1827,14 @@ exports[`Tokens should render correctly 1`] = `
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
+                                          {
                                             "uri": "MockImage",
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -1715,32 +1845,121 @@ exports[`Tokens should render correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "flex": 1,
                                     "justifyContent": "center",
                                     "marginLeft": 20,
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                    {
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  Ethereum
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Ethereum
+                                  </Text>
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
+                                    }
+                                    testID="stake-button"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                       • 
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Stake 
+                                      </Text>
+                                    </Text>
+                                    <SvgMock
+                                      color="#0376C9"
+                                      height={16}
+                                      name="Plant"
+                                      style={
+                                        {
+                                          "height": 16,
+                                          "width": 16,
+                                        }
+                                      }
+                                      width={16}
+                                    />
+                                  </View>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#535A61",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
@@ -1773,7 +1992,7 @@ exports[`Tokens should render correctly 1`] = `
                                 scrollTo={null}
                                 statusBarTranslucent={false}
                                 supportedOrientations={
-                                  Array [
+                                  [
                                     "portrait",
                                     "landscape",
                                   ]
@@ -1786,7 +2005,7 @@ exports[`Tokens should render correctly 1`] = `
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
@@ -1809,7 +2028,7 @@ exports[`Tokens should render correctly 1`] = `
                               onLongPress={[Function]}
                               onPress={[Function]}
                               style={
-                                Object {
+                                {
                                   "alignItems": "flex-start",
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -1822,7 +2041,7 @@ exports[`Tokens should render correctly 1`] = `
                               <View
                                 onLayout={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignSelf": "flex-start",
                                     "position": "relative",
                                   }
@@ -1832,7 +2051,7 @@ exports[`Tokens should render correctly 1`] = `
                                 <View>
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "backgroundColor": "#FFFFFF",
                                         "borderRadius": 16,
                                         "height": 32,
@@ -1846,12 +2065,12 @@ exports[`Tokens should render correctly 1`] = `
                                       onError={[Function]}
                                       resizeMode="contain"
                                       source={
-                                        Object {
+                                        {
                                           "uri": undefined,
                                         }
                                       }
                                       style={
-                                        Object {
+                                        {
                                           "flex": 1,
                                           "height": undefined,
                                           "width": undefined,
@@ -1863,7 +2082,7 @@ exports[`Tokens should render correctly 1`] = `
                                 </View>
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
                                       "height": 0,
@@ -1871,11 +2090,11 @@ exports[`Tokens should render correctly 1`] = `
                                       "position": "absolute",
                                       "right": 0,
                                       "top": 0,
-                                      "transform": Array [
-                                        Object {
+                                      "transform": [
+                                        {
                                           "translateX": 0,
                                         },
-                                        Object {
+                                        {
                                           "translateY": -0,
                                         },
                                       ],
@@ -1885,12 +2104,13 @@ exports[`Tokens should render correctly 1`] = `
                                   <View
                                     onLayout={[Function]}
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -1898,13 +2118,24 @@ exports[`Tokens should render correctly 1`] = `
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
+                                          "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
+                                          "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "transform": Array [
-                                            Object {
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
                                               "scale": 1,
                                             },
                                           ],
@@ -1916,15 +2147,14 @@ exports[`Tokens should render correctly 1`] = `
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
+                                          {
                                             "uri": "MockImage",
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -1935,32 +2165,40 @@ exports[`Tokens should render correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "flex": 1,
                                     "justifyContent": "center",
                                     "marginLeft": 20,
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                    {
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  Bat
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Bat
+                                  </Text>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#535A61",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
@@ -1993,7 +2231,7 @@ exports[`Tokens should render correctly 1`] = `
                                 scrollTo={null}
                                 statusBarTranslucent={false}
                                 supportedOrientations={
-                                  Array [
+                                  [
                                     "portrait",
                                     "landscape",
                                   ]
@@ -2006,7 +2244,7 @@ exports[`Tokens should render correctly 1`] = `
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
@@ -2025,7 +2263,7 @@ exports[`Tokens should render correctly 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flex": 1,
                                   "marginTop": 9,
@@ -2037,7 +2275,7 @@ exports[`Tokens should render correctly 1`] = `
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "justifyContent": "center",
@@ -2048,7 +2286,7 @@ exports[`Tokens should render correctly 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#24272A",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
@@ -2062,7 +2300,7 @@ exports[`Tokens should render correctly 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
+                                      {
                                         "color": "#535A61",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
@@ -2079,7 +2317,7 @@ exports[`Tokens should render correctly 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
+                                      {
                                         "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
@@ -2113,7 +2351,7 @@ exports[`Tokens should render correctly 1`] = `
 exports[`Tokens should show all balance tokens when hideZeroBalanceTokens setting is off 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -2121,8 +2359,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -2133,7 +2371,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -2149,7 +2387,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -2163,12 +2401,12 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "rgb(255, 255, 255)",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -2182,7 +2420,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -2194,7 +2432,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -2202,7 +2440,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -2214,7 +2452,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 16,
                   "opacity": 1,
                 }
@@ -2227,7 +2465,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
-                  Object {
+                  {
                     "color": "rgb(28, 28, 30)",
                     "fontSize": 17,
                     "fontWeight": "600",
@@ -2244,7 +2482,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -2254,7 +2492,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -2263,7 +2501,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -2275,7 +2513,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -2293,11 +2531,11 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -2307,10 +2545,10 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -2319,9 +2557,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -2338,7 +2576,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -2349,13 +2587,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -2366,13 +2604,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -2385,13 +2623,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -2401,7 +2639,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -2409,14 +2647,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <View
                       style={
-                        Object {
+                        {
                           "backgroundColor": "#FFFFFF",
                           "flex": 1,
                         }
@@ -2428,7 +2666,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                         ListHeaderComponent={
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "flexDirection": "row",
                                 "justifyContent": "space-between",
@@ -2439,7 +2677,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                           >
                             <Text
                               style={
-                                Object {
+                                {
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 32,
                                   "fontWeight": "500",
@@ -2456,7 +2694,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               onPress={[Function]}
                               size="40"
                               style={
-                                Object {
+                                {
                                   "marginVertical": 5,
                                 }
                               }
@@ -2467,8 +2705,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                           </View>
                         }
                         data={
-                          Array [
-                            Object {
+                          [
+                            {
                               "address": "0x0",
                               "balanceFiat": "< $0.01",
                               "decimals": 18,
@@ -2477,7 +2715,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "name": "Ethereum",
                               "symbol": "ETH",
                             },
-                            Object {
+                            {
                               "address": "0x01",
                               "balanceFiat": "$0",
                               "decimals": 18,
@@ -2485,7 +2723,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "name": "Bat",
                               "symbol": "BAT",
                             },
-                            Object {
+                            {
                               "address": "0x02",
                               "balanceFiat": "$0",
                               "decimals": 18,
@@ -2508,7 +2746,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                         refreshControl={
                           <RefreshControlMock
                             colors={
-                              Array [
+                              [
                                 "#0376C9",
                               ]
                             }
@@ -2520,8 +2758,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                         removeClippedSubviews={false}
                         renderItem={[Function]}
                         scrollEventThrottle={50}
-                        stickyHeaderIndices={Array []}
-                        viewabilityConfigCallbackPairs={Array []}
+                        stickyHeaderIndices={[]}
+                        viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
                         <View>
@@ -2530,7 +2768,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "space-between",
@@ -2542,7 +2780,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 32,
@@ -2563,7 +2801,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
                                     "backgroundColor": "transparent",
@@ -2583,7 +2821,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#0376C9",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
@@ -2600,7 +2838,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   height={16}
                                   name="Export"
                                   style={
-                                    Object {
+                                    {
                                       "height": 16,
                                       "marginLeft": 8,
                                       "width": 16,
@@ -2620,7 +2858,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               onLongPress={[Function]}
                               onPress={[Function]}
                               style={
-                                Object {
+                                {
                                   "alignItems": "flex-start",
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -2633,7 +2871,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               <View
                                 onLayout={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignSelf": "flex-start",
                                     "position": "relative",
                                   }
@@ -2649,13 +2887,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       onError={[Function]}
                                       onLoadEnd={[Function]}
                                       source={
-                                        Object {
+                                        {
                                           "uri": undefined,
                                         }
                                       }
                                       style={
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "borderRadius": 12,
                                             "height": 24,
                                             "width": 24,
@@ -2663,7 +2901,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                           undefined,
                                           undefined,
                                           undefined,
-                                          Object {
+                                          {
                                             "borderRadius": 16,
                                             "height": 32,
                                             "overflow": "hidden",
@@ -2675,7 +2913,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     <View
                                       collapsable={false}
                                       style={
-                                        Object {
+                                        {
                                           "bottom": 0,
                                           "left": 0,
                                           "opacity": 1,
@@ -2687,14 +2925,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                     >
                                       <View
                                         style={
-                                          Array [
-                                            Object {
+                                          [
+                                            {
                                               "borderRadius": 16,
                                               "height": 32,
                                               "overflow": "hidden",
                                               "width": 32,
                                             },
-                                            Object {
+                                            {
                                               "backgroundColor": "#eee",
                                             },
                                             undefined,
@@ -2706,7 +2944,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 </View>
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
                                       "height": 0,
@@ -2714,11 +2952,11 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "position": "absolute",
                                       "right": 0,
                                       "top": 0,
-                                      "transform": Array [
-                                        Object {
+                                      "transform": [
+                                        {
                                           "translateX": 0,
                                         },
-                                        Object {
+                                        {
                                           "translateY": -0,
                                         },
                                       ],
@@ -2728,12 +2966,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   <View
                                     onLayout={[Function]}
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -2741,13 +2980,24 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
+                                          "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
+                                          "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "transform": Array [
-                                            Object {
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
                                               "scale": 1,
                                             },
                                           ],
@@ -2759,15 +3009,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
+                                          {
                                             "uri": "MockImage",
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -2778,32 +3027,121 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "flex": 1,
                                     "justifyContent": "center",
                                     "marginLeft": 20,
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                    {
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  Ethereum
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Ethereum
+                                  </Text>
+                                  <View
+                                    accessibilityState={
+                                      {
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": undefined,
+                                        "expanded": undefined,
+                                        "selected": undefined,
+                                      }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "flexDirection": "row",
+                                      }
+                                    }
+                                    testID="stake-button"
+                                  >
+                                    <Text
+                                      accessibilityRole="text"
+                                      style={
+                                        {
+                                          "color": "#24272A",
+                                          "fontFamily": "Euclid Circular B",
+                                          "fontSize": 16,
+                                          "fontWeight": "500",
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                       • 
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#0376C9",
+                                            "fontFamily": "Euclid Circular B",
+                                            "fontSize": 16,
+                                            "fontWeight": "500",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Stake 
+                                      </Text>
+                                    </Text>
+                                    <SvgMock
+                                      color="#0376C9"
+                                      height={16}
+                                      name="Plant"
+                                      style={
+                                        {
+                                          "height": 16,
+                                          "width": 16,
+                                        }
+                                      }
+                                      width={16}
+                                    />
+                                  </View>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#535A61",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
@@ -2836,7 +3174,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 scrollTo={null}
                                 statusBarTranslucent={false}
                                 supportedOrientations={
-                                  Array [
+                                  [
                                     "portrait",
                                     "landscape",
                                   ]
@@ -2849,7 +3187,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
@@ -2872,7 +3210,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               onLongPress={[Function]}
                               onPress={[Function]}
                               style={
-                                Object {
+                                {
                                   "alignItems": "flex-start",
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -2885,7 +3223,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               <View
                                 onLayout={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignSelf": "flex-start",
                                     "position": "relative",
                                   }
@@ -2895,7 +3233,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 <View>
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "backgroundColor": "#FFFFFF",
                                         "borderRadius": 16,
                                         "height": 32,
@@ -2909,12 +3247,12 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       onError={[Function]}
                                       resizeMode="contain"
                                       source={
-                                        Object {
+                                        {
                                           "uri": undefined,
                                         }
                                       }
                                       style={
-                                        Object {
+                                        {
                                           "flex": 1,
                                           "height": undefined,
                                           "width": undefined,
@@ -2926,7 +3264,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 </View>
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
                                       "height": 0,
@@ -2934,11 +3272,11 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "position": "absolute",
                                       "right": 0,
                                       "top": 0,
-                                      "transform": Array [
-                                        Object {
+                                      "transform": [
+                                        {
                                           "translateX": 0,
                                         },
-                                        Object {
+                                        {
                                           "translateY": -0,
                                         },
                                       ],
@@ -2948,12 +3286,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   <View
                                     onLayout={[Function]}
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -2961,13 +3300,24 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
+                                          "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
+                                          "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "transform": Array [
-                                            Object {
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
                                               "scale": 1,
                                             },
                                           ],
@@ -2979,15 +3329,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
+                                          {
                                             "uri": "MockImage",
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -2998,32 +3347,40 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "flex": 1,
                                     "justifyContent": "center",
                                     "marginLeft": 20,
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                    {
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  Bat
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Bat
+                                  </Text>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#535A61",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
@@ -3056,7 +3413,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 scrollTo={null}
                                 statusBarTranslucent={false}
                                 supportedOrientations={
-                                  Array [
+                                  [
                                     "portrait",
                                     "landscape",
                                   ]
@@ -3069,7 +3426,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
@@ -3092,7 +3449,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               onLongPress={[Function]}
                               onPress={[Function]}
                               style={
-                                Object {
+                                {
                                   "alignItems": "flex-start",
                                   "flex": 1,
                                   "flexDirection": "row",
@@ -3105,7 +3462,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               <View
                                 onLayout={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignSelf": "flex-start",
                                     "position": "relative",
                                   }
@@ -3115,7 +3472,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 <View>
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "backgroundColor": "#FFFFFF",
                                         "borderRadius": 16,
                                         "height": 32,
@@ -3129,12 +3486,12 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       onError={[Function]}
                                       resizeMode="contain"
                                       source={
-                                        Object {
+                                        {
                                           "uri": undefined,
                                         }
                                       }
                                       style={
-                                        Object {
+                                        {
                                           "flex": 1,
                                           "height": undefined,
                                           "width": undefined,
@@ -3146,7 +3503,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 </View>
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "aspectRatio": 1,
                                       "height": 0,
@@ -3154,11 +3511,11 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "position": "absolute",
                                       "right": 0,
                                       "top": 0,
-                                      "transform": Array [
-                                        Object {
+                                      "transform": [
+                                        {
                                           "translateX": 0,
                                         },
-                                        Object {
+                                        {
                                           "translateY": -0,
                                         },
                                       ],
@@ -3168,12 +3525,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   <View
                                     onLayout={[Function]}
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "aspectRatio": 1,
                                         "height": "50%",
                                         "justifyContent": "center",
-                                        "minHeight": 16,
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
                                         "opacity": 0,
                                       }
                                     }
@@ -3181,13 +3539,24 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   >
                                     <View
                                       style={
-                                        Object {
+                                        {
+                                          "alignItems": "center",
                                           "backgroundColor": "#FFFFFF",
+                                          "borderColor": "#FFFFFF",
                                           "borderRadius": 16,
+                                          "borderWidth": 2,
                                           "height": 32,
+                                          "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "transform": Array [
-                                            Object {
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
                                               "scale": 1,
                                             },
                                           ],
@@ -3199,15 +3568,14 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                         onError={[Function]}
                                         resizeMode="contain"
                                         source={
-                                          Object {
+                                          {
                                             "uri": "MockImage",
                                           }
                                         }
                                         style={
-                                          Object {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
+                                          {
+                                            "height": 32,
+                                            "width": 32,
                                           }
                                         }
                                         testID="network-avatar-image"
@@ -3218,32 +3586,40 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "flex": 1,
                                     "justifyContent": "center",
                                     "marginLeft": 20,
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                    {
+                                      "flexDirection": "row",
                                     }
                                   }
                                 >
-                                  Link
-                                </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#24272A",
+                                        "fontFamily": "Euclid Circular B",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Link
+                                  </Text>
+                                </View>
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#535A61",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
@@ -3276,7 +3652,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 scrollTo={null}
                                 statusBarTranslucent={false}
                                 supportedOrientations={
-                                  Array [
+                                  [
                                     "portrait",
                                     "landscape",
                                   ]
@@ -3289,7 +3665,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "Euclid Circular B",
                                     "fontSize": 16,
@@ -3308,7 +3684,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flex": 1,
                                   "marginTop": 9,
@@ -3320,7 +3696,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 disabled={false}
                                 onPress={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flexDirection": "row",
                                     "justifyContent": "center",
@@ -3331,7 +3707,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
+                                    {
                                       "color": "#24272A",
                                       "fontFamily": "Euclid Circular B",
                                       "fontSize": 14,
@@ -3345,7 +3721,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
+                                      {
                                         "color": "#535A61",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
@@ -3362,7 +3738,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
+                                      {
                                         "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,

@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ExperimentalSettings should render correctly 1`] = `
-Array [
+[
   <RCTScrollView
     style={
-      Object {
+      {
         "backgroundColor": "#FFFFFF",
         "flex": 1,
         "padding": 24,
@@ -16,7 +16,7 @@ Array [
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 16,
@@ -31,7 +31,7 @@ Array [
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#535A61",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -52,7 +52,7 @@ Array [
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
-          Object {
+          {
             "alignItems": "center",
             "alignSelf": "stretch",
             "backgroundColor": "transparent",
@@ -71,7 +71,7 @@ Array [
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#0376C9",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -87,7 +87,7 @@ Array [
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#24272A",
             "fontFamily": "Euclid Circular B",
             "fontSize": 24,
@@ -102,14 +102,14 @@ Array [
       </Text>
       <View
         style={
-          Object {
+          {
             "marginVertical": 16,
           }
         }
       >
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "display": "flex",
               "flexDirection": "row",
@@ -120,7 +120,7 @@ Array [
           <Text
             accessibilityRole="text"
             style={
-              Object {
+              {
                 "color": "#24272A",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 16,
@@ -139,16 +139,16 @@ Array [
             onStartShouldSetResponder={[Function]}
             onTintColor="#0376C9"
             style={
-              Array [
-                Object {
+              [
+                {
                   "height": 31,
                   "width": 51,
                 },
-                Array [
-                  Object {
+                [
+                  {
                     "alignSelf": "flex-end",
                   },
-                  Object {
+                  {
                     "backgroundColor": "#D6D9DC",
                     "borderRadius": 16,
                   },
@@ -162,7 +162,7 @@ Array [
         <Text
           accessibilityRole="text"
           style={
-            Object {
+            {
               "color": "#535A61",
               "fontFamily": "Euclid Circular B",
               "fontSize": 14,
@@ -182,7 +182,7 @@ Array [
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
-              Object {
+              {
                 "backgroundColor": "transparent",
                 "color": "#24272A",
               }
@@ -192,7 +192,7 @@ Array [
             <Text
               accessibilityRole="text"
               style={
-                Object {
+                {
                   "color": "#0376C9",
                   "fontFamily": "Euclid Circular B",
                   "fontSize": 14,

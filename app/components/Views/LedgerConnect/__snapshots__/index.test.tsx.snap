@@ -1,37 +1,658 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`LedgerConnect should render correctly 1`] = `
-<ContextProvider
-  value={
-    Object {
-      "store": Object {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": Subscription {
-        "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
-      },
+exports[`LedgerConnect render matches latest snapshot 1`] = `
+<RCTSafeAreaView
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#FFFFFF",
+      "flex": 1,
+      "position": "relative",
     }
   }
 >
-  <Component />
-</ContextProvider>
+  <View
+    style={
+      {
+        "marginLeft": 3.5000000000000004,
+        "marginRight": 3.5000000000000004,
+      }
+    }
+  >
+    <Image
+      resizeMode="contain"
+      source={
+        {
+          "uri": "MockImage",
+        }
+      }
+      style={
+        {
+          "height": 68,
+          "width": 68,
+        }
+      }
+    />
+    <Text
+      style={
+        [
+          {
+            "color": "#24272A",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 30,
+            "fontWeight": "400",
+            "marginVertical": 2,
+          },
+          undefined,
+          undefined,
+          {
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontWeight": "600",
+          },
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          {
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 24,
+            "fontWeight": "400",
+          },
+        ]
+      }
+    >
+      Connect Ledger
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "marginTop": 4,
+        }
+      }
+    >
+      <Image
+        source={
+          {
+            "uri": "MockImage",
+          }
+        }
+        style={
+          {
+            "height": 64,
+            "overflow": "visible",
+            "resizeMode": "contain",
+            "width": 30,
+          }
+        }
+      />
+    </View>
+    <View
+      style={
+        {
+          "marginTop": 2.5,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "#24272A",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontWeight": "600",
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              {
+                "fontSize": 18,
+              },
+            ]
+          }
+        >
+          Looking for device
+        </Text>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "marginTop": 1,
+            },
+          ]
+        }
+      >
+        Please make sure your Ledger Nano X is:
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "paddingLeft": 7,
+            },
+          ]
+        }
+      >
+        1. Unlock your Ledger Nano X
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "paddingLeft": 7,
+            },
+          ]
+        }
+      >
+        2. Install and open the Ethereum app
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "paddingLeft": 7,
+            },
+          ]
+        }
+      >
+        3. Enable Bluetooth
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "paddingLeft": 7,
+            },
+          ]
+        }
+      >
+        4. Nearby devices is enabled
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "paddingLeft": 7,
+            },
+          ]
+        }
+      >
+        5. Do not disturb must be turned off
+      </Text>
+      <Text
+        onPress={[Function]}
+        style={
+          [
+            {
+              "color": "#24272A",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 30,
+              "fontWeight": "400",
+              "marginVertical": 2,
+            },
+            undefined,
+            undefined,
+            {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontWeight": "600",
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "fontSize": 16,
+            },
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+              "color": "#0376C9",
+            },
+            undefined,
+            undefined,
+            undefined,
+            {
+              "marginTop": 1.25,
+            },
+          ]
+        }
+      >
+        How to install the Ethereum app on a Ledger device
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flex": 1,
+          "marginTop": 1.25,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "borderColor": "#BBC0C5",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "height": 45,
+              "width": 42.5,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+              >
+                <View
+                  style={
+                    {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      {
+                        "alignSelf": "flex-start",
+                        "color": "#24272A",
+                        "flex": 1,
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "paddingBottom": 10,
+                        "paddingHorizontal": 15,
+                        "paddingTop": 10,
+                      }
+                    }
+                  >
+                    Ledger Nano X
+                  </Text>
+                  <Text
+                    allowFontScaling={false}
+                    style={
+                      [
+                        {
+                          "color": "#24272A",
+                          "fontSize": 24,
+                        },
+                        {
+                          "height": 25,
+                          "justifyContent": "flex-end",
+                          "marginRight": 10,
+                          "marginTop": 7,
+                          "textAlign": "right",
+                        },
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
+                    }
+                  >
+                    
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <Modal
+                animationType="none"
+                deviceHeight={null}
+                deviceWidth={null}
+                hardwareAccelerated={false}
+                hideModalContentWhileAnimating={false}
+                onBackdropPress={[Function]}
+                onModalHide={[Function]}
+                onModalWillHide={[Function]}
+                onModalWillShow={[Function]}
+                onRequestClose={[Function]}
+                panResponderThreshold={4}
+                scrollHorizontal={false}
+                scrollOffset={0}
+                scrollOffsetMax={0}
+                scrollTo={null}
+                statusBarTranslucent={false}
+                supportedOrientations={
+                  [
+                    "portrait",
+                    "landscape",
+                  ]
+                }
+                swipeThreshold={100}
+                transparent={true}
+                visible={false}
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "bottom": 1.25,
+            "display": "flex",
+            "left": 0,
+            "position": "absolute",
+            "width": "100%",
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={0.2}
+          disabled={false}
+          onPress={[Function]}
+          style={
+            [
+              [
+                {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#0376C9",
+                  "minHeight": 50,
+                },
+                undefined,
+              ],
+              null,
+            ]
+          }
+          testID="add-network-button"
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                [
+                  {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#FFFFFF",
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            Continue
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</RCTSafeAreaView>
 `;

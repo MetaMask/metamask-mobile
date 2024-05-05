@@ -21,6 +21,7 @@ const ListItem: React.FC<ListItemProps> = ({
   children,
   gap = DEFAULT_LISTITEM_GAP,
   verticalAlignment = DEFAULT_LISTITEM_VERTICALALIGNMENT,
+  ...props
 }) => {
   const { styles } = useStyles(styleSheet, {
     style,
@@ -28,7 +29,7 @@ const ListItem: React.FC<ListItemProps> = ({
   });
 
   return (
-    <View style={styles.base} accessible accessibilityRole="none">
+    <View style={styles.base} accessible accessibilityRole="none" {...props}>
       {React.Children.toArray(children)
         .filter((child) => !!child)
         .map((child, index) => (
