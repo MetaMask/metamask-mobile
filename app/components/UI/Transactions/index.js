@@ -52,11 +52,10 @@ import RetryModal from './RetryModal';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../AssetOverview/PriceChart/PriceChart.context';
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
@@ -578,7 +577,7 @@ class Transactions extends PureComponent {
   cancelUnsignedQRTransaction = async (tx) => {
     await Engine.context.ApprovalController.reject(
       tx.id,
-      ethErrors.provider.userRejectedRequest(),
+      providerErrors.userRejectedRequest(),
     );
   };
 
@@ -864,7 +863,6 @@ const mapStateToProps = (state) => ({
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  nativeCurrency: selectNativeCurrency(state),
   selectedAddress: selectSelectedAddress(state),
   networkConfigurations: selectNetworkConfigurations(state),
   providerConfig: selectProviderConfig(state),

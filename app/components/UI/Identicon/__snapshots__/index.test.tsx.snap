@@ -3,8 +3,8 @@
 exports[`Identicon should render correctly when useBlockieIcon is false 1`] = `
 <ContextProvider
   value={
-    Object {
-      "store": Object {
+    {
+      "store": {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -14,12 +14,12 @@ exports[`Identicon should render correctly when useBlockieIcon is false 1`] = `
       },
       "subscription": Subscription {
         "handleChangeWrapper": [Function],
-        "listeners": Object {
+        "listeners": {
           "notify": [Function],
         },
         "onStateChange": [Function],
         "parentSub": undefined,
-        "store": Object {
+        "store": {
           "clearActions": [Function],
           "dispatch": [Function],
           "getActions": [Function],
@@ -39,8 +39,8 @@ exports[`Identicon should render correctly when useBlockieIcon is false 1`] = `
 exports[`Identicon should render correctly when useBlockieIcon is true 1`] = `
 <ContextProvider
   value={
-    Object {
-      "store": Object {
+    {
+      "store": {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -50,12 +50,12 @@ exports[`Identicon should render correctly when useBlockieIcon is true 1`] = `
       },
       "subscription": Subscription {
         "handleChangeWrapper": [Function],
-        "listeners": Object {
+        "listeners": {
           "notify": [Function],
         },
         "onStateChange": [Function],
         "parentSub": undefined,
-        "store": Object {
+        "store": {
           "clearActions": [Function],
           "dispatch": [Function],
           "getActions": [Function],

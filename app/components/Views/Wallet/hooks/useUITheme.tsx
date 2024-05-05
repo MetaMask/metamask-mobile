@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 export default function useUITheme(theme: string) {
   switch (theme) {
     case 'default':

@@ -7,7 +7,7 @@ import DevLogger from '../utils/DevLogger';
 import checkPermissions from './checkPermissions';
 import handleSendMessage from './handleSendMessage';
 
-import { ethErrors } from 'eth-rpc-errors';
+import { providerErrors } from '@metamask/rpc-errors';
 import Engine from '../../Engine';
 import { approveHostProps } from '../SDKConnect';
 import generateOTP from '../utils/generateOTP.util';
@@ -48,7 +48,7 @@ export const handleConnectionReady = async ({
     if (approvalController.get(connection.channelId)) {
       approvalController.reject(
         connection.channelId,
-        ethErrors.provider.userRejectedRequest(),
+        providerErrors.userRejectedRequest(),
       );
     }
 
@@ -91,7 +91,6 @@ export const handleConnectionReady = async ({
         engine,
         lastAuthorized: connection.lastAuthorized,
       });
-
       connection.sendAuthorized(true);
     } else if (
       !connection.initialConnection &&
@@ -126,7 +125,7 @@ export const handleConnectionReady = async ({
           // cleaning previous pending approval
           approvalController.reject(
             connection.channelId,
-            ethErrors.provider.userRejectedRequest(),
+            providerErrors.userRejectedRequest(),
           );
         }
         connection.approvalPromise = undefined;

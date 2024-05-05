@@ -3,7 +3,7 @@
 exports[`GetStarted renders correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -11,8 +11,8 @@ exports[`GetStarted renders correctly 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -23,7 +23,7 @@ exports[`GetStarted renders correctly 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -39,7 +39,7 @@ exports[`GetStarted renders correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -53,13 +53,13 @@ exports[`GetStarted renders correctly 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -73,7 +73,7 @@ exports[`GetStarted renders correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -85,7 +85,7 @@ exports[`GetStarted renders correctly 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -93,7 +93,7 @@ exports[`GetStarted renders correctly 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -105,7 +105,7 @@ exports[`GetStarted renders correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -122,7 +122,7 @@ exports[`GetStarted renders correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -132,7 +132,7 @@ exports[`GetStarted renders correctly 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                     "justifyContent": "center",
@@ -140,13 +140,16 @@ exports[`GetStarted renders correctly 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -154,35 +157,38 @@ exports[`GetStarted renders correctly 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -195,7 +201,7 @@ exports[`GetStarted renders correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -211,7 +217,7 @@ exports[`GetStarted renders correctly 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -219,7 +225,7 @@ exports[`GetStarted renders correctly 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -238,7 +244,7 @@ exports[`GetStarted renders correctly 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -248,7 +254,7 @@ exports[`GetStarted renders correctly 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -257,7 +263,7 @@ exports[`GetStarted renders correctly 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -269,7 +275,7 @@ exports[`GetStarted renders correctly 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -287,11 +293,11 @@ exports[`GetStarted renders correctly 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -301,10 +307,10 @@ exports[`GetStarted renders correctly 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -313,9 +319,9 @@ exports[`GetStarted renders correctly 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -332,7 +338,7 @@ exports[`GetStarted renders correctly 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -343,13 +349,13 @@ exports[`GetStarted renders correctly 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -360,13 +366,13 @@ exports[`GetStarted renders correctly 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -379,13 +385,13 @@ exports[`GetStarted renders correctly 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -395,7 +401,7 @@ exports[`GetStarted renders correctly 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -403,22 +409,22 @@ exports[`GetStarted renders correctly 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -428,8 +434,8 @@ exports[`GetStarted renders correctly 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -438,7 +444,7 @@ exports[`GetStarted renders correctly 1`] = `
                         >
                           <RCTScrollView
                             contentContainerStyle={
-                              Object {
+                              {
                                 "flexGrow": 1,
                                 "justifyContent": "center",
                               }
@@ -447,8 +453,8 @@ exports[`GetStarted renders correctly 1`] = `
                             <View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "padding": 15,
                                     },
                                     undefined,
@@ -458,15 +464,15 @@ exports[`GetStarted renders correctly 1`] = `
                               >
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                     }
                                   }
                                 >
                                   <Image
                                     source={
-                                      Object {
-                                        "default": Object {
+                                      {
+                                        "default": {
                                           "uri": "MockImage",
                                         },
                                       }
@@ -476,8 +482,8 @@ exports[`GetStarted renders correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "padding": 15,
                                     },
                                     undefined,
@@ -487,19 +493,19 @@ exports[`GetStarted renders correctly 1`] = `
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
-                                      Object {
+                                      {
                                         "textAlign": "center",
                                       },
                                       undefined,
-                                      Object {
+                                      {
                                         "fontFamily": "EuclidCircularB-Bold",
                                         "fontWeight": "600",
                                       },
@@ -532,8 +538,8 @@ exports[`GetStarted renders correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "padding": 15,
                                     },
                                     undefined,
@@ -543,19 +549,19 @@ exports[`GetStarted renders correctly 1`] = `
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
-                                      Object {
+                                      {
                                         "textAlign": "center",
                                       },
                                       undefined,
-                                      Object {
+                                      {
                                         "fontFamily": "EuclidCircularB-Bold",
                                         "fontWeight": "600",
                                       },
@@ -592,8 +598,8 @@ exports[`GetStarted renders correctly 1`] = `
                         <View>
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "padding": 15,
                                 },
                                 undefined,
@@ -607,14 +613,14 @@ exports[`GetStarted renders correctly 1`] = `
                               activeOpacity={0.2}
                               onPress={[Function]}
                               style={
-                                Array [
-                                  Array [
-                                    Object {
+                                [
+                                  [
+                                    {
                                       "borderRadius": 100,
                                       "justifyContent": "center",
                                       "padding": 15,
                                     },
-                                    Object {
+                                    {
                                       "backgroundColor": "#0376C9",
                                       "minHeight": 50,
                                     },
@@ -626,22 +632,22 @@ exports[`GetStarted renders correctly 1`] = `
                             >
                               <Text
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "color": "#007aff",
                                       "fontSize": 17,
                                       "fontWeight": "500",
                                       "textAlign": "center",
                                     },
                                     null,
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 14,
                                         "fontWeight": "600",
                                         "textAlign": "center",
                                       },
-                                      Object {
+                                      {
                                         "color": "#FFFFFF",
                                       },
                                       undefined,
@@ -672,7 +678,7 @@ exports[`GetStarted renders correctly 1`] = `
 exports[`GetStarted renders correctly 2`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -680,8 +686,8 @@ exports[`GetStarted renders correctly 2`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -692,7 +698,7 @@ exports[`GetStarted renders correctly 2`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -708,7 +714,7 @@ exports[`GetStarted renders correctly 2`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -722,13 +728,13 @@ exports[`GetStarted renders correctly 2`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -742,7 +748,7 @@ exports[`GetStarted renders correctly 2`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -754,7 +760,7 @@ exports[`GetStarted renders correctly 2`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -762,7 +768,7 @@ exports[`GetStarted renders correctly 2`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -774,7 +780,7 @@ exports[`GetStarted renders correctly 2`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -791,7 +797,7 @@ exports[`GetStarted renders correctly 2`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -801,7 +807,7 @@ exports[`GetStarted renders correctly 2`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                     "justifyContent": "center",
@@ -809,13 +815,16 @@ exports[`GetStarted renders correctly 2`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -823,35 +832,38 @@ exports[`GetStarted renders correctly 2`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -864,7 +876,7 @@ exports[`GetStarted renders correctly 2`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -880,7 +892,7 @@ exports[`GetStarted renders correctly 2`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -888,7 +900,7 @@ exports[`GetStarted renders correctly 2`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -907,7 +919,7 @@ exports[`GetStarted renders correctly 2`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -917,7 +929,7 @@ exports[`GetStarted renders correctly 2`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -926,7 +938,7 @@ exports[`GetStarted renders correctly 2`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -938,7 +950,7 @@ exports[`GetStarted renders correctly 2`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -956,11 +968,11 @@ exports[`GetStarted renders correctly 2`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -970,10 +982,10 @@ exports[`GetStarted renders correctly 2`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -982,9 +994,9 @@ exports[`GetStarted renders correctly 2`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1001,7 +1013,7 @@ exports[`GetStarted renders correctly 2`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -1012,13 +1024,13 @@ exports[`GetStarted renders correctly 2`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -1029,13 +1041,13 @@ exports[`GetStarted renders correctly 2`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -1048,13 +1060,13 @@ exports[`GetStarted renders correctly 2`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -1064,7 +1076,7 @@ exports[`GetStarted renders correctly 2`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -1072,22 +1084,22 @@ exports[`GetStarted renders correctly 2`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -1097,8 +1109,8 @@ exports[`GetStarted renders correctly 2`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -1107,7 +1119,7 @@ exports[`GetStarted renders correctly 2`] = `
                         >
                           <RCTScrollView
                             contentContainerStyle={
-                              Object {
+                              {
                                 "flexGrow": 1,
                                 "justifyContent": "center",
                               }
@@ -1116,8 +1128,8 @@ exports[`GetStarted renders correctly 2`] = `
                             <View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "padding": 15,
                                     },
                                     undefined,
@@ -1127,15 +1139,15 @@ exports[`GetStarted renders correctly 2`] = `
                               >
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                     }
                                   }
                                 >
                                   <Image
                                     source={
-                                      Object {
-                                        "default": Object {
+                                      {
+                                        "default": {
                                           "uri": "MockImage",
                                         },
                                       }
@@ -1145,8 +1157,8 @@ exports[`GetStarted renders correctly 2`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "padding": 15,
                                     },
                                     undefined,
@@ -1156,19 +1168,19 @@ exports[`GetStarted renders correctly 2`] = `
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
-                                      Object {
+                                      {
                                         "textAlign": "center",
                                       },
                                       undefined,
-                                      Object {
+                                      {
                                         "fontFamily": "EuclidCircularB-Bold",
                                         "fontWeight": "600",
                                       },
@@ -1201,8 +1213,8 @@ exports[`GetStarted renders correctly 2`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "padding": 15,
                                     },
                                     undefined,
@@ -1212,19 +1224,19 @@ exports[`GetStarted renders correctly 2`] = `
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
-                                      Object {
+                                      {
                                         "textAlign": "center",
                                       },
                                       undefined,
-                                      Object {
+                                      {
                                         "fontFamily": "EuclidCircularB-Bold",
                                         "fontWeight": "600",
                                       },
@@ -1261,8 +1273,8 @@ exports[`GetStarted renders correctly 2`] = `
                         <View>
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "padding": 15,
                                 },
                                 undefined,
@@ -1276,14 +1288,14 @@ exports[`GetStarted renders correctly 2`] = `
                               activeOpacity={0.2}
                               onPress={[Function]}
                               style={
-                                Array [
-                                  Array [
-                                    Object {
+                                [
+                                  [
+                                    {
                                       "borderRadius": 100,
                                       "justifyContent": "center",
                                       "padding": 15,
                                     },
-                                    Object {
+                                    {
                                       "backgroundColor": "#0376C9",
                                       "minHeight": 50,
                                     },
@@ -1295,22 +1307,22 @@ exports[`GetStarted renders correctly 2`] = `
                             >
                               <Text
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "color": "#007aff",
                                       "fontSize": 17,
                                       "fontWeight": "500",
                                       "textAlign": "center",
                                     },
                                     null,
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 14,
                                         "fontWeight": "600",
                                         "textAlign": "center",
                                       },
-                                      Object {
+                                      {
                                         "color": "#FFFFFF",
                                       },
                                       undefined,
@@ -1341,7 +1353,7 @@ exports[`GetStarted renders correctly 2`] = `
 exports[`GetStarted renders correctly when getStarted is true 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -1349,8 +1361,8 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -1361,7 +1373,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -1377,7 +1389,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -1391,13 +1403,13 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -1411,7 +1423,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -1423,7 +1435,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -1431,7 +1443,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -1443,7 +1455,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -1460,7 +1472,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -1470,7 +1482,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                     "justifyContent": "center",
@@ -1478,13 +1490,16 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -1492,35 +1507,38 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1533,7 +1551,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -1549,7 +1567,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -1557,7 +1575,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -1576,7 +1594,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -1586,7 +1604,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -1595,7 +1613,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -1607,7 +1625,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -1625,11 +1643,11 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -1639,10 +1657,10 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1651,9 +1669,9 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1670,7 +1688,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -1681,13 +1699,13 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -1698,13 +1716,13 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -1717,13 +1735,13 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -1733,7 +1751,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -1741,22 +1759,22 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -1780,7 +1798,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
 exports[`GetStarted renders correctly when sdkError is present 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -1788,8 +1806,8 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -1800,7 +1818,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -1816,7 +1834,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -1830,13 +1848,13 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -1850,7 +1868,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -1862,7 +1880,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -1870,7 +1888,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -1882,7 +1900,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -1899,7 +1917,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -1909,7 +1927,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                     "justifyContent": "center",
@@ -1917,13 +1935,16 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 }
               >
                 <Text
+                  accessibilityRole="text"
                   numberOfLines={1}
                   style={
-                    Object {
+                    {
                       "color": "#24272A",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 30,
                       "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -1931,35 +1952,38 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
                       "flexDirection": "row",
                     }
                   }
                 >
                   <View
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
                           "marginTop": 4,
                           "width": 5,
                         },
-                        Object {
+                        {
                           "backgroundColor": "#3cc29e",
                         },
                       ]
                     }
                   />
                   <Text
+                    accessibilityRole="text"
                     numberOfLines={1}
                     style={
-                      Object {
+                      {
                         "color": "#535A61",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 11,
                         "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1972,7 +1996,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -1988,7 +2012,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -1996,7 +2020,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
               >
                 <Text
                   style={
-                    Object {
+                    {
                       "color": "#0376C9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
@@ -2015,7 +2039,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -2025,7 +2049,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -2034,7 +2058,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -2046,7 +2070,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -2064,11 +2088,11 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -2078,10 +2102,10 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -2090,9 +2114,9 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -2109,7 +2133,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -2120,13 +2144,13 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -2137,13 +2161,13 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -2156,13 +2180,13 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -2172,7 +2196,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -2180,22 +2204,22 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#FFFFFF",
                               "flex": 1,
                             },
@@ -2205,8 +2229,8 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -2215,7 +2239,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                         >
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "backgroundColor": "#FFFFFF",
                                 "flex": 1,
@@ -2225,7 +2249,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "marginVertical": 60,
                                   "paddingHorizontal": 60,
                                   "width": "100%",
@@ -2234,7 +2258,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
@@ -2242,27 +2266,27 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                 <Text
                                   allowFontScaling={false}
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": undefined,
                                         "fontSize": 12,
                                       },
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "fontSize": 38,
                                           "marginVertical": 4,
                                           "textAlign": "center",
                                         },
-                                        Object {
+                                        {
                                           "color": "#D73847",
                                         },
                                       ],
-                                      Object {
+                                      {
                                         "fontFamily": "Material Design Icons",
                                         "fontStyle": "normal",
                                         "fontWeight": "normal",
                                       },
-                                      Object {},
+                                      {},
                                     ]
                                   }
                                 >
@@ -2271,15 +2295,15 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
@@ -2309,15 +2333,15 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#24272A",
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "600",
                                           "marginVertical": 3,
                                         },
-                                        Object {
+                                        {
                                           "textAlign": "center",
                                         },
                                         undefined,
@@ -2331,22 +2355,22 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginVertical": 1,
                                   }
                                 }
                               >
                                 <Text
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "color": "#24272A",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
                                       },
-                                      Object {
+                                      {
                                         "textAlign": "center",
                                       },
                                       undefined,
@@ -2354,7 +2378,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                       undefined,
                                       undefined,
                                       undefined,
-                                      Object {
+                                      {
                                         "color": "#535A61",
                                       },
                                       undefined,
@@ -2382,7 +2406,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginTop": 30,
                                   }
                                 }
@@ -2393,14 +2417,14 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
-                                    Array [
-                                      Array [
-                                        Object {
+                                    [
+                                      [
+                                        {
                                           "borderRadius": 100,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
-                                        Object {
+                                        {
                                           "backgroundColor": "#0376C9",
                                           "minHeight": 50,
                                         },
@@ -2412,22 +2436,22 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                 >
                                   <Text
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#007aff",
                                           "fontSize": 17,
                                           "fontWeight": "500",
                                           "textAlign": "center",
                                         },
                                         null,
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "fontFamily": "EuclidCircularB-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
                                           },
-                                          Object {
+                                          {
                                             "color": "#FFFFFF",
                                           },
                                           undefined,
