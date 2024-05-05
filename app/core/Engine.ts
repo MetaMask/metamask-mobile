@@ -991,6 +991,7 @@ class Engine {
           allowLocal: allowLocalSnaps,
           fetch: fetchFunction,
         }),
+      //@ts-expect-error types need to be aligned with snaps-controllers
       preinstalledSnaps: PREINSTALLED_SNAPS,
     });
     ///: END:ONLY_INCLUDE_IF
