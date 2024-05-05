@@ -1,5 +1,5 @@
 import { KeyringController } from '@metamask/keyring-controller';
-import { AndroidClient } from '../AndroidSDK/android-sdk-types';
+import { DappClient } from '../AndroidSDK/dapp-sdk-types';
 import RPCQueueManager from '../RPCQueueManager';
 import { SDKConnect } from '../SDKConnect';
 import DevLogger from './DevLogger';
@@ -15,7 +15,7 @@ export const wait = (ms: number) =>
 export const waitForReadyClient = async (
   id: string,
   connectedClients: {
-    [clientId: string]: AndroidClient;
+    [clientId: string]: DappClient;
   },
 ) => {
   let i = 0;

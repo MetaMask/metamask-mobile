@@ -17,8 +17,10 @@ const MigratedStorage = {
         // Using new storage system
         return res;
       }
-    } catch {
-      //Fail silently
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: `Failed to get item for ${key}`,
+      });
     }
 
     // Using old storage system, should only happen once
@@ -37,14 +39,18 @@ const MigratedStorage = {
     try {
       return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
-      Logger.error(error as Error, { message: 'Failed to set item' });
+      Logger.error(error as Error, {
+        message: `Failed to set item for ${key}`,
+      });
     }
   },
   async removeItem(key: string) {
     try {
       return await FilesystemStorage.removeItem(key);
     } catch (error) {
-      Logger.error(error as Error, { message: 'Failed to remove item' });
+      Logger.error(error as Error, {
+        message: `Failed to remove item for ${key}`,
+      });
     }
   },
 };

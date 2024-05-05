@@ -8,7 +8,7 @@ import {
 } from 'json-rpc-engine';
 import type { Transaction } from '@metamask/transaction-controller';
 import type { ProviderConfig } from '@metamask/network-controller';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import Engine from '../Engine';
 import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
@@ -572,14 +572,16 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.provider.userRejectedRequest();
+        const expectedError = providerErrors.userRejectedRequest();
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
 
       it('returns a JSON-RPC error if the site does not have permission to use the referenced account', async () => {
@@ -609,16 +611,18 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.rpc.invalidParams({
+        const expectedError = rpcErrors.invalidParams({
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
     });
 
@@ -680,16 +684,18 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.rpc.invalidParams({
+        const expectedError = rpcErrors.invalidParams({
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
     });
 
@@ -753,16 +759,18 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.rpc.invalidParams({
+        const expectedError = rpcErrors.invalidParams({
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
     });
 
@@ -837,7 +845,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'eth_sendTransaction',
         params: [mockTransactionParameters],
       };
-      const expectedError = ethErrors.rpc.internal('Failed to add transaction');
+      const expectedError = rpcErrors.internal('Failed to add transaction');
 
       const response = await callMiddleware({ middleware, request });
 
@@ -866,9 +874,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'eth_sendTransaction',
         params: [mockTransactionParameters],
       };
-      const expectedError = ethErrors.rpc.internal(
-        'Failed to process transaction',
-      );
+      const expectedError = rpcErrors.internal('Failed to process transaction');
 
       const response = await callMiddleware({ middleware, request });
 
@@ -941,9 +947,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'personal_ecRecover',
         params: [helloWorldMessage],
       };
-      const expectedError = ethErrors.rpc.internal(
-        'Missing signature parameter',
-      );
+      const expectedError = rpcErrors.internal('Missing signature parameter');
 
       const response = await callMiddleware({ middleware, request });
 
@@ -964,7 +968,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'personal_ecRecover',
         params: [undefined, helloWorldSignature],
       };
-      const expectedError = ethErrors.rpc.internal('Missing data parameter');
+      const expectedError = rpcErrors.internal('Missing data parameter');
 
       const response = await callMiddleware({ middleware, request });
 

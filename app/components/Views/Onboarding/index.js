@@ -43,7 +43,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from 'react-native-animated-fox';
+import AnimatedFox from '@metamask/react-native-animated-fox';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 
 import Routes from '../../../constants/navigation/Routes';

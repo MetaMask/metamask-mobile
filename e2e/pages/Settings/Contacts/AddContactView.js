@@ -36,6 +36,10 @@ class AddContactView {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.NAME_INPUT);
   }
 
+  get memoLabel() {
+    return Matchers.getElementByText(AddContactViewSelectorsText.MEMO);
+  }
+
   get memoInput() {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.MEMO_INPUT);
   }
@@ -66,6 +70,7 @@ class AddContactView {
 
   async typeInMemo(memo) {
     await Gestures.replaceTextInField(this.memoInput, memo);
+    await Gestures.waitAndTap(this.memoLabel);
   }
 
   async typeInAddress(address) {

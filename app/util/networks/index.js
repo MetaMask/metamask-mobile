@@ -14,11 +14,17 @@ import {
   LINEA_SEPOLIA,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import {
+  ChainId,
+  NetworkType,
+  convertHexToDecimal,
+  toHex,
+} from '@metamask/controller-utils';
+import { isStrictHexString } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
-import { buildUnserializedTransaction } from '../transactions/optimismTransaction';
+import buildUnserializedTransaction from '../transactions/optimismTransaction';
 import handleNetworkSwitch from './handleNetworkSwitch';
 import { regex } from '../../../app/util/regex';
 
@@ -76,15 +82,6 @@ const NetworkList = {
     networkType: 'sepolia',
     imageSource: sepoliaLogo,
   },
-  [LINEA_GOERLI]: {
-    name: 'Linea Goerli Test Network',
-    shortName: 'Linea Goerli',
-    networkId: 59140,
-    chainId: toHex('59140'),
-    color: '#61dfff',
-    networkType: 'linea-goerli',
-    imageSource: lineaTestnetLogo,
-  },
   [LINEA_SEPOLIA]: {
     name: 'Linea Sepolia Test Network',
     shortName: 'Linea Sepolia',
@@ -107,6 +104,7 @@ const NetworkListKeys = Object.keys(NetworkList);
 export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
   NETWORKS_CHAIN_ID.MAINNET,
   NETWORKS_CHAIN_ID.BSC,
+  NETWORKS_CHAIN_ID.BASE,
   NETWORKS_CHAIN_ID.POLYGON,
   NETWORKS_CHAIN_ID.ARBITRUM,
   NETWORKS_CHAIN_ID.OPTIMISM,
@@ -118,6 +116,7 @@ export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
 export const BLOCKAID_SUPPORTED_NETWORK_NAMES = {
   [NETWORKS_CHAIN_ID.MAINNET]: 'Ethereum Mainnet',
   [NETWORKS_CHAIN_ID.BSC]: 'Binance Smart Chain',
+  [NETWORKS_CHAIN_ID.BASE]: 'Base Mainnet',
   [NETWORKS_CHAIN_ID.OPTIMISM]: 'Optimism',
   [NETWORKS_CHAIN_ID.POLYGON]: 'Polygon',
   [NETWORKS_CHAIN_ID.ARBITRUM]: 'Arbitrum',
@@ -503,3 +502,47 @@ export const getBlockExplorerTxUrl = (
  */
 export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
+
+/**
+ * Convert the given value into a valid network ID. The ID is accepted
+ * as either a number, a decimal string, or a 0x-prefixed hex string.
+ *
+ * @param value - The network ID to convert, in an unknown format.
+ * @returns A valid network ID (as a decimal string)
+ * @throws If the given value cannot be safely parsed.
+ */
+export function convertNetworkId(value) {
+  if (typeof value === 'number' && !Number.isNaN(value)) {
+    return `${value}`;
+  } else if (isStrictHexString(value)) {
+    return `${convertHexToDecimal(value)}`;
+  } else if (typeof value === 'string' && /^\d+$/u.test(value)) {
+    return value;
+  }
+  throw new Error(`Cannot parse as a valid network ID: '${value}'`);
+}
+/**
+ * This function is only needed to get the `networkId` to support the deprecated
+ * `networkVersion` provider property and the deprecated `networkChanged` provider event.
+ * @deprecated
+ * @returns - network id of the current network
+ */
+export const deprecatedGetNetworkId = async () => {
+  const ethQuery = Engine.controllerMessenger.call(
+    'NetworkController:getEthQuery',
+  );
+
+  if (!ethQuery) {
+    throw new Error('Provider has not been initialized');
+  }
+
+  return new Promise((resolve, reject) => {
+    ethQuery.sendAsync({ method: 'net_version' }, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(convertNetworkId(result));
+      }
+    });
+  });
+};

@@ -16,10 +16,19 @@ import {
   DEFAULT_BADGENETWORK_NETWORKICON_SIZE,
 } from './BadgeNetwork.constants';
 
-const BadgeNetwork = ({ style, name, imageSource }: BadgeNetworkProps) => {
+const BadgeNetwork = ({
+  style,
+  name,
+  imageSource,
+  size = DEFAULT_BADGENETWORK_NETWORKICON_SIZE,
+}: BadgeNetworkProps) => {
   const { size: containerSize, onLayout: onLayoutContainerSize } =
     useComponentSize();
-  const { styles } = useStyles(styleSheet, { style, containerSize });
+  const { styles } = useStyles(styleSheet, {
+    style,
+    containerSize,
+    size,
+  });
   return (
     <BadgeBase
       style={styles.base}
@@ -28,7 +37,7 @@ const BadgeNetwork = ({ style, name, imageSource }: BadgeNetworkProps) => {
     >
       <Avatar
         variant={AvatarVariant.Network}
-        size={DEFAULT_BADGENETWORK_NETWORKICON_SIZE}
+        size={size}
         name={name}
         imageSource={imageSource}
         style={styles.networkIcon}
