@@ -723,7 +723,7 @@ DEPENDENCIES:
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
-  - RCTSearchApi (from `../node_modules/@metamask/react-native-search-api`)
+  - "RCTSearchApi (from `../node_modules/@metamask/react-native-search-api`)"
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
   - React (from `../node_modules/react-native/`)
   - React-callinvoker (from `../node_modules/react-native/ReactCommon/callinvoker`)
@@ -1050,7 +1050,7 @@ SPEC CHECKSUMS:
   Flipper-RSocket: d9d9ade67cbecf6ac10730304bf5607266dd2541
   FlipperKit: cbdee19bdd4e7f05472a66ce290f1b729ba3cb86
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
-  glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
+  glog: ef91e487929d3be2675f9d8754d7d30840027acd
   GoogleAppMeasurement: f3abf08495ef2cba7829f15318c373b8d9226491
   GoogleUtilities: d053d902a8edaa9904e1bd00c37535385b8ed152
   GZIP: e6922ed5bdd1d77d84589d50821ac34ea0c38d4b
@@ -1139,7 +1139,7 @@ SPEC CHECKSUMS:
   RNReanimated: b1220a0e5168745283ff5d53bfc7d2144b2cee1b
   RNScreens: ea4cd3a853063cda19a4e3c28d2e52180c80f4eb
   RNSensors: c363d486c879e181905dea84a2535e49af1c2d25
-  RNSentry: 1b70955af02f86efc3c9a09989f0d0695b0d237d
+  RNSentry: 98e170b6eedc5c54e3ac88b6140fffb8b496deb4
   RNShare: f116bbb04f310c665ca483d0bd1e88cf59b3b334
   RNSVG: 551acb6562324b1d52a4e0758f7ca0ec234e278f
   RNVectorIcons: 6607bd3a30291d0edb56f9bbe7ae411ee2b928b0
