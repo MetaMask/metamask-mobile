@@ -96,7 +96,6 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport (>= 6.1.7.3, < 7.1.0)
-  bundler (= 2.5.8)
   cocoapods (= 1.12.1)
 
 RUBY VERSION

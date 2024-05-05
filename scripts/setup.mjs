@@ -107,6 +107,31 @@ const ppomBuildTask = {
   }
 }
 
+const gemInstallTask = {
+  title: 'Install gems',
+  task: (_, task) => task.newListr([
+    {
+      title: 'Install gems using bundler',
+      task: async (_, podInstallTask) => {
+        const isOSX = process.platform === 'darwin';
+        if (!isOSX) {
+          podInstallTask.skip('Not macOS.');
+        } else {
+          try {
+            await $`bundle install`;
+          } catch (error) {
+            throw new Error(error);
+          }
+        }
+      },
+    },
+  ], {
+    exitOnError: true,
+    concurrent: false,
+    rendererOptions
+  })
+}
+
 const mainSetupTask = {
   title: 'Dependencies setup',
   task: (_, task) => task.newListr([
@@ -189,6 +214,7 @@ const patchModulesTask = {
     })
 }
 const tasks = new Listr([
+  gemInstallTask,
   mainSetupTask,
   ppomBuildTask,
   patchModulesTask
