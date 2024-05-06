@@ -124,7 +124,7 @@ export const recreateVaultWithNewPassword = async (
   // Reselect previous selected account if still available
   for (const keyring of recreatedKeyrings) {
     if (keyring.accounts.includes(selectedAddress.toLowerCase())) {
-      Engine.setSelectedAddress(selectedAddress);
+      Engine.context.PreferencesController.setSelectedAddress(selectedAddress);
       return;
     }
   }

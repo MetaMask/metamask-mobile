@@ -245,7 +245,10 @@ class AccountOverview extends PureComponent {
     });
 
     if (!this.isAccountLabelDefined(accountLabel)) {
-      Engine.setAccountLabel(selectedAddress, 'Account');
+      Engine.context.PreferencesController.setAccountLabel(
+        selectedAddress,
+        'Account',
+      );
     }
   };
 
@@ -266,7 +269,7 @@ class AccountOverview extends PureComponent {
 
     const lastAccountLabel = identities[selectedAddress].name;
 
-    Engine.setAccountLabel(
+    Engine.context.PreferencesController.setAccountLabel(
       selectedAddress,
       this.isAccountLabelDefined(accountLabel)
         ? accountLabel
