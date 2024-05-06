@@ -7,16 +7,16 @@ exports[`TransactionBlockaidBanner should not render if transactionId passed is 
 exports[`TransactionBlockaidBanner should render correctly 1`] = `
 <View
   securityAlertResponse={
-    Object {
+    {
       "block": 123,
       "chainId": "0x1",
       "reason": "approval_farming",
-      "req": Object {},
+      "req": {},
       "result_type": "Warning",
     }
   }
   style={
-    Object {
+    {
       "backgroundColor": "#BF520819",
       "borderColor": "#BF5208",
       "borderLeftWidth": 4,
@@ -30,7 +30,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
@@ -40,7 +40,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       height={24}
       name="Danger"
       style={
-        Object {
+        {
           "height": 24,
           "width": 24,
         }
@@ -50,7 +50,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
@@ -58,7 +58,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 16,
@@ -73,7 +73,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
+        {
           "color": "#24272A",
           "fontFamily": "Euclid Circular B",
           "fontSize": 14,
@@ -89,7 +89,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       activeOpacity={0.5}
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "height": 24,
@@ -101,7 +101,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
+          {
             "color": "#0376C9",
             "fontFamily": "Euclid Circular B",
             "fontSize": 14,
@@ -116,13 +116,13 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       </Text>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginLeft": 4,
             },
-            Object {
-              "transform": Array [
-                Object {
+            {
+              "transform": [
+                {
                   "rotate": "0deg",
                 },
               ],
@@ -136,7 +136,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
           height={16}
           name="ArrowDown"
           style={
-            Object {
+            {
               "height": 16,
               "width": 16,
             }

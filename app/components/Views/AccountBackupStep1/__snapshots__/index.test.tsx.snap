@@ -3,7 +3,7 @@
 exports[`AccountBackupStep1 should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -11,8 +11,8 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -23,7 +23,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -39,7 +39,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -53,13 +53,13 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "#FFFFFF",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -73,7 +73,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -85,7 +85,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -93,7 +93,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -105,7 +105,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -122,7 +122,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -130,7 +130,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             >
               <View
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flex": 1,
                     "justifyContent": "center",
@@ -140,14 +140,14 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                 <Image
                   resizeMethod="auto"
                   source={
-                    Object {
-                      "default": Object {
+                    {
+                      "default": {
                         "uri": "MockImage",
                       },
                     }
                   }
                   style={
-                    Object {
+                    {
                       "height": 15,
                       "tintColor": "#24272A",
                       "width": 122,
@@ -160,7 +160,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -180,7 +180,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -190,7 +190,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
         collapsable={false}
         forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -199,7 +199,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -211,7 +211,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -229,11 +229,11 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -243,10 +243,10 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -255,9 +255,9 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -274,7 +274,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
@@ -285,13 +285,13 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -302,13 +302,13 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -321,13 +321,13 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -337,7 +337,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -345,14 +345,14 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
+                        {
                           "backgroundColor": "#FFFFFF",
                           "flex": 1,
                         }
@@ -360,12 +360,12 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                     >
                       <RCTScrollView
                         contentContainerStyle={
-                          Object {
+                          {
                             "flexGrow": 1,
                           }
                         }
                         style={
-                          Object {
+                          {
                             "backgroundColor": "#FFFFFF",
                             "flex": 1,
                           }
@@ -375,7 +375,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                         <View>
                           <View
                             style={
-                              Object {
+                              {
                                 "flex": 1,
                                 "padding": 20,
                                 "paddingBottom": 0,
@@ -385,11 +385,11 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                           >
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "backgroundColor": "rgba(1,0,0,0)",
                                   },
-                                  Object {
+                                  {
                                     "flexDirection": "column",
                                   },
                                 ]
@@ -398,14 +398,14 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                               <View
                                 onLayout={[Function]}
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "alignItems": "center",
                                       "backgroundColor": "rgba(1,0,0,0)",
                                       "flexDirection": "row",
                                       "justifyContent": "space-around",
                                     },
-                                    Object {
+                                    {
                                       "flexDirection": "row",
                                       "height": 20,
                                     },
@@ -414,7 +414,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                               >
                                 <View
                                   accessibilityState={
-                                    Object {
+                                    {
                                       "busy": undefined,
                                       "checked": undefined,
                                       "disabled": undefined,
@@ -432,14 +432,14 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   onResponderTerminationRequest={[Function]}
                                   onStartShouldSetResponder={[Function]}
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "alignItems": "center",
                                         "flex": 1,
                                         "flexDirection": "row",
                                         "justifyContent": "center",
                                       },
-                                      Object {
+                                      {
                                         "flexDirection": "row",
                                       },
                                     ]
@@ -448,7 +448,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   <View
                                     collapsable={false}
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "backgroundColor": "#0376C9",
                                         "borderColor": "#0376C9",
@@ -464,7 +464,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   >
                                     <Text
                                       style={
-                                        Object {
+                                        {
                                           "color": "#FFFFFF",
                                           "fontSize": 9,
                                           "overflow": "hidden",
@@ -477,7 +477,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 </View>
                                 <View
                                   accessibilityState={
-                                    Object {
+                                    {
                                       "busy": undefined,
                                       "checked": undefined,
                                       "disabled": undefined,
@@ -495,14 +495,14 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   onResponderTerminationRequest={[Function]}
                                   onStartShouldSetResponder={[Function]}
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "alignItems": "center",
                                         "flex": 1,
                                         "flexDirection": "row",
                                         "justifyContent": "center",
                                       },
-                                      Object {
+                                      {
                                         "flexDirection": "row",
                                       },
                                     ]
@@ -511,7 +511,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   <View
                                     collapsable={false}
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "backgroundColor": "#FFFFFF",
                                         "borderColor": "#0376C9",
@@ -527,7 +527,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   >
                                     <Text
                                       style={
-                                        Object {
+                                        {
                                           "color": "#24272A",
                                           "fontSize": 9,
                                           "overflow": "hidden",
@@ -540,7 +540,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 </View>
                                 <View
                                   accessibilityState={
-                                    Object {
+                                    {
                                       "busy": undefined,
                                       "checked": undefined,
                                       "disabled": undefined,
@@ -558,14 +558,14 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   onResponderTerminationRequest={[Function]}
                                   onStartShouldSetResponder={[Function]}
                                   style={
-                                    Array [
-                                      Object {
+                                    [
+                                      {
                                         "alignItems": "center",
                                         "flex": 1,
                                         "flexDirection": "row",
                                         "justifyContent": "center",
                                       },
-                                      Object {
+                                      {
                                         "flexDirection": "row",
                                       },
                                     ]
@@ -574,7 +574,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   <View
                                     collapsable={false}
                                     style={
-                                      Object {
+                                      {
                                         "alignItems": "center",
                                         "backgroundColor": "#FFFFFF",
                                         "borderColor": "#BBC0C5",
@@ -590,7 +590,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   >
                                     <Text
                                       style={
-                                        Object {
+                                        {
                                           "color": "#BBC0C5",
                                           "fontSize": 9,
                                           "overflow": "hidden",
@@ -604,15 +604,15 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "justifyContent": "space-around",
                                     },
-                                    Object {
+                                    {
                                       "flexDirection": "row",
                                       "paddingVertical": 4,
                                     },
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                     },
                                   ]
@@ -620,7 +620,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                               >
                                 <View
                                   accessibilityState={
-                                    Object {
+                                    {
                                       "busy": undefined,
                                       "checked": undefined,
                                       "disabled": undefined,
@@ -638,7 +638,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   onResponderTerminationRequest={[Function]}
                                   onStartShouldSetResponder={[Function]}
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "flex": 1,
                                       "justifyContent": "center",
@@ -647,16 +647,16 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 >
                                   <Text
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "fontSize": 12,
                                           "fontWeight": "500",
                                           "textAlign": "center",
                                         },
-                                        Object {
+                                        {
                                           "color": "#BBC0C5",
                                         },
-                                        Object {
+                                        {
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 10,
                                         },
@@ -668,7 +668,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 </View>
                                 <View
                                   accessibilityState={
-                                    Object {
+                                    {
                                       "busy": undefined,
                                       "checked": undefined,
                                       "disabled": undefined,
@@ -686,7 +686,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   onResponderTerminationRequest={[Function]}
                                   onStartShouldSetResponder={[Function]}
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "flex": 1,
                                       "justifyContent": "center",
@@ -695,16 +695,16 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 >
                                   <Text
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "fontSize": 12,
                                           "fontWeight": "500",
                                           "textAlign": "center",
                                         },
-                                        Object {
+                                        {
                                           "color": "#0376C9",
                                         },
-                                        Object {
+                                        {
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 10,
                                         },
@@ -716,7 +716,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 </View>
                                 <View
                                   accessibilityState={
-                                    Object {
+                                    {
                                       "busy": undefined,
                                       "checked": undefined,
                                       "disabled": undefined,
@@ -734,7 +734,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   onResponderTerminationRequest={[Function]}
                                   onStartShouldSetResponder={[Function]}
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "flex": 1,
                                       "justifyContent": "center",
@@ -743,16 +743,16 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 >
                                   <Text
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "fontSize": 12,
                                           "fontWeight": "500",
                                           "textAlign": "center",
                                         },
-                                        Object {
+                                        {
                                           "color": "#BBC0C5",
                                         },
-                                        Object {
+                                        {
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 10,
                                         },
@@ -766,7 +766,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                             </View>
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flex": 1,
                                   "justifyContent": "flex-start",
@@ -776,7 +776,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                             >
                               <Text
                                 style={
-                                  Object {
+                                  {
                                     "color": "#24272A",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 24,
@@ -790,7 +790,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                               </Text>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "height": 240,
                                     "width": "100%",
                                   }
@@ -798,7 +798,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                               />
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "justifyContent": "center",
                                     "marginTop": 32,
                                   }
@@ -806,7 +806,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                               >
                                 <Text
                                   style={
-                                    Object {
+                                    {
                                       "color": "#24272A",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
@@ -821,7 +821,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   <Text
                                     onPress={[Function]}
                                     style={
-                                      Object {
+                                      {
                                         "color": "#0376C9",
                                       }
                                     }
@@ -833,7 +833,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                    
                                   <Text
                                     style={
-                                      Object {
+                                      {
                                         "fontFamily": "EuclidCircularB-Bold",
                                         "fontWeight": "600",
                                       }
@@ -846,7 +846,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                             </View>
                             <View
                               style={
-                                Object {
+                                {
                                   "flex": 1,
                                   "justifyContent": "flex-end",
                                 }
@@ -854,14 +854,14 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginBottom": 34,
                                   }
                                 }
                               >
                                 <TouchableOpacity
                                   hitSlop={
-                                    Object {
+                                    {
                                       "bottom": 10,
                                       "left": 10,
                                       "right": 10,
@@ -870,7 +870,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   }
                                   onPress={[Function]}
                                   style={
-                                    Object {
+                                    {
                                       "elevation": 10,
                                       "zIndex": 10,
                                     }
@@ -878,7 +878,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 >
                                   <Text
                                     style={
-                                      Object {
+                                      {
                                         "color": "#0376C9",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 15,
@@ -894,7 +894,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 </TouchableOpacity>
                                 <Text
                                   style={
-                                    Object {
+                                    {
                                       "color": "#535A61",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 11,
@@ -909,7 +909,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "marginBottom": 30,
                                   }
                                 }
@@ -920,14 +920,14 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   activeOpacity={0.2}
                                   onPress={[Function]}
                                   style={
-                                    Array [
-                                      Array [
-                                        Object {
+                                    [
+                                      [
+                                        {
                                           "borderRadius": 100,
                                           "justifyContent": "center",
                                           "padding": 15,
                                         },
-                                        Object {
+                                        {
                                           "backgroundColor": "#0376C9",
                                           "minHeight": 50,
                                         },
@@ -939,22 +939,22 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 >
                                   <Text
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "color": "#007aff",
                                           "fontSize": 17,
                                           "fontWeight": "500",
                                           "textAlign": "center",
                                         },
                                         null,
-                                        Array [
-                                          Object {
+                                        [
+                                          {
                                             "fontFamily": "EuclidCircularB-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
                                           },
-                                          Object {
+                                          {
                                             "color": "#FFFFFF",
                                           },
                                           undefined,
@@ -968,7 +968,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 </TouchableOpacity>
                                 <Text
                                   style={
-                                    Object {
+                                    {
                                       "color": "#535A61",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 11,
@@ -1003,7 +1003,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                         scrollTo={null}
                         statusBarTranslucent={false}
                         supportedOrientations={
-                          Array [
+                          [
                             "portrait",
                             "landscape",
                           ]
@@ -1032,7 +1032,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                         scrollTo={null}
                         statusBarTranslucent={false}
                         supportedOrientations={
-                          Array [
+                          [
                             "portrait",
                             "landscape",
                           ]
