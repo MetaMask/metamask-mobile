@@ -30,7 +30,7 @@ describe('NotificationsView', () => {
     } as unknown as NavigationProp<ParamListBase>;
   });
 
-  it('should render correctly', () => {
+  it('matches snapshot', () => {
     const { toJSON } = renderWithProvider(
       <NotificationsView
         navigation={navigation}
