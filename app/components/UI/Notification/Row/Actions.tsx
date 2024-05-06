@@ -4,9 +4,6 @@ import Button, {
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-//  TODO: Handle deeplinks from notifications.
-// import SharedDeeplinkManager from '../../../../core/DeeplinkManager/SharedDeeplinkManager';
-// import AppConstants from '../../../../core/AppConstants';
 
 interface NotificationActionsProps {
   link?: {
@@ -31,16 +28,6 @@ function NotificationActions({
     if (link?.linkUrl) {
       return Linking.openURL(link.linkUrl);
     }
-
-    if (action?.actionUrl) {
-      //  TODO: Handle deeplinks from notifications.
-      // const handledByDeeplink = SharedDeeplinkManager.parse(action.actionUrl, {
-      //   origin: AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
-      //   onHandled: () => (navigation as any).pop(2),
-      // });
-    }
-
-    // return handledByDeeplink;
   }
 
   return (
