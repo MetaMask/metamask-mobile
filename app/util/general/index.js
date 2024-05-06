@@ -160,3 +160,31 @@ export const deepJSONParse = ({ jsonString, skipNumbers = true }) => {
 
   return parsedObject;
 };
+
+/**
+ * Generates an array with unique items from a list of arrays
+ *
+ * @param  {...Array} arrays - A list of arrays
+ * @returns {Array} - Returns an array with unique items
+ * @throws {Error} - Throws if arrays is not defined
+ * @throws {TypeError} - Throws if any of the arguments is not an array
+ */
+export const uniqueList = (...arrays) => {
+  if (arrays.length === 0) {
+    throw new Error('At least one array must be defined.');
+  }
+  // Check if every argument is an array
+  arrays.forEach((array, index) => {
+    if (!Array.isArray(array)) {
+      throw new TypeError(`Argument at position ${index} is not an array.`);
+    }
+  });
+
+  // Flatten the arrays
+  const flattenedArray = arrays.flat();
+
+  // Create array with unique items
+  const uniqueArray = Array.from(new Set(flattenedArray));
+
+  return uniqueArray;
+};
