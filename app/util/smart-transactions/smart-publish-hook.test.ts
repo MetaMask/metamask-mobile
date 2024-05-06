@@ -17,6 +17,11 @@ import {
 import { ChainId } from '@metamask/controller-utils';
 import { ApprovalController } from '@metamask/approval-controller';
 
+jest.mock('uuid', () => ({
+  ...jest.requireActual('uuid'),
+  v1: jest.fn(() => 'approvalId'),
+}));
+
 const addressFrom = '0xabce7847fd3661a9b7c86aaf1daea08d9da5750e';
 const transactionHash =
   '0x0302b75dfb9fd9eb34056af031efcaee2a8cbd799ea054a85966165cd82a7356';
@@ -52,10 +57,8 @@ const createApprovalControllerMock = ({
     state: {
       pendingApprovals,
     },
-    startFlow: jest.fn().mockReturnValue({ id: 'approvalId' }),
     addAndShowApprovalRequest,
     updateRequestState: jest.fn(),
-    endFlow: jest.fn(),
   } as unknown as jest.Mocked<ApprovalController>);
 
 const createSmartTransactionsControllerMock = () =>
@@ -238,7 +241,6 @@ describe('submitSmartTransactionHook', () => {
       transactionMeta: request.transactionMeta,
     });
 
-    expect(request.approvalController.startFlow).toHaveBeenCalled();
     expect(
       request.approvalController.addAndShowApprovalRequest,
     ).toHaveBeenCalledWith({
@@ -272,10 +274,6 @@ describe('submitSmartTransactionHook', () => {
         isSwapApproveTx: false,
         isSwapTransaction: false,
       },
-    });
-
-    expect(request.approvalController.endFlow).toHaveBeenCalledWith({
-      id: 'approvalId',
     });
   });
 
@@ -331,7 +329,6 @@ describe('submitSmartTransactionHook', () => {
       transactionMeta: request.transactionMeta,
     });
 
-    expect(request.approvalController.startFlow).toHaveBeenCalled();
     expect(
       request.approvalController.addAndShowApprovalRequest,
     ).toHaveBeenCalledWith({
@@ -353,10 +350,6 @@ describe('submitSmartTransactionHook', () => {
     expect(
       request.approvalController.updateRequestState,
     ).not.toHaveBeenCalled();
-
-    expect(request.approvalController.endFlow).toHaveBeenCalledWith({
-      id: 'approvalId',
-    });
   });
 
   describe('MM Swaps', () => {
@@ -438,7 +431,6 @@ describe('submitSmartTransactionHook', () => {
         transactionMeta: request.transactionMeta,
       });
 
-      expect(request.approvalController.startFlow).toHaveBeenCalled();
       expect(
         request.approvalController.addAndShowApprovalRequest,
       ).toHaveBeenCalledWith({
@@ -460,8 +452,6 @@ describe('submitSmartTransactionHook', () => {
       expect(
         request.approvalController.updateRequestState,
       ).not.toHaveBeenCalled();
-
-      expect(request.approvalController.endFlow).not.toHaveBeenCalled();
     });
     it('does not start an approval flow if a swap tx is after a swap allowance tx and ends the allowance flow', async () => {
       const request: SubmitSmartTransactionRequestMocked = createRequest({
@@ -554,7 +544,6 @@ describe('submitSmartTransactionHook', () => {
         transactionMeta: request.transactionMeta,
       });
 
-      expect(request.approvalController.startFlow).not.toHaveBeenCalled();
       expect(
         request.approvalController.addAndShowApprovalRequest,
       ).not.toHaveBeenCalled();
@@ -578,10 +567,6 @@ describe('submitSmartTransactionHook', () => {
       });
 
       expect(request.transactionController.update).toHaveBeenCalledTimes(2);
-
-      expect(request.approvalController.endFlow).toHaveBeenCalledWith({
-        id: 'approvalId',
-      });
     });
   });
 });

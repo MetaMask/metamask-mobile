@@ -7,9 +7,8 @@ import {
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import {
-  getShouldEndFlow,
-  getShouldStartFlow,
-  getShouldUpdateFlow,
+  getShouldStartApprovalRequest,
+  getShouldUpdateApprovalRequest,
   getTransactionType,
 } from './index';
 import Logger from '../Logger';
@@ -19,6 +18,7 @@ import {
   SmartTransaction,
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller/dist/types';
+import { v1 as random } from 'uuid';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 
@@ -56,8 +56,8 @@ export const STX_NO_HASH_ERROR =
   'Smart Transaction does not have a transaction hash, there was a problem';
 
 class SmartTransactionHook {
-  #approvalFlowEnded: boolean;
-  #approvalFlowId: string;
+  #approvalEnded: boolean;
+  #approvalId: string | undefined;
   #chainId: Hex;
   #featureFlags: {
     extensionActive: boolean;
@@ -82,9 +82,8 @@ class SmartTransactionHook {
   #isSwapTransaction: boolean;
   #isNativeTokenTransferred: boolean;
 
-  #shouldStartFlow: boolean;
-  #shouldUpdateFlow: boolean;
-  #shouldEndFlow: boolean;
+  #shouldStartApprovalRequest: boolean;
+  #shouldUpdateApprovalRequest: boolean;
 
   constructor(request: SubmitSmartTransactionRequest) {
     const {
@@ -95,8 +94,8 @@ class SmartTransactionHook {
       approvalController,
       featureFlags,
     } = request;
-    this.#approvalFlowId = '';
-    this.#approvalFlowEnded = false;
+    this.#approvalId = undefined;
+    this.#approvalEnded = false;
     this.#transactionMeta = transactionMeta;
     this.#smartTransactionsController = smartTransactionsController;
     this.#transactionController = transactionController;
@@ -121,24 +120,19 @@ class SmartTransactionHook {
     this.#isSwapTransaction = isSwapTransaction;
     this.#isNativeTokenTransferred = isNativeTokenTransferred;
 
-    const approvalIdForPendingSwapApprove =
-      this.#getApprovalIdForPendingSwapApprove();
-    if (approvalIdForPendingSwapApprove) {
-      this.#approvalFlowId = approvalIdForPendingSwapApprove;
+    const approvalIdForPendingSwapApproveTx =
+      this.#getApprovalIdForPendingSwapApproveTx();
+    if (approvalIdForPendingSwapApproveTx) {
+      this.#approvalId = approvalIdForPendingSwapApproveTx;
     }
 
-    this.#shouldStartFlow = getShouldStartFlow(
+    this.#shouldStartApprovalRequest = getShouldStartApprovalRequest(
       this.#isDapp,
       this.#isSend,
       this.#isSwapApproveTx,
-      Boolean(approvalIdForPendingSwapApprove),
+      Boolean(approvalIdForPendingSwapApproveTx),
     );
-    this.#shouldUpdateFlow = getShouldUpdateFlow(
-      this.#isDapp,
-      this.#isSend,
-      this.#isSwapTransaction,
-    );
-    this.#shouldEndFlow = getShouldEndFlow(
+    this.#shouldUpdateApprovalRequest = getShouldUpdateApprovalRequest(
       this.#isDapp,
       this.#isSend,
       this.#isSwapTransaction,
@@ -153,13 +147,6 @@ class SmartTransactionHook {
     }
 
     Logger.log(LOG_PREFIX, 'Started submit hook', this.#transactionMeta.id);
-
-    if (this.#shouldStartFlow) {
-      const { id } = this.#approvalController.startFlow(); // this triggers a small loading spinner to pop up at bottom of page
-      this.#approvalFlowId = id;
-
-      Logger.log(LOG_PREFIX, 'Started approval flow id', this.#approvalFlowId);
-    }
 
     const getFeesResponse = await this.#getFees();
     // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
@@ -182,13 +169,13 @@ class SmartTransactionHook {
         this.#updateSwapsTransactions(uuid);
       }
 
-      if (this.#shouldStartFlow) {
+      if (this.#shouldStartApprovalRequest) {
         this.#addApprovalRequest({
           uuid,
         });
       }
 
-      if (this.#shouldUpdateFlow) {
+      if (this.#shouldUpdateApprovalRequest) {
         this.#addListenerToUpdateStatusPage({
           uuid,
         });
@@ -228,7 +215,7 @@ class SmartTransactionHook {
     }
   };
 
-  #getApprovalIdForPendingSwapApprove = () => {
+  #getApprovalIdForPendingSwapApproveTx = () => {
     const pendingApprovalsForSwapApproveTxs = Object.values(
       this.#approvalController.state.pendingApprovals,
     ).filter(
@@ -341,9 +328,11 @@ class SmartTransactionHook {
     if (!origin) throw new Error('Origin is required');
 
     // Do not await on this, since it will not progress any further if so
+    this.#approvalId = random();
+
     this.#approvalController
       .addAndShowApprovalRequest({
-        id: this.#approvalFlowId,
+        id: this.#approvalId,
         origin,
         type: ApprovalTypes.SMART_TRANSACTION_STATUS,
         // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
@@ -361,7 +350,7 @@ class SmartTransactionHook {
         },
       })
       .then(onApproveOrRejectWrapper, onApproveOrRejectWrapper);
-    Logger.log(LOG_PREFIX, 'Added approval', this.#approvalFlowId);
+    Logger.log(LOG_PREFIX, 'Added approval', this.#approvalId);
   };
 
   #updateApprovalRequest = async ({
@@ -369,16 +358,18 @@ class SmartTransactionHook {
   }: {
     smartTransaction: SmartTransaction;
   }) => {
-    await this.#approvalController.updateRequestState({
-      id: this.#approvalFlowId,
-      requestState: {
-        smartTransaction: smartTransaction as any,
-        isDapp: this.#isDapp,
-        isInSwapFlow: this.#isInSwapFlow,
-        isSwapApproveTx: this.#isSwapApproveTx,
-        isSwapTransaction: this.#isSwapTransaction,
-      },
-    });
+    if (this.#approvalId) {
+      await this.#approvalController.updateRequestState({
+        id: this.#approvalId,
+        requestState: {
+          smartTransaction: smartTransaction as any,
+          isDapp: this.#isDapp,
+          isInSwapFlow: this.#isInSwapFlow,
+          isSwapApproveTx: this.#isSwapApproveTx,
+          isSwapTransaction: this.#isSwapTransaction,
+        },
+      });
+    }
   };
 
   #addListenerToUpdateStatusPage = async ({ uuid }: { uuid: string }) => {
@@ -389,7 +380,7 @@ class SmartTransactionHook {
         if (!status || status === SmartTransactionStatuses.PENDING) {
           return;
         }
-        if (this.#shouldUpdateFlow && !this.#approvalFlowEnded) {
+        if (this.#shouldUpdateApprovalRequest && !this.#approvalEnded) {
           await this.#updateApprovalRequest({
             smartTransaction,
           });
@@ -428,22 +419,10 @@ class SmartTransactionHook {
     });
 
   #cleanup = () => {
-    if (this.#approvalFlowEnded) {
+    if (this.#approvalEnded) {
       return;
     }
-    this.#approvalFlowEnded = true;
-
-    // This removes the loading spinner, does not close modal
-    if (this.#shouldEndFlow && this.#approvalFlowId) {
-      try {
-        this.#approvalController.endFlow({
-          id: this.#approvalFlowId,
-        });
-        Logger.log(LOG_PREFIX, 'Ended approval flow id', this.#approvalFlowId);
-      } catch (e) {
-        Logger.log(LOG_PREFIX, 'End approval flow error', e);
-      }
-    }
+    this.#approvalEnded = true;
   };
 
   #updateSwapsTransactions = (id: string) => {

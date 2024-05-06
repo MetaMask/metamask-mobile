@@ -1,7 +1,6 @@
 import {
-  getShouldEndFlow,
-  getShouldStartFlow,
-  getShouldUpdateFlow,
+  getShouldStartApprovalRequest,
+  getShouldUpdateApprovalRequest,
   getTransactionType,
 } from './index';
 
@@ -266,55 +265,37 @@ describe('Smart Transactions utils', () => {
   });
   describe('getShouldStartFlow', () => {
     it('returns true for Send transaction', () => {
-      const res = getShouldStartFlow(false, true, false, false);
+      const res = getShouldStartApprovalRequest(false, true, false, false);
       expect(res).toBe(true);
     });
     it('returns true for Dapp transaction', () => {
-      const res = getShouldStartFlow(true, false, false, false);
+      const res = getShouldStartApprovalRequest(true, false, false, false);
       expect(res).toBe(true);
     });
     it('returns true for Swap approve transaction', () => {
-      const res = getShouldStartFlow(false, false, true, false);
+      const res = getShouldStartApprovalRequest(false, false, true, false);
       expect(res).toBe(true);
     });
     it('returns false for Swap transaction', () => {
-      const res = getShouldStartFlow(false, false, false, true);
+      const res = getShouldStartApprovalRequest(false, false, false, true);
       expect(res).toBe(false);
     });
   });
   describe('getShouldUpdateFlow', () => {
     it('returns true for Send transaction', () => {
-      const res = getShouldUpdateFlow(false, true, false);
+      const res = getShouldUpdateApprovalRequest(false, true, false);
       expect(res).toBe(true);
     });
     it('returns true for Dapp transaction', () => {
-      const res = getShouldUpdateFlow(true, false, false);
+      const res = getShouldUpdateApprovalRequest(true, false, false);
       expect(res).toBe(true);
     });
     it('returns true for Swap transaction', () => {
-      const res = getShouldUpdateFlow(false, false, true);
+      const res = getShouldUpdateApprovalRequest(false, false, true);
       expect(res).toBe(true);
     });
     it('returns false for Swap approve transaction', () => {
-      const res = getShouldUpdateFlow(false, false, false);
-      expect(res).toBe(false);
-    });
-  });
-  describe('getShouldEndFlow', () => {
-    it('returns true for Send transaction', () => {
-      const res = getShouldEndFlow(false, true, false);
-      expect(res).toBe(true);
-    });
-    it('returns true for Dapp transaction', () => {
-      const res = getShouldEndFlow(true, false, false);
-      expect(res).toBe(true);
-    });
-    it('returns true for Swap transaction', () => {
-      const res = getShouldEndFlow(false, false, true);
-      expect(res).toBe(true);
-    });
-    it('returns false for Swap approve transaction', () => {
-      const res = getShouldEndFlow(false, false, false);
+      const res = getShouldUpdateApprovalRequest(false, false, false);
       expect(res).toBe(false);
     });
   });

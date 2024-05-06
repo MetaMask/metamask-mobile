@@ -59,7 +59,7 @@ export const getTransactionType = (
 
 // Status modal start, update, and close conditions
 // If ERC20 if from token in swap and requires additional allowance, Swap txs are the 2nd in the swap flow, so we don't want to show another status page for that
-export const getShouldStartFlow = (
+export const getShouldStartApprovalRequest = (
   isDapp: boolean,
   isSend: boolean,
   isSwapApproveTx: boolean,
@@ -67,13 +67,7 @@ export const getShouldStartFlow = (
 ): boolean =>
   isDapp || isSend || isSwapApproveTx || !hasPendingApprovalForSwapApproveTx;
 
-export const getShouldUpdateFlow = (
-  isDapp: boolean,
-  isSend: boolean,
-  isSwapTransaction: boolean,
-): boolean => isDapp || isSend || isSwapTransaction;
-
-export const getShouldEndFlow = (
+export const getShouldUpdateApprovalRequest = (
   isDapp: boolean,
   isSend: boolean,
   isSwapTransaction: boolean,
