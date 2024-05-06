@@ -101,7 +101,7 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
 /**
  * Application entry point responsible for registering root component
  */
-// AppRegistry.registerComponent(name, () =>
+AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
   isTest ? Root : Sentry.wrap(Root),
 );
