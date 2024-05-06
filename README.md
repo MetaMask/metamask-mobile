@@ -43,12 +43,6 @@ cd metamask-mobile
 yarn setup
 ```
 
-Alternatively, when developing on Android only, you can pass `yarn setup` the `--skip-ios` flag to skip iOS specific setup steps.
-
-```bash
-yarn setup --skip-ios
-```
-
 _Not the usual install command, this will run scripts and a lengthy postinstall flow_
 
 ### Running the app
