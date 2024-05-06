@@ -1,8 +1,8 @@
 import { type TokenListMap } from '@metamask/assets-controllers';
-import { selectChainId } from '../../selectors/networkController';
-import { selectUseTokenDetection } from '../../selectors/preferencesController';
-import { selectTokenList } from '../../selectors/tokenListController';
-import { isMainnetByChainId } from '../../util/networks';
+import { selectChainId } from '../../../selectors/networkController';
+import { selectUseTokenDetection } from '../../../selectors/preferencesController';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { isMainnetByChainId } from '../../../util/networks';
 
 import useTokenList from './useTokenList';
 
@@ -26,19 +26,19 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: any) => selector(),
 }));
 
-jest.mock('../../selectors/networkController', () => ({
+jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn(),
 }));
 
-jest.mock('../../selectors/preferencesController', () => ({
+jest.mock('../../../selectors/preferencesController', () => ({
   selectUseTokenDetection: jest.fn(),
 }));
 
-jest.mock('../../selectors/tokenListController', () => ({
+jest.mock('../../../selectors/tokenListController', () => ({
   selectTokenList: jest.fn(),
 }));
 
-jest.mock('../../util/networks', () => ({
+jest.mock('../../../util/networks', () => ({
   isMainnetByChainId: jest.fn(),
 }));
 

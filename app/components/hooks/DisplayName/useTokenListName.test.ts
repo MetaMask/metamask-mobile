@@ -1,14 +1,11 @@
-import { NameType } from '../UI/Name/Name.types';
-import { useTokenListName } from './useTokenListName';
-import { useTokenList } from './useTokenList';
 import { TokenListMap } from '@metamask/assets-controllers';
-
-jest.mock('react-redux', () => ({
-  useSelector: (selector: any) => selector(),
-}));
+import { NameType } from '../../UI/Name/Name.types';
+import { useTokenListName } from './useTokenListName';
+import useTokenList from './useTokenList';
 
 jest.mock('./useTokenList', () => ({
-  useTokenList: jest.fn(),
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 const TOKEN_NAME_MOCK = 'MetaMask Token';
@@ -28,7 +25,7 @@ describe('useTokenListName', () => {
   it('returns null if no name found', () => {
     const name = useTokenListName(
       UNKNOWN_ADDRESS_MOCK,
-      NameType.ETHEREUM_ADDRESS,
+      NameType.EthereumAddress,
     );
 
     expect(name).toBe(null);
@@ -37,7 +34,7 @@ describe('useTokenListName', () => {
   it('returns name if found', () => {
     const name = useTokenListName(
       TOKEN_ADDRESS_MOCK,
-      NameType.ETHEREUM_ADDRESS,
+      NameType.EthereumAddress,
     );
     expect(name).toBe(TOKEN_NAME_MOCK);
   });
@@ -53,7 +50,7 @@ describe('useTokenListName', () => {
   it('normalizes addresses to lowercase', () => {
     const name = useTokenListName(
       TOKEN_ADDRESS_MOCK.toUpperCase(),
-      NameType.ETHEREUM_ADDRESS,
+      NameType.EthereumAddress,
     );
 
     expect(name).toBe(TOKEN_NAME_MOCK);

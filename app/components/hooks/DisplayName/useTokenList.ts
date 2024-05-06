@@ -1,10 +1,11 @@
 import { type TokenListMap } from '@metamask/assets-controllers';
 import contractMap from '@metamask/contract-metadata';
+
 import { useSelector } from 'react-redux';
-import { selectChainId } from '../../selectors/networkController';
-import { selectUseTokenDetection } from '../../selectors/preferencesController';
-import { selectTokenList } from '../../selectors/tokenListController';
-import { isMainnetByChainId } from '../../util/networks';
+import { selectChainId } from '../../../selectors/networkController';
+import { selectUseTokenDetection } from '../../../selectors/preferencesController';
+import { selectTokenList } from '../../../selectors/tokenListController';
+import { isMainnetByChainId } from '../../../util/networks';
 
 function normalizeTokenAddresses(tokenMap: TokenListMap) {
   return Object.keys(tokenMap).reduce((acc, address) => {

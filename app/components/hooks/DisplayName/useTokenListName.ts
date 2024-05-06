@@ -1,7 +1,5 @@
-import { NameType } from '../UI/Name/Name.types';
-import { useSelector } from 'react-redux';
-
-import { useTokenList } from './useTokenList';
+import { NameType } from '../../UI/Name/Name.types';
+import useTokenList from './useTokenList';
 
 export interface UseTokenListNameRequest {
   value: string;
@@ -11,10 +9,10 @@ export interface UseTokenListNameRequest {
 export function useTokenListNames(
   requests: UseTokenListNameRequest[],
 ): (string | null)[] {
-  const tokenList = useSelector(useTokenList);
+  const tokenList = useTokenList();
 
   return requests.map(({ value, type }) => {
-    if (type !== NameType.ETHEREUM_ADDRESS) {
+    if (type !== NameType.EthereumAddress) {
       return null;
     }
 
