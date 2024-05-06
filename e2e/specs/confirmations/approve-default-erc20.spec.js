@@ -52,19 +52,10 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         });
         await TestDApp.tapApproveButton();
 
-        // Assert the default token amount is shown
-        // await TestHelpers.checkIfExists(
-        //   ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT,
-        // );
         await Assertions.checkIfVisible(
           ContractApprovalModal.approveTokenAmount,
         );
 
-        // await expect(
-        //   element(
-        //     by.id(ContractApprovalModalSelectorsIDs.APPROVE_TOKEN_AMOUNT),
-        //   ),
-        // ).toHaveText(EXPECTED_TOKEN_AMOUNT);
         await Assertions.checkIfElementToHaveText(
           ContractApprovalModal.approveTokenAmount,
           EXPECTED_TOKEN_AMOUNT,
