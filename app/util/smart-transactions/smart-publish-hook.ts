@@ -242,6 +242,12 @@ class SmartTransactionHook {
     const pendingApprovalsForSwapApproveTx =
       pendingApprovalsForSwapApproveTxs[0];
 
+    Logger.log(
+      LOG_PREFIX,
+      'pendingApprovalsForSwapApproveTx',
+      pendingApprovalsForSwapApproveTx,
+    );
+
     return pendingApprovalsForSwapApproveTx && this.#isSwapTransaction
       ? pendingApprovalsForSwapApproveTx.id
       : null;
