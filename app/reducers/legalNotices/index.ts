@@ -1,8 +1,7 @@
 import { RootState } from '..';
 import { ACTIONS } from './types';
 
-// const newPrivacyPolicyDate = new Date('2024-05-06T00:00:00Z');
-const newPrivacyPolicyDate = new Date('2023-05-06T00:00:00Z');
+const newPrivacyPolicyDate = new Date('2024-06-04T00:00:00Z');
 
 const initialState = {
   newPrivacyPolicyToastClickedOrClosed: false,
