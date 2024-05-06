@@ -1,4 +1,6 @@
+import { Hex } from '@metamask/utils';
 import { NameType } from '../../UI/Name/Name.types';
+import { useFirstPartyContractName } from './useFirstPartyContractName';
 
 /**
  * Indicate the source and nature of a display name for a given address.
@@ -43,8 +45,28 @@ export type DisplayName =
  * @param type The NameType to get the display name for.
  * @param value The value to get the display name for.
  */
-const useDisplayName: (type: NameType, value: string) => DisplayName = () => ({
-  variant: DisplayNameVariant.Unknown,
-});
+const useDisplayName: (
+  type: NameType,
+  value: string,
+  chainId?: Hex,
+) => DisplayName = (_type, value, chainId) => {
+  const normalizedValue = value.toLowerCase();
+
+  const firstPartyContractName = useFirstPartyContractName(
+    normalizedValue,
+    chainId,
+  );
+
+  if (firstPartyContractName) {
+    return {
+      variant: DisplayNameVariant.Recognized,
+      name: firstPartyContractName,
+    };
+  }
+
+  return {
+    variant: DisplayNameVariant.Unknown,
+  };
+};
 
 export default useDisplayName;
