@@ -1,4 +1,4 @@
-import { NameType } from '@metamask/name-controller';
+import { NameType } from '../UI/Name/Name.types';
 import { useSelector } from 'react-redux';
 
 import { useTokenList } from './useTokenList';
