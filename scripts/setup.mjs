@@ -132,7 +132,7 @@ const mainSetupTask = {
   title: 'Dependencies setup',
   task: (_, task) => task.newListr([
     {
-      title: 'Install iOS Pods',
+      title: 'Install CocoaPods',
       task: async (_, podInstallTask) => {
         if (!BUILD_IOS) {
           return podInstallTask.skip('Skipping iOS.')
