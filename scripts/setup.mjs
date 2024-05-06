@@ -2,13 +2,16 @@ import fs from 'fs';
 import { $ } from 'execa';
 import { Listr } from 'listr2';
 
+const IS_OSX = process.platform === 'darwin';
+// Skip iOS specific steps. Useful when only developing on Android only.
+const SKIP_IOS = process.argv.slice(2)?.[0] === '--skip-ios';
+
 const rendererOptions = {
   collapseErrors: false,
   showSkipMessage: false,
   suffixSkips: true,
   collapseSubtasks: false
 };
-
 
 /*
  * FIXME: We shouldn't be making system wide installs without user consent.
@@ -26,10 +29,12 @@ const detoxGlobalInstallTask = {
     {
       title: 'Install applesimutils globally',
       task: async (_, appSimTask) => {
-        const isOSX = process.platform === 'darwin';
-        if (!isOSX) {
+        if (!IS_OSX) {
           appSimTask.skip('Not macOS.');
         } else {
+          if (SKIP_IOS) {
+            return appSimTask.skip('Skipping iOS.')
+          }
           await $`brew tap wix/brew`;
           await $`brew install applesimutils`;
         }
@@ -113,10 +118,13 @@ const gemInstallTask = {
     {
       title: 'Install gems using bundler',
       task: async (_, gemInstallTask) => {
-        const isOSX = process.platform === 'darwin';
-        if (!isOSX) {
+        if (!IS_OSX) {
+          // Skipping non-MacOS since these gems are used with Xcode (MacOS only)
           gemInstallTask.skip('Not macOS.');
         } else {
+          if (SKIP_IOS) {
+            return gemInstallTask.skip('Skipping iOS.')
+          }
           try {
             await $`bundle install`;
           } catch (error) {
@@ -138,10 +146,12 @@ const mainSetupTask = {
     {
       title: 'Install iOS Pods',
       task: async (_, podInstallTask) => {
-        const isOSX = process.platform === 'darwin';
-        if (!isOSX) {
+        if (!IS_OSX) {
           podInstallTask.skip('Not macOS.');
         } else {
+          if (SKIP_IOS) {
+            return podInstallTask.skip('Skipping iOS.')
+          }
           try {
             await $`bundle exec pod install --project-directory=ios`;
           } catch (error) {
