@@ -11,6 +11,7 @@ import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 import RemoteImage from '../../../../components/Base/RemoteImage';
+import { ETHEREUM_LOGO } from '../../../../constants/urls';
 /* eslint-disable import/no-commonjs */
 const metamask_fox = require('../../../../images/fox.png'); // eslint-disable-line
 interface NotificationIconProps {
@@ -64,9 +65,7 @@ function NotificationIcon({
       ) : (
         <RemoteImage
           source={{
-            uri:
-              imageUrl ||
-              'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
+            uri: imageUrl || ETHEREUM_LOGO,
           }}
           style={customStyles().style}
           placeholderStyle={customStyles().placeholderStyle}
