@@ -69,6 +69,7 @@ describe(Regression('Custom RPC Tests'), () => {
     );
     if (device.getPlatform() === 'ios') {
       await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
+      await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
       await NetworkView.tapRpcNetworkAddButton();
     }
     await Assertions.checkIfVisible(NetworkApprovalModal.container);
