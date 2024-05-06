@@ -7,13 +7,16 @@ import Device from '../util/device';
 
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
-import { NotificationTransactionTypes } from '../util/notifications/types';
 
+import {
+  NotificationTransactionTypes,
+  isNotificationsFeatureEnabled,
+  requestPushNotificationsPermission,
+} from '../util/notifications';
 import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId } from '../selectors/networkController';
 import { store } from '../store';
-import { requestPushNotificationsPermission } from '../util/notifications';
 const constructTitleAndMessage = (data) => {
   let title, message;
   switch (data.type) {
@@ -127,7 +130,7 @@ class NotificationManager {
         title,
         body: message,
         android: {
-          lightUpScreen: true,
+          lightUpScreen: false,
           channelId,
           smallIcon: 'ic_notification_small',
           largeIcon: 'ic_notification',
@@ -138,11 +141,11 @@ class NotificationManager {
         },
         ios: {
           foregroundPresentationOptions: {
-            alert: true,
-            sound: true,
-            badge: true,
-            banner: true,
-            list: true,
+            alert: false,
+            sound: false,
+            badge: false,
+            banner: false,
+            list: false,
           },
         },
       };
@@ -155,7 +158,7 @@ class NotificationManager {
         pushData.userInfo = extraData; // check if is still needed
       }
 
-      notifee.displayNotification(pushData);
+      isNotificationsFeatureEnabled() && notifee.displayNotification(pushData);
     } else {
       this._showTransactionNotification({
         autodismiss: data.duration,
