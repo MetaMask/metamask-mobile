@@ -95,13 +95,13 @@ notifee.onBackgroundEvent(async ({ type, detail }) => {
 });
 
 /* Uncomment and comment regular registration below */
-// import Storybook from './.storybook';
-// AppRegistry.registerComponent(name, () => Storybook);
+import Storybook from './.storybook';
+AppRegistry.registerComponent(name, () => Storybook);
 
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () =>
-  // Disable Sentry for E2E tests
-  isTest ? Root : Sentry.wrap(Root),
-);
+// AppRegistry.registerComponent(name, () =>
+//   // Disable Sentry for E2E tests
+//   isTest ? Root : Sentry.wrap(Root),
+// );

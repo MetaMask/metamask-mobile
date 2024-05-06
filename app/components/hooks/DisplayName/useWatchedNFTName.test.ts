@@ -22,18 +22,20 @@ jest.mock('../../../reducers/collectibles', () => ({
 
 describe('useWatchedNFTName', () => {
   const normalizedAddress = KNOWN_NFT_ADDRESS_CHECKSUMMED.toLowerCase();
-  const collectibleContractsSelectorMock = (
-    collectibleContractsSelector as jest.MockedFn<
-      typeof collectibleContractsSelector
-    >
-  ).mockReturnValue(COLLECTIBLES_MOCK);
+  const collectibleContractsSelectorMock = jest.mocked(
+    collectibleContractsSelector,
+  );
 
-  it('should return watched nft name', () => {
+  beforeAll(() => {
+    collectibleContractsSelectorMock.mockReturnValue(COLLECTIBLES_MOCK);
+  });
+
+  it('returns null if no NFT matched', () => {
     const name = useWatchedNFTName(normalizedAddress);
     expect(name).toEqual(KNOWN_NFT_NAME_MOCK);
   });
 
-  it('should return null if name no NFT matched', () => {
+  it('returns null if name no NFT matched', () => {
     collectibleContractsSelectorMock.mockReturnValue([]);
     const name = useWatchedNFTName(normalizedAddress);
     expect(name).toEqual(null);
